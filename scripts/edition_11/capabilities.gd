@@ -32,7 +32,7 @@ const KNOWN := {
 	"targeted-intercession": {"category": CATEGORY_UNIT, "name": "Targeted Intercession", "supported": false},
 	"unyielding-in-the-face-of-the-foe": {"category": CATEGORY_UNIT, "name": "Unyielding in the Face of the Foe", "supported": false},
 	# Leaders and commanders.
-	"leader": {"category": CATEGORY_UNIT, "name": "Leader", "supported": false},
+	"leader": {"category": CATEGORY_UNIT, "name": "Leader", "supported": true, "reference": true},
 	"my-will-be-done": {"category": CATEGORY_UNIT, "name": "My Will Be Done", "supported": false},
 	"implacable-resilience": {"category": CATEGORY_UNIT, "name": "Implacable Resilience", "supported": false},
 	"resurrection-orb": {"category": CATEGORY_UNIT, "name": "Resurrection Orb", "supported": false},
