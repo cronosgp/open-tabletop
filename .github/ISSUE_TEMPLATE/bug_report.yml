@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a problem or unexpected behavior
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. The more detail you provide, the faster we can reproduce and fix it.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear, concise description of the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened?
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Godot version, Python version, and match mode (local, LAN, loopback).
+      placeholder: e.g. Windows 11, Godot 4.7.2, Python 3.12, LAN
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Relevant output from `.tools/verification/` logs or the console, plus screenshots if helpful.

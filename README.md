@@ -1,5 +1,7 @@
 # Open Tabletop
 
+[![CI](https://github.com/cronosgp/open-tabletop/actions/workflows/verify.yml/badge.svg)](https://github.com/cronosgp/open-tabletop/actions/workflows/verify.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Godot 4.7.2](https://img.shields.io/badge/Godot-4.7.2-478cbf)](https://godotengine.org)
+
 An open-source tabletop prototype in Godot, intended for two-player Warhammer 40,000 play through versioned rules and user-supplied visuals. Current delivery is a movement demo and restricted combat/training exercises, not a complete supported official edition.
 
 **Current status:** [support matrix](docs/support-matrix.md). **Roadmap to the final product:** [roadmap](docs/roadmap.md). Historical increment reports: [rules status](docs/rules-status.md).
@@ -67,7 +69,7 @@ The first functional release targets Windows/Linux, one scenario and a restricte
 
 ## Content boundary
 
-Original demo content and external game content have separate licensing requirements. Download availability does not establish redistribution permission. Imported community data and user-supplied visuals do not automatically become redistributable project assets. The code license and contribution policy remain project decisions; no new license is selected by the implementation tools.
+Original demo content and external game content have separate licensing requirements. Download availability does not establish redistribution permission. Imported community data and user-supplied visuals do not automatically become redistributable project assets. The project's own code and original demo content are licensed under the [MIT License](LICENSE). Warhammer 40,000 and related names and marks are property of Games Workshop; imported community data and user-supplied visuals are not redistributed and remain under their own terms.
 
 
 

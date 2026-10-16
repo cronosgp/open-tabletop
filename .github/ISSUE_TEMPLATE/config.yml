@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Roadmap
+    url: https://github.com/cronosgp/open-tabletop/blob/main/docs/roadmap.md
+    about: Check the roadmap before requesting a feature.
+  - name: Support matrix
+    url: https://github.com/cronosgp/open-tabletop/blob/main/docs/support-matrix.md
+    about: See what is already implemented and what remains.

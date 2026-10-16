@@ -1,0 +1,44 @@
+name: Feature request
+description: Propose a new feature or improvement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. Please check the [roadmap](https://github.com/cronosgp/open-tabletop/blob/main/docs/roadmap.md) first to see if it is already planned.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem would this feature solve for you?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe what you would like to see.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you have thought about?
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Area
+      description: Which part of the project does this affect?
+      options:
+        - Rules
+        - Multiplayer / networking
+        - UI / UX
+        - Army builder / lists
+        - Models / import
+        - Persistence / history
+        - Build / CI / tooling
+        - Documentation
+        - Other
+    validations:
+      required: true
