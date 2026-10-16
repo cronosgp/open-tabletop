@@ -5,7 +5,8 @@
 ## Progress
 
 - ✅ **A4** — unified capability registry (`scripts/edition_11/capabilities.gd`, `tests/test_capabilities.gd`).
-- ✅ **A1 leaders (mechanism)** — Leader attachment + Warlord as a provisional reference (`scripts/edition_11/leaders.gd`, `tests/test_leaders.gd`). Attachment permissions are curated from the reference squads and must be verified against the final 11e dataslate. Commanders are **not yet** whitelisted in `army_capabilities.gd`.
+- ✅ **A1 leaders (mechanism)** — Leader attachment + Warlord as a provisional reference (`scripts/edition_11/leaders.gd`, `tests/test_leaders.gd`). Attachment permissions are curated from the reference squads and must be verified against the final 11e dataslate.
+- ✅ **A1 commanders whitelisted** — Captain and Overlord added to `army_capabilities.gd` SPECS with fixed loadouts (`tests/test_commanders.gd`); both admit and build real 1-model Leader squads.
 
 This is the execution plan for the roadmap's [Track A](roadmap.md#a-rules--content-completeness-the-critical-path). Goal: two players complete a **legal** 1,000pt match from deployment to a decisive result, with every rule the chosen lists and mission require implemented and verified; everything else stays blocked.
 

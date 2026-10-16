@@ -15,7 +15,11 @@ const SPECS := {
 	"necron-warriors": {"faction": "Necrons", "folder": "necrons", "models": 10, "template": 2,
 		"aliases": ["58e9-5212-f5a6-c12d"], "gun": ["gauss-flayer", "Gauss flayer"], "blade": ["close-combat-weapon", "Close combat weapon"]},
 	"immortals": {"faction": "Necrons", "folder": "necrons", "models": 5, "template": 2,
-		"aliases": ["f81-b23c-e183-39d7"], "gun": ["gauss-blaster", "Gauss blaster"], "blade": ["close-combat-weapon-immortals", "Close combat weapon"]}}
+		"aliases": ["f81-b23c-e183-39d7"], "gun": ["gauss-blaster", "Gauss blaster"], "blade": ["close-combat-weapon-immortals", "Close combat weapon"]},
+	"captain": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1,
+		"aliases": [], "gun": ["master-crafted-bolter", "Master-crafted Bolter"], "blade": ["master-crafted-power-weapon-captain", "Master-crafted Power Weapon"]},
+	"overlord": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 2,
+		"aliases": [], "gun": ["staff-of-light-overlord", "Ranged"], "blade": ["staff-of-light-overlord", "Melee"]}}
 
 static func weapon(unit: Dictionary, choice: Array) -> Dictionary:
 	for item: Dictionary in unit.get("source_weapon_definitions", []):
