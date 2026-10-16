@@ -1,0 +1,4 @@
+# Content hashes must survive checkout on Windows and Linux.
+*.json text eol=lf
+*.gd text eol=lf
+*.py text eol=lf

@@ -1,0 +1,22 @@
+# Hazardous and infantry Close-quarters
+
+Enable **Next match: varied training equipment**. The first Intercessor in each squad now has the imported plasma pistol, Standard and Supercharge, alongside its existing training equipment. This remains a curated practice roster, not a legal army construction validator.
+
+Open the attack planner and select **Plasma Pistol / Supercharge**. Each infantry model chooses its Close-quarters weapons or its other ranged weapons; clear that model's existing assignments before switching category. Different models may choose different categories. Standard has no Hazardous test. While engaged, infantry can select Close-quarters weapons against units engaged with its unit, subject to the firing model's range and visibility. Advance and Fall Back restrictions still apply. The right-click shortcut continues to use the first equipped profile, so use the planner for plasma.
+
+After every declared attack pool finishes, the host tests Hazardous once per selected Hazardous weapon instance, including weapons whose attacks missed or whose declared target was destroyed by an earlier pool. Splitting one melee weapon across targets does not multiply its hazard tests. A result of 1–2 fails. Each failure inflicts one mortal wound, or three if every surviving model in the unit is MONSTER/VEHICLE.
+
+The unit owner chooses each recipient with **Allocate one Hazardous mortal wound to selected model**. Eligible models are listed and marked by green rings. The recipient need not carry the Hazardous weapon. Wounded non-characters take priority, then other non-characters, wounded characters, and other characters. Each choice removes one wound; remaining mortals stop when that unit is destroyed. Character priority is implemented in this helper, but attached combat and mixed defending profiles are now supported; see [advanced defense](advanced-defense.md).
+
+These choices are required even when automatic allocation assist is enabled for normal attack damage. Other actions, activation completion, fight queue advancement and elimination scoring wait until all pending Hazardous wounds finish. Destruction of both armies produces an elimination draw. Custom objective-training scoring retains its existing mission flow.
+
+Pending state stores all hazard dice, remaining wounds and accepted recipients in host snapshots. Reconnection resumes without rerolling. Invalid owner/model/revision requests are rejected. Bad host dice reject the current command transaction, preserving previously accepted defender choices. Final history records hazard dice and recipients. Hazardous introduced protocol v17; the current advanced-defense increment uses v21. Both peers need the updated build.
+
+Rules basis: [Core Rules §§06.02, 06.03, 10.06, 24.07 and 24.15](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/). The isolated attack lab rejects Hazardous and directs users to the combat exercise because it cannot represent owner allocation.
+
+Validation: 22 local suites and seven host/client loopback scenarios passed on Windows, including a new Hazardous reconnection scenario. Tests cover hazard thresholds, recipient priority, deferred defender-to-owner control, invalid dice transactions, selected weapons with destroyed targets, split melee weapon counting, queue resumption, three-wound hazards, excess wounds on unit destruction and mutual elimination. Plasma selection and Hazardous details/allocation were rendered and visually inspected.
+
+Remaining scope: Monster/Vehicle shooting exceptions, sidearm exemptions and assigned Feel No Pain profiles are now implemented in [advanced defense](advanced-defense.md). Mortal-wound-triggered abilities remain disabled. Hunter and Extra Attacks are now supported by the planner; see [weapon selection](weapon-selection.md). Devastating Wounds is now supported; see [mortal-damage allocation](devastating-wounds.md). Further core work includes remaining weapon keywords and damage modifiers. Random melee A supports a single target; split declarations remain restricted. Linux and separate-machine LAN remain unverified. Battlefield editing stays low priority.
+
+
+

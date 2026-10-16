@@ -1,0 +1,6 @@
+.godot/
+.tools/
+builds/
+__pycache__/
+data/imported/
+.agents/

@@ -1,0 +1,42 @@
+name: Offline verification
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  demo:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned Godot
+        shell: pwsh
+        run: |
+          $asset = if ($IsWindows) { 'Godot_v4.7.2-stable_win64.exe.zip' } else { 'Godot_v4.7.2-stable_linux.x86_64.zip' }
+          Invoke-WebRequest "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/$asset" -OutFile godot.zip
+          Expand-Archive godot.zip -DestinationPath engine
+          $engine = if ($IsWindows) { (Resolve-Path engine/Godot_v4.7.2-stable_win64_console.exe).Path } else { (Resolve-Path engine/Godot_v4.7.2-stable_linux.x86_64).Path }
+          if (-not $IsWindows) { chmod +x $engine }
+          "GODOT=$engine" >> $env:GITHUB_ENV
+      - name: Verify demo and loopback
+        run: python tools/verify.py --profile demo --network
+      - name: Export and start demo pack
+        run: python tools/build_demo.py
+      - name: Retain reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-${{ matrix.os }}
+          path: |
+            .tools/verification/*/results.json
+            .tools/verification/*/*.log
+            .tools/verification/*/open-tabletop-demo.pck

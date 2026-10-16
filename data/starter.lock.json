@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "provider": "40kdc-data",
+  "revision": "709ecd9f5bb6c06b7446eda6a6a0eae6b921a1c8",
+  "units_sha256": {
+    "adeptus-astartes": "9fe6365a30aaf77312681bf01a92ce4af11e2f9a4ad492b1ceae79d027cc00c7",
+    "necrons": "630d7e7e3b66b5b6608cdfb44e1efb7e6bcb0cfc7b4c34deb0b57fb0b317f5cf"
+  }
+}

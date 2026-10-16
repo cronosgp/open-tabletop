@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "prototype-movement-v1",
+  "edition": "demo",
+  "implementation": "prototype-movement-v1",
+  "units_sha256": "04515fa624d8ffc1be7fab8627856a6d32e0f26b63e08383bc6bb4119f384a28",
+  "source": {
+    "revision": "1",
+    "url": "local",
+    "license_status": "project-authored",
+    "provider": "original"
+  },
+  "supported_mechanics": [
+    "straight-movement",
+    "turn-ownership",
+    "base-collision"
+  ]
+}

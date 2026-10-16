@@ -1,0 +1,10 @@
+[
+  {
+    "id": "original:demo:training-piece",
+    "name": "Training piece",
+    "stats": { "movement_inches": 6.0 },
+    "base": { "shape": "circle", "radius_inches": 0.55 },
+    "unsupported_rules": [],
+    "playable": true
+  }
+]
