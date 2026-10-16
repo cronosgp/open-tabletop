@@ -1,18 +1,17 @@
 extends RefCounted
 ## Explicit Intercessor capability. Never activate arbitrary imported ability DSL.
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
+const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const ID := "intercessor-objective-secured-v1"
 const DEFINITION := "40kdc:11e:adeptus-astartes:intercessor-squad"
 const SOURCE := "https://assets.warhammer-community.com/eng_04-06_warhammer40k_new40k_armageddon_spacemarines_datasheet_cards-hcuj9cke0r-h2rfuky1yw.pdf"
 
 static func enable(state: Dictionary) -> void:
 	state.objective_secured = {"implementation": ID}
+	Capabilities.admit(state, "objective-secured", ID)
 	for squad: int in state.squads:
 		if not intercessors(state, squad): continue
-		state.squads[squad].disabled_abilities.erase("objective-secured")
-		var abilities: Array = state.squads[squad].get("enabled_abilities", []).duplicate()
-		if "objective-secured" not in abilities: abilities.append("objective-secured")
-		state.squads[squad].enabled_abilities = abilities
+		Capabilities.admit_squad(state, squad, "objective-secured")
 
 static func intercessors(state: Dictionary, squad: int) -> bool:
 	var found := false

@@ -2,6 +2,7 @@ extends RefCounted
 ## Verified effect, explicit canonical units/equipment; imported DSL stays inert.
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
+const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const ID := "intercessor-hail-of-bolts-v1"
 const DEFINITION := "40kdc:11e:adeptus-astartes:intercessor-squad"
 const SOURCE := "https://assets.warhammer-community.com/eng_04-06_warhammer40k_new40k_armageddon_spacemarines_datasheet_cards-hcuj9cke0r-h2rfuky1yw.pdf"
@@ -16,14 +17,13 @@ static func intercessors(state: Dictionary, squad: int) -> bool:
 
 static func enable(state: Dictionary) -> void:
 	state.hail_of_bolts = {"implementation": ID}
+	Capabilities.admit(state, "hail-of-bolts", ID)
 	for squad: int in state.squads:
 		if not intercessors(state, squad): continue
+		Capabilities.admit_squad(state, squad, "hail-of-bolts")
 		# Replace the provisional slot with the verified named ability, not its DSL.
 		state.squads[squad].disabled_abilities.erase("target-elimination")
 		state.squads[squad].superseded_abilities = {"target-elimination": "hail-of-bolts"}
-		var abilities: Array = state.squads[squad].get("enabled_abilities", []).duplicate()
-		if "hail-of-bolts" not in abilities: abilities.append("hail-of-bolts")
-		state.squads[squad].enabled_abilities = abilities
 
 static func available(state: Dictionary, squad: int) -> bool:
 	return state.get("hail_of_bolts", {}).get("implementation", "") == ID and intercessors(state, squad) and state.phase == "shooting" and state.active == state.squads[squad].owner

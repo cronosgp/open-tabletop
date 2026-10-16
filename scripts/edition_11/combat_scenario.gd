@@ -21,6 +21,7 @@ const Hazard = preload("res://scripts/edition_11/hazardous.gd")
 const Attachments = preload("res://scripts/edition_11/attached_units.gd")
 const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
+const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const PACK_ID := "11e-3d-integration-v23"
 const DIRECTORY := "res://data/imported/starter-11e-v1"
 const PHASES := ["start_turn", "command", "movement", "shooting", "charge", "fight", "end_turn"]
@@ -105,7 +106,7 @@ static func initial_state(terrain_id: String = Terrain.DEFAULT_LAYOUT, mission_i
 				units[extra * 100 + index].position.y += 8.0
 	return {"pack": PACK_ID, "pack_hash": hashes.sha256_text(), "terrain": terrain, "mission": mission, "revision": 0, "phase": "start_turn",
 		"varied_equipment": varied_equipment, "manual_allocation": manual_allocation, "pending_attack": {}, "pending_hazard": {}, "squads_per_side": squads_per_side, "pile_done": [], "consolidate_done": [], "reaction_queue": [], "fight_selected": -1, "turn": 1, "round": 1, "active": 1, "units": units, "squads": squads,
-		"cp": {1: 0, 2: 0}, "events": [], "test_winner": 0, "scope": DISABLED,
+		"cp": {1: 0, 2: 0}, "events": [], "test_winner": 0, "scope": DISABLED, "capabilities": {},
 		"pending_move": {}, "pending_charge": {}, "pending_contact": {}, "consolidation_return": 0,
 		"fight_step": "complete", "fight_actor": 1, "fight_priority": "first"}
 
