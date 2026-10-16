@@ -33,6 +33,8 @@ Remaining work is organized into eight tracks. Each milestone lists its delivera
 
 ### A. Rules & content completeness *(the critical path)*
 
+> **In progress** — the locked 1,000pt target and per-ability execution order are in [track-a.md](track-a.md).
+
 | # | Milestone | Deliverables | Done when |
 |---|---|---|---|
 | A1 | Legal reference armies | Commanders/attachments, detachments, verified unit/faction abilities for the Space Marines + Necrons reference forces; confirm the current Immortal datasheet | Both reference forces build and play as legal lists, every ability sourced and implemented |
