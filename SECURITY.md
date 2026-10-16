@@ -18,7 +18,7 @@ Instead, report them privately so they can be addressed before disclosure:
 
 1. Use GitHub's private vulnerability reporting on the
    [Security tab](https://github.com/cronosgp/open-tabletop/security), or
-2. Contact the maintainers directly through the repository.
+2. Email the maintainers at **gabrielgps1@gmail.com**.
 
 Include:
 
