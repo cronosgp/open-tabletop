@@ -48,6 +48,13 @@ func show_page(page: Dictionary) -> void:
 	first = page.start
 	total = page.total
 	summary.text = "Registros %d–%d de %d" % [first + 1 if total > 0 else 0, first + items.size(), total]
+	summary.tooltip_text = ""
+	var checkpoint: Dictionary = page.get("checkpoint", {})
+	if not checkpoint.is_empty():
+		var tip := str(checkpoint.get("hash", ""))
+		var short_tip := tip.substr(0, 12) if tip.length() >= 12 else tip
+		summary.text += "\nJournal chain tip #%d • %s" % [int(checkpoint.get("count", 0)), short_tip]
+		summary.tooltip_text = "Current journal chain tip. The matching saved checkpoint verifies the recorded prefix when the save is resumed. Full tip: %s" % tip
 	if not page.get("notice", "").is_empty(): summary.text += "\n" + page.notice
 	previous.disabled = first <= 0
 	next.disabled = first + items.size() >= total

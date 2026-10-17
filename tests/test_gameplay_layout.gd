@@ -8,14 +8,35 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
-	check(game.match_tabs.current_tab == 0, "Preview opens match setup")
+	check(game.main_menu.visible and not game.sidebar_panel.visible and not game.combat_hud.visible, "Launch opens the dedicated title screen")
+	check(game.main_menu.resume_button.visible == game.resume_compatible, "Continue only appears for a compatible local save")
+	game.main_menu.set_resume_state(false, "No compatible save found.")
+	check(not game.main_menu.resume_button.visible and game.main_menu.guided_button.visible, "Guided match is the fallback when no compatible save exists")
+	game.main_menu.set_resume_state(game.resume_compatible)
 	game._start_objectives()
-	check(game.match_tabs.current_tab == 1, "Starting combat opens gameplay")
-	check(game.objective_summary.visible and "VP 0 / 0" in game.objective_summary.text, "Training scoreboard visible outside scrolling details")
+	game._dismiss_home(1)
+	check(game.match_tabs.current_tab == 1 and game.combat_hud.visible, "Starting combat opens the combat HUD")
+	check(game.objective_summary.visible and "VP" in game.objective_summary.text, "Training scoreboard visible in the HUD")
+	var match_before_menu := var_to_str(game.state)
+	game._open_home()
+	check(game.main_menu.visible and not game.sidebar_panel.visible and not game.combat_hud.visible, "Match menu is a local overlay above the board")
+	check(var_to_str(game.state) == match_before_menu, "Opening the menu does not change match state")
+	game._dismiss_home(1)
+	game.mode = "client"
+	match_before_menu = var_to_str(game.state)
+	game._open_home()
+	check(var_to_str(game.state) == match_before_menu and game.mode == "client", "Opening the menu during LAN leaves session state unchanged")
+	game._dismiss_home(1)
+	game.mode = "local"
 	game.match_tabs.current_tab = 0
 	game._refresh()
 	check(game.match_tabs.current_tab == 0, "Refreshing state preserves deliberately opened setup tab")
 	game.match_tabs.current_tab = 1
+	var play_width: float = game.sidebar_panel.size.x
+	game.match_tabs.current_tab = 3
+	var army_width: float = game.sidebar_panel.size.x
+	game.match_tabs.current_tab = 1
+	check(army_width > play_width, "Army Workshop expands its workspace while Play keeps more of the board visible")
 	game.technical_toggle.button_pressed = true
 	game.details.text += "\nLong selection details".repeat(80)
 	for frame in range(5): await process_frame

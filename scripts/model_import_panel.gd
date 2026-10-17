@@ -2,6 +2,7 @@ extends VBoxContainer
 ## Local import settings and preview. Paths and mappings never enter match snapshots.
 signal mappings_changed
 signal automatic_status(message: String)
+signal variants_changed(definition: String)
 const CatalogDownload = preload("res://scripts/forceorg_catalog_download.gd")
 var catalog_downloader: Node
 var catalog_definitions: Array[String] = []
@@ -26,6 +27,15 @@ var settings_path := "user://local-models.cfg"
 var selected_definition: Callable
 var selected_radius: Callable
 var mappings: Dictionary = {}
+var variant_mappings: Dictionary = {}
+var variant_cache: Dictionary = {}
+var variant_queue: Array[Dictionary] = []
+var variant_download_active := false
+var variant_catalog_pending := false
+var variant_failures: Array[String] = []
+var variant_catalog_definition := ""
+var variant_download_definition := ""
+var variant_current: Dictionary = {}
 var catalog: Dictionary = {}
 var cache: Dictionary = {}
 var source_path: LineEdit
@@ -130,6 +140,20 @@ func _ready() -> void:
 		automatic_status.emit(message)
 	)
 	catalog_downloader.finished.connect(func(result: Dictionary):
+		if variant_catalog_pending:
+			variant_catalog_pending = false
+			if not result.error.is_empty():
+				download_status.text = result.error
+				automatic_status.emit(download_status.text)
+				return
+			var scanned := Assets.scan(result.path)
+			if not scanned.error.is_empty():
+				download_status.text = scanned.error
+				automatic_status.emit(download_status.text)
+				return
+			catalog = scanned
+			_start_variant_downloads(variant_catalog_definition)
+			return
 		if not automatic_running: return
 		var definitions: Array[String] = catalog_definitions.duplicate()
 		catalog_definitions.clear()
@@ -179,14 +203,14 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	var definition := _definition()
-	inventory.disabled = downloader.busy or automatic_running
-	inventory_filter.editable = not downloader.busy and not automatic_running
-	download_path.editable = not downloader.busy and not automatic_running
-	download_cancel.visible = downloader.busy or automatic_running
+	inventory.disabled = downloader.busy or automatic_running or variant_download_active
+	inventory_filter.editable = not downloader.busy and not automatic_running and not variant_download_active
+	download_path.editable = not downloader.busy and not automatic_running and not variant_download_active
+	download_cancel.visible = downloader.busy or automatic_running or variant_download_active
 	var entry := _selected_entry()
-	download_button.disabled = downloader.busy or automatic_running or entry.get("kind", "") != "CustomMesh" or str(entry.get("references", {}).get("MeshURL", "")).is_empty()
+	download_button.disabled = downloader.busy or automatic_running or variant_download_active or entry.get("kind", "") != "CustomMesh" or str(entry.get("references", {}).get("MeshURL", "")).is_empty()
 	target.text = "Target unit type: " + definition if not definition.is_empty() else "Select a battlefield model in Play, then return here."
-	apply_button.disabled = downloader.busy or automatic_running or definition.is_empty() or preview_asset.is_empty() or preview_asset.get("path", "") != mesh_path.text.strip_edges() or preview_asset.get("texture", "") != texture_path.text.strip_edges()
+	apply_button.disabled = downloader.busy or automatic_running or variant_download_active or definition.is_empty() or preview_asset.is_empty() or preview_asset.get("path", "") != mesh_path.text.strip_edges() or preview_asset.get("texture", "") != texture_path.text.strip_edges()
 
 func start_download() -> void:
 	if downloader.busy or automatic_running: return
@@ -202,6 +226,9 @@ func start_download() -> void:
 
 func _download_finished(result: Dictionary) -> void:
 	if not is_inside_tree(): return
+	if variant_download_active:
+		_finish_variant_download(result)
+		return
 	if automatic_running:
 		_finish_automatic_item(result)
 		return
@@ -229,6 +256,7 @@ func scan_source() -> void:
 	catalog = result
 	_save(mappings)
 	var matches := _populate_inventory()
+	variants_changed.emit(_definition())
 	lookup_status.text = "%d entries • %d embedded static objects • %d skipped-table warnings\n%s" % [catalog.entries.size(), catalog.get("embedded_objects", 0), catalog.get("warnings", []).size(), matches]
 	if not catalog.get("warnings", []).is_empty(): notice.text += "\n" + "\n".join(catalog.warnings.slice(0, 10))
 
@@ -415,6 +443,7 @@ func _save(next: Dictionary) -> bool:
 	var cfg := ConfigFile.new()
 	cfg.set_value("models", "version", 1)
 	cfg.set_value("models", "mappings", next)
+	cfg.set_value("models", "variants", variant_mappings)
 	cfg.set_value("paths", "source", source_path.text.strip_edges())
 	cfg.set_value("paths", "cache", cache_path.text.strip_edges())
 	cfg.set_value("paths", "downloads", download_path.text.strip_edges())
@@ -443,6 +472,12 @@ func load_settings() -> void:
 		var tts: Variant = mapping.get("tts_scale", 1.0)
 		if mapping.has("tts_scale") and (not (tts is float or tts is int) or not is_finite(float(tts)) or float(tts) < 0.01 or float(tts) > 20.0): valid = false
 		if valid: mappings[definition] = mapping
+	var saved_variants: Variant = cfg.get_value("models", "variants", {})
+	if saved_variants is Dictionary:
+		for identity: Variant in saved_variants:
+			var variant: Variant = saved_variants[identity]
+			if identity is String and variant is Dictionary and variant.get("path") is String and variant.get("texture", "") is String:
+				variant_mappings[identity] = variant
 	var saved_source: Variant = cfg.get_value("paths", "source", "")
 	if saved_source is String: source_path.text = saved_source
 	var saved_cache: Variant = cfg.get_value("paths", "cache", "")
@@ -468,6 +503,136 @@ func visual_for(definition: String, base_radius_inches: float = 0.0) -> Node3D:
 	var settings: Dictionary = mappings[definition].duplicate()
 	if base_radius_inches > 0.01: settings.base_radius_inches = base_radius_inches
 	return Assets.visual(cache[definition], settings)
+
+func variants_for(definition: String) -> Array[Dictionary]:
+	var options: Array[Dictionary] = Matcher.variants(definition, catalog.get("entries", [])) if not catalog.is_empty() else []
+	for identity: String in variant_mappings:
+		var mapping: Dictionary = variant_mappings[identity]
+		if str(mapping.get("definition", "")) != definition: continue
+		var known := false
+		for option: Dictionary in options:
+			if str(option.get("variant_id", "")) == identity: known = true
+		if not known:
+			var entry: Dictionary = mapping.get("entry", {}).duplicate(true)
+			entry.variant_id = identity
+			options.append(entry)
+	for option: Dictionary in options:
+		option.ready = variant_mappings.has(str(option.get("variant_id", "")))
+	return options
+
+func download_variants_for(definition: String) -> void:
+	if downloader.busy or automatic_running or variant_download_active:
+		download_status.text = "Finish or cancel the current model download first."
+		automatic_status.emit(download_status.text)
+		return
+	if catalog.is_empty():
+		var candidate := source_path.text.strip_edges()
+		if candidate.is_empty():
+			for path in ["user://ForceOrg.json", "res://ForceOrg.json", OS.get_system_dir(OS.SYSTEM_DIR_DOCUMENTS).path_join("My Games/Tabletop Simulator/Saves/ForceOrg.json")]:
+				if FileAccess.file_exists(path):
+					candidate = path
+					break
+		if not candidate.is_empty():
+			var scanned := Assets.scan(candidate)
+			if scanned.error.is_empty():
+				catalog = scanned
+				source_path.text = candidate
+			else:
+				download_status.text = scanned.error
+				automatic_status.emit(download_status.text)
+				return
+		else:
+			variant_catalog_definition = definition
+			variant_catalog_pending = true
+			download_status.text = "Downloading the model catalog…"
+			automatic_status.emit(download_status.text)
+			var issue: String = catalog_downloader.start()
+			if not issue.is_empty():
+				variant_catalog_pending = false
+				download_status.text = issue
+				automatic_status.emit(download_status.text)
+			return
+	_start_variant_downloads(definition)
+
+func _start_variant_downloads(definition: String) -> void:
+	variant_download_definition = definition
+	variant_queue.clear()
+	variant_failures.clear()
+	var options := Matcher.variants(definition, catalog.get("entries", []))
+	if options.is_empty():
+		download_status.text = "No compatible complete OBJ variants were found for this unit."
+		automatic_status.emit(download_status.text)
+		return
+	for entry: Dictionary in options:
+		if not variant_mappings.has(str(entry.get("variant_id", ""))): variant_queue.append(entry)
+	if variant_queue.is_empty():
+		download_status.text = "All compatible visual variants are already in the local cache."
+		automatic_status.emit(download_status.text)
+		variants_changed.emit(definition)
+		return
+	variant_download_active = true
+	download_status.text = "Preparing %d visual variant(s) for %s…" % [variant_queue.size(), definition]
+	automatic_status.emit(download_status.text)
+	_next_variant_download()
+
+func _next_variant_download() -> void:
+	if variant_queue.is_empty():
+		variant_download_active = false
+		download_status.text = "Visuals ready for %s. %d variant(s) unavailable; affected miniatures keep the default." % [variant_download_definition, variant_failures.size()]
+		if not variant_failures.is_empty(): download_status.text += "\n" + "\n".join(variant_failures.slice(0, 3))
+		automatic_status.emit(download_status.text)
+		variants_changed.emit(variant_download_definition)
+		return
+	variant_current = variant_queue.pop_front()
+	var cache_index := Assets.index_cache(download_path.text.strip_edges())
+	var resolved := Assets.resolve_cache(variant_current, cache_index) if not cache_index.is_empty() and cache_index.get("error", "").is_empty() else {}
+	if not resolved.is_empty() and resolved.mesh.status == "found" and (not resolved.diffuse_required or resolved.diffuse.status == "found"):
+		_finish_variant_download({"error": "", "mesh": resolved.mesh.path, "texture": resolved.diffuse.path})
+		return
+	download_status.text = "Downloading %s…" % str(variant_current.get("name", "visual variant"))
+	automatic_status.emit(download_status.text)
+	var issue: String = downloader.start(variant_current, download_path.text.strip_edges())
+	if not issue.is_empty(): _finish_variant_download({"error": issue})
+
+func _finish_variant_download(result: Dictionary) -> void:
+	var issue := str(result.get("error", ""))
+	if issue.is_empty():
+		var asset := Assets.obj_mesh(str(result.get("mesh", "")), str(result.get("texture", "")))
+		issue = str(asset.get("error", ""))
+		if issue.is_empty():
+			var entry: Dictionary = variant_current.duplicate(true)
+			var tts := float(entry.get("tts_scale", 1.0))
+			if not is_finite(tts) or tts < 0.01 or tts > 20.0: tts = 1.0
+			var identity := str(entry.get("variant_id", ""))
+			var mapping := {"definition": variant_download_definition, "path": str(result.mesh), "texture": str(result.texture), "fingerprint": asset.fingerprint,
+				"texture_fingerprint": asset.texture_fingerprint, "scale": 1.0, "rotation": 0.0, "offset": 0.0, "tts_scale": tts, "entry": entry}
+			variant_mappings[identity] = mapping
+			variant_cache[identity] = asset
+			if not _save(mappings):
+				variant_mappings.erase(identity)
+				variant_cache.erase(identity)
+				issue = "Could not save local variant settings."
+	if not issue.is_empty():
+		variant_failures.append(str(variant_current.get("name", "variant")) + ": " + issue)
+		download_status.text = "Variant unavailable: " + issue
+	else: download_status.text = "Saved local visual variant: " + str(variant_current.get("name", "visual variant"))
+	automatic_status.emit(download_status.text)
+	if variant_download_active: call_deferred("_next_variant_download")
+
+func visual_variant_for(identity: String, base_radius_inches: float = 0.0) -> Node3D:
+	if identity.is_empty() or not variant_mappings.has(identity): return null
+	if not variant_cache.has(identity):
+		var mapping: Dictionary = variant_mappings[identity]
+		var asset := Assets.obj_mesh(str(mapping.path), str(mapping.get("texture", "")))
+		if not asset.error.is_empty() or asset.fingerprint != mapping.get("fingerprint", "") or asset.texture_fingerprint != mapping.get("texture_fingerprint", ""):
+			download_status.text = "This local variant is unavailable; using the default miniature."
+			variant_cache[identity] = {"error": "Variant unavailable"}
+			return null
+		variant_cache[identity] = asset
+	if not variant_cache[identity].get("error", "").is_empty(): return null
+	var settings: Dictionary = variant_mappings[identity].duplicate()
+	if base_radius_inches > 0.01: settings.base_radius_inches = base_radius_inches
+	return Assets.visual(variant_cache[identity], settings)
 
 ## Batch uses captured profile IDs, independent of the selected pawn or inventory row.
 func prepare_armies(definitions: Array[String]) -> void:
@@ -526,7 +691,7 @@ func prepare_armies(definitions: Array[String]) -> void:
 		if not chosen.error.is_empty(): automatic_messages.append(chosen.error)
 		else:
 			automatic_queue.append({"definition": definition, "entry": chosen.entry})
-			automatic_messages.append("Selected %s (%d visual variants; change in Models)." % [chosen.entry.name, chosen.variants])
+			automatic_messages.append("Selected %s (%d compatible visual variants; change in Models)." % [chosen.entry.name, chosen.variants])
 	automatic_running = true
 	_next_automatic()
 
@@ -538,6 +703,10 @@ func _report_automatic() -> void:
 func cancel_automatic() -> void:
 	automatic_generation += 1
 	if catalog_downloader != null: catalog_downloader.cancel()
+	variant_catalog_pending = false
+	variant_download_active = false
+	variant_queue.clear()
+	variant_current = {}
 	catalog_definitions.clear()
 	var was_running := automatic_running
 	automatic_running = false

@@ -12,13 +12,13 @@ func run() -> void:
 	root.add_child(game)
 	check("No model selected" in game.selection_card.text and not game.details.visible, "Initial view is compact")
 	game._start_allocation_practice()
-	check("Intercessor" in game.selection_card.text and "2/2 wounds" in game.selection_card.text, "Selected unit and model wounds are visible")
+	check("Intercessor" in game.selection_card.text and "W 2/2" in game.selection_card.text, "Selected unit and model wounds are visible")
 	check(not "Equipped profiles" in game.selection_card.text and "Equipped profiles" in game.details.text, "Equipment remains in expandable detail")
 	game.technical_toggle.button_pressed = true
 	check(game.details.visible, "Details can be expanded")
 	game.selected = 201
 	game._refresh()
-	check(game.details.visible and "FNP" in game.selection_card.text and "Synthetic mixed allocation group" in game.selection_card.text, "Refresh preserves expansion and uses selected model's profile")
+	check(game.details.visible and "Feel No Pain" in game.details.text and "Synthetic mixed allocation group" in game.selection_card.text, "Refresh preserves expansion and keeps FNP in technical details")
 	game.technical_toggle.button_pressed = false
 	check(game.Combat.shoot(game.state, 1, 100, 200, 0, true, roll).error.is_empty(), "Attack reaches Precision")
 	game._refresh()

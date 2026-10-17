@@ -1,5 +1,9 @@
 Current Track A status: A1–A5 are integrated for the checked 930-point Gladius vs 880-point Awakened infantry match. The selected CA mission, ten fixed-loadout profiles, MFM 1.6 construction checks and required infantry core effects are documented in the [roadmap](docs/roadmap.md). Enable the checked-rosters option in Match setup. Other rosters and optional equipment remain outside certification.
 
+Track D1 is in progress: **Match setup → Get Started → Start guided sample match** opens a local 290-point sample with numbered steps, clear action limits and hover explanations for key terms. The sample guides mission and army setup, deployment, movement and a confirmed shot; it is not a full-match legality certificate. See [gameplay UI](docs/gameplay-ui.md#guided-first-session-d1).
+
+Track D2 has a pilot in progress: hover a weapon profile for explanations of its recognized 11th-edition abilities, a movement or charge/Fight placement control for its eligibility and consequences, the phase banner for the phase summary, or supported Battle-shock/Command Re-roll decisions for their cost and effect. Selected blocked-action tooltips include the reason and applicable rules reference. This does not imply that every listed ability is active in every match. See the [D2 scope](docs/gameplay-ui.md#contextual-weapon-glossary-d2-pilot).
+
 # Open Tabletop
 
 [![CI](https://github.com/cronosgp/open-tabletop/actions/workflows/verify.yml/badge.svg)](https://github.com/cronosgp/open-tabletop/actions/workflows/verify.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Godot 4.7.2](https://img.shields.io/badge/Godot-4.7.2-478cbf)](https://godotengine.org)

@@ -84,6 +84,10 @@ static func validate(list: Variant) -> String:
 		if not faction_allowed(list.faction, item.faction, list.allow_allies): return "Allow allies to include another faction."
 		if not integer(item.get("models"), 0, 1000) or not integer(item.get("copies"), 1, 20): return "Invalid unit/model count."
 		if not item.has("cost") or (item.cost != null and not integer(item.cost, 1)): return "Invalid cost."
+		if item.has("visual_variants"):
+			if not item.visual_variants is Array or item.visual_variants.size() != int(item.models) * int(item.copies): return "Invalid local miniature appearance assignments."
+			for visual_id: Variant in item.visual_variants:
+				if not visual_id is String or visual_id.length() > 128: return "Invalid local miniature appearance assignment."
 	return ""
 
 static func reprice(list: Dictionary, catalog: Dictionary) -> Dictionary:
@@ -98,7 +102,9 @@ static func reprice(list: Dictionary, catalog: Dictionary) -> Dictionary:
 		for choice in range(unit.options.size()):
 			if unit.options[choice].models == old.models: option = choice
 		if option < 0: return {"error": "Composition changed in the catalog: " + old.name}
-		updated.entries[index] = entry(unit, option, int(old.copies))
+		var refreshed := entry(unit, option, int(old.copies))
+		if old.has("visual_variants"): refreshed.visual_variants = old.visual_variants.duplicate(true)
+		updated.entries[index] = refreshed
 	updated.catalog_digest = catalog.digest
 	return {"error": "", "list": updated}
 

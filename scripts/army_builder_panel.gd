@@ -40,9 +40,25 @@ var entries: ItemList
 var notes: TextEdit
 var delete_dialog: ConfirmationDialog
 var deleting := ""
+var build_parent: Node
+var saved_lists_view: ItemList
+var saved_list_detail: Label
+var library_notice: Label
+var editor: VBoxContainer
+var selected_saved_id := ""
+var overview: VBoxContainer
+var model_imports
+var selected_entry_index := -1
+var entry_models_input: SpinBox
+var entry_copies_input: SpinBox
+var visual_copy_picker: OptionButton
+var visual_models: VBoxContainer
+var visual_notice: Label
+var visual_download_button: Button
+var visual_slot_controls: Array[OptionButton] = []
 
 func label(text: String, parent: Node = null) -> Label:
-	if parent == null: parent = self
+	if parent == null: parent = build_parent if build_parent != null else self
 	var control := Label.new()
 	control.text = text
 	control.custom_minimum_size.x = 400
@@ -51,7 +67,7 @@ func label(text: String, parent: Node = null) -> Label:
 	return control
 
 func button(text: String, action: Callable, parent: Node = null) -> Button:
-	if parent == null: parent = self
+	if parent == null: parent = build_parent if build_parent != null else self
 	var control := Button.new()
 	control.text = text
 	control.pressed.connect(action)
@@ -60,7 +76,7 @@ func button(text: String, action: Callable, parent: Node = null) -> Button:
 
 func row() -> HBoxContainer:
 	var control := HBoxContainer.new()
-	add_child(control)
+	(build_parent if build_parent != null else self).add_child(control)
 	return control
 
 func _ready() -> void:
@@ -69,28 +85,58 @@ func _ready() -> void:
 	source.cache_directory = cache_directory
 	add_child(source)
 	draft = Roster.new_list("11e", "")
-	label("MY ARMIES")
-	label("Build lists and save them to your local profile. Compatible lists can be used for partial training in Match Setup.")
+	overview = VBoxContainer.new()
+	overview.add_theme_constant_override("separation", 7)
+	add_child(overview)
+	build_parent = overview
+	var page_heading := label("ARMY WORKSHOP")
+	page_heading.add_theme_font_size_override("font_size", 22)
+	page_heading.add_theme_color_override("font_color", Color("e8bc62"))
+	label("Saved lists and local miniature appearances. List checks remain separate from full rules legality.")
+	library_notice = label("")
+	var profile_row := row()
+	profile_picker = OptionButton.new()
+	profile_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	profile_row.add_child(profile_picker)
+	profile_picker.item_selected.connect(_select_profile)
+	profile_name = LineEdit.new()
+	profile_name.placeholder_text = "New profile name"
+	profile_name.max_length = 80
+	profile_row.add_child(profile_name)
+	button("Create profile", _create_profile, profile_row)
+	saved_lists_view = ItemList.new()
+	saved_lists_view.custom_minimum_size.y = 112
+	saved_lists_view.item_selected.connect(_select_saved_list)
+	overview.add_child(saved_lists_view)
+	var detail_scroll := ScrollContainer.new()
+	detail_scroll.custom_minimum_size.y = 110
+	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	overview.add_child(detail_scroll)
+	saved_list_detail = Label.new()
+	saved_list_detail.text = "Select an army to inspect its roster and saved points."
+	saved_list_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	saved_list_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	detail_scroll.add_child(saved_list_detail)
+	var library_actions := HBoxContainer.new()
+	overview.add_child(library_actions)
+	button("New army", _new_empty, library_actions)
+	button("Edit selected", _edit_saved_list, library_actions)
+	button("Delete…", _ask_delete, library_actions)
+	library_notice.text = ""
+	editor = VBoxContainer.new()
+	editor.add_theme_constant_override("separation", 8)
+	add_child(editor)
+	build_parent = editor
 	catalog_status = label("")
+	var editor_header := row()
+	button("← Armies", _close_editor, editor_header)
+	label("EDIT ARMY", editor_header)
 	var updates := row()
 	refresh_button = button("Refresh online catalog", source.refresh, updates)
 	cancel_button = button("Cancel", source.cancel, updates)
-	var library_toggle := CheckButton.new()
-	library_toggle.text = "Profiles and saved lists"
-	add_child(library_toggle)
 	library = VBoxContainer.new()
-	add_child(library)
+	editor.add_child(library)
 	library.visible = false
-	library_toggle.toggled.connect(func(value: bool): library.visible = value)
-	label("Local profile", library)
-	profile_picker = OptionButton.new()
-	library.add_child(profile_picker)
-	profile_picker.item_selected.connect(_select_profile)
-	profile_name = LineEdit.new()
-	profile_name.placeholder_text = "Name for a new profile"
-	profile_name.max_length = 80
-	library.add_child(profile_name)
-	button("Create profile", _create_profile, library)
 	saved_picker = OptionButton.new()
 	library.add_child(saved_picker)
 	button("Load selected list", _load_list, library)
@@ -104,7 +150,7 @@ func _ready() -> void:
 	name_input = LineEdit.new()
 	name_input.placeholder_text = "Army name"
 	name_input.max_length = 120
-	add_child(name_input)
+	editor.add_child(name_input)
 	name_input.text_changed.connect(func(_text: String): _changed())
 	var selectors := row()
 	edition_picker = OptionButton.new()
@@ -125,11 +171,11 @@ func _ready() -> void:
 	points_limit.value_changed.connect(func(_value: float): _changed())
 	label("Army / faction")
 	faction_picker = OptionButton.new()
-	add_child(faction_picker)
+	editor.add_child(faction_picker)
 	faction_picker.item_selected.connect(_faction_selected)
 	allies = CheckBox.new()
 	allies.text = "Allow other factions (custom list)"
-	add_child(allies)
+	editor.add_child(allies)
 	allies.toggled.connect(func(_value: bool): _changed(); _filter_units())
 	summary_label = label("")
 	var saves := row()
@@ -143,31 +189,44 @@ func _ready() -> void:
 	button("Find / add units ↓", func(): _scroll_to(add_button))
 	label("List units")
 	entries = ItemList.new()
-	entries.custom_minimum_size.y = 140
-	add_child(entries)
+	entries.custom_minimum_size.y = 125
+	editor.add_child(entries)
+	entries.item_selected.connect(_select_entry)
+	var entry_edits := row()
+	entry_models_input = SpinBox.new()
+	entry_models_input.min_value = 0
+	entry_models_input.max_value = 1000
+	entry_models_input.step = 1
+	entry_edits.add_child(entry_models_input)
+	entry_copies_input = SpinBox.new()
+	entry_copies_input.min_value = 1
+	entry_copies_input.max_value = 20
+	entry_copies_input.step = 1
+	entry_edits.add_child(entry_copies_input)
+	button("Apply unit size", _apply_entry_size, entry_edits)
 	button("Remove selected entry", _remove)
 	button("Recalculate costs from current catalog", _reprice)
 	notes = TextEdit.new()
 	notes.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	notes.placeholder_text = "Notes / planned equipment"
 	notes.custom_minimum_size.y = 70
-	add_child(notes)
+	editor.add_child(notes)
 	notes.text_changed.connect(_changed)
 	label("CHOOSE UNITS")
 	query = LineEdit.new()
 	query.placeholder_text = "Search units by name"
-	add_child(query)
+	editor.add_child(query)
 	query.text_changed.connect(func(_text: String): _filter_units())
 	role_picker = OptionButton.new()
 	for text in ["All categories", "Character", "Battleline", "Dedicated transport", "Other units"]: role_picker.add_item(text)
-	add_child(role_picker)
+	editor.add_child(role_picker)
 	role_picker.item_selected.connect(func(_index: int): _filter_units())
 	unit_picker = ItemList.new()
 	unit_picker.custom_minimum_size.y = 190
-	add_child(unit_picker)
+	editor.add_child(unit_picker)
 	unit_picker.item_selected.connect(_select_unit)
 	choice_picker = OptionButton.new()
-	add_child(choice_picker)
+	editor.add_child(choice_picker)
 	var additions := row()
 	copies = SpinBox.new()
 	copies.min_value = 1
@@ -178,6 +237,25 @@ func _ready() -> void:
 	catalog_totals = label("")
 	button("↑ Back to list and save", func(): _scroll_to(summary_label))
 	label("Costs are API references, not an official validation of detachments, allies, or equipment. Chapters also use the shared Space Marines catalog. Missing costs are marked in the draft.")
+	var visual_header := label("MINIATURE APPEARANCE")
+	visual_header.add_theme_font_size_override("font_size", 15)
+	visual_header.add_theme_color_override("font_color", Color("d7b96d"))
+	visual_notice = label("Select a unit entry to assign local visuals to its miniatures.")
+	var visual_controls := row()
+	visual_copy_picker = OptionButton.new()
+	visual_copy_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	visual_controls.add_child(visual_copy_picker)
+	visual_copy_picker.item_selected.connect(func(_index: int): _render_visual_slots())
+	visual_download_button = button("Download unit models", _download_unit_variants, visual_controls)
+	var visual_scroll := ScrollContainer.new()
+	visual_scroll.custom_minimum_size.y = 120
+	visual_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	editor.add_child(visual_scroll)
+	visual_models = VBoxContainer.new()
+	visual_models.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	visual_scroll.add_child(visual_models)
+	editor.visible = false
+	build_parent = self
 	source.changed.connect(_catalog_changed)
 	_render_profiles()
 	_render_draft()
@@ -228,35 +306,187 @@ func _render_draft() -> void:
 	allies.button_pressed = draft.allow_allies
 	notes.text = draft.notes
 	entries.clear()
-	for item: Dictionary in draft.entries:
-		var origin := "training" if item.unit_id.begins_with("40kdc:11e:") else "API"
-		entries.add_item("%d× %s • %s • %s" % [item.copies, item.name, "%d models (%s)" % [item.models, origin] if item.models > 0 else "composition pending", "%d pts" % (int(item.cost) * int(item.copies)) if item.cost != null else "cost pending"])
+	for index in range(draft.entries.size()):
+		var item: Dictionary = draft.entries[index]
+		_ensure_visual_slots(item)
+		entries.add_item("%d× %s • %s • %s" % [item.copies, item.name, "%d models" % item.models if item.models > 0 else "composition pending", "%d pts" % (int(item.cost) * int(item.copies)) if item.cost != null else "cost pending"])
 	updating = false
 	_fill_factions()
 	_render_summary()
+	if selected_entry_index >= draft.entries.size(): selected_entry_index = -1
+	if selected_entry_index >= 0: entries.select(selected_entry_index)
+	_render_visual_slots()
 
 func _render_profiles() -> void:
+	if _find_saved_list(selected_saved_id).is_empty(): selected_saved_id = ""
 	profile_picker.clear()
 	for profile: Dictionary in store.data.profiles:
 		profile_picker.add_item(profile.name)
 		profile_picker.set_item_metadata(profile_picker.item_count - 1, profile.id)
 		if profile.id == store.data.active: profile_picker.select(profile_picker.item_count - 1)
 	saved_picker.clear()
-	for list: Dictionary in store.active().lists:
+	saved_lists_view.clear()
+	var active := store.active()
+	for list: Dictionary in active.get("lists", []):
 		saved_picker.add_item("%s • %d/%d pts" % [list.name, Roster.summary(list).points, list.points_limit])
 		saved_picker.set_item_metadata(saved_picker.item_count - 1, list.id)
 		if list.id == draft.id: saved_picker.select(saved_picker.item_count - 1)
+		var totals := Roster.summary(list)
+		saved_lists_view.add_item("%s  ·  %s  ·  %d / %d pts  ·  %d units" % [list.name, list.faction, totals.points, int(list.points_limit), totals.units])
+		saved_lists_view.set_item_metadata(saved_lists_view.item_count - 1, list.id)
+		if list.id == selected_saved_id: saved_lists_view.select(saved_lists_view.item_count - 1)
+	if not selected_saved_id.is_empty(): _show_saved_detail(selected_saved_id)
+	elif saved_lists_view.item_count == 0:
+		saved_list_detail.text = "No saved armies in %s yet. Create one to get started." % active.get("name", "this profile")
+	else:
+		saved_list_detail.text = "Select an army to inspect its roster and saved points."
+
+func _find_saved_list(id: String) -> Dictionary:
+	for list: Dictionary in store.active().get("lists", []):
+		if list.id == id: return list
+	return {}
+
+func _select_saved_list(index: int) -> void:
+	if index < 0 or index >= saved_lists_view.item_count: return
+	selected_saved_id = str(saved_lists_view.get_item_metadata(index))
+	_show_saved_detail(selected_saved_id)
+
+func _show_saved_detail(id: String) -> void:
+	var list := _find_saved_list(id)
+	if list.is_empty():
+		saved_list_detail.text = "Select an army to inspect its roster and saved points."
+		return
+	var totals := Roster.summary(list)
+	var lines: Array[String] = ["%s  ·  %s  ·  %s  ·  %d / %d pts  ·  %d units" % [list.name, list.faction, list.edition, totals.points, list.points_limit, totals.units]]
+	for entry: Dictionary in list.entries:
+		lines.append("• %d× %s — %d models each" % [entry.copies, entry.name, entry.models])
+	if totals.unknown > 0: lines.append("Some costs are unconfirmed; total is partial.")
+	saved_list_detail.text = "\n".join(lines)
+
+func _edit_saved_list() -> void:
+	if selected_saved_id.is_empty():
+		library_notice.text = "Select a saved army first."
+		return
+	_load_list_by_id(selected_saved_id)
+
+func _close_editor() -> void:
+	_sync()
+	drafts[store.data.active] = draft.duplicate(true)
+	editor.visible = false
+	overview.visible = true
+	library_notice.text = "Unsaved changes are kept in this session." if dirty else ""
+
+func _ensure_visual_slots(item: Dictionary) -> void:
+	var wanted := mini(item.models * item.copies, 20000)
+	var slots: Array = item.get("visual_variants", []) if item.get("visual_variants", []) is Array else []
+	while slots.size() > wanted: slots.pop_back()
+	while slots.size() < wanted: slots.append("")
+	item.visual_variants = slots
+
+func _select_entry(index: int) -> void:
+	selected_entry_index = index
+	visual_copy_picker.clear()
+	if index < 0 or index >= draft.entries.size():
+		_render_visual_slots()
+		return
+	var item: Dictionary = draft.entries[index]
+	entry_models_input.value = int(item.models)
+	entry_copies_input.value = int(item.copies)
+	for copy in range(int(item.copies)):
+		visual_copy_picker.add_item("Unit %d appearance" % (copy + 1))
+		visual_copy_picker.set_item_metadata(copy, copy)
+	visual_copy_picker.select(0)
+	visual_notice.text = "Choose a local visual for each miniature. Appearance never affects rules or saves sent to a match."
+	_render_visual_slots()
+
+func _apply_entry_size() -> void:
+	if selected_entry_index < 0 or selected_entry_index >= draft.entries.size():
+		notice.text = "Select a unit entry first."
+		return
+	var item: Dictionary = draft.entries[selected_entry_index]
+	var next_models := int(entry_models_input.value)
+	var next_copies := int(entry_copies_input.value)
+	if next_models != int(item.models): item.cost = null
+	item.models = next_models
+	item.copies = next_copies
+	_ensure_visual_slots(item)
+	dirty = true
+	_render_draft()
+	entries.select(selected_entry_index)
+	_select_entry(selected_entry_index)
+	notice.text = "Unit size updated. Recalculate or confirm costs before relying on the points total." if next_models > 0 else "Composition is pending; this list may not pass a training check."
+
+func _render_visual_slots() -> void:
+	if visual_models == null: return
+	var wanted_copy := visual_copy_picker.selected
+	for child in visual_models.get_children(): child.queue_free()
+	visual_slot_controls.clear()
+	visual_copy_picker.clear()
+	visual_download_button.disabled = true
+	if selected_entry_index < 0 or selected_entry_index >= draft.entries.size(): return
+	var item: Dictionary = draft.entries[selected_entry_index]
+	for copy in range(int(item.copies)):
+		visual_copy_picker.add_item("Unit %d appearance" % (copy + 1))
+		visual_copy_picker.set_item_metadata(copy, copy)
+	var copy_index := clampi(wanted_copy, 0, maxi(0, int(item.copies) - 1))
+	visual_copy_picker.select(copy_index)
+	var definition := str(item.unit_id)
+	var variants: Array = model_imports.variants_for(definition) if model_imports != null and model_imports.has_method("variants_for") else []
+	visual_download_button.disabled = true
+	if model_imports != null: visual_download_button.disabled = not model_imports.has_method("download_variants_for")
+	var start := copy_index * int(item.models)
+	for model_index in range(int(item.models)):
+		var line := HBoxContainer.new()
+		visual_models.add_child(line)
+		var caption := Label.new()
+		caption.text = "Model %d" % (model_index + 1)
+		caption.custom_minimum_size.x = 78
+		line.add_child(caption)
+		var picker := OptionButton.new()
+		picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		picker.add_item("Default miniature")
+		picker.set_item_metadata(0, "")
+		for variant_index in range(variants.size()):
+			var option: Dictionary = variants[variant_index]
+			picker.add_item("%d · %s%s" % [variant_index + 1, str(option.get("name", "Visual variant")), " · ready" if option.get("ready", false) else " · download"])
+			picker.set_item_metadata(picker.item_count - 1, str(option.get("variant_id", "")))
+		line.add_child(picker)
+		var slot_index := start + model_index
+		var selected_variant := str(item.visual_variants[slot_index]) if slot_index < item.visual_variants.size() else ""
+		for option_index in range(picker.item_count):
+			if str(picker.get_item_metadata(option_index)) == selected_variant: picker.select(option_index)
+		var captured_slot := slot_index
+		picker.item_selected.connect(func(option_index: int): _set_visual_slot(captured_slot, str(picker.get_item_metadata(option_index))))
+		visual_slot_controls.append(picker)
+	visual_notice.text = "No compatible variants found. Scan ForceOrg JSON in Models / Import first." if variants.is_empty() else "%d compatible local catalog variant(s). Download keeps files in your local cache." % variants.size()
+
+func _set_visual_slot(slot: int, variant_id: String) -> void:
+	if selected_entry_index < 0 or selected_entry_index >= draft.entries.size(): return
+	var item: Dictionary = draft.entries[selected_entry_index]
+	_ensure_visual_slots(item)
+	if slot < 0 or slot >= item.visual_variants.size(): return
+	item.visual_variants[slot] = variant_id
+	dirty = true
+	_render_summary()
+
+func _download_unit_variants() -> void:
+	if selected_entry_index < 0 or selected_entry_index >= draft.entries.size() or model_imports == null: return
+	var item: Dictionary = draft.entries[selected_entry_index]
+	model_imports.download_variants_for(str(item.unit_id))
+
+func set_visual_status(message: String) -> void:
+	if visual_notice != null: visual_notice.text = message
 
 func _select_profile(index: int) -> void:
 	if source.busy:
-		notice.text = "Cancel the refresh before switching profiles."
+		library_notice.text = "Cancel the refresh before switching profiles."
 		_render_profiles()
 		return
 	_sync()
 	drafts[store.data.active] = draft.duplicate(true)
 	var error: String = store.select_profile(profile_picker.get_item_metadata(index))
 	if not error.is_empty():
-		notice.text = error
+		library_notice.text = error
 		_render_profiles()
 		return
 	draft = drafts.get(store.data.active, Roster.new_list(source.edition, "")).duplicate(true)
@@ -264,35 +494,47 @@ func _select_profile(index: int) -> void:
 	_render_profiles()
 	if source.edition != draft.edition: source.select_edition(draft.edition)
 	_render_draft()
-	notice.text = "Active profile: " + store.active().name
+	library_notice.text = "Active profile: " + store.active().name
 
 func _create_profile() -> void:
 	_sync()
 	drafts[store.data.active] = draft.duplicate(true)
 	var error: String = store.create_profile(profile_name.text)
 	if not error.is_empty():
-		notice.text = error
+		library_notice.text = error
 		return
 	profile_name.clear()
 	draft = Roster.new_list(source.edition, "")
 	dirty = false
 	_render_profiles()
 	_render_draft()
-	notice.text = "Local profile created."
+	overview.visible = false
+	editor.visible = true
+	library_notice.text = "Local profile created."
 
 func _load_list() -> void:
 	if source.busy:
 		notice.text = "Cancel the refresh before loading another list."
 		return
 	if saved_picker.item_count == 0: return
-	for list: Dictionary in store.active().lists:
-		if list.id == saved_picker.get_selected_metadata():
-			draft = list.duplicate(true)
-			dirty = false
-			if source.edition != draft.edition: source.select_edition(draft.edition)
-			_render_draft()
-			notice.text = "List loaded with its saved costs."
-			return
+	_load_list_by_id(str(saved_picker.get_selected_metadata()))
+
+func _load_list_by_id(id: String) -> void:
+	if source.busy:
+		library_notice.text = "Cancel the catalog refresh before loading another army."
+		return
+	var list := _find_saved_list(id)
+	if list.is_empty(): return
+	draft = list.duplicate(true)
+	selected_saved_id = id
+	dirty = false
+	selected_entry_index = -1
+	editor.visible = true
+	overview.visible = false
+	if source.edition != draft.edition: source.select_edition(draft.edition)
+	_render_draft()
+	_render_profiles()
+	notice.text = "Army loaded with its saved costs and local appearances."
 
 func _save() -> bool:
 	_sync()
@@ -301,6 +543,7 @@ func _save() -> bool:
 	if not saved.error.is_empty(): return false
 	draft = saved.list
 	dirty = false
+	selected_saved_id = draft.id
 	_render_profiles()
 	_render_summary()
 	notice.text = "List saved to profile " + store.active().name + "."
@@ -318,9 +561,12 @@ func _save_copy() -> void:
 		name_input.text = old_name
 
 func _ask_delete() -> void:
-	if saved_picker.item_count == 0: return
-	deleting = saved_picker.get_selected_metadata()
-	delete_dialog.dialog_text = "Delete from profile: " + saved_picker.get_item_text(saved_picker.selected) + "?"
+	if selected_saved_id.is_empty():
+		library_notice.text = "Select a saved army first."
+		return
+	deleting = selected_saved_id
+	var list := _find_saved_list(deleting)
+	delete_dialog.dialog_text = "Delete '%s' from profile %s?" % [list.get("name", "this army"), store.active().get("name", "Local Player")]
 	delete_dialog.popup_centered()
 
 func _delete_list() -> void:
@@ -328,7 +574,9 @@ func _delete_list() -> void:
 	if error.is_empty() and draft.id == deleting:
 		draft.id = ""
 		dirty = true
-	notice.text = "List deleted; the open draft was kept." if error.is_empty() else error
+	if error.is_empty(): selected_saved_id = ""
+	library_notice.text = "Army deleted; the open draft was kept." if error.is_empty() else error
+	if notice != null: notice.text = library_notice.text
 	_render_profiles()
 	_render_summary()
 	library_changed.emit()
@@ -429,7 +677,11 @@ func _remove() -> void:
 func _new_empty() -> void:
 	_sync()
 	draft = Roster.new_list(source.edition, draft.faction, draft.category, int(draft.points_limit))
+	selected_saved_id = ""
 	dirty = true
+	selected_entry_index = -1
+	editor.visible = true
+	overview.visible = false
 	_render_draft()
 	notice.text = "New list created; saved lists were preserved."
 

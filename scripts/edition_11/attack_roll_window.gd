@@ -142,12 +142,14 @@ static func advance(checkpoint: Dictionary, revision: int, roller: Callable) -> 
 		saves.sort()
 		next.result = {"error": "", "implementation": Attacks.IMPLEMENTATION, "attacks": next.generated.count,
 			"benefit_of_cover": next.covered, "effective_skill": next.effective_skill,
-			"hit_modifier": next.hit_modifier, "wound_modifier": modifier,
+			"hit_modifier": next.hit_modifier, "wound_modifier": modifier, "wound_target": target,
+			"snap_shooting": next.context.get("snap_shooting", false),
 			"attack_generation": next.generated.records.duplicate(true), "damage_rolls": [], "hits": next.hits, "wounds": wounds,
 			"critical_wounds": critical, "devastating_wounds": devastating, "devastating_attacks_resolved": 0,
 			"save_count": wounds - devastating, "normal_damage_applied": 0, "mortal_damage_applied": 0,
 			"prevented_wounds": 0, "prevention_rolls": [], "hit_rolls": next.hit_rolls.duplicate(),
-			"wound_rolls": next.wound_rolls.duplicate(), "save_rolls": saves}
+			"wound_rolls": next.wound_rolls.duplicate(), "final_hit_rolls": next.hit_rolls.duplicate(),
+			"final_wound_rolls": next.effective_wounds.duplicate(), "save_rolls": saves}
 		next.phase = "complete"
 	if not dice.error.is_empty(): return {"error": dice.error}
 	next.dice_history.append_array(dice.history)

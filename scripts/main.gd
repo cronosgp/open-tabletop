@@ -1,7 +1,32 @@
 extends Node3D
 
+class DicePipFace extends Control:
+	var value := 1
+
+	func _draw() -> void:
+		var bounds := Rect2(Vector2(1, 1), size - Vector2(2, 2))
+		var ink := Color("20272d")
+		draw_rect(bounds, Color("f2eee0"), true)
+		draw_rect(bounds, ink, false, 1.5, true)
+		var positions: Array[Vector2] = [
+			Vector2(0.25, 0.25), Vector2(0.5, 0.25), Vector2(0.75, 0.25),
+			Vector2(0.25, 0.5), Vector2(0.5, 0.5), Vector2(0.75, 0.5),
+			Vector2(0.25, 0.75), Vector2(0.5, 0.75), Vector2(0.75, 0.75)
+		]
+		var active_pips: Array[int] = []
+		match value:
+			1: active_pips = [4]
+			2: active_pips = [0, 8]
+			3: active_pips = [0, 4, 8]
+			4: active_pips = [0, 2, 6, 8]
+			5: active_pips = [0, 2, 4, 6, 8]
+			6: active_pips = [0, 2, 3, 5, 6, 8]
+		for pip: int in active_pips:
+			draw_circle(size * positions[pip], minf(size.x, size.y) * 0.075, ink, true, -1.0, true)
+
 const Rules = preload("res://scripts/rules.gd")
 const Combat = preload("res://scripts/edition_11/combat_scenario.gd")
+const KeywordGlossary = preload("res://scripts/edition_11/keyword_glossary.gd")
 const AllocationPractice = preload("res://scripts/edition_11/allocation_practice.gd")
 const TacticalGuides = preload("res://scripts/tactical_guides.gd")
 const ModelImports = preload("res://scripts/model_import_panel.gd")
@@ -13,6 +38,8 @@ const TrainingRoster = preload("res://scripts/edition_11/training_roster.gd")
 const MatchSave = preload("res://scripts/match_save.gd")
 const MatchJournal = preload("res://scripts/match_journal.gd")
 const MatchHistoryPanel = preload("res://scripts/match_history_panel.gd")
+const MainMenu = preload("res://scripts/ui/main_menu.gd")
+const CombatHud = preload("res://scripts/ui/combat_hud.gd")
 var journal = MatchJournal.new()
 var history_panel
 const SessionSeat = preload("res://scripts/session_seat.gd")
@@ -29,6 +56,7 @@ var saved_army_review: Label
 var setup_notice: Label
 var pending_armies: Dictionary = {}
 var submitted_army: Dictionary = {}
+var local_visual_armies: Dictionary = {}
 var validated_saved_setup := ""
 var army_builder
 var prepared_match := false
@@ -90,11 +118,14 @@ var model_imports: VBoxContainer
 const PORT := 24560
 var state: Dictionary = Rules.initial_state()
 var pieces: Dictionary = {}
+var health_tags: Dictionary = {}
+var board_presentation_state: Dictionary = {}
 var selected := -1
 var mode := "local"
 var guest_id := 0
 var camera: Camera3D
 var pivot: Node3D
+var focus_tween: Tween
 var status: Label
 var details: Label
 var selection_card: Label
@@ -104,13 +135,20 @@ var address: LineEdit
 var session_label: Label
 var decision_label: Label
 var objective_summary: Label
+var combat_hud
+var main_menu
+var home_nav_button: Button
+var menu_return_tab := 1
+var resume_compatible := false
+var resume_succeeded := false
+var dice_toggle: CheckButton
 var match_tabs: TabContainer
 var gameplay_scroll: ScrollContainer
 var ui_combat_enabled := false
 var host_button: Button
 var join_button: Button
 var end_button: Button
-var zoom := 24.0
+var zoom := 15.5
 var angle := 0.0
 var combat_enabled := false
 var terrain_layout := Combat.Terrain.DEFAULT_LAYOUT
@@ -129,10 +167,25 @@ var equipment_choice: CheckBox
 var allocate_button: Button
 var precision_skip: Button
 var scope_label: Label
+var first_session_guide: Label
+var first_session_panel: PanelContainer
+var first_session_heading: Label
+var first_session_progress: ProgressBar
+var first_session_boundary: RichTextLabel
+var first_session_terms: HFlowContainer
+var guided_first_session := false
 var lethal_choice: CheckBox
 var event_log: RichTextLabel
 var log_toggle: CheckButton
 var result_summary: Label
+var damage_preview: Label
+var dice_visual: VBoxContainer
+var dice_visual_rolls: HFlowContainer
+var dice_audit_label: Label
+var dice_animation_toggle: CheckButton
+var dice_visual_signature := ""
+var health_overlay_toggle: CheckButton
+var board_feedback_toggle: CheckButton
 var charge_button: Button
 var finish_move_button: Button
 var cancel_move_button: Button
@@ -210,6 +263,7 @@ func _ready() -> void:
 	multiplayer.connection_failed.connect(func(): _offline("Connection failed."))
 	multiplayer.server_disconnected.connect(func(): _offline("Host disconnected. Local preview restored."))
 	_refresh()
+	_update_main_menu_resume_state()
 
 func _material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
@@ -239,6 +293,8 @@ func _build_board() -> void:
 	add_child(light)
 	var environment := WorldEnvironment.new()
 	environment.environment = Environment.new()
+	environment.environment.background_mode = Environment.BG_COLOR
+	environment.environment.background_color = Color("172027")
 	environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.environment.ambient_light_color = Color("b3c5da")
 	environment.environment.ambient_light_energy = 0.6
@@ -269,12 +325,14 @@ func _sync_board() -> void:
 	for side in [-1, 1]:
 		_box(Vector3(0.035, 0.02, size.y), Vector3(side * size.x / 2.0, 0.01, 0), Color("a3b4bc"), board_root)
 		_box(Vector3(size.x, 0.02, 0.035), Vector3(0, 0.01, side * size.y / 2.0), Color("a3b4bc"), board_root)
-	zoom = maxf(24.0, maxf(size.x, size.y) * 1.1)
+	zoom = maxf(18.0, maxf(size.x, size.y) * 0.82)
 	if camera != null: _update_camera()
 
 func _spawn_pieces() -> void:
 	for piece: MeshInstance3D in pieces.values(): piece.queue_free()
 	pieces.clear()
+	health_tags.clear()
+	board_presentation_state.clear()
 	for id: int in state.units:
 		var piece := MeshInstance3D.new()
 		var mesh := CylinderMesh.new()
@@ -284,8 +342,11 @@ func _spawn_pieces() -> void:
 		piece.mesh = mesh
 		add_child(piece)
 		pieces[id] = piece
+		_create_health_tag(piece, id)
 		if model_imports != null:
-			var visual: Node3D = model_imports.visual_for(str(state.units[id].get("definition_id", "")), float(state.units[id].radius))
+			var definition := str(state.units[id].get("definition_id", ""))
+			var visual: Node3D = model_imports.visual_variant_for(_local_visual_variant(id), float(state.units[id].radius))
+			if visual == null: visual = model_imports.visual_for(definition, float(state.units[id].radius))
 			if visual != null:
 				mesh.height = 0.08
 				mesh.top_radius = state.units[id].radius
@@ -295,6 +356,96 @@ func _spawn_pieces() -> void:
 				base_offset.add_child(visual)
 				# Keep the colored selection base on the board; visuals are cosmetic.
 				piece.set_meta("imported_visual", true)
+
+func _canonical_visual_definition(faction: String, unit_id: String) -> String:
+	if unit_id.begins_with("40kdc:11e:"):
+		return TrainingRoster.Capabilities.canonical_id(faction, unit_id)
+	return Combat.RosterValidation.A.canonical_id(faction, unit_id)
+
+func _local_visual_variant(model_id: int) -> String:
+	if not state.units.has(model_id): return ""
+	var unit: Dictionary = state.units[model_id]
+	var owner := int(unit.get("owner", 0))
+	if not local_visual_armies.has(owner): return ""
+	var army: Dictionary = local_visual_armies[owner]
+	var target_definition := str(unit.get("definition_id", ""))
+	var squads: Array[int] = []
+	for squad_id: int in state.squads:
+		if int(state.squads[squad_id].get("owner", 0)) != owner: continue
+		var squad_models: Array[int] = []
+		for candidate_id: int in state.units:
+			if int(state.units[candidate_id].get("squad", -1)) == squad_id: squad_models.append(candidate_id)
+		if squad_models.is_empty(): continue
+		squad_models.sort()
+		if str(state.units[squad_models[0]].get("definition_id", "")) == target_definition: squads.append(squad_id)
+	squads.sort()
+	var target_group := squads.find(int(unit.get("squad", -1)))
+	if target_group < 0: return ""
+	var cursor := 0
+	for entry: Dictionary in army.get("entries", []):
+		if _canonical_visual_definition(str(army.get("faction", "")), str(entry.get("unit_id", ""))) != target_definition: continue
+		var models := int(entry.get("models", 0))
+		var visuals: Array = entry.get("visual_variants", []) if entry.get("visual_variants", []) is Array else []
+		for copy_index in range(int(entry.get("copies", 1))):
+			if cursor == target_group:
+				var slot := copy_index * models + posmod(model_id, 100)
+				return str(visuals[slot]) if slot >= 0 and slot < visuals.size() else ""
+			cursor += 1
+	return ""
+
+func _create_health_tag(piece: MeshInstance3D, model_id: int) -> void:
+	var health_root := Node3D.new()
+	health_root.name = "HealthStatus"
+	health_root.position = Vector3(0, 1.35, 0)
+	piece.add_child(health_root)
+	var back := MeshInstance3D.new()
+	var bar_mesh := BoxMesh.new()
+	bar_mesh.size = Vector3(0.72, 0.065, 0.035)
+	back.mesh = bar_mesh
+	back.material_override = _material(Color("202a30"))
+	back.position.y = 0.1
+	health_root.add_child(back)
+	var fill := MeshInstance3D.new()
+	var fill_mesh := BoxMesh.new()
+	fill_mesh.size = Vector3(0.68, 0.04, 0.04)
+	fill.mesh = fill_mesh
+	fill.position = Vector3(0, 0.1, -0.025)
+	health_root.add_child(fill)
+	var label := Label3D.new()
+	label.name = "HealthText"
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.pixel_size = 0.009
+	label.font_size = 42
+	label.outline_size = 8
+	label.outline_modulate = Color("10161b")
+	label.modulate = Color("f1f4f5")
+	label.position.y = 0.31
+	label.text = "Wounds"
+	health_root.add_child(label)
+	health_tags[model_id] = {"root": health_root, "back": back, "fill": fill, "label": label}
+
+func _show_board_feedback(model_id: int, message: String, tint: Color) -> void:
+	if not pieces.has(model_id): return
+	var label := Label3D.new()
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.pixel_size = 0.01
+	label.font_size = 60
+	label.outline_size = 10
+	label.outline_modulate = Color("10161b")
+	label.modulate = tint
+	label.text = message
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.position = pieces[model_id].position + Vector3(0, 1.55, 0)
+	add_child(label)
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "position:y", label.position.y + 0.65, 0.72)
+	var faded := tint
+	faded.a = 0.0
+	tween.parallel().tween_property(label, "modulate", faded, 0.72)
+	tween.tween_callback(label.queue_free)
 
 func _scroll_column(parent: Node, title: String) -> VBoxContainer:
 	var scroll := ScrollContainer.new()
@@ -363,9 +514,9 @@ func _build_ui() -> void:
 	var panel := PanelContainer.new()
 	sidebar_panel = panel
 	panel.position = Vector2(16, 16)
-	panel.custom_minimum_size = Vector2(440, 0)
+	panel.custom_minimum_size = Vector2(384, 0)
 	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color("e610151c")
+	panel_style.bg_color = Color(0.055, 0.075, 0.09, 0.94)
 	panel_style.border_color = Color("586b78")
 	panel_style.set_border_width_all(1)
 	panel_style.set_corner_radius_all(10)
@@ -379,27 +530,25 @@ func _build_ui() -> void:
 	header.add_theme_constant_override("separation", 8)
 	margin.add_child(header)
 	var title := Label.new()
-	title.text = "OPEN TABLETOP"
+	title.text = "MATCH CONTROLS"
 	title.add_theme_font_size_override("font_size", 22)
 	title.add_theme_color_override("font_color", Color("f2df83"))
 	header.add_child(title)
-	decision_label = Label.new()
-	decision_label.custom_minimum_size.x = 400
-	decision_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	decision_label.add_theme_color_override("font_color", Color("f2df83"))
-	header.add_child(decision_label)
-	objective_summary = Label.new()
-	objective_summary.custom_minimum_size.x = 400
-	objective_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	header.add_child(objective_summary)
-	session_label = Label.new()
-	session_label.custom_minimum_size.x = 400
-	session_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	header.add_child(session_label)
+	home_nav_button = _button(header, "Return to title screen", _open_home)
+	home_nav_button.custom_minimum_size.y = 34
+	combat_hud = CombatHud.new()
+	layer.add_child(combat_hud)
+	decision_label = combat_hud.decision_label
+	objective_summary = combat_hud.objective_label
+	session_label = combat_hud.connection_label
+	combat_hud.menu_requested.connect(_open_home)
+	combat_hud.focus_requested.connect(_focus_selected_unit)
 	match_tabs = TabContainer.new()
 	match_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	header.add_child(match_tabs)
-	var setup := _scroll_column(match_tabs, "Match setup")
+	match_tabs.tab_changed.connect(func(_tab: int): _layout_ui())
+	var setup := _scroll_column(match_tabs, "New match")
+	match_tabs.set_tab_title(0, "New match")
 	setup.add_theme_constant_override("separation", 12)
 	var column := _scroll_column(match_tabs, "Play")
 	gameplay_scroll = column.get_parent() as ScrollContainer
@@ -412,21 +561,43 @@ func _build_ui() -> void:
 	models.add_child(model_imports)
 	var armies := _scroll_column(match_tabs, "Armies")
 	army_builder = ArmyBuilder.new()
+	army_builder.model_imports = model_imports
+	model_imports.variants_changed.connect(func(_definition: String): army_builder._render_visual_slots(); _spawn_pieces(); _refresh())
+	model_imports.automatic_status.connect(func(message: String): army_builder.set_visual_status(message))
 	armies.add_child(army_builder)
 	var history := _scroll_column(match_tabs, "History")
+	var tools := _scroll_column(match_tabs, "Tools")
 	history_panel = MatchHistoryPanel.new()
 	history.add_child(history_panel)
 	history_panel.page_requested.connect(_history_page)
 	history_panel.visibility_changed.connect(func():
 		if history_panel.is_visible_in_tree(): _history_page(-1))
 	army_builder.library_changed.connect(_refresh_army_choices)
-	var overview := _setup_section(setup, "GET STARTED", "Choose an exercise to open the table. Each mode shows its training scope before play begins.")
+	var overview := _setup_section(setup, "START PLAYING", "Choose a match and get to the table.")
 	scope_label = Label.new()
-	scope_label.custom_minimum_size.x = 400
+	scope_label.custom_minimum_size.x = 360
 	scope_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	overview.add_child(scope_label)
-	var launch := _setup_section(setup, "EXERCISES", "Local matches for learning the table and practicing implemented rules.")
-	var network := _setup_section(setup, "PLAY OVER LAN", "The host and guest must choose the same exercise and options.")
+	column.add_child(scope_label)
+	var guided_intro := Label.new()
+	guided_intro.text = "Local tutorial • checked 290-point sample armies • control both sides. Guided mission setup, deployment, movement and shooting. Not a full army-legality certificate."
+	guided_intro.custom_minimum_size.x = 360
+	guided_intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	overview.add_child(guided_intro)
+	var guided_start := _button(overview, "Start guided match", _start_guided_first_session)
+	guided_start.custom_minimum_size.y = 42
+	guided_start.tooltip_text = "Starts a local sample using the checked Space Marine and Necron lists. You control both players; LAN is not used."
+	guided_start.add_theme_color_override("font_color", Color("101820"))
+	var guided_style := StyleBoxFlat.new()
+	guided_style.bg_color = Color("d9aa4f")
+	guided_style.set_corner_radius_all(6)
+	guided_style.content_margin_left = 8
+	guided_style.content_margin_right = 8
+	guided_start.add_theme_stylebox_override("normal", guided_style)
+	var guided_hover := guided_style.duplicate() as StyleBoxFlat
+	guided_hover.bg_color = Color("f1c875")
+	guided_start.add_theme_stylebox_override("hover", guided_hover)
+	var launch := _make_setup_foldout(setup, "More ways to play", "Local training modes with different levels of setup and rules scope.")
+	var network := _make_setup_foldout(setup, "Play over LAN", "Host and guest choose the same exercise and options.")
 	var row := HBoxContainer.new()
 	network.add_child(row)
 	address = LineEdit.new()
@@ -439,9 +610,9 @@ func _build_ui() -> void:
 	var recovery_help := Label.new()
 	recovery_help.text = "Joining reserves your seat on this computer. To return after the host restarts, choose the same exercise or army list, then select Join."
 	recovery_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	recovery_help.custom_minimum_size.x = 400
+	recovery_help.custom_minimum_size.x = 360
 	network.add_child(recovery_help)
-	var recovery := _setup_section(setup, "RESUME MATCH", "Save or continue a match on this computer.")
+	var recovery := _make_setup_foldout(setup, "Resume a match", "Save or continue a match on this computer.")
 	_button(recovery, "Save match now", _save_match)
 	_button(recovery, "Resume last match locally", _load_match)
 	_button(recovery, "Resume last match as LAN host", func(): _load_match(true))
@@ -601,13 +772,13 @@ func _build_ui() -> void:
 		primary.add_theme_stylebox_override("hover", hover_style)
 	var saved_title := Label.new()
 	saved_title.text = "Ready armies • 500-point training category • fixed weapons"
-	var saved_lists := _setup_section(setup, "LOCAL MATCH • TWO ARMIES", "Core-profile training: up to six units per side, including admitted commanders. For Command Protocols, select the Necron Overlord preset and enable Awakened Dynasty in Advanced options. Partial rules; official legality is pending.")
-	setup.move_child(saved_lists.get_parent(), 0)
+	var saved_lists := _make_setup_foldout(armies, "Two-army training match", "Choose saved lists for local or LAN training. This uses partial rules; official army legality is not certified.")
+	armies.move_child(saved_lists.get_parent(), 0)
 	saved_lists.add_child(saved_title)
 	for owner in [1, 2]:
 		var picker := OptionButton.new()
 		picker.fit_to_longest_item = false
-		picker.custom_minimum_size.x = 400
+		picker.custom_minimum_size.x = 360
 		saved_lists.add_child(picker)
 		saved_army_pickers[owner] = picker
 		picker.item_selected.connect(func(_index: int): _review_saved_armies())
@@ -622,12 +793,12 @@ func _build_ui() -> void:
 	auto_models.button_pressed = true
 	saved_lists.add_child(auto_models)
 	local_model_status = Label.new()
-	local_model_status.custom_minimum_size.x = 400
+	local_model_status.custom_minimum_size.x = 360
 	local_model_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	local_model_status.text = "Models: ForceOrg catalog and compatible miniatures download automatically. Saved links are reused."
 	saved_lists.add_child(local_model_status)
 	var model_play_notice := Label.new()
-	model_play_notice.custom_minimum_size.x = 400
+	model_play_notice.custom_minimum_size.x = 360
 	model_play_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	model_play_notice.visible = false
 	column.add_child(model_play_notice)
@@ -640,11 +811,11 @@ func _build_ui() -> void:
 	_button(saved_lists, "Retry automatic models for current match", func(): _prepare_local_models(true))
 	_button(saved_lists, "Cancel automatic models", func(): model_imports.cancel_automatic())
 	saved_army_review = Label.new()
-	saved_army_review.custom_minimum_size.x = 400
+	saved_army_review.custom_minimum_size.x = 360
 	saved_army_review.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	saved_lists.add_child(saved_army_review)
 	setup_notice = Label.new()
-	setup_notice.custom_minimum_size.x = 400
+	setup_notice.custom_minimum_size.x = 360
 	setup_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	saved_lists.add_child(setup_notice)
 	saved_training_consent = CheckBox.new()
@@ -653,19 +824,80 @@ func _build_ui() -> void:
 	_button(saved_lists, "Enable saved-list LAN training, then Host / Join", func(): _start_saved_match(false))
 	_button(saved_lists, "Send my list to LAN training", _submit_saved_army)
 	_refresh_army_choices()
-	var labs := _setup_section(setup, "LABS AND TOOLS", "Practice scenarios and development shortcuts.")
+	match_tabs.set_tab_title(5, "Tools")
+	var labs := _setup_section(tools, "PRACTICE LABS", "Optional rules exercises and local development tools.")
 	_button(labs, "Rules lab • mixed defense / Precision", _start_allocation_practice)
 	_button(labs, "Local preview / disconnect", func(): _offline("Local preview: control both sides."))
 	_button(labs, "11th edition attack sequence lab", func():
 		multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 		get_tree().change_scene_to_file("res://scenes/attack_lab.tscn")
 	)
+	var selected_card := PanelContainer.new()
+	selected_card.custom_minimum_size.x = 360
+	var selected_style := StyleBoxFlat.new()
+	selected_style.bg_color = Color("172129")
+	selected_style.border_color = Color("536b78")
+	selected_style.set_border_width_all(1)
+	selected_style.set_border_width_left(3)
+	selected_style.set_corner_radius_all(6)
+	selected_style.content_margin_left = 10
+	selected_style.content_margin_right = 10
+	selected_style.content_margin_top = 7
+	selected_style.content_margin_bottom = 7
+	selected_card.add_theme_stylebox_override("panel", selected_style)
+	column.add_child(selected_card)
 	selection_card = Label.new()
-	selection_card.custom_minimum_size.x = 400
+	selection_card.custom_minimum_size.x = 340
 	selection_card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(selection_card)
+	selection_card.add_theme_font_size_override("font_size", 14)
+	selection_card.add_theme_color_override("font_color", Color("e6edf0"))
+	selected_card.add_child(selection_card)
+	first_session_panel = PanelContainer.new()
+	first_session_panel.custom_minimum_size.x = 360
+	first_session_panel.visible = false
+	var guide_card_style := StyleBoxFlat.new()
+	guide_card_style.bg_color = Color("18212b")
+	guide_card_style.border_color = Color("d9aa4f")
+	guide_card_style.set_border_width_all(2)
+	guide_card_style.set_corner_radius_all(8)
+	guide_card_style.content_margin_left = 12
+	guide_card_style.content_margin_right = 12
+	guide_card_style.content_margin_top = 10
+	guide_card_style.content_margin_bottom = 10
+	first_session_panel.add_theme_stylebox_override("panel", guide_card_style)
+	column.add_child(first_session_panel)
+	var first_session_content := VBoxContainer.new()
+	first_session_content.add_theme_constant_override("separation", 7)
+	first_session_panel.add_child(first_session_content)
+	first_session_heading = Label.new()
+	first_session_heading.add_theme_color_override("font_color", Color("f2df83"))
+	first_session_content.add_child(first_session_heading)
+	first_session_progress = ProgressBar.new()
+	first_session_progress.min_value = 0
+	first_session_progress.max_value = 6
+	first_session_progress.show_percentage = false
+	first_session_progress.custom_minimum_size.y = 8
+	first_session_content.add_child(first_session_progress)
+	first_session_guide = Label.new()
+	first_session_guide.custom_minimum_size.x = 376
+	first_session_guide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	first_session_content.add_child(first_session_guide)
+	first_session_boundary = RichTextLabel.new()
+	first_session_boundary.bbcode_enabled = true
+	first_session_boundary.fit_content = true
+	first_session_boundary.scroll_active = false
+	first_session_boundary.custom_minimum_size.x = 376
+	first_session_content.add_child(first_session_boundary)
+	var keyword_heading := Label.new()
+	keyword_heading.text = "KEY TERMS • hover for a quick explanation"
+	keyword_heading.add_theme_color_override("font_color", Color("91a4b7"))
+	first_session_content.add_child(keyword_heading)
+	first_session_terms = HFlowContainer.new()
+	first_session_terms.add_theme_constant_override("h_separation", 6)
+	first_session_terms.add_theme_constant_override("v_separation", 4)
+	first_session_content.add_child(first_session_terms)
 	decision_details = Label.new()
-	decision_details.custom_minimum_size.x = 400
+	decision_details.custom_minimum_size.x = 360
 	decision_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(decision_details)
 	technical_toggle = CheckButton.new()
@@ -674,11 +906,11 @@ func _build_ui() -> void:
 	column.add_child(technical_toggle)
 	details = Label.new()
 	details.visible = false
-	details.custom_minimum_size.x = 400
+	details.custom_minimum_size.x = 360
 	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(details)
 	reanimation_help = Label.new()
-	reanimation_help.custom_minimum_size.x = 400
+	reanimation_help.custom_minimum_size.x = 360
 	reanimation_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	reanimation_help.tooltip_text = "Return within 2 inches of a surviving model present at Command entry, and within 9 inches of every unit member. Returned models cannot extend the anchor chain or create engagement with a new enemy unit. Purple previews do not restore wounds or capture objectives until confirmed."
 	column.add_child(reanimation_help)
@@ -704,7 +936,7 @@ func _build_ui() -> void:
 	reanimation_reset = _button(column, "Reset preview (keep original D3)", _request_reanimation.bind("reset"))
 	reanimation_confirm = _button(column, "Confirm this unit's Reanimation", _request_reanimation.bind("confirm"))
 	awakened_help = Label.new()
-	awakened_help.custom_minimum_size.x = 400
+	awakened_help.custom_minimum_size.x = 360
 	awakened_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(awakened_help)
 	awakened_target = OptionButton.new()
@@ -733,7 +965,7 @@ func _build_ui() -> void:
 	unit_action_button = _button(column, "Use ability / confirm choice", _request_unit_action)
 	awakened_confirm = _button(column, "Confirm Overlord attachment / standalone", _request_awakened_attachment)
 	doctrine_help = Label.new()
-	doctrine_help.custom_minimum_size.x = 400
+	doctrine_help.custom_minimum_size.x = 360
 	doctrine_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(doctrine_help)
 	doctrine_choice = OptionButton.new()
@@ -741,7 +973,7 @@ func _build_ui() -> void:
 	column.add_child(doctrine_choice)
 	doctrine_confirm = _button(column, "Confirm doctrine / no doctrine", _request_combat_doctrine)
 	oath_help = Label.new()
-	oath_help.custom_minimum_size.x = 400
+	oath_help.custom_minimum_size.x = 360
 	oath_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(oath_help)
 	oath_target = OptionButton.new()
@@ -750,7 +982,7 @@ func _build_ui() -> void:
 	oath_confirm = _button(column, "Confirm Oath of Moment target", _request_oath_target)
 	reaction_help = Label.new()
 	reaction_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	reaction_help.custom_minimum_size.x = 400
+	reaction_help.custom_minimum_size.x = 360
 	column.add_child(reaction_help)
 	reaction_squad = OptionButton.new()
 	reaction_squad.item_selected.connect(func(_index: int): _refresh())
@@ -759,20 +991,31 @@ func _build_ui() -> void:
 	reaction_use = _button(column, "Insane Bravery • 1 CP • uma vez por batalha", _request_use_reaction)
 	reaction_sudden = _button(column, "Sudden Storm: re-roll Advance • 0 CP", func(): _request_command_reaction("sudden-storm"))
 	movement_choice = OptionButton.new()
-	for label in ["Normal move", "Advance (D6)", "Fall Back: Ordered Retreat", "Fall Back: Desperate Escape", "Remain stationary"]:
-		movement_choice.add_item(label)
+	var movement_options := [
+		{"label": "Normal move", "type": "normal"},
+		{"label": "Advance (D6)", "type": "advance"},
+		{"label": "Fall Back: Ordered Retreat", "type": "ordered_retreat"},
+		{"label": "Fall Back: Desperate Escape", "type": "desperate_escape"},
+		{"label": "Remain stationary", "type": "stationary"}
+	]
+	for option: Dictionary in movement_options:
+		movement_choice.add_item(str(option.label))
+		movement_choice.set_item_tooltip(movement_choice.item_count - 1, KeywordGlossary.describe_move_type(str(option.type)))
+	movement_choice.tooltip_text = "Choose a move type. Hover an option for its eligibility and consequences under Core Rules §09."
 	movement_choice.item_selected.connect(func(_index: int): _refresh())
 	column.add_child(movement_choice)
 	begin_move_button = _button(column, "Begin selected movement", _request_begin_movement)
+	begin_move_button.tooltip_text = "Start the selected move for the unit. Review any roll or required decision before placing models; positions are committed only when you confirm squad movement."
 	escape_wound_button = _button(column, "Allocate escape wound to selected model", _request_escape_wound)
 	finish_move_button = _button(column, "Confirm squad movement", func(): _request_finish_movement(false))
+	finish_move_button.tooltip_text = "Confirm the current model positions for this move. The movement validator checks distance, placement and coherency before applying them."
 	cancel_move_button = _button(column, "Cancel pending movement", func(): _request_finish_movement(true))
 	abandon_move_button = _button(column, "Abandon Fall Back (retain casualties)", _request_abandon_fall_back)
 	coherency_button = _button(column, "Remove selected model for coherency", _request_coherency_removal)
 	allocate_button = _button(column, "Allocate next damaging attack to selected model", _request_allocate_damage)
 	precision_skip = _button(column, "Do not use Precision", _request_skip_precision)
 	defense_steps = Label.new()
-	defense_steps.custom_minimum_size.x = 400
+	defense_steps.custom_minimum_size.x = 360
 	defense_steps.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(defense_steps)
 	defense_picker = OptionButton.new()
@@ -788,6 +1031,7 @@ func _build_ui() -> void:
 	action_button = _button(column, "Start Secure Ground (custom action)", _request_action)
 	end_button = _button(column, "End turn", _request_end)
 	charge_button = _button(column, "Roll charge (2D6)", _request_charge_roll)
+	charge_button.tooltip_text = KeywordGlossary.describe_charge_roll()
 	begin_contact_button = _button(column, "Begin contact movement", _request_begin_contact)
 	consolidation_objective = OptionButton.new()
 	column.add_child(consolidation_objective)
@@ -797,11 +1041,12 @@ func _build_ui() -> void:
 	cancel_contact_button = _button(column, "Cancel contact placement (retain roll)", func(): _request_finish_contact(true))
 	lethal_choice = CheckBox.new()
 	lethal_choice.text = "Use Lethal Hits automatic wounds"
+	lethal_choice.tooltip_text = KeywordGlossary.describe_lethal_choice()
 	lethal_choice.button_pressed = true
 	column.add_child(lethal_choice)
 	plan_begin = _button(column, "Plan attacks across targets", _begin_attack_plan)
 	plan_steps = Label.new()
-	plan_steps.custom_minimum_size.x = 400
+	plan_steps.custom_minimum_size.x = 360
 	plan_steps.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(plan_steps)
 	plan_hail = OptionButton.new()
@@ -814,10 +1059,12 @@ func _build_ui() -> void:
 	column.add_child(plan_hail)
 	plan_weapon = OptionButton.new()
 	plan_weapon.fit_to_longest_item = false
+	plan_weapon.tooltip_text = "Hover a weapon profile to read explanations for its listed 11e abilities. Only the mechanics enabled by this match are resolved."
 	plan_weapon.item_selected.connect(func(_index: int): _refresh())
 	column.add_child(plan_weapon)
 	plan_target = OptionButton.new()
 	plan_target.fit_to_longest_item = false
+	plan_target.tooltip_text = KeywordGlossary.describe_attack_target()
 	plan_target.item_selected.connect(func(_index: int): _refresh())
 	column.add_child(plan_target)
 	plan_amount = SpinBox.new()
@@ -827,13 +1074,18 @@ func _build_ui() -> void:
 	plan_add = _button(column, "Assign selected model to target", _assign_attack)
 	plan_clear = _button(column, "Clear selected model's assignments", _clear_attack_model)
 	plan_summary = Label.new()
-	plan_summary.custom_minimum_size.x = 400
+	plan_summary.custom_minimum_size.x = 360
 	plan_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(plan_summary)
+	damage_preview = Label.new()
+	damage_preview.custom_minimum_size.x = 360
+	damage_preview.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	damage_preview.add_theme_color_override("font_color", Color("f2c879"))
+	column.add_child(damage_preview)
 	plan_confirm = _button(column, "Confirm complete attack plan", _confirm_attack_plan)
 	plan_cancel = _button(column, "Cancel attack plan", func(): attack_draft = {}; _refresh())
 	status = Label.new()
-	status.custom_minimum_size.x = 400
+	status.custom_minimum_size.x = 360
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status.text = "Local preview: control both sides."
 	column.add_child(status)
@@ -846,9 +1098,60 @@ func _build_ui() -> void:
 	help.text = "Left: select miniature • Right: move / target\nMovement: reposition models, confirm squad.\nWheel: zoom • Middle drag: orbit • WASD: pan"
 	column.add_child(help)
 	result_summary = Label.new()
-	result_summary.custom_minimum_size.x = 400
+	result_summary.custom_minimum_size.x = 360
 	result_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(result_summary)
+	health_overlay_toggle = CheckButton.new()
+	health_overlay_toggle.text = "Show Wounds and status above models"
+	health_overlay_toggle.tooltip_text = "W means Wounds; each tag shows current/maximum Wounds plus a bar. Green means over 50%, amber means over 25% through 50%, and red means 25% or less. The selected model also shows OC, Battle-shocked and Moved status in text."
+	health_overlay_toggle.button_pressed = true
+	health_overlay_toggle.toggled.connect(func(_enabled: bool): _refresh_health_tags())
+	column.add_child(health_overlay_toggle)
+	board_feedback_toggle = CheckButton.new()
+	board_feedback_toggle.text = "Animate board feedback"
+	board_feedback_toggle.button_pressed = true
+	board_feedback_toggle.tooltip_text = "Briefly animate staged or confirmed model movement, wound changes and destroyed models. This is presentation only; it never rolls dice or changes the match."
+	column.add_child(board_feedback_toggle)
+	dice_toggle = CheckButton.new()
+	dice_toggle.text = "Show resolved dice and full result"
+	dice_toggle.tooltip_text = "Expand the completed attack record and individual dice. Forecasts remain conditional until resolved."
+	dice_toggle.visible = false
+	dice_toggle.toggled.connect(func(expanded: bool): dice_visual.visible = expanded)
+	column.add_child(dice_toggle)
+	dice_visual = VBoxContainer.new()
+	dice_visual.add_theme_constant_override("separation", 5)
+	column.add_child(dice_visual)
+	var dice_heading := Label.new()
+	dice_heading.text = "Resolved dice • final hit/wound faces show outcome; shape + color (up to 72)"
+	dice_visual.add_child(dice_heading)
+	dice_audit_label = Label.new()
+	dice_audit_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dice_visual.add_child(dice_audit_label)
+	dice_animation_toggle = CheckButton.new()
+	dice_animation_toggle.text = "Animate new dice results"
+	dice_animation_toggle.button_pressed = true
+	dice_animation_toggle.tooltip_text = "Briefly reveal each resolved die. This is only presentation; it does not roll or change dice."
+	dice_visual.add_child(dice_animation_toggle)
+	var tray := PanelContainer.new()
+	var tray_style := StyleBoxFlat.new()
+	tray_style.bg_color = Color("191d21")
+	tray_style.border_color = Color("756646")
+	tray_style.set_border_width_all(1)
+	tray_style.set_corner_radius_all(10)
+	tray_style.content_margin_left = 9
+	tray_style.content_margin_right = 9
+	tray_style.content_margin_top = 9
+	tray_style.content_margin_bottom = 9
+	tray_style.shadow_color = Color(0, 0, 0, 0.28)
+	tray_style.shadow_size = 3
+	tray_style.shadow_offset = Vector2(0, 2)
+	tray.add_theme_stylebox_override("panel", tray_style)
+	dice_visual.add_child(tray)
+	dice_visual_rolls = HFlowContainer.new()
+	dice_visual_rolls.add_theme_constant_override("h_separation", 4)
+	dice_visual_rolls.add_theme_constant_override("v_separation", 4)
+	dice_visual_rolls.custom_minimum_size = Vector2(390, 64)
+	tray.add_child(dice_visual_rolls)
 	log_toggle = CheckButton.new()
 	log_toggle.text = "Show combat history and dice"
 	log_toggle.toggled.connect(func(expanded: bool): event_log.visible = combat_enabled and expanded)
@@ -858,12 +1161,13 @@ func _build_ui() -> void:
 	event_log.custom_minimum_size = Vector2(400, 130)
 	column.add_child(event_log)
 	deployment_help = Label.new()
-	deployment_help.custom_minimum_size.x = 400
+	deployment_help.custom_minimum_size.x = 360
 	deployment_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(deployment_help)
 	deployment_preset_button = _button(column, "Accept this unit's preview positions", _request_deployment_preset)
 	deployment_confirm_button = _button(column, "Confirm unit deployment", _request_end)
 	_build_action_groups(column)
+	column.move_child(first_session_panel, 0)
 	match_tabs.current_tab = 0
 	setup.get_parent().visible = true
 	column.move_child(help, column.get_child_count() - 1)
@@ -887,6 +1191,19 @@ func _build_ui() -> void:
 	guide_label.custom_minimum_size.x = 336
 	guide_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	guide_column.add_child(guide_label)
+	var menu_layer := CanvasLayer.new()
+	menu_layer.layer = 10
+	add_child(menu_layer)
+	main_menu = MainMenu.new()
+	menu_layer.add_child(main_menu)
+	main_menu.start_guided_requested.connect(_menu_start_guided)
+	main_menu.resume_requested.connect(_menu_resume)
+	main_menu.new_match_requested.connect(func(): _dismiss_home(0))
+	main_menu.section_requested.connect(_open_menu_section)
+	main_menu.visible = true
+	sidebar_panel.visible = false
+	guide_panel.visible = false
+	combat_hud.visible = false
 
 func _build_action_groups(column: VBoxContainer) -> void:
 	var definitions := {
@@ -914,7 +1231,7 @@ func _build_action_groups(column: VBoxContainer) -> void:
 		heading.add_theme_color_override("font_color", Color("f2df83"))
 		group.add_child(heading)
 		var reason := Label.new()
-		reason.custom_minimum_size.x = 400
+		reason.custom_minimum_size.x = 360
 		reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		group.add_child(reason)
 		for control: Control in definitions[key].controls: control.reparent(group)
@@ -1015,21 +1332,86 @@ func _refresh_action_groups() -> void:
 		_action_reason("contact", reason)
 	if end_button.disabled and action_groups.phase.container.visible:
 		_action_reason("phase", end_button.text + ". Complete the required decision before advancing.")
+	elif combat_enabled:
+		end_button.tooltip_text = KeywordGlossary.describe_phase(str(state.phase), str(state.get("fight_step", "")))
+	else:
+		end_button.tooltip_text = "End the local movement preview turn. Start a combat exercise to use the supported 11e phase flow."
 
 func _action_reason(key: String, text: String) -> void:
 	if text.is_empty(): return
 	var group: Dictionary = action_groups[key]
 	group.reason.text = text
 	group.reason.visible = true
+	var rule_reference := KeywordGlossary.describe_action_group_reference(key, str(state.get("phase", "")))
 	for control: Control in group.controls:
-		if control is BaseButton and control.disabled: control.tooltip_text = text
+		if control is BaseButton and control.disabled:
+			control.tooltip_text = text if rule_reference.is_empty() else text + "\n\n" + rule_reference
 
 func _layout_ui() -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
-	var sidebar_width := minf(480.0, maxf(440.0, viewport_size.x * 0.38))
-	sidebar_panel.size = Vector2(sidebar_width, maxf(300, viewport_size.y - 32))
-	guide_panel.visible = viewport_size.x >= sidebar_width + 400.0
-	guide_panel.position = Vector2(maxf(sidebar_width + 32.0, viewport_size.x - 376.0), 16)
+	var workspace_tab := match_tabs != null and match_tabs.current_tab in [2, 3]
+	var sidebar_width := clampf(viewport_size.x * (0.43 if workspace_tab else 0.22), 350.0 if not workspace_tab else 520.0, 420.0 if not workspace_tab else 860.0)
+	sidebar_panel.position = Vector2(16, 112)
+	sidebar_panel.size = Vector2(sidebar_width, maxf(300, viewport_size.y - 128))
+	if home_nav_button != null: home_nav_button.visible = not combat_enabled
+	if combat_hud != null: combat_hud.visible = combat_enabled and (main_menu == null or not main_menu.visible)
+	if guide_panel != null:
+		guide_panel.visible = combat_enabled and (main_menu == null or not main_menu.visible) and viewport_size.x >= 1600.0
+		guide_panel.position = Vector2(maxf(sidebar_width + 32.0, viewport_size.x - 376.0), 112)
+	if main_menu != null:
+		main_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+func _open_home() -> void:
+	if main_menu == null: return
+	menu_return_tab = match_tabs.current_tab if match_tabs != null else 1
+	if combat_enabled:
+		main_menu.set_resume_state(true, "Return to the current match.", true)
+	else:
+		_update_main_menu_resume_state()
+	main_menu.show_status("")
+	main_menu.visible = true
+	sidebar_panel.visible = false
+	guide_panel.visible = false
+	combat_hud.visible = false
+	_layout_ui()
+
+func _dismiss_home(tab_index: int = 1) -> void:
+	if main_menu != null: main_menu.visible = false
+	sidebar_panel.visible = true
+	match_tabs.current_tab = clampi(tab_index, 0, match_tabs.get_tab_count() - 1)
+	menu_return_tab = match_tabs.current_tab
+	_layout_ui()
+	_refresh()
+
+func _open_menu_section(tab_index: int) -> void:
+	_dismiss_home(tab_index)
+
+func _menu_start_guided() -> void:
+	main_menu.show_status("")
+	_start_guided_first_session()
+	if combat_enabled and saved_army_mode and Combat.RosterValidation.enabled(state):
+		_dismiss_home(1)
+	else:
+		main_menu.show_status(status.text)
+
+func _menu_resume() -> void:
+	if combat_enabled:
+		_dismiss_home(menu_return_tab if menu_return_tab > 0 else 1)
+		return
+	_load_match()
+	if resume_succeeded:
+		_dismiss_home(1)
+	else:
+		main_menu.show_status(status.text)
+		_update_main_menu_resume_state()
+
+func _update_main_menu_resume_state() -> void:
+	if main_menu == null or combat_enabled: return
+	var previous_status := status.text if status != null else ""
+	_load_match(false, true)
+	var issue := status.text
+	if status != null: status.text = previous_status
+	main_menu.set_resume_state(resume_compatible, issue if not resume_compatible else "")
 
 func _update_guides() -> void:
 	if guides == null or guide_label == null: return
@@ -1080,6 +1462,53 @@ func _refresh_army_choices() -> void:
 				var candidate: Variant = picker.get_item_metadata(index)
 				if candidate is Dictionary and candidate.get("id", "") == "preset:checked-mfm16:" + ("Space Marines" if owner == 1 else "Necrons"): picker.select(index)
 	_review_saved_armies()
+
+func _start_guided_first_session() -> void:
+	if mode != "local":
+		status.text = "Start the guided sample locally before connecting to a LAN match."
+		return
+	guided_first_session = false
+	checked_rosters_choice.set_pressed_no_signal(true)
+	official_mission_choice.set_pressed_no_signal(true)
+	unit_abilities_choice.set_pressed_no_signal(true)
+	combat_doctrines_choice.set_pressed_no_signal(true)
+	awakened_dynasty_choice.set_pressed_no_signal(true)
+	reanimation_protocols_choice.set_pressed_no_signal(true)
+	stratagem_choice.set_pressed_no_signal(true)
+	reroll_choice.set_pressed_no_signal(true)
+	attack_reroll_choice.set_pressed_no_signal(true)
+	save_reroll_choice.set_pressed_no_signal(true)
+	damage_reroll_choice.set_pressed_no_signal(true)
+	hazard_reroll_choice.set_pressed_no_signal(true)
+	count_reroll_choice.set_pressed_no_signal(true)
+	escape_reroll_choice.set_pressed_no_signal(true)
+	equipment_choice.set_pressed_no_signal(false)
+	hail_of_bolts_choice.set_pressed_no_signal(false)
+	oath_of_moment_choice.set_pressed_no_signal(false)
+	objective_secured_choice.set_pressed_no_signal(false)
+	implacable_eradication_choice.set_pressed_no_signal(false)
+	defender_choice.set_pressed_no_signal(false)
+	auto_models.button_pressed = false
+	_refresh_army_choices()
+	for owner: int in [1, 2]:
+		var wanted := "preset:checked-mfm16:" + ("Space Marines" if owner == 1 else "Necrons")
+		var picker: OptionButton = saved_army_pickers[owner]
+		var found := false
+		for index in range(picker.item_count):
+			var list: Variant = picker.get_item_metadata(index)
+			if list is Dictionary and str(list.get("id", "")) == wanted:
+				picker.select(index)
+				found = true
+				break
+		if not found:
+			status.text = "The checked sample list for Player %d is unavailable. Refresh profile lists and try again." % owner
+			return
+	_start_saved_match(true)
+	if not saved_army_mode or not Combat.RosterValidation.enabled(state): return
+	guided_first_session = true
+	match_tabs.current_tab = 1
+	_refresh()
+	status.text = "Guided sample ready. You control both sides locally; follow the yellow first-session steps above the Play controls."
 
 func _save_selected_army(owner: int) -> void:
 	var list := _picked_army(owner)
@@ -1139,6 +1568,7 @@ func _review_saved_armies() -> void:
 
 func _start_saved_match(local_match: bool = true) -> void:
 	if mode != "local": return
+	guided_first_session = false
 	if not local_match and not saved_training_consent.button_pressed:
 		status.text = "Review the scope and accept the partial training rules for LAN."
 		return
@@ -1150,6 +1580,9 @@ func _start_saved_match(local_match: bool = true) -> void:
 			status.text = report.error
 			return
 		selections[owner] = report.selection
+	local_visual_armies = {}
+	for owner: int in selections:
+		local_visual_armies[owner] = _picked_army(owner)
 	if selections.is_empty():
 		status.text = "Select at least your saved list before enabling LAN."
 		return
@@ -1206,9 +1639,11 @@ func _submit_saved_army() -> void:
 		status.text = report.error
 		return
 	if mode == "client":
+		local_visual_armies[owner] = _picked_army(owner)
 		submitted_army = report.selection
 		request_saved_army.rpc_id(1, submitted_army)
 	elif mode == "host":
+		local_visual_armies[owner] = _picked_army(owner)
 		pending_armies[1] = report.selection
 		_try_saved_armies()
 
@@ -1249,6 +1684,7 @@ func _try_saved_armies() -> void:
 
 func _start_prepared_match() -> void:
 	if mode != "local": return
+	local_visual_armies.clear()
 	var candidate := PreparedTraining.initial_state({"manual_allocation": defender_choice.button_pressed, "varied_equipment": equipment_choice.button_pressed, "core_stratagems": stratagem_choice.button_pressed, "movement_rerolls": reroll_choice.button_pressed, "attack_rerolls": attack_reroll_choice.button_pressed, "save_rerolls": save_reroll_choice.button_pressed, "damage_rerolls": damage_reroll_choice.button_pressed, "hazard_rerolls": hazard_reroll_choice.button_pressed, "escape_rerolls": escape_reroll_choice.button_pressed, "count_rerolls": count_reroll_choice.button_pressed, "objective_secured": objective_secured_choice.button_pressed, "implacable_eradication": implacable_eradication_choice.button_pressed, "hail_of_bolts": hail_of_bolts_choice.button_pressed, "oath_of_moment": oath_of_moment_choice.button_pressed, "reanimation_protocols": reanimation_protocols_choice.button_pressed, "combat_doctrines": combat_doctrines_choice.button_pressed, "awakened_dynasty": awakened_dynasty_choice.button_pressed, "unit_abilities": unit_abilities_choice.button_pressed, "official_mission": official_mission_choice.button_pressed, "checked_rosters": checked_rosters_choice.button_pressed})
 	if candidate.has("error"):
 		status.text = candidate.error
@@ -1305,6 +1741,7 @@ func _apply_deployment(player: int, revision: int, confirm: bool) -> void:
 	_feedback(player, "Unit deployment confirmed." if confirm else "Preview positions accepted; confirm this unit when ready.")
 
 func _start_allocation_practice() -> void:
+	local_visual_armies.clear()
 	objective_secured = false
 	implacable_eradication = false
 	hail_of_bolts = false
@@ -1351,6 +1788,7 @@ func _start_allocation_practice() -> void:
 
 func _start_objectives(unit_count: int = 1) -> void:
 	if mode != "local": return
+	local_visual_armies.clear()
 	var candidate := TestBattlefield.apply(Combat.initial_state(Combat.Terrain.DEFAULT_LAYOUT, Combat.Objectives.TRAINING, unit_count, defender_choice.button_pressed, equipment_choice.button_pressed))
 	if candidate.has("error"):
 		status.text = candidate.error
@@ -1392,6 +1830,7 @@ func _start_objectives(unit_count: int = 1) -> void:
 
 func _toggle_combat(layout: String = Combat.Terrain.DEFAULT_LAYOUT) -> void:
 	if mode != "local": return
+	if not saved_army_mode: local_visual_armies.clear()
 	var next_terrain := terrain_layout if combat_enabled else layout
 	var next_manual := manual_allocation if combat_enabled else defender_choice.button_pressed
 	var next_varied := varied_equipment if combat_enabled else equipment_choice.button_pressed
@@ -1445,11 +1884,30 @@ func _update_camera() -> void:
 	camera.position = Vector3(sin(angle) * zoom, zoom * 0.85, cos(angle) * zoom)
 	camera.look_at(pivot.position, Vector3.UP)
 
+func _focus_selected_unit() -> void:
+	if not state.units.has(selected) or not pieces.has(selected): return
+	var selected_squad := int(state.units[selected].get("squad", -1))
+	if selected_squad < 0: return
+	var center := Vector2.ZERO
+	var count := 0
+	for model_id: int in state.units:
+		if int(state.units[model_id].get("squad", -2)) != selected_squad or not pieces.has(model_id) or not pieces[model_id].visible: continue
+		center += Vector2(pieces[model_id].position.x, pieces[model_id].position.z)
+		count += 1
+	if count == 0: return
+	center /= count
+	var destination := Vector3(clampf(center.x, -15.0, 15.0), pivot.position.y, clampf(center.y, -10.0, 10.0))
+	if focus_tween != null and focus_tween.is_running(): focus_tween.kill()
+	focus_tween = create_tween()
+	focus_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	focus_tween.tween_property(pivot, "position", destination, 0.38)
+
 func _process(delta: float) -> void:
 	if setup_notice != null and status != null:
 		var notice := status.text
 		if not autosave_error.is_empty() and state.get("phase") != "army_selection": notice += "\nFalha no autosave: " + autosave_error
 		if setup_notice.text != notice: setup_notice.text = notice
+	if main_menu != null and main_menu.visible: return
 	hover_time += delta
 	if hover_time >= 0.05:
 		hover_time = 0.0
@@ -1467,6 +1925,12 @@ func _process(delta: float) -> void:
 	pivot.position.z = clampf(pivot.position.z, -10, 10)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if main_menu != null and main_menu.visible: return
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_F:
+		var focused_control := get_viewport().gui_get_focus_owner()
+		if not focused_control is LineEdit and not focused_control is TextEdit:
+			_focus_selected_unit()
+		return
 	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE):
 		angle -= event.relative.x * 0.006
 		_update_camera()
@@ -1543,6 +2007,7 @@ func _local_player() -> int:
 	return (Combat.actor(state) if combat_enabled else int(state.active)) if mode == "local" else (1 if mode == "host" else 2)
 
 func _refresh_decision() -> void:
+	decision_label.tooltip_text = KeywordGlossary.describe_phase(str(state.get("phase", "")), str(state.get("fight_step", ""))) if combat_enabled else "Local movement preview. Choose a combat exercise to see the supported 11e phase flow."
 	if combat_enabled != ui_combat_enabled:
 		match_tabs.current_tab = 1 if combat_enabled else 0
 		ui_combat_enabled = combat_enabled
@@ -1554,18 +2019,25 @@ func _refresh_decision() -> void:
 			objectives.append("%s: %s%s" % [objective.name, "neutral" if objective.controller == 0 else "P%d" % objective.controller, " (secured)" if objective.secured != 0 else ""])
 		objective_summary.text += "\n" + " • ".join(objectives)
 		if Combat.Mission.enabled(state): objective_summary.text = Combat.Mission.summary(state)
+		objective_summary.tooltip_text = objective_summary.text
+		objective_summary.text = "P1  %d VP  •  P2  %d VP" % [state.mission.scores[1], state.mission.scores[2]]
 	if not combat_enabled:
-		decision_label.text = "LOCAL PREVIEW • Choose a training exercise in Match setup to play."
+		combat_hud.set_round("LOCAL PREVIEW")
+		decision_label.text = "Choose a mode from the title screen to begin."
 		return
+	var phase_name := str(state.phase).replace("_", " ").capitalize()
+	combat_hud.set_round("ROUND %d  •  %s  •  P%d" % [state.round, phase_name, Combat.actor(state)])
 	if state.phase == "army_selection":
 		match_tabs.current_tab = 0
-		decision_label.text = "Choose lists for LAN training • received: %s\nSelect your list, then use Host / Join. If the budgets differ, update your selection and submit it again." % str(state.get("ready_armies", []))
+		decision_label.text = "ARMY SELECTION • choose and submit your list."
+		decision_label.tooltip_text = "Choose lists for LAN training • received: %s\nSelect your list, then use Host / Join. If the budgets differ, update your selection and submit it again." % str(state.get("ready_armies", []))
 		return
 	if state.test_winner != 0:
 		decision_label.text = "EXERCISE COMPLETE • " + ("Draw" if state.test_winner == -1 else "Player %d wins" % state.test_winner)
 		return
 	if mode == "host" and guest_id == 0:
-		decision_label.text = "WAITING FOR PLAYER 2 • Both players must select the same exercise."
+		decision_label.text = "WAITING FOR PLAYER 2"
+		decision_label.tooltip_text = "Both players must select the same exercise."
 		return
 	var actor := Combat.actor(state)
 	var instruction := "Select a model to see its available actions below."
@@ -1604,7 +2076,103 @@ func _refresh_decision() -> void:
 		instruction = "Required: remove models to restore unit coherency before ending the turn."
 	var owner_text := "Player %d to act" % actor
 	if mode != "local" and actor != _local_player(): owner_text = "Waiting for player %d" % actor
-	decision_label.text = "Round %d • %s • %s\n%s" % [state.round, str(state.phase).replace("_", " ").capitalize(), owner_text, instruction]
+	decision_label.text = "%s  •  %s" % [owner_text.to_upper(), instruction]
+	decision_label.tooltip_text = "%s\n%s" % [KeywordGlossary.describe_phase(str(state.phase), str(state.get("fight_step", ""))), instruction]
+
+func _refresh_first_session_guide() -> void:
+	if first_session_panel == null: return
+	first_session_panel.visible = guided_first_session and combat_enabled and saved_army_mode
+	if not first_session_panel.visible: return
+	var heading := "FOLLOW THE STEPS"
+	var instruction := "Resolve the highlighted choice in Play. The decision banner shows whose turn it is and what is required."
+	var boundary := "CAN DO: follow the highlighted controls.  •  WAIT: phase progression stays unavailable while a required choice is open."
+	var step_number := 1
+	var terms: Array[Dictionary] = []
+	if state.test_winner != 0:
+		step_number = 6
+		heading = "SAMPLE COMPLETE • 6 OF 6"
+		instruction = "You resolved match setup, deployed, moved a unit and confirmed a shooting plan. Continue playing or choose another exercise in Match setup."
+		boundary = "This sample teaches the interface with small checked lists. It does not certify full army legality or every game rule."
+		terms = [{"name": "Result", "help": "The current sample has reached its end condition. You can keep exploring the board or start a different exercise."}]
+	elif Combat.Mission.actor(state) > 0:
+		step_number = 1
+		heading = "STEP 1 OF 6 • MISSION SETUP"
+		instruction = "In Play, resolve the highlighted mission roll-off or declaration. Repeat tied roll-offs, then continue to army choices."
+		boundary = "CAN DO: use the highlighted mission control.  •  WAIT: deployment and turn actions are not available until preparation is complete."
+		terms = [{"name": "Roll-off", "help": "Both players roll as directed by the selected mission. A tie asks for another roll."}, {"name": "Attacker / Defender", "help": "Mission roles determine setup responsibilities and are recorded before deployment."}]
+	elif Combat.Awakened.needs_setup(state) or Combat.UnitActions.setup_actor(state) > 0:
+		step_number = 2
+		heading = "STEP 2 OF 6 • ARMY PREPARATION"
+		instruction = "Resolve the required choices in Play: declare the Overlord attachment, Warlord, Leaders, Support units and reserves shown by the sample."
+		boundary = "CAN DO: make each listed declaration and review its highlighted control.  •  WAIT: deployment begins after required army choices are confirmed."
+		terms = [{"name": "Leader", "help": "A Character attachment must be declared with its bodyguard unit during army setup."}, {"name": "Warlord", "help": "Declare the required Warlord before deployment."}, {"name": "Reserve", "help": "Declare the supported unit's reserve choice when the army preparation step requests it."}]
+	elif state.phase == "deployment":
+		step_number = 3
+		heading = "STEP 3 OF 6 • DEPLOY"
+		instruction = "Place the current unit's models inside its marked zone, or accept the suggested preview positions, then confirm the unit. Repeat for each unit."
+		boundary = "CAN DO: place models in the marked zone or accept the preview.  •  CANNOT: confirm a unit while its deployment is incomplete or invalid."
+		terms = [{"name": "Deployment zone", "help": "The shaded area on your side of the battlefield where your models must be placed during setup."}, {"name": "Preview", "help": "Suggested positions are not final until you accept and confirm the unit's deployment."}]
+	elif Combat.UnitActions.battle_actor(state) > 0:
+		step_number = 4
+		heading = "STEP 4 OF 6 • BATTLE START"
+		instruction = "Review any highlighted ability choice in Play, confirm it if you want to use it, then follow Phase progression."
+		boundary = "CAN DO: use options enabled for this sample.  •  OPTIONAL: skip a choice when the interface offers a decline action."
+		terms = [{"name": "Ability", "help": "Only abilities enabled and supported by this match are available in the highlighted choice panel."}, {"name": "Phase", "help": "The match advances through named steps. Required decisions must be resolved before it can continue."}]
+	elif state.phase in ["start_turn", "command"]:
+		step_number = 4
+		heading = "STEP 4 OF 6 • START YOUR TURN"
+		instruction = "Resolve the highlighted Command choices. When no required choice remains, use Phase progression to enter Movement."
+		boundary = "CAN DO: make available Command choices.  •  WAIT: do not skip an open required decision."
+		terms = [{"name": "Command", "help": "The first phase of a turn. It can include mission and unit ability decisions."}, {"name": "Phase progression", "help": "The next-step control is enabled when the current phase has no unresolved required decision."}]
+	elif state.phase == "movement":
+		step_number = 5
+		var acting_player := int(state.active)
+		var moved := false
+		for squad: Dictionary in state.squads.values():
+			if squad.owner == acting_player and squad.moved: moved = true
+		heading = "STEP 5 OF 6 • MOVE"
+		instruction = ("Select a Player %d model, choose Normal move, begin, right-click its new position and confirm the squad." % acting_player) if not moved else "Your movement is confirmed. Use Phase progression when ready to enter Shooting."
+		boundary = "CAN DO: move an eligible friendly unit and confirm its new positions.  •  CANNOT: place models beyond the move allowed by the selected action."
+		terms = [{"name": "Normal move", "help": "A standard move action. The interface previews legal movement distance and checks placement before confirmation."}, {"name": "Confirm squad", "help": "Records the planned positions for the unit. Review them before confirming."}]
+	elif state.phase == "shooting" and not state.has("last_attack"):
+		step_number = 6
+		heading = "STEP 6 OF 6 • SHOOT"
+		instruction = "Select an eligible friendly unit, plan attacks against an eligible enemy, review the assignments and confirm the plan."
+		boundary = "CAN DO: assign attacks the interface marks eligible, then review and confirm.  •  CANNOT: submit an incomplete attack plan."
+		terms = [{"name": "Eligible target", "help": "A target the selected unit can attack under the current visibility and range checks."}, {"name": "Attack plan", "help": "A draft of weapon, target and model assignments. It resolves only after you review and confirm it."}]
+	elif state.has("last_attack"):
+		step_number = 6
+		heading = "FIRST MOVE AND SHOT COMPLETE"
+		instruction = "Your confirmed movement and shooting plan are recorded above. Continue the match from Phase progression or keep exploring."
+		boundary = "CAN DO: continue the sample or inspect the board, dice history and unit details."
+		terms = [{"name": "Combat history", "help": "Expand the history panel to review recorded actions and dice."}, {"name": "Unit details", "help": "Select a miniature to inspect its current wounds and available information."}]
+	first_session_heading.text = heading
+	first_session_progress.value = step_number
+	first_session_guide.text = instruction
+	first_session_boundary.text = boundary.replace("CAN DO:", "[color=#8ad9a7]CAN DO:[/color]").replace("WAIT:", "[color=#f2df83]WAIT:[/color]").replace("CANNOT:", "[color=#f08c8c]CANNOT:[/color]").replace("OPTIONAL:", "[color=#8ad9a7]OPTIONAL:[/color]")
+	for child in first_session_terms.get_children(): child.queue_free()
+	for term: Dictionary in terms:
+		first_session_terms.add_child(_first_session_keyword(str(term.name), str(term.help)))
+
+func _first_session_keyword(term: String, explanation: String) -> PanelContainer:
+	var chip := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("263746")
+	style.border_color = Color("607b91")
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(5)
+	style.content_margin_left = 7
+	style.content_margin_right = 7
+	style.content_margin_top = 3
+	style.content_margin_bottom = 3
+	chip.add_theme_stylebox_override("panel", style)
+	chip.tooltip_text = explanation
+	var label := Label.new()
+	label.text = term
+	label.add_theme_color_override("font_color", Color("e3edf5"))
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.add_child(label)
+	return chip
 
 func _refresh_selection_card() -> void:
 	if not state.units.has(selected):
@@ -1618,38 +2186,19 @@ func _refresh_selection_card() -> void:
 	var living := 0
 	for model: Dictionary in state.units.values():
 		if model.squad == unit.squad and model.wounds > 0: living += 1
-	selection_card.text = "%s • Player %d\n%d models alive • Model %d: %d/%d wounds" % [squad.name, unit.owner, living, selected, unit.wounds, unit.max_wounds]
-	if not Combat.UnitAbilities.enabled(state) and "implacable-eradication" in squad.get("enabled_abilities", []): selection_card.text += "\nAbility: Implacable Eradication (reference)"
-	if Combat.UnitAbilities.enabled(state):
-		var names: Array[String] = []
-		for model: int in state.units:
-			if state.units[model].squad != unit.squad or state.units[model].wounds <= 0: continue
-			for ability: String in Combat.UnitAbilities.RULES.get(Combat.UnitAbilities.identity(state.units[model]), []):
-				var name := ability.replace("-", " ").capitalize()
-				if name not in names: names.append(name)
-		selection_card.text += "\nCurrent e11: " + ", ".join(names)
-	if Combat.UnitActions.DetachmentStratagems.hungry_active(state, unit.squad): selection_card.text += "\nHungry Void: +1 melee Strength" + (", AP improved by 1 (no stacking)" if state.detachment_stratagems.hungry[unit.squad].led else "") + " until Fight phase ends"
-	if Combat.Awakened.hit_bonus(state, unit.squad) > 0: selection_card.text += "\nCommand Protocols: +1 to hit while led"
-	var doctrine := Combat.Doctrines.active_for(state, unit.squad)
-	if not doctrine.is_empty(): selection_card.text += "\n11e doctrine • " + Combat.Doctrines.NAMES[doctrine]
-	if Combat.OathOfMoment.enabled(state):
-		var marked: int = state.oath_of_moment.targets.get(squad.owner, -1)
-		if marked != -1 and Combat.OathOfMoment.marine_army(state, squad.owner): selection_card.text += "\nOath of Moment target: " + state.squads[marked].name
-	if "hail-of-bolts" in squad.get("enabled_abilities", []): selection_card.text += "\nAbility: Hail of Bolts (select target in attack plan)"
-	if "objective-secured" in squad.get("enabled_abilities", []): selection_card.text += "\nAbility: Objective Secured"
+	selection_card.text = "%s  •  P%d\n%d models alive  •  Model %d  •  W %d/%d" % [squad.name, unit.owner, living, selected, unit.wounds, unit.max_wounds]
 	if not unit.get("on_battlefield", true):
-		selection_card.text += "\nIn strategic reserves: use ingress choices to enter the battlefield."
+		selection_card.text += "  •  Strategic Reserves"
 		return
 	if unit.wounds <= 0:
-		selection_card.text += "\nDestroyed • select a living model to act."
+		selection_card.text += "  •  Destroyed"
 		return
 	var defense := Combat.Allocation.Groups.profile(state, selected)
-	if defense.error.is_empty(): selection_card.text += "\nT%d • Sv%d+ • InSv%s" % [defense.toughness, defense.save_target, "—" if defense.invulnerable_target == 0 else "%d+" % defense.invulnerable_target]
-	selection_card.text += "\n%s • OC %d" % ["Battle-shocked" if squad.battle_shocked else "Steady", Combat.Morale.objective_control(state, selected)]
-	if not unit.get("feel_no_pain", []).is_empty(): selection_card.text += " • FNP " + Combat.Attacks.Prevention.describe(unit.feel_no_pain)
-	if not squad.get("action", {}).is_empty(): selection_card.text += "\nSecure Ground in progress."
-	if state.phase == "movement": selection_card.text += "\nMovement remaining: %.2f inches" % Combat.movement_remaining(state, selected)
-	if state.get("rules_practice", false): selection_card.text += "\nSYNTHETIC RULES LAB • practice profiles"
+	if defense.error.is_empty(): selection_card.text += "\nT%d  •  Sv%d+  •  InSv %s" % [defense.toughness, defense.save_target, "—" if defense.invulnerable_target == 0 else "%d+" % defense.invulnerable_target]
+	selection_card.text += "  •  OC %d  •  %s" % [Combat.Morale.objective_control(state, selected), "Battle-shocked" if squad.battle_shocked else "Steady"]
+	if state.phase == "movement": selection_card.text += "\nMove remaining  %.1f\"" % Combat.movement_remaining(state, selected)
+	elif not squad.get("action", {}).is_empty(): selection_card.text += "\nAction in progress  •  Secure Ground"
+	selection_card.tooltip_text = "FNP %s" % Combat.Attacks.Prevention.describe(unit.feel_no_pain) if not unit.get("feel_no_pain", []).is_empty() else "Selected model and unit state. Expand technical details for equipment, abilities and match context."
 
 func _refresh() -> void:
 	if not attack_draft.is_empty() and (not combat_enabled or attack_draft.revision != state.revision or attack_draft.get("pack_hash") != state.get("pack_hash")): attack_draft = {}
@@ -1661,16 +2210,43 @@ func _refresh() -> void:
 		var previews: Dictionary = Combat.Reanimation.pending(state).get("current", {}).get("placements", {}) if combat_enabled else {}
 		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == "ingress": previews = Combat.UnitActions.pending(state).positions
 		var display_position: Vector2 = previews.get(id, unit.position)
-		pieces[id].visible = (unit.get("wounds", 1) > 0 and unit.get("on_battlefield", true)) or previews.has(id)
-		pieces[id].position = Vector3(display_position.x, 0.04 if pieces[id].get_meta("imported_visual", false) else 0.65, display_position.y)
+		var wounds := int(unit.get("wounds", 1))
+		var on_battlefield := bool(unit.get("on_battlefield", true))
+		var alive := wounds > 0 and on_battlefield
+		var visible := alive or previews.has(id)
+		var target_position := Vector3(display_position.x, 0.04 if pieces[id].get_meta("imported_visual", false) else 0.65, display_position.y)
+		var previous: Dictionary = board_presentation_state.get(id, {})
+		var feedback_enabled := board_feedback_toggle != null and board_feedback_toggle.button_pressed
+		if combat_enabled and feedback_enabled and not previous.is_empty():
+			var previous_wounds := int(previous.get("wounds", wounds))
+			var previous_position: Vector2 = previous.get("position", display_position)
+			if visible and previous_position != display_position:
+				pieces[id].position = Vector3(previous_position.x, target_position.y, previous_position.y)
+				var move_tween := create_tween()
+				move_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+				move_tween.tween_property(pieces[id], "position", target_position, 0.24)
+			if previous_wounds > wounds and wounds > 0:
+				_show_board_feedback(id, "−%d W" % (previous_wounds - wounds), Color("f17969"))
+			elif previous_wounds < wounds and wounds > 0:
+				_show_board_feedback(id, "+%d W" % (wounds - previous_wounds), Color("82d49c"))
+			elif previous_wounds > 0 and wounds == 0:
+				_show_board_feedback(id, "OUT", Color("f0b46a"))
+		pieces[id].visible = visible
+		if not previous.is_empty() and previous.get("position", display_position) != display_position and (not feedback_enabled or not combat_enabled):
+			pieces[id].position = target_position
+		elif previous.is_empty() or (not visible and pieces[id].position != target_position):
+			pieces[id].position = target_position
+		board_presentation_state[id] = {"position": display_position, "wounds": wounds, "on_battlefield": on_battlefield}
 		var color := Color("52b9d1") if unit.owner == 1 else Color("e68d5c")
 		if unit.moved: color = color.darkened(0.4)
 		if combat_enabled and state.units.has(selected) and unit.squad == state.units[selected].squad: color = color.lightened(0.12)
 		if id == selected: color = Color("f2df83")
 		if previews.has(id): color = Color("a88fea")
 		pieces[id].material_override = _material(color)
+	_refresh_health_tags()
 	session_label.text = "Mode: %s | UDP %d | You: %s" % [mode, PORT, "both sides" if mode == "local" else str(_local_player())]
 	_refresh_decision()
+	combat_hud.set_focus_available(state.units.has(selected) and pieces.has(selected) and pieces[selected].visible)
 	if combat_enabled and state.get("test_battlefield", "") == TestBattlefield.ID:
 		session_label.text = "Incursion test • 1,000 points • 43 × 43 inches\n%s • Rosters not points-validated" % ("Local: both players" if mode == "local" else "%s: player %d" % [mode, _local_player()])
 	if state.has("saved_army_setup"):
@@ -1681,6 +2257,9 @@ func _refresh() -> void:
 	if Combat.RosterValidation.enabled(state):
 		session_label.text = session_label.text.replace("Saved-list training", "Checked fixed rosters").replace("local points", "MFM 1.6 points").replace("official list legality is not validated", "full match rules are not certified")
 		session_label.text += "\nMFM 1.6 • formations %s / %s" % ["checked" if state.roster_validation.armies[1].formations_verified else "pending", "checked" if state.roster_validation.armies[2].formations_verified else "pending"]
+	var session_details := session_label.text
+	session_label.tooltip_text = session_details
+	session_label.text = ("LAN • HOST" if mode == "host" else "LAN • PLAYER %d" % _local_player()) if mode != "local" else "LOCAL • BOTH SIDES"
 	_refresh_selection_card()
 	decision_details.text = ""
 	details.text = "Turn %d • Player %d active\nSelected: %s" % [state.turn, state.active, str(selected) if selected >= 0 else "none"]
@@ -1715,6 +2294,21 @@ func _refresh() -> void:
 					for option: Dictionary in Combat.AttackPlan.Equipment.choices(state, selected, melee): gear.append(option.label)
 				details.text += "\nEquipped profiles: " + ", ".join(gear)
 			details.text += "\n%s • selected model: %d/%d wounds" % [state.squads[unit.squad].name, unit.wounds, unit.max_wounds]
+			var ability_names: Array[String] = []
+			for model_id: int in state.units:
+				if state.units[model_id].squad != unit.squad or state.units[model_id].wounds <= 0: continue
+				for ability_id: String in Combat.UnitAbilities.RULES.get(Combat.UnitAbilities.identity(state.units[model_id]), []):
+					var ability_name := ability_id.replace("-", " ").capitalize()
+					if ability_name not in ability_names: ability_names.append(ability_name)
+			if not ability_names.is_empty(): details.text += "\nCurrent e11 abilities: " + ", ".join(ability_names)
+			elif "implacable-eradication" in state.squads[unit.squad].get("enabled_abilities", []): details.text += "\nImplacable Eradication: reference profile only; current ability is disabled."
+			if Combat.UnitActions.DetachmentStratagems.hungry_active(state, unit.squad): details.text += "\nHungry Void: +1 melee Strength" + (", AP improved by 1 (no stacking)" if state.detachment_stratagems.hungry[unit.squad].led else "") + " until Fight phase ends"
+			if Combat.Awakened.hit_bonus(state, unit.squad) > 0: details.text += "\nCommand Protocols: +1 to hit while led"
+			var active_doctrine := Combat.Doctrines.active_for(state, unit.squad)
+			if not active_doctrine.is_empty(): details.text += "\n11e doctrine • " + Combat.Doctrines.NAMES[active_doctrine]
+			if Combat.OathOfMoment.enabled(state):
+				var marked_squad: int = state.oath_of_moment.targets.get(state.squads[unit.squad].owner, -1)
+				if marked_squad != -1 and Combat.OathOfMoment.marine_army(state, state.squads[unit.squad].owner): details.text += "\nOath of Moment target: " + state.squads[marked_squad].name
 			var defense := Combat.Allocation.Groups.profile(state, selected)
 			if defense.error.is_empty(): details.text += "\nT%d • Sv%d+ • InSv%s" % [defense.toughness, defense.save_target, "—" if defense.invulnerable_target == 0 else "%d+" % defense.invulnerable_target]
 			details.text += "\n%s • OC %d" % ["Battle-shocked" if state.squads[unit.squad].battle_shocked else "Steady", Combat.Morale.objective_control(state, selected)]
@@ -1761,7 +2355,8 @@ func _refresh() -> void:
 		decision_details.text += details.text.substr(queue_start)
 	decision_details.text = "\n".join(Array(decision_details.text.split("\n")).filter(func(line: String): return not line.begins_with("Hazard rolls:"))).strip_edges()
 	decision_details.visible = not decision_details.text.is_empty()
-	scope_label.text = "COMBAT INTEGRATION EXERCISE — partial 11e. " + str(state.get("scope", Combat.DISABLED)) if combat_enabled else "Movement demo — use the combat exercise for persistent shooting."
+	scope_label.tooltip_text = ("COMBAT INTEGRATION EXERCISE — partial 11e. " + str(state.get("scope", Combat.DISABLED))) if combat_enabled else "Movement demo — use the combat exercise for persistent shooting."
+	scope_label.text = "COMBAT EXERCISE • PARTIAL 11e" if combat_enabled else "LOCAL MOVEMENT PREVIEW"
 	combat_button.text = "Return to movement demo" if combat_enabled else "Start 3D combat exercise: Marines / Necrons"
 	combat_button.disabled = mode != "local"
 	objective_button.disabled = mode != "local"
@@ -1828,7 +2423,9 @@ func _refresh() -> void:
 		var squad: int = state.units[selected].squad
 		if not Combat._engaged(state, squad):
 			var distance := 3.0 if state.fight_step == "consolidate" else 5.0
-			for enemy: int in Combat.ContactActions.enemies(state, squad, distance): contact_enemy.add_item("Contact target: " + state.squads[enemy].name, enemy)
+			for enemy: int in Combat.ContactActions.enemies(state, squad, distance):
+				contact_enemy.add_item("Contact target: " + state.squads[enemy].name, enemy)
+				contact_enemy.set_item_tooltip(contact_enemy.item_count - 1, KeywordGlossary.describe_contact_action(str(state.phase), str(state.fight_step)))
 			contact_enemy.visible = contact_enemy.item_count > 0
 			var old_index := contact_enemy.get_item_index(previous_enemy)
 			if old_index >= 0: contact_enemy.select(old_index)
@@ -1842,11 +2439,13 @@ func _refresh() -> void:
 		if Combat.ContactActions.enemies(state, squad, 3.0).is_empty():
 			for index: int in Combat.Objectives.consolidation_candidates(state, squad):
 				consolidation_objective.add_item("Objective: " + state.mission.objectives[index].name, index)
+				consolidation_objective.set_item_tooltip(consolidation_objective.item_count - 1, KeywordGlossary.describe_contact_action(str(state.phase), str(state.fight_step)))
 			consolidation_objective.visible = consolidation_objective.item_count > 0
 			var previous_index := consolidation_objective.get_item_index(previous_objective)
 			if previous_index >= 0: consolidation_objective.select(previous_index)
 	consolidation_objective.disabled = not can_act
 	begin_contact_button.text = "Begin charge placement" if combat_enabled and state.phase == "charge" else "Begin pile-in" if combat_enabled and state.fight_step == "pile_in" else "Begin consolidation" if combat_enabled and state.fight_step == "consolidate" else "Begin overrun pile-in"
+	begin_contact_button.tooltip_text = KeywordGlossary.describe_contact_action(str(state.get("phase", "")), str(state.get("fight_step", "")))
 	begin_contact_button.disabled = not can_act or not state.units.has(selected)
 	if state.units.has(selected): begin_contact_button.disabled = not can_act or state.units[selected].wounds <= 0 or state.units[selected].owner != _local_player()
 	if combat_enabled and state.phase == "fight" and state.units.has(selected) and state.fight_step in ["attacks", "consolidation_reaction"]:
@@ -1856,6 +2455,8 @@ func _refresh() -> void:
 	if combat_enabled and state.phase == "charge" and state.pending_charge.get("targets", []).is_empty(): begin_contact_button.disabled = true
 	confirm_contact_button.visible = pending_contact
 	cancel_contact_button.visible = pending_contact
+	confirm_contact_button.tooltip_text = "Confirm this charge/pile-in/consolidation preview. Legal placement and coherency are checked before applying the move."
+	cancel_contact_button.tooltip_text = "Discard the current placement preview. The pending action remains open for another attempt."
 	cancel_contact_button.text = "Cancel contact placement (retain charge roll)" if pending_contact and state.pending_contact.kind == "charge" else "Cancel contact placement"
 	confirm_contact_button.disabled = not can_act
 	cancel_contact_button.disabled = not can_act
@@ -1924,6 +2525,11 @@ func _refresh() -> void:
 		if event_log.text != log_text:
 			event_log.text = log_text
 			event_log.scroll_to_line(maxi(0, event_log.get_line_count() - 1))
+	status.tooltip_text = status.text
+	if status.text.length() > 118:
+		var concise_notice := status.text.get_slice("\n", 0)
+		if concise_notice.length() > 118: concise_notice = concise_notice.substr(0, 115) + "…"
+		status.text = concise_notice
 	host_button.disabled = mode != "local"
 	join_button.disabled = mode != "local"
 	end_button.disabled = mode != "local" and (_local_player() != (Combat.actor(state) if combat_enabled else state.active) or (mode == "host" and guest_id == 0))
@@ -1972,14 +2578,20 @@ func _refresh() -> void:
 		for control in [end_button, charge_button, begin_contact_button, begin_move_button, action_button, plan_begin, plan_confirm, coherency_button, escape_wound_button, abandon_move_button, finish_move_button, cancel_move_button, confirm_contact_button, cancel_contact_button]: control.disabled = true
 	_refresh_defense_steps(allocating, hazard_pending)
 	_refresh_action_groups()
+	_refresh_first_session_guide()
 	_update_guides()
 
 func _refresh_result_summary() -> void:
 	result_summary.visible = combat_enabled and state.has("last_attack")
+	health_overlay_toggle.visible = combat_enabled
+	dice_toggle.visible = result_summary.visible
 	if not result_summary.visible:
 		result_summary.text = ""
+		dice_visual.visible = false
+		dice_toggle.button_pressed = false
 		return
 	var last: Dictionary = state.last_attack
+	_refresh_dice_visual(last)
 	result_summary.text = "Last completed attack"
 	if not state.get("pending_attack", {}).is_empty() or not state.get("pending_hazard", {}).is_empty(): result_summary.text += " • another attack is pending"
 	result_summary.text += "\n" + str(last.get("message", ""))
@@ -2009,6 +2621,178 @@ func _refresh_result_summary() -> void:
 			hazard_prevented += int(prevention.get("prevented", 0))
 		result_summary.text += "\nHazardous (attacking unit): %d wounds lost • %d prevented" % [hazard_lost, hazard_prevented]
 		if int(hazard.get("discarded", 0)) > 0: result_summary.text += " • %d unallocated wounds discarded" % hazard.discarded
+	var full_result := result_summary.text
+	result_summary.tooltip_text = full_result
+	result_summary.text = "RESOLVED • " + str(last.get("message", "Attack complete"))
+	var total_applied := 0
+	for totals: Dictionary in targets.values(): total_applied += int(totals.damage)
+	result_summary.text += "  •  %d damage applied" % total_applied
+
+func _refresh_dice_visual(last: Dictionary) -> void:
+	_refresh_dice_audit()
+	var signature := str(hash(var_to_str(last)))
+	if signature == dice_visual_signature: return
+	dice_visual_signature = signature
+	dice_toggle.set_pressed_no_signal(false)
+	dice_visual.visible = false
+	for child in dice_visual_rolls.get_children():
+		dice_visual_rolls.remove_child(child)
+		child.queue_free()
+	var shown := 0
+	for pool: Dictionary in last.get("pools", []):
+		for record: Dictionary in pool.get("attack_generation", []):
+			for value: int in record.get("rolls", []):
+				shown += _add_die_tile("A D6", value, Color("7654a3"), shown)
+			var attack_note := "A %s → %d attacks" % [str(record.get("expression", "?")), int(record.get("total", record.get("value", 0)))]
+			if not record.get("rolls", []).is_empty(): attack_note = "A %s: D6 %s → %d attacks" % [str(record.get("expression", "?")), str(record.rolls), int(record.get("total", record.get("value", 0)))]
+			if int(record.get("bonus", 0)) > 0: attack_note += " (%d + %d bonus)" % [int(record.get("value", 0)), int(record.bonus)]
+			_add_die_note(attack_note)
+		if pool.has("final_hit_rolls"):
+			for value: int in pool.final_hit_rolls:
+				var hit := _classify_attack_roll("hit", value, pool)
+				shown += _add_die_tile(str(hit.label), value, hit.color, shown, str(hit.symbol))
+		else:
+			for value: int in pool.get("hit_rolls", []): shown += _add_die_tile("HIT", value, Color("327c96"), shown)
+		if pool.has("final_wound_rolls"):
+			for value: int in pool.final_wound_rolls:
+				var wound := _classify_attack_roll("wound", value, pool)
+				shown += _add_die_tile(str(wound.label), value, wound.color, shown, str(wound.symbol))
+		else:
+			for value: int in pool.get("wound_rolls", []): shown += _add_die_tile("WOUND", value, Color("8a6635"), shown)
+		for value: int in pool.get("save_rolls", []):
+			shown += _add_die_tile("SAVE", value, Color("526d52"), shown)
+		for record: Dictionary in pool.get("damage_rolls", []):
+			for value: int in record.get("rolls", []):
+				shown += _add_die_tile("D6", value, Color("9a4d45"), shown)
+			var damage_note := "Damage %s → %d" % [str(record.get("expression", "?")), int(record.get("value", 0))]
+			if not record.get("rolls", []).is_empty(): damage_note = "Damage %s: D6 %s → %d" % [str(record.get("expression", "?")), str(record.rolls), int(record.get("value", 0))]
+			_add_die_note(damage_note)
+		for prevention: Dictionary in pool.get("prevention_rolls", []):
+			for value: int in prevention.get("rolls", []): shown += _add_die_tile("FNP", value, Color("526d52"), shown)
+			if not prevention.get("rolls", []).is_empty(): _add_die_note("Feel No Pain %d+: %s → %d prevented" % [int(prevention.get("target", 0)), str(prevention.rolls), int(prevention.get("prevented", 0))])
+	var hazard: Dictionary = last.get("hazardous", {})
+	for value: int in hazard.get("rolls", []): shown += _add_die_tile("HAZ", value, Color("7654a3"), shown)
+	if not hazard.get("rolls", []).is_empty(): _add_die_note("Hazardous: %s → %d mortal wounds" % [str(hazard.rolls), int(hazard.get("total", 0))])
+	for prevention: Dictionary in hazard.get("prevention", []):
+		for value: int in prevention.get("rolls", []): shown += _add_die_tile("FNP", value, Color("526d52"), shown)
+		if not prevention.get("rolls", []).is_empty(): _add_die_note("Feel No Pain %d+: %s → %d prevented" % [int(prevention.get("target", 0)), str(prevention.rolls), int(prevention.get("prevented", 0))])
+	if shown == 0:
+		var none := Label.new()
+		none.text = "No rolled dice in this result (for example, Torrent attacks)."
+		dice_visual_rolls.add_child(none)
+
+func _refresh_dice_audit() -> void:
+	if dice_audit_label == null: return
+	var source := "Local engine RNG" if mode == "local" else "Host engine RNG" if mode == "host" else "Resolved by host"
+	if mode == "client":
+		dice_audit_label.text = "Dice source: %s • see the host's match history for recorded rolls" % source
+		dice_audit_label.tooltip_text = "In LAN play the host resolves and records dice. Host authority does not independently prove RNG fairness or unpredictability."
+		return
+	if journal.entries.is_empty():
+		dice_audit_label.text = "Dice source: %s • no history record yet" % source
+		dice_audit_label.tooltip_text = "The match journal is created on save or the first action that changes match state."
+		return
+	var roll_entry: Dictionary = {}
+	for index in range(journal.entries.size() - 1, -1, -1):
+		var candidate: Dictionary = journal.entries[index]
+		if not candidate.get("dice", []).is_empty():
+			roll_entry = candidate
+			break
+	var checkpoint: Dictionary = journal.checkpoint()
+	var prefix := str(checkpoint.get("hash", ""))
+	var hash_label := prefix.substr(0, 12) if prefix.length() >= 12 else prefix
+	if roll_entry.is_empty():
+		dice_audit_label.text = "Dice source: %s • no D6 recorded yet • history chain #%d • %s" % [source, int(checkpoint.get("count", 0)), hash_label]
+	else:
+		dice_audit_label.text = "Dice source: %s • latest recorded D6: entry #%d (%d dice) • chain %s" % [source, int(roll_entry.get("sequence", 0)), roll_entry.get("dice", []).size(), hash_label]
+	dice_audit_label.tooltip_text = "The chained hash links these history records. Loading against the matching save verifies the committed prefix for changes. It does not independently prove that the host RNG was fair or unpredictable. Full chain tip: %s" % prefix
+	if not autosave_error.is_empty():
+		dice_audit_label.text += " • history save issue"
+		dice_audit_label.tooltip_text += "\nCurrent save status: " + autosave_error
+
+func _add_die_note(message: String) -> void:
+	var note := Label.new()
+	note.text = message
+	note.custom_minimum_size.x = 390
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.add_theme_color_override("font_color", Color("cbd5dc"))
+	dice_visual_rolls.add_child(note)
+
+func _classify_attack_roll(stage: String, value: int, pool: Dictionary) -> Dictionary:
+	if stage == "hit":
+		var is_snap_shooting: bool = pool.get("snap_shooting", false)
+		if is_snap_shooting:
+			return {"label": "HIT" if value == 6 else "MISS", "symbol": "✓" if value == 6 else "×", "color": Color("397d59") if value == 6 else Color("884b4b")}
+		if value == 6: return {"label": "CRIT", "symbol": "★", "color": Color("997b32")}
+		var hit: bool = Combat.Attacks.successful_roll(value, int(pool.get("effective_skill", 6)), int(pool.get("hit_modifier", 0)))
+		return {"label": "HIT" if hit else "MISS", "symbol": "✓" if hit else "×", "color": Color("397d59") if hit else Color("884b4b")}
+	if value == 6: return {"label": "CRIT", "symbol": "★", "color": Color("997b32")}
+	var wound: bool = Combat.Attacks.successful_roll(value, int(pool.get("wound_target", 6)), int(pool.get("wound_modifier", 0)))
+	return {"label": "WOUND" if wound else "FAIL", "symbol": "✓" if wound else "×", "color": Color("397d59") if wound else Color("884b4b")}
+
+func _add_die_tile(stage: String, value: int, color: Color, shown: int, marker: String = "") -> int:
+	if shown >= 72: return 0
+	var tile := PanelContainer.new()
+	var animate: bool = dice_animation_toggle != null and dice_animation_toggle.button_pressed
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.set_corner_radius_all(0 if marker == "×" else (12 if marker == "★" else 5))
+	style.content_margin_left = 5
+	style.content_margin_right = 5
+	style.content_margin_top = 3
+	style.content_margin_bottom = 3
+	tile.add_theme_stylebox_override("panel", style)
+	var face := Label.new()
+	face.text = "%s %s %d" % [marker, stage, value] if not marker.is_empty() else "%s %d" % [stage, value]
+	face.add_theme_font_size_override("font_size", 13)
+	face.add_theme_color_override("font_color", Color("ffffff"))
+	var contents := HBoxContainer.new()
+	contents.add_theme_constant_override("separation", 6)
+	contents.add_child(face)
+	var pips := DicePipFace.new()
+	pips.value = clampi(value, 1, 6)
+	pips.custom_minimum_size = Vector2(26, 26)
+	pips.tooltip_text = "D6 face: %d" % value
+	contents.add_child(pips)
+	tile.add_child(contents)
+	if animate:
+		tile.custom_minimum_size = Vector2(60, 28)
+		tile.pivot_offset = Vector2(30, 14)
+		tile.scale = Vector2(0.25, 0.25)
+		tile.rotation = deg_to_rad(70 if shown % 2 == 0 else -70)
+	dice_visual_rolls.add_child(tile)
+	if animate:
+		var reveal := create_tween()
+		reveal.tween_interval(minf(float(shown) * 0.008, 0.4))
+		reveal.tween_property(tile, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		reveal.parallel().tween_property(tile, "rotation", 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	return 1
+
+func _refresh_health_tags() -> void:
+	if health_tags.is_empty(): return
+	for model_id: int in health_tags:
+		if not state.units.has(model_id) or not pieces.has(model_id): continue
+		var unit: Dictionary = state.units[model_id]
+		var tag: Dictionary = health_tags[model_id]
+		var live_on_board: bool = int(unit.get("wounds", 0)) > 0 and bool(unit.get("on_battlefield", true))
+		tag.root.visible = combat_enabled and health_overlay_toggle != null and health_overlay_toggle.button_pressed and live_on_board
+		if not tag.root.visible: continue
+		var remaining := maxi(0, int(unit.get("wounds", 0)))
+		var maximum := maxi(1, int(unit.get("max_wounds", remaining)))
+		var ratio := clampf(float(remaining) / float(maximum), 0.0, 1.0)
+		tag.fill.scale.x = ratio
+		tag.fill.position.x = -0.34 + 0.34 * ratio
+		tag.fill.material_override = _material(Color("5ebd80") if ratio > 0.5 else (Color("e3ad52") if ratio > 0.25 else Color("dd665e")))
+		var text := "W %d/%d" % [remaining, maximum]
+		if model_id == selected:
+			var facts: Array[String] = []
+			if combat_enabled and state.squads.has(unit.squad):
+				var squad: Dictionary = state.squads[unit.squad]
+				facts.append("OC %d" % Combat.Morale.objective_control(state, model_id))
+				if squad.get("battle_shocked", false): facts.append("Battle-shocked")
+				if unit.get("moved", false): facts.append("Moved")
+			text += "\n" + " • ".join(facts)
+		tag.label.text = text
 
 func _model_choice_label(model: int) -> String:
 	var unit: Dictionary = state.units[model]
@@ -2124,7 +2908,7 @@ func _refresh_attack_plan() -> void:
 	plan_begin.visible = combat_enabled and state.phase in ["shooting", "fight"] and not editing
 	plan_begin.disabled = true
 	if plan_begin.visible: plan_begin.disabled = not Combat.attack_window_error(state, _local_player(), selected, state.revision, state.phase == "fight").is_empty() or (mode == "host" and guest_id == 0)
-	for control in [plan_steps, plan_hail, plan_weapon, plan_target, plan_amount, plan_add, plan_clear, plan_summary, plan_confirm, plan_cancel]: control.visible = editing
+	for control in [plan_steps, plan_hail, plan_weapon, plan_target, plan_amount, plan_add, plan_clear, plan_summary, damage_preview, plan_confirm, plan_cancel]: control.visible = editing
 	if not editing: return
 	plan_hail.visible = not attack_draft.melee and Combat.HailOfBolts.available(state, attack_draft.squad)
 	plan_hail.clear()
@@ -2145,6 +2929,7 @@ func _refresh_attack_plan() -> void:
 			plan_weapon.add_item(option.label)
 			var index := plan_weapon.item_count - 1
 			plan_weapon.set_item_metadata(index, option)
+			plan_weapon.set_item_tooltip(index, KeywordGlossary.describe_weapon(option))
 			if index == 0: plan_weapon.select(0)
 			if option.weapon == previous_weapon.get("weapon", "") and option.profile == previous_weapon.get("profile", ""): plan_weapon.select(index)
 		var choice := _plan_weapon_choice()
@@ -2155,6 +2940,7 @@ func _refresh_attack_plan() -> void:
 		elif plan_target.item_count > 0: plan_target.select(0)
 	plan_amount.visible = editing and attack_draft.melee
 	var selected_weapon := _plan_weapon_choice()
+	if not selected_weapon.is_empty(): plan_weapon.tooltip_text = KeywordGlossary.describe_weapon(selected_weapon)
 	if attack_draft.melee and not selected_weapon.is_empty() and selected_weapon.stats.attacks is String: plan_amount.visible = false
 	plan_amount.max_value = selected_weapon.stats.attacks if attack_draft.melee and not selected_weapon.is_empty() and not selected_weapon.stats.attacks is String else 1
 	plan_add.disabled = not own_model or plan_target.item_count == 0
@@ -2180,6 +2966,45 @@ func _refresh_attack_plan() -> void:
 	var error := Combat.attack_plan_error(state, _local_player(), attack_draft.attacker, attack_draft.entries, attack_draft.revision, attack_draft.melee, lethal_choice.button_pressed, attack_draft.get("hail_target", -1))
 	plan_confirm.disabled = not error.is_empty()
 	plan_summary.text += "\n" + ("Ready to resolve." if error.is_empty() else error)
+	_refresh_damage_preview()
+
+func _refresh_damage_preview() -> void:
+	damage_preview.text = "Conditional raw damage if every generated attack becomes one unsaved wound:"
+	if attack_draft.entries.is_empty():
+		damage_preview.text += "\nAssign attacks to see each weapon's damage range."
+		return
+	var prepared := Combat.AttackPlan.prepare(state, attack_draft.squad, attack_draft.melee, attack_draft.entries, lethal_choice.button_pressed, attack_draft.get("hail_target", -1))
+	if not prepared.get("error", "").is_empty():
+		damage_preview.text += "\nComplete a valid assignment to calculate the profile values."
+		return
+	var total_minimum := 0
+	var total_maximum := 0
+	for batch: Dictionary in prepared.get("batches", []):
+		var damage := Combat.Attacks.RandomStat.spec(batch.weapon.damage)
+		if not damage.get("error", "").is_empty(): continue
+		var attack_minimum := 0
+		var attack_maximum := 0
+		var sources: Array = batch.get("context", {}).get("attack_sources", [])
+		if sources.is_empty():
+			attack_minimum = int(batch.count)
+			attack_maximum = int(batch.count)
+		else:
+			for source: Dictionary in sources:
+				var generated := Combat.Attacks.RandomStat.spec(source.expression)
+				if not generated.get("error", "").is_empty(): continue
+				var fixed_bonus := int(source.get("bonus", 0))
+				attack_minimum += int(generated.minimum) + fixed_bonus
+				attack_maximum += int(generated.maximum) + fixed_bonus
+		var low := attack_minimum * int(damage.minimum)
+		var high := attack_maximum * int(damage.maximum)
+		total_minimum += low
+		total_maximum += high
+		var target_name: String = state.squads[batch.target].name if state.squads.has(batch.target) else "Target"
+		var attack_range := str(attack_minimum) if attack_minimum == attack_maximum else "%d–%d" % [attack_minimum, attack_maximum]
+		damage_preview.text += "\n%s → %s: %s generated attacks × %s = %d–%d raw damage" % [", ".join(batch.get("labels", [])), target_name, attack_range, str(batch.weapon.damage), low, high]
+	if total_maximum > 0:
+		damage_preview.text += "\nAll pools: %d–%d in this conditional scenario." % [total_minimum, total_maximum]
+	damage_preview.text += "\nAttack/wound rolls, critical or extra hits, saves and damage prevention can change applied damage. This is not a prediction."
 
 func _plan_weapon_choice() -> Dictionary:
 	if plan_weapon.selected < 0 or plan_weapon.item_count == 0: return {}
@@ -2284,6 +3109,7 @@ func _join() -> void:
 			status.text = own.error
 			return
 		submitted_army = own.selection
+		local_visual_armies[2] = _picked_army(2)
 		validated_saved_setup = ""
 		state = _initial_state()
 		_reset_history()
@@ -2307,6 +3133,7 @@ func _offline(message: String) -> void:
 	pending_seats = {}
 	seat_challenge = {}
 	host_session = {}
+	local_visual_armies.clear()
 	state = _initial_state()
 	_reset_history()
 	_spawn_pieces()
@@ -2430,6 +3257,7 @@ func _reset_history() -> void:
 
 func _journal_page(start: int = -1) -> Dictionary:
 	var page: Dictionary = journal.page(start)
+	page.checkpoint = journal.checkpoint()
 	if not autosave_error.is_empty() and state.get("phase") != "army_selection": page.notice = "Save failed: " + autosave_error
 	return page
 
@@ -2465,7 +3293,9 @@ func _save_match() -> void:
 	status.text = "Match saved on this computer." if error.is_empty() else "Could not save the match: " + error
 	if history_panel.is_visible_in_tree(): _history_page(-1)
 
-func _load_match(as_host: bool = false) -> void:
+func _load_match(as_host: bool = false, validate_only: bool = false) -> void:
+	resume_compatible = false
+	resume_succeeded = false
 	if mode != "local":
 		status.text = "Disconnect from the LAN session before resuming a saved match."
 		return
@@ -2585,6 +3415,10 @@ func _load_match(as_host: bool = false) -> void:
 	if not history_error.is_empty():
 		status.text = history_error
 		return
+	resume_compatible = true
+	if validate_only:
+		status.text = "Saved match is compatible."
+		return
 	var peer: ENetMultiplayerPeer
 	if as_host:
 		peer = ENetMultiplayerPeer.new()
@@ -2630,6 +3464,7 @@ func _load_match(as_host: bool = false) -> void:
 	status.text = "Match resumed; waiting for player 2 on LAN." if as_host else "Match resumed with decisions and dice preserved."
 	if history_panel.is_visible_in_tree(): _history_page(-1)
 	if as_host and not host_session.token.is_empty(): status.text += " Vaga reservada ao convidado original."
+	resume_succeeded = true
 
 @rpc("authority", "call_remote", "reliable")
 func receive_state(snapshot: Dictionary) -> void:
@@ -2766,6 +3601,7 @@ func _refresh_command_reaction() -> void:
 		reaction_use.get_parent().add_child(reaction_die)
 		reaction_die.get_parent().move_child(reaction_die, reaction_use.get_index())
 	reaction_die.visible = attack
+	reaction_die.tooltip_text = "Choose the eligible D6 to replace with Command Re-roll. The new result is mandatory, even if it is lower. Core Rules §15.02 (June 2026). " + KeywordGlossary.RULES_URL if attack else ""
 	var previous_die := reaction_die.get_selected_id()
 	reaction_die.clear()
 	if attack:
@@ -2783,6 +3619,7 @@ func _refresh_command_reaction() -> void:
 	reaction_die.disabled = waiting
 	reaction_squad.disabled = waiting
 	reaction_squad.visible = not rolling
+	reaction_squad.tooltip_text = "Choose the unit that will take this Battle-shock test or be the target of Insane Bravery. Insane Bravery must be chosen before rolling. Core Rules §§08, 15.04. " + KeywordGlossary.RULES_URL if not rolling else ""
 	reaction_roll.disabled = waiting
 	var stratagem := "command-re-roll" if rolling else "insane-bravery"
 	var error := Combat.Stratagems.use_error(state, player, reaction_squad.get_selected_id(), stratagem, state.revision)
@@ -2790,6 +3627,8 @@ func _refresh_command_reaction() -> void:
 	if reaction_sudden != null: reaction_sudden.disabled = waiting
 	reaction_use.text = "Command Re-roll • 1 CP • uma vez por fase" if rolling else "Insane Bravery • 1 CP • uma vez por batalha"
 	reaction_roll.text = "Accept result and continue" if rolling else "Roll Battle-shock normally"
+	reaction_use.tooltip_text = KeywordGlossary.describe_stratagem_decision(str(window.kind), error.is_empty() and not waiting, error)
+	reaction_roll.tooltip_text = KeywordGlossary.describe_accept_decision(str(window.kind))
 	if attack:
 		reaction_help.text = "%s • P%d • %d CP\n%s: %s. Choose a die to replace or accept all.\nThe next step has not been rolled yet; the new result will be mandatory." % [state.squads[window.squad].name, window.player, state.cp[window.player], "Saves" if window.kind == "after_save_roll" else ("Hits" if window.kind == "after_hit_roll" else "Wounds"), str(window.rolls)]
 		if window.kind == "after_attack_count_roll": reaction_help.text = "%s • P%d • %d CP\nAttacks: %d • A %s • D6: %s.\nChoose one die or accept the pool. Bonuses and other dice stay the same; D3 converts D6 results to 1–3. Hits have not been rolled. The new result is mandatory." % [state.squads[window.squad].name, window.player, state.cp[window.player], window.total, str(window.expression), str(window.rolls)]

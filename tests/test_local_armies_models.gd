@@ -44,12 +44,14 @@ func run() -> void:
 	var bad: Dictionary = entry.duplicate(true)
 	bad.name = "Assault Intercessor"
 	check(not Matcher.choose(definition, [bad]).error.is_empty(), "Assault models cannot be selected for regular Intercessors")
+	check(Matcher.variants("40kdc:11e:adeptus-astartes:assault-intercessor-squad", [bad]).size() == 1, "Assault Intercessor models are selectable for the matching unit")
 	bad = entry.duplicate(true)
 	bad.child_components = 2
 	check(not Matcher.choose(definition, [bad]).error.is_empty(), "Composite base objects never auto-link as a complete miniature")
 	bad = entry.duplicate(true)
 	bad.references.MeshURL = "https://example.invalid/other.obj"
 	check(Matcher.choose(definition, [entry, bad]).entry == Matcher.choose(definition, [bad, entry]).entry, "Visual variant selection is independent of catalog order")
+	check(Matcher.variants(definition, [entry, bad]).size() == 2 and Matcher.variants(definition, [entry, bad])[0].variant_id != Matcher.variants(definition, [entry, bad])[1].variant_id, "Distinct compatible miniature variants can be assigned separately")
 	write(DIR.path_join(Assets.cache_key(mesh_url) + ".obj"), "v 0 0 0\nv 1 0 0\nv 0 2 0\nf 1 2 3\n")
 	var source := DIR.path_join("ForceOrg.json")
 	write(source, JSON.stringify({"ObjectStates": [{"Nickname": "Primaris Intercessor", "CustomMesh": {"MeshURL": mesh_url}}]}))
@@ -58,12 +60,45 @@ func run() -> void:
 	root.add_child(panel)
 	panel.source_path.text = source
 	panel.download_path.text = DIR
+	panel.catalog = Assets.scan(source)
+	check(panel.variants_for(definition).size() == 1, "Army editor can browse compatible imported miniature variants")
+	panel.download_variants_for(definition)
+	check(panel.variant_mappings.size() == 1 and panel.variants_for(definition)[0].ready, "One action links compatible model variants from the local cache")
+	var variant_visual: Node3D = panel.visual_variant_for(panel.variants_for(definition)[0].variant_id)
+	check(variant_visual != null, "Downloaded variant renders from its local files")
+	if variant_visual != null: variant_visual.free()
 	var before := var_to_str(game.state)
 	panel.prepare_armies([definition, "unsupported:captain"])
 	for frame in range(8): await process_frame
 	check(panel.mappings.has(definition) and not panel.downloader.busy and not panel.automatic_running, "Cached OBJ auto-links without HTTP or pawn selection")
 	check("No visual alias" in panel.download_status.text, "Unsupported profiles have a recoverable per-model status")
 	check(var_to_str(game.state) == before, "Visual preparation does not alter gameplay")
+	var model_ids: Array = game.state.units.keys()
+	model_ids.sort()
+	var chosen_model := -1
+	for model_id: int in model_ids:
+		if game.state.units[model_id].owner == 1:
+			chosen_model = model_id
+			break
+	if chosen_model >= 0:
+		var chosen_unit: Dictionary = game.state.units[chosen_model]
+		var owner_army := {"faction": "Space Marines", "entries": [{"unit_id": chosen_unit.definition_id, "models": 1, "copies": 1, "visual_variants": ["test-variant"]}]}
+		# Use the selected model's live squad size to form a valid presentation-only roster row.
+		var squad_models: Array[int] = []
+		for candidate_id: int in game.state.units:
+			if game.state.units[candidate_id].squad == chosen_unit.squad: squad_models.append(candidate_id)
+		squad_models.sort()
+		owner_army.entries[0].models = squad_models.size()
+		owner_army.entries[0].visual_variants.resize(squad_models.size())
+		owner_army.entries[0].visual_variants[posmod(chosen_model, 100)] = "test-variant"
+		game.local_visual_armies[1] = owner_army
+		check(game._local_visual_variant(chosen_model) == "test-variant", "Saved miniature appearance maps onto the matching live model without entering match state")
+	var presentation_list: Dictionary = game._picked_army(1)
+	for army_entry: Dictionary in presentation_list.entries:
+		army_entry.visual_variants = []
+		for _slot in range(int(army_entry.models) * int(army_entry.copies)): army_entry.visual_variants.append("test-variant")
+	var canonical_selection: Dictionary = Training.inspect(presentation_list).selection
+	check(not JSON.stringify(canonical_selection).contains("visual_variants"), "Training admission strips local appearance assignments from canonical match selections")
 	var restored := ImportPanel.new()
 	restored.settings_path = panel.settings_path
 	root.add_child(restored)

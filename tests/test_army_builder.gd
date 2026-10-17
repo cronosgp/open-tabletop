@@ -47,20 +47,24 @@ func run() -> void:
 	panel.choice_picker.select(1)
 	panel.copies.value = 2
 	panel._add()
+	check(panel.draft.entries[0].visual_variants.size() == panel.draft.entries[0].models * panel.draft.entries[0].copies, "Every miniature receives a local appearance slot in the army draft")
+	panel.draft.entries[0].visual_variants[0] = "variant-one"
+	panel.draft.entries[0].visual_variants[1] = "variant-two"
 	panel.name_input.text = "My saved force"
 	panel._changed()
-	check(R.summary(panel.draft).points == 300 and panel.entries.item_count == 1, "Builder adds selected variant and unit copies")
+	check(R.summary(panel.draft).points == 300 and panel.entries.item_count == 1, "Builder adds selected composition and unit copies")
 	panel.category_picker.select(4)
 	panel._category_selected(4)
 	panel.points_limit.value = 100
 	check("Over the limit" in panel.summary_label.text and panel._save(), "Over-budget planning can be saved as a clearly marked draft")
 	var first_id: String = panel.draft.id
 	var fresh := Profiles.new(panel.storage_path)
-	check(fresh.error.is_empty() and fresh.active().lists.size() == 1 and R.summary(fresh.active().lists[0]).points == 300 and fresh.active().lists[0].points_limit == 100, "A fresh profile instance restores list, category, limit and snapshot costs")
+	check(fresh.error.is_empty() and fresh.active().lists.size() == 1 and R.summary(fresh.active().lists[0]).points == 300 and fresh.active().lists[0].points_limit == 100 and fresh.active().lists[0].entries[0].visual_variants[0] == "variant-one", "A fresh profile restores army details and per-miniature appearances")
+	check(panel.saved_lists_view.item_count == 1 and "My saved force" in panel.saved_list_detail.text, "The active profile library shows saved army details")
 	var previous_file := FileAccess.get_file_as_string(panel.storage_path)
 	check(not R.write_json(panel.storage_path, {"oversized": "x".repeat(200)}, 100).is_empty() and FileAccess.get_file_as_string(panel.storage_path) == previous_file, "Storage-size rejection preserves the previous readable library")
 	panel._save_copy()
-	check(panel.store.active().lists.size() == 2 and panel.draft.id != first_id, "Save copy retains the original list")
+	check(panel.store.active().lists.size() == 2 and panel.draft.id != first_id and panel.draft.entries[0].visual_variants[1] == "variant-two", "Save copy retains composition and miniature appearances")
 	check(panel.store.active().lists[0].name == "My saved force", "Editing a copied draft cannot mutate the original saved object")
 	panel.profile_name.text = "Second player"
 	panel._create_profile()
@@ -71,6 +75,14 @@ func run() -> void:
 	panel.saved_picker.select(0)
 	panel._load_list()
 	check(panel.draft.id == first_id and panel.name_input.text == "My saved force", "Saved list can be opened for editing")
+	panel._select_entry(0)
+	panel.entry_models_input.value = 9
+	panel._apply_entry_size()
+	check(panel.draft.entries[0].models == 9 and panel.draft.entries[0].cost == null and panel.draft.entries[0].visual_variants.size() == 18, "Editing model count marks price unconfirmed and resizes appearance slots")
+	panel.entry_models_input.value = 10
+	panel._apply_entry_size()
+	panel._reprice()
+	check(panel.draft.entries[0].cost == 150 and panel.draft.entries[0].visual_variants[0] == "variant-one", "Repricing restores the catalog cost while preserving miniature choices")
 	var corrupt_path := ROOT.path_join("corrupt.json")
 	var file := FileAccess.open(corrupt_path, FileAccess.WRITE)
 	file.store_string("{broken")

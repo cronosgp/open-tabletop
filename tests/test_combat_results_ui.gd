@@ -24,9 +24,12 @@ func run() -> void:
 		steps += 1
 	check(game.state.has("last_attack"), "Attack finishes before summarizing")
 	game._refresh()
-	check(game.result_summary.visible and "Last completed attack" in game.result_summary.text and "Synthetic mixed allocation group" in game.result_summary.text, "Result names the completed attack and defending unit")
-	check("damage applied" in game.result_summary.text and "Feel No Pain" in game.result_summary.text and "Excess damage" in game.result_summary.text, "Summary separates damage, prevention and excess")
-	check(not "Dice:" in game.result_summary.text and "Dice:" in game.event_log.text and not game.event_log.visible, "Raw dice remain available only in detailed history")
+	check(game.result_summary.visible and "RESOLVED" in game.result_summary.text and "Synthetic mixed allocation group" in game.result_summary.tooltip_text, "Compact result links to its full completed attack record")
+	check("damage applied" in game.result_summary.tooltip_text and "Feel No Pain" in game.result_summary.tooltip_text and "Excess damage" in game.result_summary.tooltip_text, "Full result separates damage, prevention and excess")
+	check(not game.dice_visual.visible and game.dice_toggle.visible and "Dice:" in game.event_log.text and not game.event_log.visible, "Raw dice remain collapsed until requested")
+	game.dice_toggle.button_pressed = true
+	check(game.dice_visual.visible, "Resolved dice expand on request")
+	game.dice_toggle.button_pressed = false
 	var before := var_to_str(game.state)
 	game.log_toggle.button_pressed = true
 	check(game.event_log.visible, "History expands on request")
@@ -44,11 +47,11 @@ func run() -> void:
 	game.log_toggle.button_pressed = false
 	game.state.pending_attack = {"ui_test": true}
 	game._refresh_result_summary()
-	check("another attack is pending" in game.result_summary.text, "Previous result is clearly identified during another attack")
+	check("another attack is pending" in game.result_summary.tooltip_text, "Previous result is clearly identified during another attack")
 	game.state.pending_attack = {}
 	game.state.last_attack.hazardous = {"total": 3, "prevention": [{"lost": 1, "prevented": 1}], "discarded": 1}
 	game._refresh_result_summary()
-	check("Hazardous (attacking unit): 1 wounds lost • 1 prevented" in game.result_summary.text and "1 unallocated wounds discarded" in game.result_summary.text, "Hazardous self-damage and prevention remain separate from defender damage")
+	check("Hazardous (attacking unit): 1 wounds lost • 1 prevented" in game.result_summary.tooltip_text and "1 unallocated wounds discarded" in game.result_summary.tooltip_text, "Hazardous self-damage and prevention remain separate from defender damage")
 	game._toggle_combat()
 	check(not game.result_summary.visible and not game.log_toggle.visible and not game.event_log.visible, "Returning to preview hides old combat results")
 	print("Combat results UI checks: %d failures" % failures)

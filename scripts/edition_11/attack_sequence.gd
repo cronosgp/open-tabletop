@@ -180,13 +180,16 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 	if not dice.error.is_empty(): return {"error": dice.error}
 	return {"error": "", "implementation": IMPLEMENTATION, "attacks": count,
 		"benefit_of_cover": covered, "effective_skill": effective_skill,
-		"hit_modifier": hit_modifier, "wound_modifier": wound_modifier,
+		"hit_modifier": hit_modifier, "wound_modifier": wound_modifier, "wound_target": target,
+		"snap_shooting": context.get("snap_shooting", false),
 		"attack_generation": generated.records, "damage_rolls": [], "hits": normal_hits + automatic_wounds, "wounds": wounds,
 		"critical_wounds": critical_wounds, "devastating_wounds": devastating, "devastating_attacks_resolved": 0,
 		"save_count": wounds - devastating,
 		"normal_damage_applied": 0, "mortal_damage_applied": 0,
 		"prevented_wounds": 0, "prevention_rolls": [],
-		"hit_rolls": hit_rolls, "wound_rolls": wound_rolls, "save_rolls": save_rolls, "dice_history": dice.history}
+		"hit_rolls": hit_rolls, "wound_rolls": wound_rolls,
+		"final_hit_rolls": effective_hits.duplicate(), "final_wound_rolls": effective.duplicate(),
+		"save_rolls": save_rolls, "dice_history": dice.history}
 
 static func allocation_steps(result: Dictionary, weapon: Dictionary, defender: Dictionary) -> Array[Dictionary]:
 	var steps: Array[Dictionary] = []
