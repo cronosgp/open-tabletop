@@ -8,19 +8,24 @@ static func begin(state: Dictionary) -> void:
 	var half: Vector2 = state.board_size / 2.0
 	var order: Array[int] = []
 	var sides := {1: [], 2: []}
-	for squad: int in state.squads: sides[state.squads[squad].owner].append(squad)
+	for squad: int in state.squads:
+		if not state.get("unit_abilities", {}).get("reserves", {}).has(squad): sides[state.squads[squad].owner].append(squad)
 	sides[1].sort()
 	sides[2].sort()
+	var defender: int = state.get("mission", {}).get("defender", 1)
+	if defender not in [1, 2]: defender = 1
 	for index in range(maxi(sides[1].size(), sides[2].size())):
-		for owner in [1, 2]:
+		for owner in [defender, 3 - defender]:
 			if index < sides[owner].size(): order.append(sides[owner][index])
 	state.deployment = {"order": order, "index": 0, "placed": {}, "committed": [],
 		"zones": {1: Rect2(-half.x, -half.y, 11, half.y * 2), 2: Rect2(half.x - 11, -half.y, 11, half.y * 2)}, "complete": false}
+	if state.get("mission", {}).get("id", "") == "ca-2026-27-dominance-hammer-fixed-v1" and state.mission.defender > 0:
+		state.deployment.zones = {state.mission.attacker: Rect2(-30, -22, 18, 44), state.mission.defender: Rect2(12, -22, 18, 44)}
 	state.phase = "deployment"
 
 static func current(state: Dictionary) -> int:
 	var setup: Dictionary = state.get("deployment", {})
-	if setup.is_empty() or setup.complete: return -1
+	if setup.is_empty() or setup.complete or setup.order.is_empty(): return -1
 	return int(setup.order[setup.index])
 
 static func actor(state: Dictionary) -> int:
@@ -28,6 +33,9 @@ static func actor(state: Dictionary) -> int:
 	return int(state.squads[squad].owner) if squad >= 0 else int(state.active)
 
 static func command_error(state: Dictionary, player: int, revision: int) -> String:
+	if state.get("mission", {}).get("stage", "formations") in ["terrain", "roles-roll", "roles-choice", "battle-ready"]: return "Resolve mission preparation before deployment."
+	if not state.get("awakened_dynasty", {}).get("pending", []).is_empty(): return "Finish Overlord attachment declarations before deployment."
+	if state.get("unit_abilities", {}).get("implementation", "") != "" and state.unit_abilities.get("setup_players", []).size() < 2: return "Finish both players unit ability preparations before deployment."
 	if state.get("phase", "") != "deployment" or current(state) < 0: return "No deployment is pending."
 	if player != actor(state): return "Wait for the other player's deployment."
 	if revision != state.revision: return "State changed; refresh deployment before trying again."
@@ -92,8 +100,8 @@ static func confirm(state: Dictionary, player: int, revision: int) -> String:
 	state.deployment.index += 1
 	if state.deployment.index == state.deployment.order.size():
 		state.deployment.complete = true
-		state.phase = "start_turn"
-	_event(state, "Deployment complete. Player 1 starts round 1." if state.deployment.complete else "Unit deployed; player %d places the next unit." % actor(state))
+		state.phase = "mission_first_turn" if state.get("mission", {}).get("id", "") == "ca-2026-27-dominance-hammer-fixed-v1" else "start_turn"
+	_event(state, "Deployment complete. Roll off for first turn." if state.phase == "mission_first_turn" else "Deployment complete. Player 1 starts round 1." if state.deployment.complete else "Unit deployed; player %d places the next unit." % actor(state))
 	return ""
 
 static func _event(state: Dictionary, message: String) -> void:

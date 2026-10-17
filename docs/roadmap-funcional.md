@@ -1,3 +1,7 @@
+Historical A3 increment note (17 October 2026; superseded by [roadmap.md](roadmap.md)): [checked Incursion rosters](roster-validation.md) use official MFM 1.6 points for ten fixed profiles and include fixed-profile construction checks. At the time of this increment, broader equipment/model counts and remaining detachment/core content were still pending.
+
+Historical A2 increment note (17 October 2026; superseded by [roadmap.md](roadmap.md)): [CA 2026-27 selected mission](chapter-approved-mission.md) added full-size board, role/first-turn roll-offs, private reserve declarations and fixed primary/secondary scoring. Historical custom-training descriptions below remain valid for their separate modes.
+
 > **Superseded.** The forward-looking plan now lives in [roadmap.md](roadmap.md) — the single consolidated roadmap to the final product. This file is retained only as the historical increment log (original diagnosis, milestones, and chronological implementation notes).
 
 # Roadmap para uma primeira versão funcional
@@ -118,3 +122,32 @@ Este avanço não conclui o marco de duas listas oficiais completas. Permanecem 
 ## Avanço em 16/10: última janela de Command Re-roll prevista para o treino
 
 [Desperate Escape](escape-rerolls.md) agora oferece decisão após os hazards e antes de feridas mortais, prevenção ou movimento. O dono escolhe um D6 por 1 CP ou aceita gratuitamente; o resultado novo é obrigatório. A opção compartilha limites com avanço/carga e demais usos, recusa unidades em Battle-shock e preserva resultado/CP ao resetar posições. Manifesto, listas salvas, UI, journal, save antigo/novo e reinício autenticado do host carregam a capacidade. Isso fecha as janelas de Command Re-roll previstas para os movimentos e armas implementados; não habilita transporte, demais estratagemas ou todas as regras oficiais. As próximas prioridades do marco 3 continuam sendo habilidades verificadas, comandantes/attachments, destacamentos e legalidade das forças de referência.
+
+## Track A: Hail of Bolts e primeiro perfil de facção
+
+[Hail of Bolts](hail-of-bolts.md) substitui o slot provisório Target Elimination dos Intercessors por um efeito verificado no card oficial de junho: escolha explícita de inimigo visível no plano e +2 ataques para os bolt rifles direcionados a ele. Divisão de alvos, equipamentos, bônus existentes, draft, checkpoints e LAN preservam a escolha sem alterar os perfis base.
+
+[Oath of Moment](oath-of-moment.md) entra como perfil identificado de **junho/2026**, com escolha no início da Command, duração até a próxima Command própria, repetição automática de falhas de acerto e bônus condicional de ferimento no contexto Codex. Dados já repetidos não recebem Command Re-roll novamente. O catálogo oficial foi consultado e agora remete aos suplementos do Codex de outubro; por isso este perfil não certifica esse livro posterior.
+
+[Reanimation Protocols](reanimation-protocols.md) usa a atualização de facção de **setembro/2026**: no fim da própria Command, o host rola D3 por unidade viva; Warriors/Immortals puros permitem escolher os modelos destruídos e pré-visualizar posições válidas antes da confirmação. Overlords isolados vivos recuperam feridas até o máximo. Save e reconexão autenticada preservam rolagem, orçamento e posições. Anexos de um Overlord com Warriors/Immortals agora compartilham esse fluxo; personagens mortos, outras composições, Resurrection Orb e Their Number is Legion permanecem pendentes. A [Track A](track-a.md) mantém os limites de fonte e escopo; o próximo bloco são os destacamentos, seguido das habilidades restantes, missão e certificação de pontos/legalidade.
+
+## Baseline obrigatório: edição 11 e regras atuais
+
+A referência solicitada pelo usuário é [Wahapedia e11](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/), com conferência nas publicações oficiais vigentes. Perfis históricos não substituem regras atuais. A exigência está registrada em [AGENTS.md](../AGENTS.md) e na [política de fontes](source-assessment.md#required-rules-baseline).
+
+[Combat Doctrines + Codex Discipline do Gladius](combat-doctrines.md) agora seguem a estrutura atual: doutrinas são regra de exército; o destacamento oferece uma utilização adicional compartilhada de uma doutrina por batalha. A seleção ocorre no início da Command, antes do CP básico. Devastator concede Assault aos perfis de ataque à distância; Tactical libera tiro/carga após Fall Back; Assault libera carga após Advance. Os limites de ação, engajamento, alcance e movimento permanecem. Save/LAN preservam escolha e usos. Essa opção rejeita combinação com o Oath histórico. Próximos passos: Awakened Dynasty vigente, migração de datasheets/habilidades antigas, demais regras necessárias, missão oficial e certificação de pontos/DP/legalidade.
+
+## Awakened Dynasty e vínculo do Overlord
+
+[Command Protocols](awakened-dynasty.md) foi integrado conforme a referência e11 vigente: +1 para acertar enquanto um personagem Necron lidera a unidade. Há um novo preset offline com Overlord, Warriors e Immortals, de 245/500 pontos locais. Antes da implantação, o controlador declara o Overlord isolado ou vinculado a uma unidade permitida; o vínculo preserva os modelos/equipamentos e todos ainda precisam cumprir a validação de implantação. Tiro e combate recebem o modificador no contexto calculado pelo host, incluindo o limite final de ±1 e recuperação LAN de ataques pendentes.
+
+Overlord anexado a Warriors/Immortals agora combina com Reanimation. A unidade mantém sua identidade e força inicial combinada; o líder sobrevivente conserva a habilidade mesmo sem guarda-costas, conforme e11 19.04. O orçamento D3 cura sobreviventes antes de retornar tropas. A suposição anterior de separação automática foi corrigida. A próxima prioridade são as habilidades restantes das unidades; este escopo não certifica uma partida Necron oficial completa.
+
+### Habilidades atuais das dez unidades da Track A
+
+Implementadas no perfil [current-unit-abilities](current-unit-abilities.md), incluindo Assault/Heavy Intercessors, Lieutenant e Royal Warden. O perfil atual substitui habilidades historicas por suas equivalentes verificadas na e11, oferece preparacao de Leader/Support/Warlord, reservas/Teleport Homer, habilidades de fase e escolhas gratuitas de rerrolagem. A etapa cobre os equipamentos fixos admitidos; nao certifica todas as variantes ou listas oficiais. As proximas etapas sao missao oficial (A2) e pontos/legalidade (A3).
+
+
+## A2 - Cenario selecionado de Chapter Approved 2026-27
+
+Implementado [Battlefield Dominance / Hammer and Anvil](chapter-approved-mission.md), com Take and Hold nos dois lados, secundarias fixas Engage on All Fronts e Assassination, mesa de 60 x 44 polegadas e terreno personalizado sobre os pontos oficiais. Inclui sorteios de papeis/primeiro turno, deployment iniciado pelo defensor, sigilo das reservas ate ambos confirmarem, limites e momentos atuais de pontuacao, e cinco rodadas mesmo sem tropas restantes. Proxima prioridade: A3, certificacao de pontos/DP/equipamentos/composicao; ainda faltam outras regras necessarias dos destacamentos para declarar Track A completamente legal.

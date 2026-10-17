@@ -35,9 +35,29 @@ var prepared_match := false
 var objective_secured := false
 var implacable_eradication := false
 var hail_of_bolts := false
+var oath_of_moment := false
+var reanimation_protocols := false
+var combat_doctrines := false
+var ability_token_nodes: Dictionary = {}
+var checked_rosters := false
+var checked_rosters_choice: CheckBox
+var official_mission := false
+var official_mission_choice: CheckBox
+var unit_abilities := false
+var unit_abilities_choice: CheckBox
+var unit_action_picker: OptionButton
+var unit_action_x: SpinBox
+var unit_action_z: SpinBox
+var unit_action_help: Label
+var unit_action_button: Button
+var awakened_dynasty := false
 var objective_secured_choice: CheckBox
 var implacable_eradication_choice: CheckBox
 var hail_of_bolts_choice: CheckBox
+var oath_of_moment_choice: CheckBox
+var reanimation_protocols_choice: CheckBox
+var combat_doctrines_choice: CheckBox
+var awakened_dynasty_choice: CheckBox
 var core_stratagems := false
 var count_rerolls := false
 var count_reroll_choice: CheckBox
@@ -59,6 +79,7 @@ var reaction_help: Label
 var reaction_squad: OptionButton
 var reaction_roll: Button
 var reaction_use: Button
+var reaction_sudden: Button
 var prepared_button: Button
 var deployment_preset_button: Button
 var deployment_confirm_button: Button
@@ -127,6 +148,26 @@ var action_objective: OptionButton
 var action_button: Button
 var attack_draft: Dictionary = {}
 var plan_begin: Button
+var reanimation_help: Label
+var reanimation_squad: OptionButton
+var reanimation_model: OptionButton
+var reanimation_x: SpinBox
+var reanimation_z: SpinBox
+var reanimation_roll: Button
+var reanimation_place: Button
+var reanimation_suggest: Button
+var reanimation_failure: Button
+var reanimation_reset: Button
+var reanimation_confirm: Button
+var awakened_help: Label
+var awakened_target: OptionButton
+var awakened_confirm: Button
+var doctrine_help: Label
+var doctrine_choice: OptionButton
+var doctrine_confirm: Button
+var oath_help: Label
+var oath_target: OptionButton
+var oath_confirm: Button
 var plan_hail: OptionButton
 var plan_target: OptionButton
 var plan_weapon: OptionButton
@@ -239,12 +280,12 @@ func _spawn_pieces() -> void:
 		var mesh := CylinderMesh.new()
 		mesh.top_radius = state.units[id].radius if combat_enabled else 0.32
 		mesh.bottom_radius = state.units[id].radius
-		mesh.height = 1.3
+		mesh.height = clampf(float(state.units[id].radius) * 2.4, 1.05, 2.2)
 		piece.mesh = mesh
 		add_child(piece)
 		pieces[id] = piece
 		if model_imports != null:
-			var visual: Node3D = model_imports.visual_for(str(state.units[id].get("definition_id", "")))
+			var visual: Node3D = model_imports.visual_for(str(state.units[id].get("definition_id", "")), float(state.units[id].radius))
 			if visual != null:
 				mesh.height = 0.08
 				mesh.top_radius = state.units[id].radius
@@ -366,6 +407,7 @@ func _build_ui() -> void:
 	match_tabs.set_tab_title(2, "Models / Import")
 	model_imports = ModelImports.new()
 	model_imports.selected_definition = func(): return str(state.units[selected].get("definition_id", "")) if state.units.has(selected) else ""
+	model_imports.selected_radius = func(): return float(state.units[selected].radius) if state.units.has(selected) else 0.0
 	model_imports.mappings_changed.connect(func(): _spawn_pieces(); _refresh())
 	models.add_child(model_imports)
 	var armies := _scroll_column(match_tabs, "Armies")
@@ -410,6 +452,62 @@ func _build_ui() -> void:
 	equipment_choice = CheckBox.new()
 	equipment_choice.text = "Next match: varied training equipment"
 	advanced.add_child(equipment_choice)
+	checked_rosters_choice = CheckBox.new()
+	checked_rosters_choice.text = "Next prepared match: checked Incursion rosters (MFM 1.6)"
+	checked_rosters_choice.tooltip_text = "Current points/repetition/DP checks for ten fixed-loadout profiles; Gladius vs Awakened, no enhancements. Mandatory Warlord/Support declarations. Full match rules remain incomplete. Saved list prices are not trusted or changed."
+	advanced.add_child(checked_rosters_choice)
+	checked_rosters_choice.toggled.connect(func(active: bool):
+		if active:
+			official_mission_choice.button_pressed = true
+			stratagem_choice.button_pressed = true
+			reroll_choice.button_pressed = true
+			attack_reroll_choice.button_pressed = true
+			save_reroll_choice.button_pressed = true
+			damage_reroll_choice.button_pressed = true
+			hazard_reroll_choice.button_pressed = true
+			count_reroll_choice.button_pressed = true
+			escape_reroll_choice.button_pressed = true
+		_refresh_army_choices())
+	official_mission_choice = CheckBox.new()
+	official_mission_choice.text = "Next prepared match: CA 2026-27 / Battlefield Dominance"
+	official_mission_choice.tooltip_text = "44 x 60 inches; Hammer and Anvil, Take and Hold for both players; fixed Engage on All Fronts + Assassination. Custom terrain at official objective points. Current abilities required; reference points are not army legality certification."
+	advanced.add_child(official_mission_choice)
+	official_mission_choice.toggled.connect(func(active: bool):
+		if active: unit_abilities_choice.button_pressed = true
+		_review_saved_armies())
+	unit_abilities_choice = CheckBox.new()
+	unit_abilities_choice.text = "Next prepared match: current e11 unit abilities (Track A)"
+	unit_abilities_choice.tooltip_text = "Current abilities for ten admitted unit types, including reserves and leaders. Historical Hail of Bolts and Objective Secured are incompatible. Fixed loadouts and reference costs remain."
+	advanced.add_child(unit_abilities_choice)
+	unit_abilities_choice.toggled.connect(func(active: bool):
+		if active:
+			equipment_choice.button_pressed = false
+			implacable_eradication_choice.button_pressed = false
+			hail_of_bolts_choice.button_pressed = false
+			objective_secured_choice.button_pressed = false
+			oath_of_moment_choice.button_pressed = false
+			reanimation_protocols_choice.button_pressed = true
+			combat_doctrines_choice.button_pressed = true
+			awakened_dynasty_choice.button_pressed = true
+			stratagem_choice.button_pressed = true
+		_review_saved_armies())
+	awakened_dynasty_choice = CheckBox.new()
+	awakened_dynasty_choice.text = "Next prepared match: 11e Awakened Dynasty"
+	awakened_dynasty_choice.tooltip_text = "Command Protocols: +1 to hit for a unit led by a living Necron Character. Declare admitted Overlords standalone or attached to Warriors/Immortals before deployment. Supports Reanimation for admitted Overlord attachments; surviving leaders retain the bonus after bodyguard losses. Other detachment rules and full army legality remain pending. Both LAN players must agree."
+	advanced.add_child(awakened_dynasty_choice)
+	awakened_dynasty_choice.toggled.connect(func(_enabled: bool): _review_saved_armies())
+	combat_doctrines_choice = CheckBox.new()
+	combat_doctrines_choice.text = "Next prepared match: 11e Combat Doctrines + Gladius"
+	combat_doctrines_choice.tooltip_text = "Current 11e army rule with Gladius Codex Discipline: each doctrine once per battle, plus one shared additional use of one doctrine. Devastator grants Assault to ranged attacks; Tactical permits shooting/charging after Fall Back; Assault permits charging after Advance. Replaces historical Oath. Captain overrides, other detachment rules and full army legality remain pending. Both LAN players must agree."
+	advanced.add_child(combat_doctrines_choice)
+	reanimation_protocols_choice = CheckBox.new()
+	reanimation_protocols_choice.text = "Next prepared match: Reanimation Protocols"
+	reanimation_protocols_choice.tooltip_text = "September 2026 faction rule, limited to Warriors/Immortals, living Overlords and admitted Overlord attachments. End of own Command: roll D3 per living unit, preview returned troop models, then confirm. Heal surviving models first, then return troops. Slain Characters are unsupported. Resurrection Orb and other datasheet abilities require the current unit abilities option. Both LAN players must agree."
+	advanced.add_child(reanimation_protocols_choice)
+	oath_of_moment_choice = CheckBox.new()
+	oath_of_moment_choice.text = "Next prepared match: Oath of Moment (June 2026 Codex profile)"
+	oath_of_moment_choice.tooltip_text = "Pinned June 2026 rules: select an enemy at the start of your Command phase. Marine attacks against it automatically re-roll failed hits and gain the conditional Codex +1 wound bonus. Successes are kept. Other detachment rules are disabled. Both LAN players must agree."
+	advanced.add_child(oath_of_moment_choice)
 	hail_of_bolts_choice = CheckBox.new()
 	hail_of_bolts_choice.text = "Next prepared match: Intercessor Hail of Bolts"
 	hail_of_bolts_choice.tooltip_text = "In your Shooting phase, choose one visible enemy in the attack plan. Bolt rifles attacking that unit gain +2 attacks. Both LAN players must choose the same option."
@@ -503,7 +601,7 @@ func _build_ui() -> void:
 		primary.add_theme_stylebox_override("hover", hover_style)
 	var saved_title := Label.new()
 	saved_title.text = "Ready armies • 500-point training category • fixed weapons"
-	var saved_lists := _setup_section(setup, "LOCAL MATCH • TWO ARMIES", "Training: Intercessors, Terminators, Warriors and Immortals; up to six units per side. Fixed weapons and partial rules. Deployment + five rounds on this computer.")
+	var saved_lists := _setup_section(setup, "LOCAL MATCH • TWO ARMIES", "Core-profile training: up to six units per side, including admitted commanders. For Command Protocols, select the Necron Overlord preset and enable Awakened Dynasty in Advanced options. Partial rules; official legality is pending.")
 	setup.move_child(saved_lists.get_parent(), 0)
 	saved_lists.add_child(saved_title)
 	for owner in [1, 2]:
@@ -579,6 +677,77 @@ func _build_ui() -> void:
 	details.custom_minimum_size.x = 400
 	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(details)
+	reanimation_help = Label.new()
+	reanimation_help.custom_minimum_size.x = 400
+	reanimation_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	reanimation_help.tooltip_text = "Return within 2 inches of a surviving model present at Command entry, and within 9 inches of every unit member. Returned models cannot extend the anchor chain or create engagement with a new enemy unit. Purple previews do not restore wounds or capture objectives until confirmed."
+	column.add_child(reanimation_help)
+	reanimation_squad = OptionButton.new()
+	column.add_child(reanimation_squad)
+	reanimation_roll = _button(column, "Roll selected unit's Reanimation D3", _request_reanimation.bind("roll"))
+	reanimation_model = OptionButton.new()
+	column.add_child(reanimation_model)
+	reanimation_model.item_selected.connect(_reanimation_model_selected)
+	reanimation_x = SpinBox.new()
+	reanimation_z = SpinBox.new()
+	for coordinate in [reanimation_x, reanimation_z]:
+		coordinate.min_value = -50
+		coordinate.max_value = 50
+		coordinate.step = 0.05
+		column.add_child(coordinate)
+	reanimation_x.prefix = "Base centre X: "
+	reanimation_z.prefix = "Base centre Z: "
+	reanimation_place = _button(column, "Preview model at X/Z (or right-click board)", _request_reanimation.bind("place"))
+	reanimation_suggest = _button(column, "Suggest return positions", _request_reanimation.bind("suggest"))
+	reanimation_failure = _button(column, "Declare selected model cannot be placed", _request_reanimation.bind("unplaceable"))
+	reanimation_failure.tooltip_text = "Controller declaration, recorded in the match. This does not prove that no legal position exists. The model remains destroyed."
+	reanimation_reset = _button(column, "Reset preview (keep original D3)", _request_reanimation.bind("reset"))
+	reanimation_confirm = _button(column, "Confirm this unit's Reanimation", _request_reanimation.bind("confirm"))
+	awakened_help = Label.new()
+	awakened_help.custom_minimum_size.x = 400
+	awakened_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(awakened_help)
+	awakened_target = OptionButton.new()
+	awakened_target.fit_to_longest_item = false
+	column.add_child(awakened_target)
+	unit_action_help = Label.new()
+	unit_action_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(unit_action_help)
+	unit_action_picker = OptionButton.new()
+	unit_action_picker.fit_to_longest_item = false
+	unit_action_picker.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	unit_action_picker.item_selected.connect(func(_index: int): _update_unit_placement_controls())
+	column.add_child(unit_action_picker)
+	unit_action_x = SpinBox.new()
+	unit_action_x.min_value = -100
+	unit_action_x.max_value = 100
+	unit_action_x.step = 0.1
+	unit_action_x.prefix = "Ability X: "
+	column.add_child(unit_action_x)
+	unit_action_z = SpinBox.new()
+	unit_action_z.min_value = -100
+	unit_action_z.max_value = 100
+	unit_action_z.step = 0.1
+	unit_action_z.prefix = "Ability Z: "
+	column.add_child(unit_action_z)
+	unit_action_button = _button(column, "Use ability / confirm choice", _request_unit_action)
+	awakened_confirm = _button(column, "Confirm Overlord attachment / standalone", _request_awakened_attachment)
+	doctrine_help = Label.new()
+	doctrine_help.custom_minimum_size.x = 400
+	doctrine_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(doctrine_help)
+	doctrine_choice = OptionButton.new()
+	doctrine_choice.fit_to_longest_item = false
+	column.add_child(doctrine_choice)
+	doctrine_confirm = _button(column, "Confirm doctrine / no doctrine", _request_combat_doctrine)
+	oath_help = Label.new()
+	oath_help.custom_minimum_size.x = 400
+	oath_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(oath_help)
+	oath_target = OptionButton.new()
+	oath_target.fit_to_longest_item = false
+	column.add_child(oath_target)
+	oath_confirm = _button(column, "Confirm Oath of Moment target", _request_oath_target)
 	reaction_help = Label.new()
 	reaction_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	reaction_help.custom_minimum_size.x = 400
@@ -588,6 +757,7 @@ func _build_ui() -> void:
 	column.add_child(reaction_squad)
 	reaction_roll = _button(column, "Rolar Battle-shock normalmente", func(): _request_command_reaction(""))
 	reaction_use = _button(column, "Insane Bravery • 1 CP • uma vez por batalha", _request_use_reaction)
+	reaction_sudden = _button(column, "Sudden Storm: re-roll Advance • 0 CP", func(): _request_command_reaction("sudden-storm"))
 	movement_choice = OptionButton.new()
 	for label in ["Normal move", "Advance (D6)", "Fall Back: Ordered Retreat", "Fall Back: Desperate Escape", "Remain stationary"]:
 		movement_choice.add_item(label)
@@ -720,7 +890,12 @@ func _build_ui() -> void:
 
 func _build_action_groups(column: VBoxContainer) -> void:
 	var definitions := {
-		"reaction": {"title": "Decision window", "controls": [reaction_help, reaction_squad, reaction_roll, reaction_use]},
+		"reanimation": {"title": "Reanimation Protocols", "controls": [reanimation_help, reanimation_squad, reanimation_roll, reanimation_model, reanimation_x, reanimation_z, reanimation_place, reanimation_suggest, reanimation_failure, reanimation_reset, reanimation_confirm]},
+		"awakened": {"title": "Awakened Dynasty • Overlord assignment", "controls": [awakened_help, awakened_target, awakened_confirm]},
+		"unit": {"title": "Unit abilities / detachment stratagems", "controls": [unit_action_help, unit_action_picker, unit_action_x, unit_action_z, unit_action_button]},
+		"doctrine": {"title": "Combat Doctrines • 11e Gladius", "controls": [doctrine_help, doctrine_choice, doctrine_confirm]},
+		"oath": {"title": "Oath of Moment • June 2026", "controls": [oath_help, oath_target, oath_confirm]},
+		"reaction": {"title": "Decision window", "controls": [reaction_help, reaction_squad, reaction_roll, reaction_use, reaction_sudden]},
 		"deployment": {"title": "Deploy your army", "controls": [deployment_help, deployment_preset_button, deployment_confirm_button]},
 		"movement": {"title": "Movement / coherency", "controls": [movement_choice, begin_move_button, escape_wound_button, finish_move_button, cancel_move_button, abandon_move_button, coherency_button]},
 		"contact": {"title": "Charge / contact placement", "controls": [charge_button, begin_contact_button, consolidation_objective, contact_enemy, confirm_contact_button, cancel_contact_button]},
@@ -746,14 +921,28 @@ func _build_action_groups(column: VBoxContainer) -> void:
 		action_groups[key] = {"container": group, "reason": reason, "controls": definitions[key].controls}
 	column.move_child(action_groups.deployment.container, 0)
 	column.move_child(action_groups.reaction.container, 0)
+	column.move_child(action_groups.oath.container, 0)
+	column.move_child(action_groups.reanimation.container, 0)
+	column.move_child(action_groups.doctrine.container, 0)
+	column.move_child(action_groups.unit.container, 0)
+	column.move_child(action_groups.awakened.container, 0)
 
 func _refresh_action_groups() -> void:
+	action_groups.unit.container.get_child(0).text = "Mission and unit choices" if combat_enabled and Combat.Mission.enabled(state) else "Current unit abilities"
 	if combat_enabled and state.phase == "army_selection":
 		for group: Dictionary in action_groups.values(): group.container.visible = false
 		return
 	var exclusive := ""
 	if combat_enabled:
-		if state.phase == "deployment": exclusive = "deployment"
+		if Combat.Mission.actor(state) > 0: exclusive = "unit"
+		elif Combat.Awakened.needs_setup(state): exclusive = "awakened"
+		elif Combat.Doctrines.needs_choice(state): exclusive = "doctrine"
+		elif Combat.UnitActions.actor(state) > 0 and Combat.Reanimation.pending(state).is_empty(): exclusive = "unit"
+		elif Combat.Reanimation.pending(state).get("current", {}).get("reroll_pending", false): exclusive = "unit"
+		elif state.phase == "deployment": exclusive = "deployment"
+		elif not Combat.Reanimation.pending(state).is_empty(): exclusive = "reanimation"
+		elif Combat.Doctrines.needs_choice(state): exclusive = "doctrine"
+		elif Combat.OathOfMoment.needs_choice(state): exclusive = "oath"
 		elif not Combat.Stratagems.pending(state).is_empty(): exclusive = "reaction"
 		elif not state.get("pending_attack", {}).is_empty() or not state.get("pending_hazard", {}).is_empty(): exclusive = "defense"
 		elif not state.pending_move.is_empty() or coherency_button.visible: exclusive = "movement"
@@ -764,7 +953,7 @@ func _refresh_action_groups() -> void:
 		var has_controls := false
 		for control: Control in group.controls:
 			if control.visible: has_controls = true
-		group.container.visible = has_controls and (exclusive.is_empty() or exclusive == key)
+		group.container.visible = has_controls and (exclusive.is_empty() or exclusive == key or (key == "unit" and exclusive == "reaction" and not Combat.unit_choices(state, _local_player()).is_empty()))
 		group.reason.text = ""
 		group.reason.visible = false
 		for control: Control in group.controls: control.tooltip_text = ""
@@ -810,8 +999,7 @@ func _refresh_action_groups() -> void:
 		if state.units.has(selected) and state.units[selected].owner == _local_player() and state.units[selected].wounds > 0:
 			var squad: Dictionary = state.squads[state.units[selected].squad]
 			if squad.charge_declared: reason = "This unit has already declared a charge."
-			elif squad.advanced: reason = "This unit Advanced and cannot declare a charge."
-			elif squad.fell_back: reason = "This unit Fell Back and cannot declare a charge."
+			elif not Combat.Doctrines.charge_error(state, state.units[selected].squad).is_empty(): reason = Combat.Doctrines.charge_error(state, state.units[selected].squad)
 			elif Combat.Actions.charge_blocked(state, state.units[selected].squad): reason = "This unit started an action that prevents charging."
 		_action_reason("contact", reason)
 	if begin_contact_button.visible and begin_contact_button.disabled:
@@ -862,14 +1050,14 @@ func _update_hover_guides() -> void:
 	guide_label.text = guides.caption + ("\n" + guides.hover_caption if not guides.hover_caption.is_empty() else "")
 
 func _initial_state() -> Dictionary:
-	if combat_enabled and saved_army_mode: return PreparedTraining.waiting({"manual_allocation": manual_allocation, "varied_equipment": false, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts})
-	if combat_enabled and prepared_match: return PreparedTraining.initial_state({"manual_allocation": manual_allocation, "varied_equipment": varied_equipment, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts})
+	if combat_enabled and saved_army_mode: return PreparedTraining.waiting({"manual_allocation": manual_allocation, "varied_equipment": false, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "checked_rosters": checked_rosters})
+	if combat_enabled and prepared_match: return PreparedTraining.initial_state({"manual_allocation": manual_allocation, "varied_equipment": varied_equipment, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "checked_rosters": checked_rosters})
 	if combat_enabled and allocation_practice: return TestBattlefield.apply(AllocationPractice.initial_state(damage_rerolls, count_rerolls))
 	return TestBattlefield.apply(Combat.initial_state(terrain_layout, mission_id, squads_per_side, manual_allocation, varied_equipment)) if combat_enabled else Rules.initial_state()
 
 func _refresh_army_choices() -> void:
 	if saved_army_pickers.is_empty(): return
-	var presets := TrainingRoster.presets()
+	var presets := TrainingRoster.presets(checked_rosters_choice.button_pressed)
 	for owner: int in saved_army_pickers:
 		var picker: OptionButton = saved_army_pickers[owner]
 		var previous := ""
@@ -878,8 +1066,8 @@ func _refresh_army_choices() -> void:
 		picker.add_item("Player %d: choose a saved list" % owner)
 		picker.set_item_metadata(0, {})
 		for list: Dictionary in presets:
-			var report := TrainingRoster.inspect(list)
-			picker.add_item("P%d • %s • %d/500 pts" % [owner, list.name, report.total])
+			var report := Combat.RosterValidation.inspect(list) if str(list.get("id", "")).begins_with("preset:checked-mfm16") else TrainingRoster.inspect(list)
+			picker.add_item("P%d • %s • %d/%d pts" % [owner, list.name, report.total, list.points_limit])
 			picker.set_item_metadata(picker.item_count - 1, list.duplicate(true))
 			if list.id == previous or (previous.is_empty() and list.faction == ("Space Marines" if owner == 1 else "Necrons") and report.selection.get("copies", 0) == 2): picker.select(picker.item_count - 1)
 		for profile: Dictionary in army_builder.store.data.profiles:
@@ -887,6 +1075,10 @@ func _refresh_army_choices() -> void:
 				picker.add_item("%s / %s" % [profile.name, list.name])
 				picker.set_item_metadata(picker.item_count - 1, list.duplicate(true))
 				if list.id == previous: picker.select(picker.item_count - 1)
+		if checked_rosters_choice.button_pressed and (previous.is_empty() or previous.begins_with("preset:") or previous.begins_with("reference:")):
+			for index in range(picker.item_count):
+				var candidate: Variant = picker.get_item_metadata(index)
+				if candidate is Dictionary and candidate.get("id", "") == "preset:checked-mfm16:" + ("Space Marines" if owner == 1 else "Necrons"): picker.select(index)
 	_review_saved_armies()
 
 func _save_selected_army(owner: int) -> void:
@@ -912,18 +1104,20 @@ func _picked_army(owner: int) -> Dictionary:
 
 func _saved_army_report(owner: int) -> Dictionary:
 	var list := _picked_army(owner)
-	return {"error": "Choose a list for player %d." % owner} if list.is_empty() else TrainingRoster.inspect(list)
+	return {"error": "Choose a list for player %d." % owner} if list.is_empty() else (Combat.RosterValidation.inspect(list) if checked_rosters_choice.button_pressed else TrainingRoster.inspect(list))
 
 func _review_saved_armies() -> void:
 	if saved_army_review == null: return
-	var lines: Array[String] = ["Core-profile training: up to six units per player. Intercessors, Terminators and Immortals: 5 models; Warriors: 10. Only explicitly enabled unit abilities run; faction abilities and equipment notes are not executed. Insane Bravery is available only when prepared-match options are enabled."]
+	var lines: Array[String] = ["Core-profile training: up to six units per player, including admitted commanders and Support units. Only explicitly enabled effects run. Fixed weapons and local pack points; complete official legality is pending."]
+	if checked_rosters_choice.button_pressed: lines[0] = "Checked fixed rosters: Incursion, up to twelve supported units, Gladius/Awakened only, no enhancements. Prices use the pinned official MFM 1.6 profile; saved-list prices remain unchanged. Declare Warlord and Support attachments before deployment."
 	for owner in [1, 2]:
 		var report := _saved_army_report(owner)
-		lines.append("P%d: %s" % [owner, report.error if not report.error.is_empty() else "%s • %d units • %d/%d local pack points (saved list: %d pts)" % [report.selection.faction, report.get("unit_count", report.selection.get("copies", 0)), report.total, report.selection.points_limit, report.saved_reference_points]])
+		lines.append("P%d: %s" % [owner, report.error if not report.error.is_empty() else ("%s • %d units • %d/%d " + ("MFM 1.6 points" if checked_rosters_choice.button_pressed else "local pack points") + " (saved list: %d pts)") % [report.selection.faction, report.get("unit_count", report.selection.get("copies", 0)), report.total, report.selection.points_limit, report.saved_reference_points]])
 	for owner in [1, 2]:
 		var report := _saved_army_report(owner)
 		if report.error.is_empty():
 			for warning: String in report.get("warnings", []):
+				if unit_abilities_choice.button_pressed: continue
 				if objective_secured_choice.button_pressed:
 					warning = warning.replace("objective-secured, ", "").replace(", objective-secured", "")
 				if implacable_eradication_choice.button_pressed:
@@ -933,9 +1127,13 @@ func _review_saved_armies() -> void:
 					warning = warning.replace("target-elimination, ", "").replace(", target-elimination", "")
 					if warning.ends_with(": target-elimination") or warning == "target-elimination": continue
 				lines.append("P%d • unavailable abilities: %s" % [owner, warning])
+	if checked_rosters_choice.button_pressed: lines.append("Checked Incursion rosters: official MFM 1.6 points, 2/4 repetition limits, one 3DP Gladius/Awakened exception, fixed loadouts and no enhancements. Warlord/Support declarations are mandatory. Command Re-roll uses every implemented window. Gladius/Awakened cards plus Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge are in unit abilities. Saved prices stay unchanged.")
+	if official_mission_choice.button_pressed: lines.append("Mission: CA 2026-27 Battlefield Dominance / Hammer and Anvil, 44 x 60 inches. Both sides Take and Hold; fixed Engage on All Fronts + Assassination. Resolve role and first-turn roll-offs." + (" Points use MFM 1.6." if checked_rosters_choice.button_pressed else " Reference army prices remain unverified."))
+	if unit_abilities_choice.button_pressed: lines.append("Enabled: current e11 abilities for ten fixed-profile unit types. Declare Warlords, Leader/Support attachments and reserves before deployment; Teleport Homers at battle start. Use the unit ability panel for optional phase and dice choices.")
 	if hail_of_bolts_choice.button_pressed: lines.append("Enabled: Intercessor Hail of Bolts; choose one visible enemy in the shooting plan for +2 bolt-rifle attacks against it.")
 	if objective_secured_choice.button_pressed: lines.append("Enabled: Intercessor Objective Secured at the end of your Command phase.")
 	if implacable_eradication_choice.button_pressed: lines.append("Enabled: Immortal Implacable Eradication training reference; successful wound rolls are kept.")
+	if awakened_dynasty_choice.button_pressed: lines.append("Enabled: Awakened Dynasty Command Protocols. Use the Necron Overlord preset to declare an attachment before deployment. Reanimation supports this attachment, healing living models before returning destroyed troops.")
 	lines.append("On LAN, each player submits only their own selection. Both computers must use the same allocation option.")
 	saved_army_review.text = "\n".join(lines)
 
@@ -955,7 +1153,7 @@ func _start_saved_match(local_match: bool = true) -> void:
 	if selections.is_empty():
 		status.text = "Select at least your saved list before enabling LAN."
 		return
-	var options := {"manual_allocation": defender_choice.button_pressed, "varied_equipment": false, "core_stratagems": stratagem_choice.button_pressed, "movement_rerolls": reroll_choice.button_pressed, "attack_rerolls": attack_reroll_choice.button_pressed, "save_rerolls": save_reroll_choice.button_pressed, "damage_rerolls": damage_reroll_choice.button_pressed, "hazard_rerolls": hazard_reroll_choice.button_pressed, "escape_rerolls": escape_reroll_choice.button_pressed, "count_rerolls": count_reroll_choice.button_pressed, "objective_secured": objective_secured_choice.button_pressed, "implacable_eradication": implacable_eradication_choice.button_pressed, "hail_of_bolts": hail_of_bolts_choice.button_pressed}
+	var options := {"manual_allocation": defender_choice.button_pressed, "varied_equipment": false, "core_stratagems": stratagem_choice.button_pressed, "movement_rerolls": reroll_choice.button_pressed, "attack_rerolls": attack_reroll_choice.button_pressed, "save_rerolls": save_reroll_choice.button_pressed, "damage_rerolls": damage_reroll_choice.button_pressed, "hazard_rerolls": hazard_reroll_choice.button_pressed, "escape_rerolls": escape_reroll_choice.button_pressed, "count_rerolls": count_reroll_choice.button_pressed, "objective_secured": objective_secured_choice.button_pressed, "implacable_eradication": implacable_eradication_choice.button_pressed, "hail_of_bolts": hail_of_bolts_choice.button_pressed, "oath_of_moment": oath_of_moment_choice.button_pressed, "reanimation_protocols": reanimation_protocols_choice.button_pressed, "combat_doctrines": combat_doctrines_choice.button_pressed, "awakened_dynasty": awakened_dynasty_choice.button_pressed, "unit_abilities": unit_abilities_choice.button_pressed, "official_mission": official_mission_choice.button_pressed, "checked_rosters": checked_rosters_choice.button_pressed}
 	var candidate := PreparedTraining.initial_state(options, selections) if local_match else PreparedTraining.waiting(options)
 	if candidate.has("error"):
 		status.text = candidate.error
@@ -972,6 +1170,13 @@ func _start_saved_match(local_match: bool = true) -> void:
 	objective_secured = objective_secured_choice.button_pressed
 	implacable_eradication = implacable_eradication_choice.button_pressed
 	hail_of_bolts = hail_of_bolts_choice.button_pressed
+	oath_of_moment = oath_of_moment_choice.button_pressed
+	reanimation_protocols = reanimation_protocols_choice.button_pressed
+	combat_doctrines = combat_doctrines_choice.button_pressed
+	checked_rosters = checked_rosters_choice.button_pressed
+	official_mission = official_mission_choice.button_pressed
+	unit_abilities = unit_abilities_choice.button_pressed
+	awakened_dynasty = awakened_dynasty_choice.button_pressed
 	prepared_match = true
 	allocation_practice = false
 	host_session = {}
@@ -987,7 +1192,7 @@ func _start_saved_match(local_match: bool = true) -> void:
 	selected = -1
 	_spawn_pieces()
 	if local_match: _prepare_local_models()
-	status.text = "Saved lists accepted for partial training. Confirm each unit's deployment." if local_match else "Saved-list LAN mode is active. Player 1: Host; player 2: Join. Each player must select their own list."
+	status.text = ("Selected CA mission ready. Resolve mission preparation, then formations and deployment." if official_mission else "Saved lists accepted for partial training. Confirm each unit's deployment.") if local_match else "Saved-list LAN mode is active. Player 1: Host; player 2: Join. Each player must select their own list."
 	_refresh()
 
 func _connected_to_server() -> void:
@@ -1010,23 +1215,26 @@ func _submit_saved_army() -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func request_saved_army(selection: Dictionary) -> void:
 	if mode != "host" or not saved_army_mode or multiplayer.get_remote_sender_id() != guest_id: return
-	var report := TrainingRoster.admit(selection)
+	var report := Combat.RosterValidation.admit(selection) if checked_rosters else TrainingRoster.admit(selection)
 	if not report.error.is_empty():
 		_feedback(2, report.error)
 		return
 	if state.phase != "army_selection":
-		if state.has("saved_army_setup") and TrainingRoster.digest(report.selection) == TrainingRoster.digest(state.saved_army_setup.armies[2]): _broadcast()
+		if state.has("saved_army_setup") and _selection_digest(report.selection) == _selection_digest(state.saved_army_setup.armies[2]): _broadcast()
 		else: _feedback(2, "The list does not match this match's locked selection.")
 		return
 	pending_armies[2] = report.selection
 	_try_saved_armies()
+
+func _selection_digest(selection: Dictionary) -> String:
+	return Combat.RosterValidation.selection_digest(selection) if checked_rosters else TrainingRoster.digest(selection)
 
 func _try_saved_armies() -> void:
 	state.ready_armies = pending_armies.keys()
 	if pending_armies.size() != 2:
 		_broadcast()
 		return
-	var candidate := PreparedTraining.initial_state({"manual_allocation": manual_allocation, "varied_equipment": false, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts}, pending_armies)
+	var candidate := PreparedTraining.initial_state({"manual_allocation": manual_allocation, "varied_equipment": false, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "checked_rosters": checked_rosters}, pending_armies)
 	if candidate.has("error"):
 		_broadcast()
 		status.text = candidate.error
@@ -1041,7 +1249,7 @@ func _try_saved_armies() -> void:
 
 func _start_prepared_match() -> void:
 	if mode != "local": return
-	var candidate := PreparedTraining.initial_state({"manual_allocation": defender_choice.button_pressed, "varied_equipment": equipment_choice.button_pressed, "core_stratagems": stratagem_choice.button_pressed, "movement_rerolls": reroll_choice.button_pressed, "attack_rerolls": attack_reroll_choice.button_pressed, "save_rerolls": save_reroll_choice.button_pressed, "damage_rerolls": damage_reroll_choice.button_pressed, "hazard_rerolls": hazard_reroll_choice.button_pressed, "escape_rerolls": escape_reroll_choice.button_pressed, "count_rerolls": count_reroll_choice.button_pressed, "objective_secured": objective_secured_choice.button_pressed, "implacable_eradication": implacable_eradication_choice.button_pressed, "hail_of_bolts": hail_of_bolts_choice.button_pressed})
+	var candidate := PreparedTraining.initial_state({"manual_allocation": defender_choice.button_pressed, "varied_equipment": equipment_choice.button_pressed, "core_stratagems": stratagem_choice.button_pressed, "movement_rerolls": reroll_choice.button_pressed, "attack_rerolls": attack_reroll_choice.button_pressed, "save_rerolls": save_reroll_choice.button_pressed, "damage_rerolls": damage_reroll_choice.button_pressed, "hazard_rerolls": hazard_reroll_choice.button_pressed, "escape_rerolls": escape_reroll_choice.button_pressed, "count_rerolls": count_reroll_choice.button_pressed, "objective_secured": objective_secured_choice.button_pressed, "implacable_eradication": implacable_eradication_choice.button_pressed, "hail_of_bolts": hail_of_bolts_choice.button_pressed, "oath_of_moment": oath_of_moment_choice.button_pressed, "reanimation_protocols": reanimation_protocols_choice.button_pressed, "combat_doctrines": combat_doctrines_choice.button_pressed, "awakened_dynasty": awakened_dynasty_choice.button_pressed, "unit_abilities": unit_abilities_choice.button_pressed, "official_mission": official_mission_choice.button_pressed, "checked_rosters": checked_rosters_choice.button_pressed})
 	if candidate.has("error"):
 		status.text = candidate.error
 		return
@@ -1061,6 +1269,13 @@ func _start_prepared_match() -> void:
 	objective_secured = objective_secured_choice.button_pressed
 	implacable_eradication = implacable_eradication_choice.button_pressed
 	hail_of_bolts = hail_of_bolts_choice.button_pressed
+	oath_of_moment = oath_of_moment_choice.button_pressed
+	reanimation_protocols = reanimation_protocols_choice.button_pressed
+	combat_doctrines = combat_doctrines_choice.button_pressed
+	checked_rosters = checked_rosters_choice.button_pressed
+	official_mission = official_mission_choice.button_pressed
+	unit_abilities = unit_abilities_choice.button_pressed
+	awakened_dynasty = awakened_dynasty_choice.button_pressed
 	manual_allocation = defender_choice.button_pressed
 	varied_equipment = equipment_choice.button_pressed
 	state = candidate
@@ -1068,7 +1283,7 @@ func _start_prepared_match() -> void:
 	attack_draft = {}
 	selected = Combat.living(state, Deployment.current(state))[0]
 	_spawn_pieces()
-	status.text = "Custom prepared match. Deploy each unit, then play the five-round training mission. Official army legality is not validated."
+	status.text = "Selected CA mission ready. Resolve mission preparation before deployment; reference army legality remains unverified." if official_mission else "Custom prepared match. Deploy each unit, then play the five-round training mission. Official army legality is not validated."
 	_refresh()
 
 func _request_deployment_preset() -> void:
@@ -1093,6 +1308,13 @@ func _start_allocation_practice() -> void:
 	objective_secured = false
 	implacable_eradication = false
 	hail_of_bolts = false
+	oath_of_moment = false
+	reanimation_protocols = false
+	combat_doctrines = false
+	checked_rosters = false
+	official_mission = false
+	unit_abilities = false
+	awakened_dynasty = false
 	if mode != "local": return
 	var candidate := TestBattlefield.apply(AllocationPractice.initial_state(damage_reroll_choice.button_pressed, count_reroll_choice.button_pressed))
 	if candidate.has("error"):
@@ -1144,6 +1366,13 @@ func _start_objectives(unit_count: int = 1) -> void:
 	objective_secured = false
 	implacable_eradication = false
 	hail_of_bolts = false
+	oath_of_moment = false
+	reanimation_protocols = false
+	combat_doctrines = false
+	checked_rosters = false
+	official_mission = false
+	unit_abilities = false
+	awakened_dynasty = false
 	saved_army_mode = false
 	prepared_match = false
 	host_session = {}
@@ -1181,6 +1410,13 @@ func _toggle_combat(layout: String = Combat.Terrain.DEFAULT_LAYOUT) -> void:
 	objective_secured = false
 	implacable_eradication = false
 	hail_of_bolts = false
+	oath_of_moment = false
+	reanimation_protocols = false
+	combat_doctrines = false
+	checked_rosters = false
+	official_mission = false
+	unit_abilities = false
+	awakened_dynasty = false
 	saved_army_mode = false
 	prepared_match = false
 	allocation_practice = false
@@ -1248,6 +1484,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		selected = _pick_model(target)
 		_refresh()
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
+		if combat_enabled and Combat.UnitAbilities.enabled(state) and unit_action_picker.is_visible_in_tree() and unit_action_picker.selected >= 0:
+			var ability: Dictionary = unit_action_picker.get_selected_metadata()
+			if Combat.UnitActions.pending(state).get("kind", "") == "ingress":
+				for choice: Dictionary in Combat.unit_choices(state, _local_player()):
+					if choice.action == "ingress-place" and choice.model == selected: ability = choice
+			if ability.action in ["ingress-place", "homer"]:
+				unit_action_x.value = target.x
+				unit_action_z.value = target.y
+				if mode == "client": request_unit_action.rpc_id(1, ability, target, state.revision)
+				else: _apply_unit_action(_local_player(), ability, target, state.revision)
+				return
+		if combat_enabled and not Combat.Reanimation.pending(state).is_empty():
+			reanimation_x.value = target.x
+			reanimation_z.value = target.y
+			_request_reanimation("place")
+			return
 		if combat_enabled and not state.pending_contact.is_empty():
 			if mode == "client": request_contact_move.rpc_id(1, selected, target, state.revision)
 			else: _apply_contact_move(_local_player(), selected, target, state.revision)
@@ -1279,8 +1531,9 @@ func _pick_model(point: Vector2) -> int:
 	var nearest := -1
 	var closest := 1.0
 	for id: int in state.units:
-		if state.units[id].get("wounds", 1) <= 0: continue
-		var distance: float = point.distance_to(state.units[id].position)
+		var preview: Dictionary = Combat.UnitActions.pending(state).get("positions", {}) if combat_enabled else {}
+		if state.units[id].get("wounds", 1) <= 0 or (not state.units[id].get("on_battlefield", true) and not preview.has(id)): continue
+		var distance: float = point.distance_to(preview.get(id, state.units[id].position))
 		if distance < closest:
 			closest = distance
 			nearest = id
@@ -1293,13 +1546,14 @@ func _refresh_decision() -> void:
 	if combat_enabled != ui_combat_enabled:
 		match_tabs.current_tab = 1 if combat_enabled else 0
 		ui_combat_enabled = combat_enabled
-	objective_summary.visible = combat_enabled and Combat.Objectives.training(state) and state.phase != "army_selection"
+	objective_summary.visible = combat_enabled and (Combat.Objectives.training(state) or Combat.Mission.enabled(state)) and state.phase != "army_selection"
 	if objective_summary.visible:
 		objective_summary.text = "CUSTOM TRAINING • VP %d / %d" % [state.mission.scores[1], state.mission.scores[2]]
 		var objectives: Array[String] = []
 		for objective: Dictionary in state.mission.get("objectives", []):
 			objectives.append("%s: %s%s" % [objective.name, "neutral" if objective.controller == 0 else "P%d" % objective.controller, " (secured)" if objective.secured != 0 else ""])
 		objective_summary.text += "\n" + " • ".join(objectives)
+		if Combat.Mission.enabled(state): objective_summary.text = Combat.Mission.summary(state)
 	if not combat_enabled:
 		decision_label.text = "LOCAL PREVIEW • Choose a training exercise in Match setup to play."
 		return
@@ -1315,8 +1569,26 @@ func _refresh_decision() -> void:
 		return
 	var actor := Combat.actor(state)
 	var instruction := "Select a model to see its available actions below."
-	if state.phase == "deployment":
+	if Combat.Mission.actor(state) > 0:
+		instruction = "Mission preparation: resolve the highlighted roll or declaration. First turn is rolled after deployment."
+	elif Combat.Awakened.needs_setup(state):
+		instruction = "Required: declare each Overlord standalone or leading a unit before deployment."
+	elif Combat.Doctrines.needs_choice(state):
+		instruction = "Required: choose an available Combat Doctrine or no doctrine before continuing Command."
+	elif Combat.UnitActions.actor(state) > 0 and Combat.Reanimation.pending(state).is_empty():
+		if Combat.UnitActions.setup_actor(state) > 0: instruction = "Required: choose Warlords and Support attachments, optionally declare other leaders/reserves, then finish army preparations."
+		elif Combat.UnitActions.battle_actor(state) > 0: instruction = "Battle start: optionally place each Teleport Homer, then finish declarations."
+		elif Combat.UnitActions.pending(state).get("kind", "") == "ingress": instruction = "Required: preview every arriving model, then confirm the coherent unit or cancel ingress."
+		elif Combat.UnitActions.pending(state).get("kind", "") == "wound": instruction = "Implacable Eradication: choose free wound rerolls, then keep the remaining dice to continue to saves."
+		else: instruction = "Required: resolve or decline the current unit ability window."
+	elif state.phase == "deployment":
 		instruction = "Deploy %s: select each model and right-click inside your marked zone, or accept its preview positions. Then confirm the unit." % state.squads[Deployment.current(state)].name
+	elif not Combat.Reanimation.pending(state).is_empty():
+		instruction = "Required: resolve Reanimation for each unit before leaving Command. Positions are previews until confirmed."
+	elif Combat.Doctrines.needs_choice(state):
+		instruction = "Required: choose an available Combat Doctrine or no doctrine before continuing Command."
+	elif Combat.OathOfMoment.needs_choice(state):
+		instruction = "Required: choose one enemy as your Oath of Moment target before continuing Command."
 	elif not Combat.Stratagems.pending(state).is_empty():
 		instruction = "Battle-shock pending: choose a unit and roll, or use Insane Bravery (1 CP)." if Combat.Stratagems.pending(state).kind == "before_battle_shock" else "Decision pending: accept the roll or use Command Re-roll (1 CP) to continue."
 	elif not state.get("pending_hazard", {}).is_empty():
@@ -1347,9 +1619,27 @@ func _refresh_selection_card() -> void:
 	for model: Dictionary in state.units.values():
 		if model.squad == unit.squad and model.wounds > 0: living += 1
 	selection_card.text = "%s • Player %d\n%d models alive • Model %d: %d/%d wounds" % [squad.name, unit.owner, living, selected, unit.wounds, unit.max_wounds]
-	if "implacable-eradication" in squad.get("enabled_abilities", []): selection_card.text += "\nAbility: Implacable Eradication (reference)"
+	if not Combat.UnitAbilities.enabled(state) and "implacable-eradication" in squad.get("enabled_abilities", []): selection_card.text += "\nAbility: Implacable Eradication (reference)"
+	if Combat.UnitAbilities.enabled(state):
+		var names: Array[String] = []
+		for model: int in state.units:
+			if state.units[model].squad != unit.squad or state.units[model].wounds <= 0: continue
+			for ability: String in Combat.UnitAbilities.RULES.get(Combat.UnitAbilities.identity(state.units[model]), []):
+				var name := ability.replace("-", " ").capitalize()
+				if name not in names: names.append(name)
+		selection_card.text += "\nCurrent e11: " + ", ".join(names)
+	if Combat.UnitActions.DetachmentStratagems.hungry_active(state, unit.squad): selection_card.text += "\nHungry Void: +1 melee Strength" + (", AP improved by 1 (no stacking)" if state.detachment_stratagems.hungry[unit.squad].led else "") + " until Fight phase ends"
+	if Combat.Awakened.hit_bonus(state, unit.squad) > 0: selection_card.text += "\nCommand Protocols: +1 to hit while led"
+	var doctrine := Combat.Doctrines.active_for(state, unit.squad)
+	if not doctrine.is_empty(): selection_card.text += "\n11e doctrine • " + Combat.Doctrines.NAMES[doctrine]
+	if Combat.OathOfMoment.enabled(state):
+		var marked: int = state.oath_of_moment.targets.get(squad.owner, -1)
+		if marked != -1 and Combat.OathOfMoment.marine_army(state, squad.owner): selection_card.text += "\nOath of Moment target: " + state.squads[marked].name
 	if "hail-of-bolts" in squad.get("enabled_abilities", []): selection_card.text += "\nAbility: Hail of Bolts (select target in attack plan)"
 	if "objective-secured" in squad.get("enabled_abilities", []): selection_card.text += "\nAbility: Objective Secured"
+	if not unit.get("on_battlefield", true):
+		selection_card.text += "\nIn strategic reserves: use ingress choices to enter the battlefield."
+		return
 	if unit.wounds <= 0:
 		selection_card.text += "\nDestroyed • select a living model to act."
 		return
@@ -1365,23 +1655,32 @@ func _refresh() -> void:
 	if not attack_draft.is_empty() and (not combat_enabled or attack_draft.revision != state.revision or attack_draft.get("pack_hash") != state.get("pack_hash")): attack_draft = {}
 	_sync_board()
 	_sync_terrain()
+	_sync_ability_tokens()
 	for id: int in pieces:
 		var unit: Dictionary = state.units[id]
-		pieces[id].visible = unit.get("wounds", 1) > 0
-		pieces[id].position = Vector3(unit.position.x, 0.04 if pieces[id].get_meta("imported_visual", false) else 0.65, unit.position.y)
+		var previews: Dictionary = Combat.Reanimation.pending(state).get("current", {}).get("placements", {}) if combat_enabled else {}
+		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == "ingress": previews = Combat.UnitActions.pending(state).positions
+		var display_position: Vector2 = previews.get(id, unit.position)
+		pieces[id].visible = (unit.get("wounds", 1) > 0 and unit.get("on_battlefield", true)) or previews.has(id)
+		pieces[id].position = Vector3(display_position.x, 0.04 if pieces[id].get_meta("imported_visual", false) else 0.65, display_position.y)
 		var color := Color("52b9d1") if unit.owner == 1 else Color("e68d5c")
 		if unit.moved: color = color.darkened(0.4)
 		if combat_enabled and state.units.has(selected) and unit.squad == state.units[selected].squad: color = color.lightened(0.12)
 		if id == selected: color = Color("f2df83")
+		if previews.has(id): color = Color("a88fea")
 		pieces[id].material_override = _material(color)
 	session_label.text = "Mode: %s | UDP %d | You: %s" % [mode, PORT, "both sides" if mode == "local" else str(_local_player())]
 	_refresh_decision()
 	if combat_enabled and state.get("test_battlefield", "") == TestBattlefield.ID:
 		session_label.text = "Incursion test • 1,000 points • 43 × 43 inches\n%s • Rosters not points-validated" % ("Local: both players" if mode == "local" else "%s: player %d" % [mode, _local_player()])
 	if state.has("saved_army_setup"):
-		session_label.text += "\nSaved-list training • %d-point limit • P1 %d / P2 %d local points\n43 × 43 inches • official list legality is not validated" % [state.points_limit, state.training_points[1], state.training_points[2]]
+		session_label.text += "\nSaved-list training • %d-point limit • P1 %d / P2 %d local points\n%d × %d inches • official list legality is not validated" % [state.points_limit, state.training_points[1], state.training_points[2], state.board_size.x, state.board_size.y]
+	elif Combat.Mission.enabled(state): session_label.text += "\nCA 2026-27 / Hammer and Anvil / fixed secondaries"
 	elif state.has("match_manifest"): session_label.text += "\nPrepared custom mission • two units per side"
 	if state.get("rules_practice", false): session_label.text += "\nSYNTHETIC RULES LAB • practice profiles"
+	if Combat.RosterValidation.enabled(state):
+		session_label.text = session_label.text.replace("Saved-list training", "Checked fixed rosters").replace("local points", "MFM 1.6 points").replace("official list legality is not validated", "full match rules are not certified")
+		session_label.text += "\nMFM 1.6 • formations %s / %s" % ["checked" if state.roster_validation.armies[1].formations_verified else "pending", "checked" if state.roster_validation.armies[2].formations_verified else "pending"]
 	_refresh_selection_card()
 	decision_details.text = ""
 	details.text = "Turn %d • Player %d active\nSelected: %s" % [state.turn, state.active, str(selected) if selected >= 0 else "none"]
@@ -1395,7 +1694,7 @@ func _refresh() -> void:
 			details.text += "\nPlayer %d: Hazardous • %d mortal wounds remaining\nHazard rolls: %s\nEligible models: %s" % [Combat.actor(state), state.pending_hazard.remaining, str(state.pending_hazard.resolved.hazardous.rolls), str(Combat.Hazard.eligible(state))]
 		if not state.get("pending_attack", {}).is_empty():
 			var current: Dictionary = state.pending_attack.current
-			if current.phase in ["rolls", "save_decision", "damage_decision"]: details.text += "\nAttack paused before the next step: accept or choose a die for Command Re-roll."
+			if current.phase in ["rolls", "save_decision", "damage_decision"]: details.text += "\nAttack paused: choose Implacable Eradication in unit abilities, or resolve the indicated dice decision." if Combat.UnitActions.pending(state).get("kind", "") == "wound" else "\nAttack paused before the next step: accept or choose a die for Command Re-roll."
 			elif current.phase == "precision": details.text += "\nPlayer %d: choose a visible CHARACTER for Precision, or decline." % Combat.actor(state)
 			elif current.phase == "order": details.text += "\nPlayer %d: choose the next allocation group. Select one of its models. Saves have not been rolled.\nGroups ordered: %d/%d" % [Combat.actor(state), current.order.size(), current.groups.size()]
 			else:
@@ -1431,6 +1730,8 @@ func _refresh() -> void:
 				details.text += "\nTerrain: %s • %s" % [", ".join(names) if not names.is_empty() else "none", "Hidden" if Combat.Terrain.hidden(state, selected) else "Not hidden"]
 			if state.phase == "movement": details.text += "\nModel %d: %.2f inches remaining" % [selected, Combat.movement_remaining(state, selected)]
 			if state.squads[unit.squad].moved: details.text += "\nResolved move: %s" % state.squads[unit.squad].move_type.replace("_", " ")
+		if Combat.RosterValidation.enabled(state): details.text += "\n" + Combat.RosterValidation.summary(state)
+		if Combat.Mission.enabled(state): details.text += "\n" + Combat.Mission.summary(state)
 		if Combat.Objectives.training(state):
 			details.text += "\nCUSTOM TRAINING • VP %d / %d • 5 rounds" % [state.mission.scores[1], state.mission.scores[2]]
 			for objective: Dictionary in state.mission.objectives:
@@ -1474,6 +1775,14 @@ func _refresh() -> void:
 	damage_reroll_choice.disabled = mode != "local"
 	hazard_reroll_choice.disabled = mode != "local"
 	escape_reroll_choice.disabled = mode != "local"
+	hail_of_bolts_choice.disabled = mode != "local"
+	oath_of_moment_choice.disabled = mode != "local"
+	reanimation_protocols_choice.disabled = mode != "local"
+	combat_doctrines_choice.disabled = mode != "local"
+	checked_rosters_choice.disabled = mode != "local"
+	official_mission_choice.disabled = mode != "local"
+	unit_abilities_choice.disabled = mode != "local"
+	awakened_dynasty_choice.disabled = mode != "local"
 	count_reroll_choice.disabled = mode != "local"
 	lethal_choice.visible = combat_enabled and state.phase == "shooting"
 	charge_button.visible = combat_enabled and state.phase == "charge"
@@ -1497,6 +1806,7 @@ func _refresh() -> void:
 		for id: int in Combat.living(state, squad):
 			if state.deployment.placed.has(id): placed += 1
 		deployment_help.text = "Custom setup • P1 left / P2 right\n%s: %d/%d models placed\nUnplaced miniatures show preview positions only. No distance limit during setup. Confirming locks the unit's deployment." % [state.squads[squad].name, placed, Combat.living(state, squad).size()]
+		if Combat.Mission.enabled(state): deployment_help.text = deployment_help.text.replace("Custom setup • P1 left / P2 right", "Hammer and Anvil • Attacker P%d left / Defender P%d right" % [state.mission.attacker, state.mission.defender])
 	var previous_action_target := action_objective.get_selected_id()
 	action_objective.clear()
 	action_button.visible = combat_enabled and Combat.Objectives.training(state) and state.phase == "shooting"
@@ -1575,7 +1885,7 @@ func _refresh() -> void:
 	if combat_enabled and state.pending_charge.is_empty():
 		if not state.units.has(selected) or state.units[selected].get("wounds", 0) <= 0 or state.units[selected].owner != _local_player():
 			charge_button.disabled = true
-		elif state.squads[state.units[selected].squad].charge_declared or state.squads[state.units[selected].squad].advanced or state.squads[state.units[selected].squad].fell_back or Combat.Actions.charge_blocked(state, state.units[selected].squad):
+		elif state.squads[state.units[selected].squad].charge_declared or not Combat.Doctrines.charge_error(state, state.units[selected].squad).is_empty() or Combat.Actions.charge_blocked(state, state.units[selected].squad):
 			charge_button.disabled = true
 	end_button.text = "Advance phase" if combat_enabled else "End turn"
 	if combat_enabled and state.phase == "command": end_button.text = "Resolve battle-shock / advance"
@@ -1635,10 +1945,18 @@ func _refresh() -> void:
 	if combat_enabled and state.test_winner != 0: end_button.disabled = true
 	if combat_enabled and state.phase == "army_selection": end_button.disabled = true
 	if not Combat.Stratagems.pending(state).is_empty(): end_button.disabled = true
+	_refresh_reanimation()
+	_refresh_awakened()
+	_refresh_unit_actions()
+	if combat_enabled and Combat.UnitAbilities.enabled(state):
+		lethal_choice.button_pressed = true
+		lethal_choice.disabled = true
+	_refresh_doctrine()
+	_refresh_oath()
 	_refresh_command_reaction()
 	_refresh_attack_plan()
 	var hazard_pending: bool = combat_enabled and not state.get("pending_hazard", {}).is_empty()
-	var allocating: bool = combat_enabled and Combat.Stratagems.pending(state).is_empty() and (hazard_pending or not state.get("pending_attack", {}).is_empty())
+	var allocating: bool = combat_enabled and Combat.UnitActions.pending(state).get("kind", "") != "wound" and Combat.Stratagems.pending(state).is_empty() and (hazard_pending or not state.get("pending_attack", {}).is_empty())
 	allocate_button.visible = allocating
 	allocate_button.text = "Allocate one Hazardous mortal wound to selected model" if hazard_pending else "Allocate next damaging attack to selected model"
 	var precision_pending: bool = allocating and not hazard_pending and state.pending_attack.current.phase == "precision"
@@ -1883,7 +2201,7 @@ func _apply_attack_plan(player: int, attacker: int, entries: Array, revision: in
 func _sync_terrain() -> void:
 	if terrain_root == null: return
 	var areas: Array = Combat.Terrain.areas(state)
-	var signature := var_to_str(areas) + var_to_str(state.get("mission", {}).get("objectives", [])) + str(state.get("phase", "") == "deployment")
+	var signature := var_to_str(areas) + var_to_str(state.get("mission", {}).get("objectives", [])) + str(state.get("phase", "") == "deployment") + var_to_str(state.get("deployment", {}).get("zones", {}))
 	if signature == terrain_signature: return
 	terrain_signature = signature
 	for child in terrain_root.get_children():
@@ -2098,12 +2416,12 @@ func _broadcast() -> void:
 	_refresh()
 	if history_panel.is_visible_in_tree() and mode != "client": history_panel.show_page(_journal_page())
 	if mode == "host" and guest_id != 0:
-		receive_state.rpc_id(guest_id, state)
+		receive_state.rpc_id(guest_id, Combat.Mission.public_state(state, 2))
 	if not autosave_error.is_empty() and state.get("phase") != "army_selection":
 		status.text = "Autosave failed: " + autosave_error
 
 func _save_config() -> Dictionary:
-	return {"combat_enabled": combat_enabled, "saved_army_mode": saved_army_mode, "prepared_match": prepared_match, "terrain_layout": terrain_layout, "mission_id": mission_id, "squads_per_side": squads_per_side, "manual_allocation": manual_allocation, "varied_equipment": varied_equipment, "allocation_practice": allocation_practice, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts}
+	return {"combat_enabled": combat_enabled, "saved_army_mode": saved_army_mode, "prepared_match": prepared_match, "terrain_layout": terrain_layout, "mission_id": mission_id, "squads_per_side": squads_per_side, "manual_allocation": manual_allocation, "varied_equipment": varied_equipment, "allocation_practice": allocation_practice, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "checked_rosters": checked_rosters}
 
 func _reset_history() -> void:
 	journal.reset(state)
@@ -2130,6 +2448,7 @@ func _history_page(start: int = -1) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_history_page(start: int) -> void:
+	if Combat.Mission.secret_formations(state): return
 	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id:
 		receive_history_page.rpc_id(guest_id, _journal_page(start))
 
@@ -2157,6 +2476,34 @@ func _load_match(as_host: bool = false) -> void:
 	var config: Dictionary = saved.config
 	# Older saves predate the opt-in rule; their public state and hashes stay intact.
 	if not config.has("core_stratagems"): config.core_stratagems = false
+	if not config.has("checked_rosters"): config.checked_rosters = false
+	if config.checked_rosters != Combat.RosterValidation.enabled(saved.state):
+		status.text = "The checked-roster option or MFM version does not match the save."
+		return
+	if not config.has("official_mission"): config.official_mission = false
+	if config.official_mission != Combat.Mission.enabled(saved.state):
+		status.text = "The selected mission option does not match the save."
+		return
+	if not config.has("unit_abilities"): config.unit_abilities = false
+	if config.unit_abilities != Combat.UnitAbilities.enabled(saved.state):
+		status.text = "The unit abilities option does not match the save."
+		return
+	if not config.has("awakened_dynasty"): config.awakened_dynasty = false
+	if config.awakened_dynasty != Combat.Awakened.enabled(saved.state):
+		status.text = "The Awakened Dynasty option does not match the save."
+		return
+	if not config.has("combat_doctrines"): config.combat_doctrines = false
+	if config.combat_doctrines != Combat.Doctrines.enabled(saved.state):
+		status.text = "The Combat Doctrines option does not match the save."
+		return
+	if not config.has("reanimation_protocols"): config.reanimation_protocols = false
+	if config.reanimation_protocols != Combat.Reanimation.enabled(saved.state):
+		status.text = "The Reanimation Protocols option does not match the save."
+		return
+	if not config.has("oath_of_moment"): config.oath_of_moment = false
+	if config.oath_of_moment != (saved.state.get("oath_of_moment", {}).get("implementation", "") == Combat.OathOfMoment.ID):
+		status.text = "The Oath of Moment option does not match the save."
+		return
 	if not config.has("hail_of_bolts"): config.hail_of_bolts = false
 	if config.hail_of_bolts != (saved.state.get("hail_of_bolts", {}).get("implementation", "") == Combat.HailOfBolts.ID):
 		status.text = "The Hail of Bolts option does not match the save."
@@ -2216,7 +2563,7 @@ func _load_match(as_host: bool = false) -> void:
 	if config.saved_army_mode:
 		initial = PreparedTraining.from_setup(saved.state.get("saved_army_setup", {}))
 	elif config.prepared_match:
-		initial = PreparedTraining.initial_state({"manual_allocation": config.manual_allocation, "varied_equipment": config.varied_equipment, "core_stratagems": config.core_stratagems, "movement_rerolls": config.movement_rerolls, "attack_rerolls": config.attack_rerolls, "save_rerolls": config.save_rerolls, "damage_rerolls": config.damage_rerolls, "hazard_rerolls": config.hazard_rerolls, "escape_rerolls": config.escape_rerolls, "count_rerolls": config.count_rerolls, "objective_secured": config.objective_secured, "implacable_eradication": config.implacable_eradication, "hail_of_bolts": config.hail_of_bolts})
+		initial = PreparedTraining.initial_state({"manual_allocation": config.manual_allocation, "varied_equipment": config.varied_equipment, "core_stratagems": config.core_stratagems, "movement_rerolls": config.movement_rerolls, "attack_rerolls": config.attack_rerolls, "save_rerolls": config.save_rerolls, "damage_rerolls": config.damage_rerolls, "hazard_rerolls": config.hazard_rerolls, "escape_rerolls": config.escape_rerolls, "count_rerolls": config.count_rerolls, "objective_secured": config.objective_secured, "implacable_eradication": config.implacable_eradication, "hail_of_bolts": config.hail_of_bolts, "oath_of_moment": config.oath_of_moment, "reanimation_protocols": config.reanimation_protocols, "combat_doctrines": config.combat_doctrines, "awakened_dynasty": config.awakened_dynasty, "unit_abilities": config.unit_abilities, "official_mission": config.official_mission, "checked_rosters": config.checked_rosters})
 	elif config.allocation_practice:
 		initial = TestBattlefield.apply(AllocationPractice.initial_state(config.damage_rerolls, config.count_rerolls))
 	elif config.combat_enabled:
@@ -2257,6 +2604,13 @@ func _load_match(as_host: bool = false) -> void:
 	objective_secured_choice.button_pressed = objective_secured
 	implacable_eradication_choice.button_pressed = implacable_eradication
 	hail_of_bolts_choice.button_pressed = hail_of_bolts
+	oath_of_moment_choice.button_pressed = oath_of_moment
+	reanimation_protocols_choice.button_pressed = reanimation_protocols
+	combat_doctrines_choice.button_pressed = combat_doctrines
+	checked_rosters_choice.set_pressed_no_signal(checked_rosters)
+	official_mission_choice.set_pressed_no_signal(official_mission)
+	unit_abilities_choice.set_pressed_no_signal(unit_abilities)
+	awakened_dynasty_choice.button_pressed = awakened_dynasty
 	state = saved.state
 	journal = restored_journal
 	autosave_error = ""
@@ -2283,6 +2637,27 @@ func receive_state(snapshot: Dictionary) -> void:
 	var expected: Dictionary = state
 	var setup_digest := JSON.stringify(snapshot.get("saved_army_setup", {})).sha256_text()
 	if saved_army_mode and snapshot.has("saved_army_setup") and (setup_digest != validated_saved_setup or snapshot.get("pack_hash") != state.get("pack_hash")):
+		if snapshot.saved_army_setup.get("options", {}).get("checked_rosters", false) != checked_rosters:
+			_offline("Players have different roster-validation settings.")
+			return
+		if snapshot.saved_army_setup.get("options", {}).get("official_mission", false) != official_mission:
+			_offline("Players have different mission settings.")
+			return
+		if snapshot.saved_army_setup.get("options", {}).get("unit_abilities", false) != unit_abilities:
+			_offline("Players have different current unit ability settings.")
+			return
+		if snapshot.saved_army_setup.get("options", {}).get("awakened_dynasty", false) != awakened_dynasty:
+			_offline("Players have different Awakened Dynasty settings.")
+			return
+		if snapshot.saved_army_setup.get("options", {}).get("combat_doctrines", false) != combat_doctrines:
+			_offline("Players have different Combat Doctrines settings.")
+			return
+		if snapshot.saved_army_setup.get("options", {}).get("reanimation_protocols", false) != reanimation_protocols:
+			_offline("Players have different Reanimation Protocols settings.")
+			return
+		if snapshot.saved_army_setup.get("options", {}).get("oath_of_moment", false) != oath_of_moment:
+			_offline("Players have different Oath of Moment settings.")
+			return
 		if snapshot.saved_army_setup.get("options", {}).get("hail_of_bolts", false) != hail_of_bolts:
 			_offline("Players have different Hail of Bolts settings.")
 			return
@@ -2320,7 +2695,7 @@ func receive_state(snapshot: Dictionary) -> void:
 		if expected.has("error") or submitted_army.is_empty():
 			_offline("The received list configuration is incompatible with the local data pack.")
 			return
-		if TrainingRoster.digest(expected.saved_army_setup.armies[2]) != TrainingRoster.digest(submitted_army):
+		if _selection_digest(expected.saved_army_setup.armies[2]) != _selection_digest(submitted_army):
 			_offline("The host changed its army selection; connection closed.")
 			return
 	if snapshot.get("pack") != expected.get("pack") or snapshot.get("pack_hash") != expected.get("pack_hash"):
@@ -2380,6 +2755,7 @@ func _request_end() -> void:
 func _refresh_command_reaction() -> void:
 	var window := Combat.Stratagems.pending(state) if combat_enabled else {}
 	for control in [reaction_help, reaction_squad, reaction_roll, reaction_use]: control.visible = not window.is_empty()
+	if reaction_sudden != null: reaction_sudden.visible = not window.is_empty() and window.get("kind", "") == "after_advance_roll" and window.get("sudden", false)
 	if window.is_empty():
 		if reaction_die != null: reaction_die.visible = false
 		return
@@ -2411,6 +2787,7 @@ func _refresh_command_reaction() -> void:
 	var stratagem := "command-re-roll" if rolling else "insane-bravery"
 	var error := Combat.Stratagems.use_error(state, player, reaction_squad.get_selected_id(), stratagem, state.revision)
 	reaction_use.disabled = waiting or not error.is_empty()
+	if reaction_sudden != null: reaction_sudden.disabled = waiting
 	reaction_use.text = "Command Re-roll • 1 CP • uma vez por fase" if rolling else "Insane Bravery • 1 CP • uma vez por batalha"
 	reaction_roll.text = "Accept result and continue" if rolling else "Roll Battle-shock normally"
 	if attack:
@@ -2462,7 +2839,7 @@ func _apply_command_reaction(player: int, squad: int, stratagem: String, revisio
 		var result: Dictionary = state.last_morale[-1]
 		message = "Insane Bravery: teste aprovado sem rolagem." if not stratagem.is_empty() else "Battle-shock %s vs %d: %s." % [str(result.rolls), result.target, "aprovado" if result.passed else "falhou"]
 	else:
-		message = "%s: %s → %s." % ["Command Re-roll" if not stratagem.is_empty() else "Result accepted", str(state.last_command_roll.original_rolls), str(state.last_command_roll.rolls)]
+		message = "%s: %s → %s." % ["Sudden Storm re-roll" if stratagem == "sudden-storm" else ("Command Re-roll" if not stratagem.is_empty() else "Result accepted"), str(state.last_command_roll.original_rolls), str(state.last_command_roll.rolls)]
 		if state.last_command_roll.kind == "after_attack_count_roll": message += " Attack count confirmed: %d." % state.last_command_roll.total
 		elif escape: message += " Allocate escape mortal wounds before moving." if state.pending_move.hazard_remaining > 0 else " Escape placement can begin."
 		elif hazard: message += " Hazardous allocation is ready." if not state.pending_hazard.is_empty() else " Hazardous resolved; activation complete."
@@ -2742,3 +3119,238 @@ func _apply_fight(player: int, attacker: int, target: int, revision: int) -> voi
 		return
 	_broadcast()
 	_feedback(player, result.message)
+
+func _refresh_oath() -> void:
+	var pending: bool = combat_enabled and Combat.OathOfMoment.needs_choice(state)
+	for control in [oath_help, oath_target, oath_confirm]: control.visible = pending
+	if not pending: return
+	var previous := oath_target.get_selected_id()
+	oath_target.clear()
+	for target: int in Combat.OathOfMoment.targets(state, state.active): oath_target.add_item(state.squads[target].name, target)
+	oath_target.select(maxi(0, oath_target.get_item_index(previous)))
+	var waiting: bool = _local_player() != state.active or (mode == "host" and guest_id == 0)
+	oath_target.disabled = waiting
+	oath_confirm.disabled = waiting or oath_target.item_count == 0
+	oath_help.text = "Player %d: choose one enemy unit. Until your next Command phase, Marine attacks against it re-roll failed hits and receive the conditional Codex +1 wound bonus. No CP or dice are consumed. June 2026 rules profile; other detachment abilities remain disabled." % state.active
+
+func _request_oath_target() -> void:
+	if mode == "client": request_oath_target.rpc_id(1, oath_target.get_selected_id(), state.revision)
+	else: _apply_oath_target(_local_player(), oath_target.get_selected_id(), state.revision)
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_oath_target(target: int, revision: int) -> void:
+	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_oath_target(2, target, revision)
+
+func _apply_oath_target(player: int, target: int, revision: int) -> void:
+	if not combat_enabled or (mode == "host" and guest_id == 0): return
+	var error := Combat.select_oath_target(state, player, target, revision)
+	if not error.is_empty(): _feedback(player, error); return
+	_broadcast()
+	_feedback(player, "Oath of Moment: " + state.squads[target].name + ". Continue the Command phase.")
+
+func _reanimation_model_selected(_index: int) -> void:
+	var model := reanimation_model.get_selected_id()
+	if not state.units.has(model): return
+	var point: Vector2 = Combat.Reanimation.pending(state).get("current", {}).get("placements", {}).get(model, state.units[model].position)
+	reanimation_x.value = point.x
+	reanimation_z.value = point.y
+
+func _refresh_reanimation() -> void:
+	var window: Dictionary = Combat.Reanimation.pending(state) if combat_enabled else {}
+	var controls := [reanimation_help, reanimation_squad, reanimation_roll, reanimation_model, reanimation_x, reanimation_z, reanimation_place, reanimation_suggest, reanimation_failure, reanimation_reset, reanimation_confirm]
+	for control in controls: control.visible = not window.is_empty()
+	if window.is_empty(): return
+	end_button.disabled = true
+	var waiting: bool = _local_player() != window.player or (mode == "host" and guest_id == 0)
+	var current: Dictionary = window.current
+	if current.get("reroll_pending", false):
+		for control in [reanimation_squad, reanimation_roll, reanimation_model, reanimation_x, reanimation_z, reanimation_place, reanimation_suggest, reanimation_failure, reanimation_reset, reanimation_confirm]: control.visible = false
+		reanimation_help.text = "Their Number is Legion: choose keep or re-roll in the unit ability controls."
+		return
+	var choosing := current.is_empty()
+	var previous := reanimation_squad.get_selected_id()
+	reanimation_squad.clear()
+	for squad: int in window.remaining: reanimation_squad.add_item(state.squads[squad].name, squad)
+	reanimation_squad.select(maxi(0, reanimation_squad.get_item_index(previous)))
+	reanimation_squad.visible = choosing
+	reanimation_roll.visible = choosing
+	reanimation_squad.disabled = waiting
+	reanimation_roll.disabled = waiting
+	for control in [reanimation_model, reanimation_x, reanimation_z, reanimation_place, reanimation_suggest, reanimation_failure, reanimation_reset, reanimation_confirm]:
+		control.visible = not choosing
+		if control is BaseButton or control is OptionButton: control.disabled = waiting
+		if control is SpinBox: control.editable = not waiting
+	if choosing:
+		reanimation_help.text = "Player %d: choose the next unit and roll D3. Intact units still activate. Living models heal before troops return; destroyed units and Characters do not return. %d units remaining." % [window.player, window.remaining.size()]
+		return
+	previous = reanimation_model.get_selected_id()
+	reanimation_model.clear()
+	for model: int in Combat.Reanimation.returnable(state):
+		var suffix := " [preview]" if current.placements.has(model) else " [declared unplaceable]" if model in current.unplaced else ""
+		reanimation_model.add_item("Model %d%s" % [model, suffix], model)
+	reanimation_model.select(maxi(0, reanimation_model.get_item_index(previous)))
+	_reanimation_model_selected(0)
+	reanimation_confirm.disabled = waiting or not Combat.Reanimation.confirm_error(state).is_empty()
+	reanimation_help.text = "%s • D6 %d → %s %d\nReturn attempts %d/%d. Purple = preview. Living-model healing is reserved first.\nChoose a destroyed model, set X/Z or right-click, then confirm. Return within 2 inches of a Command-entry survivor. Equipment is preserved." % [state.squads[current.squad].name, current.raw_roll, current.get("healing_die", "D3"), current.budget, current.placements.size() + current.unplaced.size(), current.slots]
+
+func _request_reanimation(action: String) -> void:
+	var point := Vector2(reanimation_x.value, reanimation_z.value)
+	if mode == "client": request_reanimation.rpc_id(1, action, reanimation_squad.get_selected_id(), reanimation_model.get_selected_id(), point, state.revision)
+	else: _apply_reanimation(_local_player(), action, reanimation_squad.get_selected_id(), reanimation_model.get_selected_id(), point, state.revision)
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_reanimation(action: String, squad: int, model: int, point: Vector2, revision: int) -> void:
+	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_reanimation(2, action, squad, model, point, revision)
+
+func _apply_reanimation(player: int, action: String, squad: int, model: int, point: Vector2, revision: int) -> void:
+	if not combat_enabled or (mode == "host" and guest_id == 0): return
+	var error := Combat.resolve_reanimation(state, player, action, squad, model, point, revision, _d6)
+	if not error.is_empty(): _feedback(player, error); return
+	_broadcast()
+	_feedback(player, "Reanimation updated. " + (("Healing complete; resolve remaining end-phase choices." if Combat.UnitAbilities.enabled(state) else "Command complete.") if Combat.Reanimation.pending(state).is_empty() else "Resolve the remaining returns and units."))
+
+func _refresh_doctrine() -> void:
+	var pending: bool = combat_enabled and Combat.Doctrines.needs_choice(state)
+	for control in [doctrine_help, doctrine_choice, doctrine_confirm]: control.visible = pending
+	if not pending: return
+	end_button.disabled = true
+	var previous := doctrine_choice.get_selected_id()
+	doctrine_choice.clear()
+	doctrine_choice.add_item(Combat.Doctrines.NAMES.none, 0)
+	for doctrine: String in Combat.Doctrines.available(state, state.active):
+		var extra := " [Gladius extra use]" if doctrine in state.combat_doctrines.used.get(state.active, []) else ""
+		doctrine_choice.add_item(Combat.Doctrines.NAMES[doctrine] + extra, Combat.Doctrines.ORDER.find(doctrine) + 1)
+	doctrine_choice.select(maxi(0, doctrine_choice.get_item_index(previous)))
+	var waiting: bool = _local_player() != state.active or (mode == "host" and guest_id == 0)
+	doctrine_choice.disabled = waiting
+	doctrine_confirm.disabled = waiting
+	doctrine_help.text = "Player %d: choose a doctrine until your next Command, or save it for later. Each is available once per battle; Gladius grants one shared extra use. Extra use: %s. No CP or dice. Captain overrides and other detachment rules remain pending." % [state.active, "spent" if state.combat_doctrines.extra_used.get(state.active, false) else "available"]
+
+func _request_combat_doctrine() -> void:
+	var index := doctrine_choice.get_selected_id()
+	var doctrine: String = "none" if index == 0 else Combat.Doctrines.ORDER[index - 1]
+	if mode == "client": request_combat_doctrine.rpc_id(1, doctrine, state.revision)
+	else: _apply_combat_doctrine(_local_player(), doctrine, state.revision)
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_combat_doctrine(doctrine: String, revision: int) -> void:
+	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_combat_doctrine(2, doctrine, revision)
+
+func _apply_combat_doctrine(player: int, doctrine: String, revision: int) -> void:
+	if not combat_enabled or (mode == "host" and guest_id == 0): return
+	var error := Combat.select_combat_doctrine(state, player, doctrine, revision)
+	if not error.is_empty(): _feedback(player, error); return
+	_broadcast()
+	_feedback(player, Combat.Doctrines.NAMES[doctrine] + ". Continue Command.")
+
+func _refresh_awakened() -> void:
+	var pending: bool = combat_enabled and Combat.Mission.actor(state) < 0 and Combat.Awakened.needs_setup(state)
+	for control in [awakened_help, awakened_target, awakened_confirm]: control.visible = pending
+	if not pending: return
+	end_button.disabled = true
+	var previous := awakened_target.get_selected_id()
+	awakened_target.clear()
+	awakened_target.add_item("Leave Overlord standalone (no Command Protocols bonus)", 0)
+	for squad: int in Combat.Awakened.candidates(state): awakened_target.add_item("Lead " + state.squads[squad].name, squad)
+	awakened_target.select(maxi(0, awakened_target.get_item_index(previous)))
+	var owner := Combat.Awakened.setup_actor(state)
+	var waiting: bool = _local_player() != owner or (mode == "host" and guest_id == 0)
+	awakened_target.disabled = waiting
+	awakened_confirm.disabled = waiting
+	awakened_help.text = "Player %d: %s. Choose its bodyguard unit or leave it standalone. A led unit receives +1 to hit while its Necron Character and bodyguards survive. Review all model positions in deployment after confirming." % [owner, state.squads[state.awakened_dynasty.pending[0]].name]
+	if Combat.Reanimation.enabled(state): awakened_help.text += " Reanimation heals surviving models first, then returns destroyed troops; destroyed Characters cannot return through healing."
+
+func _request_awakened_attachment() -> void:
+	var target := awakened_target.get_selected_id()
+	if target == 0: target = -1
+	if mode == "client": request_awakened_attachment.rpc_id(1, target, state.revision)
+	else: _apply_awakened_attachment(_local_player(), target, state.revision)
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_awakened_attachment(bodyguard: int, revision: int) -> void:
+	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_awakened_attachment(2, bodyguard, revision)
+
+func _apply_awakened_attachment(player: int, bodyguard: int, revision: int) -> void:
+	if not combat_enabled or (mode == "host" and guest_id == 0): return
+	var error := Combat.select_awakened_attachment(state, player, bodyguard, revision)
+	if not error.is_empty(): _feedback(player, error); return
+	_broadcast()
+	_feedback(player, "Overlord assignment saved. " + ("Declare the next Overlord." if Combat.Awakened.needs_setup(state) else ("Finish army preparations, then deploy." if Combat.UnitAbilities.enabled(state) else "Review and confirm deployment for every model.")))
+
+func _refresh_unit_actions() -> void:
+	var choices: Array = Combat.unit_choices(state, _local_player()) if combat_enabled else []
+	for control in [unit_action_help, unit_action_picker, unit_action_x, unit_action_z, unit_action_button]: control.visible = not choices.is_empty()
+	if choices.is_empty(): return
+	var previous: int = unit_action_picker.selected
+	unit_action_picker.clear()
+	for choice: Dictionary in choices:
+		unit_action_picker.add_item(choice.label)
+		unit_action_picker.set_item_metadata(unit_action_picker.item_count - 1, choice)
+	unit_action_picker.select(clampi(previous, 0, choices.size() - 1))
+	unit_action_help.text = "Current e11 unit abilities and enabled detachment stratagems. Choose an action; X/Z apply to placement choices. Pending phase/setup decisions must be completed or declined."
+	if Combat.UnitActions.pending(state).get("kind", "") == "wound": unit_action_help.text = "Implacable Eradication: re-roll any wound dice for 0 CP, including successes, or keep the remaining rolls. Each die can only be re-rolled once. Saves wait until you finish."
+	elif Combat.UnitActions.pending(state).get("kind", "") == "ingress": unit_action_help.text = "Ingress: select each model and place its preview using X/Z or right-click. Confirm only after the whole unit fits coherently, more than 8 inches from enemies. Cancel preserves reserves and resources."
+
+	_update_unit_placement_controls()
+	if Combat.Mission.actor(state) > 0: unit_action_help.text = "CA 2026-27: mission preparation. Roll-offs are resolved for both players; ties require another roll. Declare Battle Ready only if applicable to your army."
+	unit_action_button.text = "Confirm mission choice" if Combat.Mission.actor(state) > 0 else "Use ability / confirm choice"
+	unit_action_button.disabled = mode == "host" and guest_id == 0
+
+func _request_unit_action() -> void:
+	if unit_action_picker.selected < 0: return
+	var choice: Dictionary = unit_action_picker.get_selected_metadata()
+	var point := Vector2(unit_action_x.value, unit_action_z.value)
+	if mode == "client": request_unit_action.rpc_id(1, choice, point, state.revision)
+	else: _apply_unit_action(_local_player(), choice, point, state.revision)
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_unit_action(choice: Dictionary, point: Vector2, revision: int) -> void:
+	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_unit_action(2, choice, point, revision)
+
+func _apply_unit_action(player: int, choice: Dictionary, point: Vector2, revision: int) -> void:
+	if not combat_enabled or (mode == "host" and guest_id == 0): return
+	var error := Combat.unit_action(state, player, choice, point, revision, _d6)
+	if not error.is_empty(): _feedback(player, error); return
+	_broadcast()
+	_feedback(player, "Mission choice saved." if choice.action.begins_with("mission-") else "Unit ability choice saved.")
+
+func _sync_ability_tokens() -> void:
+	var tokens: Dictionary = state.get("unit_abilities", {}).get("homers", {}) if combat_enabled else {}
+	for squad: int in ability_token_nodes.keys():
+		if not tokens.has(squad):
+			ability_token_nodes[squad].queue_free()
+			ability_token_nodes.erase(squad)
+	for squad: int in tokens:
+		if not ability_token_nodes.has(squad):
+			var marker := Label3D.new()
+			marker.text = "Teleport Homer\n" + state.squads[squad].name
+			marker.font_size = 40
+			marker.pixel_size = 0.025
+			marker.no_depth_test = true
+			marker.outline_size = 6
+			marker.modulate = Color("a88fea")
+			marker.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			var token := MeshInstance3D.new()
+			var shape := CylinderMesh.new()
+			shape.top_radius = 0.45
+			shape.bottom_radius = 0.45
+			shape.height = 0.06
+			token.mesh = shape
+			var paint := StandardMaterial3D.new()
+			paint.albedo_color = Color("a88fea")
+			paint.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			token.material_override = paint
+			token.position.y = -0.25
+			marker.add_child(token)
+			add_child(marker)
+			ability_token_nodes[squad] = marker
+		ability_token_nodes[squad].position = Vector3(tokens[squad].x, 0.3, tokens[squad].y)
+
+func _update_unit_placement_controls() -> void:
+	if unit_action_x == null or unit_action_z == null: return
+	var placement := false
+	if unit_action_picker.selected >= 0:
+		var selected_action: Variant = unit_action_picker.get_selected_metadata()
+		placement = selected_action is Dictionary and selected_action.get("action", "") in ["homer", "ingress-place"]
+	unit_action_x.visible = placement
+	unit_action_z.visible = placement

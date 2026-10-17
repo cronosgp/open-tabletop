@@ -74,7 +74,7 @@ static func path_error(state: Dictionary, model: int, destination: Vector2) -> S
 static func _alive(state: Dictionary, squad: int) -> Array[int]:
 	var ids: Array[int] = []
 	for id: int in state.units:
-		if state.units[id].squad == squad and state.units[id].wounds > 0: ids.append(id)
+		if state.units[id].squad == squad and state.units[id].wounds > 0 and state.units[id].get("on_battlefield", true): ids.append(id)
 	return ids
 
 static func hidden(state: Dictionary, model: int) -> bool:

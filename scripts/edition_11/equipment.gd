@@ -1,4 +1,5 @@
 extends RefCounted
+const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
 ## Server-owned weapon instances and profiles. Legacy squads expose one default.
 
@@ -13,6 +14,10 @@ static func choices(state: Dictionary, model: int, melee: bool) -> Array[Diction
 	for weapon: Dictionary in inventory(state, model, melee):
 		for profile: String in weapon.profiles:
 			var stats: Dictionary = weapon.profiles[profile]
+			if melee and UnitAbilities.enabled(state) and UnitAbilities.identity(state.units[model]) == "captain" and state.unit_abilities.used.get("finest-active:%d" % model, -1) == state.turn:
+				stats = stats.duplicate(true)
+				stats.attacks = int(stats.attacks) + 3
+				stats.keywords["devastating-wounds"] = true
 			var label: String = stats.get("name", "Default weapon")
 			if Traits.extra(stats): label += " [Extra Attacks]"
 			if stats.get("keywords", {}).has("hunter"):

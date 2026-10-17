@@ -1,6 +1,12 @@
 extends RefCounted
+const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
+const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
+const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Implacable = preload("res://scripts/edition_11/implacable_eradication.gd")
 const Hail = preload("res://scripts/edition_11/hail_of_bolts.gd")
+const Awakened = preload("res://scripts/edition_11/awakened_dynasty.gd")
+const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
+const Oath = preload("res://scripts/edition_11/oath_of_moment.gd")
 ## Owned weapons/profiles; target assignments freeze before dice/casualties.
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
@@ -13,11 +19,11 @@ const Allocation = preload("res://scripts/edition_11/damage_allocation.gd")
 
 static func legal_targets(state: Dictionary, model: int, melee: bool, weapon_id: String = "", profile_id: String = "") -> Array[int]:
 	var result: Array[int] = []
-	if not state.units.has(model) or state.units[model].wounds <= 0: return result
+	if not state.units.has(model) or state.units[model].wounds <= 0 or not state.units[model].get("on_battlefield", true): return result
 	var unit: Dictionary = state.units[model]
 	var choice := Equipment.select(state, model, melee, weapon_id, profile_id)
 	if choice.has("error"): return result
-	var weapon: Dictionary = choice.stats
+	var weapon: Dictionary = DetachmentStratagems.weapon(state, unit.squad, choice.stats, Doctrines.weapon(state, unit.squad, choice.stats, melee), melee)
 	if not melee and state.squads[unit.squad].advanced and not weapon.keywords.get("assault", false): return result
 	var engaged_shooter := Queue.engaged(state, unit.squad)
 	var heavy_model := Traits.heavy_model(unit)
@@ -34,7 +40,10 @@ static func legal_targets(state: Dictionary, model: int, melee: bool, weapon_id:
 				if not engaged_with(state, unit.squad, target): continue
 			elif target_engaged and not engaged_with(state, unit.squad, target) and not Traits.heavy_unit(state, target): continue
 			var sight := Terrain.targeting(state, model, target)
-			if sight.visible and sight.distance <= float(weapon.range_inches): result.append(target)
+			if not sight.visible or sight.distance > float(weapon.range_inches): continue
+			if DetachmentStratagems.vengeful_shooter(state, unit.squad) and target != int(state.detachment_stratagems.vengeful.attacker): continue
+			if CoreReactions.overwatch_shooter(state, unit.squad) and sight.distance > 24.001: continue
+			result.append(target)
 	return result
 
 static func engaged_with(state: Dictionary, squad: int, target: int) -> bool:
@@ -65,6 +74,7 @@ static func defender(state: Dictionary, target: int) -> Dictionary:
 	return Groups.defender(state, target)
 
 static func prepare(state: Dictionary, squad: int, melee: bool, entries: Array, lethal: bool, hail_target: int = -1) -> Dictionary:
+	if UnitAbilities.enabled(state): return _prepare_equipped(state, squad, melee, entries, lethal, hail_target)
 	var ability_error := Hail.choice_error(state, squad, hail_target, melee)
 	if not ability_error.is_empty(): return {"error": ability_error}
 	if hail_target != -1:
@@ -88,6 +98,12 @@ static func prepare(state: Dictionary, squad: int, melee: bool, entries: Array, 
 
 static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entries: Array, lethal: bool, hail_target: int = -1) -> Dictionary:
 	if entries.is_empty() or entries.size() > 256: return {"error": "Declare between 1 and 256 attack assignments."}
+	if CoreReactions.overwatch_shooter(state, squad):
+		if melee: return {"error": "Fire Overwatch is a ranged attack."}
+		var seen: Dictionary = {}
+		for row: Variant in entries:
+			if row is Dictionary and row.get("target") is int: seen[row.target] = true
+		if seen.size() != 1: return {"error": "Overwatch can target only one visible enemy unit."}
 	var selected: Dictionary = {}
 	var totals: Dictionary = {}
 	var pairs: Dictionary = {}
@@ -104,7 +120,7 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if not state.units.has(model) or state.units[model].wounds <= 0 or state.units[model].squad != squad: return {"error": "Assign only living models in this unit."}
 		var choice := Equipment.select(state, model, melee, row.get("weapon", ""), row.get("profile", ""))
 		if choice.has("error"): return choice
-		var weapon: Dictionary = choice.stats
+		var weapon: Dictionary = Doctrines.weapon(state, squad, choice.stats, melee)
 		if not state.squads.has(row.target) or state.squads[row.target].owner == state.squads[squad].owner or Geometry.alive(state, row.target).is_empty(): return {"error": "Select a living enemy target unit."}
 		var raw_context := {"weapon_count": 1, "distance_inches": 0.0, "heavy_eligible": false, "target_model_count": Geometry.alive(state, row.target).size(), "target_engaged": Queue.engaged(state, row.target)}
 		raw_context.target_keywords = Traits.target_keywords(state, row.target)
@@ -130,19 +146,31 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if random_melee and (row.amount != 1 or totals[slot] != 1): return {"error": "A random-A melee weapon currently assigns one whole weapon to one target; split declarations are unavailable."}
 		if not melee and totals[slot] != 1: return {"error": "Each ranged weapon instance has one target."}
 		if row.target not in legal_targets(state, model, melee, choice.weapon, choice.profile): return {"error": "Selected profile cannot target this unit (range, visibility, engagement or Advance)."}
-		var context := {"weapon_count": 1, "use_lethal_hits": lethal, "benefit_of_cover": false, "hit_modifier": 0, "attack_sources": []}
-		var reroll_mode := Implacable.mode(state, squad, row.target)
+		var context := {"weapon_count": 1, "use_lethal_hits": lethal, "benefit_of_cover": false, "hit_modifier": Awakened.hit_bonus(state, squad), "attack_sources": []}
+		context.merge(Oath.context(state, squad, row.target), true)
+		if CoreReactions.overwatch_shooter(state, squad):
+			context.snap_shooting = true
+			context.hit_reroll = "none"
+		context.hit_modifier += UnitAbilities.hit_bonus(state, squad, row.target, melee)
+		var reroll_mode := UnitAbilities.implacable_mode(state, squad, row.target) if UnitAbilities.enabled(state) else Implacable.mode(state, squad, row.target)
 		if reroll_mode != "none": context.wound_reroll = reroll_mode
-		var expression: Variant = row.amount if melee and not random_melee else weapon.attacks
+		if UnitAbilities.enabled(state) and reroll_mode == "failed":
+			context.wound_reroll = "none"
+			context.free_wound_reroll = true
+		var effective := DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, UnitAbilities.weapon(state, model, row.target, weapon, melee), melee), melee))
+		var expression: Variant = (int(row.amount) + int(effective.attacks) - int(weapon.attacks)) if melee and not random_melee else effective.attacks
 		var bonus := 0
 		var attacks: int = Attacks.RandomStat.spec(expression).maximum
-		var profile := weapon.duplicate(true)
+		var profile := DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, UnitAbilities.weapon(state, model, row.target, weapon, melee), melee), melee))
+		if DetachmentStratagems.lance_wound(state, squad, profile): context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + 1, -1, 1)
 		if not melee:
 			var hail_bonus := Hail.bonus(state, squad, row.target, hail_target, model, choice)
 			bonus += hail_bonus
 			if hail_bonus > 0: context.hail_of_bolts = {"target": hail_target, "bonus_per_weapon": hail_bonus}
 			var sight := Terrain.targeting(state, model, row.target)
-			context.benefit_of_cover = sight.cover and not weapon.keywords.get("ignores-cover", false)
+			var policy := DetachmentStratagems.hit_policy(state, squad, sight.distance, float(weapon.range_inches))
+			if not policy.is_empty() and not context.get("snap_shooting", false): context.hit_reroll = policy
+			context.benefit_of_cover = sight.cover and not profile.keywords.get("ignores-cover", false)
 			if weapon.keywords.has("rapid-fire") and sight.distance <= float(weapon.range_inches) / 2.0: bonus += int(weapon.keywords["rapid-fire"])
 			if weapon.keywords.get("blast", false): bonus += (1 if weapon.keywords.blast is bool else int(weapon.keywords.blast)) * floori(float(raw_context.target_model_count) / 5.0)
 			var engaged_shooter := Queue.engaged(state, squad)
@@ -152,13 +180,16 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			if weapon.keywords.get("heavy", false) and not engaged_shooter and not state.squads[squad].set_up_this_turn and state.squads[squad].moved_distance <= 3.0: context.hit_modifier += 1
 			context.hit_modifier = clampi(context.hit_modifier, -1, 1)
 		# Expand attack-count/eligibility mechanics before pooling identical attacks.
-		for keyword in ["rapid-fire", "assault", "heavy", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks"]: profile.keywords.erase(keyword)
-		if not lethal: profile.keywords.erase("lethal-hits")
+		for keyword in ["rapid-fire", "assault", "heavy", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "lance"]: profile.keywords.erase(keyword)
+		if UnitAbilities.enabled(state): context.use_lethal_hits = true
+		if not lethal and not UnitAbilities.enabled(state): profile.keywords.erase("lethal-hits")
 		profile.attacks = 1
 		var signature := {"skill": profile.skill, "strength": profile.strength, "ap": profile.ap, "damage": profile.damage, "keywords": profile.keywords}
 		var key := "%d:%s:%s:%d" % [row.target, var_to_str(signature), str(context.benefit_of_cover), context.hit_modifier]
 		if context.has("wound_reroll"): key += ":" + context.wound_reroll
+		if context.get("free_wound_reroll", false): key += ":implacable-choice"
 		if context.has("hail_of_bolts"): key += ":hail-of-bolts"
+		if context.has("hit_reroll"): key += ":oath:" + str(context.get("wound_modifier", 0))
 		if not batches.has(key): batches[key] = {"target": row.target, "weapon": profile, "context": context, "labels": [], "count": 0}
 		batches[key].count += attacks + bonus
 		batches[key].context.attack_sources.append({"model": model, "weapon": choice.weapon, "expression": expression, "bonus": bonus})
@@ -210,7 +241,7 @@ static func _melee_selection_error(state: Dictionary, model: int, selected: Dict
 
 static func _prepare_legacy(state: Dictionary, squad: int, melee: bool, entries: Array, lethal: bool) -> Dictionary:
 	if entries.is_empty() or entries.size() > 256: return {"error": "Declare between 1 and 256 attack assignments."}
-	var weapon: Dictionary = state.squads[squad].melee_weapon if melee else state.squads[squad].weapon
+	var weapon: Dictionary = Doctrines.weapon(state, squad, state.squads[squad].melee_weapon if melee else state.squads[squad].weapon, melee)
 	if melee and Attacks.RandomStat.random(weapon.attacks): return {"error": "Random melee A is not supported yet."}
 	var totals: Dictionary = {}
 	var pairs: Dictionary = {}
@@ -251,7 +282,8 @@ static func _prepare_legacy(state: Dictionary, squad: int, melee: bool, entries:
 			var batch: Dictionary = batches[key]
 			if batch.target != target: continue
 			var profile := weapon.duplicate(true)
-			var context := {"weapon_count": batch.count, "use_lethal_hits": lethal}
+			var context := {"weapon_count": batch.count, "use_lethal_hits": lethal, "hit_modifier": Awakened.hit_bonus(state, squad)}
+			context.merge(Oath.context(state, squad, target), true)
 			var reroll_mode := Implacable.mode(state, squad, target)
 			if reroll_mode != "none": context.wound_reroll = reroll_mode
 			context.target_model_count = Geometry.alive(state, target).size()

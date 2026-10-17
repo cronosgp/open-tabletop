@@ -24,6 +24,7 @@ var download_status: Label
 var download_selection := ""
 var settings_path := "user://local-models.cfg"
 var selected_definition: Callable
+var selected_radius: Callable
 var mappings: Dictionary = {}
 var catalog: Dictionary = {}
 var cache: Dictionary = {}
@@ -167,7 +168,7 @@ func _ready() -> void:
 	var light := DirectionalLight3D.new()
 	light.rotation_degrees = Vector3(-45, -30, 0)
 	viewport.add_child(light)
-	scale_input = _number("Visual scale multiplier (auto-fit height: 1.3 inches)", 0.01, 20, 0.01, 1)
+	scale_input = _number("Extra visual scale (1.0 = official base diameter / TTS table scale)", 0.01, 20, 0.01, 1)
 	rotation_input = _number("Rotation (degrees)", -360, 360, 1, 0)
 	offset_input = _number("Height offset (inches)", -10, 10, 0.01, 0)
 	target = _label("Select a battlefield model to choose a unit type.")
@@ -352,7 +353,13 @@ func load_preview() -> void:
 	notice.text = "Preview loaded. Adjust its appearance, select a battlefield model, then save for that unit type. Gameplay bases and rules stay authoritative."
 
 func _settings() -> Dictionary:
-	return {"scale": scale_input.value, "rotation": rotation_input.value, "offset": offset_input.value}
+	var settings := {"scale": scale_input.value, "rotation": rotation_input.value, "offset": offset_input.value, "tts_scale": 1.0}
+	var entry := _selected_entry()
+	if not entry.is_empty() and (entry.get("tts_scale") is float or entry.get("tts_scale") is int):
+		settings.tts_scale = float(entry.tts_scale)
+	var radius := float(selected_radius.call()) if selected_radius.is_valid() else 0.0
+	if radius > 0.01: settings.base_radius_inches = radius
+	return settings
 
 func _update_preview() -> void:
 	if preview_root == null or offset_input == null: return
@@ -371,13 +378,17 @@ func apply_mapping() -> void:
 		notice.text = "Reload the preview after changing its files."
 		return
 	var mapping := _settings()
+	mapping.erase("base_radius_inches")
 	mapping.path = preview_asset.path
 	mapping.texture = preview_asset.texture
 	mapping.fingerprint = preview_asset.fingerprint
 	mapping.texture_fingerprint = preview_asset.texture_fingerprint
 	mapping.source = catalog.get("source", "")
 	mapping.source_fingerprint = catalog.get("fingerprint", "")
-	if not _selected_entry().is_empty(): mapping.entry = _selected_entry().duplicate(true)
+	if not _selected_entry().is_empty():
+		mapping.entry = _selected_entry().duplicate(true)
+		if mapping.entry.get("tts_scale") is float or mapping.entry.get("tts_scale") is int:
+			mapping.tts_scale = float(mapping.entry.tts_scale)
 	var next := mappings.duplicate(true)
 	next[definition] = mapping
 	if not _save(next): return
@@ -429,6 +440,8 @@ func load_settings() -> void:
 			var value: Variant = mapping.get(key)
 			var bounds: Array = {"scale": [0.01, 20.0], "rotation": [-360.0, 360.0], "offset": [-10.0, 10.0]}[key]
 			if not (value is float or value is int) or not is_finite(float(value)) or float(value) < bounds[0] or float(value) > bounds[1]: valid = false
+		var tts: Variant = mapping.get("tts_scale", 1.0)
+		if mapping.has("tts_scale") and (not (tts is float or tts is int) or not is_finite(float(tts)) or float(tts) < 0.01 or float(tts) > 20.0): valid = false
 		if valid: mappings[definition] = mapping
 	var saved_source: Variant = cfg.get_value("paths", "source", "")
 	if saved_source is String: source_path.text = saved_source
@@ -437,7 +450,7 @@ func load_settings() -> void:
 	var saved_downloads: Variant = cfg.get_value("paths", "downloads", "")
 	if saved_downloads is String and not saved_downloads.is_empty(): download_path.text = saved_downloads
 
-func visual_for(definition: String) -> Node3D:
+func visual_for(definition: String, base_radius_inches: float = 0.0) -> Node3D:
 	if not mappings.has(definition): return null
 	if not cache.has(definition):
 		var mapping: Dictionary = mappings[definition]
@@ -452,7 +465,9 @@ func visual_for(definition: String) -> Node3D:
 			return null
 		cache[definition] = result
 	if not cache[definition].get("error", "").is_empty(): return null
-	return Assets.visual(cache[definition], mappings[definition])
+	var settings: Dictionary = mappings[definition].duplicate()
+	if base_radius_inches > 0.01: settings.base_radius_inches = base_radius_inches
+	return Assets.visual(cache[definition], settings)
 
 ## Batch uses captured profile IDs, independent of the selected pawn or inventory row.
 func prepare_armies(definitions: Array[String]) -> void:
@@ -562,9 +577,12 @@ func _finish_automatic_item(result: Dictionary) -> void:
 		var asset := Assets.obj_mesh(result.mesh, result.texture)
 		issue = asset.error
 		if issue.is_empty() and not mappings.has(definition):
-			var mapping := {"scale": 1.0, "rotation": 0.0, "offset": 0.0, "path": result.mesh, "texture": result.texture,
+			var entry: Dictionary = automatic_current.entry.duplicate(true)
+			var tts := float(entry.get("tts_scale", 1.0))
+			if not is_finite(tts) or tts < 0.01 or tts > 20.0: tts = 1.0
+			var mapping := {"scale": 1.0, "rotation": 0.0, "offset": 0.0, "tts_scale": tts, "path": result.mesh, "texture": result.texture,
 				"fingerprint": asset.fingerprint, "texture_fingerprint": asset.texture_fingerprint,
-				"source": catalog.source, "source_fingerprint": catalog.fingerprint, "entry": automatic_current.entry.duplicate(true)}
+				"source": catalog.source, "source_fingerprint": catalog.fingerprint, "entry": entry}
 			var next := mappings.duplicate(true)
 			next[definition] = mapping
 			if _save(next):

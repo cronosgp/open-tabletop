@@ -8,7 +8,7 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
-	var record := {"Name": "Custom_Model", "Nickname": "Test miniature ]]", "Description": "Original fixture credit", "CustomMesh": {"MeshURL": "https://example.invalid/test"}}
+	var record := {"Name": "Custom_Model", "Nickname": "Test miniature ]]", "Description": "Original fixture credit", "Transform": {"scaleX": 1.0, "scaleY": 1.0, "scaleZ": 1.0}, "CustomMesh": {"MeshURL": "https://example.invalid/test"}}
 	var literal := JSON.stringify(record)
 	var script := "function onLoad() error('must never run') end\nobjectJSONs = {\n-- literal data only\n[=[" + literal + "]=],\n}\n"
 	var result := Assets.static_model_objects(script)
@@ -22,7 +22,7 @@ func run() -> void:
 	file.store_string(JSON.stringify({"ObjectStates": [{"Name": "Tile", "LuaScript": script}]}))
 	file.close()
 	var scanned := Assets.scan("res://.tools/catalog-test/source.json")
-	check(scanned.error.is_empty() and scanned.embedded_objects == 1 and scanned.entries[0].credit == record.Description and "objectJSONs" in scanned.entries[0].path, "Scanner retains embedded source identity and credits")
+	check(scanned.error.is_empty() and scanned.embedded_objects == 1 and scanned.entries[0].credit == record.Description and "objectJSONs" in scanned.entries[0].path and is_equal_approx(float(scanned.entries[0].tts_scale), 1.0), "Scanner retains embedded source identity, credits and Transform scale")
 	file = FileAccess.open("res://.tools/catalog-test/children.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify({"ObjectStates": [{"Nickname": "Parent miniature", "Description": "Parent credit", "ChildObjects": [{"Name": "Custom_Model", "Nickname": null, "CustomMesh": {"MeshURL": "https://example.invalid/component"}}]}]}))
 	file.close()

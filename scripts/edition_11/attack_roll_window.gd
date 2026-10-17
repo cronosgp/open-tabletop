@@ -19,6 +19,9 @@ static func begin(weapon: Dictionary, defender: Dictionary, context: Dictionary,
 	var hits: Array[int] = []
 	if not pause_generation and not keywords.get("torrent", false):
 		for index in range(generated.count): hits.append(dice.d6())
+	var automatic_changes := Attacks.reroll_hit_pool(hits, mini(6, int(weapon.skill) + (1 if covered else 0)), modifier, context, dice)
+	var automatic_indices: Array = []
+	for change: Dictionary in automatic_changes: automatic_indices.append(change.index)
 	if not dice.error.is_empty(): return {"error": dice.error}
 	var history: Array = generated.rolls.duplicate()
 	history.append_array(dice.history)
@@ -26,7 +29,7 @@ static func begin(weapon: Dictionary, defender: Dictionary, context: Dictionary,
 		"weapon": weapon.duplicate(true), "defender": defender.duplicate(true), "context": context.duplicate(true),
 		"generated": generated, "covered": covered, "effective_skill": mini(6, int(weapon.skill) + (1 if covered else 0)),
 		"hit_modifier": modifier, "hit_rolls": hits, "wound_rolls": [], "effective_wounds": [],
-		"rerolled_hits": [], "rerolled_wounds": [], "changes": [], "dice_history": history}
+		"rerolled_hits": automatic_indices, "rerolled_wounds": [], "changes": automatic_changes, "dice_history": history}
 
 static func eligible(checkpoint: Dictionary) -> Array[int]:
 	var result: Array[int] = []
@@ -95,6 +98,10 @@ static func advance(checkpoint: Dictionary, revision: int, roller: Callable) -> 
 	if next.phase == "generation":
 		if not keywords.get("torrent", false):
 			for index in range(next.generated.count): next.hit_rolls.append(dice.d6())
+		var automatic_changes := Attacks.reroll_hit_pool(next.hit_rolls, next.effective_skill, next.hit_modifier, next.context, dice)
+		for change: Dictionary in automatic_changes:
+			next.rerolled_hits.append(change.index)
+			next.changes.append(change)
 		next.phase = "hit"
 	elif next.phase == "hit":
 		var normal: int = next.generated.count if keywords.get("torrent", false) else 0

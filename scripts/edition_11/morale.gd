@@ -19,7 +19,7 @@ static func needs_command_roll(state: Dictionary, squad: int) -> bool:
 	return state.squads[squad].owner == state.active and not living(state, squad).is_empty() and (state.squads[squad].battle_shocked or at_half_strength(state, squad))
 
 static func objective_control(state: Dictionary, id: int) -> int:
-	if not state.units.has(id) or state.units[id].wounds <= 0: return 0
+	if not state.units.has(id) or state.units[id].wounds <= 0 or not state.units[id].get("on_battlefield", true): return 0
 	var squad: Dictionary = state.squads[state.units[id].squad]
 	return 0 if squad.battle_shocked else int(state.units[id].get("objective_control", squad.stats.objective_control))
 

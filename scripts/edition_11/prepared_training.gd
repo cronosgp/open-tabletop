@@ -7,25 +7,53 @@ const Training = preload("res://scripts/edition_11/training_roster.gd")
 const ID := "prepared-objective-training-v1"
 
 static func initial_state(options: Dictionary = {}, selections: Dictionary = {}) -> Dictionary:
+	if options.get("combat_doctrines", false) and options.get("oath_of_moment", false): return {"error": "11e Combat Doctrines replaces the historical Oath of Moment profile; these options cannot be combined."}
 	for key: Variant in options:
-		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts"]: return {"error": "Unsupported match option: " + str(key)}
+		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts", "oath_of_moment", "reanimation_protocols", "combat_doctrines", "awakened_dynasty", "unit_abilities", "official_mission", "checked_rosters"]: return {"error": "Unsupported match option: " + str(key)}
 		if not options[key] is bool: return {"error": "Match options must be boolean: " + str(key)}
+	if options.get("unit_abilities", false) and (options.get("hail_of_bolts", false) or options.get("objective_secured", false) or options.get("oath_of_moment", false)): return {"error": "Current datasheets cannot combine with historical Hail of Bolts, Objective Secured or Oath profiles."}
+	if options.get("official_mission", false):
+		for required in ["unit_abilities", "combat_doctrines", "reanimation_protocols", "awakened_dynasty", "core_stratagems"]:
+			if not options.get(required, false) and not (required == "core_stratagems" and options.get("checked_rosters", false)):
+				return {"error": "The CA mission requires current unit, faction and core stratagem options."}
+	if options.get("checked_rosters", false) and not options.get("official_mission", false): return {"error": "Checked rosters require the selected current CA mission."}
+	if options.get("checked_rosters", false) and selections.is_empty(): selections = Combat.RosterValidation.defaults()
 	var manual: bool = options.get("manual_allocation", true)
 	var varied: bool = options.get("varied_equipment", false)
-	if (options.get("movement_rerolls", false) or options.get("attack_rerolls", false) or options.get("save_rerolls", false) or options.get("damage_rerolls", false) or options.get("hazard_rerolls", false) or options.get("count_rerolls", false) or options.get("escape_rerolls", false)) and not options.get("core_stratagems", false): return {"error": "Command Re-roll requires the core stratagems option."}
+	if varied and options.get("unit_abilities", false): return {"error": "Current unit abilities use the documented fixed loadouts."}
+	var core: bool = options.get("core_stratagems", false)
+	var movement_rerolls: bool = options.get("movement_rerolls", false)
+	var attack_rerolls: bool = options.get("attack_rerolls", false)
+	var save_rerolls: bool = options.get("save_rerolls", false)
+	var damage_rerolls: bool = options.get("damage_rerolls", false)
+	var hazard_rerolls: bool = options.get("hazard_rerolls", false)
+	var count_rerolls: bool = options.get("count_rerolls", false)
+	var escape_rerolls: bool = options.get("escape_rerolls", false)
+	if options.get("checked_rosters", false):
+		core = true
+		movement_rerolls = true
+		attack_rerolls = true
+		save_rerolls = true
+		damage_rerolls = true
+		hazard_rerolls = true
+		count_rerolls = true
+		escape_rerolls = true
+	if (movement_rerolls or attack_rerolls or save_rerolls or damage_rerolls or hazard_rerolls or count_rerolls or escape_rerolls) and not core: return {"error": "Command Re-roll requires the core stratagems option."}
 	var reports: Dictionary = {}
 	if not selections.is_empty():
 		if selections.size() != 2 or not selections.has(1) or not selections.has(2): return {"error": "Select both armies."}
 		if varied: return {"error": "Saved lists use this training mode's fixed default weapons."}
 		for owner in [1, 2]:
-			var report := Training.admit(selections[owner])
+			var report := Combat.RosterValidation.admit(selections[owner]) if options.get("checked_rosters", false) else Training.admit(selections[owner])
 			if not report.error.is_empty(): return report
 			reports[owner] = report
 		if reports[1].selection.category != reports[2].selection.category or reports[1].selection.points_limit != reports[2].selection.points_limit:
 			return {"error": "Players must choose the same category and points limit."}
+	if options.get("official_mission", false) and not reports.is_empty():
+		if reports[1].selection.faction != "Space Marines" or reports[2].selection.faction != "Necrons" or reports[1].selection.points_limit != 1000 or reports[1].selection.category != "incursion": return {"error": "This selected CA mission admits Space Marines P1 vs Necrons P2 with a 1000-point Incursion limit; prices and army legality remain reference data."}
 	var state := Battlefield.apply(Combat.initial_state(Combat.Terrain.DEFAULT_LAYOUT, Combat.Objectives.TRAINING, 2, manual, varied))
 	if state.has("error"): return state
-	if options.get("core_stratagems", false): Combat.Stratagems.enable(state, options.get("movement_rerolls", false), options.get("attack_rerolls", false), options.get("save_rerolls", false), options.get("damage_rerolls", false), options.get("hazard_rerolls", false), options.get("count_rerolls", false), options.get("escape_rerolls", false))
+	if core: Combat.Stratagems.enable(state, movement_rerolls, attack_rerolls, save_rerolls, damage_rerolls, hazard_rerolls, count_rerolls, escape_rerolls)
 	if not reports.is_empty():
 		var original := state.duplicate(true)
 		state.units = {}
@@ -53,14 +81,14 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 		state.training_points = {1: reports[1].total, 2: reports[2].total}
 		state.saved_army_setup = {"schema_version": 1, "options": {"manual_allocation": manual, "varied_equipment": false},
 			"armies": {1: reports[1].selection, 2: reports[2].selection}}
-		if options.get("core_stratagems", false): state.saved_army_setup.options.core_stratagems = true
-		if options.get("movement_rerolls", false): state.saved_army_setup.options.movement_rerolls = true
-		if options.get("attack_rerolls", false): state.saved_army_setup.options.attack_rerolls = true
-		if options.get("save_rerolls", false): state.saved_army_setup.options.save_rerolls = true
-		if options.get("damage_rerolls", false): state.saved_army_setup.options.damage_rerolls = true
-		if options.get("hazard_rerolls", false): state.saved_army_setup.options.hazard_rerolls = true
-		if options.get("escape_rerolls", false): state.saved_army_setup.options.escape_rerolls = true
-		if options.get("count_rerolls", false): state.saved_army_setup.options.count_rerolls = true
+		if core: state.saved_army_setup.options.core_stratagems = true
+		if movement_rerolls: state.saved_army_setup.options.movement_rerolls = true
+		if attack_rerolls: state.saved_army_setup.options.attack_rerolls = true
+		if save_rerolls: state.saved_army_setup.options.save_rerolls = true
+		if damage_rerolls: state.saved_army_setup.options.damage_rerolls = true
+		if hazard_rerolls: state.saved_army_setup.options.hazard_rerolls = true
+		if escape_rerolls: state.saved_army_setup.options.escape_rerolls = true
+		if count_rerolls: state.saved_army_setup.options.count_rerolls = true
 	if options.get("objective_secured", false):
 		Combat.ObjectiveSecured.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.objective_secured = true
@@ -70,6 +98,29 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 	if options.get("hail_of_bolts", false):
 		Combat.HailOfBolts.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.hail_of_bolts = true
+	if options.get("oath_of_moment", false):
+		Combat.OathOfMoment.enable(state)
+		if not reports.is_empty(): state.saved_army_setup.options.oath_of_moment = true
+	if options.get("reanimation_protocols", false):
+		Combat.Reanimation.enable(state)
+		if not reports.is_empty(): state.saved_army_setup.options.reanimation_protocols = true
+	if options.get("combat_doctrines", false):
+		Combat.Doctrines.enable(state)
+		if not reports.is_empty(): state.saved_army_setup.options.combat_doctrines = true
+	if options.get("awakened_dynasty", false):
+		Combat.Awakened.enable(state)
+		if not reports.is_empty(): state.saved_army_setup.options.awakened_dynasty = true
+	if options.get("unit_abilities", false):
+		var loadout_error := _current_loadouts(state)
+		if not loadout_error.is_empty(): return {"error": loadout_error}
+		Combat.UnitAbilities.enable(state)
+		if not reports.is_empty(): state.saved_army_setup.options.unit_abilities = true
+	if options.get("official_mission", false):
+		Combat.Mission.enable(state)
+		if not reports.is_empty(): state.saved_army_setup.options.official_mission = true
+	if options.get("checked_rosters", false):
+		Combat.RosterValidation.enable(state, reports)
+		state.saved_army_setup.options.checked_rosters = true
 	var rosters: Array[Dictionary] = []
 	for owner in [1, 2]:
 		var units: Array[Dictionary] = []
@@ -80,17 +131,22 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 	state.match_manifest = {"schema_version": 1, "scenario": ID, "rules_implementation": Combat.PACK_ID,
 		"content_hash": state.pack_hash, "battlefield": Battlefield.ID, "mission": Combat.Objectives.TRAINING,
 		"manual_allocation": manual, "varied_equipment": varied, "first_player": 1, "rosters": rosters}
-	if options.get("core_stratagems", false): state.match_manifest.core_stratagems = Combat.Stratagems.ID
-	if options.get("movement_rerolls", false): state.match_manifest.movement_rerolls = Combat.Stratagems.REROLL_ID
-	if options.get("attack_rerolls", false): state.match_manifest.attack_rerolls = Combat.Stratagems.ATTACK_REROLL_ID
-	if options.get("save_rerolls", false): state.match_manifest.save_rerolls = Combat.Stratagems.SAVE_REROLL_ID
-	if options.get("damage_rerolls", false): state.match_manifest.damage_rerolls = Combat.Stratagems.DAMAGE_REROLL_ID
-	if options.get("hazard_rerolls", false): state.match_manifest.hazard_rerolls = Combat.Stratagems.HAZARD_REROLL_ID
-	if options.get("escape_rerolls", false): state.match_manifest.escape_rerolls = Combat.Stratagems.ESCAPE_REROLL_ID
-	if options.get("count_rerolls", false): state.match_manifest.count_rerolls = Combat.Stratagems.COUNT_REROLL_ID
+	if core: state.match_manifest.core_stratagems = Combat.Stratagems.ID
+	if movement_rerolls: state.match_manifest.movement_rerolls = Combat.Stratagems.REROLL_ID
+	if attack_rerolls: state.match_manifest.attack_rerolls = Combat.Stratagems.ATTACK_REROLL_ID
+	if save_rerolls: state.match_manifest.save_rerolls = Combat.Stratagems.SAVE_REROLL_ID
+	if damage_rerolls: state.match_manifest.damage_rerolls = Combat.Stratagems.DAMAGE_REROLL_ID
+	if hazard_rerolls: state.match_manifest.hazard_rerolls = Combat.Stratagems.HAZARD_REROLL_ID
+	if escape_rerolls: state.match_manifest.escape_rerolls = Combat.Stratagems.ESCAPE_REROLL_ID
+	if count_rerolls: state.match_manifest.count_rerolls = Combat.Stratagems.COUNT_REROLL_ID
 	if options.get("objective_secured", false): state.match_manifest.objective_secured = Combat.ObjectiveSecured.ID
 	if options.get("implacable_eradication", false): state.match_manifest.implacable_eradication = Combat.ImplacableEradication.ID
 	if options.get("hail_of_bolts", false): state.match_manifest.hail_of_bolts = Combat.HailOfBolts.ID
+	if options.get("oath_of_moment", false): state.match_manifest.oath_of_moment = Combat.OathOfMoment.ID
+	if options.get("reanimation_protocols", false): state.match_manifest.reanimation_protocols = Combat.Reanimation.ID
+	if options.get("combat_doctrines", false): state.match_manifest.combat_doctrines = Combat.Doctrines.ID
+	if options.get("awakened_dynasty", false): state.match_manifest.awakened_dynasty = Combat.Awakened.ID
+	if options.get("unit_abilities", false): state.match_manifest.unit_abilities = Combat.UnitAbilities.ID
 	if not reports.is_empty():
 		if reports[1].selection.schema_version == 2 or reports[2].selection.schema_version == 2:
 			state.match_manifest.capabilities = Training.Capabilities.ID
@@ -98,13 +154,25 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 		state.match_manifest.saved_armies = state.saved_army_setup.duplicate(true)
 		state.match_manifest.training_points = state.training_points.duplicate()
 		state.match_manifest.official_legality_validated = false
+	if options.get("checked_rosters", false):
+		state.match_manifest.official_legality_validated = true
+	if options.get("official_mission", false):
+		state.match_manifest.mission = Combat.Mission.ID
+		state.match_manifest.battlefield = Combat.Mission.ID
+		state.match_manifest.official_mission = Combat.Mission.ID
+		state.match_manifest.first_player = "post-deployment-roll-off"
+	if options.get("checked_rosters", false):
+		state.roster_validation.full_match_certified = true
+		state.match_manifest.checked_rosters = {"implementation": Combat.RosterValidation.ID, "digest": Combat.RosterValidation.digest(), "construction": state.roster_validation.armies.duplicate(true), "full_match_certified": true, "scope": "Gladius 930 vs Awakened 880 on the selected CA 2026-27 ground board; Explosives/Smokescreen/Crushing Impact stay unused on these loadouts"}
 	state.pack_hash = var_to_str(state.match_manifest).sha256_text()
 	Deployment.begin(state)
+	Combat.Awakened.begin_setup(state)
 	return state
 
 static func waiting(options: Dictionary) -> Dictionary:
 	var state := initial_state(options)
 	if state.has("error"): return state
+	if options.get("checked_rosters", false): state.erase("saved_army_setup")
 	state.phase = "army_selection"
 	state.pack_hash = (str(state.pack_hash) + ":saved-army-lobby-v1").sha256_text()
 	state.ready_armies = []
@@ -123,6 +191,7 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 			var squad := owner + index * 2
 			var group: Dictionary = original.squads[spec.template].duplicate(true)
 			group.name = resolved.unit.name + " %d" % (copy + 1)
+			group.training_cost = resolved.cost
 			group.owner = owner
 			group.faction = report.selection.faction
 			group.starting_strength = int(entry.models)
@@ -148,3 +217,36 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 					unit.melee_weapons = [{"id": "sergeant-power-weapon", "profiles": {"standard": resolved.weapons.sergeant.duplicate(true)}}]
 				state.units[squad * 100 + model] = unit
 			index += 1
+
+static func _current_loadouts(state: Dictionary) -> String:
+	var cache: Dictionary = {}
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		var source := Combat.UnitAbilities.identity(unit)
+		if source not in Combat.UnitAbilities.RULES: return "Unsupported current unit profile: " + source
+		if not cache.has(source):
+			var faction := "Necrons" if str(unit.definition_id).contains(":necrons:") else "Space Marines"
+			cache[source] = Training.Capabilities.resolve(faction, unit.definition_id)
+			if not cache[source].error.is_empty(): return cache[source].error
+		var resolved: Dictionary = cache[source]
+		var profiles := {"standard": resolved.weapons.gun.duplicate(true)}
+		if source == "intercessor-squad":
+			for weapon: Dictionary in resolved.unit.source_weapon_definitions:
+				if weapon.id != resolved.spec.gun[0]: continue
+				profiles = {}
+				for profile: Dictionary in weapon.profiles:
+					profiles[profile.name.to_snake_case()] = Training.Capabilities.weapon(resolved.unit, [weapon.id, profile.name])
+		unit.ranged_weapons = [{"id": "primary", "profiles": profiles}]
+		var secondary: Array = []
+		match source:
+			"captain": secondary = ["heavy-bolt-pistol-captain", "Heavy Bolt Pistol"]
+			"lieutenant": secondary = ["bolt-pistol-lieutenant", "Bolt Pistol"]
+			"heavy-intercessor-squad": secondary = ["bolt-pistol-heavy-intercessor-squad", "Bolt Pistol"]
+			"intercessor-squad": secondary = ["bolt-pistol-intercessor-squad", "Bolt Pistol"]
+		if not secondary.is_empty():
+			var pistol := Training.Capabilities.weapon(resolved.unit, secondary)
+			if pistol.is_empty(): return "Missing default pistol for " + source
+			if source == "lieutenant": pistol.strength = 5
+			unit.ranged_weapons.append({"id": "pistol", "profiles": {"standard": pistol}})
+		unit.melee_weapons = [{"id": "melee", "profiles": {"standard": resolved.weapons.blade.duplicate(true)}}]
+	return ""

@@ -13,7 +13,7 @@ func check(ok: bool, message: String) -> void:
 		push_error(message)
 		failures += 1
 func fixture() -> Dictionary:
-	return {"squads": {1: {"disabled_abilities": ["deep-strike", "their-number-is-legion"]}, 2: {"disabled_abilities": ["oath-of-moment"]}},
+	return {"squads": {1: {"disabled_abilities": ["deep-strike", "their-number-is-legion", "judgement-of-the-weak"]}, 2: {"disabled_abilities": ["oath-of-moment"]}},
 		"capabilities": {}, "units": {}}
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
@@ -31,9 +31,14 @@ func run() -> void:
 	# Supported flags: implemented vs blocked.
 	check(Capabilities.supported("objective-secured") and Capabilities.supported("hail-of-bolts") and Capabilities.supported("implacable-eradication") and Capabilities.supported("leader"), "Implemented abilities are marked supported")
 	check(Capabilities.supported("insane-bravery") and Capabilities.supported("command-re-roll"), "Core stratagems are marked supported")
-	check(not Capabilities.supported("deep-strike") and not Capabilities.supported("their-number-is-legion"), "Unimplemented unit abilities stay blocked")
-	check(not Capabilities.supported("oath-of-moment") and not Capabilities.supported("reanimation-protocols"), "Faction rules stay blocked")
-	check(not Capabilities.supported("combat-doctrines") and not Capabilities.supported("awakened-dynasty"), "Detachments stay blocked")
+	check(Capabilities.supported("fire-overwatch") and Capabilities.supported("heroic-intervention") and Capabilities.supported("counteroffensive") and Capabilities.supported("epic-challenge"), "Infantry core reaction stratagems are marked supported")
+	check(Capabilities.known("explosives") and not Capabilities.supported("explosives") and not Capabilities.supported("smokescreen") and not Capabilities.supported("crushing-impact"), "Keyword/role core cards unused by these lists stay blocked")
+	check(Capabilities.supported("deep-strike") and Capabilities.supported("their-number-is-legion"), "Current unit implementations are registered")
+	check(Capabilities.supported("oath-of-moment") and Capabilities.KNOWN["oath-of-moment"].get("reference", false), "Oath has an explicit versioned reference implementation")
+	check(Capabilities.supported("reanimation-protocols"), "Scoped Reanimation implementation is registered")
+	check(Capabilities.supported("combat-doctrines") and Capabilities.category("combat-doctrines") == Capabilities.CATEGORY_FACTION and Capabilities.supported("codex-discipline") and Capabilities.supported("awakened-dynasty"), "Implemented e11 doctrine and detachment effects are registered")
+	check(Capabilities.supported("gladius-storm-of-devastation") and Capabilities.supported("gladius-adaptive-strategy") and Capabilities.supported("gladius-armour-of-contempt") and Capabilities.supported("gladius-might-of-angels") and Capabilities.supported("gladius-a-worthy-death") and Capabilities.supported("gladius-responsive-tactics") and Capabilities.supported("protocol-of-the-hungry-void") and Capabilities.supported("protocol-of-the-sudden-storm") and Capabilities.supported("protocol-of-the-conquering-tyrant") and Capabilities.supported("protocol-of-the-undying-legions") and Capabilities.supported("protocol-of-the-eternal-revenant") and Capabilities.supported("protocol-of-the-vengeful-stars"), "Implemented Gladius/Awakened stratagems are registered")
+	check(Capabilities.supported("rapid-ingress") and Capabilities.category("transhuman-strategist") == Capabilities.CATEGORY_FACTION, "Current reserve stratagem and Captain army rule are classified")
 	check(not Capabilities.supported("upper-floors"), "Geometry gaps stay blocked")
 	check(Capabilities.category("oath-of-moment") == Capabilities.CATEGORY_FACTION and Capabilities.category("deep-strike") == Capabilities.CATEGORY_UNIT, "Categories are correct")
 	# Bookkeeping: admit + admit_squad.
@@ -48,8 +53,8 @@ func run() -> void:
 	check(state.squads[1].enabled_abilities.count("objective-secured") == 1, "admit_squad is idempotent")
 	# blocked() and summary().
 	var blocked := Capabilities.blocked(state)
-	check("deep-strike" in blocked and "oath-of-moment" in blocked and "objective-secured" not in blocked, "blocked lists only recognised unsupported abilities still disabled")
+	check("deep-strike" not in blocked and "their-number-is-legion" not in blocked and "judgement-of-the-weak" in blocked and "oath-of-moment" not in blocked and "objective-secured" not in blocked, "blocked lists only recognised unsupported abilities still disabled")
 	var summary := Capabilities.summary(state)
-	check("Deep Strike" in summary and "Oath of Moment" in summary, "summary names the remaining unsupported capabilities")
+	check("Judgement of the Weak" not in summary and "Upper floors" in summary, "summary names the remaining unsupported capabilities")
 	print("Capability registry checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

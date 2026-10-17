@@ -15,7 +15,7 @@ static func setup(terrain: Dictionary, mission_id: String) -> Dictionary:
 		"scores": {1: 0, 2: 0}, "scored_rounds": [], "objectives": objectives, "actions": ["training-secure"]}
 
 static func in_range(model: Dictionary, objective: Dictionary) -> bool:
-	if model.wounds <= 0: return false
+	if model.wounds <= 0 or not model.get("on_battlefield", true): return false
 	if objective.kind == "terrain": return Terrain.within(model, objective.bounds)
 	return maxf(0.0, model.position.distance_to(objective.position) - float(model.radius) - MARKER_RADIUS) <= 3.0 + Terrain.EPSILON and float(model.get("elevation", 0.0)) <= 5.0 + Terrain.EPSILON
 

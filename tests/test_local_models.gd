@@ -15,13 +15,19 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute(ROOT)
 	write(ROOT.path_join("mesh.obj"), OBJ)
-	var save := {"ObjectStates": [{"Nickname": "Army", "ContainedObjects": [{"Nickname": "Duplicate", "GUID": "aaaaaa", "CustomMesh": {"MeshURL": "https://example.invalid/model", "DiffuseURL": "https://example.invalid/texture"}, "LuaScript": "error('must never run')", "States": {"2": {"Nickname": "Duplicate", "CustomAssetbundle": {"AssetbundleURL": "https://example.invalid/bundle"}}}}]}]}
+	var save := {"ObjectStates": [{"Nickname": "Army", "ContainedObjects": [{"Nickname": "Duplicate", "GUID": "aaaaaa", "Transform": {"posX": 0, "posY": 0, "posZ": 0, "rotX": 0, "rotY": 0, "rotZ": 0, "scaleX": 1.5, "scaleY": 1.5, "scaleZ": 1.5}, "CustomMesh": {"MeshURL": "https://example.invalid/model", "DiffuseURL": "https://example.invalid/texture"}, "LuaScript": "error('must never run')", "States": {"2": {"Nickname": "Duplicate", "CustomAssetbundle": {"AssetbundleURL": "https://example.invalid/bundle"}}}}]}]}
 	write(ROOT.path_join("ForceOrg.json"), JSON.stringify(save))
 	var scanned := Assets.scan(ROOT)
 	check(scanned.error.is_empty() and scanned.objects == 3 and scanned.entries.size() == 2, "Directory scan reads ForceOrg.json, containers and alternate states")
 	check(scanned.entries[0].id != scanned.entries[1].id and scanned.entries[0].name == scanned.entries[1].name, "Duplicate names preserve distinct source identities")
+	var mesh_entry: Dictionary = scanned.entries[0] if scanned.entries[0].kind == "CustomMesh" else scanned.entries[1]
+	check(is_equal_approx(float(mesh_entry.tts_scale), 1.5), "ForceOrg Transform scale is retained for tabletop sizing")
 	var mesh := Assets.obj_mesh(ROOT.path_join("mesh.obj"))
 	check(mesh.error.is_empty() and mesh.bounds.size.y == 3, "OBJ triangulation, negative indices and mixed optional UV data")
+	var fitted := Assets.table_scale(mesh.bounds, {"scale": 1.0, "base_radius_inches": 0.63})
+	check(is_equal_approx(fitted, (0.63 * 2.0) / maxf(mesh.bounds.size.x, mesh.bounds.size.z)), "Visuals fit the official base diameter instead of a fixed 1.3 inch height")
+	var native := Assets.table_scale(mesh.bounds, {"scale": 1.0, "tts_scale": 1.5})
+	check(is_equal_approx(native, 1.5), "Inch-range OBJ uses ForceOrg Transform scale when no datasheet base is supplied")
 	var image := Image.create(4, 4, false, Image.FORMAT_RGBA8)
 	image.fill(Color.RED)
 	image.save_png(ROOT.path_join("diffuse.png"))

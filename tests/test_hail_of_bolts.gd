@@ -20,7 +20,7 @@ func fixture(varied: bool = false, enabled: bool = true) -> Dictionary:
 	state.terrain.areas = []
 	for id: int in state.units:
 		if id not in [100, 101, 200, 201, 400, 401]: state.units[id].wounds = 0
-		state.units[id].position = Vector2(-12 if state.units[id].owner == 1 else -2, -8 + (id % 100) * 1.5 if id < 300 else 2 + (id % 100) * 1.5)
+		state.units[id].position = Vector2(-12 if state.units[id].owner == 1 else 3, -8 + (id % 100) * 1.5 if id < 300 else 2 + (id % 100) * 1.5)
 	return state
 func _initialize() -> void: call_deferred("run")
 func run() -> void:

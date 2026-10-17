@@ -1,4 +1,8 @@
 extends RefCounted
+const RosterValidation = preload("res://scripts/edition_11/roster_validation.gd")
+const Mission = preload("res://scripts/edition_11/chapter_approved.gd")
+const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
+const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 ## Restricted integration exercise, not a complete official 11e match.
 ## Individual movement, optional varied training equipment and defender allocation.
 
@@ -12,6 +16,10 @@ const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const ImplacableEradication = preload("res://scripts/edition_11/implacable_eradication.gd")
 const ObjectiveSecured = preload("res://scripts/edition_11/objective_secured.gd")
 const HailOfBolts = preload("res://scripts/edition_11/hail_of_bolts.gd")
+const Awakened = preload("res://scripts/edition_11/awakened_dynasty.gd")
+const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
+const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
+const OathOfMoment = preload("res://scripts/edition_11/oath_of_moment.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const Actions = preload("res://scripts/edition_11/actions.gd")
 const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
@@ -21,6 +29,8 @@ const Hazard = preload("res://scripts/edition_11/hazardous.gd")
 const Attachments = preload("res://scripts/edition_11/attached_units.gd")
 const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
+const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
+const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const PACK_ID := "11e-3d-integration-v23"
 const DIRECTORY := "res://data/imported/starter-11e-v1"
@@ -124,12 +134,19 @@ static func _weapon(definition: Dictionary, weapon_id: String, profile_name: Str
 static func living(state: Dictionary, squad: int) -> Array[int]:
 	var ids: Array[int] = []
 	for id: int in state.units:
-		if state.units[id].squad == squad and state.units[id].wounds > 0: ids.append(id)
+		if state.units[id].squad == squad and state.units[id].wounds > 0 and state.units[id].get("on_battlefield", true): ids.append(id)
 	return ids
 
 static func actor(state: Dictionary) -> int:
+	if Mission.actor(state) > 0: return Mission.actor(state)
+	if Awakened.needs_setup(state): return Awakened.setup_actor(state)
+	if not Reanimation.pending(state).is_empty(): return int(Reanimation.pending(state).player)
+	if Doctrines.needs_choice(state): return int(state.active)
+	if UnitActions.actor(state) > 0: return UnitActions.actor(state)
 	if state.get("phase", "") == "deployment": return Deployment.actor(state)
+	if DetachmentStratagems.vengeful_actor(state) > 0: return DetachmentStratagems.vengeful_actor(state)
 	if not Stratagems.pending(state).is_empty(): return int(Stratagems.pending(state).player)
+	if CoreReactions.actor(state) > 0: return CoreReactions.actor(state)
 	if not state.get("pending_hazard", {}).is_empty(): return int(state.pending_hazard.player)
 	if not state.get("pending_attack", {}).is_empty():
 		if state.pending_attack.current.get("phase", "") == "precision": return int(state.pending_attack.player)
@@ -166,6 +183,12 @@ static func remove_for_coherency(state: Dictionary, player: int, model: int, rev
 	return ""
 
 static func _command_error(state: Dictionary, player: int, expected_revision: int) -> String:
+	if Awakened.needs_setup(state): return "Finish Overlord attachment declarations before deployment."
+	if UnitActions.actor(state) > 0: return "Resolve or decline the pending unit ability choices first."
+	if Mission.actor(state) > 0: return "Resolve the mission preparation choice first."
+	if Doctrines.needs_choice(state): return "Choose a Combat Doctrine or no doctrine before continuing Command."
+	if not Reanimation.pending(state).is_empty(): return "Finish Reanimation Protocols before continuing."
+	if OathOfMoment.needs_choice(state): return "Select the Oath of Moment target before continuing the Command phase."
 	if state.get("phase", "") in ["deployment", "army_selection"]: return "Finish army selection and deployment before playing the first turn."
 	if not Stratagems.pending(state).is_empty(): return "Resolve the pending decision before continuing."
 	if not state.get("pending_hazard", {}).is_empty(): return "Finish Hazardous mortal-wound allocation first."
@@ -177,6 +200,7 @@ static func _command_error(state: Dictionary, player: int, expected_revision: in
 
 static func _event(state: Dictionary, message: String) -> void:
 	Actions.reconcile(state)
+	UnitActions.reconcile(state)
 	state.revision += 1
 	state.events.append({"revision": state.revision, "message": message})
 	if state.events.size() > 30: state.events.pop_front()
@@ -187,25 +211,42 @@ static func advance_phase(state: Dictionary, player: int, revision: int, roller:
 	if not state.pending_contact.is_empty(): return "Confirm or cancel the pending contact movement first."
 	if not state.pending_move.is_empty(): return "Confirm or cancel the squad's movement before advancing."
 	if state.phase == "charge" and not state.pending_charge.is_empty(): return "Resolve or decline the rolled charge before advancing."
+	if CoreReactions.actor(state) > 0: return "Resolve Fire Overwatch shooting or the Heroic Intervention charge first."
 	if state.phase == "fight" and state.fight_step != "complete": return _advance_fight(state, player, false, selected_squad)
 	if state.phase == "end_turn" and incoherent_squad(state) != -1:
 		return "The controlling player must select coherency casualties before ending the turn."
+	if state.phase == "start_turn": UnitActions.start_round(state)
 	if state.phase == "command":
-		if Stratagems.open_command(state):
-			_event(state, "Battle-shock: choose a unit to roll the test or use Insane Bravery before rolling.")
+		error = Reanimation.phase_error(state)
+		if not error.is_empty(): return error
+		if not Reanimation.morale_done(state):
+			if Stratagems.open_command(state):
+				_event(state, "Battle-shock: choose a unit to roll the test or use Insane Bravery before rolling.")
+				return ""
+			if not state.has("stratagems"):
+				var morale: Dictionary = Morale.resolve_command(state, roller)
+				if not morale.error.is_empty(): return morale.error
+				state.last_morale = morale.results
+				for result: Dictionary in morale.results:
+					state.squads[result.squad].battle_shocked = not result.passed
+					state.events.append({"revision": state.revision + 1, "message": "%s battle-shock: %s vs %d — %s." % [state.squads[result.squad].name, str(result.rolls), result.target, "passed" if result.passed else "battle-shocked"]})
+		_resolve_current_end_control(state)
+		if Reanimation.open_end_command(state):
+			_event(state, "End of Command: resolve each Necron unit's Reanimation Protocols.")
 			return ""
-		if not state.has("stratagems"):
-			var morale: Dictionary = Morale.resolve_command(state, roller)
-			if not morale.error.is_empty(): return morale.error
-			state.last_morale = morale.results
-			for result: Dictionary in morale.results:
-				state.squads[result.squad].battle_shocked = not result.passed
-				state.events.append({"revision": state.revision + 1, "message": "%s battle-shock: %s vs %d — %s." % [state.squads[result.squad].name, str(result.rolls), result.target, "passed" if result.passed else "battle-shocked"]})
+	_resolve_current_end_control(state)
+	if UnitActions.open_end(state):
+		_event(state, "End of phase: resolve or decline optional unit abilities.")
+		return ""
 	# Command morale resolves before end-of-phase control. Draft placements never capture.
-	if state.phase in ["command", "movement", "shooting", "charge", "fight"]:
+	if not UnitAbilities.enabled(state) and state.phase in ["command", "movement", "shooting", "charge", "fight"]:
 		Objectives.resolve_control(state)
 	var ability_note := ObjectiveSecured.end_command(state)
-	if state.phase == "end_turn" and state.active == 2:
+	if Mission.enabled(state):
+		if Mission.score(state):
+			_event(state, Mission.summary(state))
+			return ""
+	if state.phase == "end_turn" and state.active != state.get("first_player", 1):
 		var scoring := Objectives.score_round(state)
 		if not scoring.is_empty():
 			if state.test_winner != 0:
@@ -216,9 +257,10 @@ static func advance_phase(state: Dictionary, player: int, revision: int, roller:
 	if next == PHASES.size():
 		state.active = 3 - state.active
 		state.turn += 1
-		if state.active == 1: state.round += 1
+		if state.active == state.get("first_player", 1): state.round += 1
 		state.phase = PHASES[0]
 		for squad: int in state.squads:
+			state.squads[squad].set_up_this_turn = false
 			state.squads[squad].moved = false
 			state.squads[squad].shot = false
 			state.squads[squad].moved_distance = 0.0
@@ -229,18 +271,37 @@ static func advance_phase(state: Dictionary, player: int, revision: int, roller:
 			state.squads[squad].fell_back = false
 		for id: int in state.units: state.units[id].moved = false
 	else:
+		if state.phase == "fight": DetachmentStratagems.remove_lingering(state)
 		if state.phase == "movement":
 			for squad: int in state.squads:
 				if state.squads[squad].owner == state.active and not state.squads[squad].moved:
 					state.squads[squad].move_type = "stationary"
 					state.squads[squad].moved = true
 		state.phase = PHASES[next]
+	if state.phase == "charge" and state.has("core_reactions"):
+		state.core_reactions.chargers = []
+		state.core_reactions.charge_closed = false
+		state.core_reactions.heroic = {}
 	if state.phase == "command":
-		state.cp[1] += 1
-		state.cp[2] += 1
+		UnitAbilities.start_command(state)
+		Doctrines.start_command(state)
+		OathOfMoment.start_command(state)
+		Reanimation.start_command(state)
+		if Doctrines.needs_choice(state):
+			state.combat_doctrines.cp_pending_turn = state.turn
+		else:
+			state.cp[1] += 1
+			state.cp[2] += 1
 	if state.phase == "fight": _begin_fight(state)
 	if state.phase == "end_turn": Actions.complete_end_turn(state)
 	_event(state, "Player %d: %s" % [state.active, state.phase] + (" • " + ability_note if not ability_note.is_empty() else ""))
+	return ""
+
+static func select_oath_target(state: Dictionary, player: int, target: int, revision: int) -> String:
+	var error := OathOfMoment.choice_error(state, player, target, revision)
+	if not error.is_empty(): return error
+	OathOfMoment.select_target(state, player, target)
+	_event(state, "Player %d: Oath of Moment targets %s (June 2026 rules profile)." % [player, state.squads[target].name])
 	return ""
 
 static func resolve_command_reaction(state: Dictionary, player: int, squad: int, stratagem: String, revision: int, roller: Callable = Callable()) -> String:
@@ -300,7 +361,7 @@ static func movement_choice_error(state: Dictionary, player: int, model: int, mo
 	var error := _command_error(state, player, revision)
 	if not error.is_empty(): return error
 	if state.phase != "movement": return "Select movement types only in the Movement phase."
-	if not state.units.has(model) or state.units[model].wounds <= 0 or state.units[model].owner != player:
+	if not state.units.has(model) or state.units[model].wounds <= 0 or not state.units[model].get("on_battlefield", true) or state.units[model].owner != player:
 		return "Select a living model in your squad."
 	if not state.pending_move.is_empty(): return "Finish the selected move before choosing another type."
 	var squad: int = state.units[model].squad
@@ -341,9 +402,14 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 				draft.hazard_rolls.append(roll)
 				if roll <= 2: draft.hazard_remaining += 1
 		if not dice.error.is_empty(): return dice.error
-	if move_type == "advance" and Stratagems.open_roll(state, player, squad, "after_advance_roll", [draft.bonus], draft):
-		_event(state, "%s: Advance D6 = %d. Accept or use Command Re-roll before moving." % [state.squads[squad].name, draft.bonus])
-		return ""
+	if move_type == "advance":
+		var opened := Stratagems.open_roll(state, player, squad, "after_advance_roll", [draft.bonus], draft)
+		if DetachmentStratagems.sudden_led_advance(state, squad):
+			if opened: state.stratagems.pending.sudden = true
+			elif DetachmentStratagems.open_advance(state, player, squad, [draft.bonus], draft): opened = true
+		if opened:
+			_event(state, "%s: Advance D6 = %d. Accept%s before moving." % [state.squads[squad].name, draft.bonus, ", re-roll with Sudden Storm" if state.stratagems.pending.get("sudden", false) else " or use Command Re-roll"])
+			return ""
 	state.pending_move = draft
 	if move_type == "desperate_escape" and state.get("stratagems", {}).get("escape_rerolls", false):
 		# New capability uses the shared hazard rule, including all-heavy units.
@@ -425,7 +491,7 @@ static func allocate_escape_wound(state: Dictionary, player: int, model: int, re
 	state.pending_move.hazard_remaining -= 1
 	if living(state, squad).is_empty():
 		state.pending_move = {}
-		if not Objectives.training(state) and living_owner(state, player).is_empty(): state.test_winner = 3 - player
+		if not Objectives.training(state) and not Mission.enabled(state) and living_owner(state, player).is_empty(): state.test_winner = 3 - player
 	_event(state, "Escape mortal wound allocated to model %d." % model)
 	return ""
 
@@ -435,7 +501,7 @@ static func can_start_action(state: Dictionary, squad: int) -> bool:
 static func start_action(state: Dictionary, player: int, model: int, objective: int, revision: int) -> String:
 	var error := _command_error(state, player, revision)
 	if not error.is_empty(): return error
-	if not state.units.has(model) or state.units[model].wounds <= 0 or state.units[model].owner != player: return "Select a living model in your unit."
+	if not state.units.has(model) or state.units[model].wounds <= 0 or not state.units[model].get("on_battlefield", true) or state.units[model].owner != player: return "Select a living model in your unit."
 	var squad: int = state.units[model].squad
 	error = Actions.start_error(state, squad, objective)
 	if not error.is_empty(): return error
@@ -449,6 +515,7 @@ static func validate_move(state: Dictionary, player: int, id: int, destination: 
 	if state.phase != "movement": return "Moves are allowed only in the Movement phase."
 	if not state.units.has(id) or state.units[id].wounds <= 0: return "Select a living miniature."
 	var unit: Dictionary = state.units[id]
+	if not unit.get("on_battlefield", true): return "Reserved models must arrive with an ingress move."
 	if unit.owner != player: return "You cannot move an opponent's miniature."
 	if state.squads[unit.squad].moved: return "This squad has already resolved its move."
 	if not state.pending_move.is_empty() and state.pending_move.squad != unit.squad: return "Finish the active squad's movement first."
@@ -462,7 +529,7 @@ static func validate_move(state: Dictionary, player: int, id: int, destination: 
 	var through_enemies: bool = state.pending_move.get("move_type", "normal") == "desperate_escape"
 	if not Contact.clear_path(state, id, destination, remaining, through_enemies): return "The base cannot cross terrain, a blocking enemy base, or the board edge."
 	for other: int in state.units:
-		if other == id or state.units[other].wounds <= 0: continue
+		if other == id or state.units[other].wounds <= 0 or not state.units[other].get("on_battlefield", true): continue
 		if destination.distance_to(state.units[other].position) < float(unit.radius) + float(state.units[other].radius) - 0.001:
 			return "Bases cannot overlap at the destination."
 	# Engagement is checked after the entire unit move, not along its path.
@@ -516,6 +583,7 @@ static func finish_movement(state: Dictionary, player: int, revision: int, cance
 	state.squads[squad].advanced = move_type == "advance"
 	state.squads[squad].fell_back = move_type in ["ordered_retreat", "desperate_escape"]
 	state.pending_move = {}
+	UnitActions.end_move(state, squad)
 	_event(state, "%s movement confirmed; longest model path %.2f inches." % [state.squads[squad].name, longest])
 	return ""
 
@@ -524,16 +592,19 @@ static func declare_charge(state: Dictionary, player: int, model: int, revision:
 	if not error.is_empty(): return {"error": error}
 	if state.phase != "charge": return {"error": "Declare charges only in the Charge phase."}
 	if not state.pending_charge.is_empty(): return {"error": "Resolve the pending charge first."}
-	if not state.units.has(model) or state.units[model].wounds <= 0 or state.units[model].owner != player:
+	if not state.units.has(model) or state.units[model].wounds <= 0 or not state.units[model].get("on_battlefield", true) or state.units[model].owner != player:
 		return {"error": "Select a living model in your squad."}
 	var squad: int = state.units[model].squad
-	if state.squads[squad].advanced or state.squads[squad].fell_back: return {"error": "A squad that Advanced or Fell Back cannot declare a charge this turn."}
+	error = Doctrines.charge_error(state, squad)
+	if not error.is_empty(): return {"error": error}
 	if Actions.charge_blocked(state, squad): return {"error": "Starting an action prevents charges until the turn ends."}
 	if state.squads[squad].charge_declared: return {"error": "This squad already declared a charge this phase."}
 	if _engaged(state, squad): return {"error": "Engaged squads cannot declare a charge."}
 	var nearest := INF
 	for enemy: int in ContactActions.enemies(state, squad):
 		for id: int in living(state, squad): nearest = minf(nearest, Contact.distance_to_target(state, state.units[id], enemy))
+	error = CoreReactions.charge_error(state, player, squad)
+	if not error.is_empty(): return {"error": error}
 	if nearest > 12.0: return {"error": "No enemy unit within 12 inches."}
 	if not roller.is_valid(): return {"error": "Missing host dice provider."}
 	var dice := Attacks.Dice.new(roller)
@@ -541,6 +612,7 @@ static func declare_charge(state: Dictionary, player: int, model: int, revision:
 	if not dice.error.is_empty(): return {"error": dice.error}
 	var maximum: int = rolls[0] + rolls[1]
 	state.squads[squad].charge_declared = true
+	if player == state.active: CoreReactions.record_charger(state, squad)
 	if Stratagems.open_roll(state, player, squad, "after_charge_roll", rolls):
 		var notice := "%s: Charge %s = %d. Accept or use Command Re-roll on both dice." % [state.squads[squad].name, str(rolls), maximum]
 		_event(state, notice)
@@ -548,13 +620,14 @@ static func declare_charge(state: Dictionary, player: int, model: int, revision:
 	return _accept_charge_roll(state, squad, rolls)
 
 static func _accept_charge_roll(state: Dictionary, squad: int, rolls: Array) -> Dictionary:
-	var maximum: int = rolls[0] + rolls[1]
+	var maximum: int = CoreReactions.cap_charge(state, squad, rolls[0] + rolls[1])
 	var nearest := INF
 	for enemy: int in ContactActions.enemies(state, squad):
 		for id: int in living(state, squad): nearest = minf(nearest, Contact.distance_to_target(state, state.units[id], enemy))
 	var message := "%s charge roll: %s = %d inches. Choose a target now." % [state.squads[squad].name, str(rolls), maximum]
 	if maximum < nearest:
 		message = "%s charge failed: %s = %d, no target within the rolled distance." % [state.squads[squad].name, str(rolls), maximum]
+		if CoreReactions.heroic_charger(state, state.squads[squad].owner, squad): CoreReactions.clear_heroic(state)
 	else:
 		state.pending_charge = {"squad": squad, "maximum": maximum, "rolls": rolls, "targets": []}
 	_event(state, message)
@@ -565,23 +638,25 @@ static func resolve_roll_reaction(state: Dictionary, player: int, squad: int, st
 	if window.get("kind") not in ["after_advance_roll", "after_charge_roll"]: return "No Advance or Charge roll is waiting for a decision."
 	var error := Stratagems.choice_error(state, player, squad, revision)
 	if not error.is_empty(): return error
-	if stratagem not in ["", "command-re-roll"]: return "Stratagem unavailable for this roll."
+	if stratagem not in ["", "command-re-roll", "sudden-storm"]: return "Stratagem unavailable for this roll."
+	if stratagem == "sudden-storm" and (window.kind != "after_advance_roll" or not window.get("sudden", false)): return "Sudden Storm Advance re-roll is not available."
 	var rolls: Array = window.rolls.duplicate()
 	if not stratagem.is_empty():
-		error = Stratagems.use_error(state, player, squad, stratagem, revision)
-		if not error.is_empty(): return error
-		if not roller.is_valid(): return "Command Re-roll requires the host's dice."
+		if stratagem == "command-re-roll":
+			error = Stratagems.use_error(state, player, squad, stratagem, revision)
+			if not error.is_empty(): return error
+		if not roller.is_valid(): return "This re-roll requires the host's dice."
 		var dice := Attacks.Dice.new(roller)
 		rolls = [dice.d6()] if window.kind == "after_advance_roll" else [dice.d6(), dice.d6()]
 		if not dice.error.is_empty(): return dice.error
 	var working := state.duplicate(true)
-	if not stratagem.is_empty(): Stratagems.consume(working, player, squad, stratagem)
+	if stratagem == "command-re-roll": Stratagems.consume(working, player, squad, stratagem)
 	working.stratagems.pending = {}
 	working.last_command_roll = {"kind": window.kind, "squad": squad, "original_rolls": window.rolls.duplicate(), "rolls": rolls.duplicate(), "rerolled": not stratagem.is_empty()}
 	if window.kind == "after_advance_roll":
 		working.pending_move = window.draft.duplicate(true)
 		working.pending_move.bonus = rolls[0]
-		_event(working, "%s: final Advance %s = %d%s. Movement can begin." % [working.squads[squad].name, str(rolls), rolls[0], " • Command Re-roll, 1 CP" if not stratagem.is_empty() else " • result accepted"])
+		_event(working, "%s: final Advance %s = %d%s. Movement can begin." % [working.squads[squad].name, str(rolls), rolls[0], " • Sudden Storm re-roll" if stratagem == "sudden-storm" else (" • Command Re-roll, 1 CP" if stratagem == "command-re-roll" else " • result accepted")])
 	else:
 		var result := _accept_charge_roll(working, squad, rolls)
 		if not result.error.is_empty(): return result.error
@@ -597,7 +672,9 @@ static func decline_charge(state: Dictionary, player: int, revision: int) -> Str
 	if not state.pending_contact.is_empty():
 		ContactActions.restore(state)
 		state.pending_contact = {}
+	var heroic_squad: int = int(state.pending_charge.get("squad", -1))
 	state.pending_charge = {}
+	if CoreReactions.heroic_charger(state, player, heroic_squad): CoreReactions.clear_heroic(state)
 	_event(state, "Charge resolved without moving; it cannot be rolled again this phase.")
 	return ""
 
@@ -613,6 +690,8 @@ static func select_charge_target(state: Dictionary, player: int, target: int, re
 	var nearest := INF
 	for id: int in living(state, squad): nearest = minf(nearest, Contact.distance_to_target(state, state.units[id], enemy))
 	if nearest > minf(12.0, state.pending_charge.maximum): return {"error": "Target must be within 12 inches and the full rolled distance."}
+	error = CoreReactions.leap_target_error(state, squad, enemy)
+	if not error.is_empty(): return {"error": error}
 	if not state.pending_charge.has("targets"): state.pending_charge.targets = []
 	if enemy in state.pending_charge.targets: state.pending_charge.targets.erase(enemy)
 	else: state.pending_charge.targets.append(enemy)
@@ -626,7 +705,7 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 	var error := _command_error(state, player, revision)
 	if not error.is_empty(): return error
 	if not state.pending_contact.is_empty(): return "Finish the pending contact move first."
-	if not state.units.has(model) or state.units[model].wounds <= 0 or state.units[model].owner != player: return "Select a living model in your squad."
+	if not state.units.has(model) or state.units[model].wounds <= 0 or not state.units[model].get("on_battlefield", true) or state.units[model].owner != player: return "Select a living model in your squad."
 	var squad: int = state.units[model].squad
 	var targets: Array[int] = []
 	var maximum := 3.0
@@ -697,6 +776,7 @@ static func finish_contact_move(state: Dictionary, player: int, revision: int, c
 	var move: Dictionary = state.pending_contact
 	var squad: int = move.squad
 	state.pending_contact = {}
+	UnitActions.end_move(state, squad)
 	for id: int in move.spent: state.units[id].moved = true
 	if move.kind == "charge":
 		Actions.interrupt(state, squad, "unit made a charge move")
@@ -704,6 +784,7 @@ static func finish_contact_move(state: Dictionary, player: int, revision: int, c
 			state.squads[squad].moved_distance = maxf(state.squads[squad].moved_distance, float(move.spent[id]))
 		state.squads[squad].charged = true
 		state.pending_charge = {}
+		if CoreReactions.heroic_charger(state, player, squad): CoreReactions.clear_heroic(state)
 		_event(state, "%s charge confirmed; Fights First until this turn ends." % state.squads[squad].name)
 	elif move.kind == "overrun":
 		state.squads[squad].overrun_used = true
@@ -786,7 +867,7 @@ static func _select_fighter(state: Dictionary, cursor: int) -> void:
 	for squad: int in state.squads:
 		if _eligible_fighter(state, squad): state.squads[squad].fight_eligible = true
 	var pool := FightQueue.pool(state)
-	state.fight_priority = "first" if not pool.is_empty() and state.squads[pool[0]].charged else "remaining"
+	state.fight_priority = "first" if not pool.is_empty() and (state.squads[pool[0]].charged or state.squads[pool[0]].get("fights_first", false)) else "remaining"
 	if not FightQueue.choose_actor(state, cursor): _select_consolidation(state)
 
 static func _start_fights(state: Dictionary) -> void:
@@ -840,16 +921,16 @@ static func attack_window_error(state: Dictionary, player: int, attacker: int, r
 	var error := _command_error(state, player, revision)
 	if not error.is_empty(): return error
 	if not state.pending_contact.is_empty() or not state.pending_move.is_empty(): return "Confirm or cancel placement before attacking."
-	if not state.units.has(attacker) or state.units[attacker].wounds <= 0 or state.units[attacker].owner != player: return "Select your living attacker."
+	if not state.units.has(attacker) or state.units[attacker].wounds <= 0 or not state.units[attacker].get("on_battlefield", true) or state.units[attacker].owner != player: return "Select your living attacker."
 	var squad: int = state.units[attacker].squad
 	if melee:
 		if state.phase != "fight" or state.fight_step not in ["attacks", "consolidation_reaction"]: return "Resolve pile-in decisions before fighting."
 		if squad not in FightQueue.choices(state, player): return "Select an eligible unit in the current priority or reaction queue."
 	else:
-		if state.phase != "shooting": return "Attacks are allowed only in the Shooting phase."
-		if Actions.shooting_blocked(state, squad): return "Starting an action prevents shooting until the turn ends."
-		if state.squads[squad].shot: return "This squad already shot this phase."
-		if state.squads[squad].fell_back: return "A squad that Fell Back cannot shoot this turn."
+		if not CoreReactions.overwatch_shooter(state, squad) and state.phase != "shooting": return "Attacks are allowed only in the Shooting phase."
+		if Actions.shooting_blocked(state, squad) and not CoreReactions.overwatch_shooter(state, squad): return "Starting an action prevents shooting until the turn ends."
+		if state.squads[squad].shot and not DetachmentStratagems.vengeful_shooter(state, squad) and not CoreReactions.overwatch_shooter(state, squad): return "This squad already shot this phase."
+		if state.squads[squad].fell_back and not Doctrines.shoot_after_fallback(state, squad) and not CoreReactions.overwatch_shooter(state, squad): return "A squad that Fell Back needs Tactical Doctrine to shoot this turn."
 	return ""
 
 static func attack_plan_error(state: Dictionary, player: int, attacker: int, entries: Array, revision: int, melee: bool, use_lethal: bool = true, hail_target: int = -1) -> String:
@@ -864,9 +945,11 @@ static func resolve_attack_plan(state: Dictionary, player: int, attacker: int, e
 	var prepared := AttackPlan.prepare(state, squad, melee, entries, use_lethal, hail_target)
 	if not prepared.error.is_empty(): return prepared
 	var precision := false
+	var ability_window := false
 	for batch: Dictionary in prepared.batches:
 		if batch.weapon.keywords.get("precision", false): precision = true
-	if state.get("manual_allocation", false) or precision or state.get("stratagems", {}).get("attack_rerolls", false) or state.get("stratagems", {}).get("save_rerolls", false) or state.get("stratagems", {}).get("damage_rerolls", false) or state.get("stratagems", {}).get("count_rerolls", false):
+		if batch.context.get("free_wound_reroll", false): ability_window = true
+	if state.get("manual_allocation", false) or precision or ability_window or state.get("stratagems", {}).get("attack_rerolls", false) or state.get("stratagems", {}).get("save_rerolls", false) or state.get("stratagems", {}).get("damage_rerolls", false) or state.get("stratagems", {}).get("count_rerolls", false):
 		var working := state.duplicate(true)
 		Allocation.start(working, prepared, squad, player, entries, melee, not state.get("manual_allocation", false))
 		var rolled := Allocation.pump(working, roller)
@@ -874,7 +957,7 @@ static func resolve_attack_plan(state: Dictionary, player: int, attacker: int, e
 		var result: Dictionary
 		if rolled.complete: result = _finish_pending_attack(working, roller)
 		else:
-			var message := "Attack declared; player %d must allocate damage to %s." % [actor(working), working.squads[working.pending_attack.current.target].name]
+			var message := "Implacable Eradication: choose wound rerolls before saves." if UnitActions.pending(working).get("kind", "") == "wound" else "Attack declared; player %d must allocate damage to %s." % [actor(working), working.squads[working.pending_attack.current.target].name]
 			if not Stratagems.pending(working).is_empty(): message = "Attack paused: accept the roll or choose a D6 for Command Re-roll before the next step."
 			_event(working, message)
 			result = {"error": "", "message": message, "pools": working.pending_attack.pools}
@@ -915,15 +998,24 @@ static func _commit_finished_attack(state: Dictionary, squad: int, player: int, 
 	if melee:
 		state.squads[squad].fought = true
 		state.squads[squad].fight_eligible = true
+		DetachmentStratagems.remove_lingering(state, squad)
+		state.squads[squad].fights_first = false
 		if state.fight_step == "consolidation_reaction": _resume_consolidation(state)
-		else: _select_fighter(state, 3 - player)
+		elif not CoreReactions.offer_counter(state, squad): _select_fighter(state, 3 - player)
 	else:
-		state.squads[squad].shot = true
-		state.squads[squad].last_ranged_turn = state.turn
+		if CoreReactions.overwatch_shooter(state, squad):
+			CoreReactions.clear_overwatch(state)
+		else:
+			state.squads[squad].shot = true
+			state.squads[squad].last_ranged_turn = state.turn
+		if DetachmentStratagems.vengeful_shooter(state, squad): DetachmentStratagems.clear_vengeful(state)
+	DetachmentStratagems.after_attacks(state, squad, prepared.targets, int(resolved.killed))
 	var names: Array[String] = []
 	for target: int in prepared.targets: names.append(state.squads[target].name)
 	var message := "%s%s → %s: %d damage, %d models destroyed." % [state.squads[squad].name, " melee" if melee else "", ", ".join(names), resolved.damage, resolved.killed]
-	if not Objectives.training(state) and (living_owner(state, 1).is_empty() or living_owner(state, 2).is_empty()):
+	if melee and not state.get("unit_abilities", {}).get("window", {}).is_empty() and state.unit_abilities.window.get("kind", "") == "counter":
+		message += " Opponent may use Counteroffensive or decline."
+	if not Objectives.training(state) and not Mission.enabled(state) and (living_owner(state, 1).is_empty() or living_owner(state, 2).is_empty()):
 		state.test_winner = -1 if living_owner(state, 1).is_empty() and living_owner(state, 2).is_empty() else (2 if living_owner(state, 1).is_empty() else 1)
 		message += " Elimination exercise finished."
 	state.last_attack = {"message": message, "pools": resolved.pools, "assignments": entries.duplicate(true), "targets": prepared.targets.duplicate()}
@@ -1077,3 +1169,90 @@ static func fight(state: Dictionary, player: int, attacker: int, target: int, re
 
 static func shoot(state: Dictionary, player: int, attacker: int, target: int, revision: int, use_lethal: bool, roller: Callable) -> Dictionary:
 	return _single_target_attack(state, player, attacker, target, revision, false, use_lethal, roller)
+
+static func resolve_reanimation(state: Dictionary, player: int, action: String, squad: int, model: int, position: Vector2, revision: int, roller: Callable = Callable()) -> String:
+	var error := Reanimation.choice_error(state, player, revision)
+	if not error.is_empty(): return error
+	if action not in ["roll", "place", "suggest", "unplaceable", "reset", "confirm"]: return "Unknown Reanimation action."
+	if Reanimation.pending(state).current.get("reroll_pending", false): return "Accept or re-roll Their Number is Legion before assigning healing."
+	var working := state.duplicate(true)
+	var result: Dictionary
+	match action:
+		"roll": result = Reanimation.roll_unit(working, squad, roller)
+		"place": result = Reanimation.place_model(working, model, position)
+		"suggest": result = Reanimation.suggest(working)
+		"unplaceable": result = Reanimation.declare_unplaceable(working, model)
+		"reset": result = Reanimation.reset_preview(working)
+		"confirm": result = Reanimation.confirm_unit(working)
+	if not result.error.is_empty(): return result.error
+	_event(working, result.message)
+	if Reanimation.pending(working).is_empty() and UnitActions.pending(working).is_empty():
+		error = advance_phase(working, player, working.revision, roller)
+		if not error.is_empty(): return error
+	state.clear()
+	state.merge(working, true)
+	return ""
+
+static func select_combat_doctrine(state: Dictionary, player: int, doctrine: String, revision: int) -> String:
+	var error := Doctrines.choice_error(state, player, doctrine, revision)
+	if not error.is_empty(): return error
+	Doctrines.select_doctrine(state, player, doctrine)
+	if state.combat_doctrines.cp_pending_turn == state.turn:
+		state.cp[1] += 1
+		state.cp[2] += 1
+		state.combat_doctrines.cp_pending_turn = -1
+	_event(state, "Player %d: %s (11e Combat Doctrines; Gladius extra use %s)." % [player, Doctrines.NAMES[doctrine], "spent" if state.combat_doctrines.extra_used.get(player, false) else "available"])
+	return ""
+
+static func select_awakened_attachment(state: Dictionary, player: int, bodyguard: int, revision: int) -> String:
+	if Mission.actor(state) > 0: return "Resolve mission preparation before attachment declarations."
+	var leader: int = state.get("awakened_dynasty", {}).get("pending", [-1])[0] if Awakened.needs_setup(state) else -1
+	var error := Awakened.choose(state, player, bodyguard, revision)
+	if not error.is_empty(): return error
+	_event(state, "Player %d declared Overlord %d %s. Review and confirm deployment for every model." % [player, leader, "standalone" if bodyguard == -1 else "leading " + state.squads[bodyguard].name])
+	return ""
+
+static func unit_choices(state: Dictionary, player: int) -> Array:
+	if Mission.actor(state) > 0: return Mission.choices(state, player)
+	return UnitActions.choices(state, player)
+
+static func unit_action(state: Dictionary, player: int, selected: Dictionary, point: Vector2, revision: int, roller: Callable = Callable()) -> String:
+	if revision != state.get("revision", -1): return "State changed; synchronize before choosing an ability."
+	if selected not in unit_choices(state, player): return "This unit ability choice is no longer legal."
+	var working := state.duplicate(true)
+	if Mission.actor(working) > 0:
+		var mission_error := Mission.apply(working, player, selected, roller)
+		if not mission_error.is_empty(): return mission_error
+		if selected.action == "mission-side": Deployment.begin(working)
+		_event(working, selected.label)
+		state.clear()
+		state.merge(working, true)
+		return ""
+	var was_reanimation := not Reanimation.pending(working).is_empty()
+	var result := UnitActions.apply(working, player, selected, point, roller)
+	if not result.get("error", "").is_empty(): return result.error
+	if Mission.enabled(working) and selected.action == "setup-done" and working.unit_abilities.get("setup_players", []).size() == 2:
+		Mission.preview(working)
+	if result.get("resume_fight", false):
+		_select_fighter(working, int(result.get("resume_cursor", working.active)))
+	if result.get("resume_attack", false):
+		var resumed := Allocation.pump(working, roller)
+		if not resumed.error.is_empty(): return resumed.error
+		if resumed.complete:
+			var finished := _finish_pending_attack(working, roller)
+			if not finished.error.is_empty(): return finished.error
+		else: _event(working, selected.label)
+	else: _event(working, selected.label)
+	if result.get("advance", false) or (was_reanimation and Reanimation.pending(working).is_empty() and UnitActions.pending(working).is_empty()):
+		var error := advance_phase(working, working.active, working.revision, roller)
+		if not error.is_empty(): return error
+	state.clear()
+	state.merge(working, true)
+	return ""
+
+static func _resolve_current_end_control(state: Dictionary) -> void:
+	if not UnitAbilities.enabled(state) or (state.phase not in ["command", "movement", "shooting", "charge", "fight"] and not (Mission.enabled(state) and state.phase == "end_turn")): return
+	var phase_key := UnitActions.key(state)
+	if state.unit_abilities.get("control_done", "") == phase_key: return
+	Objectives.resolve_control(state)
+	state.unit_abilities.control_done = phase_key

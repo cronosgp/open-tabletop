@@ -42,7 +42,7 @@ static func validate_segment(state: Dictionary, model: int, destination: Vector2
 	if state.units[model].position.distance_to(destination) <= EPSILON: return "Choose a different destination."
 	if not Geometry.clear_path(state, model, destination, remaining(state, model)): return "Contact movement exceeds its budget or crosses terrain, an enemy base, or the board edge."
 	for other: int in state.units:
-		if other == model or state.units[other].wounds <= 0: continue
+		if other == model or state.units[other].wounds <= 0 or not state.units[other].get("on_battlefield", true): continue
 		if destination.distance_to(state.units[other].position) < float(state.units[model].radius) + float(state.units[other].radius) - EPSILON:
 			return "Bases cannot overlap at the destination."
 	return ""

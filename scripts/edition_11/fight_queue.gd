@@ -5,7 +5,7 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 static func engaged(state: Dictionary, squad: int) -> bool:
 	for id: int in Geometry.alive(state, squad):
 		for other: int in state.units:
-			if state.units[other].wounds > 0 and state.units[other].owner != state.squads[squad].owner and Geometry.edge(state.units[id], state.units[other]) <= 2.001: return true
+			if state.units[other].wounds > 0 and state.units[other].get("on_battlefield", true) and state.units[other].owner != state.squads[squad].owner and Geometry.edge(state.units[id], state.units[other]) <= 2.001: return true
 	return false
 
 static func eligible(state: Dictionary, squad: int) -> bool:
@@ -23,7 +23,7 @@ static func pool(state: Dictionary) -> Array[int]:
 			if squad in state.get("reaction_queue", []) and eligible(state, squad): result.append(squad)
 		elif eligible(state, squad):
 			result.append(squad)
-			if state.squads[squad].charged: first.append(squad)
+			if state.squads[squad].charged or state.squads[squad].get("fights_first", false): first.append(squad)
 	if state.fight_step == "attacks" and not first.is_empty(): result = first
 	var selected: int = state.get("fight_selected", -1)
 	if selected in result and state.fight_step in ["attacks", "consolidation_reaction"]: result = [selected]

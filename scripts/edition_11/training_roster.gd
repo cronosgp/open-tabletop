@@ -1,5 +1,6 @@
 extends RefCounted
 ## Explicit admission to partial training, never certification of official armies.
+const Checked = preload("res://scripts/edition_11/roster_validation.gd")
 const Capabilities = preload("res://scripts/edition_11/army_capabilities.gd")
 const Pack = preload("res://scripts/data_pack.gd")
 const Roster = preload("res://scripts/army_roster.gd")
@@ -111,7 +112,7 @@ static func reprice(list: Dictionary) -> Dictionary:
 	return {"error": "", "list": updated}
 
 ## Built-ins are independent copies, never inserted into a profile implicitly.
-static func presets() -> Array[Dictionary]:
+static func presets(checked: bool = false) -> Array[Dictionary]:
 	var lists: Array[Dictionary] = []
 	for faction: String in ["Space Marines", "Necrons"]:
 		for copies in [1, 2]:
@@ -125,4 +126,27 @@ static func presets() -> Array[Dictionary]:
 	for faction: String in ["Space Marines", "Necrons"]:
 		var result := Capabilities.reference_army(faction)
 		if result.error.is_empty() and inspect(result.list).error.is_empty(): lists.append(result.list)
+	var led := awakened_reference()
+	if led.error.is_empty() and inspect(led.list).error.is_empty(): lists.append(led.list)
+	if checked:
+		for faction in ["Space Marines", "Necrons"]:
+			var result := Checked.preset(faction)
+			if result.error.is_empty(): lists.append(result.list)
+		var full := Checked.marine_incursion_list()
+		if full.error.is_empty(): lists.append(full.list)
+		var necron_full := Checked.necron_incursion_list()
+		if necron_full.error.is_empty(): lists.append(necron_full.list)
 	return lists
+
+static func awakened_reference() -> Dictionary:
+	var list := Roster.new_list("11e", "Necrons", "training", 500)
+	list.id = "preset:necrons-awakened-v1"
+	list.name = "Necrons • Overlord + Warriors + Immortals"
+	list.pricing_source = "starter-training-v1"
+	list.notes = "Command Protocols training; enable Awakened Dynasty and declare the Overlord attachment before deployment. Other rules and full legality are pending."
+	for source: String in ["overlord", "necron-warriors", "immortals"]:
+		var resolved := Capabilities.resolve("Necrons", "40kdc:11e:necrons:" + source)
+		if not resolved.error.is_empty(): return resolved
+		list.catalog_digest = resolved.pack_hash
+		list.entries.append({"unit_id": resolved.unit.id, "name": resolved.unit.name, "edition": "11e", "faction": "Necrons", "role": Roster.role(resolved.unit.keywords), "models": resolved.models, "cost": resolved.cost, "copies": 1, "source_digest": resolved.pack_hash})
+	return {"error": "", "list": list}

@@ -1,9 +1,11 @@
 extends RefCounted
+const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const RollWindows = preload("res://scripts/edition_11/attack_roll_window.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
+const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
 
 static func eligible(state: Dictionary) -> Array[int]:
 	var pending: Dictionary = state.get("pending_attack", {})
@@ -20,11 +22,13 @@ static func eligible(state: Dictionary) -> Array[int]:
 
 static func start(state: Dictionary, prepared: Dictionary, squad: int, player: int, entries: Array, melee: bool, assist: bool = false, precision_prompt: bool = true) -> void:
 	state.pending_attack = {"prepared": prepared.duplicate(true), "squad": squad, "player": player, "entries": entries.duplicate(true), "melee": melee,
-		"index": 0, "current": {}, "pools": [], "damage": 0, "killed": 0, "assist": assist, "precision_prompt": precision_prompt}
+		"index": 0, "current": {}, "pools": [], "damage": 0, "killed": 0, "assist": assist, "precision_prompt": precision_prompt, "ability_saves": {}}
+	for target: int in prepared.targets: state.pending_attack.ability_saves[target] = UnitAbilities.save_bonus(state, target)
 
 static func saved(state: Dictionary, current: Dictionary, model: int, roll: int) -> bool:
 	var profile := Groups.profile(state, model)
-	return roll != 1 and ((profile.invulnerable_target > 0 and roll >= profile.invulnerable_target) or roll + int(current.weapon.ap) >= profile.save_target)
+	var bonus: int = state.pending_attack.get("ability_saves", {}).get(state.units[model].squad, 0)
+	return roll != 1 and ((profile.invulnerable_target > 0 and roll + bonus >= profile.invulnerable_target) or roll + bonus + int(current.weapon.ap) >= profile.save_target)
 
 static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 	var pending: Dictionary = state.pending_attack
@@ -39,14 +43,18 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 			var context: Dictionary = batch.context.duplicate(true)
 			context.defer_saves = true
 			var rolled: Dictionary
-			if state.get("stratagems", {}).get("attack_rerolls", false) or state.get("stratagems", {}).get("count_rerolls", false):
+			if context.get("free_wound_reroll", false) or state.get("stratagems", {}).get("attack_rerolls", false) or state.get("stratagems", {}).get("count_rerolls", false):
 				if pending.current.is_empty():
-					var checkpoint := RollWindows.begin(batch.weapon, defender, context, roller, state.stratagems.get("count_rerolls", false))
+					var checkpoint := RollWindows.begin(batch.weapon, defender, context, roller, state.get("stratagems", {}).get("count_rerolls", false))
 					if not checkpoint.error.is_empty(): return checkpoint
 					pending.current = {"phase": "rolls", "target": batch.target, "checkpoint": checkpoint}
 				while pending.current.checkpoint.phase != "complete":
 					var checkpoint: Dictionary = pending.current.checkpoint
-					var enabled: bool = state.stratagems.get("count_rerolls", false) if checkpoint.phase == "generation" else state.stratagems.get("attack_rerolls", false)
+					if checkpoint.phase == "wound" and checkpoint.context.get("free_wound_reroll", false) and not pending.current.get("free_done", false) and not checkpoint.effective_wounds.is_empty():
+						state.unit_abilities.window = {"kind": "wound", "owners": [pending.player]}
+						return {"error": "", "complete": false}
+					var enabled: bool = state.get("stratagems", {}).get("count_rerolls", false) if checkpoint.phase == "generation" else state.get("stratagems", {}).get("attack_rerolls", false)
+					if checkpoint.phase == "hit" and checkpoint.context.get("snap_shooting", false): enabled = false
 					if enabled and not RollWindows.eligible(checkpoint).is_empty() and Stratagems.eligibility_error(state, pending.player, pending.squad, "command-re-roll").is_empty() and not pending.current.get("accepted", false):
 						state.stratagems.pending = {"kind": "after_attack_count_roll" if checkpoint.phase == "generation" else ("after_hit_roll" if checkpoint.phase == "hit" else "after_wound_roll"), "player": pending.player, "squad": pending.squad, "phase_key": Stratagems.phase_key(state), "rolls": checkpoint.generated.rolls.duplicate() if checkpoint.phase == "generation" else (checkpoint.hit_rolls.duplicate() if checkpoint.phase == "hit" else checkpoint.effective_wounds.duplicate()), "eligible": RollWindows.eligible(checkpoint)}
 						if checkpoint.phase == "generation":
@@ -168,7 +176,7 @@ static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictiona
 	var current: Dictionary = state.pending_attack.current
 	var step: Dictionary = current.steps[current.cursor]
 	var before: int = state.units[model].wounds
-	var prevented := Attacks.Prevention.resolve(int(rolled.value), before, state.units[model].get("feel_no_pain", []), "normal" if step.kind == "normal" else "mortal", roller)
+	var prevented := Attacks.Prevention.resolve(UnitAbilities.damage(state, model, int(rolled.value)), before, state.units[model].get("feel_no_pain", []), "normal" if step.kind == "normal" else "mortal", roller)
 	if not prevented.error.is_empty(): return prevented
 	var applied: int = prevented.lost
 	current.result.prevented_wounds += prevented.prevented
@@ -185,7 +193,10 @@ static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictiona
 	current.result.damage_applied += applied
 	current.result.excess_damage_discarded += prevented.discarded
 	current.result.damage_rolls.append(rolled)
-	if state.units[model].wounds == 0: current.result.models_destroyed += 1
+	if state.units[model].wounds == 0:
+		var held: Dictionary = DetachmentStratagems.hold_destroyed(state, model, roller)
+		if not held.error.is_empty(): return held
+		if not held.held: current.result.models_destroyed += 1
 	current.result.allocations.append({"model": model, "kind": step.kind, "save_roll": step.save_roll, "damage": applied, "rolled_damage": rolled.value, "damage_rolls": rolled.rolls, "discarded": prevented.discarded, "prevention": prevented})
 	current.cursor += 1
 	return {"error": ""}

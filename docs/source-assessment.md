@@ -1,4 +1,18 @@
+Current A3 increment (17 October 2026): [checked Incursion rosters](roster-validation.md) use official live MFM 1.6 points for ten fixed profiles, 2/4 repetition limits, the sole-3DP detachment exception and mandatory Warlord/Support declarations. Two 290-point starters are available under the 1,000-point ceiling. Complete official-match certification, broader equipment/model counts and remaining required detachment/core content are still pending.
+
+Mission reconciliation, 17 October 2026: [the selected CA 2026-27 profile](chapter-approved-mission.md) records current e11 primary/fixed-secondary/map references and official Event Companion v1.3 cross-checks, including PDF checksum and the distinction between custom terrain and official recommended layouts. Historical 2025-26 material under the same e11 site path is not used as a current mission substitute.
+
+Current source reconciliation (17 October 2026): [ten-unit abilities](current-unit-abilities.md#sources-checked-on-17-october-2026) uses the current e11 datasheets and Appendix, with official 14 October Marine errata and September Necron updates checked. Current regular Captain, Intercessor and Lieutenant abilities replace historical roadmap names in the new option. Printed base Codex coverage and reference-point limitations remain explicit.
+
 # External source assessment
+
+## Required rules baseline
+
+The user requires official **Warhammer 40,000 11th edition**, using [Wahapedia e11 core rules](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/) and corresponding `/wh40k11ed/` faction pages as the consultation reference. Cross-check current effects and publication/version boundaries against official Games Workshop material. Never replace a missing current rule with an earlier-edition mechanic or silently combine superseded and current Codex rules. This requirement is also recorded in [AGENTS.md](../AGENTS.md).
+
+The current [Combat Doctrines/Gladius implementation](combat-doctrines.md) follows that baseline. Historical Oath and earlier reference datasheets/abilities are not certification of the latest Codex; auditing and migrating those profiles is required before the Track A target can be considered legal. Existing historical save compatibility does not make those profiles part of current rules.
+
+On 17 October 2026, [Awakened Dynasty Command Protocols and current Overlord pairings](awakened-dynasty.md) were checked against the e11 Necron pages and September official faction updates. The hit effect and pre-deployment declaration are implemented; attached Reanimation is now supported for the admitted pairings. Core e11 19/19.04 retains one unit and its combined strength, including a surviving leader's ability; Appendix 02.02.04 supplies living-wound priority before non-Character revival. Earlier separation assumptions are superseded.
 
 Inspected 2026-10-15. This is an integration assessment, not confirmation of complete or official rules compliance. No upstream code or game dataset has been incorporated into the runtime. An independent local pack format and optional OpenHammer import tool have since been implemented; see [data-packs.md](data-packs.md). Imported snapshots are reference-only and excluded from version control by default.
 

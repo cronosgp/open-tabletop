@@ -16,6 +16,10 @@ const SPECS := {
 		"aliases": ["58e9-5212-f5a6-c12d"], "gun": ["gauss-flayer", "Gauss flayer"], "blade": ["close-combat-weapon", "Close combat weapon"]},
 	"immortals": {"faction": "Necrons", "folder": "necrons", "models": 5, "template": 2,
 		"aliases": ["f81-b23c-e183-39d7"], "gun": ["gauss-blaster", "Gauss blaster"], "blade": ["close-combat-weapon-immortals", "Close combat weapon"]},
+	"assault-intercessor-squad": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 5, "template": 1, "aliases": [], "gun": ["heavy-bolt-pistol-assault-intercessor-squad", "Heavy Bolt Pistol"], "blade": ["astartes-chainsword-assault-intercessor-squad", "Chainsword"]},
+	"heavy-intercessor-squad": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 5, "template": 1, "aliases": [], "gun": ["heavy-bolt-rifle", "Heavy Bolt Rifle"], "blade": ["close-combat-weapon-heavy-intercessor-squad", "Ceramite Fists"]},
+	"lieutenant": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "gun": ["master-crafted-bolter-lieutenant", "Master-crafted Bolter"], "blade": ["ceramite-fists-lieutenant", "Ceramite Fists"]},
+	"royal-warden": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 2, "aliases": [], "gun": ["relic-gauss-blaster", "Relic gauss blaster"], "blade": ["close-combat-weapon-royal-warden", "Close combat weapon"]},
 	"captain": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1,
 		"aliases": [], "gun": ["master-crafted-bolter", "Master-crafted Bolter"], "blade": ["master-crafted-power-weapon-captain", "Master-crafted Power Weapon"]},
 	"overlord": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 2,
@@ -61,7 +65,7 @@ static func resolve(faction: String, identity: String) -> Dictionary:
 			unit.stats.invulnerable_target = int(invulnerable)
 			var cost := 0
 			for price: Dictionary in unit.get("points", []):
-				if price.get("models") == spec.models and not price.has("models_max") and not price.has("unit_count_min") and Roster.integer(price.get("cost"), 1): cost = int(price.cost)
+				if price.get("models") == spec.models and not price.has("unit_count_min") and Roster.integer(price.get("cost"), 1): cost = int(price.cost)
 			if cost == 0: return {"error": "Unresolved canonical cost: " + source}
 			var weapons: Dictionary = {}
 			for key: String in ["gun", "blade", "sergeant"]:
@@ -75,15 +79,16 @@ static func resolve(faction: String, identity: String) -> Dictionary:
 				"pack_hash": pack.manifest.units_sha256, "unsupported_abilities": unit.get("unsupported_rules", []).duplicate()}
 	return {"error": "Unit is not implemented for this faction: " + identity}
 
-static func admit(selection: Variant) -> Dictionary:
+static func admit(selection: Variant, unit_cap: int = MAX_SQUADS) -> Dictionary:
 	if not selection is Dictionary or selection.size() != 5 or selection.get("schema_version") != 2: return {"error": "Invalid mixed army selection."}
 	if not selection.get("faction") is String or not selection.get("category") is String or selection.category not in Roster.LIMITS: return {"error": "Invalid army identity or category."}
 	if not Roster.integer(selection.get("points_limit"), 100, 100000) or (selection.category != "custom" and selection.points_limit != Roster.LIMITS[selection.category]): return {"error": "Category and points limit do not match."}
-	if not selection.get("entries") is Array or selection.entries.is_empty() or selection.entries.size() > MAX_SQUADS: return {"error": "Choose 1–6 supported units per army."}
+	if not Roster.integer(unit_cap, 1, 24): return {"error": "Invalid army unit cap."}
+	if not selection.get("entries") is Array or selection.entries.is_empty() or selection.entries.size() > unit_cap: return {"error": "Choose 1–%d supported units per army." % unit_cap}
 	var counts: Dictionary = {}
 	var definitions: Dictionary = {}
 	for entry: Variant in selection.entries:
-		if not entry is Dictionary or entry.size() != 3 or not entry.get("definition_id") is String or not Roster.integer(entry.get("models"), 1, 20) or not Roster.integer(entry.get("copies"), 1, MAX_SQUADS): return {"error": "Invalid mixed army entry."}
+		if not entry is Dictionary or entry.size() != 3 or not entry.get("definition_id") is String or not Roster.integer(entry.get("models"), 1, 20) or not Roster.integer(entry.get("copies"), 1, unit_cap): return {"error": "Invalid mixed army entry."}
 		var identity := canonical_id(selection.faction, entry.definition_id)
 		var resolved: Dictionary = definitions.get(identity, {})
 		if resolved.is_empty(): resolved = resolve(selection.faction, identity)
@@ -106,7 +111,7 @@ static func admit(selection: Variant) -> Dictionary:
 		canonical.append({"definition_id": identity, "models": resolved.models, "copies": int(counts[identity])})
 		definitions[identity] = resolved
 		if not resolved.unsupported_abilities.is_empty(): warnings.append(resolved.unit.name + ": " + ", ".join(resolved.unsupported_abilities))
-	if count > MAX_SQUADS: return {"error": "The core-profile mode supports at most six units per player."}
+	if count > unit_cap: return {"error": "The core-profile mode supports at most %d units per player." % unit_cap}
 	if total > selection.points_limit: return {"error": "The list exceeds the training-pack budget: %d/%d." % [total, selection.points_limit]}
 	return {"error": "", "selection": {"schema_version": 2, "faction": selection.faction, "entries": canonical, "category": selection.category, "points_limit": int(selection.points_limit)},
 		"total": total, "unit_count": count, "definitions": definitions, "warnings": warnings}

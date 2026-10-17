@@ -100,6 +100,7 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 	if not context.get("unresolved_effects", []) is Array or not context.get("unresolved_effects", []).is_empty():
 		return "Unresolved effects must be implemented before resolving this attack."
 	if context.get("wound_reroll", "none") not in ["none", "ones", "failed"]: return "Unsupported wound re-roll mode."
+	if context.get("hit_reroll", "none") not in ["none", "failed", "ones"]: return "Unsupported hit re-roll mode."
 	for key in ["hit_modifier", "wound_modifier"]:
 		var value: Variant = context.get(key, 0)
 		if not (value is int or value is float) or not is_finite(value) or value != floor(value) or absf(value) > 1:
@@ -138,17 +139,22 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 	var save_rolls: Array[int] = []
 	var normal_hits := 0
 	var automatic_wounds := 0
-	for attack in range(count):
-		if keywords.get("torrent", false):
+	var effective_hits: Array[int] = []
+	if keywords.get("torrent", false): normal_hits = count
+	else:
+		for attack in range(count): effective_hits.append(dice.d6())
+		hit_rolls.append_array(effective_hits)
+		var replacements := reroll_hit_pool(effective_hits, effective_skill, hit_modifier, context, dice)
+		for replacement: Dictionary in replacements: hit_rolls.append(replacement.replacement)
+	for roll: int in effective_hits:
+		if context.get("snap_shooting", false):
+			if roll != 6: continue
 			normal_hits += 1
 			continue
-		var roll := dice.d6()
-		hit_rolls.append(roll)
 		if not successful_roll(roll, effective_skill, hit_modifier): continue
 		if roll == 6 and keywords.get("lethal-hits", false) and context.get("use_lethal_hits", true):
 			automatic_wounds += 1
-		else:
-			normal_hits += 1
+		else: normal_hits += 1
 		if roll == 6: normal_hits += int(keywords.get("sustained-hits", 0))
 	if normal_hits + automatic_wounds > 10000:
 		return {"error": "Hit pool exceeds prototype limit."}
@@ -264,3 +270,17 @@ static func reroll_wound(value: int, target: int, modifier: int, weapon: Diction
 	var failed := not successful_roll(value, target, modifier)
 	var mode: String = context.get("wound_reroll", "none")
 	return (mode == "ones" and value == 1) or (failed and (mode == "failed" or (weapon.get("keywords", {}).get("twin-linked", false) and context.get("use_twin_linked", true))))
+
+static func reroll_hit_pool(values: Array, skill: int, modifier: int, context: Dictionary, dice: Dice) -> Array:
+	var changes: Array = []
+	if context.get("snap_shooting", false): return changes
+	var mode: String = context.get("hit_reroll", "none")
+	if mode not in ["failed", "ones"]: return changes
+	# Training policy keeps successes; replacement dice cannot be rerolled again.
+	for index in range(values.size()):
+		if mode == "ones" and values[index] != 1: continue
+		if mode == "failed" and successful_roll(values[index], skill, modifier): continue
+		var original: int = values[index]
+		values[index] = dice.d6()
+		changes.append({"phase": "hit", "index": index, "original": original, "replacement": values[index], "source": "hit-reroll"})
+	return changes

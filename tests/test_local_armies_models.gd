@@ -16,7 +16,7 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute(DIR)
 	var presets := Training.presets()
-	check(presets.size() == 6, "Six offline presets include simple and mixed reference armies")
+	check(presets.size() == 7, "Seven offline presets include the Overlord-led training list")
 	for list: Dictionary in presets:
 		check(Training.inspect(list).error.is_empty() and list.points_limit == 500, "Default lists pass real canonical admission")
 	presets[0].entries.clear()

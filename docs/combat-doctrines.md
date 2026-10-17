@@ -1,0 +1,27 @@
+# Combat Doctrines and Gladius — current e11 effects
+
+The project targets official **11th-edition** rules. The user's requested [e11 core reference](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/) and [Space Marines reference](https://wahapedia.ru/wh40k11ed/factions/space-marines/#Combat-Doctrines) were consulted. Effects were cross-checked with the official September 2026 [Combat Doctrines preview](https://www.warhammer-community.com/en-gb/articles/ifgezlgu/space-marines-rules-first-look/) and [detachment preview](https://www.warhammer-community.com/en-gb/articles/zcobdkzh/your-first-look-at-15-new-space-marine-detachments/). Consulted 16 October 2026.
+
+The current army rule is **Combat Doctrines**, replacing Oath. The Gladius detachment rule is **Codex Discipline**, permitting one additional selection of one doctrine per battle. The previous plan to implement an older Gladius profile was superseded before delivery. No old Gladius profile is offered by this increment.
+
+## Implemented scope
+
+Enable **Match setup → Advanced match options → Next prepared match: 11e Combat Doctrines + Gladius**. This explicitly declares the Gladius effect for the admitted Marine force; both LAN players must agree. Current doctrines and the historical Oath option cannot be enabled together. The unchanged older Oath profile remains historical compatibility/training code and is not current-rule certification.
+
+At own Command start, choose a doctrine or explicitly choose none. The choice precedes core CP gain and Battle-shock. Choosing or declining costs no CP or dice; the subsequent normal core CP is gained once. Declining preserves uses. A doctrine lasts until the start of the next own Command and remains active during the opponent's turn. Expiry happens before choosing again.
+
+- **Devastator:** ranged attack profiles receive Assault. The effective profile is a copy; original weapons are unchanged. It enables the existing e11 assault-shooting path, retaining its engagement, range, visibility and weapon-selection restrictions.
+- **Tactical:** Fall Back does not block shooting or charge declaration. Actual Fall Back movement, leaving engagement, hazards where applicable and other eligibility still resolve normally.
+- **Assault:** Advance does not block charge declaration. It does not grant the Assault weapon keyword or permit unrelated shooting.
+
+Each doctrine has one normal use. Codex Discipline supplies **one shared additional use**, spent when a previously selected doctrine is selected a second time. It does not grant one extra use of every doctrine or a third use of one doctrine. The selector marks choices that spend this extra use and shows whether it is spent. After all uses are exhausted, Command proceeds without an empty mandatory choice. The engine also tests the army rule without the Gladius effect; the current prepared-match option explicitly selects Gladius.
+
+The effect applies to the admitted Marine army, including its Marine components, and not the opponent or a foreign/mixed faction. It changes shooting/charge eligibility only: actions, existing action commitments, engagement, charge range, once-per-phase shooting/charge use and placement requirements still apply. Captain doctrine overrides, multiple simultaneous doctrines, other detachment abilities, enhancements, stratagems and full current datasheet/points/DP certification remain pending. This increment does not certify complete current armies.
+
+## Authority and recovery
+
+Implementation ID: `combat-doctrines-11e-gladius-v1`. Owners, declared Gladius context, active doctrine, selection turn, spent selections, shared extra-use flag and deferred core-CP step are public serializable state. Setup/manifest/saved-list options freeze the implementation identity. Disabled matches retain their previous pack identity, old saves restore disabled, and inconsistent save/peer flags are rejected.
+
+The host validates phase, active player, revision, doctrine and remaining uses. Clients send doctrine IDs rather than effects or dice. While a choice is pending, gameplay commands and tactical destinations are blocked. Save/load and authenticated rejoin after restarting the host preserve the pending choice and CP step. Selecting after restoration consumes no dice or duplicate CP. Effective ranged weapons and frozen attack plans continue through the existing fast and staged attack paths.
+
+`tests/test_combat_doctrines.gd` checks timing, decline, normal/shared-extra usage, exhaustion, expiry, owner/identity validation, real Advance/Fall Back flows, legacy/equipped ranged plans, preserved action/charge restrictions, source-profile immutability, incompatible Oath setup, frozen saved lists, UI and save compatibility. `tests/test_combat_doctrines_network.gd` restarts the host with a pending guest choice, rejoins with authentication, rejects invalid/stale/duplicate choices, declares a charge after Advance and checks predicted final state/RNG and journal dice. Graphical QA covers setup, selection, additional-use labelling and the enabled charge control. These fixtures do not establish separate-machine, cross-platform or complete rules compliance.

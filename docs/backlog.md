@@ -1,8 +1,14 @@
+Current A2 increment: [CA 2026-27 selected mission](chapter-approved-mission.md) is available with full-size board, role/first-turn roll-offs, private reserve declarations and fixed primary/secondary scoring. Other mission/deck/layout configurations and complete army legality are not certified. Historical custom-training descriptions below remain valid for their separate modes.
+
+Current update: [ten unit types and their current e11 abilities](current-unit-abilities.md) now include the four formerly proposed units, current Marine ability migration, Leader/Support/Warlord setup, Terminator reserves/Homer, Overlord abilities and free reroll choices. Older implementation gaps below are historical; A2/A3 remain the next milestones.
+
 > **Superseded.** The forward-looking plan now lives in [roadmap.md](roadmap.md). This file is retained as historical backlog notes; many items below are already implemented — see the [support matrix](support-matrix.md) for current state.
 
 # Future backlog
 
 ## Current checkpoint — 16 October 2026
+
+Track A includes [current e11 Combat Doctrines + Gladius Codex Discipline](combat-doctrines.md) and [Awakened Dynasty Command Protocols](awakened-dynasty.md), using the user's e11 reference and official update checks. Historical Oath cannot combine with current doctrines. **Overlord + Warriors/Immortals now supports attached Reanimation**, preserving the single e11 unit and combined starting strength. Ordinary bodyguard destruction does not split components. **The ten fixed-profile unit ability stage is implemented; next are official mission and points/legality certification**. Current datasheet/ability migration, other required rules, official mission and points/DP legality follow; see [Track A](track-a.md).
 
 Latest rules increment: [Desperate Escape Command Re-roll](escape-rerolls.md) closes the planned re-roll gap for supported training movement and weapons, with pending-pool save/journal and authenticated host-restart recovery. Immortal Implacable Eradication is also available as a limited [training reference](implacable-eradication.md); current official datasheet verification remains pending.
 

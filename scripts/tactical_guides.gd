@@ -77,11 +77,33 @@ func rebuild(state: Dictionary, selected: int, combat: bool, player: int) -> voi
 	targets.clear()
 	hover_caption = ""
 	caption = "Select a miniature to see its ranges."
+	if combat and Combat.Mission.actor(state) > 0:
+		caption = "Mission preparation: resolve the roll or declaration in Play before continuing."
+		return
+	if combat and Combat.UnitActions.actor(state) > 0:
+		caption = "Unit ability decision: resolve or decline in Play. Placement previews must be confirmed as a whole unit."
+		if Combat.UnitActions.pending(state).get("kind", "") == "wound": caption = "Implacable Eradication: choose free wound rerolls in Play, then keep the remaining rolls to continue to saves."
+		return
+	if combat and not Combat.Reanimation.pending(state).is_empty():
+		caption = "Reanimation: choose a destroyed model and preview its return in Play."
+		return
+	if combat and Combat.Awakened.needs_setup(state):
+		caption = "Awakened Dynasty: declare Overlord attachments in Play before deployment."
+		return
+	if combat and Combat.Doctrines.needs_choice(state):
+		caption = "Combat Doctrines: choose a doctrine or no doctrine in Play."
+		return
+	if combat and Combat.OathOfMoment.needs_choice(state):
+		caption = "Oath of Moment: choose an enemy unit in Play before continuing Command."
+		return
 	if combat and not Combat.Stratagems.pending(state).is_empty():
 		caption = "Decision pending • player %d\nResolve the decision in Play to unlock the next action step." % Combat.actor(state)
 		return
 	if not state.units.has(selected) or state.units[selected].get("wounds", 1) <= 0: return
 	var unit: Dictionary = state.units[selected]
+	if not unit.get("on_battlefield", true):
+		caption = "This unit is in strategic reserves. Use an ingress choice in Play to enter the battlefield."
+		return
 	static_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, material)
 	_ring(static_mesh, unit.position, float(unit.radius) + 0.16, WHITE, 0.10)
 	if not combat:
@@ -168,10 +190,15 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 	hover_mesh.clear_surfaces()
 	hover_valid = false
 	hover_caption = ""
+	if combat and Combat.UnitActions.actor(state) > 0: return
+	if combat and not Combat.Reanimation.pending(state).is_empty(): return
+	if combat and Combat.Awakened.needs_setup(state): return
+	if combat and Combat.Doctrines.needs_choice(state): return
+	if combat and Combat.OathOfMoment.needs_choice(state): return
 	if combat and not Combat.Stratagems.pending(state).is_empty(): return
 	if destination == null or not destination is Vector2 or not state.units.has(selected): return
 	var unit: Dictionary = state.units[selected]
-	if unit.get("wounds", 1) <= 0: return
+	if unit.get("wounds", 1) <= 0 or not unit.get("on_battlefield", true): return
 	if combat and state.phase == "deployment":
 		var error := Combat.Deployment.command_error(state, player, state.revision)
 		if error.is_empty(): error = Combat.Deployment.position_error(state, selected, destination)

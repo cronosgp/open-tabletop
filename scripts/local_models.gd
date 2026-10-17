@@ -3,6 +3,8 @@ extends RefCounted
 const MAX_BYTES := 64 * 1024 * 1024
 const MAX_OBJECTS := 100000
 const MAX_VERTICES := 300000
+const MM_PER_INCH := 25.4
+const DEFAULT_INFANTRY_BASE_MM := 32.0
 
 static func cache_key(value: String) -> String:
 	if value.length() > 4096: return ""
@@ -167,9 +169,33 @@ static func scan(path: String) -> Dictionary:
 				if obj[field].has(key):
 					if not obj[field][key] is String: return {"error": "Invalid asset reference at " + next.path}
 					refs[key] = obj[field][key]
-			entries.append({"id": (path + ":" + next.path + ":" + field).sha256_text(), "name": label, "path": next.path, "guid": str(obj.get("GUID", "")), "kind": field, "references": refs, "credit": credit, "child_components": obj.get("ChildObjects", []).size()})
+			entries.append({"id": (path + ":" + next.path + ":" + field).sha256_text(), "name": label, "path": next.path, "guid": str(obj.get("GUID", "")), "kind": field, "references": refs, "credit": credit, "child_components": obj.get("ChildObjects", []).size(), "tts_scale": _tts_scale(obj)})
 	entries.reverse()
 	return {"error": "", "source": path, "fingerprint": source.text.sha256_text(), "entries": entries, "objects": count, "embedded_objects": embedded_count, "warnings": warnings}
+
+static func _tts_scale(obj: Dictionary) -> float:
+	if not obj.get("Transform") is Dictionary: return 1.0
+	var transform: Dictionary = obj.Transform
+	for key in ["scaleX", "scaleY", "scaleZ"]:
+		var value: Variant = transform.get(key, 1.0)
+		if not (value is float or value is int) or not is_finite(float(value)) or float(value) < 0.01 or float(value) > 20.0:
+			return 1.0
+	return float(transform.scaleX)
+
+static func table_scale(bounds: AABB, settings: Dictionary) -> float:
+	var user := float(settings.get("scale", 1.0))
+	if not is_finite(user) or user <= 0.0: user = 1.0
+	var radius := float(settings.get("base_radius_inches", 0.0))
+	var footprint := maxf(bounds.size.x, bounds.size.z)
+	if radius > 0.01 and footprint > 0.00001:
+		return (radius * 2.0) / footprint * user
+	var tts := float(settings.get("tts_scale", 1.0))
+	if not is_finite(tts) or tts <= 0.0: tts = 1.0
+	if bounds.size.y > 0.05 and bounds.size.y < 8.0 and footprint > 0.05 and footprint < 8.0:
+		return tts * user
+	if footprint > 0.00001:
+		return (DEFAULT_INFANTRY_BASE_MM / MM_PER_INCH) / footprint * user
+	return user
 
 static func _index(value: String, size: int) -> int:
 	if not value.is_valid_int(): return -1
@@ -249,7 +275,7 @@ static func visual(asset: Dictionary, settings: Dictionary) -> Node3D:
 	var model := MeshInstance3D.new()
 	model.mesh = asset.mesh
 	var bounds: AABB = asset.bounds
-	var factor: float = 1.3 / bounds.size.y * float(settings.get("scale", 1.0))
+	var factor: float = table_scale(bounds, settings)
 	model.scale = Vector3.ONE * factor
 	model.position = -Vector3(bounds.get_center().x, bounds.position.y, bounds.get_center().z) * factor
 	root.add_child(model)

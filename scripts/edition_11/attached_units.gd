@@ -4,7 +4,7 @@ const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 
-static func form_practice_unit(state: Dictionary, bodyguard: int, leader: int = -1, support: int = -1) -> String:
+static func form_practice_unit(state: Dictionary, bodyguard: int, leader: int = -1, support: int = -1, defer_setup_coherency: bool = false) -> String:
 	if state.get("revision", -1) != 0 or state.get("turn", -1) != 1 or state.get("phase", "") != "start_turn": return "Attachments must be configured before the exercise starts."
 	var components := [{"squad": bodyguard, "role": "bodyguard"}]
 	if leader >= 0: components.append({"squad": leader, "role": "leader"})
@@ -32,6 +32,10 @@ static func form_practice_unit(state: Dictionary, bodyguard: int, leader: int = 
 		var squad: Dictionary = working.squads[id]
 		starting += squad.starting_strength
 		identities.append({"squad": id, "role": component.role, "name": squad.name, "starting_strength": squad.starting_strength})
+		if working.has("unit_abilities"):
+			for ability: String in squad.get("enabled_abilities", []).duplicate():
+				if ability not in working.squads[bodyguard].enabled_abilities: working.squads[bodyguard].enabled_abilities.append(ability)
+
 		for model: int in Geometry.alive(working, id):
 			var unit: Dictionary = working.units[model]
 			var profile := Groups.profile(working, model)
@@ -48,7 +52,8 @@ static func form_practice_unit(state: Dictionary, bodyguard: int, leader: int = 
 	working.squads[bodyguard].starting_strength = starting
 	for id: int in seen:
 		if id != bodyguard: working.squads.erase(id)
-	if not Geometry.coherent(working, bodyguard): return "Place the component models in coherent formation before starting the practice attachment."
+	# The validated pre-deployment setup wrapper defers placement to deployment.
+	if not defer_setup_coherency and not Geometry.coherent(working, bodyguard): return "Place the component models in coherent formation before starting the practice attachment."
 	working.pack_hash = (str(working.pack_hash) + var_to_str(identities)).sha256_text()
 	state.clear()
 	state.merge(working, true)

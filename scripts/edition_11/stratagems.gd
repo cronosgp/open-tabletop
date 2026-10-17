@@ -1,6 +1,8 @@
 extends RefCounted
-## Core Rules §§01.07, 08.03, 15.01–15.04; no provisional faction abilities.
+const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
+## Core Rules §§01.07, 08.03, 15.01–15.12; reaction cards live in core_reactions.gd.
 const Morale = preload("res://scripts/edition_11/morale.gd")
+const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
 const ID := "core-stratagem-windows-v1"
 const REROLL_ID := "command-reroll-movement-v1"
 const ATTACK_REROLL_ID := "command-reroll-hit-wound-v1"
@@ -10,13 +12,18 @@ const ESCAPE_REROLL_ID := "command-reroll-escape-hazard-v1"
 const DAMAGE_REROLL_ID := "command-reroll-damage-v1"
 const SAVE_REROLL_ID := "command-reroll-save-v1"
 const SUPPORTED := {"insane-bravery": {"cost": 1, "window": "before_battle_shock", "phase": "command", "once_per_battle": true},
-	"command-re-roll": {"cost": 1, "windows": ["after_advance_roll", "after_charge_roll", "after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_attack_count_roll", "after_escape_roll"], "once_per_battle": false}}
+	"command-re-roll": {"cost": 1, "windows": ["after_advance_roll", "after_charge_roll", "after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_attack_count_roll", "after_escape_roll"], "once_per_battle": false},
+	"fire-overwatch": {"cost": 1, "window": "end_movement", "once_per_battle": false},
+	"heroic-intervention": {"cost": 1, "window": "end_charge", "once_per_battle": false},
+	"counteroffensive": {"cost": 2, "window": "after_enemy_fights", "once_per_battle": false},
+	"epic-challenge": {"cost": 1, "window": "selected_to_fight", "once_per_battle": false}}
 
 static func enable(state: Dictionary, movement_rerolls: bool = false, attack_rerolls: bool = false, save_rerolls: bool = false, damage_rerolls: bool = false, hazard_rerolls: bool = false, count_rerolls: bool = false, escape_rerolls: bool = false) -> Dictionary:
 	if state.has("error") or state.has("stratagems"): return state
 	state.stratagems = {"implementation": ID, "pending": {}, "uses": [], "command_done_turn": -1}
 	state.pack_hash = (str(state.pack_hash) + ID).sha256_text()
 	state.scope = "Core stratagem supported: Insane Bravery before Command battle-shock only. " + str(state.get("scope", "")).replace("stratagems,", "other stratagems,")
+	CoreReactions.enable(state)
 	if movement_rerolls:
 		state.stratagems.movement_rerolls = true
 		state.pack_hash = (str(state.pack_hash) + REROLL_ID).sha256_text()
@@ -71,12 +78,14 @@ static func choice_error(state: Dictionary, player: int, squad: int, revision: i
 	if revision != state.revision: return "O estado mudou; sincronize antes de decidir."
 	if state.get("test_winner", 0) != 0: return "The match has ended."
 	if window.phase_key != phase_key(state) or player != window.player: return "This decision belongs to the player shown in the window."
-	if window.kind not in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_attack_count_roll"] and player != state.active: return "This decision belongs to the active player."
+	if window.kind not in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_attack_count_roll"] and player != state.active and not (window.kind == "after_charge_roll" and CoreReactions.heroic_charger(state, player, squad)): return "This decision belongs to the active player."
 	if not state.squads.has(squad) or state.squads[squad].owner != player or Morale.living(state, squad).is_empty(): return "Select one of your living units."
 	if window.kind == "before_battle_shock":
 		if state.phase != "command" or squad not in window.remaining or not Morale.needs_command_roll(state, squad): return "Select a unit that still needs this test."
 	elif window.kind in ["after_advance_roll", "after_charge_roll"]:
-		if not state.stratagems.get("movement_rerolls", false) or squad != window.squad: return "This roll belongs to another unit or ability."
+		if squad != window.squad: return "This roll belongs to another unit or ability."
+		if window.kind == "after_charge_roll" and not state.stratagems.get("movement_rerolls", false): return "This roll belongs to another unit or ability."
+		if window.kind == "after_advance_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("sudden", false)): return "This roll belongs to another unit or ability."
 		if state.phase != ("movement" if window.kind == "after_advance_roll" else "charge"): return "A fase da rolagem mudou."
 	elif window.kind in ["after_hit_roll", "after_wound_roll"]:
 		if not state.stratagems.get("attack_rerolls", false) or squad != window.squad or state.get("pending_attack", {}).is_empty(): return "This decision does not match the pending attack."
@@ -101,6 +110,7 @@ static func use_error(state: Dictionary, player: int, squad: int, stratagem: Str
 	if stratagem not in SUPPORTED: return "Stratagem is not implemented in this window."
 	var rule: Dictionary = SUPPORTED[stratagem]
 	if pending(state).kind not in rule.get("windows", [rule.get("window", "")]): return "Stratagem unavailable in this window."
+	if state.cp.get(player, 0) < int(rule.cost) - UnitAbilities.discount(state, player, squad): return "Choose My Will Be Done or pay the normal CP cost."
 	return eligibility_error(state, player, squad, stratagem)
 
 static func eligibility_error(state: Dictionary, player: int, squad: int, stratagem: String) -> String:
@@ -110,7 +120,7 @@ static func eligibility_error(state: Dictionary, player: int, squad: int, strata
 	if not state.squads.has(squad) or state.squads[squad].owner != player: return "Invalid stratagem target."
 	if not Morale.can_target_with_friendly_stratagem(state, squad): return "A Battle-shocked unit cannot be targeted by friendly stratagems."
 	var rule: Dictionary = SUPPORTED[stratagem]
-	if state.cp.get(player, 0) < rule.cost: return "CP insuficiente: este estratagema custa 1 CP."
+	if state.cp.get(player, 0) < int(rule.cost) - UnitAbilities.potential_discount(state, player, squad): return "CP insuficiente: este estratagema custa %d CP." % int(rule.cost)
 	for use: Dictionary in state.stratagems.uses:
 		if use.player != player: continue
 		if use.stratagem == stratagem and rule.once_per_battle: return "You have already used Insane Bravery this battle."
@@ -126,5 +136,6 @@ static func open_roll(state: Dictionary, player: int, squad: int, kind: String, 
 
 static func consume(state: Dictionary, player: int, squad: int, stratagem: String) -> void:
 	# Internal operation, called only after all command/effect validation succeeds.
-	state.cp[player] -= int(SUPPORTED[stratagem].cost)
+	state.cp[player] -= maxi(0, int(SUPPORTED[stratagem].cost) - UnitAbilities.discount(state, player, squad))
+	UnitAbilities.consume_discount(state, player, squad)
 	state.stratagems.uses.append({"player": player, "squad": squad, "stratagem": stratagem, "phase_key": phase_key(state), "turn": state.turn})

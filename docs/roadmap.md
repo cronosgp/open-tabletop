@@ -1,10 +1,14 @@
+Current A3 increment (17 October 2026): [checked Incursion rosters](roster-validation.md) use official MFM 1.6 points for ten fixed profiles, 2/4 repetition limits, the sole-3DP detachment exception and mandatory Warlord/Support declarations. Two 290-point starters, one 930-point Gladius list and one 880-point Awakened list are available under the 1,000-point ceiling. For these checked lists, the [Gladius/Awakened stratagem set](detachment-stratagems.md), selected mission and implemented infantry core rules are certified together. Broader equipment, additional units and complete 1,000-point rosters remain future work.
+
+Current Track A status (17 October 2026): A1–A5 are integrated for the documented 930-point Gladius vs 880-point Awakened infantry match. The selected CA 2026-27 mission, ten fixed-loadout profiles, current fixed-roster MFM checks and remaining required infantry core effects are covered. Other rosters, optional wargear, enhancements, unsupported keywords and other terrain/missions remain outside this certification.
+
 # Open Tabletop — Roadmap
 
 > **Single source of truth for the remaining work to the final product.** This document consolidates and supersedes the [functional roadmap](roadmap-funcional.md) (retained only as the historical increment log) and the [backlog](backlog.md). Current shipped capabilities are summarized separately in the [support matrix](support-matrix.md). This document is the plan forward — not a changelog.
 
 ## 1. Product vision
 
-**Open Tabletop is a gaming platform** for two-player Warhammer 40,000 (10th edition) matches on desktop (Windows/Linux). The engine enforces the rules, resolves dice and state authoritatively, and presents a polished, accessible, social experience built around user-supplied visuals. Players bring the armies and the miniatures; the platform brings the board, the rules, the dice and the connection.
+**Open Tabletop is a gaming platform** for two-player Warhammer 40,000 (11th edition) matches on desktop (Windows/Linux). The engine enforces the rules, resolves dice and state authoritatively, and presents a polished, accessible, social experience built around user-supplied visuals. Players bring the armies and the miniatures; the platform brings the board, the rules, the dice and the connection.
 
 What it is **not**: a rules encyclopedia, a single-player AI game, or a "training tool." The combat/training exercises in the current build are implementation/test harnesses and will be absorbed by real matches as rule coverage grows.
 
@@ -18,10 +22,10 @@ What it is **not**: a rules encyclopedia, a single-player AI game, or a "trainin
 
 | Area | Shipped | Still missing |
 |---|---|---|
-| Rules | Movement (individual + coherency), morale, shooting, charges/melee, attack planning, weapon selection, defender allocation, mixed defense/Precision, FNP, Hazardous, Devastating Wounds; opt-in Intercessor Objective Secured and Immortal Implacable Eradication; Insane Bravery + full Command Re-roll set | Commanders/attachments, detachments, remaining unit/faction abilities, full datasheet verification, official missions/deployment, complete army legality |
+| Rules | Checked CA infantry match: ten fixed e11 profiles, declared Leaders/Warlord/Support, Gladius/Awakened rules and stratagems, selected mission/deployment, MFM 1.6 fixed-profile construction, core reactions and recovery | Other armies, optional wargear/enhancements, remaining catalog content, other missions/layouts and unsupported mechanics |
 | Multiplayer | Authoritative host, LAN/direct, snapshots, guest seat credentials (HMAC challenge/proof), rejoin after host restart | Lobby negotiation, encrypted internet transport, relay/service, credential reset UI, accounts |
 | Persistence | Versioned snapshot, atomic replace, checksum, autosave, draft save, local/LAN resume, seat reservation, RNG continuation, hash-chained event/dice journal with verified reconstruction | Visual replay, multiple slots, journal compaction, cross-version migration |
-| Army builder | OpenHammer catalog, filters/variants/budgets, local profiles, six offline presets, four whitelisted core profiles | Detachment/equipment/alliance legality, arbitrary units |
+| Army builder | OpenHammer catalog, filters/variants/budgets, local profiles, checked-roster MFM 1.6 construction and ten fixed profile admissions | Arbitrary units, optional equipment/enhancements and general roster legality |
 | Models | ForceOrg auto-acquire, cached/HTTPS OBJ+diffuse download, saved pawn links, manual override | GLB, AssetBundles, composites/materials, per-model variants |
 | Delivery | Offline verification runner, CI definition, demo export presets | CI execution on GitHub, native builds, cross-platform matches |
 
@@ -33,15 +37,15 @@ Remaining work is organized into eight tracks. Each milestone lists its delivera
 
 ### A. Rules & content completeness *(the critical path)*
 
-> **In progress** — the locked 1,000pt target and per-ability execution order are in [track-a.md](track-a.md).
+> **Integrated for the checked match** — the locked roster scope and rule boundaries are in [track-a.md](track-a.md) and [track-a-a5.md](track-a-a5.md).
 
 | # | Milestone | Deliverables | Done when |
 |---|---|---|---|
-| A1 | Legal reference armies | Commanders/attachments, detachments, verified unit/faction abilities for the Space Marines + Necrons reference forces; confirm the current Immortal datasheet | Both reference forces build and play as legal lists, every ability sourced and implemented |
-| A2 | Official mission & deployment | One official mission with primary/secondary objectives, full timing/scoring/actions, and official deployment rules | Two players complete a legal mission to a decisive result with no unsupported-rule prompts |
-| A3 | Points & legality certification | Validate the reference lists at an agreed budget (e.g. 1,000 pts Incursion) | The lists pass official points/update certification |
+| A1 | Checked reference match | Ten fixed-loadout Space Marine + Necron profiles, Leader/attachment declarations, faction/detachment effects and stratagems for the two checked lists | The documented 930/880 infantry lists complete the selected mission with the checked rules; broader armies remain future work |
+| A2 | Selected official mission & deployment | CA 2026-27 Battlefield Dominance / Hammer and Anvil, fixed secondaries, deployment, reserves and scoring | The documented match reaches a five-round VP result under the selected profile |
+| A3 | Current fixed-roster pricing/construction | MFM 1.6, Incursion ceiling, 2/4 repetitions, sole-3DP exception, Warlord/Support checks; see scope above | The ten admitted profiles and checked lists pass the documented construction validation |
 | A4 | Unified capability registry | One machine-readable "what's supported" registry consumed by the validator, UI and tests | Unsupported content is blocked consistently everywhere from a single source of truth |
-| A5 | Remaining core rules for the shipped lists | Cover/terrain edge cases, vertical movement only as the chosen mission requires, complete weapon-trait and ability coverage for shipped lists | The support matrix shows no "implemented but missing X" for shipped content |
+| A5 | Remaining core rules for the shipped lists | [Gladius 930 vs Awakened 880](track-a-a5.md): Command Re-roll plus Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge | Checked CA infantry match certified; remaining 1000-point fill is catalog work |
 | A6 | *Post-launch* expansion | More factions/units/missions, vertical geometry, battlefield editor | Each increment widens the matrix without admitting partially implemented content |
 
 ### B. Multiplayer & platform networking
@@ -150,8 +154,8 @@ Remaining work is organized into eight tracks. Each milestone lists its delivera
 
 ## 8. Next five actions (prioritized)
 
-1. **A1 — legal reference armies** (commanders/attachments, detachments, verified abilities). The critical path; everything else is downstream.
-2. **A2 — official mission + deployment.** Closes the "complete legal match" loop (Phase 1).
-3. **B1 — lobby & negotiation.** Removes the "configure the same exercise on both peers" friction.
-4. **D2 — inline rules reference.** Highest design ROI, low technical risk (the keyword model already exists).
+1. **D1 — onboarding / first session.** Guide a new player through a prepared match using the checked sample armies.
+2. **D2 — inline rules reference.** Explain supported keywords and disabled-action reasons in the interface.
+3. **B1 — lobby & negotiation.** Agree on scenario, pack and options before play.
+4. **D3 — dice visualization.** Make dice outcomes readable and show the authoritative results clearly.
 5. **H1 — CI execution + native builds.** Turns the existing CI definition into running verification.

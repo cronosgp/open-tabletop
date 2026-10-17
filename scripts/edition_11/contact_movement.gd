@@ -9,7 +9,7 @@ const EPSILON := 0.001
 static func alive(state: Dictionary, squad: int) -> Array[int]:
 	var ids: Array[int] = []
 	for id: int in state.units:
-		if state.units[id].squad == squad and state.units[id].wounds > 0: ids.append(id)
+		if state.units[id].squad == squad and state.units[id].wounds > 0 and state.units[id].get("on_battlefield", true): ids.append(id)
 	return ids
 
 static func edge(first: Dictionary, second: Dictionary) -> float:
@@ -51,7 +51,7 @@ static func clear_path(state: Dictionary, model_id: int, destination: Vector2, m
 	if not Terrain.path_error(state, model_id, destination).is_empty(): return false
 	if not through_enemies:
 		for id: int in state.units:
-			if state.units[id].owner == model.owner or state.units[id].wounds <= 0: continue
+			if state.units[id].owner == model.owner or state.units[id].wounds <= 0 or not state.units[id].get("on_battlefield", true): continue
 			var closest := Geometry2D.get_closest_point_to_segment(state.units[id].position, model.position, destination)
 			if closest.distance_to(state.units[id].position) < radius + float(state.units[id].radius) - EPSILON: return false
 	return true
