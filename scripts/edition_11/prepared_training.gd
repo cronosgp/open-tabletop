@@ -196,6 +196,7 @@ static func _current_loadouts(state: Dictionary) -> String:
 			if marine_profile.is_empty(): return "No current-reference fixed loadout is recorded for " + source
 			var squad: int = unit.squad
 			state.squads[squad].stats = marine_profile.stats.duplicate(true)
+			if marine_profile.has("points"): state.squads[squad].training_cost = int(marine_profile.points)
 			var ranged_profiles: Dictionary = marine_profile.ranged[0].profiles
 			var melee_profiles: Dictionary = marine_profile.melee[0].profiles
 			state.squads[squad].weapon = ranged_profiles.values()[0].duplicate(true)
@@ -204,6 +205,7 @@ static func _current_loadouts(state: Dictionary) -> String:
 			unit.movement = int(marine_profile.stats.movement_inches)
 			unit.wounds = int(marine_profile.stats.wounds)
 			unit.max_wounds = int(marine_profile.stats.wounds)
+			if marine_profile.has("base_radius_inches"): unit.radius = float(marine_profile.base_radius_inches)
 			unit.ranged_weapons = marine_profile.ranged.duplicate(true)
 			unit.melee_weapons = marine_profile.melee.duplicate(true)
 			marine_profiles_used = true

@@ -40,6 +40,11 @@ static func models(state: Dictionary, player: int, ability: String) -> Array[int
 		if state.squads[squad].owner == player: result.append_array(A.sources(state, squad, ability))
 	return result
 
+static func guilliman_model(state: Dictionary, player: int) -> int:
+	for model: int in state.units:
+		if state.units[model].owner == player and A.identity(state.units[model]) == "roboute-guilliman": return model
+	return -1
+
 static func choices(state: Dictionary, player: int) -> Array:
 	var result: Array = []
 	if not A.enabled(state) or state.get("test_winner", 0) != 0: return result
@@ -70,11 +75,12 @@ static func choices(state: Dictionary, player: int) -> Array:
 	if setup > 0:
 		if player != setup: return result
 		result.append(choice("Finish army preparations / optional declarations", "setup-done"))
+		var required_warlord := guilliman_model(state, player)
 		for model: int in state.units:
 			var unit: Dictionary = state.units[model]
 			if unit.owner != player: continue
 			var source := A.identity(unit)
-			if source in ["captain", "lieutenant", "overlord", "royal-warden"]: result.append(choice("Warlord: model %d" % model, "warlord", model))
+			if source in ["captain", "lieutenant", "overlord", "royal-warden", "roboute-guilliman"] and (required_warlord == -1 or model == required_warlord): result.append(choice("Warlord: model %d" % model, "warlord", model))
 			if source in ["captain", "lieutenant", "royal-warden"] and not unit.has("attachment_role"):
 				for target: int in state.squads:
 					if attachment_allowed(state, model, target): result.append(choice("Attach %s %d to %s" % [source, model, state.squads[target].name], "attach", model, target))
@@ -300,6 +306,8 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			for unit: Dictionary in state.units.values():
 				if unit.owner == player and Groups.character(unit): character = true
 			if character and not a.get("warlords", {}).has(player): return {"error": "Select your Warlord before finishing preparation."}
+			var guilliman := guilliman_model(state, player)
+			if guilliman != -1 and a.get("warlords", {}).get(player, -1) != guilliman: return {"error": "Roboute Guilliman must be your Warlord."}
 			var roster_error := RosterValidation.seal(state, player)
 			if not roster_error.is_empty(): return {"error": roster_error}
 			if not a.has("setup_players"): a.setup_players = []
@@ -436,7 +444,7 @@ static func start_round(state: Dictionary) -> void:
 		var model: int = state.unit_abilities.warlords[owner]
 		if state.unit_abilities.used.get("warlord-cp:%d" % owner, -1) == state.round: continue
 		state.unit_abilities.used["warlord-cp:%d" % owner] = state.round
-		if state.units[model].wounds > 0 and A.identity(state.units[model]) == "captain": state.cp[owner] += 1
+		if state.units[model].wounds > 0 and "transhuman-strategist" in A.RULES.get(A.identity(state.units[model]), []): state.cp[owner] += 1
 
 static func logic_available(state: Dictionary, owner: int) -> bool:
 	for model: int in models(state, owner, "engrammatic-logic"):

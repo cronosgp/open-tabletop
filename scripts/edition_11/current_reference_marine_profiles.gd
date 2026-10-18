@@ -1,7 +1,7 @@
 extends RefCounted
 ## Fixed default loadouts transcribed from the current e11 reference snapshot.
 ## This is experimental reference data, not Codex/app certification.
-const ID := "space-marines-e11-fixed-reference-2026-10-18-v1"
+const ID := "space-marines-e11-fixed-reference-2026-10-18-v2"
 
 static func _build_profiles() -> Dictionary:
 	return {
@@ -55,6 +55,17 @@ static func _build_profiles() -> Dictionary:
 			{"id": "master-crafted-bolter", "profiles": {"standard": _weapon("Master-crafted Bolter", 24.0, 2, 2, 5, -1, 2, {})}}
 		],
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 5, 2, 5, 0, 1, {})}}]
+	},
+	"roboute-guilliman": {
+		"points": 415,
+		"base_radius_inches": 1.1811,
+		"stats": {"movement_inches": 8, "toughness": 10, "save_target": 2, "wounds": 16, "leadership_target": 5, "objective_control": 4, "invulnerable_target": 4},
+		"keywords": ["MONSTER", "CHARACTER", "EPIC HERO", "IMPERIUM", "MOBILE", "PRIMARCH", "ADEPTUS ASTARTES", "ULTRAMARINES"],
+		"ranged": [{"id": "hand-of-dominion-ranged", "profiles": {"standard": _weapon("Hand of Dominion", 36.0, 4, 2, 6, -2, 2, {"rapid-fire": 2, "sustained-hits": 1})}}],
+		"melee": [
+			{"id": "emperors-sword", "profiles": {"standard": _weapon("Emperor's Sword", 0.0, 10, 2, 10, -3, 2, {"devastating-wounds": true, "cleave": 2})}},
+			{"id": "hand-of-dominion-melee", "profiles": {"standard": _weapon("Hand of Dominion", 0.0, 7, 2, 14, -4, 4, {"lethal-hits": true})}}
+		]
 	}
 }
 

@@ -7,7 +7,7 @@ const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
 const Prevention = preload("res://scripts/edition_11/wound_prevention.gd")
 const IMPLEMENTATION := "11e-identical-attacks-v4"
-const SUPPORTED_KEYWORDS := ["lethal-hits", "rapid-fire", "sustained-hits", "torrent", "heavy", "twin-linked", "assault", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "devastating-wounds", "precision"]
+const SUPPORTED_KEYWORDS := ["lethal-hits", "rapid-fire", "sustained-hits", "torrent", "heavy", "twin-linked", "assault", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "devastating-wounds", "precision", "cleave"]
 
 class Dice:
 	extends RefCounted
@@ -52,9 +52,9 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 	if not weapon.get("keywords", {}) is Dictionary: return "Invalid weapon keywords."
 	for keyword: Variant in weapon.get("keywords", {}):
 		if keyword not in SUPPORTED_KEYWORDS: return "Unsupported weapon mechanic: " + str(keyword)
-		if keyword in ["rapid-fire", "sustained-hits"] and not _positive_integer(weapon.keywords[keyword]):
+		if keyword in ["rapid-fire", "sustained-hits", "cleave"] and not _positive_integer(weapon.keywords[keyword]):
 			return "Keyword requires a positive integer: " + keyword
-		if keyword not in ["rapid-fire", "sustained-hits", "blast", "hunter"] and not weapon.keywords[keyword] is bool:
+		if keyword not in ["rapid-fire", "sustained-hits", "blast", "hunter", "cleave"] and not weapon.keywords[keyword] is bool:
 			return "Keyword flag requires a boolean: " + keyword
 	var hunter_error := Traits.hunter_error(weapon, context.get("target_keywords"))
 	if not hunter_error.is_empty(): return hunter_error

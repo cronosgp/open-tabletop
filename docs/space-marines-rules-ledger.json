@@ -23,7 +23,7 @@
   },
   "implementation": {
     "id": "track-a-current-datasheets-2026-10-v2",
-    "scope": "Executable fixed-loadout reference profiles for six listed Space Marine datasheets plus partial Guilliman doctrine mechanics; Guilliman has no admitted profile, and current Codex/app applicability remains pending record-by-record reconciliation. This does not establish current full-match or broad roster legality.",
+    "scope": "Executable fixed-loadout reference profiles for seven listed Space Marine datasheets, including provisional Roboute Guilliman mechanics and profile; current Codex/app applicability remains pending record-by-record reconciliation. This does not establish current full-match or broad roster legality.",
     "source_status": "current_codex_datasheet_and_effect_reconciliation_pending",
     "runtime_identity_source": "scripts/edition_11/unit_abilities.gd",
     "capability_registry": "scripts/edition_11/capabilities.gd"
@@ -111,10 +111,13 @@
       "rules": [
         {"id": "codex-adept", "name": "Codex Adept", "status": "reference_checked_official_preview_partial", "implementation_scope": "partial passive effect: all three Combat Doctrines are active for this unit; does not implement the complete datasheet"},
         {"id": "primarch-of-the-xiii", "name": "Primarch of the XIII", "status": "reference_checked_official_preview_partial", "implementation_scope": "implemented aura: friendly Astartes units within 6 inches can re-roll hit and wound rolls of 1; full Guilliman datasheet remains unimplemented"},
+        {"id": "feel-no-pain-5-guilliman", "name": "Feel No Pain 5+", "status": "reference_checked_official_preview_partial", "implementation_scope": "implemented for Guilliman against normal and mortal wounds; full datasheet remains unimplemented"},
         {"id": "author-of-the-codex", "name": "Author of the Codex", "status": "reference_checked_official_preview_partial", "implementation_scope": "Movement-phase selection of one visible friendly Astartes unit within 12 inches; chosen doctrine adds to other active doctrines until the start of the owner's next Command phase; choice uses shared once-per-battle doctrine accounting"},
-        {"id": "leader-of-the-astartes", "name": "Leader of the Astartes", "status": "reference_checked_official_locator_pending", "implementation_scope": "catalogued; attachment and Lone Operative interaction pending"}
+        {"id": "leader-of-the-astartes", "name": "Leader of the Astartes", "status": "reference_checked_official_locator_pending", "implementation_scope": "implemented conditional Lone Operative against ranged attacks beyond 12 inches while within 3 inches of friendly Astartes Infantry; full Guilliman datasheet remains unimplemented"},
+        {"id": "supreme-commander", "name": "Supreme Commander", "status": "reference_checked_official_locator_pending", "implementation_scope": "implemented army-preparation requirement that Guilliman be selected as Warlord; full army legality remains unimplemented"},
+        {"id": "transhuman-strategist", "name": "Transhuman Strategist", "status": "reference_checked_official_locator_pending", "implementation_scope": "implemented Warlord CP gain for a living Guilliman at battle-round start; full army legality remains unimplemented"}
       ],
-      "limitation": "The official preview confirms only parts of Guilliman's current datasheet. His profile, weapons, points, remaining abilities, full Codex locator and complete applicability are not reconciled; he is not an admitted playable profile."
+      "limitation": "The runtime has an experimental fixed-loadout profile and the listed mechanics transcribed from the current e11 reference. The official preview confirms only parts of the datasheet; a complete official Codex/app locator, exact current roster applicability and full army legality remain pending."
     }
   ],
   "inventory_views": [
@@ -1232,7 +1235,7 @@
   "known_gaps": [
     "Official Codex or amendment page/section references are not attached to each record yet.",
     "Weapon and wargear profiles, legal options, points variants, geometry, and chapter interactions are outside this first ledger slice.",
-    "The six audited datasheets and partial identity candidates are not a complete Space Marines catalog and do not certify all army construction rules.",
+    "The seven profile records and partial identity candidates are not a complete Space Marines catalog and do not certify all army construction rules. Guilliman is an experimental fixed-loadout entry, not checked-roster certification.",
     "All twenty chapter and all fifteen shared Codex detachment candidates now have first-pass rule, restriction, enhancement, and stratagem summaries. Chapter records contain 61 enhancements and 94 stratagems; shared Codex records contain 32 enhancements and 48 stratagems. This is reference inventory, not gameplay support. All records still need official full-text locators, DP/disposition reconciliation and source-level interaction checks.",
     "Rules are identified here but not yet encoded in a portable effect DSL; existing behavior is implemented in the fixed-match code path."
   ]

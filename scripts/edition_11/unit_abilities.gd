@@ -11,7 +11,7 @@ const RULES := {
 	"terminator-squad": ["deep-strike", "teleport-homer", "fury-of-the-first"],
 	"captain": ["leader", "strategic-acumen", "finest-hour", "transhuman-strategist"],
 	"lieutenant": ["support", "tactical-precision", "demi-company-commander"],
-	"roboute-guilliman": ["codex-adept", "primarch-of-the-xiii", "author-of-the-codex"],
+	"roboute-guilliman": ["codex-adept", "primarch-of-the-xiii", "author-of-the-codex", "feel-no-pain-5-guilliman", "leader-of-the-astartes", "supreme-commander", "transhuman-strategist"],
 	"necron-warriors": ["their-number-is-legion"],
 	"immortals": ["implacable-eradication"],
 	"overlord": ["leader", "my-will-be-done", "implacable-resilience", "resurrection-orb"],
@@ -40,6 +40,13 @@ static func enable(state: Dictionary) -> void:
 		for model: int in Geometry.alive(state, squad):
 			if identity(state.units[model]) == "overlord": state.units[model].wargear = ["resurrection-orb"]
 			if identity(state.units[model]) == "terminator-squad": state.units[model].erase("melee_weapons")
+			if identity(state.units[model]) == "roboute-guilliman":
+				var prevention: Array = state.units[model].get("feel_no_pain", [])
+				var has_guilliman_fnp := false
+				for rule: Dictionary in prevention:
+					if rule.get("target") == 5 and rule.get("against") == "any": has_guilliman_fnp = true
+				if not has_guilliman_fnp: prevention.append({"target": 5, "against": "any"})
+				state.units[model].feel_no_pain = prevention
 			for ability: String in RULES.get(identity(state.units[model]), []):
 				Registry.admit(state, ability, ID)
 				Registry.admit_squad(state, squad, ability)
@@ -121,6 +128,17 @@ static func primarch_aura_active(state: Dictionary, squad: int) -> bool:
 		for model: int in Geometry.alive(state, source_squad):
 			if identity(state.units[model]) != "roboute-guilliman": continue
 			if Geometry.distance_to_target(state, state.units[model], squad) <= 6.001: return true
+	return false
+
+static func lone_operative_active(state: Dictionary, model: int) -> bool:
+	if not enabled(state) or not state.units.has(model) or identity(state.units[model]) != "roboute-guilliman": return false
+	var owner: int = state.units[model].owner
+	for friendly_squad: int in state.squads:
+		if state.squads[friendly_squad].owner != owner: continue
+		for friendly_model: int in Geometry.alive(state, friendly_squad):
+			if friendly_model == model or not str(state.units[friendly_model].get("definition_id", "")).begins_with("40kdc:11e:adeptus-astartes:"): continue
+			if "INFANTRY" not in state.units[friendly_model].get("keywords", []): continue
+			if Geometry.distance_to_target(state, state.units[model], friendly_squad) <= 3.001: return true
 	return false
 
 static func start_command(state: Dictionary) -> void:
