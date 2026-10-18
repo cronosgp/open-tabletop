@@ -4,7 +4,7 @@
   "edition": 11,
   "observed_at": "2026-10-18",
   "status": "current_reference_profiles_recorded_official_codex_effects_pending",
-  "scope": "Seven fixed-loadout Space Marines profiles admitted by the experimental runtime, including a provisional Roboute Guilliman profile. This is a migration/reconciliation input, not a runtime pack or army-legality certificate.",
+  "scope": "Seven fixed-loadout Space Marines profiles transcribed into the current-reference profile source. The experimental roster constructor admits six; Roboute Guilliman is materializer-only and is not selectable through either roster path. This is a migration/reconciliation input, not an official runtime pack or army-legality certificate.",
   "sources": {
     "reference": {
       "publisher": "Wahapedia",
@@ -118,6 +118,7 @@
       "model": {"base": "60mm", "move_inches": 8, "toughness": 10, "save": "2+", "invulnerable_save": "4+", "wounds": 16, "leadership": "5+", "objective_control": 4},
       "default_loadout": ["Hand of Dominion (ranged)", "Emperor's Sword", "Hand of Dominion (melee)"],
       "source_delta": "Current-reference profile replaces the historical Roboute Guilliman characteristics, loadout and prices. The Emperor's Sword CLEAVE 2 effect is implemented in the attack planner; this is not official Codex locator certification.",
+      "runtime_admission": "profile_and_mechanics_transcribed_but_not_selectable_from_experimental_or_checked_roster_constructors",
       "ability_ids": ["codex-adept", "primarch-of-the-xiii", "author-of-the-codex", "leader-of-the-astartes", "feel-no-pain-5-guilliman", "supreme-commander", "transhuman-strategist"],
       "status": "reference_checked_official_preview_partial"
     }
@@ -125,8 +126,8 @@
   "runtime_migration": {
     "legacy_pack": "data/imported/starter-11e-v1",
     "fixed_marine_profiles": "Loaded by scripts/edition_11/current_reference_marine_profiles.gd in the experimental fixed-profile materializer. Its identifier and data digest are included in the match content hash.",
-    "known_issue": "The separate mixed-core training mode and Necron profiles still use the historical pack. Optional wargear and non-default profile variants are not part of the seven-profile migration. Guilliman is absent from the checked-roster price table until his full datasheet and current official applicability are reconciled.",
-    "next_step": "Reconcile exact official Codex/app effects and applicable updates per fixed datasheet, then extend the current-reference profile source in coherent batches. Keep checked_roster capability blocked until that reconciliation and complete required effects are done.",
+    "known_issue": "The separate mixed-core training mode and Necron profiles still use the historical pack. Optional wargear and non-default profile variants are not part of the seven-profile source snapshot. Guilliman has a transcribed profile but no selection path: admitting him to the legacy mixed-core builder would use a stale 355-point discovery value, while checked-roster validation intentionally excludes him pending source reconciliation.",
+    "next_step": "Reconcile exact official Codex/app effects and applicable updates per fixed datasheet, then add profiles through a current-reference roster path with the captured current prices. Keep checked_roster capability blocked until that reconciliation and complete required effects are done.",
     "support_claim": "No profile in this snapshot is certified as a current complete Codex datasheet or full legal army entry."
   }
 }
