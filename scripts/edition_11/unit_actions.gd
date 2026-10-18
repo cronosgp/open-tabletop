@@ -154,6 +154,20 @@ static func choices(state: Dictionary, player: int) -> Array:
 		var squad: int = state.units[model].squad
 		if state.phase == "command" and state.active == player and state.unit_abilities.used.get("acumen:%d" % squad, -1) != state.turn:
 			for doctrine: String in Doctrines.available(state, player): result.append(choice("Strategic Acumen %d: %s" % [model, doctrine], "acumen", model, squad, doctrine))
+	for model: int in models(state, player, "author-of-the-codex"):
+		if state.phase != "movement" or state.active != player or not Doctrines.enabled(state) or state.unit_abilities.used.get("author:%d" % model, "") == key(state): continue
+		for doctrine: String in Doctrines.available(state, player):
+			for target: int in state.squads:
+				if G.alive(state, target).is_empty() or state.squads[target].owner != player: continue
+				var is_astartes := false
+				for target_model: int in G.alive(state, target):
+					if str(state.units[target_model].get("definition_id", "")).begins_with("40kdc:11e:adeptus-astartes:"):
+						is_astartes = true
+						break
+				if not is_astartes: continue
+				var sight := T.targeting(state, model, target)
+				if sight.visible and sight.distance <= 12.001:
+					result.append(choice("Author of the Codex %d: %s for %s" % [model, doctrine, state.squads[target].name], "author", model, target, doctrine))
 	for model: int in models(state, player, "finest-hour"):
 		var squad: int = state.units[model].squad
 		if state.phase == "fight" and state.fight_actor == player and state.fight_step == "attacks" and squad in FightQueue.choices(state, player) and not state.squads[squad].fought and not state.unit_abilities.used.has("finest:%d" % squad): result.append(choice("Finest Hour: Captain %d (+3 A, Devastating Wounds)" % model, "finest", model, squad))
@@ -327,6 +341,12 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			a.doctrines[target] = {"doctrine": selected.value}
 			Doctrines.record_selection(state, player, selected.value)
 			a.window = {"kind": "demi", "owners": [player], "doctrine": selected.value}
+		"author":
+			a.used["author:%d" % model] = key(state)
+			if not a.has("additional_doctrines"): a.additional_doctrines = {}
+			if not a.additional_doctrines.has(target): a.additional_doctrines[target] = []
+			if selected.value not in a.additional_doctrines[target]: a.additional_doctrines[target].append(selected.value)
+			Doctrines.record_selection(state, player, selected.value)
 		"demi":
 			a.used["demi:%d" % target] = state.turn
 			a.doctrines[target] = {"doctrine": selected.value}

@@ -22,8 +22,8 @@
     "limitation": "Third-party consolidated reference; current official full-text locators and amendments must be recorded per rule before certification."
   },
   "implementation": {
-    "id": "track-a-current-datasheets-2026-10-v1",
-    "scope": "Executable fixed-loadout reference profile for the six listed Space Marine datasheets; current Codex/app applicability is pending record-by-record reconciliation and this does not establish current full-match or broad roster legality.",
+    "id": "track-a-current-datasheets-2026-10-v2",
+    "scope": "Executable fixed-loadout reference profiles for six listed Space Marine datasheets plus partial Guilliman doctrine mechanics; Guilliman has no admitted profile, and current Codex/app applicability remains pending record-by-record reconciliation. This does not establish current full-match or broad roster legality.",
     "source_status": "current_codex_datasheet_and_effect_reconciliation_pending",
     "runtime_identity_source": "scripts/edition_11/unit_abilities.gd",
     "capability_registry": "scripts/edition_11/capabilities.gd"
@@ -111,7 +111,7 @@
       "rules": [
         {"id": "codex-adept", "name": "Codex Adept", "status": "reference_checked_official_preview_partial", "implementation_scope": "partial passive effect: all three Combat Doctrines are active for this unit; does not implement the complete datasheet"},
         {"id": "primarch-of-the-xiii", "name": "Primarch of the XIII", "status": "reference_checked_official_preview_partial", "implementation_scope": "catalogued; exact current aura profile and interaction pending"},
-        {"id": "author-of-the-codex", "name": "Author of the Codex", "status": "reference_checked_official_locator_pending", "implementation_scope": "catalogued; target/timing/stacking and global doctrine-use interaction pending"},
+        {"id": "author-of-the-codex", "name": "Author of the Codex", "status": "reference_checked_official_preview_partial", "implementation_scope": "Movement-phase selection of one visible friendly Astartes unit within 12 inches; chosen doctrine adds to other active doctrines until the start of the owner's next Command phase; choice uses shared once-per-battle doctrine accounting"},
         {"id": "leader-of-the-astartes", "name": "Leader of the Astartes", "status": "reference_checked_official_locator_pending", "implementation_scope": "catalogued; attachment and Lone Operative interaction pending"}
       ],
       "limitation": "The official preview confirms only parts of Guilliman's current datasheet. His profile, weapons, points, remaining abilities, full Codex locator and complete applicability are not reconciled; he is not an admitted playable profile."

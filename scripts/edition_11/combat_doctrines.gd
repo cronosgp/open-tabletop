@@ -69,6 +69,8 @@ static func active_doctrines_for(state: Dictionary, squad: int) -> Array[String]
 	var result: Array[String] = []
 	var selected := active_for(state, squad)
 	if selected in ORDER: result.append(selected)
+	for doctrine: String in UnitAbilities.additional_doctrines(state, squad):
+		if doctrine in ORDER and doctrine not in result: result.append(doctrine)
 	if UnitAbilities.has(state, squad, "codex-adept"):
 		for doctrine: String in ORDER:
 			if doctrine not in result: result.append(doctrine)

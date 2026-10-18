@@ -3,7 +3,7 @@ extends RefCounted
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
-const ID := "track-a-current-datasheets-2026-10-v1"
+const ID := "track-a-current-datasheets-2026-10-v2"
 const RULES := {
 	"intercessor-squad": ["bolter-discipline", "tactical-mainstay"],
 	"assault-intercessor-squad": ["targeted-intercession"],
@@ -11,7 +11,7 @@ const RULES := {
 	"terminator-squad": ["deep-strike", "teleport-homer", "fury-of-the-first"],
 	"captain": ["leader", "strategic-acumen", "finest-hour", "transhuman-strategist"],
 	"lieutenant": ["support", "tactical-precision", "demi-company-commander"],
-	"roboute-guilliman": ["codex-adept"],
+	"roboute-guilliman": ["codex-adept", "author-of-the-codex"],
 	"necron-warriors": ["their-number-is-legion"],
 	"immortals": ["implacable-eradication"],
 	"overlord": ["leader", "my-will-be-done", "implacable-resilience", "resurrection-orb"],
@@ -34,7 +34,7 @@ static func has(state: Dictionary, squad: int, name: String) -> bool:
 	return not sources(state, squad, name).is_empty()
 
 static func enable(state: Dictionary) -> void:
-	state.unit_abilities = {"implementation": ID, "used": {}, "doctrines": {}, "discounts": {}, "discount_armed": {}, "phase_start": -1, "end_done": "", "window": {}, "reserves": {}, "homers": {}, "setup_done": false}
+	state.unit_abilities = {"implementation": ID, "used": {}, "doctrines": {}, "additional_doctrines": {}, "discounts": {}, "discount_armed": {}, "phase_start": -1, "end_done": "", "window": {}, "reserves": {}, "homers": {}, "setup_done": false}
 	for squad: int in state.squads:
 		state.squads[squad].disabled_abilities = []
 		for model: int in Geometry.alive(state, squad):
@@ -100,10 +100,19 @@ static func doctrine(state: Dictionary, squad: int) -> String:
 	var record: Dictionary = state.unit_abilities.doctrines.get(squad, {})
 	return str(record.get("doctrine", ""))
 
+static func additional_doctrines(state: Dictionary, squad: int) -> Array[String]:
+	var result: Array[String] = []
+	if not enabled(state): return result
+	for doctrine: String in state.unit_abilities.get("additional_doctrines", {}).get(squad, []):
+		if doctrine not in result: result.append(doctrine)
+	return result
+
 static func start_command(state: Dictionary) -> void:
 	if not enabled(state): return
 	for squad: int in state.unit_abilities.doctrines.keys():
 		if state.squads[squad].owner == state.active: state.unit_abilities.doctrines.erase(squad)
+	for squad: int in state.unit_abilities.additional_doctrines.keys():
+		if state.squads.has(squad) and state.squads[squad].owner == state.active: state.unit_abilities.additional_doctrines.erase(squad)
 
 static func implacable_mode(state: Dictionary, squad: int, target: int) -> String:
 	if not has(state, squad, "implacable-eradication"): return "none"

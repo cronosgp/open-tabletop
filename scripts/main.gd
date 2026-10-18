@@ -2328,8 +2328,11 @@ func _refresh() -> void:
 			elif "implacable-eradication" in state.squads[unit.squad].get("enabled_abilities", []): details.text += "\nImplacable Eradication: reference profile only; current ability is disabled."
 			if Combat.UnitActions.DetachmentStratagems.hungry_active(state, unit.squad): details.text += "\nHungry Void: +1 melee Strength" + (", AP improved by 1 (no stacking)" if state.detachment_stratagems.hungry[unit.squad].led else "") + " until Fight phase ends"
 			if Combat.Awakened.hit_bonus(state, unit.squad) > 0: details.text += "\nCommand Protocols: +1 to hit while led"
-			var active_doctrine := Combat.Doctrines.active_for(state, unit.squad)
-			if not active_doctrine.is_empty(): details.text += "\n11e doctrine • " + Combat.Doctrines.NAMES[active_doctrine]
+			var active_doctrines := Combat.Doctrines.active_doctrines_for(state, unit.squad)
+			if not active_doctrines.is_empty():
+				var doctrine_names: Array[String] = []
+				for doctrine: String in active_doctrines: doctrine_names.append(Combat.Doctrines.NAMES[doctrine])
+				details.text += "\n11e doctrines • " + "; ".join(doctrine_names)
 			if Combat.OathOfMoment.enabled(state):
 				var marked_squad: int = state.oath_of_moment.targets.get(state.squads[unit.squad].owner, -1)
 				if marked_squad != -1 and Combat.OathOfMoment.marine_army(state, state.squads[unit.squad].owner): details.text += "\nOath of Moment target: " + state.squads[marked_squad].name
