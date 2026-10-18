@@ -11,7 +11,7 @@ const RULES := {
 	"terminator-squad": ["deep-strike", "teleport-homer", "fury-of-the-first"],
 	"captain": ["leader", "strategic-acumen", "finest-hour", "transhuman-strategist"],
 	"lieutenant": ["support", "tactical-precision", "demi-company-commander"],
-	"roboute-guilliman": ["codex-adept", "author-of-the-codex"],
+	"roboute-guilliman": ["codex-adept", "primarch-of-the-xiii", "author-of-the-codex"],
 	"necron-warriors": ["their-number-is-legion"],
 	"immortals": ["implacable-eradication"],
 	"overlord": ["leader", "my-will-be-done", "implacable-resilience", "resurrection-orb"],
@@ -106,6 +106,22 @@ static func additional_doctrines(state: Dictionary, squad: int) -> Array[String]
 	for doctrine: String in state.unit_abilities.get("additional_doctrines", {}).get(squad, []):
 		if doctrine not in result: result.append(doctrine)
 	return result
+
+static func primarch_aura_active(state: Dictionary, squad: int) -> bool:
+	if not enabled(state) or not state.squads.has(squad): return false
+	var owner: int = state.squads[squad].owner
+	var astartes := false
+	for model: int in Geometry.alive(state, squad):
+		if str(state.units[model].get("definition_id", "")).begins_with("40kdc:11e:adeptus-astartes:"):
+			astartes = true
+			break
+	if not astartes: return false
+	for source_squad: int in state.squads:
+		if state.squads[source_squad].owner != owner: continue
+		for model: int in Geometry.alive(state, source_squad):
+			if identity(state.units[model]) != "roboute-guilliman": continue
+			if Geometry.distance_to_target(state, state.units[model], squad) <= 6.001: return true
+	return false
 
 static func start_command(state: Dictionary) -> void:
 	if not enabled(state): return

@@ -110,7 +110,7 @@
       "official_preview_url": "https://www.warhammer-community.com/en-gb/articles/paxsnmde/first-look-space-marines-datasheets/",
       "rules": [
         {"id": "codex-adept", "name": "Codex Adept", "status": "reference_checked_official_preview_partial", "implementation_scope": "partial passive effect: all three Combat Doctrines are active for this unit; does not implement the complete datasheet"},
-        {"id": "primarch-of-the-xiii", "name": "Primarch of the XIII", "status": "reference_checked_official_preview_partial", "implementation_scope": "catalogued; exact current aura profile and interaction pending"},
+        {"id": "primarch-of-the-xiii", "name": "Primarch of the XIII", "status": "reference_checked_official_preview_partial", "implementation_scope": "implemented aura: friendly Astartes units within 6 inches can re-roll hit and wound rolls of 1; full Guilliman datasheet remains unimplemented"},
         {"id": "author-of-the-codex", "name": "Author of the Codex", "status": "reference_checked_official_preview_partial", "implementation_scope": "Movement-phase selection of one visible friendly Astartes unit within 12 inches; chosen doctrine adds to other active doctrines until the start of the owner's next Command phase; choice uses shared once-per-battle doctrine accounting"},
         {"id": "leader-of-the-astartes", "name": "Leader of the Astartes", "status": "reference_checked_official_locator_pending", "implementation_scope": "catalogued; attachment and Lone Operative interaction pending"}
       ],

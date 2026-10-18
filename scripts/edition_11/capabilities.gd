@@ -57,6 +57,7 @@ const KNOWN := {
 	"target-priority": {"category": CATEGORY_UNIT, "name": "Target Priority (historical)", "supported": false, "superseded": true},
 	"demi-company-commander": {"category": CATEGORY_UNIT, "name": "Demi Company Commander", "supported": true, "source_status": "current_codex_applicability_pending"},
 	"codex-adept": {"category": CATEGORY_UNIT, "name": "Codex Adept", "supported": true, "source_status": "reference_checked_official_preview_partial", "scope": "Roboute Guilliman only; keeps all three Combat Doctrines active; does not admit his full datasheet"},
+	"primarch-of-the-xiii": {"category": CATEGORY_UNIT, "name": "Primarch of the XIII (Aura)", "supported": true, "source_status": "reference_checked_official_preview_partial", "scope": "Roboute Guilliman only; friendly Astartes units within 6 inches can re-roll hit and wound rolls of 1; does not admit his full datasheet"},
 	"author-of-the-codex": {"category": CATEGORY_UNIT, "name": "Author of the Codex", "supported": true, "source_status": "reference_checked_official_preview_partial", "scope": "Roboute Guilliman only; Movement-phase selection of an additional doctrine for one visible friendly Astartes unit within 12 inches, until start of next own Command phase; doctrine uses shared once-per-battle accounting"},
 	# Leaders and commanders.
 	"leader": {"category": CATEGORY_UNIT, "name": "Leader", "supported": true, "reference": true},

@@ -17,6 +17,11 @@ const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Allocation = preload("res://scripts/edition_11/damage_allocation.gd")
 
+static func _combine_rerolls(current: String, additional: String) -> String:
+	if current == "failed" or additional == "failed": return "failed"
+	if current == "ones" or additional == "ones": return "ones"
+	return current
+
 static func legal_targets(state: Dictionary, model: int, melee: bool, weapon_id: String = "", profile_id: String = "") -> Array[int]:
 	var result: Array[int] = []
 	if not state.units.has(model) or state.units[model].wounds <= 0 or not state.units[model].get("on_battlefield", true): return result
@@ -179,6 +184,9 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			if Queue.engaged(state, row.target) and Traits.heavy_unit(state, row.target) and not close_target: context.hit_modifier -= 1
 			if weapon.keywords.get("heavy", false) and not engaged_shooter and not state.squads[squad].set_up_this_turn and state.squads[squad].moved_distance <= 3.0: context.hit_modifier += 1
 			context.hit_modifier = clampi(context.hit_modifier, -1, 1)
+		if UnitAbilities.primarch_aura_active(state, squad):
+			if not context.get("snap_shooting", false): context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
+			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "ones")
 		# Expand attack-count/eligibility mechanics before pooling identical attacks.
 		for keyword in ["rapid-fire", "assault", "heavy", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "lance"]: profile.keywords.erase(keyword)
 		if UnitAbilities.enabled(state): context.use_lethal_hits = true
@@ -189,7 +197,8 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if context.has("wound_reroll"): key += ":" + context.wound_reroll
 		if context.get("free_wound_reroll", false): key += ":implacable-choice"
 		if context.has("hail_of_bolts"): key += ":hail-of-bolts"
-		if context.has("hit_reroll"): key += ":oath:" + str(context.get("wound_modifier", 0))
+		if context.has("hit_reroll"): key += ":hit-reroll:" + str(context.hit_reroll)
+		if context.has("wound_modifier"): key += ":wound-modifier:" + str(context.wound_modifier)
 		if not batches.has(key): batches[key] = {"target": row.target, "weapon": profile, "context": context, "labels": [], "count": 0}
 		batches[key].count += attacks + bonus
 		batches[key].context.attack_sources.append({"model": model, "weapon": choice.weapon, "expression": expression, "bonus": bonus})
