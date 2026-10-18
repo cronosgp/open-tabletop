@@ -11,6 +11,7 @@ const RULES := {
 	"terminator-squad": ["deep-strike", "teleport-homer", "fury-of-the-first"],
 	"captain": ["leader", "strategic-acumen", "finest-hour", "transhuman-strategist"],
 	"lieutenant": ["support", "tactical-precision", "demi-company-commander"],
+	"roboute-guilliman": ["codex-adept"],
 	"necron-warriors": ["their-number-is-legion"],
 	"immortals": ["implacable-eradication"],
 	"overlord": ["leader", "my-will-be-done", "implacable-resilience", "resurrection-orb"],

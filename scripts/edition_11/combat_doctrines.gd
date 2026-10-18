@@ -63,16 +63,30 @@ static func active_for(state: Dictionary, squad: int) -> String:
 	if owner not in state.combat_doctrines.owners or not Marines.marine_army(state, owner): return ""
 	return str(state.combat_doctrines.active.get(owner, ""))
 
+## Some current datasheets maintain or gain doctrines alongside their normal selection.
+## Keep the army-wide/override lookup intact and expose the combined effects separately.
+static func active_doctrines_for(state: Dictionary, squad: int) -> Array[String]:
+	var result: Array[String] = []
+	var selected := active_for(state, squad)
+	if selected in ORDER: result.append(selected)
+	if UnitAbilities.has(state, squad, "codex-adept"):
+		for doctrine: String in ORDER:
+			if doctrine not in result: result.append(doctrine)
+	return result
+
+static func has_doctrine(state: Dictionary, squad: int, doctrine: String) -> bool:
+	return doctrine in active_doctrines_for(state, squad)
+
 static func weapon(state: Dictionary, squad: int, profile: Dictionary, melee: bool) -> Dictionary:
-	if melee or active_for(state, squad) != "devastator": return profile
+	if melee or not has_doctrine(state, squad, "devastator"): return profile
 	var copy := profile.duplicate(true)
 	copy.keywords.assault = true
 	return copy
 
 static func shoot_after_fallback(state: Dictionary, squad: int) -> bool:
-	return active_for(state, squad) == "tactical" or UnitAbilities.has(state, squad, "adaptive-strategy")
+	return has_doctrine(state, squad, "tactical") or UnitAbilities.has(state, squad, "adaptive-strategy")
 
 static func charge_error(state: Dictionary, squad: int) -> String:
-	if state.squads[squad].advanced and active_for(state, squad) != "assault": return "A unit that Advanced needs Assault Doctrine to declare a charge."
-	if state.squads[squad].fell_back and active_for(state, squad) != "tactical" and not UnitAbilities.has(state, squad, "adaptive-strategy"): return "A unit that Fell Back needs Tactical Doctrine to declare a charge."
+	if state.squads[squad].advanced and not has_doctrine(state, squad, "assault"): return "A unit that Advanced needs Assault Doctrine to declare a charge."
+	if state.squads[squad].fell_back and not has_doctrine(state, squad, "tactical") and not UnitAbilities.has(state, squad, "adaptive-strategy"): return "A unit that Fell Back needs Tactical Doctrine to declare a charge."
 	return ""

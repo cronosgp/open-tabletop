@@ -101,6 +101,20 @@
         {"id": "tactical-precision", "name": "Tactical Precision", "status": "reference_checked_official_locator_pending", "implementation_scope": "fixed-loadout current unit ability"},
         {"id": "demi-company-commander", "name": "Demi-company Commander", "status": "reference_checked_official_locator_pending", "implementation_scope": "fixed-loadout current unit ability"}
       ]
+    },
+    {
+      "id": "space-marines/roboute-guilliman",
+      "name": "Roboute Guilliman",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Roboute-Guilliman",
+      "source_status": "reference_checked_official_preview_partial",
+      "official_preview_url": "https://www.warhammer-community.com/en-gb/articles/paxsnmde/first-look-space-marines-datasheets/",
+      "rules": [
+        {"id": "codex-adept", "name": "Codex Adept", "status": "reference_checked_official_preview_partial", "implementation_scope": "partial passive effect: all three Combat Doctrines are active for this unit; does not implement the complete datasheet"},
+        {"id": "primarch-of-the-xiii", "name": "Primarch of the XIII", "status": "reference_checked_official_preview_partial", "implementation_scope": "catalogued; exact current aura profile and interaction pending"},
+        {"id": "author-of-the-codex", "name": "Author of the Codex", "status": "reference_checked_official_locator_pending", "implementation_scope": "catalogued; target/timing/stacking and global doctrine-use interaction pending"},
+        {"id": "leader-of-the-astartes", "name": "Leader of the Astartes", "status": "reference_checked_official_locator_pending", "implementation_scope": "catalogued; attachment and Lone Operative interaction pending"}
+      ],
+      "limitation": "The official preview confirms only parts of Guilliman's current datasheet. His profile, weapons, points, remaining abilities, full Codex locator and complete applicability are not reconciled; he is not an admitted playable profile."
     }
   ],
   "inventory_views": [
