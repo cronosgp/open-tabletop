@@ -112,8 +112,9 @@
   ],
   "runtime_migration": {
     "legacy_pack": "data/imported/starter-11e-v1",
-    "known_issue": "The current fixed-profile materializer still resolves Marine characteristics/weapons through this historical pack. Its prices are not used by the MFM 1.6 checked-roster path, but its combat profiles can be stale.",
-    "next_step": "Migrate the current-reference data into a project-owned versioned fixed-profile source, then have the experimental materializer consume that source. Keep checked_roster capability blocked until Codex/app applicability and complete effects are reconciled.",
+    "fixed_marine_profiles": "Loaded by scripts/edition_11/current_reference_marine_profiles.gd in the experimental fixed-profile materializer. Its identifier and data digest are included in the match content hash.",
+    "known_issue": "The separate mixed-core training mode and Necron profiles still use the historical pack. Optional wargear and non-default profile variants are not part of the six-profile migration.",
+    "next_step": "Reconcile exact official Codex/app effects and applicable updates per fixed datasheet, then extend the current-reference profile source in coherent batches. Keep checked_roster capability blocked until that reconciliation and complete required effects are done.",
     "support_claim": "No profile in this snapshot is certified as a current complete Codex datasheet or full legal army entry."
   }
 }

@@ -5,7 +5,8 @@ const Battlefield = preload("res://scripts/edition_11/test_battlefield.gd")
 const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const Training = preload("res://scripts/edition_11/training_roster.gd")
 const MatchManifest = preload("res://scripts/edition_11/match_manifest.gd")
-const ID := "prepared-objective-training-v1"
+const CurrentMarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const ID := "prepared-objective-training-v2"
 
 static func initial_state(options: Dictionary = {}, selections: Dictionary = {}) -> Dictionary:
 	if options.get("combat_doctrines", false) and options.get("oath_of_moment", false): return {"error": "11e Combat Doctrines replaces the historical Oath of Moment profile; these options cannot be combined."}
@@ -185,10 +186,21 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 
 static func _current_loadouts(state: Dictionary) -> String:
 	var cache: Dictionary = {}
+	var marine_profiles_used := false
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		var source := Combat.UnitAbilities.identity(unit)
 		if source not in Combat.UnitAbilities.RULES: return "Unsupported current unit profile: " + source
+		if str(unit.get("definition_id", "")).begins_with("40kdc:11e:adeptus-astartes:"):
+			var marine_profile := CurrentMarineProfiles.profile(source)
+			if marine_profile.is_empty(): return "No current-reference fixed loadout is recorded for " + source
+			var squad: int = unit.squad
+			state.squads[squad].stats = marine_profile.stats.duplicate(true)
+			unit.keywords = marine_profile.keywords.duplicate()
+			unit.ranged_weapons = marine_profile.ranged.duplicate(true)
+			unit.melee_weapons = marine_profile.melee.duplicate(true)
+			marine_profiles_used = true
+			continue
 		if not cache.has(source):
 			var faction := "Necrons" if str(unit.definition_id).contains(":necrons:") else "Space Marines"
 			cache[source] = Training.Capabilities.resolve(faction, unit.definition_id)
@@ -214,4 +226,6 @@ static func _current_loadouts(state: Dictionary) -> String:
 			if source == "lieutenant": pistol.strength = 5
 			unit.ranged_weapons.append({"id": "pistol", "profiles": {"standard": pistol}})
 		unit.melee_weapons = [{"id": "melee", "profiles": {"standard": resolved.weapons.blade.duplicate(true)}}]
+	if marine_profiles_used:
+		state.pack_hash = str(state.get("pack_hash", "")) + ":" + CurrentMarineProfiles.ID + ":" + CurrentMarineProfiles.digest()
 	return ""
