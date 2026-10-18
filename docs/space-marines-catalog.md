@@ -3,7 +3,7 @@
 **Status:** inventory started; no new Space Marine mechanics are certified by this document.
 
 **Rules target:** Warhammer 40,000 11th edition, using the current faction pack, current Codex/app datasheets and their amendments.
-**Last source check:** 17 October 2026.
+**Last source check:** 18 October 2026.
 
 This catalog is the work queue and provenance ledger for expanding Space Marine coverage. A profile or rule remains unavailable in enforced matches until its current source, interactions and implementation scope have been checked. Existing ten fixed Marine profiles remain only the narrow scope described by [Current unit abilities](current-unit-abilities.md).
 
@@ -46,6 +46,12 @@ The current identity list has 67 partial candidates and is not the 85-sheet shar
 The Wahapedia “no supplements” view still exposes a Deathwatch app book/detachment and a Boarding Actions expansion explicitly marked 10th edition. Treat the label as a filter/view name only. Every candidate still needs its own book marker and game-mode classification; do not infer shared Codex membership from its presence on that page.
 
 The GW article states that Codex: Space Marines was impending and describes changes to Astartes characteristics and weapon options. Therefore, historical 10th-edition profiles and launch-tagged community records must not be promoted by matching names alone. Check the current profile and every later amendment individually.
+
+### Fixed-profile migration snapshot (18 October 2026)
+
+The six existing Space Marine fixed profiles now have a concise, machine-readable comparison in [profile reconciliation](space-marines-profile-reconciliation.json). It records the current e11 Wahapedia profile, default equipment, composition and MFM 1.6 costs, plus the official GW update statements that can be cross-checked publicly. Current Tacticus/Terminator toughness and common bolt-weapon/chainsword changes align with GW's 30 September summary; exact Codex/app effects and applicability still need a per-profile official locator.
+
+This snapshot is an implementation input, not a runtime source yet. `prepared_training.gd::_current_loadouts()` still resolves fixed Marine weapons from the pinned historical starter pack, and its materialized squad characteristics also originate there. As a result, the fixed-profile runtime can currently combine MFM 1.6 prices with stale combat profiles. The roster and manifest flags remain blocked; the next code increment should migrate the six fixed Marine reference profiles into a versioned project-owned source and have the experimental materializer read it. Keep source status pending until the exact current Codex/app pages and applicable changes are reconciled.
 
 ## Initial inventory evidence
 

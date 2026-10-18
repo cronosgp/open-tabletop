@@ -1,0 +1,119 @@
+{
+  "snapshot_id": "space-marines-fixed-profile-reconciliation-2026-10-18",
+  "schema_version": 1,
+  "edition": 11,
+  "observed_at": "2026-10-18",
+  "status": "current_reference_profiles_recorded_official_codex_effects_pending",
+  "scope": "Six fixed-loadout Space Marines profiles already admitted by the experimental runtime. This is a migration/reconciliation input, not a runtime pack or army-legality certificate.",
+  "sources": {
+    "reference": {
+      "publisher": "Wahapedia",
+      "edition_path": "/wh40k11ed/",
+      "observed_app_version": "2.8.1 / October 2026",
+      "observed_at": "2026-10-18",
+      "pages": [
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Assault-Intercessor-Squad",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Heavy-Intercessor-Squad",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant"
+      ]
+    },
+    "official_updates": [
+      {
+        "title": "Warhammer 40,000 – Balance Update: Emboldened Astartes",
+        "date": "2026-09-30",
+        "url": "https://www.warhammer-community.com/en-gb/articles/rylbvfnv/warhammer-40000-balance-update-emboldened-astartes/",
+        "cross_checked": "GW states most Tacticus and Terminator profiles gain +1 Toughness; Gravis profiles are excluded; boltguns and chainswords generally gain +1 Strength, and some gain +1 AP.",
+        "limit": "The article is a change summary and does not reproduce each Codex datasheet, fixed loadout or ability text. Exact current Codex/app applicability remains unverified."
+      },
+      {
+        "title": "Codex: Space Marines announcement and first datasheet preview",
+        "urls": [
+          "https://www.warhammer-community.com/en-gb/articles/jfqdowqw/behold-the-most-impressive-codex-space-marines-yet/",
+          "https://www.warhammer-community.com/en-gb/articles/paxsnmde/first-look-space-marines-datasheets/"
+        ],
+        "cross_checked": "GW announced the Codex scope and published selected first-look effects.",
+        "limit": "The public articles do not provide the complete datasheet set or an exact locator for every migrated profile."
+      },
+      {
+        "title": "Munitorum Field Manual 1.6",
+        "observed_at": "2026-10-17",
+        "sha256_space_marines_html": "af280e710928f49d6c22775ae48fa9a5fe78de7560cf2c6712eb6d48a885c5e5",
+        "cross_checked": "Fixed-profile costs below match the captured official MFM 1.6 snapshot observed after the official downloads hub update on 14 October 2026."
+      }
+    ],
+    "official_datasheet_status": "pending_exact_current_codex_or_app_locator_per_profile"
+  },
+  "profiles": [
+    {
+      "id": "space-marines/intercessor-squad",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
+      "composition": [5, 10],
+      "points": {"5": 85, "10": 170},
+      "model": {"move_inches": 6, "toughness": 5, "save": "3+", "wounds": 2, "leadership": "6+", "objective_control": 2},
+      "default_loadout": ["Bolt Pistol", "Bolt Rifle - Saturation", "Knives and Fists"],
+      "source_delta": "T5 and current weapon profiles replace the starter-pack T4 / S4 rifle values. Current sheet also offers Focused Fire bolt rifle mode; this fixed roster uses Saturation only.",
+      "ability_ids": ["bolter-discipline", "tactical-mainstay"],
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/assault-intercessor-squad",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Assault-Intercessor-Squad",
+      "composition": [5, 10],
+      "points": {"5": 85, "10": 170},
+      "model": {"move_inches": 6, "toughness": 5, "save": "3+", "wounds": 2, "leadership": "6+", "objective_control": 2},
+      "default_loadout": ["Heavy Bolt Pistol", "Chainsword"],
+      "source_delta": "T5 and S5 chainsword replace the starter-pack T4 / S4 profile. Current ability is Targeted Intercession.",
+      "ability_ids": ["targeted-intercession"],
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/heavy-intercessor-squad",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Heavy-Intercessor-Squad",
+      "composition": [5, 10],
+      "points": {"5": 115, "10": 230},
+      "model": {"move_inches": 5, "toughness": 6, "save": "3+", "wounds": 3, "leadership": "6+", "objective_control": 2},
+      "default_loadout": ["Bolt Pistol", "Heavy Bolt Rifle", "Ceramite Fists"],
+      "default_ranged_profiles": [
+        {"name": "Bolt Pistol", "range_inches": 12, "attacks": 1, "skill": 3, "strength": 5, "ap": -1, "damage": 1, "keywords": ["close-quarters"]},
+        {"name": "Heavy Bolt Rifle", "range_inches": 30, "attacks": 2, "skill": 3, "strength": 5, "ap": -1, "damage": 2, "keywords": ["heavy", "rapid-fire-1"]}
+      ],
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/terminator-squad",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
+      "composition": [5, 10],
+      "points": {"5": 190, "10": 380},
+      "model": {"move_inches": 5, "toughness": 6, "save": "2+", "invulnerable_save": "4+", "wounds": 3, "leadership": "6+", "objective_control": 1},
+      "default_loadout": ["Storm Bolter", "Power Fist"],
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/captain",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain",
+      "composition": [1],
+      "points": {"1": 90},
+      "model": {"move_inches": 6, "toughness": 5, "save": "3+", "invulnerable_save": "4+", "wounds": 5, "leadership": "6+", "objective_control": 1},
+      "default_loadout": ["Heavy Bolt Pistol", "Master-crafted Bolter", "Master-crafted Power Weapon"],
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/lieutenant",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
+      "composition": [1],
+      "points": {"1": 50},
+      "model": {"move_inches": 6, "toughness": 5, "save": "3+", "wounds": 4, "leadership": "6+", "objective_control": 1},
+      "default_loadout": ["Bolt Pistol", "Master-crafted Bolter", "Ceramite Fists"],
+      "status": "reference_checked_official_codex_locator_pending"
+    }
+  ],
+  "runtime_migration": {
+    "legacy_pack": "data/imported/starter-11e-v1",
+    "known_issue": "The current fixed-profile materializer still resolves Marine characteristics/weapons through this historical pack. Its prices are not used by the MFM 1.6 checked-roster path, but its combat profiles can be stale.",
+    "next_step": "Migrate the current-reference data into a project-owned versioned fixed-profile source, then have the experimental materializer consume that source. Keep checked_roster capability blocked until Codex/app applicability and complete effects are reconciled.",
+    "support_claim": "No profile in this snapshot is certified as a current complete Codex datasheet or full legal army entry."
+  }
+}
