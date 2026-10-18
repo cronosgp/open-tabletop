@@ -197,6 +197,9 @@ static func _current_loadouts(state: Dictionary) -> String:
 			var squad: int = unit.squad
 			state.squads[squad].stats = marine_profile.stats.duplicate(true)
 			unit.keywords = marine_profile.keywords.duplicate()
+			unit.movement = int(marine_profile.stats.movement_inches)
+			unit.wounds = int(marine_profile.stats.wounds)
+			unit.max_wounds = int(marine_profile.stats.wounds)
 			unit.ranged_weapons = marine_profile.ranged.duplicate(true)
 			unit.melee_weapons = marine_profile.melee.duplicate(true)
 			marine_profiles_used = true
