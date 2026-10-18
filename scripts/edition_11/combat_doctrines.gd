@@ -47,6 +47,11 @@ static func select_doctrine(state: Dictionary, player: int, doctrine: String) ->
 	state.combat_doctrines.selected_turn[player] = state.turn
 	if doctrine == "none": return
 	state.combat_doctrines.active[player] = doctrine
+	record_selection(state, player, doctrine)
+
+## Record every rule-driven doctrine selection against the shared once-per-battle limit.
+## Unit abilities can activate the doctrine locally without changing the army-wide active doctrine.
+static func record_selection(state: Dictionary, player: int, doctrine: String) -> void:
 	if not state.combat_doctrines.used.has(player): state.combat_doctrines.used[player] = []
 	if doctrine in state.combat_doctrines.used[player]: state.combat_doctrines.extra_used[player] = true
 	state.combat_doctrines.used[player].append(doctrine)

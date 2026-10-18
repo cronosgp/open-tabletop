@@ -1,6 +1,6 @@
 # Gladius and Awakened stratagems (Track A)
 
-Enabled only with **checked Incursion rosters**. These are the current e11 Gladius Task Force and Awakened Dynasty stratagems that have a verified implementation. Enhancements remain outside the fixed-loadout profile.
+Enabled only with **checked Incursion rosters**. These are the current e11 Gladius Task Force and Awakened Dynasty stratagems implemented for the documented fixed-roster scope. This implementation boundary does not certify every Codex interaction. Enhancements remain outside the fixed-loadout profile.
 
 ## Implemented
 
@@ -27,3 +27,5 @@ Enhancements stay rejected by A3. Complete 1,000-point Necron compositions, rema
 
 - [Space Marines / Gladius Task Force](https://wahapedia.ru/wh40k11ed/factions/space-marines/)
 - [Necrons / Awakened Dynasty](https://wahapedia.ru/wh40k11ed/factions/necrons/)
+
+The per-rule source and scope ledger is [space-marines-rules-ledger.json](space-marines-rules-ledger.json). The current Gladius reference describes Armour of Contempt as changing incoming AP until the attacking unit has attacked; the implementation binds the first attacker that targets the selected unit for the remainder of that attack sequence. The precise official Codex/update locator for that binding is still pending, so this stays within the existing fixed-roster scope and is not evidence for broader Astartes support.

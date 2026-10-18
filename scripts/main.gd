@@ -40,12 +40,27 @@ const MatchJournal = preload("res://scripts/match_journal.gd")
 const MatchHistoryPanel = preload("res://scripts/match_history_panel.gd")
 const MainMenu = preload("res://scripts/ui/main_menu.gd")
 const CombatHud = preload("res://scripts/ui/combat_hud.gd")
+const SessionTransport = preload("res://scripts/network/session_transport.gd")
+const MatchSession = preload("res://scripts/network/match_session.gd")
 var journal = MatchJournal.new()
 var history_panel
-const SessionSeat = preload("res://scripts/session_seat.gd")
-var host_session: Dictionary = {}
-var pending_seats: Dictionary = {}
-var seat_challenge: Dictionary = {}
+var session_transport
+var match_session = MatchSession.new()
+var host_session: Dictionary:
+	get:
+		return match_session.host_session
+	set(value):
+		match_session.host_session = value
+var pending_seats: Dictionary:
+	get:
+		return match_session.pending_seats
+	set(value):
+		match_session.pending_seats = value
+var seat_challenge: Dictionary:
+	get:
+		return match_session.guest_challenge
+	set(value):
+		match_session.guest_challenge = value
 var autosave_error := ""
 var auto_models: CheckBox
 var local_model_status: Label
@@ -122,7 +137,11 @@ var health_tags: Dictionary = {}
 var board_presentation_state: Dictionary = {}
 var selected := -1
 var mode := "local"
-var guest_id := 0
+var guest_id: int:
+	get:
+		return match_session.guest_id
+	set(value):
+		match_session.guest_id = value
 var camera: Camera3D
 var pivot: Node3D
 var focus_tween: Tween
@@ -252,16 +271,20 @@ func _ready() -> void:
 		push_error("Startup stopped: the local demo data pack is invalid.")
 		get_tree().quit(1)
 		return
+	session_transport = SessionTransport.new()
+	session_transport.name = "SessionTransport"
+	add_child(session_transport)
+	session_transport.bind(multiplayer)
 	_build_board()
 	_build_ui()
 	_spawn_pieces()
 	get_viewport().size_changed.connect(_layout_ui)
 	_layout_ui()
-	multiplayer.peer_connected.connect(_peer_connected)
-	multiplayer.peer_disconnected.connect(_peer_disconnected)
-	multiplayer.connected_to_server.connect(_connected_to_server)
-	multiplayer.connection_failed.connect(func(): _offline("Connection failed."))
-	multiplayer.server_disconnected.connect(func(): _offline("Host disconnected. Local preview restored."))
+	session_transport.peer_connected.connect(_peer_connected)
+	session_transport.peer_disconnected.connect(_peer_disconnected)
+	session_transport.connected_to_server.connect(_connected_to_server)
+	session_transport.connection_failed.connect(func(): _offline("Connection failed."))
+	session_transport.server_disconnected.connect(func(): _offline("Host disconnected. Local preview restored."))
 	_refresh()
 	_update_main_menu_resume_state()
 
@@ -624,8 +647,8 @@ func _build_ui() -> void:
 	equipment_choice.text = "Next match: varied training equipment"
 	advanced.add_child(equipment_choice)
 	checked_rosters_choice = CheckBox.new()
-	checked_rosters_choice.text = "Next prepared match: checked Incursion rosters (MFM 1.6)"
-	checked_rosters_choice.tooltip_text = "Current points/repetition/DP checks for ten fixed-loadout profiles; Gladius vs Awakened, no enhancements. Mandatory Warlord/Support declarations. Full match rules remain incomplete. Saved list prices are not trusted or changed."
+	checked_rosters_choice.text = "Next prepared match: reference Incursion rosters (MFM 1.6 snapshot)"
+	checked_rosters_choice.tooltip_text = "Experimental fixed-profile roster snapshot for ten units; Gladius vs Awakened, no enhancements. Official MFM 1.6 prices were captured 17 October after the 14 October update; current Codex datasheets/effects and full army legality still need reconciliation."
 	advanced.add_child(checked_rosters_choice)
 	checked_rosters_choice.toggled.connect(func(active: bool):
 		if active:
@@ -647,7 +670,8 @@ func _build_ui() -> void:
 		if active: unit_abilities_choice.button_pressed = true
 		_review_saved_armies())
 	unit_abilities_choice = CheckBox.new()
-	unit_abilities_choice.text = "Next prepared match: current e11 unit abilities (Track A)"
+	unit_abilities_choice.text = "Next prepared match: reference-pass e11 unit abilities (Codex review pending)"
+	unit_abilities_choice.tooltip_text = "Executable fixed-profile mechanics transcribed from the October e11 reference pass. Current Space Marines Codex/app applicability is pending record-by-record review. MFM 1.6 fixed-profile prices have a separate current snapshot."
 	unit_abilities_choice.tooltip_text = "Current abilities for ten admitted unit types, including reserves and leaders. Historical Hail of Bolts and Objective Secured are incompatible. Fixed loadouts and reference costs remain."
 	advanced.add_child(unit_abilities_choice)
 	unit_abilities_choice.toggled.connect(func(active: bool):
@@ -829,7 +853,7 @@ func _build_ui() -> void:
 	_button(labs, "Rules lab • mixed defense / Precision", _start_allocation_practice)
 	_button(labs, "Local preview / disconnect", func(): _offline("Local preview: control both sides."))
 	_button(labs, "11th edition attack sequence lab", func():
-		multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+		session_transport.reset()
 		get_tree().change_scene_to_file("res://scenes/attack_lab.tscn")
 	)
 	var selected_card := PanelContainer.new()
@@ -1538,7 +1562,7 @@ func _saved_army_report(owner: int) -> Dictionary:
 func _review_saved_armies() -> void:
 	if saved_army_review == null: return
 	var lines: Array[String] = ["Core-profile training: up to six units per player, including admitted commanders and Support units. Only explicitly enabled effects run. Fixed weapons and local pack points; complete official legality is pending."]
-	if checked_rosters_choice.button_pressed: lines[0] = "Checked fixed rosters: Incursion, up to twelve supported units, Gladius/Awakened only, no enhancements. Prices use the pinned official MFM 1.6 profile; saved-list prices remain unchanged. Declare Warlord and Support attachments before deployment."
+	if checked_rosters_choice.button_pressed: lines[0] = "Reference rosters: Incursion, up to twelve fixed-profile units, Gladius/Awakened only, no enhancements. Prices use official MFM 1.6 captured 17 October; current Codex datasheets/effects and full army legality are pending. Declare Warlord and Support attachments before deployment."
 	for owner in [1, 2]:
 		var report := _saved_army_report(owner)
 		lines.append("P%d: %s" % [owner, report.error if not report.error.is_empty() else ("%s • %d units • %d/%d " + ("MFM 1.6 points" if checked_rosters_choice.button_pressed else "local pack points") + " (saved list: %d pts)") % [report.selection.faction, report.get("unit_count", report.selection.get("copies", 0)), report.total, report.selection.points_limit, report.saved_reference_points]])
@@ -1556,7 +1580,7 @@ func _review_saved_armies() -> void:
 					warning = warning.replace("target-elimination, ", "").replace(", target-elimination", "")
 					if warning.ends_with(": target-elimination") or warning == "target-elimination": continue
 				lines.append("P%d • unavailable abilities: %s" % [owner, warning])
-	if checked_rosters_choice.button_pressed: lines.append("Checked Incursion rosters: official MFM 1.6 points, 2/4 repetition limits, one 3DP Gladius/Awakened exception, fixed loadouts and no enhancements. Warlord/Support declarations are mandatory. Command Re-roll uses every implemented window. Gladius/Awakened cards plus Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge are in unit abilities. Saved prices stay unchanged.")
+	if checked_rosters_choice.button_pressed: lines.append("Reference Incursion rosters: official MFM 1.6 prices (captured 17 October), 2/4 repetition limits, one 3DP Gladius/Awakened exception, fixed loadouts and no enhancements. Warlord/Support declarations are mandatory. Current Codex datasheet/effect applicability and full army legality remain pending. Saved prices stay unchanged.")
 	if official_mission_choice.button_pressed: lines.append("Mission: CA 2026-27 Battlefield Dominance / Hammer and Anvil, 44 x 60 inches. Both sides Take and Hold; fixed Engage on All Fronts + Assassination. Resolve role and first-turn roll-offs." + (" Points use MFM 1.6." if checked_rosters_choice.button_pressed else " Reference army prices remain unverified."))
 	if unit_abilities_choice.button_pressed: lines.append("Enabled: current e11 abilities for ten fixed-profile unit types. Declare Warlords, Leader/Support attachments and reserves before deployment; Teleport Homers at battle start. Use the unit ability panel for optional phase and dice choices.")
 	if hail_of_bolts_choice.button_pressed: lines.append("Enabled: Intercessor Hail of Bolts; choose one visible enemy in the shooting plan for +2 bolt-rifle attacks against it.")
@@ -2255,7 +2279,7 @@ func _refresh() -> void:
 	elif state.has("match_manifest"): session_label.text += "\nPrepared custom mission • two units per side"
 	if state.get("rules_practice", false): session_label.text += "\nSYNTHETIC RULES LAB • practice profiles"
 	if Combat.RosterValidation.enabled(state):
-		session_label.text = session_label.text.replace("Saved-list training", "Checked fixed rosters").replace("local points", "MFM 1.6 points").replace("official list legality is not validated", "full match rules are not certified")
+		session_label.text = session_label.text.replace("Saved-list training", "Reference fixed rosters").replace("local points", "MFM 1.6 snapshot points").replace("official list legality is not validated", "current Codex applicability is pending")
 		session_label.text += "\nMFM 1.6 • formations %s / %s" % ["checked" if state.roster_validation.armies[1].formations_verified else "pending", "checked" if state.roster_validation.armies[2].formations_verified else "pending"]
 	var session_details := session_label.text
 	session_label.tooltip_text = session_details
@@ -2300,7 +2324,7 @@ func _refresh() -> void:
 				for ability_id: String in Combat.UnitAbilities.RULES.get(Combat.UnitAbilities.identity(state.units[model_id]), []):
 					var ability_name := ability_id.replace("-", " ").capitalize()
 					if ability_name not in ability_names: ability_names.append(ability_name)
-			if not ability_names.is_empty(): details.text += "\nCurrent e11 abilities: " + ", ".join(ability_names)
+			if not ability_names.is_empty(): details.text += "\nReference-pass e11 abilities: " + ", ".join(ability_names)
 			elif "implacable-eradication" in state.squads[unit.squad].get("enabled_abilities", []): details.text += "\nImplacable Eradication: reference profile only; current ability is disabled."
 			if Combat.UnitActions.DetachmentStratagems.hungry_active(state, unit.squad): details.text += "\nHungry Void: +1 melee Strength" + (", AP improved by 1 (no stacking)" if state.detachment_stratagems.hungry[unit.squad].led else "") + " until Fight phase ends"
 			if Combat.Awakened.hit_bonus(state, unit.squad) > 0: details.text += "\nCommand Protocols: +1 to hit while led"
@@ -3079,16 +3103,12 @@ func _host() -> void:
 		if not own.error.is_empty():
 			status.text = own.error
 			return
-	var peer := ENetMultiplayerPeer.new()
-	var error := peer.create_server(PORT, 1)
-	if error != OK:
-		status.text = "Cannot host: " + error_string(error)
+	var transport_error: String = session_transport.start_host(PORT, 1)
+	if not transport_error.is_empty():
+		status.text = transport_error
 		return
-	multiplayer.multiplayer_peer = peer
 	mode = "host"
-	host_session = SessionSeat.create()
-	pending_seats = {}
-	guest_id = 0
+	match_session.start_host()
 	state = initial
 	_reset_history()
 	if saved_army_mode:
@@ -3114,25 +3134,20 @@ func _join() -> void:
 		state = _initial_state()
 		_reset_history()
 		_spawn_pieces()
-	var peer := ENetMultiplayerPeer.new()
-	var error := peer.create_client(address.text.strip_edges(), PORT)
-	if error != OK:
-		status.text = "Cannot join: " + error_string(error)
+	var transport_error: String = session_transport.start_client(address.text.strip_edges(), PORT)
+	if not transport_error.is_empty():
+		status.text = transport_error
 		return
-	multiplayer.multiplayer_peer = peer
 	mode = "client"
-	seat_challenge = {}
+	match_session.guest_ready()
 	selected = -1
 	status.text = "Connecting…"
 	_refresh()
 
 func _offline(message: String) -> void:
-	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	session_transport.reset()
 	mode = "local"
-	guest_id = 0
-	pending_seats = {}
-	seat_challenge = {}
-	host_session = {}
+	match_session.reset()
 	local_visual_armies.clear()
 	state = _initial_state()
 	_reset_history()
@@ -3143,81 +3158,70 @@ func _offline(message: String) -> void:
 
 func _peer_connected(id: int) -> void:
 	if mode == "host":
-		if not SessionSeat.valid_session(host_session): host_session = SessionSeat.create()
-		var nonce := SessionSeat.secret()
-		pending_seats[id] = {"nonce": nonce, "issued": ""}
-		receive_seat_challenge.rpc_id(id, host_session.id, nonce, not host_session.token.is_empty())
+		var challenge: Dictionary = match_session.begin_challenge(id)
+		receive_seat_challenge.rpc_id(id, host_session.id, challenge.nonce, challenge.claimed)
 		status.text = "Verifying player 2 credentials…"
 		get_tree().create_timer(10.0).timeout.connect(func():
-			if mode == "host" and pending_seats.get(id, {}).get("nonce") == nonce:
-				pending_seats.erase(id)
-				multiplayer.multiplayer_peer.disconnect_peer(id)
+			if mode == "host" and pending_seats.get(id, {}).get("nonce") == challenge.nonce:
+				match_session.reject(id)
+				session_transport.disconnect_peer(id)
 				status.text = "Verification timed out; waiting for player 2.")
 
 @rpc("authority", "call_remote", "reliable")
 func receive_seat_challenge(session_id: String, nonce: String, claimed: bool) -> void:
-	if mode != "client" or not SessionSeat.valid(session_id) or not SessionSeat.valid(nonce): return
-	seat_challenge = {"id": session_id, "nonce": nonce}
-	var saved := SessionSeat.credentials()
-	if saved.has("error"):
-		_offline(saved.error)
+	if mode != "client": return
+	var proof: Dictionary = match_session.accept_challenge(session_id, nonce, claimed)
+	if not proof.error.is_empty():
+		_offline(proof.error)
 		return
-	var token: String = saved.seats.get(session_id, "")
-	if claimed and token.is_empty():
-		_offline("This seat belongs to another guest. Use the local credentials from the computer that joined as player 2.")
-		return
-	request_seat.rpc_id(1, SessionSeat.proof(token, nonce, session_id) if claimed else "")
+	request_seat.rpc_id(1, proof.response)
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_seat(response: String) -> void:
 	var id := multiplayer.get_remote_sender_id()
-	if mode != "host" or not pending_seats.has(id) or guest_id != 0: return
-	var nonce: String = pending_seats[id].nonce
-	if host_session.token.is_empty() and pending_seats[id].issued.is_empty():
-		pending_seats[id].issued = SessionSeat.secret()
-		receive_seat_token.rpc_id(id, host_session.id, nonce, pending_seats[id].issued)
-		return
-	var candidate := host_session.duplicate(true)
-	if candidate.token.is_empty(): candidate.token = pending_seats[id].issued
-	if not SessionSeat.accepts(candidate, nonce, response):
-		_reject_seat(id)
-		return
-	# Make the reservation durable before allowing commands or publishing state.
-	var previous := host_session
-	host_session = candidate
-	if state.get("phase") != "army_selection":
-		var error := _save_snapshot()
-		if not error.is_empty():
-			host_session = previous
-			status.text = "Could not save the seat reservation: " + error
+	if mode != "host": return
+	var decision: Dictionary = match_session.decide_seat(id, response)
+	match decision.status:
+		"ignore": return
+		"issue_token":
+			receive_seat_token.rpc_id(id, decision.session_id, decision.nonce, decision.token)
+			return
+		"reject":
 			_reject_seat(id)
 			return
-	pending_seats.erase(id)
-	guest_id = id
+		"authenticated": pass
+		_: return
+	# Make the reservation durable before allowing commands or publishing state.
+	var error := match_session.reserve(decision.session, Callable(self, "_save_snapshot"), str(state.get("phase", "")))
+	if not error.is_empty():
+		status.text = "Could not save the seat reservation: " + error
+		_reject_seat(id)
+		return
+	match_session.admit(id)
 	receive_seat_ready.rpc_id(id)
 	status.text = "Player 2 authenticated. Match is ready."
 	_broadcast()
 
 func _reject_seat(id: int) -> void:
-	pending_seats.erase(id)
+	match_session.reject(id)
 	receive_seat_rejected.rpc_id(id)
-	var peer := multiplayer.multiplayer_peer
+	var peer: MultiplayerPeer = session_transport.current_peer()
 	get_tree().create_timer(0.3).timeout.connect(func():
-		if mode == "host" and multiplayer.multiplayer_peer == peer and id in multiplayer.get_peers(): peer.disconnect_peer(id))
+		if mode == "host" and session_transport.current_peer() == peer and session_transport.has_peer(id): session_transport.disconnect_peer(id))
 
 @rpc("authority", "call_remote", "reliable")
 func receive_seat_token(session_id: String, nonce: String, token: String) -> void:
 	if mode != "client" or seat_challenge.get("id") != session_id or seat_challenge.get("nonce") != nonce: return
-	var error := SessionSeat.remember(session_id, token)
-	if not error.is_empty():
-		_offline("Could not save your credentials: " + error)
+	var result: Dictionary = match_session.receive_token(session_id, nonce, token)
+	if not result.error.is_empty():
+		_offline("Could not save your credentials: " + result.error)
 		return
-	request_seat.rpc_id(1, SessionSeat.proof(token, nonce, session_id))
+	request_seat.rpc_id(1, result.response)
 
 @rpc("authority", "call_remote", "reliable")
 func receive_seat_ready() -> void:
 	if mode != "client": return
-	seat_challenge = {}
+	match_session.guest_ready()
 	if saved_army_mode and not submitted_army.is_empty(): request_saved_army.rpc_id(1, submitted_army)
 
 @rpc("authority", "call_remote", "reliable")
@@ -3225,12 +3229,10 @@ func receive_seat_rejected() -> void:
 	if mode == "client": _offline("Seat credentials were rejected or the reservation could not be saved.")
 
 func _peer_disconnected(id: int) -> void:
-	var was_pending := pending_seats.has(id)
-	pending_seats.erase(id)
-	if mode == "host" and was_pending:
+	var disconnected: Dictionary = match_session.peer_disconnected(id)
+	if mode == "host" and disconnected.pending:
 		status.text = "Verification interrupted; waiting for the guest with this session's credentials."
-	if mode == "host" and id == guest_id:
-		guest_id = 0
+	if mode == "host" and disconnected.guest:
 		if saved_army_mode and state.phase == "army_selection":
 			pending_armies.erase(2)
 			state.ready_armies = pending_armies.keys()
@@ -3269,7 +3271,7 @@ func _save_snapshot() -> String:
 
 func _history_page(start: int = -1) -> void:
 	if mode == "client":
-		if multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		if session_transport.connected():
 			request_history_page.rpc_id(1, start)
 	else:
 		history_panel.show_page(_journal_page(start))
@@ -3378,7 +3380,7 @@ func _load_match(as_host: bool = false, validate_only: bool = false) -> void:
 		status.text = "The saved options do not match the current configuration."
 		return
 	var restored_session: Variant = saved.get("session", {})
-	if not restored_session is Dictionary or (not restored_session.is_empty() and not SessionSeat.valid_session(restored_session)):
+	if not restored_session is Dictionary or (not restored_session.is_empty() and not MatchSession.valid_host_session(restored_session)):
 		status.text = "The saved seat reservation is invalid."
 		return
 	var current := _save_config()
@@ -3419,12 +3421,10 @@ func _load_match(as_host: bool = false, validate_only: bool = false) -> void:
 	if validate_only:
 		status.text = "Saved match is compatible."
 		return
-	var peer: ENetMultiplayerPeer
 	if as_host:
-		peer = ENetMultiplayerPeer.new()
-		var error := peer.create_server(PORT, 1)
-		if error != OK:
-			status.text = "Cannot host: " + error_string(error)
+		var transport_error: String = session_transport.start_host(PORT, 1)
+		if not transport_error.is_empty():
+			status.text = transport_error
 			return
 	for key in config: set(key, config[key])
 	stratagem_choice.button_pressed = core_stratagems
@@ -3448,16 +3448,13 @@ func _load_match(as_host: bool = false, validate_only: bool = false) -> void:
 	state = saved.state
 	journal = restored_journal
 	autosave_error = ""
-	host_session = restored_session if not restored_session.is_empty() else SessionSeat.create()
-	pending_seats = {}
+	match_session.start_host(restored_session)
 	rng.state = saved.rng_state
 	attack_draft = saved.attack_draft
 	selected = -1
-	guest_id = 0
 	pending_armies = {}
 	validated_saved_setup = ""
 	if as_host:
-		multiplayer.multiplayer_peer = peer
 		mode = "host"
 	_spawn_pieces()
 	_refresh()

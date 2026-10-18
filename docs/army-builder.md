@@ -19,7 +19,7 @@ Uma lista acima do orçamento ou com custos ausentes pode ser salva como rascunh
 
 ## O que a API fornece
 
-Integração com a [OpenHammer API](https://openhammer-api-production.up.railway.app/) a partir da sua [especificação OpenAPI](https://openhammer-api-production.up.railway.app/openapi.json). A verificação real pelo Godot retornou **35 facções / 1.348 registros em 11e** e **35 facções / 1.380 registros em 10e**. São contagens do provedor observadas nesta data, não uma certificação de cobertura oficial.
+Integração com a [OpenHammer API](https://openhammer-api-production.up.railway.app/) a partir da sua [especificação OpenAPI](https://openhammer-api-production.up.railway.app/openapi.json). Em 17/10/2026, uma consulta direta retornou **35 facções / 1.348 registros em 11e**; a facção `Space Marines` retornou 132 registros. A consulta anterior pelo Godot havia retornado **35 facções / 1.380 registros em 10e** em 16/10. O README atual do provedor declara 1.368 registros em 11e, mas o endpoint ao vivo ainda retorna 1.348. São contagens observadas do provedor, não certificação de cobertura oficial; a divergência entre README e serviço precisa ser preservada como proveniência.
 
 O cliente consulta `/v1/{edition}/stats` e `/v1/{edition}/units?limit=500&offset=...&sort_by=name`. Verifica identidades, paginação sem duplicatas, contagens de unidades/facções, formato e integridade antes de substituir o cache. Requisições têm timeout de 30 segundos, corpo de até 16 MiB, agregado de até 32 MiB e nenhum redirecionamento. A atualização pode ser cancelada; erros ou páginas incompletas não substituem o catálogo anterior. Nenhuma consulta é feita automaticamente durante a abertura de uma partida, edição de uma lista ou resolução de ações.
 

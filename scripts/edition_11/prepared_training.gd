@@ -4,6 +4,7 @@ const Combat = preload("res://scripts/edition_11/combat_scenario.gd")
 const Battlefield = preload("res://scripts/edition_11/test_battlefield.gd")
 const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const Training = preload("res://scripts/edition_11/training_roster.gd")
+const MatchManifest = preload("res://scripts/edition_11/match_manifest.gd")
 const ID := "prepared-objective-training-v1"
 
 static func initial_state(options: Dictionary = {}, selections: Dictionary = {}) -> Dictionary:
@@ -121,50 +122,14 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 	if options.get("checked_rosters", false):
 		Combat.RosterValidation.enable(state, reports)
 		state.saved_army_setup.options.checked_rosters = true
-	var rosters: Array[Dictionary] = []
-	for owner in [1, 2]:
-		var units: Array[Dictionary] = []
-		for squad: int in state.squads:
-			if state.squads[squad].owner == owner:
-				units.append({"squad": squad, "name": state.squads[squad].name, "models": Combat.living(state, squad).size()})
-		rosters.append({"owner": owner, "units": units, "official_legality_validated": false})
-	state.match_manifest = {"schema_version": 1, "scenario": ID, "rules_implementation": Combat.PACK_ID,
-		"content_hash": state.pack_hash, "battlefield": Battlefield.ID, "mission": Combat.Objectives.TRAINING,
-		"manual_allocation": manual, "varied_equipment": varied, "first_player": 1, "rosters": rosters}
-	if core: state.match_manifest.core_stratagems = Combat.Stratagems.ID
-	if movement_rerolls: state.match_manifest.movement_rerolls = Combat.Stratagems.REROLL_ID
-	if attack_rerolls: state.match_manifest.attack_rerolls = Combat.Stratagems.ATTACK_REROLL_ID
-	if save_rerolls: state.match_manifest.save_rerolls = Combat.Stratagems.SAVE_REROLL_ID
-	if damage_rerolls: state.match_manifest.damage_rerolls = Combat.Stratagems.DAMAGE_REROLL_ID
-	if hazard_rerolls: state.match_manifest.hazard_rerolls = Combat.Stratagems.HAZARD_REROLL_ID
-	if escape_rerolls: state.match_manifest.escape_rerolls = Combat.Stratagems.ESCAPE_REROLL_ID
-	if count_rerolls: state.match_manifest.count_rerolls = Combat.Stratagems.COUNT_REROLL_ID
-	if options.get("objective_secured", false): state.match_manifest.objective_secured = Combat.ObjectiveSecured.ID
-	if options.get("implacable_eradication", false): state.match_manifest.implacable_eradication = Combat.ImplacableEradication.ID
-	if options.get("hail_of_bolts", false): state.match_manifest.hail_of_bolts = Combat.HailOfBolts.ID
-	if options.get("oath_of_moment", false): state.match_manifest.oath_of_moment = Combat.OathOfMoment.ID
-	if options.get("reanimation_protocols", false): state.match_manifest.reanimation_protocols = Combat.Reanimation.ID
-	if options.get("combat_doctrines", false): state.match_manifest.combat_doctrines = Combat.Doctrines.ID
-	if options.get("awakened_dynasty", false): state.match_manifest.awakened_dynasty = Combat.Awakened.ID
-	if options.get("unit_abilities", false): state.match_manifest.unit_abilities = Combat.UnitAbilities.ID
-	if not reports.is_empty():
-		if reports[1].selection.schema_version == 2 or reports[2].selection.schema_version == 2:
-			state.match_manifest.capabilities = Training.Capabilities.ID
-		state.match_manifest.scenario = "saved-army-training-v1"
-		state.match_manifest.saved_armies = state.saved_army_setup.duplicate(true)
-		state.match_manifest.training_points = state.training_points.duplicate()
-		state.match_manifest.official_legality_validated = false
-	if options.get("checked_rosters", false):
-		state.match_manifest.official_legality_validated = true
-	if options.get("official_mission", false):
-		state.match_manifest.mission = Combat.Mission.ID
-		state.match_manifest.battlefield = Combat.Mission.ID
-		state.match_manifest.official_mission = Combat.Mission.ID
-		state.match_manifest.first_player = "post-deployment-roll-off"
-	if options.get("checked_rosters", false):
-		state.roster_validation.full_match_certified = true
-		state.match_manifest.checked_rosters = {"implementation": Combat.RosterValidation.ID, "digest": Combat.RosterValidation.digest(), "construction": state.roster_validation.armies.duplicate(true), "full_match_certified": true, "scope": "Gladius 930 vs Awakened 880 on the selected CA 2026-27 ground board; Explosives/Smokescreen/Crushing Impact stay unused on these loadouts"}
-	state.pack_hash = var_to_str(state.match_manifest).sha256_text()
+	var manifest_options := {
+		"manual_allocation": manual, "varied_equipment": varied, "core_stratagems": core,
+		"movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls,
+		"save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls,
+		"hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls,
+		"count_rerolls": count_rerolls
+	}
+	MatchManifest.seal(state, options, reports, manifest_options, ID)
 	Deployment.begin(state)
 	Combat.Awakened.begin_setup(state)
 	return state

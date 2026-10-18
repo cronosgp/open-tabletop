@@ -1,4 +1,6 @@
-# Checked Incursion roster validation (A3) - 17 October 2026
+# Incursion reference roster validation (A3) - 17 October 2026
+
+**Source-status update (18 October 2026):** the recorded 46/46 process run validates the implementation and recovery behavior for the captured profile. It does not validate current Space Marines Codex applicability. Runtime match manifests now keep current army-legality and full-match-certification flags false until that source review is complete. MFM 1.6 point values were independently captured from the official live MFM on 17 October, after the downloads hub's 14 October update.
 
 Final targeted regression `.tools/verification/20261017T162838274829Z` passed **46/46 processes**: isolated import, Python checks, startup, roster construction/local UI save-load, checked-roster host/client restart recovery, selected mission network, current unit abilities network/combat, prepared local/network matches, all ten saved-army network variants, attached Reanimation, faction Reanimation, session recovery, army builder, local armies/models, gameplay layout, match save and reserves. These are affected-scope checks, not a fresh full-suite result. Earlier A2 full-suite history is preserved below.
 
@@ -10,7 +12,7 @@ Roster tests cover live MFM 1.6 costs, authoritative replacement of untrusted st
 
 Windows graphical QA `.tools/qa-checked-rosters.log` reports **CHECKED ROSTERS VISUAL QA: PASS**. Inspected captures `.tools/checked-rosters-selection.png`, `.tools/checked-rosters-deployment.png` and `.tools/checked-rosters-restored.png` show both 290-point starters under the 1,000-point ceiling, current-price review, declared formations and restored details. The final selection capture was inspected again after removing the contradictory historical unverified-price label. This is focused graphical QA, not a complete manual battle.
 
-A3 is complete for the documented fixed-profile points/construction checks. The checked CA infantry match is certified for this fixed roster, mission and rule profile; this does not certify other armies, optional equipment, enhancements or a general-purpose 1,000-point roster. Passing tests do not independently establish source accuracy.
+A3 remains implemented for the documented fixed-profile MFM 1.6 points/construction checks. The 17 October run recorded the CA infantry match as certified at that time; that current-match claim was withdrawn on 18 October pending current Space Marines Codex datasheet/effect reconciliation. The recorded runs validate code behavior for the profile, not the current accuracy of its Marine rules.
 
 # Selected CA 2026-27 mission (A2) - 17 October 2026
 
@@ -24,7 +26,7 @@ The new network pair uses actual saved-list admission and authenticated RPCs, ve
 
 Windows graphical QA reports `CHAPTER APPROVED VISUAL QA: PASS` in `.tools/qa-chapter-approved.log`. Inspected final captures: `.tools/ca-mission-preparation.png`, `.tools/ca-mission-deployment.png`, `.tools/ca-mission-first-turn.png` and `.tools/ca-mission-battle.png`. These exercise real mission controls, correct 60 x 44 dimensions and assigned-side labels, coherent confirmed deployment, first-turn save/load and the scoreboard. They are staged graphical checks, not a complete manual match.
 
-Sources, official Event Companion v1.3 checksum/cross-checks, preset/custom-terrain boundaries and current e11 card effects are recorded in the [mission document](chapter-approved-mission.md). The selected CA mission and the checked 930/880 lists are certified together for their documented profile. Other points/DP options, wargear, armies, mission/deck/layout configurations and detachment content remain outside this certification. Historical results below retain their earlier scope.
+Sources, official Event Companion v1.3 checksum/cross-checks, preset/custom-terrain boundaries and e11 card effects are recorded in the [mission document](chapter-approved-mission.md). The selected CA mission remains a separately checked scenario implementation. The combined 930/880 lists are experimental references until current Marine Codex applicability is reconciled. Other points/DP options, wargear, armies, mission/deck/layout configurations and detachment content remain outside this scope. Historical results below retain their earlier scope.
 
 # Current e11 unit abilities - 17 October 2026
 

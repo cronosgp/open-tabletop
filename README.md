@@ -67,11 +67,11 @@ The demo test profile is offline except for local loopback; full checks require 
 
 - Rules modules under `scripts/edition_11/` validate commands independently of rendering.
 - The host validates both players' actions, resolves dice and replicates state; revisions reject stale commands. Host authority does not protect against a malicious host.
-- `scripts/main.gd` currently combines board presentation, UI and ENet session handling; gradual separation is on the roadmap.
+- [`Architecture direction`](docs/architecture.md) describes the target boundaries and incremental migration plan. ENet setup and session/seat lifecycle are extracted; `scripts/main.gd` keeps the root RPC callbacks, snapshot persistence callback and much of the board UI.
 - [Data packs](docs/data-packs.md) have explicit identities, provenance and hashes. External providers are optional preparation/catalog services; match resolution stays local.
 - Local visuals remain separate from unit identity and gameplay geometry.
 
-The first functional release targets Windows/Linux, one scenario and a restricted set of fully implemented lists/rules. Preparation, deployment, mission completion, saving/recovery and remote connection must work together before expanding coverage. Later goals include legal army construction, additional versioned rules packs, supported host customization and a battlefield editor. See [backlog](docs/backlog.md).
+The final product target is complete current-edition faction and unit coverage, selectable missions, and LAN/direct internet matches with one player hosting. The battlefield editor is deliberately the final implementation milestone; until then, the project maintains one flexible shared battlefield. Current rules and multiplayer coverage remain limited as documented in the [support matrix](docs/support-matrix.md) and [roadmap](docs/roadmap.md).
 
 ## Content boundary
 

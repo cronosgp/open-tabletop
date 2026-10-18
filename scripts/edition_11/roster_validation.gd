@@ -5,6 +5,7 @@ const A = preload("res://scripts/edition_11/army_capabilities.gd")
 const R = preload("res://scripts/army_roster.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
 const ID := "incursion-fixed-rosters-mfm1.6-2026-10-17-v3"
+const CURRENT_SOURCE_STATUS := "pending_current_codex_datasheet_and_effect_reconciliation"
 const CHECKED_MAX_SQUADS := 12
 const SOURCES := {"Space Marines": {"url": "https://mfm.warhammer-community.com/en/space-marines", "version": "1.6", "sha256": "af280e710928f49d6c22775ae48fa9a5fe78de7560cf2c6712eb6d48a885c5e5"}, "Necrons": {"url": "https://mfm.warhammer-community.com/en/necrons", "version": "1.6", "sha256": "8ff758aedca89d8ea98c3912048b572b8d6ae2a5f66477a811973b91e505ee94"}}
 const DETACHMENTS := {"Space Marines": {"id": "gladius-task-force", "name": "Gladius Task Force", "dp": 3, "force_disposition": "Take and Hold"}, "Necrons": {"id": "awakened-dynasty", "name": "Awakened Dynasty", "dp": 3, "force_disposition": "Take and Hold"}}
@@ -64,7 +65,7 @@ static func admit(selection: Variant) -> Dictionary:
 	var breakdown: Array = []
 	for entry: Dictionary in report.selection.entries:
 		var slug: String = entry.definition_id.get_slice(":", 3)
-		if not POINTS.has(slug): return {"error": "No verified current price for " + slug}
+		if not POINTS.has(slug): return {"error": "No captured MFM 1.6 reference price for " + slug}
 		var price: Dictionary = POINTS[slug]
 		if entry.models != price.models: return {"error": "Unsupported current composition: " + slug}
 		if entry.copies > (4 if price.battleline else 2): return {"error": "Incursion repetition limit exceeded: " + slug + " (2 per datasheet; 4 Battleline)."}
@@ -77,19 +78,19 @@ static func admit(selection: Variant) -> Dictionary:
 		breakdown.append({"definition_id": entry.definition_id, "models": entry.models, "copies": entry.copies, "unit_cost": price.cost, "total": subtotal, "wargear_cost": 0})
 	if characters == 0: return {"error": "A current roster requires a faction Character as Warlord."}
 	if support > eligible: return {"error": "Each Lieutenant Support needs a different eligible Intercessor/Assault bodyguard unit."}
-	if total > 1000: return {"error": "The list exceeds MFM 1.6 Incursion points: %d/1000." % total}
+	if total > 1000: return {"error": "The list exceeds the captured MFM 1.6 Incursion reference: %d/1000." % total}
 	var detachments: Array = [DETACHMENTS[selection.faction].duplicate(true)]
 	var error := dp_error(detachments)
 	if not error.is_empty(): return {"error": error}
 	report.total = total
 	report.warnings = []
-	report.construction = {"points_verified": true, "total": total, "points_limit": 1000, "breakdown": breakdown, "detachments": detachments, "dp_allowance": 2, "single_3dp_exception": true, "enhancements": [], "fixed_wargear": true, "formations_verified": false, "full_match_certified": false}
+	report.construction = {"points_verified": true, "points_snapshot": "Official MFM 1.6 (observed 2026-10-17, after the 2026-10-14 hub update)", "source_status": CURRENT_SOURCE_STATUS, "total": total, "points_limit": 1000, "breakdown": breakdown, "detachments": detachments, "dp_allowance": 2, "single_3dp_exception": true, "enhancements": [], "fixed_wargear": true, "formations_verified": false, "full_match_certified": false}
 	return report
 
 static func enable(s: Dictionary, reports: Dictionary) -> void:
 	var armies := {}
 	for player in [1, 2]: armies[player] = reports[player].construction.duplicate(true)
-	s.roster_validation = {"implementation": ID, "digest": digest(), "sources": SOURCES.duplicate(true), "armies": armies, "full_match_certified": false}
+	s.roster_validation = {"implementation": ID, "digest": digest(), "sources": SOURCES.duplicate(true), "source_status": CURRENT_SOURCE_STATUS, "armies": armies, "full_match_certified": false}
 	s.roster_points_validated = true
 	DetachmentStratagems.enable(s)
 	Registry.admit(s, "checked-incursion-rosters", ID)
@@ -110,7 +111,7 @@ static func summary(s: Dictionary) -> String:
 	for player in [1, 2]:
 		var army: Dictionary = s.roster_validation.armies[player]
 		parts.append("P%d %d/1000 pts | %s, 3DP exception | formations %s" % [player, army.total, army.detachments[0].name, "checked" if army.formations_verified else "pending"])
-	return "MFM 1.6 checked fixed rosters\n" + "\n".join(parts) + "\nFull match certification pending: remaining detachment/core rules."
+	return "MFM 1.6 reference roster snapshot\n" + "\n".join(parts) + "\nMFM 1.6 prices are captured; current Codex datasheet/effect applicability and official army legality are pending source reconciliation."
 
 static func preset(faction: String) -> Dictionary:
 	if faction not in DETACHMENTS: return {"error": "Unsupported checked faction."}

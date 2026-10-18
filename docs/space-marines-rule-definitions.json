@@ -1,0 +1,1385 @@
+{
+  "pack_id": "space-marines-e11-rule-definitions",
+  "schema_version": 1,
+  "edition": 11,
+  "observed_at": "2026-10-17",
+  "status": "definitions_from_e11_reference_pending_slice_checks",
+  "purpose": "Structured original-language rules specification for six current fixed-loadout Space Marine profiles plus definition-only ability samples from nineteen additional datasheets. Audit/design input only; this file is not loaded by the match runtime and does not certify army legality.",
+  "scope": {
+    "datasheets": [
+      "space-marines/intercessor-squad",
+      "space-marines/assault-intercessor-squad",
+      "space-marines/heavy-intercessor-squad",
+      "space-marines/terminator-squad",
+      "space-marines/captain",
+      "space-marines/lieutenant"
+    ],
+    "profile_boundary": "Runtime scope remains the six fixed profiles and admitted Leader/Support pairings. Additional definition-only datasheets contribute ability descriptions only; they do not add runtime profiles, costs, loadouts, roster legality or chapter variants. Optional wargear, other squad sizes, other attachment combinations, chapter sheets and full roster legality remain outside this definition pass.",
+    "source_policy": "OpenHammer /v1/11e is the fast bulk discovery and provisional profile/weapon/ability-name input. Use Wahapedia /wh40k11ed/ for readable e11 rule references as each implementation slice is selected. Check applicable current Games Workshop Codex, faction-pack, FAQ/errata and points sources before implementing or marking that slice supported. Do not block unrelated catalog or engine work on a full-faction audit; preserve unresolved conflicts as provisional/unsupported. Imported records are never playable by default.",
+    "definition_only_datasheets": [
+      "space-marines/bladeguard-veteran-squad",
+      "space-marines/hellblaster-squad",
+      "space-marines/infernus-squad",
+      "space-marines/company-heroes",
+      "space-marines/redemptor-dreadnought",
+      "space-marines/apothecary-biologis",
+      "space-marines/desolation-squad",
+      "space-marines/eliminator-squad",
+      "space-marines/eradicator-squad-with-melta-rifles",
+      "space-marines/incursor-squad",
+      "space-marines/reiver-squad",
+      "space-marines/eradicator-squad-with-heavy-bolters",
+      "space-marines/inceptor-squad",
+      "space-marines/assault-intercessors-with-jump-packs",
+      "space-marines/scout-squad",
+      "space-marines/aggressor-squad",
+      "space-marines/infiltrator-squad",
+      "space-marines/vanguard-veteran-squad-with-jump-packs",
+      "space-marines/ballistus-dreadnought"
+    ]
+  },
+  "source_snapshot": {
+    "wahapedia": {
+      "edition": 11,
+      "reported_app_version": "2.8.1",
+      "reported_update": "October 2026",
+      "observed_at": "2026-10-17",
+      "faction_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/"
+    },
+    "games_workshop": {
+      "download_hub_url": "https://www.warhammer-community.com/en-gb/downloads/warhammer-40000/",
+      "download_hub_observation": "The hub identifies the live Munitorum Field Manual as updated 14 October 2026. Automated retrieval of the linked MFM page returned HTTP 403 during this check.",
+      "current_codex_boundary_checked_2026_10_18": {
+        "announcement": "https://www.warhammer-community.com/en-gb/articles/jfqdowqw/behold-the-most-impressive-codex-space-marines-yet/",
+        "first_datasheet_preview": "https://www.warhammer-community.com/en-gb/articles/paxsnmde/first-look-space-marines-datasheets/",
+        "status": "The official preview establishes a new Codex with 85 datasheets and 15 detachments, while the 14 September preview describes new datasheet effects and psychic levels. These pages do not reproduce the full Codex. Existing implemented Marine records require a current app/Codex applicability check before current full-match certification."
+      },
+      "official_mfm_snapshot": {
+        "version": "1.6",
+        "observed_at": "2026-10-17",
+        "sha256_space_marines_html": "af280e710928f49d6c22775ae48fa9a5fe78de7560cf2c6712eb6d48a885c5e5",
+        "status": "Captured after the download hub's 14 October update; fixed-profile prices are verified within this snapshot."
+      },
+      "available_space_marines_supplement": {
+        "title": "Space Marines Faction Pack",
+        "version": "1.7",
+        "legal_from": "2026-04-22",
+        "url": "https://assets.warhammer-community.com/eng_22-04_wh40k_faction-pack_space_marines-zppopfaqrv-asmlu7vbjq.pdf",
+        "use": "Official supplement/update evidence. No per-rule locator from this document has yet been reconciled to the definitions below."
+      },
+      "balance_update_2026_09_30": {
+        "title": "Warhammer 40,000 – Balance Update: Emboldened Astartes",
+        "url": "https://www.warhammer-community.com/en-gb/articles/rylbvfnv/warhammer-40000-balance-update-emboldened-astartes/",
+        "use": "Official summary confirms Astartes characteristic and weapon changes around the Codex release. It does not reproduce or verify the ability text defined in this file."
+      },
+      "rule_text_status": "pending_exact_current_codex_or_errata_locator_per_record"
+    }
+  },
+  "interaction_resolutions": [
+    {
+      "id": "combat-doctrine-selection-limit",
+      "status": "resolved_from_current_reference_runtime_aligned",
+      "resolution": "Strategic Acumen selects a Combat Doctrine, so it uses the shared once-per-battle selection allowance for that doctrine. A rule that only makes an already selected doctrine active for another unit, such as Demi-company Commander, does not make a second selection. Gladius Codex Discipline permits one additional selection of a doctrine, including a selection made through Strategic Acumen.",
+      "sources": [
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/#Combat-Doctrines",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/#Codex-Discipline"
+      ],
+      "official_check": "required_before_implementation_or_support_claim"
+    },
+    {
+      "id": "attached-unit-ability-scope",
+      "status": "resolved_from_current_reference",
+      "resolution": "A rule applying to a unit or models in that unit applies to every model in the Attached unit while its source unit remains. A rule naming a specific model applies only to that model. Finest Hour therefore modifies only the Captain model's melee attacks; unit abilities such as Tactical Precision apply to attacks by the Attached unit while the Lieutenant source remains.",
+      "sources": [
+        "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/#Abilities-in-Attached-Units-19.04"
+      ],
+      "official_check": "required_before_implementation_or_support_claim"
+    },
+    {
+      "id": "cp-gain-and-teleport-homer-cost",
+      "status": "resolved_from_current_reference",
+      "resolution": "The current core text grants 1 Core CP to each player during each Command phase and has no general one-CP-per-battle-round gain cap in the consulted CP rules. Transhuman Strategist grants 1 CP at the start of the battle round when its Warlord is not destroyed. Teleport Homer reduces the 1 CP Rapid Ingress use by 1; the general CP-cost rule floors the resulting cost at 0 CP.",
+      "sources": [
+        "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/#Command-Phase",
+        "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/#Modifying-CP-Cost-15.01.01",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/#Transhuman-Strategist",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad"
+      ],
+      "official_check": "required_before_implementation_or_support_claim"
+    },
+    {
+      "id": "tactical-mainstay-and-actions",
+      "status": "resolved_from_current_reference",
+      "resolution": "Tactical Mainstay removes the Battle-shock and Engagement restrictions on starting an Action, and starting that Action does not remove shooting eligibility. The current core FAQ says a unit with a rule allowing it to start an Action while Battle-shocked can continue that Action if it becomes Battle-shocked after starting it. Other independent restrictions still apply.",
+      "sources": [
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
+        "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/#Battle-shock-Rolls-01.07"
+      ],
+      "official_check": "required_before_implementation_or_support_claim"
+    },
+    {
+      "id": "hazardous-roll-resolution",
+      "status": "resolved_from_current_reference",
+      "resolution": "After a unit finishes all attacks each time it was selected to shoot or fight, make one Hazard roll per selected weapon with HAZARDOUS. A roll of 1-2 fails; each failure inflicts 1 mortal wound on the unit, or 3 if every model in the unit is a MONSTER or VEHICLE. Resolve multiple rolls for the unit simultaneously. Mortal wounds are allocated to the unit normally; they are not assigned to the model that used a hazardous weapon.",
+      "sources": [
+        "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/"
+      ],
+      "official_check": "required_before_implementation_or_support_claim"
+    },
+    {
+      "id": "secured-objective-persistence",
+      "status": "resolved_from_current_reference",
+      "resolution": "When a rule secures an objective, it remains under that player control even after their units leave range, until the opponent level of control exceeds theirs at the end of a phase. The core FAQ allows a unit to secure an objective it took control of at end of Movement in that same phase.",
+      "sources": [
+        "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/"
+      ],
+      "official_check": "required_before_implementation_or_support_claim"
+    },
+    {
+      "id": "incursor-haywire-mine-boarding-adaptation",
+      "status": "resolved_from_current_reference",
+      "resolution": "The Incursor Squad datasheet currently has Haywire Mine. The Pilum Strike Team Boarding Actions Rules Adaptation explicitly removes that ability in that format; this exception does not replace the general datasheet ability.",
+      "sources": [
+        "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Incursor-Squad",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/"
+      ],
+      "official_check": "required_before_implementation_or_support_claim"
+    }
+  ],
+  "definitions": [
+    {
+      "id": "space-marines/combat-doctrines",
+      "name": "Combat Doctrines",
+      "kind": "army_rule",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+      "source_section": "Army Rules / Combat Doctrines",
+      "eligibility": "Friendly ADEPTUS ASTARTES units that have the Combat Doctrines ability.",
+      "timing": "Start of the controlling player's Command phase.",
+      "choice": {
+        "one_of": [
+          "assault",
+          "devastator",
+          "tactical"
+        ]
+      },
+      "effects": {
+        "assault": "When selected to make an Advance move, the unit remains eligible to declare a charge.",
+        "devastator": "The unit's ranged attacks gain Assault.",
+        "tactical": "When selected to make a Fall Back move, the unit remains eligible to shoot and declare a charge."
+      },
+      "duration": "Until the start of the controlling player's next Command phase.",
+      "limits": [
+        "Each doctrine can be selected once per battle unless another rule explicitly changes that limit.",
+        "A unit can have only one doctrine active at a time; a later doctrine replaces its earlier doctrine."
+      ],
+      "interactions_to_validate": [],
+      "resolved_interactions": [
+        "Strategic Acumen spends the shared doctrine selection allowance; Demi-company Commander only activates the selected doctrine for its unit; Gladius Codex Discipline grants one additional selection."
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/intercessor-squad/bolter-discipline",
+      "name": "Bolter Discipline",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/intercessor-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
+      "timing": "The controlling player's Shooting phase, while resolving a ranged attack by this unit.",
+      "eligibility": "The attack is made by this unit's ranged weapons.",
+      "condition": "This unit is in objective range, or the target unit is in objective range.",
+      "target": "The target of the current ranged attack.",
+      "effect": "Add 1 to the Hit roll for the attack.",
+      "duration": "For the current attack only.",
+      "interactions_to_validate": [
+        "Hit-roll modifier limits",
+        "attached Leader and Support models treated as part of the attacking unit"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/intercessor-squad/tactical-mainstay",
+      "name": "Tactical Mainstay",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/intercessor-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
+      "timing": "When checking action eligibility and when this unit starts an Action.",
+      "eligibility": "This unit is Engaged or Battle-shocked when the eligibility check occurs, or this unit starts an Action.",
+      "effect": "Being Engaged or Battle-shocked does not by itself make this unit ineligible to start an Action. Starting an Action with this ability does not by itself make this unit ineligible to shoot.",
+      "duration": "The permission to start the Action applies at each eligibility check. If this unit becomes Battle-shocked after starting an Action, the current core FAQ permits it to continue that Action. The started Action does not itself remove shooting eligibility.",
+      "resolved_interactions": [
+        "The core FAQ confirms continuation of the Action when a unit with permission to start Actions while Battle-shocked becomes Battle-shocked after starting it."
+      ],
+      "interactions_to_validate": [
+        "Action-specific completion and interruption rules",
+        "other effects that independently prevent shooting"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/assault-intercessor-squad/targeted-intercession",
+      "name": "Targeted Intercession",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/assault-intercessor-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Assault-Intercessor-Squad",
+      "timing": "When resolving melee attacks in a turn in which this unit made a Charge move.",
+      "eligibility": "Melee attacks made by this unit after it has made a Charge move this turn.",
+      "target": "The target of each eligible melee attack.",
+      "effect": "Add 1 to Strength and improve AP by 1 for the eligible attack.",
+      "duration": "Until the end of the turn in which the unit made a Charge move.",
+      "interactions_to_validate": [
+        "Attached models in the combined unit",
+        "attacks split across multiple targets",
+        "weapon-profile modifiers and AP limits"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/heavy-intercessor-squad/unyielding-in-the-face-of-the-foe",
+      "name": "Unyielding in the Face of the Foe",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/heavy-intercessor-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Heavy-Intercessor-Squad",
+      "timing": "When resolving an armour saving throw for a model in this unit.",
+      "eligibility": "This unit controls an objective marker at the time the saving throw is resolved.",
+      "effect": "Add 1 to the armour saving throw.",
+      "duration": "For eligible saves while the unit controls an objective marker.",
+      "limits": [
+        "This is a saving-throw modifier; it does not change the model's Save characteristic."
+      ],
+      "interactions_to_validate": [
+        "Objective control after Battle-shock and model removal",
+        "save-roll modifier limits",
+        "the timing of control during a sequence of attacks"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "core/deep-strike-24-09",
+      "name": "Deep Strike",
+      "kind": "core_ability",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
+      "source_section": "Core Abilities / Deep Strike 24.09",
+      "timing": "When this unit makes an Ingress move.",
+      "eligibility": "Every model in the unit has Deep Strike.",
+      "effect": "The unit can be set up more than 8 inches horizontally from every enemy unit, including inside the opponent's deployment zone.",
+      "duration": "Applies to that Ingress move.",
+      "dependencies": [
+        "current core reserve and Ingress procedures"
+      ],
+      "interactions_to_validate": [
+        "distances to models and terrain",
+        "reserve arrival timing",
+        "effects changing the minimum setup distance"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/terminator-squad/teleport-homer",
+      "name": "Teleport Homer",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/terminator-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
+      "timing": "At the start of the battle to place the token; during enemy moves to check token removal; when using Rapid Ingress with this unit as the target.",
+      "eligibility": "Once per battle for this unit, if the player chooses to place its token.",
+      "effect": {
+        "place": "Place one Teleport Homer token on the battlefield.",
+        "rapid_ingress": "When this unit is targeted by Rapid Ingress, the player may use the token to reduce that use's CP cost by 1. If used, set this unit up within 3 inches of the token and more than 8 inches from enemy units, then remove the token.",
+        "enemy_proximity": "Remove the token if an enemy unit ends a move within 1 inch of it."
+      },
+      "duration": "Until used for Rapid Ingress or removed by an enemy move.",
+      "limits": [
+        "One token placement per battle per unit."
+      ],
+      "resolved_interactions": [
+        "The cost reduction cannot lower the 1 CP Rapid Ingress use below 0 CP."
+      ],
+      "interactions_to_validate": [
+        "Rapid Ingress timing and reserve requirements",
+        "token placement legality and geometry",
+        "the removal check if multiple units end moves within range"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/terminator-squad/fury-of-the-first",
+      "name": "Fury of the First",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/terminator-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
+      "timing": "When resolving an attack made by this unit.",
+      "eligibility": "The target unit is within 9 inches of this unit.",
+      "target": "That target unit.",
+      "effect": "Improve the attack's AP by 1.",
+      "duration": "For each eligible attack.",
+      "interactions_to_validate": [
+        "Measure distance from the unit as defined by the core distance rules",
+        "attached models",
+        "AP modifier limits"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "core/leader-24-22",
+      "name": "Leader",
+      "kind": "attachment_role",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain",
+      "source_section": "Core Abilities / Leader 24.22 and Support 24.34",
+      "timing": "Muster Armies step, before the battle.",
+      "eligibility": "A Leader or Support unit and a bodyguard unit listed as attachable by their datasheets.",
+      "effect": "Join the commander to the selected bodyguard unit to form an Attached unit for the battle.",
+      "limits": [
+        "Unless another rule says otherwise, a bodyguard can have at most one Leader and one Support attached."
+      ],
+      "fixed_match_pairings": [
+        {
+          "commander": "Captain",
+          "bodyguard": "Intercessor Squad"
+        },
+        {
+          "commander": "Captain",
+          "bodyguard": "Assault Intercessor Squad"
+        }
+      ],
+      "fixed_match_combination": "An eligible bodyguard may have the listed Captain as its Leader and the listed Lieutenant as its Support at the same time, subject to the one-of-each core limit.",
+      "interactions_to_validate": [
+        "attached-unit characteristics and abilities",
+        "leader death and bodyguard separation",
+        "support attachment coexistence"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "fixed_scope_only"
+    },
+    {
+      "id": "space-marines/captain/strategic-acumen",
+      "name": "Strategic Acumen",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/captain",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain",
+      "timing": "The Captain's controlling player's Command phase.",
+      "eligibility": "A Captain unit with this ability; use is optional.",
+      "choice": "Select one Combat Doctrine.",
+      "effect": "The selected doctrine becomes active for this unit.",
+      "duration": "Until the start of the next Command phase of the Captain's controlling player.",
+      "limits": [
+        "Selecting a doctrine with this ability consumes the army's once-per-battle selection for that doctrine unless an applicable rule grants an additional selection."
+      ],
+      "resolved_interactions": [
+        "The selected doctrine replaces any doctrine already active for this Captain unit; Demi-company Commander may copy this selection to the Lieutenant unit."
+      ],
+      "interactions_to_validate": [],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/captain/finest-hour",
+      "name": "Finest Hour",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/captain",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain",
+      "timing": "Fight phase, when the Captain's unit is selected to fight.",
+      "eligibility": "Once per battle per unit; use is optional.",
+      "target": "Melee attacks made by the Captain model.",
+      "effect": "Those attacks gain 3 Attacks and Devastating Wounds.",
+      "duration": "For those melee attacks in that fight sequence.",
+      "interactions_to_validate": [
+        "split attacks against multiple targets",
+        "Captain destroyed before resolving its attacks",
+        "modifiers to Attacks and Devastating Wounds"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/transhuman-strategist",
+      "name": "Transhuman Strategist",
+      "kind": "army_rule",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+      "source_section": "Army Rules / Transhuman Strategist",
+      "timing": "Start of each battle round.",
+      "eligibility": "A model with this ability is the army's Warlord.",
+      "effect": "The controlling player gains 1 CP.",
+      "duration": "Immediate resource gain once at the stated timing.",
+      "resolved_interactions": [
+        "The e11 core reference says not to gain this CP while the Warlord is destroyed. No general one-CP-per-battle-round gain cap appears in the consulted current core CP rules. The runtime therefore checks that the selected Warlord is alive even if not currently on the battlefield."
+      ],
+      "interactions_to_validate": [
+        "other CP gain effects and exact official Codex/errata applicability"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "core/support-24-34",
+      "name": "Support",
+      "kind": "attachment_role",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
+      "source_section": "Core Abilities / Support 24.34",
+      "timing": "Muster Armies step, before the battle.",
+      "eligibility": "A Support unit and a bodyguard unit listed as supported by its datasheet.",
+      "effect": "Join the Support unit to the selected bodyguard unit to form an Attached unit for the battle.",
+      "limits": [
+        "Unless another rule says otherwise, a bodyguard can have at most one Leader and one Support attached."
+      ],
+      "fixed_match_pairings": [
+        {
+          "commander": "Lieutenant",
+          "bodyguard": "Intercessor Squad"
+        },
+        {
+          "commander": "Lieutenant",
+          "bodyguard": "Assault Intercessor Squad"
+        }
+      ],
+      "fixed_match_combination": "The Lieutenant may be attached as Support to a bodyguard that already has the listed Captain as its Leader, subject to the one-of-each core limit.",
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "fixed_scope_only"
+    },
+    {
+      "id": "space-marines/lieutenant/tactical-precision",
+      "name": "Tactical Precision",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/lieutenant",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
+      "timing": "When resolving an attack made by this unit.",
+      "eligibility": "The target unit does not have MONSTER or VEHICLE.",
+      "target": "The target of the current attack.",
+      "effect": "The attack gains Lethal Hits.",
+      "duration": "For each eligible attack.",
+      "interactions_to_validate": [
+        "ability on all attacks of the attached unit",
+        "critical hit rules",
+        "other Lethal Hits sources"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/lieutenant/demi-company-commander",
+      "name": "Demi-company Commander",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/lieutenant",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
+      "timing": "When a friendly Captain unit uses Strategic Acumen.",
+      "eligibility": "Once per turn per Lieutenant unit; use is optional.",
+      "effect": "The Combat Doctrine selected for the Captain also becomes active for this Lieutenant's unit.",
+      "duration": "Until the start of the next Command phase of the Lieutenant's controlling player.",
+      "resolved_interactions": [
+        "The ability copies the doctrine selected by Strategic Acumen and does not make another doctrine selection. It makes that doctrine active for this Lieutenant's unit, replacing any doctrine previously active for that unit."
+      ],
+      "interactions_to_validate": [
+        "use tracking when multiple Captains or Lieutenants exist"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "core/hazard-rolls-06-03",
+      "name": "Hazard Rolls and HAZARDOUS",
+      "kind": "core_weapon_ability",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "Hazard Rolls 06.03 / HAZARDOUS 24.15",
+      "timing": "After a unit finishes resolving all attacks each time it was selected to shoot or fight.",
+      "eligibility": "The selected unit made attacks with one or more weapons with HAZARDOUS.",
+      "effect": {
+        "rolls": "Make one Hazard roll for each selected HAZARDOUS weapon.",
+        "failure": "A result of 1-2 inflicts 1 mortal wound on the unit; inflict 3 instead if every model in the unit is a MONSTER or VEHICLE.",
+        "simultaneous_resolution": "Resolve multiple Hazard rolls for a unit simultaneously."
+      },
+      "duration": "Resolve immediately after the unit completes its attacks.",
+      "resolved_interactions": [
+        "A Hazardous Test is a Hazard roll. Mortal wounds from failed Hazard rolls are allocated to the unit as normal and are not assigned specifically to a model that used a HAZARDOUS weapon."
+      ],
+      "interactions_to_validate": [
+        "multiple selected weapon profiles on one model",
+        "Attached units containing mixed keywords",
+        "precise timing relative to other after-attack effects"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/bladeguard-veteran-squad/bladeguard",
+      "name": "Bladeguard",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/bladeguard-veteran-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Bladeguard-Veteran-Squad",
+      "timing": "Fight phase, when this unit is selected to fight or when an enemy unit targets it.",
+      "eligibility": "Once per turn per unit; use is optional.",
+      "choice": {
+        "one_of": [
+          "melee_accuracy",
+          "defensive_accuracy"
+        ]
+      },
+      "effect": {
+        "melee_accuracy": "Until the end of the phase, add 1 to Hit rolls for this unit melee attacks.",
+        "defensive_accuracy": "Until the end of the phase, subtract 1 from Hit rolls for attacks that target this unit."
+      },
+      "duration": "Until the end of the Fight phase, following the core default for a phase-triggered effect with no other duration stated.",
+      "resolved_interactions": [
+        "Choose only one of the two effects when this ability is used. The use limit is once per turn per unit."
+      ],
+      "interactions_to_validate": [
+        "when the unit is targeted before it has fought",
+        "Hit-roll modifier limits",
+        "ability scope while Attached"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/hellblaster-squad/rites-of-thermal-appeasement",
+      "name": "Rites of Thermal Appeasement",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/hellblaster-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Hellblaster-Squad",
+      "timing": "When making a Hazard roll for an eligible weapon.",
+      "eligibility": "A Hazard roll is made for this unit Plasma Incinerator or Plasma Pistol.",
+      "effect": "Add 1 to that Hazard roll.",
+      "duration": "For the specified Hazard roll only.",
+      "dependencies": [
+        "core/hazard-rolls-06-03"
+      ],
+      "interactions_to_validate": [
+        "whether eligible weapons carried by attached models are covered by the source unit ability",
+        "modifier limits and any applicable rerolls"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/infernus-squad/driven-from-cover",
+      "name": "Driven from Cover",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/infernus-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Infernus-Squad",
+      "timing": "In the controlling player Shooting phase, after this unit has shot.",
+      "eligibility": "Select one enemy unit hit by one or more of this unit attacks.",
+      "target": "The selected enemy unit.",
+      "effect": "Friendly ADEPTUS ASTARTES units ranged attacks that target the selected unit have IGNORES COVER.",
+      "duration": "Until the end of the current Shooting phase, by the core rule for a phase-triggered effect with no other duration stated.",
+      "resolved_interactions": [
+        "The target must have been hit by this unit attacks. The benefit applies to eligible friendly ADEPTUS ASTARTES ranged attacks targeting that enemy unit for the remainder of this phase."
+      ],
+      "interactions_to_validate": [
+        "out-of-phase attacks",
+        "whether the source Infernus unit must remain on the battlefield",
+        "interaction with other rules that ignore or modify cover benefits"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "core/lethal-hits-24-23",
+      "name": "Lethal Hits",
+      "kind": "core_weapon_ability",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "Lethal Hits 24.23",
+      "timing": "When resolving a hit roll for an attack with Lethal Hits.",
+      "eligibility": "The attack scores a Critical Hit.",
+      "effect": "The attacking player may have the attack automatically wound the target; if chosen, do not make a Wound roll for that attack.",
+      "duration": "For the current attack.",
+      "interactions_to_validate": [
+        "choice to skip Wound roll",
+        "interaction with Critical Wounds and Devastating Wounds"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/company-heroes/raise-the-banner",
+      "name": "Raise the Banner",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/company-heroes",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Company-Heroes",
+      "timing": "At the end of the controlling player Movement phase.",
+      "eligibility": "This unit controls an objective.",
+      "target": "The objective controlled by this unit.",
+      "effect": "Secure that objective for the controlling player.",
+      "duration": "The objective remains under that player control even if they have no units in range, until the opponent has a higher level of control at the end of a phase.",
+      "dependencies": [
+        "core/objective-control-14-03"
+      ],
+      "interactions_to_validate": [
+        "simultaneous end-of-phase control determination",
+        "multiple objectives controlled by one unit",
+        "Battle-shock and objective control"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/company-heroes/command-squad",
+      "name": "Command Squad",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/company-heroes",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Company-Heroes",
+      "timing": "When resolving a Wound roll for an attack that targets this unit.",
+      "eligibility": "The attacking weapon Strength is greater than this unit Toughness.",
+      "effect": "Subtract 1 from that Wound roll.",
+      "duration": "For each eligible Wound roll against this unit.",
+      "interactions_to_validate": [
+        "Wound-roll modifier limits",
+        "attached Leaders and Toughness characteristic selection"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/redemptor-dreadnought/duty-eternal",
+      "name": "Duty Eternal",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/redemptor-dreadnought",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Redemptor-Dreadnought",
+      "timing": "When resolving a Wound roll for an attack that targets this unit.",
+      "eligibility": "The attacking weapon Strength is greater than this unit Toughness.",
+      "effect": "Subtract 1 from that Wound roll.",
+      "duration": "For each eligible Wound roll against this unit.",
+      "interactions_to_validate": [
+        "Wound-roll modifier limits",
+        "weapon Strength and unit Toughness changes"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/apothecary-biologis/vivispectral-analysis-targeting",
+      "name": "Vivispectral Analysis Targeting",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/apothecary-biologis",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Apothecary-Biologis",
+      "timing": "When resolving a hit roll for an attack made by this unit.",
+      "eligibility": "The target unit does not have the VEHICLE keyword.",
+      "effect": "The attack has Lethal Hits.",
+      "duration": "For each eligible attack.",
+      "dependencies": [
+        "core/lethal-hits-24-23"
+      ],
+      "interactions_to_validate": [
+        "ability scope when the Apothecary Biologis is attached",
+        "mixed keywords and VEHICLE keyword checks",
+        "Critical Hit requirements"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "core/objective-control-14-03",
+      "name": "Secured Objectives",
+      "kind": "core_rule",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "Objective Control 14.02 / Secured Objectives 14.03",
+      "timing": "When an ability secures an objective and when checking objective control at the end of a phase.",
+      "eligibility": "A rule allows a player army to secure an objective it controls.",
+      "effect": "The objective stays under that player control even when they have no units within range, until the opponent level of control is greater at the end of a phase.",
+      "resolved_interactions": [
+        "The core FAQ confirms an objective taken at end of Movement can be secured in that phase."
+      ],
+      "interactions_to_validate": [
+        "multiple end-of-phase control effects",
+        "mission scoring timing"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "core/hidden-detection-range-13-09",
+      "name": "Hidden and Detection Range",
+      "kind": "core_rule",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "Hidden 13.09",
+      "timing": "When checking visibility to a Hidden model.",
+      "eligibility": "The model has INFANTRY, BEASTS or SWARM and is within a terrain area with light or dense terrain; its unit made no ranged attacks during this turn or the previous turn.",
+      "effect": "While Hidden, the model can only be visible to enemy models within its detection range. Default detection range is 15 inches unless modified.",
+      "resolved_interactions": [
+        "During the first turn, the model is treated as not having made ranged attacks in the previous turn."
+      ],
+      "interactions_to_validate": [
+        "line of sight and obscuring terrain",
+        "detection range modifiers across models in a unit",
+        "when an attack ends Hidden status"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/desolation-squad/targeter-optics",
+      "name": "Targeter Optics",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/desolation-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Desolation-Squad",
+      "timing": "When resolving this unit ranged attacks.",
+      "eligibility": "The target enemy unit is visible to the attacking model.",
+      "effect": "The attack has IGNORES COVER.",
+      "duration": "For each eligible ranged attack.",
+      "interactions_to_validate": [
+        "visibility by each attacking model",
+        "cover determination",
+        "weapons using indirect fire"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/eradicator-squad-with-melta-rifles/total-obliteration",
+      "name": "Total Obliteration",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/eradicator-squad-with-melta-rifles",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Eradicator-Squad-with-Melta-Rifles",
+      "timing": "When making a Damage roll for one of this unit ranged attacks.",
+      "eligibility": "The attack is made by this unit with a ranged weapon.",
+      "effect": "The controlling player can re-roll the Damage roll.",
+      "duration": "For each eligible Damage roll, subject to the core re-roll rules.",
+      "interactions_to_validate": [
+        "which dice are rerolled for multi-die Damage characteristics",
+        "reroll eligibility if another rule already rerolled the die"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/eliminator-squad/chameleoline-cloaks",
+      "name": "Chameleoline Cloaks",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/eliminator-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Eliminator-Squad",
+      "timing": "When checking detection range for a model in this unit.",
+      "eligibility": "A model in this unit has the Chameleoline Cloaks ability.",
+      "effect": "Subtract 3 inches from that model detection range.",
+      "duration": "While this ability applies.",
+      "dependencies": [
+        "core/hidden-detection-range-13-09"
+      ],
+      "interactions_to_validate": [
+        "combination with other detection-range modifiers",
+        "mixed model states in an Attached unit"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/eliminator-squad/special-issue-optics-and-ammunition",
+      "name": "Special-issue Optics and Ammunition",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/eliminator-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Eliminator-Squad",
+      "timing": "In your Shooting phase, when this unit is selected to shoot.",
+      "eligibility": "Use is optional; choose one effect.",
+      "choice": {
+        "one_of": [
+          "ignore_cover",
+          "increase_detection"
+        ]
+      },
+      "effect": {
+        "ignore_cover": "This unit ranged attacks have IGNORES COVER until the end of the Shooting phase.",
+        "increase_detection": "Select one enemy unit within 24 inches of this unit. That unit has +6 inches detection range until this unit has shot."
+      },
+      "duration": "As specified by the chosen effect; the detection increase ends when this unit has shot.",
+      "interactions_to_validate": [
+        "whether selected target needs to be visible",
+        "multiple units selected to shoot during one Shooting phase",
+        "detection modifier and Hidden checks"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/incursor-squad/divinator-class-auspexes",
+      "name": "Divinator-class Auspexes",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/incursor-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Incursor-Squad",
+      "timing": "Once per phase per unit, in your Shooting phase when a friendly ADEPTUS ASTARTES unit is selected to shoot.",
+      "eligibility": "Use is optional; select one visible enemy unit within 18 inches of this Incursor unit.",
+      "target": "The selected enemy unit becomes scanned.",
+      "effect": "While an enemy unit is scanned, ranged attacks that target it can re-roll Hit rolls of 1.",
+      "duration": "Until the end of the Shooting phase, by the core persisting-effect rule for a Shooting-phase trigger with no other duration stated.",
+      "interactions_to_validate": [
+        "which attacking units count as friendly under the ability text",
+        "multiple Incursor units scanning the same target",
+        "Hit rerolls and other reroll effects"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/incursor-squad/haywire-mine",
+      "name": "Haywire Mine",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/incursor-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Incursor-Squad",
+      "timing": "Once per battle per unit, in your Shooting phase.",
+      "eligibility": "Select one visible enemy unit within 6 inches of this Incursor unit, then roll one D6; on 2+ resolve the effect.",
+      "target": "The selected enemy unit.",
+      "effect": {
+        "failure": "On a roll of 1, no effect.",
+        "non_vehicle": "On 2+, the enemy unit suffers D3 mortal wounds.",
+        "vehicle": "On 2+, the enemy unit suffers 2D3 mortal wounds instead if it has the VEHICLE keyword."
+      },
+      "duration": "One use per battle per Incursor unit.",
+      "resolved_interactions": [
+        "In the Pilum Strike Team Boarding Actions rules adaptation, this datasheet ability is explicitly lost."
+      ],
+      "interactions_to_validate": [
+        "whether this ability is used as an attack or separate shooting effect",
+        "mortal-wound allocation and modifiers",
+        "Boarding Actions version applicability"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/reiver-squad/terror-troops",
+      "name": "Terror Troops",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/reiver-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Reiver-Squad",
+      "timing": "Whenever measuring distance between models while this Reiver unit is on the battlefield.",
+      "eligibility": "An enemy model is within 3 inches of one or more models in this unit.",
+      "effect": "That enemy model has -1 to its Objective Control characteristic.",
+      "duration": "While the enemy model is within 3 inches of this unit.",
+      "interactions_to_validate": [
+        "distance to individual models in the Reiver unit",
+        "multiple sources modifying Objective Control",
+        "Battle-shock setting Objective Control"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/reiver-squad/fearsome-assault",
+      "name": "Fearsome Assault",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/reiver-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Reiver-Squad",
+      "timing": "At the start of the Fight phase.",
+      "eligibility": "Each enemy unit engaged with this Reiver unit makes a Battle-shock roll with -1 to the roll.",
+      "effect": "Resolve the specified Battle-shock roll for each eligible enemy unit.",
+      "duration": "The ability resolves at the start of each Fight phase.",
+      "interactions_to_validate": [
+        "multiple Reiver units engaged with the same enemy unit",
+        "timing among other start-of-phase abilities",
+        "Battle-shock roll modifiers and already Battle-shocked units"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/reiver-squad/grapnel-launchers",
+      "name": "Grapnel Launchers",
+      "kind": "wargear_ability",
+      "datasheet_id": "space-marines/reiver-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Reiver-Squad",
+      "timing": "Whenever this unit makes a move.",
+      "eligibility": "This unit is equipped with Grapnel Launchers.",
+      "effect": "This unit can move through all types of model and ignores vertical distance when determining how far it moved.",
+      "duration": "For each move made while equipped with Grapnel Launchers.",
+      "interactions_to_validate": [
+        "ending positions and coherency remain subject to core movement rules",
+        "model collision during vertical traversal",
+        "interactions with terrain and impassable areas"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/reiver-squad/grav-chutes",
+      "name": "Grav-chutes",
+      "kind": "wargear_ability",
+      "datasheet_id": "space-marines/reiver-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Reiver-Squad",
+      "timing": "When determining this unit abilities and when it makes an Ingress move.",
+      "eligibility": "This unit is equipped with Grav-chutes.",
+      "effect": "This unit has Deep Strike.",
+      "duration": "While this unit is equipped with Grav-chutes.",
+      "dependencies": [
+        "core/deep-strike-24-09"
+      ],
+      "interactions_to_validate": [
+        "wargear option selection and unit-level ability granting",
+        "reserve eligibility and Ingress timing"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "core/blast-24-05",
+      "name": "Blast",
+      "kind": "core_weapon_ability",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "Blast 24.05",
+      "timing": "When gathering attack dice for a Blast weapon.",
+      "eligibility": "The weapon has Blast; use the target unit model count from the Select Targets step.",
+      "effect": "Add one attack for each five models in the target unit, rounding down. If the weapon has Blast X, add X attacks per five models instead.",
+      "duration": "For the current attack sequence.",
+      "interactions_to_validate": [
+        "target model count fixed at Select Targets",
+        "Blast interaction with other attack modifiers"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "core/infiltrators-24-20",
+      "name": "Infiltrators",
+      "kind": "core_ability",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "Infiltrators 24.20",
+      "timing": "During deployment.",
+      "eligibility": "Every model in the unit has Infiltrators.",
+      "effect": "The unit can be set up anywhere on the battlefield more than 8 inches horizontally from the opponent deployment zone and all enemy units.",
+      "duration": "Applies to deployment setup.",
+      "interactions_to_validate": [
+        "deployment-zone geometry",
+        "other rules that modify setup distance",
+        "terrain and placement legality"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "core/scouts-24-31",
+      "name": "Scouts and Scout Move",
+      "kind": "core_ability",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "Scouts 24.31 / Scout Move 24.32",
+      "timing": "Resolve Pre-battle Abilities step.",
+      "eligibility": "Every model in a unit has Scouts X inches.",
+      "choice": {
+        "one_of": [
+          "deploy_from_reserves_in_deployment_zone",
+          "make_scout_move",
+          "scout_move_dedicated_transport"
+        ]
+      },
+      "effect": {
+        "deploy_from_reserves_in_deployment_zone": "If the unit is in Strategic Reserves, it can be set up wholly within its controlling player deployment zone.",
+        "make_scout_move": "If the unit is wholly within its deployment zone, it can make a move up to X inches.",
+        "scout_move_dedicated_transport": "A Dedicated Transport wholly within the deployment zone can make this move if every embarked model has Scouts.",
+        "scout_move_restriction": "After a Scout move, the unit must be more than 8 inches horizontally from all enemy units."
+      },
+      "duration": "The optional setup or Scout move resolves during the pre-battle step.",
+      "interactions_to_validate": [
+        "whether Scout movement can trigger other pre-battle rules",
+        "unit must be wholly in deployment zone before moving",
+        "movement geometry and coherency"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/eradicator-squad-with-heavy-bolters/overlapping-destruction",
+      "name": "Overlapping Destruction",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/eradicator-squad-with-heavy-bolters",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Eradicator-Squad-with-Heavy-Bolters",
+      "timing": "In your Shooting phase.",
+      "eligibility": "Select one enemy unit.",
+      "target": "The selected enemy unit.",
+      "effect": "This unit Heavy Bolter weapons that target the selected enemy unit have Blast 1.",
+      "duration": "For eligible Heavy Bolter attacks targeting the chosen unit in this Shooting phase.",
+      "dependencies": [
+        "core/blast-24-05"
+      ],
+      "interactions_to_validate": [
+        "whether the ability target must be selected before this unit shoots",
+        "effect when a target unit changes model count after target selection",
+        "number of times the ability may select a target in one phase"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/inceptor-squad/meteoric-descent",
+      "name": "Meteoric Descent",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/inceptor-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Inceptor-Squad",
+      "timing": "When resolving a ranged attack made by this unit.",
+      "eligibility": "This unit made an Ingress move this turn.",
+      "effect": "Add 1 to the Hit roll.",
+      "duration": "For this unit ranged attacks while the condition remains true this turn.",
+      "interactions_to_validate": [
+        "Hit-roll modifier limits",
+        "which movement events count as an Ingress move",
+        "out-of-phase ranged attacks"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/inceptor-squad/parabolic-jetleap",
+      "name": "Parabolic Jetleap",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/inceptor-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Inceptor-Squad",
+      "timing": "At the end of your opponent Fight phase.",
+      "eligibility": "This unit is unengaged; use is optional.",
+      "effect": "Place this unit in Strategic Reserves.",
+      "duration": "Until it returns through an Ingress move or is otherwise removed under the current reserves rules.",
+      "interactions_to_validate": [
+        "Strategic Reserves limits",
+        "whether the unit can use the ability after arriving this turn",
+        "battle-round deadline for units not returning"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/assault-intercessors-with-jump-packs/hammer-of-wrath",
+      "name": "Hammer of Wrath",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/assault-intercessors-with-jump-packs",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Assault-Intercessors-With-Jump-Packs",
+      "timing": "When this unit ends a Charge move.",
+      "eligibility": "Select one enemy unit engaged with this unit.",
+      "target": "The selected enemy unit.",
+      "effect": "For each model in this unit engaged with that enemy unit, roll one D6; each result of 4+ inflicts 1 mortal wound on it.",
+      "duration": "Resolve immediately after this unit ends its Charge move.",
+      "interactions_to_validate": [
+        "count models engaged at the ability trigger",
+        "mortal-wound resolution and allocation",
+        "multiple charge moves in one turn"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/scout-squad/flexible-asset",
+      "name": "Flexible Asset",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/scout-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Scout-Squad",
+      "timing": "When this unit is selected to make an Advance or Fall Back move.",
+      "eligibility": "This unit has Flexible Asset.",
+      "effect": "That move does not by itself prevent this unit from being eligible to start an Action.",
+      "duration": "The eligibility permission applies after the specified move; all other Action restrictions still apply.",
+      "interactions_to_validate": [
+        "Action-specific requirements",
+        "other movement effects that prevent starting an Action",
+        "whether a later move replaces eligibility"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "core/healing-or-regaining-lost-wounds-02-02-04",
+      "name": "Healing or Regaining Lost Wounds",
+      "kind": "core_rule",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "02.02.04 Healing Or Regaining Lost Wounds",
+      "timing": "When a unit heals or regains one or more wounds.",
+      "eligibility": "The unit has wounded models, or all models have their starting wounds and one or more models in the unit are destroyed.",
+      "effect": {
+        "living_models_first": "For each wound healed, if the unit has any models below their starting wounds, select one such model and restore one lost wound.",
+        "revive_destroyed_models": "Only when all models have their starting wounds, if one or more models are destroyed, a destroyed non-Character model can be revived with one wound remaining.",
+        "cap": "A model cannot exceed its starting wounds; a model-specific healing rule can only restore that model and excess is lost."
+      },
+      "duration": "Resolve immediately for the wounds healed or regained.",
+      "interactions_to_validate": [
+        "which model receives each wound during multi-wound healing",
+        "non-Character restriction on revival",
+        "model-specific versus unit-level healing"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/aggressor-squad/close-quarters-firestorm",
+      "name": "Close-quarters Firestorm",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/aggressor-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Aggressor-Squad",
+      "timing": "When resolving an attack made by this unit.",
+      "eligibility": "The target enemy unit is within 9 inches of this unit.",
+      "target": "The target enemy unit.",
+      "effect": "Add 1 to the Strength characteristic of the attack.",
+      "duration": "For each eligible attack.",
+      "interactions_to_validate": [
+        "distance measured from the attacking unit",
+        "modification of Strength for ranged and melee attacks",
+        "attached models in the unit",
+        "Strength characteristic modifiers"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/infiltrator-squad/omni-scramblers",
+      "name": "Omni-scramblers",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/infiltrator-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Infiltrator-Squad",
+      "timing": "In your Shooting phase.",
+      "eligibility": "Select one visible enemy unit within 18 inches of this Infiltrator unit.",
+      "target": "The selected enemy unit.",
+      "effect": "That enemy unit becomes detected. While a unit is detected, it has +3 inches to its detection range.",
+      "duration": "While the unit is detected, according to the current detection rules.",
+      "dependencies": [
+        "core/hidden-detection-range-13-09"
+      ],
+      "interactions_to_validate": [
+        "duration and removal conditions for detected status",
+        "visibility requirement to select the target",
+        "detection range modifiers from multiple sources"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/infiltrator-squad/helix-gauntlet",
+      "name": "Helix Gauntlet",
+      "kind": "wargear_ability",
+      "datasheet_id": "space-marines/infiltrator-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Infiltrator-Squad",
+      "timing": "In your Command phase.",
+      "eligibility": "This unit is equipped with a Helix Gauntlet.",
+      "effect": "This unit heals D3 wounds.",
+      "duration": "Resolve the healing immediately in that Command phase.",
+      "dependencies": [
+        "core/healing-or-regaining-lost-wounds-02-02-04"
+      ],
+      "interactions_to_validate": [
+        "wound allocation across multiple models",
+        "revival of a destroyed non-Character model after all living models are fully healed",
+        "use in a phase other than the controlling player Command phase"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "core/sustained-hits-24-36",
+      "name": "Sustained Hits",
+      "kind": "core_weapon_ability",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "Sustained Hits 24.36",
+      "timing": "When an attack made with a Sustained Hits weapon results in a Critical Hit.",
+      "eligibility": "The weapon has Sustained Hits X and its attack scores a Critical Hit.",
+      "effect": "The attack scores X additional hits on the target.",
+      "duration": "Resolve with the current attack.",
+      "interactions_to_validate": [
+        "additional hits do not generate new attack rolls",
+        "critical-hit effects and attack sequencing",
+        "unit ability granting Sustained Hits to attacks"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "core/deadly-demise-24-08",
+      "name": "Deadly Demise",
+      "kind": "core_ability",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "Deadly Demise 24.08",
+      "timing": "When a model with Deadly Demise is destroyed, after any embarked units make Emergency Disembark moves.",
+      "eligibility": "A model with Deadly Demise X is destroyed.",
+      "effect": "Roll one D6. On a 6, each unit within 6 inches suffers mortal wounds equal to X; if X is random, roll separately for each affected unit.",
+      "duration": "Resolve once when the model is destroyed.",
+      "interactions_to_validate": [
+        "Emergency Disembark before the roll",
+        "distance to the destroyed model",
+        "random mortal-wound value per unit",
+        "sequence with Fight on Death"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "core/damaged-24-39",
+      "name": "Damaged",
+      "kind": "core_ability",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "Damaged 24.39",
+      "timing": "While checking attacks made by a model with Damaged X.",
+      "eligibility": "The model has remaining wounds equal to or less than X.",
+      "effect": "That model has -1 to Hit rolls for its attacks.",
+      "duration": "While the model remains at or below X wounds.",
+      "interactions_to_validate": [
+        "hit-roll modifier limits",
+        "single-model units with remaining wounds",
+        "restoring wounds above the threshold"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed"
+    },
+    {
+      "id": "space-marines/vanguard-veteran-squad-with-jump-packs/vanguard-assault",
+      "name": "Vanguard Assault",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/vanguard-veteran-squad-with-jump-packs",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Vanguard-Veteran-Squad-With-Jump-Packs",
+      "timing": "When resolving melee attacks made by this unit.",
+      "eligibility": "This unit made a Charge move this turn.",
+      "effect": "Add 1 to the Attacks characteristic of this unit melee weapons.",
+      "duration": "For melee attacks while the condition is true this turn.",
+      "interactions_to_validate": [
+        "attacks made by attached models",
+        "Attacks characteristic modifiers",
+        "out-of-phase attacks in the same turn"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/vanguard-veteran-squad-with-jump-packs/combat-shield",
+      "name": "Combat Shield",
+      "kind": "wargear_ability",
+      "datasheet_id": "space-marines/vanguard-veteran-squad-with-jump-packs",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Vanguard-Veteran-Squad-With-Jump-Packs",
+      "timing": "When resolving a saving throw for a model.",
+      "eligibility": "The model is equipped with a Combat Shield.",
+      "effect": "The model has a 5+ invulnerable save.",
+      "duration": "While equipped with a Combat Shield.",
+      "interactions_to_validate": [
+        "choose between armour and invulnerable saves",
+        "wargear eligibility per model",
+        "saving throw modifiers do not modify invulnerable saves"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/ballistus-dreadnought/ballistus-strike",
+      "name": "Ballistus Strike",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/ballistus-dreadnought",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Ballistus-Dreadnought",
+      "timing": "When resolving a ranged attack made by this unit.",
+      "eligibility": "The target enemy unit is within 24 inches of this unit.",
+      "target": "The target enemy unit.",
+      "effect": "The attack has Sustained Hits 1.",
+      "duration": "For each eligible ranged attack.",
+      "dependencies": [
+        "core/sustained-hits-24-36"
+      ],
+      "interactions_to_validate": [
+        "distance measured from the unit",
+        "Critical Hit requirements for bonus hits",
+        "attack rules that already grant Sustained Hits"
+      ],
+      "official_check": "required_before_implementation_or_support_claim",
+      "definition_status": "current_reference_transcribed_definition_only"
+    }
+  ],
+  "open_questions": [
+    "Attach a precise official Codex or current errata page/section for every rule before moving its source status to certified.",
+    "Validate action timing, Battle-shock, objective-control timing, attached-unit abilities and per-unit/per-turn use tracking against the complete core rules and runtime."
+  ],
+  "source_conflicts": [
+    {
+      "id": "tactical-squad-page-stale-content",
+      "datasheet_id": "space-marines/tactical-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Tactical-Squad",
+      "observed_source_marker": "Faction Pack: Space Marines (11th edition, version 1.2)",
+      "conflicting_fields": [
+        "T4 profile",
+        "boltgun Strength 4",
+        "Oath of Moment listed as army rule"
+      ],
+      "current_reference_contrast": "Current faction page uses Combat Doctrines and Tacticus profiles such as Intercessors at T5.",
+      "status": "blocked_from_current_definition_pending_official_codex_or_errata_reconciliation"
+    },
+    {
+      "id": "sternguard-page-is-chapter-variant",
+      "datasheet_id": "space-marines/sternguard-veteran-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Sternguard-Veteran-Squad-1",
+      "observed_source_marker": "Black Templars faction variant",
+      "status": "excluded_from_shared_codex_rule_slice"
+    },
+    {
+      "id": "eradicator-legacy-page-superseded",
+      "datasheet_id": "space-marines/eradicator-squad",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Eradicator-Squad",
+      "observed_source_marker": "Faction Pack: Space Marines (11th edition, version 1.2)",
+      "conflicting_fields": [
+        "Oath of Moment army rule",
+        "older weapon profiles and ability condition"
+      ],
+      "current_reference_contrast": "The current shared profile is Eradicator Squad with Melta Rifles, uses Combat Doctrines and states that its ranged attacks can re-roll Damage rolls.",
+      "status": "excluded_from_current_shared_definition_slice"
+    }
+  ],
+  "datasheet_core_ability_links": [
+    {
+      "datasheet_id": "space-marines/reiver-squad",
+      "abilities": [
+        {
+          "id": "core/scouts-24-31",
+          "parameter": "Scouts 6 inches"
+        },
+        {
+          "id": "core/deep-strike-24-09",
+          "granted_by": "space-marines/reiver-squad/grav-chutes"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/inceptor-squad",
+      "abilities": [
+        {
+          "id": "core/deep-strike-24-09"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/assault-intercessors-with-jump-packs",
+      "abilities": [
+        {
+          "id": "core/deep-strike-24-09"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/scout-squad",
+      "abilities": [
+        {
+          "id": "core/infiltrators-24-20"
+        },
+        {
+          "id": "core/scouts-24-31",
+          "parameter": "Scouts 6 inches"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/infiltrator-squad",
+      "abilities": [
+        {
+          "id": "core/infiltrators-24-20"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/vanguard-veteran-squad-with-jump-packs",
+      "abilities": [
+        {
+          "id": "core/deep-strike-24-09"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/ballistus-dreadnought",
+      "abilities": [
+        {
+          "id": "core/damaged-24-39",
+          "parameter": "Damaged 4"
+        },
+        {
+          "id": "core/deadly-demise-24-08",
+          "parameter": "Deadly Demise D3"
+        }
+      ]
+    }
+  ]
+}

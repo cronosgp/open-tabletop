@@ -1,6 +1,6 @@
-Current A3 increment (17 October 2026): [checked Incursion rosters](roster-validation.md) use official MFM 1.6 points for ten fixed profiles, 2/4 repetition limits, the sole-3DP detachment exception and mandatory Warlord/Support declarations. Two 290-point starters, one 930-point Gladius list and one 880-point Awakened list are available under the 1,000-point ceiling. For these checked lists, the [Gladius/Awakened stratagem set](detachment-stratagems.md), selected mission and implemented infantry core rules are certified together. Broader equipment, additional units and complete 1,000-point rosters remain future work.
+Historical A3 increment (17 October 2026): the [MFM 1.6 reference roster snapshot](roster-validation.md) contains ten fixed profiles, 2/4 repetition limits, the sole-3DP detachment exception and Warlord/Support declarations. It includes 290-point starters, a 930-point Gladius list and an 880-point Awakened list. On 18 October, the full-match certification claim was downgraded because current Space Marines Codex datasheet/effect applicability remains unreconciled. The MFM 1.6 prices were captured 17 October, after the official 14 October update. Treat these as experimental reference matches until the rules review is complete.
 
-Current Track A status (17 October 2026): A1–A5 are integrated for the documented 930-point Gladius vs 880-point Awakened infantry match. The selected CA 2026-27 mission, ten fixed-loadout profiles, current fixed-roster MFM checks and remaining required infantry core effects are covered. Other rosters, optional wargear, enhancements, unsupported keywords and other terrain/missions remain outside this certification.
+Historical Track A status (17 October 2026): A1–A5 were integrated for the documented 930/880 infantry match. As of 18 October, source reconciliation against the new Marine Codex is an active gate; current full-match certification is withheld. Existing mechanics remain available as experimental reference behavior. MFM 1.6 prices were captured 17 October after the 14 October official update.
 
 Current Track D increments: D1 guided first-session entry and D2 contextual help are in progress. The Main menu now prioritizes the guided 290-point checked sample; alternate modes, LAN, resume and advanced setup are collapsed, while army building and optional tools have dedicated tabs. D1 launches the sample locally and gives numbered, progressively revealed steps through mission setup, army declarations, deployment, movement and a confirmed shot. The guide distinguishes available actions from gated or invalid actions and states that the starter sample is not a full-match legality certificate. The D2 pilot explains recognized weapon abilities, current phases, movement/charge/Fight placement choices, supported Battle-shock/Command Re-roll decisions and rule references for selected blocked actions; it is not yet a complete keyword, unit-ability, faction-stratagem and phase reference. A D3 presentation pilot is in progress: overhead model health/status, conditional pre-attack damage ranges, labeled and animated result tiles, success/failure/critical markers for resolved hit and wound rolls, and visible host/local dice provenance with a journal-chain reference. The journal reference helps identify the recorded history and detect changes when validating a matching save; it does not independently prove RNG fairness or unpredictability. D4 now includes manual unit focus plus optional movement, wound-change and destroyed-model cues. Automatic decision framing, projectile tracers and hit/impact effects remain unimplemented.
 
@@ -10,36 +10,37 @@ Current Track D increments: D1 guided first-session entry and D2 contextual help
 
 ## 1. Product vision
 
-**Open Tabletop is a gaming platform** for two-player Warhammer 40,000 (11th edition) matches on desktop (Windows/Linux). The engine enforces the rules, resolves dice and state authoritatively, and presents a polished, accessible, social experience built around user-supplied visuals. Players bring the armies and the miniatures; the platform brings the board, the rules, the dice and the connection.
+**Open Tabletop is an open-source experimental platform** for two-player Warhammer 40,000 (11th edition) matches on desktop (Windows/Linux). The final goal is to play with every current faction, datasheet, weapon option and ability; choose missions; and build custom battlefields. The game enforces the selected rules, resolves dice and match state authoritatively, and supports one player hosting a match for a LAN or direct internet connection. Players supply their own miniature visuals.
 
 What it is **not**: a rules encyclopedia, a single-player AI game, or a "training tool." The combat/training exercises in the current build are implementation/test harnesses and will be absorbed by real matches as rule coverage grows.
 
-- **Target platform:** desktop, Windows and Linux, keyboard + mouse. (Mobile, touch and controllers are out of scope for v1.)
-- **Target audience:** tabletop players who already know 40k and want a faithful, faster, easier way to play a match against a friend.
-- **North star (player):** *"Set up, connect, and play a complete, legal match — with the rules handled for me and every rule explained where I need it."*
+- **Target platform:** desktop, Windows and Linux, keyboard + mouse. Mobile, touch and controllers are out of scope.
+- **Target audience:** tabletop players who want to play a complete match with a friend while the game handles movement, timing, choices, dice and scoring.
+- **North star (player):** *"Choose armies and a mission, connect to my opponent, and finish a complete 11th-edition match with the game enforcing the rules."*
+- **Hosting model:** one player runs the authoritative host. There is no project-operated game server, account service or monetization plan. Direct internet connections may need router configuration or an optional community/user-operated relay.
 
-**v1 non-goals:** full vertical geometry / battlefield editor, all factions, single-player AI, mobile, and redistributing third-party miniatures (content boundary — user-supplied visuals remain local and are never transferred between peers).
+**Out of scope:** single-player AI, mobile, project-operated servers/accounts, monetization, and redistributing third-party miniatures or other source content. The battlefield editor is part of the final product but is deliberately the last implementation milestone. Until then, improve and maintain a shared, flexible battlefield that works with the supported missions and terrain rules.
 
 ## 2. Current state (baseline)
 
 | Area | Shipped | Still missing |
 |---|---|---|
-| Rules | Checked CA infantry match: ten fixed e11 profiles, declared Leaders/Warlord/Support, Gladius/Awakened rules and stratagems, selected mission/deployment, MFM 1.6 fixed-profile construction, core reactions and recovery | Other armies, optional wargear/enhancements, remaining catalog content, other missions/layouts and unsupported mechanics |
-| Multiplayer | Authoritative host, LAN/direct, snapshots, guest seat credentials (HMAC challenge/proof), rejoin after host restart | Lobby negotiation, encrypted internet transport, relay/service, credential reset UI, accounts |
+| Rules | Experimental CA infantry reference match: ten fixed e11 profiles, declared Leaders/Warlord/Support, selected mission, captured MFM 1.6 prices, and implemented core/faction rules | Reconcile current Marine Codex/app datasheets/effects before restoring current full-match certification; other armies, optional wargear/enhancements and missions |
+| Multiplayer | Authoritative host, LAN/direct address, snapshots, guest seat credentials (HMAC challenge/proof), rejoin after host restart | Match negotiation, secure direct internet connection and practical NAT traversal, credential reset UI |
 | Persistence | Versioned snapshot, atomic replace, checksum, autosave, draft save, local/LAN resume, seat reservation, RNG continuation, hash-chained event/dice journal with verified reconstruction | Visual replay, multiple slots, journal compaction, cross-version migration |
-| Army builder | OpenHammer catalog, filters/variants/budgets, local profiles, checked-roster MFM 1.6 construction and ten fixed profile admissions | Arbitrary units, optional equipment/enhancements and general roster legality |
+| Army builder | OpenHammer candidate catalog, filters/variants/budgets, local profiles, MFM 1.6 reference-price construction and ten experimental fixed-profile admissions | Current Codex applicability, arbitrary units, optional equipment/enhancements and general roster legality |
 | Models | ForceOrg auto-acquire, cached/HTTPS OBJ+diffuse download, saved pawn links, manual override | GLB, AssetBundles, composites/materials, per-model variants |
 | Delivery | Offline verification runner, CI definition, demo export presets | CI execution on GitHub, native builds, cross-platform matches |
 
-Experience, accessibility, social, onboarding, audio, licensing, and telemetry are **not yet represented** as first-class work. Closing that gap is the purpose of this document.
+Experience, accessibility, onboarding, audio and release validation remain first-class work. The project is free and open source; there is no monetization or project-operated service to design.
 
 ## 3. Tracks and milestones
 
-Remaining work is organized into eight tracks. Each milestone lists its deliverables and its "done when."
+Remaining work is organized into nine tracks. Each milestone lists its deliverables and its "done when."
 
 ### A. Rules & content completeness *(the critical path)*
 
-> **Integrated for the checked match** — the locked roster scope and rule boundaries are in [track-a.md](track-a.md) and [track-a-a5.md](track-a-a5.md).
+> **Integrated for the 17 October reference profile; current-source review pending** — the locked roster scope and rule boundaries are in [track-a.md](track-a.md) and [track-a-a5.md](track-a-a5.md).
 
 | # | Milestone | Deliverables | Done when |
 |---|---|---|---|
@@ -47,16 +48,18 @@ Remaining work is organized into eight tracks. Each milestone lists its delivera
 | A2 | Selected official mission & deployment | CA 2026-27 Battlefield Dominance / Hammer and Anvil, fixed secondaries, deployment, reserves and scoring | The documented match reaches a five-round VP result under the selected profile |
 | A3 | Current fixed-roster pricing/construction | MFM 1.6, Incursion ceiling, 2/4 repetitions, sole-3DP exception, Warlord/Support checks; see scope above | The ten admitted profiles and checked lists pass the documented construction validation |
 | A4 | Unified capability registry | One machine-readable "what's supported" registry consumed by the validator, UI and tests | Unsupported content is blocked consistently everywhere from a single source of truth |
-| A5 | Remaining core rules for the shipped lists | [Gladius 930 vs Awakened 880](track-a-a5.md): Command Re-roll plus Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge | Checked CA infantry match certified; remaining 1000-point fill is catalog work |
-| A6 | *Post-launch* expansion | More factions/units/missions, vertical geometry, battlefield editor | Each increment widens the matrix without admitting partially implemented content |
+| A5 | Remaining core rules for the reference lists | [Gladius 930 vs Awakened 880](track-a-a5.md): Command Re-roll plus Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge | Core mechanics are implemented for the fixed profile; current Codex reconciliation restores certification, with remaining 1,000-point fill as catalog work |
+| A6 | Expand current-edition faction content | Start with the [Space Marines source catalog](space-marines-catalog.md), then admit current datasheets, weapon options, abilities, detachments and points in verified slices; continue across all current factions | Every released profile is versioned, executable, validated and accurately represented in the support matrix |
+| A7 | Mission selection and breadth | Selectable mission profiles, deployments, objectives and scoring, each tied to a compatible battlefield definition | Players can configure and complete every mission profile marked supported |
+| A8 | Complete rules coverage | Remaining shared core rules, vertical geometry, vehicles, transports, aircraft, reinforcements and faction interactions | The published support matrix has no unsupported rules within the declared current-edition release scope |
 
 ### B. Multiplayer & platform networking
 
 | # | Milestone | Deliverables | Done when |
 |---|---|---|---|
 | B1 | Lobby & negotiation | Scenario/pack/option agreement, readiness/accept, immutable pre-match manifest | Both clients agree on a configuration before any rules run, with no out-of-band setup |
-| B2 | Internet transport | Encrypted transport, NAT/relay or a connection service, discovery | Two players connect and complete a match over the internet, not just LAN/loopback |
-| B3 | Accounts & identity | Player identity, credential reset/transfer UI, friend/invite flow | A player can invite a friend and rejoin across devices with their own seat |
+| B2 | Direct internet transport | Secure host-to-guest connection, address/share flow and documented NAT/port-forwarding behavior; optional community/user-operated relay adapter | Two players connect directly to the host and complete a match over the internet |
+| B3 | Local seat recovery | Credential reset/transfer UI and clear reconnection flow using the existing host-owned seats | A guest can recover their seat after a reconnect without accounts or a project service |
 | B4 | Resilience & diagnostics | Loss/latency handling, reconnect UX, connection diagnostics | A dropped connection recovers to the last verified state with a clear player-facing explanation |
 
 ### C. Persistence & integrity *(mostly shipped; finishing work)*
@@ -86,22 +89,22 @@ Remaining work is organized into eight tracks. Each milestone lists its delivera
 | E2 | Localization | Localization framework for UI text (the codebase is already bilingual) | UI can ship in additional languages without code changes |
 | E3 | Audio | Dice/feedback/error cues, optional ambient, global toggle | Feedback is audible as well as visual; audio is optional and accessible |
 
-### F. Social & meta
+### F. Replay & post-match
 
 | # | Milestone | Deliverables | Done when |
 |---|---|---|---|
-| F1 | Spectator mode | A third party can watch a live match | A spectator joins without disturbing state or leaking hidden info |
-| F2 | Replay & result sharing | Share a replay/result with another player | A finished match can be exported/imported as a replay |
-| F3 | *Optional* stats & ranking | Match stats browser, leaderboards/ELO | If adopted, competitive integrity is preserved (no pay-to-win) |
+| F1 *(optional)* | Spectator mode | A third party can watch a live match | A spectator joins without disturbing state or leaking hidden info |
+| F2 | Replay & result export | Save and exchange a replay/result file directly between players | A finished match can be replayed from its journal and shared without a hosted account service |
+| F3 *(optional)* | Local match history | Browse results and statistics stored on this device | Players can review their own local matches without ranking or remote telemetry |
 
-### G. Content, licensing & moderation *(decisions that block release)*
+### G. Open-source content policy
 
 | # | Milestone | Deliverables | Done when |
 |---|---|---|---|
-| G1 | Licensing | Code license + data/user-content policy | The project has an explicit license and contribution policy |
-| G2 | Monetization | A transparent model (if any) — no hidden costs, no pay-to-win, no coercive pressure | Any paid element is clearly documented with content and limits |
-| G3 | Moderation & reporting | Reporting/blocking when internet play and UGC sharing are live | Players can report and block, with a clear content policy |
-| G4 | Content catalog strategy | Community-catalog acquisition with no third-party redistribution | The model/catalog pipeline stays within the content boundary |
+| G1 | Code and content policy | Keep the code license explicit; document source provenance, update versions and what user-supplied content stays local | Contributors can tell which code and data may be redistributed and which assets/catalogs must be acquired by each player |
+| G2 | Community maintenance | Reproducible contribution and rules-source review workflow | A rules/content change records edition, faction source, update version and validation scope |
+
+The project remains free and non-commercial. No monetization, account system or project-operated game service is planned. Rules and point references must retain their source/version boundaries; user visuals and third-party catalogs are not bundled by default.
 
 ### H. Quality, delivery & validation
 
@@ -109,40 +112,40 @@ Remaining work is organized into eight tracks. Each milestone lists its delivera
 |---|---|---|---|
 | H1 | CI & native builds | CI execution on GitHub, native Windows/Linux builds, cross-machine Windows↔Linux matches | Every change is verified on CI; installers run on both OSes |
 | H2 | Performance targets | Turn-length, frame-rate and memory budgets | A full match stays within documented performance targets |
-| H3 | Telemetry & playtesting | Opt-in telemetry, a playtest plan measuring human outcomes (turn time, abandonment, confusion) | We measure success-without-help, time-to-complete, errors and abandonment — not just automated tests |
+| H3 | Playtesting | A local playtest plan measuring human outcomes (turn time, abandonment, confusion) | Results can be recorded and shared voluntarily; the game does not require a telemetry service |
 | H4 | Release & distribution | Installers, auto-update (if applicable), user docs | A user without Godot installs, connects and completes a match |
 
 ## 4. Sequencing
 
 | Phase | Focus | Tracks | Exit criterion |
 |---|---|---|---|
-| 0 | Foundation | H1 (CI), C1 (slots) | CI green; repository checkpointed |
-| 1 | First complete legal match | A1–A5, B1 | Two players finish a legal match on LAN |
-| 2 | Product multiplayer | B2–B4 | Internet match with accounts and recovery |
-| 3 | Experience & accessibility | D1–D6, E1–E3 | Onboarding, inline rules, dice, HUD and accessibility ship |
-| 4 | Social & replay | F1–F3, C2 | Spectate and replay ship |
-| 5 | Release | G1, H2–H4 | Windows↔Linux release, licensed, measured |
-| 6 | Post-launch expansion | A6 | Broader coverage on top of a stable platform |
+| 0 | Structural foundation | Architecture boundaries, content identity/versioning, H1 | Rules, content, match orchestration, transport and UI have documented owners and stable contracts |
+| 1 | Checked complete match foundation | A1–A5, B1, C | Two players finish the verified reference match and can resume it |
+| 2 | Rules and faction expansion | A6, A8 | Each admitted increment expands playable, source-checked coverage without false support claims |
+| 3 | Missions and shared battlefield | A7 plus shared-map improvements | Multiple supported missions work on the maintained shared battlefield |
+| 4 | Host-led online play | B2–B3 | A guest completes and recovers a direct internet match with the user-hosted server |
+| 5 | Experience, access and release | D, E, H, G | The current declared rules scope is usable, reproducible and distributable on Windows/Linux |
+| 6 | Battlefield editor — final implementation milestone | I | Players can create, validate, save, share and host custom maps with explicit rules geometry |
 
 **Tracks D and E are not a final polish pass.** They start in parallel with Phase 1 and gate the release alongside rules and networking. A platform without them is a rules engine with a debug UI.
 
 ## 5. Definition of done — v1 GA
 
-**Player:** two players install, create/select *legal* armies, connect over LAN **or** internet, play a *legal* mission to a decisive result with rules enforced, survive a disconnect and resume, watch the replay, and read every rule inline — without a README.
+**Player:** two players install, create/select legal armies from every supported current-edition faction, choose a mission and battlefield, connect over LAN or directly over the internet with one player hosting, play to a decisive result with rules enforced, survive a disconnect and resume, watch the replay, and read every supported rule inline.
 
-**Product:** Windows↔Linux verified on CI, native installers, an explicit license, opt-in telemetry confirming the performance targets, and a support matrix with no shipped "missing" entries.
+**Product:** free and open source, Windows/Linux builds verified, explicit code/content policy, reproducible match versions, and a support matrix that accurately states the current complete-edition coverage. The map editor is delivered after rules, missions, hosting and release-critical work.
 
 ## 6. Open decisions (decision register)
 
 | Decision | Options | Blocks | Notes |
 |---|---|---|---|
-| Code/data license | Open-source (MIT/GPL/Apache), source-available | G1, distribution | Content boundary: user visuals and community catalog are not redistributable |
-| Monetization | Free, donation, one-time, subscription | G2, internet service cost | Must be transparent, no pay-to-win, age-appropriate |
-| Accounts & identity | Anonymous/device, self-hosted, managed service | B3, moderation | Trade-off: privacy vs. friend/invite/social |
-| Internet transport service | Self-host relay, third-party service | B2 | Cost, trust, moderation obligations |
-| Community catalog strategy | On-demand download, no redistribution | G4 | Already followed; make it an explicit policy |
+| Code/data policy | MIT code; source-attributed, versioned rule references; player-supplied local visuals | G1, distribution | Do not bundle third-party catalogs or miniatures by default |
+| Monetization | None | None | Free, experimental and non-commercial |
+| Identity | Local host-issued seat credentials | B3 | No account or identity service |
+| Internet connection | Direct connection to the player host; optional user/community-operated relay later | B2 | No project-operated server; document port forwarding and VPN options |
+| Map workflow | Shared maintained battlefield first; in-game editor last | I | Missions and rules geometry must work before custom map creation |
 
-## 7. Validation & telemetry
+## 7. Validation & playtesting
 
 **Playtest questions** (measurable):
 
@@ -152,12 +155,21 @@ Remaining work is organized into eight tracks. Each milestone lists its delivera
 - How long does the inactive player idle, and do they report "I knew what was happening" during the opponent's turn?
 - What is the completion rate of a full match, and where do players abandon?
 
-**Telemetry (opt-in):** time-to-first-action, turn/phase duration, idle time, error/blocked-action frequency, disconnect/recovery rate, match completion rate, abandonment points.
+Record time-to-first-action, turn/phase duration, idle time, blocked-action frequency, disconnect/recovery rate, match completion and abandonment points during local playtests. Players may choose to share reports; no remote telemetry backend is part of the product plan.
 
 ## 8. Next five actions (prioritized)
 
-1. **D1 — onboarding / first session.** Guide a new player through a prepared match using the checked sample armies.
-2. **D2 — inline rules reference.** Explain supported keywords and disabled-action reasons in the interface.
-3. **B1 — lobby & negotiation.** Agree on scenario, pack and options before play.
-4. **D3 — dice visualization.** Make dice outcomes readable and show the authoritative results clearly.
-5. **H1 — CI execution + native builds.** Turns the existing CI definition into running verification.
+1. **Bulk e11 baseline.** Refresh an ignored local OpenHammer snapshot for the selected faction, retain its digests and provider IDs, and expand the candidate identity ledger without calling imported units playable.
+2. **Reconcile the existing Marine baseline, then the first vertical slice.** Recheck the existing fixed profiles against the current Codex, current official MFM/app data and applicable updates. Then pick a coherent new Space Marines group and implement its complete profile, options and required mechanics. Keep unresolved records out of current-edition support claims while independent work continues.
+3. **Capability/source registry.** Represent source provenance, provisional/current-reference/GW-checked status, implementation and validation scope per unit/rule/mission in one inspectable contract.
+4. **Rules windows.** Make timing, triggers, choices, costs and effect duration explicit shared engine concepts and grow reusable handlers from the vertical slice.
+5. **B1 — lobby & negotiation.** Have both peers verify the same immutable content, mission and battlefield manifest before play; keep the shared battlefield data-driven and defer its editor to the final milestone.
+
+### I. Battlefield editor *(final implementation milestone)*
+
+Until the final milestone, maintain one flexible shared battlefield and make its dimensions, deployment zones, objective positions, terrain footprints and elevations data-driven so every supported mission can use it. Do not start a player-facing map editor ahead of rules and mission completeness.
+
+| # | Milestone | Deliverables | Done when |
+|---|---|---|---|
+| I1 | Custom battlefield authoring | Place and resize terrain, define height/footprint/traversability/visibility, objectives and deployment zones; validate and version map files | Two peers load the same map hash and the rules engine uses the same geometry the editor previews |
+| I2 | Map library and sharing | Local map library, import/export and compatibility checks against mission/rules versions | A player can choose a saved map for a LAN or internet-hosted match and unsupported geometry is clearly rejected |

@@ -6,7 +6,7 @@
 
 ## Progress
 
-- **A1–A5 integrated for the checked match.** The 930-point Gladius and 880-point Awakened fixed infantry lists complete the selected CA 2026-27 mission under the documented current e11 profile. See [A5 scope and stratagem windows](track-a-a5.md) and [recorded verification](verification-results.md).
+- **A1–A5 were integrated for the 17 October reference profile.** As of 18 October, current Space Marines Codex datasheet/effect applicability has not been reconciled; the 930/880 lists remain experimental references and do not carry current full-match certification. See [A5 scope and source boundary](track-a-a5.md) and [recorded verification](verification-results.md).
 - **A3 roster construction:** [MFM 1.6 fixed-profile pricing and Incursion validation](roster-validation.md), including 2/4 repetition limits, sole-3DP exception and Warlord/Support formation checks. Two 290-point starters and the checked 930/880 lists are available; filling to 1,000 points needs more admitted datasheets.
 - **A2 mission:** [CA 2026-27 mission and deployment](chapter-approved-mission.md), including fixed-scenario/custom-terrain scope. Other missions, layouts and rosters remain separate.
 - **A4 capability registry:** one registry feeds the current admission, validation and interface rules (`scripts/edition_11/capabilities.gd`, `tests/test_capabilities.gd`).
@@ -56,7 +56,7 @@ The requested ten fixed-profile unit types are covered by [current unit abilitie
 
 ## Mission (A2)
 
-[Selected CA 2026-27 scenario](chapter-approved-mission.md): Battlefield Dominance for both Take and Hold armies, Hammer and Anvil, fixed Engage on All Fronts + Assassination. Includes 60 × 44 terrain-objective board, central-configuration/role/first-turn roll-offs, Defender-first deployment, private reserve declarations, official score timing/caps and five rounds even after wipeout. Custom agreed ground-level terrain is used; other cards, interactive terrain authoring and recommended event layouts are outside this profile. The checked lists and mission are certified together for the documented fixed profile.
+[Selected CA 2026-27 scenario](chapter-approved-mission.md): Battlefield Dominance for both Take and Hold armies, Hammer and Anvil, fixed Engage on All Fronts + Assassination. Includes 60 × 44 terrain-objective board, central-configuration/role/first-turn roll-offs, Defender-first deployment, private reserve declarations, official score timing/caps and five rounds even after wipeout. Custom agreed ground-level terrain is used; other cards, interactive terrain authoring and recommended event layouts are outside this profile. The mission mechanics remain source-checked for this configuration; the combined fixed lists and Marine rules are not currently certified pending Codex reconciliation.
 
 ## Execution order
 

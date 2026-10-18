@@ -153,7 +153,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 	for model: int in models(state, player, "strategic-acumen"):
 		var squad: int = state.units[model].squad
 		if state.phase == "command" and state.active == player and state.unit_abilities.used.get("acumen:%d" % squad, -1) != state.turn:
-			for doctrine in ["devastator", "tactical", "assault"]: result.append(choice("Strategic Acumen %d: %s" % [model, doctrine], "acumen", model, squad, doctrine))
+			for doctrine: String in Doctrines.available(state, player): result.append(choice("Strategic Acumen %d: %s" % [model, doctrine], "acumen", model, squad, doctrine))
 	for model: int in models(state, player, "finest-hour"):
 		var squad: int = state.units[model].squad
 		if state.phase == "fight" and state.fight_actor == player and state.fight_step == "attacks" and squad in FightQueue.choices(state, player) and not state.squads[squad].fought and not state.unit_abilities.used.has("finest:%d" % squad): result.append(choice("Finest Hour: Captain %d (+3 A, Devastating Wounds)" % model, "finest", model, squad))
@@ -325,6 +325,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"acumen":
 			a.used["acumen:%d" % target] = state.turn
 			a.doctrines[target] = {"doctrine": selected.value}
+			Doctrines.record_selection(state, player, selected.value)
 			a.window = {"kind": "demi", "owners": [player], "doctrine": selected.value}
 		"demi":
 			a.used["demi:%d" % target] = state.turn
@@ -415,7 +416,7 @@ static func start_round(state: Dictionary) -> void:
 		var model: int = state.unit_abilities.warlords[owner]
 		if state.unit_abilities.used.get("warlord-cp:%d" % owner, -1) == state.round: continue
 		state.unit_abilities.used["warlord-cp:%d" % owner] = state.round
-		if state.units[model].wounds > 0 and state.units[model].get("on_battlefield", true) and A.identity(state.units[model]) == "captain": state.cp[owner] += 1
+		if state.units[model].wounds > 0 and A.identity(state.units[model]) == "captain": state.cp[owner] += 1
 
 static func logic_available(state: Dictionary, owner: int) -> bool:
 	for model: int in models(state, owner, "engrammatic-logic"):

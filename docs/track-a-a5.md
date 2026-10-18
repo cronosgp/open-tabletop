@@ -2,7 +2,7 @@
 
 Checked 17 October 2026 against [e11 Using Stratagems 15.01–15.12](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/). Scope is the shipped CA 2026-27 mission plus the two checked Incursion lists (Captain + 4 Heavy Intercessors + 2 Terminators vs 2 Overlords + 2 Royal Wardens + 4 Warrior squads + 4 Immortal squads). Vehicle/Fly/transport/floor/mesh content stays out of this cut.
 
-`official_legality_validated` and `full_match_certified` are true for that checked CA infantry match. The lists remain 930/880 under the 1000-point cap; filling the remainder needs more admitted datasheets via the [post-Track-A catalog](faction-catalog.md).
+Historical verification result: on 17 October, this CA infantry match was marked `official_legality_validated` and `full_match_certified`. On 18 October those current-match claims were withdrawn because current Space Marines Codex datasheet/effect applicability has not been reconciled. The runtime now records both flags as false while retaining the 930/880 lists as experimental reference matches. The MFM 1.6 prices were separately checked against the live official snapshot on 17 October. Filling the lists needs more admitted datasheets via the [post-Track-A catalog](faction-catalog.md).
 
 ## Closed for these lists
 
