@@ -22,6 +22,8 @@ func prepared() -> Dictionary:
 	var s := F.fresh()
 	check(not s.has("error"), "All ten canonical profiles materialize")
 	if s.has("error"): return {}
+	for model: int in [300, 900]:
+		check("TACTICUS" in s.units[model].keywords and "EXPLOSIVES" in s.units[model].keywords, "Current-reference Captain and Lieutenant retain their datasheet keywords before attachment")
 	check(C.select_awakened_attachment(s, 2, 2, 0).is_empty(), "Overlord leads Immortals before other preparation")
 	check(act(s, 1, "attach", 300, 7).is_empty(), "Captain leads current Intercessors")
 	check(act(s, 1, "attach", 900, 1).is_empty(), "Lieutenant joins Assault Intercessors as Support")

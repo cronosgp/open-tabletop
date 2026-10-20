@@ -1,0 +1,84 @@
+{
+  "id": "marine-terminator-chaplain-e11-2026-10-18",
+  "source": {
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain-In-Terminator-Armour",
+    "datasheet_id": "000000115",
+    "book_id": "000000139",
+    "edition": 11,
+    "export_updated_at": "2026-10-16T21:03:46+03:00",
+    "scope_exclusions": [
+      "Deathwing/chapter adaptations",
+      "Boarding Actions",
+      "unadmitted bodyguards"
+    ]
+  },
+  "versions": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v15",
+    "abilities": "track-a-current-datasheets-2026-10-v17",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v16"
+  },
+  "admission": {
+    "shared_marines": 21,
+    "necrons": 4,
+    "shared_marines_remaining": 64
+  },
+  "local_validation": {
+    "status": "passed",
+    "final_report": {
+      "path": ".tools/verification/20261018T171837359555Z/results.json",
+      "sha256": "21f768fa31fed0b585d622381b324748368a6bf1b4b361db139c22a7064cdcce"
+    },
+    "processes": 18,
+    "godot_suites": 15,
+    "python_checks": 30,
+    "earlier_report": {
+      "path": ".tools/verification/20261018T171517224472Z/results.json",
+      "sha256": "bb78fa9aecb168070cbadd5e70211c867b3df693b2352a3555d0de43070fc1dc"
+    },
+    "dedicated_test": {
+      "path": "tests/test_terminator_chaplain.gd",
+      "sha256": "310eccb3b845608b9211280c0a9f529cac9b1b333d6cbc73b58a2363aadb083f"
+    },
+    "shared_prevention": {
+      "path": "scripts/edition_11/unit_prevention.gd",
+      "sha256": "77f2246d35531d290d6f1000a2fb560bbb0a111cbfcf7415fa3e9325a2e725d1"
+    }
+  },
+  "data_check": {
+    "status": "passed",
+    "comparisons": 22,
+    "report": {
+      "path": ".tools/terminator-chaplain-data-check.json",
+      "sha256": "c87ac964514e2740da03bd75c60f3a7fed5be152267405041932945711bceac3"
+    }
+  },
+  "ui": {
+    "captures": [
+      {
+        "path": ".tools/terminator-chaplain-before.png",
+        "sha256": "fd6de784a412185ac09a3decb1c6fb5480beff27f418db11f40d54918196c43d"
+      },
+      {
+        "path": ".tools/terminator-chaplain-after.png",
+        "sha256": "4cdb5e5254f4601b6b3f33f1cf3d05319b6c63a16ee5b4d4c311af2a38692b0c"
+      },
+      {
+        "path": ".tools/terminator-chaplain-shield.png",
+        "sha256": "58a05d9f625b7dfb375c192d262612d38e8087f8f2d8d8cbacdf278c0bcb9a24"
+      }
+    ],
+    "kind": "actual Godot staged preparation fixture; 1600x1000",
+    "completed_match": false
+  },
+  "reserve_correction": {
+    "attached_cost": 265,
+    "rejects_at_points_limit": 500,
+    "accepts_at_points_limit": 1000,
+    "attachments_after_reserve_assignment": false
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_match_certified": false
+}

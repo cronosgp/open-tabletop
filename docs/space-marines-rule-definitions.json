@@ -1,10 +1,18 @@
 {
+  "current_source_policy": {
+    "id": "wahapedia-e11-definitive-2026-10-18",
+    "document": "rules-source-policy.md",
+    "authority": "Wahapedia /wh40k11ed/",
+    "official_gw_confirmation_required": false,
+    "preferred_ingestion": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "remaining_gate": "Current Wahapedia snapshot reconciliation, complete executable effects and scope/interaction validation; no automatic full-match certification."
+  },
   "pack_id": "space-marines-e11-rule-definitions",
   "schema_version": 1,
   "edition": 11,
-  "observed_at": "2026-10-17",
+  "observed_at": "2026-10-19",
   "status": "definitions_from_e11_reference_pending_slice_checks",
-  "purpose": "Structured original-language rules specification for six current fixed-loadout Space Marine profiles plus definition-only ability samples from nineteen additional datasheets. Audit/design input only; this file is not loaded by the match runtime and does not certify army legality.",
+  "purpose": "Project-authored effect definitions and implementation references; current status is per record. This file is not loaded by the match engine and does not certify army legality.",
   "scope": {
     "datasheets": [
       "space-marines/intercessor-squad",
@@ -12,29 +20,51 @@
       "space-marines/heavy-intercessor-squad",
       "space-marines/terminator-squad",
       "space-marines/captain",
-      "space-marines/lieutenant"
-    ],
-    "profile_boundary": "Runtime scope remains the six fixed profiles and admitted Leader/Support pairings. Additional definition-only datasheets contribute ability descriptions only; they do not add runtime profiles, costs, loadouts, roster legality or chapter variants. Optional wargear, other squad sizes, other attachment combinations, chapter sheets and full roster legality remain outside this definition pass.",
-    "source_policy": "OpenHammer /v1/11e is the fast bulk discovery and provisional profile/weapon/ability-name input. Use Wahapedia /wh40k11ed/ for readable e11 rule references as each implementation slice is selected. Check applicable current Games Workshop Codex, faction-pack, FAQ/errata and points sources before implementing or marking that slice supported. Do not block unrelated catalog or engine work on a full-faction audit; preserve unresolved conflicts as provisional/unsupported. Imported records are never playable by default.",
-    "definition_only_datasheets": [
-      "space-marines/bladeguard-veteran-squad",
-      "space-marines/hellblaster-squad",
+      "space-marines/lieutenant",
       "space-marines/infernus-squad",
-      "space-marines/company-heroes",
-      "space-marines/redemptor-dreadnought",
+      "space-marines/hellblaster-squad",
+      "space-marines/aggressor-squad",
       "space-marines/apothecary-biologis",
-      "space-marines/desolation-squad",
-      "space-marines/eliminator-squad",
+      "space-marines/eradicator-squad-with-heavy-bolters",
       "space-marines/eradicator-squad-with-melta-rifles",
+      "space-marines/assault-intercessors-with-jump-packs",
+      "space-marines/vanguard-veteran-squad-with-jump-packs",
+      "space-marines/chaplain-with-jump-pack",
+      "space-marines/librarian-in-terminator-armour",
+      "space-marines/librarian-in-phobos-armour",
+      "space-marines/scout-squad",
       "space-marines/incursor-squad",
       "space-marines/reiver-squad",
-      "space-marines/eradicator-squad-with-heavy-bolters",
+      "space-marines/firestrike-servo-turrets",
+      "space-marines/brutalis-dreadnought",
+      "space-marines/invictor-tactical-warsuit",
+      "space-marines/company-heroes",
+      "space-marines/storm-speeder-hammerstrike",
+      "space-marines/storm-speeder-hailstrike",
+      "space-marines/storm-speeder-thunderstrike",
+      "space-marines/gladiator-valiant",
+      "space-marines/land-speeder",
+      "space-marines/chaplain-on-bike",
+      "space-marines/terminator-assault-squad",
+      "space-marines/captain-on-bike",
+      "space-marines/kaius-konorius",
+      "space-marines/librarian",
+      "space-marines/victrix-honour-guard",
+      "space-marines/wardens-of-ultramar",
+      "space-marines/marneus-calgar",
+      "space-marines/kor-sarro-khan",
+      "space-marines/captain-titus",
+      "space-marines/vulkan-hestan"
+    ],
+    "profile_boundary": "Runtime admission includes all 85 shared-book Marine identities from the local Wahapedia e11 inventory, including Wardens of Ultramar. Five historical profiles remain outside construction. Per-profile local Wahapedia revision, executable effects, model-count limits and local validation remain explicit; no full army legality certification is implied.",
+    "source_policy": "Wahapedia /wh40k11ed/ is definitive. Check current edition, source book, chapter/game mode and snapshot applicability for each slice. OpenHammer is discovery only; GW cross-checks are optional context. Imported records are not automatically playable.",
+    "definition_only_datasheets": [
+      "space-marines/bladeguard-veteran-squad",
+      "space-marines/redemptor-dreadnought",
+      "space-marines/desolation-squad",
+      "space-marines/eliminator-squad",
       "space-marines/inceptor-squad",
-      "space-marines/assault-intercessors-with-jump-packs",
-      "space-marines/scout-squad",
-      "space-marines/aggressor-squad",
       "space-marines/infiltrator-squad",
-      "space-marines/vanguard-veteran-squad-with-jump-packs",
       "space-marines/ballistus-dreadnought"
     ]
   },
@@ -178,7 +208,7 @@
       "resolved_interactions": [
         "Strategic Acumen spends the shared doctrine selection allowance; Demi-company Commander only activates the selected doctrine for its unit; Gladius Codex Discipline grants one additional selection."
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -197,7 +227,7 @@
         "Hit-roll modifier limits",
         "attached Leader and Support models treated as part of the attacking unit"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -217,7 +247,7 @@
         "Action-specific completion and interruption rules",
         "other effects that independently prevent shooting"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -236,7 +266,7 @@
         "attacks split across multiple targets",
         "weapon-profile modifiers and AP limits"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -257,7 +287,7 @@
         "save-roll modifier limits",
         "the timing of control during a sequence of attacks"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -278,8 +308,9 @@
         "reserve arrival timing",
         "effects changing the minimum setup distance"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed"
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_local_terminator_jump_pack_phobos_and_reiver_grav_chute_scope",
+      "implementation_reference": "marine-reiver-squad.md"
     },
     {
       "id": "space-marines/terminator-squad/teleport-homer",
@@ -306,7 +337,7 @@
         "token placement legality and geometry",
         "the removal check if multiple units end moves within range"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -325,7 +356,7 @@
         "attached models",
         "AP modifier limits"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -356,7 +387,7 @@
         "leader death and bodyguard separation",
         "support attachment coexistence"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "fixed_scope_only"
     },
     {
@@ -377,7 +408,7 @@
         "The selected doctrine replaces any doctrine already active for this Captain unit; Demi-company Commander may copy this selection to the Lieutenant unit."
       ],
       "interactions_to_validate": [],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -396,7 +427,7 @@
         "Captain destroyed before resolving its attacks",
         "modifiers to Attacks and Devastating Wounds"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -415,7 +446,7 @@
       "interactions_to_validate": [
         "other CP gain effects and exact official Codex/errata applicability"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -441,7 +472,7 @@
         }
       ],
       "fixed_match_combination": "The Lieutenant may be attached as Support to a bodyguard that already has the listed Captain as its Leader, subject to the one-of-each core limit.",
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "fixed_scope_only"
     },
     {
@@ -460,7 +491,7 @@
         "critical hit rules",
         "other Lethal Hits sources"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -479,7 +510,7 @@
       "interactions_to_validate": [
         "use tracking when multiple Captains or Lieutenants exist"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -504,7 +535,7 @@
         "Attached units containing mixed keywords",
         "precise timing relative to other after-attack effects"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -534,7 +565,7 @@
         "Hit-roll modifier limits",
         "ability scope while Attached"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -554,8 +585,9 @@
         "whether eligible weapons carried by attached models are covered by the source unit ability",
         "modifier limits and any applicable rerolls"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "No independent GW reconciliation claimed; selected Wahapedia authority is recorded in current_source_policy.",
+      "definition_status": "implemented_in_admitted_infantry_scope",
+      "implementation_document": "marine-fire-support.md"
     },
     {
       "id": "space-marines/infernus-squad/driven-from-cover",
@@ -576,8 +608,9 @@
         "whether the source Infernus unit must remain on the battlefield",
         "interaction with other rules that ignore or modify cover benefits"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "No independent GW reconciliation claimed; selected Wahapedia authority is recorded in current_source_policy.",
+      "definition_status": "implemented_in_admitted_infantry_scope",
+      "implementation_document": "marine-fire-support.md"
     },
     {
       "id": "core/lethal-hits-24-23",
@@ -593,7 +626,7 @@
         "choice to skip Wound roll",
         "interaction with Critical Wounds and Devastating Wounds"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -615,8 +648,9 @@
         "multiple objectives controlled by one unit",
         "Battle-shock and objective control"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_company_heroes_scope",
+      "implementation_document": "marine-company-heroes.md"
     },
     {
       "id": "space-marines/company-heroes/command-squad",
@@ -625,15 +659,16 @@
       "datasheet_id": "space-marines/company-heroes",
       "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Company-Heroes",
       "timing": "When resolving a Wound roll for an attack that targets this unit.",
-      "eligibility": "The attacking weapon Strength is greater than this unit Toughness.",
-      "effect": "Subtract 1 from that Wound roll.",
+      "eligibility": "An attack targets the Company Heroes unit; no weapon-Strength threshold is stated on the datasheet.",
+      "effect": "Subtract 1 from that Wound roll, subject to the core limit on modifiers.",
       "duration": "For each eligible Wound roll against this unit.",
       "interactions_to_validate": [
-        "Wound-roll modifier limits",
-        "attached Leaders and Toughness characteristic selection"
+        "Wound-roll modifier limits with other effects",
+        "Attached Leaders and target-unit modifier aggregation"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_company_heroes_scope",
+      "implementation_document": "marine-company-heroes.md"
     },
     {
       "id": "space-marines/redemptor-dreadnought/duty-eternal",
@@ -646,11 +681,12 @@
       "effect": "Subtract 1 from that Wound roll.",
       "duration": "For each eligible Wound roll against this unit.",
       "interactions_to_validate": [
-        "Wound-roll modifier limits",
-        "weapon Strength and unit Toughness changes"
+        "Wound-roll modifier limits with other effects",
+        "weapon Strength and unit Toughness comparison at attack declaration"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_redemptor_scope",
+      "implementation_document": "marine-redemptor-dreadnought.md"
     },
     {
       "id": "space-marines/apothecary-biologis/vivispectral-analysis-targeting",
@@ -670,8 +706,9 @@
         "mixed keywords and VEHICLE keyword checks",
         "Critical Hit requirements"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_gravis_scope",
+      "implementation_document": "marine-gravis.md"
     },
     {
       "id": "core/objective-control-14-03",
@@ -689,7 +726,7 @@
         "multiple end-of-phase control effects",
         "mission scoring timing"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -709,7 +746,7 @@
         "detection range modifiers across models in a unit",
         "when an attack ends Hidden status"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -727,7 +764,7 @@
         "cover determination",
         "weapons using indirect fire"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -744,8 +781,9 @@
         "which dice are rerolled for multi-die Damage characteristics",
         "reroll eligibility if another rule already rerolled the die"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_eradicator_scope",
+      "implementation_document": "marine-eradicators.md"
     },
     {
       "id": "space-marines/eliminator-squad/chameleoline-cloaks",
@@ -754,18 +792,23 @@
       "datasheet_id": "space-marines/eliminator-squad",
       "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Eliminator-Squad",
       "timing": "When checking detection range for a model in this unit.",
-      "eligibility": "A model in this unit has the Chameleoline Cloaks ability.",
-      "effect": "Subtract 3 inches from that model detection range.",
+      "eligibility": "Living battlefield Eliminator source in the unit; the unit-level effect also reaches attached models while the source survives.",
+      "effect": "Subtract 3 inches from detection range, additive with Gone to Ground. This does not grant Hidden or bypass solid terrain.",
       "duration": "While this ability applies.",
       "dependencies": [
         "core/hidden-detection-range-13-09"
       ],
-      "interactions_to_validate": [
-        "combination with other detection-range modifiers",
-        "mixed model states in an Attached unit"
-      ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "interactions_to_validate": [],
+      "official_check": "Wahapedia e11 checked 2026-10-18; independent GW confirmation is not required.",
+      "definition_status": "implemented_in_admitted_eliminator_scope",
+      "implementation_document": "marine-eliminators.md",
+      "validated_interactions": [
+        "Gone to Ground additive reduction",
+        "inclusive base-distance boundary",
+        "mixed attached models and live source removal",
+        "multiple sources do not stack",
+        "disabled implementation and legacy terrain isolation"
+      ]
     },
     {
       "id": "space-marines/eliminator-squad/special-issue-optics-and-ammunition",
@@ -782,17 +825,22 @@
         ]
       },
       "effect": {
-        "ignore_cover": "This unit ranged attacks have IGNORES COVER until the end of the Shooting phase.",
+        "ignore_cover": "This unit ranged attacks have Ignores Cover for the selected shooting.",
         "increase_detection": "Select one enemy unit within 24 inches of this unit. That unit has +6 inches detection range until this unit has shot."
       },
       "duration": "As specified by the chosen effect; the detection increase ends when this unit has shot.",
-      "interactions_to_validate": [
-        "whether selected target needs to be visible",
-        "multiple units selected to shoot during one Shooting phase",
-        "detection modifier and Hidden checks"
-      ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "interactions_to_validate": [],
+      "official_check": "Wahapedia e11 checked 2026-10-18; independent GW confirmation is not required.",
+      "definition_status": "implemented_in_admitted_eliminator_scope",
+      "implementation_document": "marine-eliminators.md",
+      "validated_interactions": [
+        "No visibility requirement for detection selection",
+        "Inclusive 24-inch range",
+        "Only one active shooting selection",
+        "Revising/cancelling previews and rejected stale requests",
+        "Other units cannot use the temporary detection benefit to shoot",
+        "Missed attacks finish the selection; effects expire after shooting and by phase identity"
+      ]
     },
     {
       "id": "space-marines/incursor-squad/divinator-class-auspexes",
@@ -805,13 +853,11 @@
       "target": "The selected enemy unit becomes scanned.",
       "effect": "While an enemy unit is scanned, ranged attacks that target it can re-roll Hit rolls of 1.",
       "duration": "Until the end of the Shooting phase, by the core persisting-effect rule for a Shooting-phase trigger with no other duration stated.",
-      "interactions_to_validate": [
-        "which attacking units count as friendly under the ability text",
-        "multiple Incursor units scanning the same target",
-        "Hit rerolls and other reroll effects"
-      ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "interactions_to_validate": [],
+      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "definition_status": "implemented_in_admitted_incursor_squad_scope",
+      "implementation_reference": "marine-incursor-squad.md",
+      "validation_artifact": ".tools/verification/20261019T042405255660Z/results.json"
     },
     {
       "id": "space-marines/incursor-squad/haywire-mine",
@@ -831,13 +877,11 @@
       "resolved_interactions": [
         "In the Pilum Strike Team Boarding Actions rules adaptation, this datasheet ability is explicitly lost."
       ],
-      "interactions_to_validate": [
-        "whether this ability is used as an attack or separate shooting effect",
-        "mortal-wound allocation and modifiers",
-        "Boarding Actions version applicability"
-      ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "interactions_to_validate": [],
+      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "definition_status": "implemented_in_admitted_incursor_squad_scope",
+      "implementation_reference": "marine-incursor-squad.md",
+      "validation_artifact": ".tools/verification/20261019T042405255660Z/results.json"
     },
     {
       "id": "space-marines/reiver-squad/terror-troops",
@@ -849,13 +893,10 @@
       "eligibility": "An enemy model is within 3 inches of one or more models in this unit.",
       "effect": "That enemy model has -1 to its Objective Control characteristic.",
       "duration": "While the enemy model is within 3 inches of this unit.",
-      "interactions_to_validate": [
-        "distance to individual models in the Reiver unit",
-        "multiple sources modifying Objective Control",
-        "Battle-shock setting Objective Control"
-      ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "interactions_to_validate": [],
+      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "definition_status": "implemented_in_admitted_reiver_squad_scope",
+      "implementation_reference": "marine-reiver-squad.md"
     },
     {
       "id": "space-marines/reiver-squad/fearsome-assault",
@@ -867,13 +908,10 @@
       "eligibility": "Each enemy unit engaged with this Reiver unit makes a Battle-shock roll with -1 to the roll.",
       "effect": "Resolve the specified Battle-shock roll for each eligible enemy unit.",
       "duration": "The ability resolves at the start of each Fight phase.",
-      "interactions_to_validate": [
-        "multiple Reiver units engaged with the same enemy unit",
-        "timing among other start-of-phase abilities",
-        "Battle-shock roll modifiers and already Battle-shocked units"
-      ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "interactions_to_validate": [],
+      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "definition_status": "implemented_in_admitted_reiver_squad_scope",
+      "implementation_reference": "marine-reiver-squad.md"
     },
     {
       "id": "space-marines/reiver-squad/grapnel-launchers",
@@ -885,13 +923,10 @@
       "eligibility": "This unit is equipped with Grapnel Launchers.",
       "effect": "This unit can move through all types of model and ignores vertical distance when determining how far it moved.",
       "duration": "For each move made while equipped with Grapnel Launchers.",
-      "interactions_to_validate": [
-        "ending positions and coherency remain subject to core movement rules",
-        "model collision during vertical traversal",
-        "interactions with terrain and impassable areas"
-      ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "interactions_to_validate": [],
+      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "definition_status": "implemented_in_admitted_reiver_squad_scope",
+      "implementation_reference": "marine-reiver-squad.md"
     },
     {
       "id": "space-marines/reiver-squad/grav-chutes",
@@ -906,12 +941,10 @@
       "dependencies": [
         "core/deep-strike-24-09"
       ],
-      "interactions_to_validate": [
-        "wargear option selection and unit-level ability granting",
-        "reserve eligibility and Ingress timing"
-      ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "interactions_to_validate": [],
+      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "definition_status": "implemented_in_admitted_reiver_squad_scope",
+      "implementation_reference": "marine-reiver-squad.md"
     },
     {
       "id": "core/blast-24-05",
@@ -927,7 +960,7 @@
         "target model count fixed at Select Targets",
         "Blast interaction with other attack modifiers"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -941,12 +974,19 @@
       "effect": "The unit can be set up anywhere on the battlefield more than 8 inches horizontally from the opponent deployment zone and all enemy units.",
       "duration": "Applies to deployment setup.",
       "interactions_to_validate": [
-        "deployment-zone geometry",
-        "other rules that modify setup distance",
-        "terrain and placement legality"
+        "Future setup-distance modifier providers remain unadmitted."
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed"
+      "official_check": "Wahapedia e11 checked 2026-10-18; independent GW confirmation is not required.",
+      "definition_status": "implemented_in_admitted_eliminator_scope",
+      "implementation_document": "marine-eliminators.md",
+      "validated_interactions": [
+        "Whole bases and rectangular enemy-zone distance",
+        "Strictly more than 8 inches from deployed enemy bases",
+        "Enemy previews and off-board models excluded",
+        "All-model eligibility and mixed attachments",
+        "Terrain, board boundaries, coherency and confirmation revalidation",
+        "Alternating actor, stale revision and unchanged rejection state"
+      ]
     },
     {
       "id": "core/scouts-24-31",
@@ -971,12 +1011,12 @@
       },
       "duration": "The optional setup or Scout move resolves during the pre-battle step.",
       "interactions_to_validate": [
-        "whether Scout movement can trigger other pre-battle rules",
-        "unit must be wholly in deployment zone before moving",
+        "unit must be wholly within deployment zone before making a Scout move",
         "movement geometry and coherency"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed"
+      "official_check": "Wahapedia e11 local extraction checked; independent GW confirmation is not required.",
+      "definition_status": "implemented_in_local_scout_incursor_reiver_and_phobos_scope",
+      "implementation_reference": "marine-reiver-squad.md"
     },
     {
       "id": "space-marines/eradicator-squad-with-heavy-bolters/overlapping-destruction",
@@ -997,8 +1037,9 @@
         "effect when a target unit changes model count after target selection",
         "number of times the ability may select a target in one phase"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_eradicator_scope",
+      "implementation_document": "marine-eradicators.md"
     },
     {
       "id": "space-marines/inceptor-squad/meteoric-descent",
@@ -1011,12 +1052,13 @@
       "effect": "Add 1 to the Hit roll.",
       "duration": "For this unit ranged attacks while the condition remains true this turn.",
       "interactions_to_validate": [
-        "Hit-roll modifier limits",
-        "which movement events count as an Ingress move",
-        "out-of-phase ranged attacks"
+        "Hit-roll modifier cap",
+        "Ingress moves made through the shared reserve flow",
+        "Out-of-phase ranged attacks within the same turn"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_inceptor_scope",
+      "implementation_document": "marine-inceptor-squad.md"
     },
     {
       "id": "space-marines/inceptor-squad/parabolic-jetleap",
@@ -1029,12 +1071,13 @@
       "effect": "Place this unit in Strategic Reserves.",
       "duration": "Until it returns through an Ingress move or is otherwise removed under the current reserves rules.",
       "interactions_to_validate": [
-        "Strategic Reserves limits",
-        "whether the unit can use the ability after arriving this turn",
-        "battle-round deadline for units not returning"
+        "End-of-opponent-Fight timing",
+        "unengaged check",
+        "re-entry timing and the shared Strategic Reserves deadline"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_inceptor_scope",
+      "implementation_document": "marine-inceptor-squad.md"
     },
     {
       "id": "space-marines/assault-intercessors-with-jump-packs/hammer-of-wrath",
@@ -1052,7 +1095,7 @@
         "mortal-wound resolution and allocation",
         "multiple charge moves in one turn"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -1065,13 +1108,10 @@
       "eligibility": "This unit has Flexible Asset.",
       "effect": "That move does not by itself prevent this unit from being eligible to start an Action.",
       "duration": "The eligibility permission applies after the specified move; all other Action restrictions still apply.",
-      "interactions_to_validate": [
-        "Action-specific requirements",
-        "other movement effects that prevent starting an Action",
-        "whether a later move replaces eligibility"
-      ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "interactions_to_validate": [],
+      "official_check": "Wahapedia e11 local extraction checked; independent GW confirmation is not required.",
+      "definition_status": "implemented_in_admitted_scout_squad_scope",
+      "implementation_reference": "marine-scout-squad.md"
     },
     {
       "id": "core/healing-or-regaining-lost-wounds-02-02-04",
@@ -1092,7 +1132,7 @@
         "non-Character restriction on revival",
         "model-specific versus unit-level healing"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -1112,8 +1152,9 @@
         "attached models in the unit",
         "Strength characteristic modifiers"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
-      "definition_status": "current_reference_transcribed_definition_only"
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_gravis_scope",
+      "implementation_document": "marine-gravis.md"
     },
     {
       "id": "space-marines/infiltrator-squad/omni-scramblers",
@@ -1134,7 +1175,7 @@
         "visibility requirement to select the target",
         "detection range modifiers from multiple sources"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -1155,8 +1196,35 @@
         "revival of a destroyed non-Character model after all living models are fully healed",
         "use in a phase other than the controlling player Command phase"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "core/one-shot",
+      "name": "One Shot",
+      "kind": "wargear_ability",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Land-Raider",
+      "source_section": "Wargear profile / One Shot",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000065",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "When a model declares attacks with a ranged weapon carrying One Shot.",
+      "eligibility": "This model has not previously shot with this weapon during the battle.",
+      "effect": "The bearer can shoot with this weapon once per battle. After its attack is declared, that model cannot shoot with this weapon again for the rest of the battle.",
+      "duration": "Until the battle ends after the weapon is used.",
+      "resolved_interactions": [
+        "Use is tracked per model and weapon instance, so a different One Shot weapon carried by the same model retains its own use.",
+        "The use is consumed when the attack declaration enters resolution, including when the attack later inflicts no damage."
+      ],
+      "interactions_to_validate": [
+        "all current Marine datasheets and alternate weapon profiles that carry One Shot",
+        "model return/revival while preserving weapon use",
+        "attack declarations that pause for optional reactions before dice are rolled"
+      ],
+      "implementation_scope": "Shared ranged attack handler; locally tested against the extracted Land Raider Hunter-killer Missile and separate One Shot weapon instances.",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "validation_artifact": ".tools/verification/20261019T204041881249Z/results.json",
+      "definition_status": "implemented_and_locally_validated_in_scope"
     },
     {
       "id": "core/sustained-hits-24-36",
@@ -1173,7 +1241,7 @@
         "critical-hit effects and attack sequencing",
         "unit ability granting Sustained Hits to attacks"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -1192,7 +1260,7 @@
         "random mortal-wound value per unit",
         "sequence with Fight on Death"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -1210,7 +1278,7 @@
         "single-model units with remaining wounds",
         "restoring wounds above the threshold"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -1228,7 +1296,7 @@
         "Attacks characteristic modifiers",
         "out-of-phase attacks in the same turn"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -1246,7 +1314,7 @@
         "wargear eligibility per model",
         "saving throw modifiers do not modify invulnerable saves"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -1268,12 +1336,1405 @@
         "Critical Hit requirements for bonus hits",
         "attack rules that already grant Sustained Hits"
       ],
-      "official_check": "required_before_implementation_or_support_claim",
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
       "definition_status": "current_reference_transcribed_definition_only"
+    },
+    {
+      "id": "space-marines/sternguard-veteran-squad/veteran-marksmen",
+      "name": "Veteran Marksmen",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/sternguard-veteran-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Sternguard-Veteran-Squad",
+      "effect": "Unit ranged hit rolls of 1 may be re-rolled once.",
+      "definition_status": "implemented_in_admitted_sternguard_scope",
+      "implementation_document": "marine-sternguard.md",
+      "validated_interactions": [
+        "Stronger hit policies preserved",
+        "No melee benefit",
+        "Snap shooting prohibition",
+        "No repeated re-rolls",
+        "Live attached-unit sources"
+      ]
+    },
+    {
+      "id": "core/smokescreen-15-10",
+      "name": "Smokescreen",
+      "kind": "core_stratagem",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_section": "15.10",
+      "definition_status": "implemented_ground_proxy_scope",
+      "implementation_document": "marine-eliminators.md",
+      "scope": "Opponent Shooting start, SMOKE, 1 CP and normal use limits; cover for selected unit and units obscured by its models, until phase end; existing cylindrical geometry boundary remains."
+    },
+    {
+      "id": "space-marines/chaplain/litany-of-hate",
+      "name": "Litany of Hate",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/chaplain",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain",
+      "effect": "This unit melee attacks gain Lance while the source applies.",
+      "definition_status": "implemented_in_admitted_chaplain_scope",
+      "implementation_document": "marine-chaplain.md",
+      "validated_interactions": [
+        "Charged versus uncharged wound modifier",
+        "No ranged benefit",
+        "Attached bodyguards",
+        "Live source removal",
+        "Crozius Cleave 1"
+      ]
+    },
+    {
+      "id": "space-marines/chaplain/spiritual-leader",
+      "name": "Spiritual Leader",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/chaplain",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain",
+      "timing": "Start of any phase, once per battle round per unit.",
+      "effect": "Remove Battle-shock from one friendly Astartes unit within 6 inches of this model; no visibility prerequisite.",
+      "definition_status": "implemented_in_admitted_chaplain_scope",
+      "implementation_document": "marine-chaplain.md",
+      "validated_interactions": [
+        "All five phase starts in either turn",
+        "Inclusive base-distance range",
+        "Source may itself be shocked",
+        "No CP cost",
+        "Persistent source usage across phases/turns and refresh next round",
+        "Dead/off-board source removal",
+        "Wrong actor and stale revision leave state unchanged",
+        "Spiritual Leader restores Smokescreen eligibility within the same start window"
+      ]
+    },
+    {
+      "id": "space-marines/chaplain-with-jump-pack/exhortation-of-rage",
+      "name": "Exhortation of Rage",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/chaplain-with-jump-pack",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain-With-Jump-Pack",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000112",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "The attached unit is at or below half-strength, using its current starting strength.",
+      "effect": "The unit can re-roll its melee Wound rolls, including successful rolls. Ranged attacks do not receive this re-roll.",
+      "definition_status": "implemented_in_admitted_jump_pack_chaplain_scope",
+      "implementation_document": "marine-chaplain-jump-pack.md",
+      "validated_interactions": [
+        "Inactive above half-strength",
+        "Active at the exact half-strength threshold",
+        "Applied to the actual prepared Fight-phase wound context",
+        "Does not grant ranged wound re-rolls"
+      ]
+    },
+    {
+      "id": "space-marines/librarian-in-terminator-armour/psychic-hood",
+      "name": "Psychic Hood",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/librarian-in-terminator-armour",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian-In-Terminator-Armour",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000079",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Librarian in Terminator Armour is alive in the attached unit.",
+      "effect": "This unit has Feel No Pain 4+ against Psychic attacks, including mortal damage caused by Psychic attacks.",
+      "definition_status": "implemented_in_admitted_librarian_terminator_scope",
+      "implementation_document": "marine-librarian-terminator-armour.md",
+      "validated_interactions": [
+        "Unit-wide across attached Librarian and Terminator models",
+        "Applies to normal and mortal damage caused by Psychic attacks",
+        "Does not prevent non-Psychic damage"
+      ]
+    },
+    {
+      "id": "space-marines/librarian-in-terminator-armour/librarius",
+      "name": "Librarius",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/librarian-in-terminator-armour",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian-In-Terminator-Armour",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000079",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Librarian in Terminator Armour is alive and the unit is not Battle-shocked when the power is used.",
+      "effect": "Psyker level 1 permits the attached unit to use one psychic level-1 ability per battle round.",
+      "definition_status": "implemented_in_admitted_librarian_terminator_scope",
+      "implementation_document": "marine-librarian-terminator-armour.md",
+      "validated_interactions": [
+        "Only one of the two level-1 abilities can be used in a battle round"
+      ]
+    },
+    {
+      "id": "space-marines/librarian-in-terminator-armour/might-of-heroes",
+      "name": "Might of Heroes",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/librarian-in-terminator-armour",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian-In-Terminator-Armour",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000079",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Fight phase; the unit is not Battle-shocked when selected.",
+      "effect": "Make one psychic roll (D6). On a 1, the unit becomes Battle-shocked. The unit’s melee attacks gain +2 Strength.",
+      "definition_status": "implemented_in_admitted_librarian_terminator_scope",
+      "implementation_document": "marine-librarian-terminator-armour.md",
+      "validated_interactions": [
+        "Fight-phase selection",
+        "+2 Strength reaches each attached model melee weapon",
+        "A roll of 1 applies Battle-shock"
+      ]
+    },
+    {
+      "id": "space-marines/librarian-in-terminator-armour/thunderous-force",
+      "name": "Thunderous Force",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/librarian-in-terminator-armour",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian-In-Terminator-Armour",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000079",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Shooting phase, before the unit shoots; the unit is not Battle-shocked when selected.",
+      "effect": "Make one psychic roll (D6). On a 1, the unit becomes Battle-shocked. The unit’s ranged attacks gain 6 inches range.",
+      "definition_status": "implemented_in_admitted_librarian_terminator_scope",
+      "implementation_document": "marine-librarian-terminator-armour.md",
+      "validated_interactions": [
+        "Shooting-phase selection before the unit shoots",
+        "Effective weapon range increases by 6 inches",
+        "A roll of 1 applies Battle-shock"
+      ]
+    },
+    {
+      "id": "space-marines/librarian-in-phobos-armour/scouts-6",
+      "name": "Scouts 6 inches",
+      "kind": "core_ability",
+      "datasheet_id": "space-marines/librarian-in-phobos-armour",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000119",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Resolve pre-battle abilities; unit is in Strategic Reserves or wholly within its owner's deployment zone.",
+      "effect": "Set up a reserved unit wholly within its owner's deployment zone or make a normal move up to 6 inches; finish more than 8 inches horizontally from enemies.",
+      "definition_status": "implemented_in_local_pre_battle_scope",
+      "implementation_document": "marine-librarian-phobos-armour.md"
+    },
+    {
+      "id": "space-marines/librarian-in-phobos-armour/psychic-hood",
+      "name": "Psychic Hood",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/librarian-in-phobos-armour",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian-In-Phobos-Armour",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000119",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Librarian in Phobos Armour is alive in the attached unit.",
+      "effect": "The unit has Feel No Pain 4+ against Psychic attacks.",
+      "definition_status": "implemented_in_admitted_phobos_librarian_scope",
+      "implementation_document": "marine-librarian-phobos-armour.md"
+    },
+    {
+      "id": "space-marines/librarian-in-phobos-armour/librarius",
+      "name": "Librarius",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/librarian-in-phobos-armour",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian-In-Phobos-Armour",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000119",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Living Librarian and unit not Battle-shocked.",
+      "effect": "Psyker level 1 permits one level-1 ability for the attached unit per battle round.",
+      "definition_status": "implemented_in_admitted_phobos_librarian_scope",
+      "implementation_document": "marine-librarian-phobos-armour.md"
+    },
+    {
+      "id": "space-marines/librarian-in-phobos-armour/soul-sight",
+      "name": "Soul Sight",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/librarian-in-phobos-armour",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian-In-Phobos-Armour",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000119",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Own Shooting phase; select a visible enemy unit.",
+      "effect": "Make a Psychic roll; on 1, the attached unit becomes Battle-shocked. Otherwise its ranged attacks ignore cover against that enemy for the phase.",
+      "definition_status": "implemented_in_admitted_phobos_librarian_scope",
+      "implementation_document": "marine-librarian-phobos-armour.md"
+    },
+    {
+      "id": "space-marines/librarian-in-phobos-armour/shrouding",
+      "name": "Shrouding",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/librarian-in-phobos-armour",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian-In-Phobos-Armour",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000119",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Enemy declares attacks against the unit; resolve before attack dice.",
+      "effect": "Make a Psychic roll; on 1, the attached unit becomes Battle-shocked. Otherwise attacks against it have -1 to hit for the phase.",
+      "definition_status": "implemented_in_admitted_phobos_librarian_scope",
+      "implementation_document": "marine-librarian-phobos-armour.md"
+    },
+    {
+      "id": "space-marines/firestrike-servo-turrets/sentinel-protocols",
+      "name": "Sentinel Protocols",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/firestrike-servo-turrets",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Firestrike-Servo-turrets",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000086",
+      "timing": "When this unit is targeted with Fire Overwatch.",
+      "eligibility": "Once per phase for this unit; the opponent is in the Movement phase and the unit is an eligible Fire Overwatch target.",
+      "effect": "This unit can be targeted by Fire Overwatch regardless of any other uses of that Stratagem this phase. Its snap shooting attacks hit on unmodified Hit rolls of 4+ until that Stratagem is resolved.",
+      "duration": "Until the Fire Overwatch Stratagem use is resolved.",
+      "limits": [
+        "Once per phase per unit.",
+        "The normal Command Point cost and target restrictions for Fire Overwatch still apply.",
+        "Snap shooting cannot produce Critical Hits or use Hit re-rolls."
+      ],
+      "interactions_to_validate": [
+        "multiple Firestrike units each using the per-unit exception",
+        "the same Firestrike unit cannot use the ability twice in one phase",
+        "unmodified 4+ snap hit threshold",
+        "no Critical Hits or Hit re-rolls while snap shooting"
+      ],
+      "official_check": "not_required_by_user_source_policy",
+      "definition_status": "implemented_in_admitted_firestrike_servo_turrets_scope",
+      "implementation_document": "marine-firestrike-servo-turrets.md",
+      "validated_interactions": [
+        "additional Fire Overwatch use after another unit has used it",
+        "per-unit same-phase limit",
+        "4+ unmodified snap hits",
+        "snap Hit re-rolls suppressed"
+      ]
+    },
+    {
+      "id": "space-marines/brutalis-dreadnought/brutalis-charge",
+      "name": "Brutalis Charge",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/brutalis-dreadnought",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Brutalis-Dreadnought-UL",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000136",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "Immediately after this unit finishes a Charge move, when eligible to use Tank Shock.",
+      "eligibility": "This unit is the Brutalis Dreadnought and has not used this ability this phase.",
+      "effect": "This unit can use Tank Shock even if another unit has already used it this phase. Its use does not prevent other units from using Tank Shock this phase. Tank Shock costs 1 fewer CP for this use.",
+      "duration": "The current phase.",
+      "limits": [
+        "Once per phase per Brutalis unit.",
+        "The ordinary Tank Shock use limit remains available to other units after this Brutalis use."
+      ],
+      "interactions_to_validate": [
+        "free Tank Shock at zero CP",
+        "one use per Brutalis per phase",
+        "a normal Vehicle can still use Tank Shock this phase",
+        "ordinary Tank Shock still costs 1 CP"
+      ],
+      "official_check": "not_required_by_user_source_policy",
+      "definition_status": "implemented_in_admitted_brutalis_scope",
+      "implementation_document": "marine-brutalis-dreadnought.md"
+    },
+    {
+      "id": "core-rules/tank-shock",
+      "name": "Tank Shock (Crushing Impact)",
+      "kind": "core_stratagem",
+      "datasheet_id": "space-marines/brutalis-dreadnought",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+      "source_book_id": "000000000",
+      "source_datasheet_id": "000008335007",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "Just after a friendly VEHICLE unit finishes a Charge move.",
+      "eligibility": "Select an enemy unit within Engagement Range of the charging unit and a VEHICLE model in that unit within Engagement Range of that enemy.",
+      "effect": "Roll a number of D6 equal to the selected VEHICLE model’s Toughness. Each 5+ inflicts 1 mortal wound on the enemy unit, to a maximum of 6 mortal wounds.",
+      "duration": "Immediate resolution after the Charge move.",
+      "limits": [
+        "Costs 1 CP except where an ability modifies the cost.",
+        "The normal once-per-phase limit is modified by Brutalis Charge as described in the unit rule."
+      ],
+      "interactions_to_validate": [
+        "immediate post-charge timing",
+        "selected VEHICLE model Toughness determines number of dice",
+        "mortal wounds capped at six",
+        "mortal wounds resolve using ordinary defender allocation",
+        "Brutalis exception does not consume another unit’s phase use"
+      ],
+      "official_check": "not_required_by_user_source_policy",
+      "definition_status": "implemented_in_admitted_brutalis_scope",
+      "implementation_document": "marine-brutalis-dreadnought.md"
+    },
+    {
+      "id": "space-marines/invictor-tactical-warsuit/damaged-4",
+      "name": "Damaged 4",
+      "kind": "datasheet_ability",
+      "datasheet_id": "space-marines/invictor-tactical-warsuit",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Invictor-Tactical-Warsuit",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001156",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "The model has 1–4 wounds remaining.",
+      "effect": "While this model has 1–4 wounds remaining, subtract 1 from its Hit rolls.",
+      "definition_status": "implemented_in_admitted_invictor_scope",
+      "implementation_document": "marine-invictor-tactical-warsuit.md"
+    },
+    {
+      "id": "space-marines/invictor-tactical-warsuit/deadly-demise-d3",
+      "name": "Deadly Demise D3",
+      "kind": "datasheet_ability",
+      "datasheet_id": "space-marines/invictor-tactical-warsuit",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Invictor-Tactical-Warsuit",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001156",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "This model is destroyed.",
+      "effect": "When this model is destroyed, roll one D6; on a 6, each unit within 6 inches suffers a separately rolled D3 mortal-wound packet.",
+      "definition_status": "implemented_in_admitted_invictor_scope",
+      "implementation_document": "marine-invictor-tactical-warsuit.md"
+    },
+    {
+      "id": "space-marines/invictor-tactical-warsuit/scouts-8",
+      "name": "Scouts 8 inches",
+      "kind": "core_ability",
+      "datasheet_id": "space-marines/invictor-tactical-warsuit",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Invictor-Tactical-Warsuit",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001156",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Resolve pre-battle abilities; unit is in Strategic Reserves or wholly within its owner's deployment zone.",
+      "effect": "Set up a reserved unit wholly within its owner's deployment zone or make a normal move up to 8 inches; finish more than 8 inches horizontally from enemies.",
+      "definition_status": "implemented_in_admitted_invictor_scope",
+      "implementation_document": "marine-invictor-tactical-warsuit.md"
+    },
+    {
+      "id": "space-marines/invictor-tactical-warsuit/forward-assault-warsuit",
+      "name": "Forward Assault Warsuit",
+      "kind": "datasheet_ability",
+      "datasheet_id": "space-marines/invictor-tactical-warsuit",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Invictor-Tactical-Warsuit",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001156",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "condition": "Start of the first battle round, then each time the marked enemy unit is destroyed.",
+      "effect": "At the start of the first battle round, select one enemy unit as this unit's mark. This unit re-rolls Wound rolls of 1 when attacking its mark. Each time that mark is destroyed, select a new enemy unit as the mark.",
+      "definition_status": "implemented_in_admitted_invictor_scope",
+      "implementation_document": "marine-invictor-tactical-warsuit.md"
+    },
+    {
+      "id": "space-marines/outrider-squad/full-throttle-assault",
+      "name": "Full-throttle Assault",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/outrider-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Outrider-Squad",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002712",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "When resolving melee attacks after this unit made a Charge move this turn.",
+      "eligibility": "Thunder Hammer weapons receive the hit-roll bonus; all other melee weapons receive the Damage bonus.",
+      "effect": "Thunder Hammer weapons gain +1 to hit and Sustained Hits 1. Other melee weapons gain +1 Damage and Sustained Hits 1.",
+      "duration": "For the unit's melee attacks this turn.",
+      "interactions_to_validate": [
+        "charge state reset at turn transition",
+        "core hit and damage modifiers",
+        "weapon profile copies and attack-plan propagation"
+      ],
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_outrider_scope",
+      "implementation_document": "marine-outrider-squad.md"
+    },
+    {
+      "id": "space-marines/gladiator-reaper/reaping-tally",
+      "name": "Reaping Tally",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/gladiator-reaper",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Gladiator-Reaper",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001667",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "When resolving a ranged attack made by this unit.",
+      "eligibility": "The target unit does not have the MONSTER or VEHICLE keyword.",
+      "effect": "Improve the ranged weapon's AP by 1.",
+      "duration": "For each eligible ranged attack.",
+      "interactions_to_validate": [
+        "AP characteristic modifiers",
+        "target keyword checks for mixed attached units",
+        "weapon conditional traits on the same target"
+      ],
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_in_admitted_gladiator_reaper_scope",
+      "implementation_document": "marine-gladiator-reaper.md"
+    },
+    {
+      "id": "space-marines/storm-speeder-hammerstrike/hammerstrike",
+      "name": "Hammerstrike",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/storm-speeder-hammerstrike",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Storm-Speeder-Hammerstrike",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000114",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "When resolving a ranged attack made by this unit.",
+      "eligibility": "The target is an enemy unit with at least one living model whose base is within a terrain area.",
+      "effect": "The attack gains Sustained Hits 1.",
+      "duration": "For each eligible ranged attack.",
+      "interactions_to_validate": [
+        "Terrain-area boundary uses the model base rather than its centre",
+        "The bonus applies to each ranged weapon profile and not melee attacks",
+        "Pre-existing Sustained Hits values are not reduced"
+      ],
+      "definition_status": "implemented_in_admitted_storm_speeder_hammerstrike_scope",
+      "implementation_document": "marine-storm-speeder-hammerstrike.md"
+    },
+    {
+      "id": "space-marines/storm-speeder-hailstrike/hailstrike",
+      "name": "Hailstrike",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/storm-speeder-hailstrike",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Storm-Speeder-Hailstrike",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000124",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "In your Shooting phase, after this unit has shot.",
+      "eligibility": "Select one enemy unit hit by attacks made by this unit.",
+      "effect": "Friendly ADEPTUS ASTARTES units' ranged attacks that target the selected enemy unit gain Ignores Cover.",
+      "duration": "Until the end of the phase.",
+      "interactions_to_validate": [
+        "Only enemy units actually hit by this Hailstrike's attacks are eligible",
+        "The effect applies to ranged attacks by friendly Adeptus Astartes units, not enemy units or melee attacks",
+        "The mark expires at the end of the Shooting phase"
+      ],
+      "definition_status": "implemented_in_admitted_storm_speeder_hailstrike_scope",
+      "implementation_document": "marine-storm-speeder-hailstrike.md"
+    },
+    {
+      "id": "space-marines/storm-speeder-thunderstrike/thunderstrike",
+      "name": "Thunderstrike",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/storm-speeder-thunderstrike",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Storm-Speeder-Thunderstrike",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001610",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "When a model in this unit makes a ranged attack.",
+      "eligibility": "The attack targets a MONSTER or VEHICLE unit.",
+      "effect": "Add 1 to the Wound roll.",
+      "duration": "For that attack.",
+      "interactions_to_validate": [
+        "The bonus applies to ranged attacks, not melee attacks",
+        "The modifier is subject to the normal Wound roll modifier cap"
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-storm-speeder-thunderstrike.md"
+    },
+    {
+      "id": "space-marines/storm-speeder-thunderstrike/shattered-defences",
+      "name": "Shattered Defences",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/storm-speeder-thunderstrike",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Storm-Speeder-Thunderstrike",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001610",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "In your Shooting phase, after this unit has shot.",
+      "eligibility": "Select one enemy MONSTER or VEHICLE unit hit by attacks made by this unit.",
+      "effect": "Friendly ADEPTUS ASTARTES units’ ranged attacks that target the selected unit gain +1 AP.",
+      "duration": "Until the end of the phase.",
+      "interactions_to_validate": [
+        "Only a qualifying enemy unit hit by this Thunderstrike may be marked",
+        "The benefit applies to friendly Astartes ranged attacks, not enemy or melee attacks",
+        "The mark expires at the end of the Shooting phase"
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-storm-speeder-thunderstrike.md"
+    },
+    {
+      "id": "space-marines/gladiator-valiant/priority-target-acquisition",
+      "name": "Priority Target Acquisition",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/gladiator-valiant",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Gladiator-Valiant",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001825",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "When resolving a ranged attack made by this unit.",
+      "eligibility": "The target unit is within 12 inches of this unit.",
+      "effect": "Add 1 to the weapon’s Strength characteristic for that attack.",
+      "duration": "For that ranged attack.",
+      "interactions_to_validate": [
+        "Range is measured between model bases using the local ground-level geometry",
+        "The bonus affects every ranged weapon profile, including both Multi-meltas",
+        "Melee attacks receive no Strength bonus"
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-gladiator-valiant.md"
+    },
+    {
+      "id": "space-marines/gladiator-lancer/aquilon-optics",
+      "name": "Aquilon Optics",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/gladiator-lancer",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Gladiator-Lancer",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002705",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "When resolving this unit's ranged attacks.",
+      "eligibility": "The target unit has the MONSTER or VEHICLE keyword.",
+      "effect": "The attack sequence can re-roll one hit roll, one wound roll and one Damage roll.",
+      "duration": "Once per qualifying target across the current declared attack plan.",
+      "interactions_to_validate": [
+        "Each re-roll is optional and limited to one die per qualifying target across the declared attack plan",
+        "Each Damage roll decision applies to that weapon's Damage roll",
+        "Melee attacks and other target keywords are ineligible"
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-gladiator-lancer.md"
+    },
+    {
+      "id": "space-marines/marneus-calgar/codex-adept",
+      "name": "Codex Adept",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/marneus-calgar",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Marneus-Calgar",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004246",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "While this unit is on the battlefield.",
+      "eligibility": "Marneus Calgar is part of the unit.",
+      "effect": "All three Combat Doctrines are active for this unit.",
+      "duration": "While the unit remains on the battlefield.",
+      "interactions_to_validate": [
+        "Target visibility, range, ownership and once-per-phase/battle limits are checked locally."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-marneus-calgar.md"
+    },
+    {
+      "id": "space-marines/marneus-calgar/master-tactician",
+      "name": "Master Tactician",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/marneus-calgar",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Marneus-Calgar",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004246",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "During the owner’s Movement phase.",
+      "eligibility": "Choose one visible friendly Adeptus Astartes unit within 9 inches of Marneus Calgar.",
+      "effect": "That unit gains one unused Combat Doctrine.",
+      "duration": "Until the start of the owner’s next Command phase.",
+      "interactions_to_validate": [
+        "Target visibility, range, ownership and once-per-phase/battle limits are checked locally."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-marneus-calgar.md"
+    },
+    {
+      "id": "space-marines/marneus-calgar/thunderhawk-insertion",
+      "name": "Thunderhawk Insertion",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/marneus-calgar",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Marneus-Calgar",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004246",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "During Declare Battle Formations.",
+      "eligibility": "Choose one friendly Gravis, Phobos or Tacticus unit.",
+      "effect": "Every model in that unit gains Deep Strike.",
+      "duration": "For the battle.",
+      "interactions_to_validate": [
+        "Target visibility, range, ownership and once-per-phase/battle limits are checked locally."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-marneus-calgar.md"
+    },
+    {
+      "id": "space-marines/captain-titus/master-crafted-chainsword/anti-non-monster-vehicle",
+      "name": "Anti-non-Monster/Vehicle 2+",
+      "kind": "weapon_trait",
+      "timing": "Each time the weapon makes a Wound roll.",
+      "eligibility": "Target has neither MONSTER nor VEHICLE.",
+      "effect": "An unmodified Wound roll of 2+ is a Critical Wound.",
+      "duration": "For attacks made with Master-crafted Chainsword.",
+      "interactions_to_validate": [
+        "An excluded target uses the normal wound target; Critical Wounds still interact with Devastating Wounds if present."
+      ],
+      "datasheet_id": "space-marines/captain-titus",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-Titus",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004187",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-captain-titus.md",
+      "validation_artifact": ".tools/verification/20261019T181223215266Z/results.json"
+    },
+    {
+      "id": "space-marines/vulkan-hestan/seeker-of-the-unfound",
+      "name": "Seeker of the Unfound",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/vulkan-hestan",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Vulkan-He-stan",
+      "source_section": "Datasheet Abilities / Seeker of the Unfound",
+      "timing": "The first time this model is set up on the battlefield.",
+      "eligibility": "Vulkan He’stan is set up on the battlefield and a battlefield objective is available.",
+      "target": "Select one objective on the battlefield.",
+      "effect": "While Vulkan He’stan is within range of the selected objective, he has OC 10, Leadership 5+, and Feel No Pain 4+.",
+      "duration": "While Vulkan is within range of the selected objective.",
+      "interactions_to_validate": [
+        "Objective-range geometry",
+        "Dynamic OC and Leadership while within and outside range",
+        "Feel No Pain in the active allocation path"
+      ],
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002726",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "implementation_document": "marine-vulkan-hestan.md",
+      "validation_artifact": ".tools/verification/20261019T184545062235Z/results.json"
+    },
+    {
+      "id": "space-marines/vulkan-hestan/forgefather",
+      "name": "Forgefather",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/vulkan-hestan",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Vulkan-He-stan",
+      "source_section": "Datasheet Abilities / Forgefather",
+      "timing": "In your Shooting phase.",
+      "eligibility": "Select one visible enemy unit within 24 inches of Vulkan He’stan.",
+      "target": "The selected enemy unit.",
+      "effect": "Friendly ADEPTUS ASTARTES Melta and Torrent attacks that target that enemy unit gain +2 Strength.",
+      "duration": "Until the end of that Shooting phase.",
+      "interactions_to_validate": [
+        "Target visibility and 24-inch range from Vulkan",
+        "Melta and Torrent keywords on eligible weapons",
+        "Friendly Adeptus Astartes attacker restriction",
+        "Phase expiry and target selection once per phase"
+      ],
+      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002726",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "implementation_document": "marine-vulkan-hestan.md",
+      "validation_artifact": ".tools/verification/20261019T184545062235Z/results.json"
+    }
+  ],
+  "unit_abilities": [
+    {
+      "id": "space-marines/iron-father-feirros/master-of-the-forge",
+      "name": "Master of the Forge",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/iron-father-feirros",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Iron-Father-Feirros",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000127",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "In your Movement phase, at the start or end of this unit's move.",
+      "eligibility": "Select one friendly Adeptus Astartes Vehicle model within 3 inches of Feirros.",
+      "effect": "The Vehicle heals 3 wounds. Its attacks ignore modifiers to its Ballistic Skill, Hit rolls and Wound rolls.",
+      "duration": "Until the start of your next Movement phase.",
+      "interactions_to_validate": [
+        "The choice can be made at the start or end of Feirros's unit's move and deferred from start to end.",
+        "Healing is fixed at 3 and cannot exceed the Vehicle's Wounds characteristic.",
+        "The modifier protection affects attacks made by the selected Vehicle and ends at the next Movement phase."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-iron-father-feirros.md",
+      "validation_artifact": ".tools/verification/20261019T154826639115Z/results.json"
+    },
+    {
+      "id": "space-marines/iron-father-feirros/rites-of-tempering",
+      "name": "Rites of Tempering",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/iron-father-feirros",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Iron-Father-Feirros",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000127",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "Each time an attack targets this unit.",
+      "eligibility": "The attacking weapon's Strength is greater than this unit's Toughness.",
+      "effect": "Subtract 1 from the Wound roll.",
+      "duration": "For that attack sequence.",
+      "interactions_to_validate": [
+        "The comparison uses the unit's Toughness and the attacking weapon's Strength.",
+        "The modifier follows Feirros into his current Attached unit while he remains alive."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-iron-father-feirros.md",
+      "validation_artifact": ".tools/verification/20261019T154826639115Z/results.json"
+    },
+    {
+      "id": "space-marines/iron-father-feirros/iron-father",
+      "name": "Iron Father",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/iron-father-feirros",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Iron-Father-Feirros",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000127",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "While Feirros is within 3 inches of a friendly Adeptus Astartes Vehicle unit.",
+      "eligibility": "Feirros is within 3 inches of a friendly Adeptus Astartes Vehicle.",
+      "effect": "Feirros has Lone Operative.",
+      "duration": "While the distance condition holds.",
+      "interactions_to_validate": [
+        "Measure to friendly Astartes Vehicle models within 3 inches.",
+        "Lone Operative does not protect a model while it is part of an Attached unit under the core rule."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-iron-father-feirros.md",
+      "validation_artifact": ".tools/verification/20261019T154826639115Z/results.json"
+    },
+    {
+      "id": "space-marines/suboden-khan/spear-of-chogoris",
+      "name": "Spear of Chogoris",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/suboden-khan",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Suboden-Khan",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004167",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "When this unit makes ranged attacks, declares a charge, or rolls to Advance or Charge while Assault Doctrine is active.",
+      "eligibility": "Suboden Khan is part of the unit; the roll bonus requires Assault Doctrine to be active for that unit.",
+      "effect": "The unit's ranged weapons have Assault; the unit can declare a charge after Advancing; while Assault Doctrine is active, add 1 to its Advance and Charge rolls.",
+      "duration": "While Suboden Khan is part of the unit; the roll bonus applies while Assault Doctrine is active.",
+      "interactions_to_validate": [
+        "Assault applies to Suboden's ranged attacks after Advance.",
+        "The charge permission functions without Assault Doctrine and preserves other charge restrictions.",
+        "The +1 modifier applies to the final Advance or Charge result, including after a reroll.",
+        "The ability follows Suboden into his Outrider attached unit while he remains alive."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-suboden-khan.md",
+      "validation_artifact": ".tools/verification/20261019T140335885159Z/results.json"
+    },
+    {
+      "id": "space-marines/suboden-khan/skilled-riders",
+      "name": "Skilled Riders",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/suboden-khan",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Suboden-Khan",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004167",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "While Suboden Khan is part of the unit.",
+      "eligibility": "Suboden Khan or his attached unit moves across dense terrain.",
+      "effect": "Suboden Khan's unit has the Mobile keyword.",
+      "duration": "While Suboden Khan remains part of the unit.",
+      "interactions_to_validate": [
+        "Mobile applies to the attached Outrider unit while Suboden remains part of it.",
+        "Ground-level movement ignores dense terrain features over 2 inches high for Mobile units."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-suboden-khan.md",
+      "validation_artifact": ".tools/verification/20261019T140335885159Z/results.json"
+    },
+    {
+      "id": "space-marines/land-speeder/purgation-run",
+      "name": "Purgation Run",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/land-speeder",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Land-Speeder",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002711",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "In your Shooting phase, when this unit has shot.",
+      "eligibility": "This unit has shot during its own Shooting phase and can make a Normal Move under the core movement rules.",
+      "effect": "This unit can make a Normal Move of up to D6 inches.",
+      "duration": "Until the end of the turn, this unit is not eligible to declare a charge.",
+      "interactions_to_validate": [
+        "The move is optional and occurs after the unit has shot.",
+        "The movement limit is the rolled D6 result.",
+        "The normal-move endpoint must remain unengaged.",
+        "The unit cannot declare a charge for the rest of that turn."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-land-speeder.md"
+    },
+    {
+      "id": "space-marines/chaplain-on-bike/catechism-of-fire",
+      "name": "Catechism of Fire",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/chaplain-on-bike",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain-On-Bike",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000094",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "In your Shooting phase, when this unit is selected to shoot.",
+      "eligibility": "Choose one visible enemy unit.",
+      "effect": "This unit’s ranged attacks that target the selected enemy unit have Devastating Wounds.",
+      "duration": "For the selected unit’s ranged attacks against the chosen target in that Shooting phase.",
+      "interactions_to_validate": [
+        "Target must be visible when selected.",
+        "Only ranged attacks targeting the chosen enemy gain Devastating Wounds.",
+        "The effect does not apply to melee attacks or other targets.",
+        "Attached Outriders are part of the unit and benefit while the Chaplain source lives."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-chaplain-on-bike.md"
+    },
+    {
+      "id": "space-marines/terminator-assault-squad/terminatus-assault",
+      "name": "Terminatus Assault",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/terminator-assault-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Assault-Squad",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000118",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "After this unit made a Charge move this turn, when resolving its melee attacks.",
+      "eligibility": "Twin Lightning Claws target a unit without MONSTER or VEHICLE; Thunder Hammer target has MONSTER or VEHICLE.",
+      "effect": "The eligible weapon gains Sustained Hits 1.",
+      "duration": "For the remainder of the turn.",
+      "interactions_to_validate": [
+        "Charge state applies to the whole attached unit for this turn.",
+        "Lightning Claws and Thunder Hammer use opposite target keyword predicates."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-terminator-assault-squad.md"
+    },
+    {
+      "id": "space-marines/terminator-assault-squad/storm-shield",
+      "name": "Storm Shield",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/terminator-assault-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Assault-Squad",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000118",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "While this model is equipped with a Storm Shield.",
+      "eligibility": "This model replaced its Twin Lightning Claws with a Storm Shield and Thunder Hammer.",
+      "effect": "Add 1 to this model’s Wounds characteristic; this equipment costs 5 points per Storm Shield.",
+      "duration": "While the model has the selected loadout.",
+      "interactions_to_validate": [
+        "Equipment choice is per model and reversible during preparation.",
+        "The point adjustment is checked against the admitted points limit."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-terminator-assault-squad.md"
+    },
+    {
+      "id": "space-marines/captain-on-bike/into-the-fray",
+      "name": "Into the Fray",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/captain-on-bike",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-On-Bike",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002702",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "After this unit made a Charge move this turn, when resolving its melee attacks.",
+      "eligibility": "This unit made a Charge move this turn.",
+      "effect": "This unit's melee attacks have Cleave 1.",
+      "duration": "For the remainder of the turn.",
+      "interactions_to_validate": [
+        "The charge state applies to the attached unit.",
+        "Cleave 1 is consumed by the shared attack-plan target/model-count calculation."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-captain-on-bike.md"
+    },
+    {
+      "id": "space-marines/adrax-agatone/lord-of-the-pyroclasts",
+      "name": "Lord of the Pyroclasts",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/adrax-agatone",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Adrax-Agatone",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002100",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "While an enemy unit is engaged with Adrax's current attached unit.",
+      "eligibility": "Enemy unit is engaged with Adrax's current attached unit.",
+      "effect": "Subtract 1 from each enemy model's OC, to a minimum of 0.",
+      "duration": "While the engagement condition holds.",
+      "interactions_to_validate": [
+        "The effect follows Adrax's current attached unit and ends when engagement ends.",
+        "Battle-shock still sets OC to 0 under the core rule."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-adrax-agatone.md",
+      "validation_artifact": ".tools/verification/20261019T114211481946Z/results.json"
+    },
+    {
+      "id": "space-marines/adrax-agatone/unto-the-anvil",
+      "name": "Unto the Anvil",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/adrax-agatone",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Adrax-Agatone",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002100",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "When resolving this attached unit's melee attacks.",
+      "eligibility": "This unit is resolving melee attacks.",
+      "effect": "Re-roll wound rolls of 1; if Assault Doctrine is active for this unit, re-roll wound rolls.",
+      "duration": "For those melee attacks.",
+      "interactions_to_validate": [
+        "Assault Doctrine state is checked for the attached unit when attacks are declared.",
+        "Wound-roll re-roll limits remain shared with the attack engine."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-adrax-agatone.md",
+      "validation_artifact": ".tools/verification/20261019T114211481946Z/results.json"
+    },
+    {
+      "id": "space-marines/kaius-konorius/veteran-bodyguard",
+      "name": "Veteran Bodyguard",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/kaius-konorius",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Kaius-Konorius",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004248",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "While Kaius is attached to a unit.",
+      "eligibility": "Another Character model is part of Kaius's attached unit.",
+      "effect": "That other Character model has Feel No Pain 4+ against any wounds.",
+      "duration": "While Kaius remains attached to that unit.",
+      "interactions_to_validate": [
+        "The bearer does not gain this other-Character benefit.",
+        "The living attached source and recipient model identity are tracked separately."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-kaius-konorius.md",
+      "validation_artifact": ".tools/verification/20261019T115532567686Z/results.json"
+    },
+    {
+      "id": "space-marines/kaius-konorius/calgars-champion",
+      "name": "Calgar's Champion",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/kaius-konorius",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Kaius-Konorius",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004248",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "When resolving Kaius's attacks.",
+      "eligibility": "The target unit has the Character keyword.",
+      "effect": "Re-roll hit rolls of 1 and wound rolls of 1 for Kaius's attacks.",
+      "duration": "For those attacks.",
+      "interactions_to_validate": [
+        "Other models in Kaius's attached unit do not receive the re-roll.",
+        "The target must be an enemy Character unit."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-kaius-konorius.md",
+      "validation_artifact": ".tools/verification/20261019T115532567686Z/results.json"
+    },
+    {
+      "id": "space-marines/librarian/veil-of-time",
+      "name": "Veil of Time",
+      "kind": "psychic_unit_ability",
+      "datasheet_id": "space-marines/librarian",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002266",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "Librarian's Movement phase, before it moves; preselect the power before choosing Advance.",
+      "eligibility": "The Librarian's unit is not Battle-shocked, has not moved, and is eligible to Advance.",
+      "effect": "Make one D6 psychic roll. On a 1, the unit becomes Battle-shocked. The unit can change its Advance roll to 6; this replacement is applied after the ordinary Advance re-roll decision and before modifiers.",
+      "duration": "The selected Movement phase's Advance move.",
+      "interactions_to_validate": [
+        "Battle-shock from a psychic roll of 1 does not prevent the unit from Advancing.",
+        "The optional Command Re-roll window occurs before the replacement; Advance modifiers apply after the replacement.",
+        "The Librarius level-1 limit is shared with Force Dome and the two other Librarian level-1 powers."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-librarian.md",
+      "validation_artifact": ".tools/verification/20261019T121509900605Z/results.json"
+    },
+    {
+      "id": "space-marines/librarian/force-dome",
+      "name": "Force Dome",
+      "kind": "psychic_unit_ability",
+      "datasheet_id": "space-marines/librarian",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002266",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "Librarian's Movement phase, before it moves.",
+      "eligibility": "The Librarian's unit is not Battle-shocked.",
+      "effect": "Make one D6 psychic roll. On a 1, the unit becomes Battle-shocked. The unit has a 4+ invulnerable save until the start of its next turn; a better invulnerable save remains in effect.",
+      "duration": "Until the start of the Librarian unit's next turn.",
+      "interactions_to_validate": [
+        "A psychic roll of 1 causes Battle-shock and the invulnerable save still applies.",
+        "Every model in the current attached unit receives the save, and the modifier expires at the caster's next turn start.",
+        "The Librarius level-1 limit is shared with Veil of Time and the other Librarian level-1 powers."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-librarian.md",
+      "validation_artifact": ".tools/verification/20261019T121509900605Z/results.json"
+    },
+    {
+      "id": "space-marines/caanok-var/cold-and-calculating",
+      "name": "Cold and Calculating",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/caanok-var",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Caanok-Var",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004166",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "When this unit is selected to attack in your Shooting phase or the Fight phase.",
+      "eligibility": "Choose one target-conditional attack effect; Tactical Doctrine can make both effects active.",
+      "effect": "Lethal Hits against MONSTER or VEHICLE targets, or Sustained Hits 1 against other targets. With Tactical Doctrine active, apply both target-conditional effects.",
+      "duration": "For attacks made by this unit in the selected phase.",
+      "interactions_to_validate": [
+        "The selection can be made once for this unit when selected to attack in each phase.",
+        "Lethal Hits only applies against MONSTER or VEHICLE targets.",
+        "Sustained Hits 1 only applies against targets with neither keyword.",
+        "Tactical Doctrine grants both effects concurrently."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-caanok-var.md",
+      "validation_artifact": ".tools/verification/20261019T162006558312Z/results.json"
+    },
+    {
+      "id": "space-marines/caanok-var/cerebrex-logic-engine",
+      "name": "Cerebrex Logic Engine",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/caanok-var",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Caanok-Var",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004166",
+      "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+      "timing": "During army preparation, in the Declare Battle Formations step.",
+      "eligibility": "Select one friendly Adeptus Astartes Infantry unit.",
+      "effect": "The selected unit gains Scouts 6.",
+      "duration": "For its pre-battle Scout move or Strategic Reserve set-up.",
+      "interactions_to_validate": [
+        "Selection is optional and limited to one target for Caanok Var.",
+        "The target must be a friendly Adeptus Astartes Infantry unit.",
+        "The chosen unit uses the ordinary Scout 6 workflow, including coherency and enemy separation."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-caanok-var.md",
+      "validation_artifact": ".tools/verification/20261019T162006558312Z/results.json"
+    },
+    {
+      "id": "space-marines/chief-librarian-tigurius/hood-of-hellfire",
+      "name": "Hood Of Hellfire",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/chief-librarian-tigurius",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chief-Librarian-Tigurius",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001611",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "While Chief Librarian Tigurius is leading a unit.",
+      "eligibility": "Tigurius and the models in his unit suffer damage from Psychic attacks or mortal wounds.",
+      "effect": "Those models have Feel No Pain 4+ against that damage.",
+      "duration": "While Tigurius is leading the unit.",
+      "interactions_to_validate": [
+        "Protection applies to the attached unit, including bodyguards.",
+        "Psychic and mortal-wound prevention use their respective normal damage pathways."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-chief-librarian-tigurius.md",
+      "validation_artifact": ".tools/verification/20261019T163627587071Z/results.json"
+    },
+    {
+      "id": "space-marines/chief-librarian-tigurius/prescience",
+      "name": "Prescience",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/chief-librarian-tigurius",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chief-Librarian-Tigurius",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001611",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "Chief Librarian Tigurius uses this psychic ability in your Movement phase.",
+      "eligibility": "Tigurius is alive and his unit is not Battle-shocked.",
+      "effect": "Make a psychic test; on 1 his unit becomes Battle-shocked. His unit gains +1 to saving throws.",
+      "duration": "Until the start of your next turn.",
+      "interactions_to_validate": [
+        "Prescience is level 2 and is independent of Telepathic Assault level 1.",
+        "The saving throw bonus composes with other modifiers and is frozen by the normal attack declaration snapshot."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-chief-librarian-tigurius.md",
+      "validation_artifact": ".tools/verification/20261019T163627587071Z/results.json"
+    },
+    {
+      "id": "space-marines/chief-librarian-tigurius/telepathic-assault",
+      "name": "Telepathic Assault",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/chief-librarian-tigurius",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chief-Librarian-Tigurius",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000001611",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "Chief Librarian Tigurius uses this psychic ability in your Shooting phase.",
+      "eligibility": "Tigurius is alive and his unit is not Battle-shocked; select a visible enemy unit within 24 inches.",
+      "effect": "Make a psychic test; on 1 his unit becomes Battle-shocked. The selected enemy suffers 2D3 mortal wounds.",
+      "duration": "Resolve all mortal wounds through normal allocation and prevention.",
+      "interactions_to_validate": [
+        "Telepathic Assault is level 1 and is independent of Prescience level 2.",
+        "The listed effect still resolves after a psychic roll of 1.",
+        "Mortal-wound allocation routes to the defending player and honors applicable Feel No Pain."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-chief-librarian-tigurius.md",
+      "validation_artifact": ".tools/verification/20261019T163627587071Z/results.json"
+    },
+    {
+      "id": "space-marines/kayvaan-shrike/trifold-path-of-shadow",
+      "name": "Trifold Path Of Shadow",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/kayvaan-shrike",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Kayvaan-Shrike",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002708",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "While Kayvaan Shrike is alive and on the battlefield.",
+      "eligibility": "Shrike and his attached unit are within detection range or are selected as ranged targets.",
+      "effect": "Shrike’s unit has Stealth and subtracts 3 inches from the detection range applied to it.",
+      "duration": "While the source model is alive and on the battlefield.",
+      "interactions_to_validate": [
+        "The ability remains unit-wide while Shrike is attached.",
+        "The modifier composes with ground-level detection and Chameleoline Cloaks detection adjustments."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-kayvaan-shrike.md",
+      "validation_artifact": ".tools/verification/20261019T165026624511Z/results.json"
+    },
+    {
+      "id": "space-marines/kayvaan-shrike/echo-of-the-ravenspire",
+      "name": "Echo Of The Ravenspire",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/kayvaan-shrike",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Kayvaan-Shrike",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002708",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "At the end of your opponent’s Fight phase.",
+      "eligibility": "Kayvaan Shrike’s unit is alive, on the battlefield and unengaged.",
+      "effect": "You can place the unit in Strategic Reserves.",
+      "duration": "Until the unit makes a subsequent ingress move or the battle ends.",
+      "interactions_to_validate": [
+        "This response belongs to Shrike’s controlling player during the opponent’s Fight phase.",
+        "The unit leaves the battlefield as a whole and uses the existing Strategic Reserves ingress rules."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-kayvaan-shrike.md",
+      "validation_artifact": ".tools/verification/20261019T165026624511Z/results.json"
+    },
+    {
+      "id": "space-marines/cato-sicarius/knight-champion-of-macragge",
+      "name": "Knight Champion of Macragge",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/cato-sicarius",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Cato-Sicarius",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004184",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "During the opponent’s Movement phase, when an enemy unit ends a move.",
+      "eligibility": "The enemy unit is within 8 inches of Cato’s unit, and Cato’s unit is unengaged.",
+      "effect": "Cato’s unit may make a Normal Move of up to 6 inches.",
+      "duration": "Once per phase per army.",
+      "interactions_to_validate": [
+        "Range is checked after the enemy unit completes its move.",
+        "The unit must preserve coherency, legal movement and an unengaged endpoint."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-cato-sicarius.md",
+      "validation_artifact": ".tools/verification/20261019T170553671169Z/results.json"
+    },
+    {
+      "id": "space-marines/cato-sicarius/honour-or-death",
+      "name": "Honour or Death",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/cato-sicarius",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Cato-Sicarius",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004184",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "When Cato’s unit is targeted with Heroic Intervention.",
+      "eligibility": "The target unit contains a living Cato Sicarius.",
+      "effect": "Reduce the CP cost by 1, to a minimum of 0.",
+      "duration": "For that stratagem use.",
+      "interactions_to_validate": [
+        "The discount applies to Heroic Intervention only.",
+        "The minimum cost is 0 CP."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-cato-sicarius.md",
+      "validation_artifact": ".tools/verification/20261019T170553671169Z/results.json"
+    },
+    {
+      "id": "space-marines/cato-sicarius/captain-of-the-honour-guard",
+      "name": "Captain of the Honour Guard",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/cato-sicarius",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Cato-Sicarius",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004184",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "When the army includes a Marneus Calgar unit.",
+      "eligibility": "Cato Sicarius is in that army.",
+      "effect": "Replace Leader with Support only when Marneus Calgar is in the army; Cato can still attach to the same source-listed units.",
+      "duration": "While the army includes Calgar.",
+      "interactions_to_validate": [
+        "The replacement must not broaden Cato’s Leader target list.",
+        "When Calgar is present, Cato is not eligible as Warlord."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-cato-sicarius.md",
+      "validation_artifact": ".tools/verification/20261019T174559547253Z/results.json"
+    },
+    {
+      "id": "space-marines/victrix-honour-guard/glory-of-ultramar",
+      "name": "Glory of Ultramar",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/victrix-honour-guard",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Victrix-Honour-Guard",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004185",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "Opponent Shooting phase, after an enemy unit has shot.",
+      "eligibility": "A Victrix Honour Guard model was destroyed by those attacks.",
+      "effect": "The unit can make a Surge move of up to D6 inches.",
+      "duration": "Resolve immediately after the enemy unit’s shooting attack.",
+      "interactions_to_validate": [
+        "Only casualties allocated to the Victrix unit by this enemy shooting attack trigger the reaction.",
+        "Local placement checks enforce the rolled distance, legal board position, path, non-overlap and coherency."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-victrix-honour-guard.md",
+      "validation_artifact": ".tools/verification/20261019T172535463675Z/results.json",
+      "composition_limit": "Current admission exposes only the fixed Ancient+Champion compositions at 3 and 6 total models; other source-legal role mixes are not selectable."
+    },
+    {
+      "id": "space-marines/victrix-honour-guard/honour-guard-of-macragge",
+      "name": "Honour Guard of Macragge",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/victrix-honour-guard",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Victrix-Honour-Guard",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004185",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "Whenever attacks target this unit.",
+      "eligibility": "The target is the Victrix Honour Guard unit.",
+      "effect": "Subtract 1 from the attack’s wound roll.",
+      "duration": "For each attack targeting the unit.",
+      "interactions_to_validate": [
+        "Apply across Strength-versus-Toughness comparisons and attached models in the unit."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-victrix-honour-guard.md",
+      "validation_artifact": ".tools/verification/20261019T172535463675Z/results.json",
+      "composition_limit": "Current admission exposes only the fixed Ancient+Champion compositions at 3 and 6 total models; other source-legal role mixes are not selectable."
+    },
+    {
+      "id": "space-marines/victrix-honour-guard/banner-of-macragge",
+      "name": "Banner of Macragge",
+      "kind": "wargear_ability",
+      "datasheet_id": "space-marines/victrix-honour-guard",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Victrix-Honour-Guard",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004185",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "timing": "End of the owner’s Movement phase; or once per battle per army when selected to fight.",
+      "eligibility": "The Chapter Ancient carries the Banner of Macragge.",
+      "effect": "Secure one objective this unit controls at end of Movement; alternatively, when selected to fight, the unit may gain +1 Attack and Strength for melee attacks.",
+      "duration": "Objective security persists under the objective rules; combat bonuses apply to the unit’s selected fight.",
+      "interactions_to_validate": [
+        "Objective control and securing are tracked as separate states.",
+        "The melee bonus is used once per battle per army."
+      ],
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-victrix-honour-guard.md",
+      "validation_artifact": ".tools/verification/20261019T172535463675Z/results.json",
+      "composition_limit": "Current admission exposes only the fixed Ancient+Champion compositions at 3 and 6 total models; other source-legal role mixes are not selectable."
+    },
+    {
+      "id": "space-marines/kor-sarro-khan/trophy-taker",
+      "name": "Trophy Taker",
+      "kind": "datasheet_ability",
+      "timing": "Each time this unit makes an attack.",
+      "eligibility": "Kor’sarro Khan is in the unit and the target is a CHARACTER unit.",
+      "effect": "Re-roll Hit rolls of 1 and Wound rolls of 1.",
+      "duration": "For the attack, while Kor’sarro Khan is in the unit.",
+      "interactions_to_validate": [
+        "Applied to the final target unit keywords and retained through split attack batches."
+      ],
+      "datasheet_id": "space-marines/kor-sarro-khan",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Kor-sarro-Khan",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002709",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-kor-sarro-khan.md",
+      "validation_artifact": ".tools/verification/20261019T175834766365Z/results.json"
+    },
+    {
+      "id": "space-marines/kor-sarro-khan/for-the-khan",
+      "name": "For the Khan!",
+      "kind": "datasheet_ability",
+      "timing": "Each time this unit makes an attack.",
+      "eligibility": "Kor’sarro Khan is in the unit.",
+      "effect": "The unit’s ranged attacks have Assault; its melee attacks have Lance.",
+      "duration": "While Kor’sarro Khan is in the unit.",
+      "interactions_to_validate": [
+        "Applied to all models in Kor’sarro Khan’s attached unit."
+      ],
+      "datasheet_id": "space-marines/kor-sarro-khan",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Kor-sarro-Khan",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002709",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-kor-sarro-khan.md",
+      "validation_artifact": ".tools/verification/20261019T175834766365Z/results.json"
+    },
+    {
+      "id": "space-marines/captain-titus/press-the-attack",
+      "name": "Press the Attack",
+      "kind": "datasheet_ability",
+      "timing": "Each time this unit makes a melee attack.",
+      "eligibility": "Captain Titus is in the unit.",
+      "effect": "The attack gains Sustained Hits 1 if the target has neither MONSTER nor VEHICLE; alternatively, if Assault Doctrine is active for the unit, the attack gains Sustained Hits 1 against any target.",
+      "duration": "For the unit’s melee attacks while the stated condition applies.",
+      "interactions_to_validate": [
+        "Target keywords and Assault Doctrine are evaluated at attack declaration."
+      ],
+      "datasheet_id": "space-marines/captain-titus",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-Titus",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004187",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-captain-titus.md",
+      "validation_artifact": ".tools/verification/20261019T181223215266Z/results.json"
+    },
+    {
+      "id": "space-marines/captain-titus/righteous-fury",
+      "name": "Righteous Fury",
+      "kind": "datasheet_ability",
+      "timing": "In the Fight phase, when this unit is selected to fight; after it has fought.",
+      "eligibility": "Once per battle per army.",
+      "effect": "When activated, melee attacks gain +1 Strength. After the unit fights, Titus heals D3 wounds; if he destroyed an enemy model this phase, he heals 2D3 instead. Healing cannot exceed his Wounds characteristic.",
+      "duration": "Strength bonus lasts through this unit’s attacks; the ability can be used once per battle per army.",
+      "interactions_to_validate": [
+        "Destroying an enemy model is taken from the resolved fight attack result.",
+        "Healing uses the host dice provider and is capped at maximum Wounds."
+      ],
+      "datasheet_id": "space-marines/captain-titus",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-Titus",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004187",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-captain-titus.md",
+      "validation_artifact": ".tools/verification/20261019T181223215266Z/results.json"
+    },
+    {
+      "id": "space-marines/captain-titus/honour-of-ultramar",
+      "name": "Honour of Ultramar",
+      "kind": "datasheet_ability",
+      "timing": "In the Fight phase, when Titus is destroyed, before his unit has been selected to fight.",
+      "eligibility": "Roll one D6.",
+      "effect": "On 2+, do not remove Titus from the battlefield. Remove him after his unit has fought, or at end of the Fight phase, whichever comes first.",
+      "duration": "Until the unit fights or the Fight phase ends.",
+      "interactions_to_validate": [
+        "Other units fighting do not remove Titus early.",
+        "A failed roll leaves the model destroyed."
+      ],
+      "datasheet_id": "space-marines/captain-titus",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-Titus",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004187",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-captain-titus.md",
+      "validation_artifact": ".tools/verification/20261019T181223215266Z/results.json"
     }
   ],
   "open_questions": [
-    "Attach a precise official Codex or current errata page/section for every rule before moving its source status to certified.",
+    "Continue validating each newly admitted rule against the local Wahapedia e11 export and its shared core-rule dependencies; GW corroboration is optional and does not gate admission.",
     "Validate action timing, Battle-shock, objective-control timing, attached-unit abilities and per-unit/per-turn use tracking against the complete core rules and runtime."
   ],
   "source_conflicts": [
@@ -1311,6 +2772,14 @@
     }
   ],
   "datasheet_core_ability_links": [
+    {
+      "datasheet_id": "space-marines/land-speeder",
+      "abilities": [
+        {
+          "id": "core/deep-strike-24-09"
+        }
+      ]
+    },
     {
       "datasheet_id": "space-marines/reiver-squad",
       "abilities": [
@@ -1380,6 +2849,757 @@
           "parameter": "Deadly Demise D3"
         }
       ]
+    },
+    {
+      "datasheet_id": "space-marines/incursor-squad",
+      "abilities": [
+        {
+          "id": "core/scouts-24-31",
+          "parameter": "Scouts 6 inches"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/firestrike-servo-turrets",
+      "abilities": [
+        {
+          "id": "space-marines/firestrike-servo-turrets/sentinel-protocols"
+        }
+      ]
+    },
+    "space-marines/brutalis-dreadnought",
+    {
+      "datasheet_id": "space-marines/invictor-tactical-warsuit",
+      "abilities": [
+        {
+          "id": "core/scouts-24-31",
+          "parameter": "Scouts 8 inches"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/storm-speeder-hammerstrike",
+      "abilities": [
+        {
+          "id": "core/deep-strike-24-09"
+        },
+        {
+          "id": "core/deadly-demise-24-08",
+          "parameter": "Deadly Demise D3"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/storm-speeder-hailstrike",
+      "abilities": [
+        {
+          "id": "core/deep-strike-24-09"
+        },
+        {
+          "id": "core/deadly-demise-24-08",
+          "parameter": "Deadly Demise D3"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/storm-speeder-thunderstrike",
+      "abilities": [
+        {
+          "id": "core/deep-strike-24-09"
+        },
+        {
+          "id": "core/deadly-demise-24-08",
+          "parameter": "Deadly Demise D3"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/gladiator-valiant",
+      "abilities": [
+        {
+          "id": "core/damaged-24-39",
+          "parameter": "Damaged 4"
+        },
+        {
+          "id": "core/deadly-demise-24-08",
+          "parameter": "Deadly Demise D3"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/terminator-assault-squad",
+      "abilities": [
+        {
+          "id": "core/deep-strike-24-09"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/captain-on-bike",
+      "abilities": [
+        {
+          "id": "core/leader-24-22"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/adrax-agatone",
+      "abilities": [
+        {
+          "id": "core/leader-24-22"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "space-marines/kaius-konorius",
+      "abilities": [
+        {
+          "id": "core/leader-24-22"
+        }
+      ]
+    },
+    {
+      "datasheet_id": "000004166",
+      "source_book_id": "000000139",
+      "ability": "Deep Strike",
+      "ability_id": "000008343",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "caanok-var"
+    },
+    {
+      "datasheet_id": "000004166",
+      "source_book_id": "000000139",
+      "ability": "Feel No Pain",
+      "ability_id": "000008338",
+      "parameter": "5+",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "caanok-var"
+    },
+    {
+      "datasheet_id": "000004166",
+      "source_book_id": "000000139",
+      "ability": "Leader",
+      "ability_id": "000008346",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "caanok-var"
+    },
+    {
+      "datasheet_id": "000004166",
+      "source_book_id": "000000139",
+      "ability": "Combat Doctrines",
+      "ability_id": "000011158",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "caanok-var"
+    },
+    {
+      "datasheet_id": "000004166",
+      "source_book_id": "000000139",
+      "ability": "Transhuman Strategist",
+      "ability_id": "000011162",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "caanok-var"
+    },
+    {
+      "datasheet_id": "000001611",
+      "source_book_id": "000000139",
+      "ability": "Leader",
+      "ability_id": "000008346",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "chief-librarian-tigurius"
+    },
+    {
+      "datasheet_id": "000001611",
+      "source_book_id": "000000139",
+      "ability": "Combat Doctrines",
+      "ability_id": "000011158",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "chief-librarian-tigurius"
+    },
+    {
+      "datasheet_id": "000001611",
+      "source_book_id": "000000139",
+      "ability": "Transhuman Strategist",
+      "ability_id": "000011162",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "chief-librarian-tigurius"
+    },
+    {
+      "datasheet_id": "000002708",
+      "source_book_id": "000000139",
+      "ability": "Deep Strike",
+      "ability_id": "000008343",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "kayvaan-shrike"
+    },
+    {
+      "datasheet_id": "000002708",
+      "source_book_id": "000000139",
+      "ability": "Leader",
+      "ability_id": "000008346",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "kayvaan-shrike"
+    },
+    {
+      "datasheet_id": "000002708",
+      "source_book_id": "000000139",
+      "ability": "Lone Operative",
+      "ability_id": "000008336",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "kayvaan-shrike"
+    },
+    {
+      "datasheet_id": "000002708",
+      "source_book_id": "000000139",
+      "ability": "Combat Doctrines",
+      "ability_id": "000011158",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "kayvaan-shrike"
+    },
+    {
+      "datasheet_id": "000002708",
+      "source_book_id": "000000139",
+      "ability": "Transhuman Strategist",
+      "ability_id": "000011162",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "kayvaan-shrike"
+    },
+    {
+      "datasheet_id": "000004246",
+      "source_book_id": "000000139",
+      "ability": "Deep Strike",
+      "ability_id": "000008343",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "marneus-calgar"
+    },
+    {
+      "datasheet_id": "000004246",
+      "source_book_id": "000000139",
+      "ability": "Leader",
+      "ability_id": "000008346",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "marneus-calgar"
+    },
+    {
+      "datasheet_id": "000004246",
+      "source_book_id": "000000139",
+      "ability": "Combat Doctrines",
+      "ability_id": "000011158",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "marneus-calgar"
+    },
+    {
+      "datasheet_id": "000002709",
+      "source_book_id": "000000139",
+      "ability": "Leader",
+      "ability_id": "000008346",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "kor-sarro-khan"
+    },
+    {
+      "datasheet_id": "000002709",
+      "source_book_id": "000000139",
+      "ability": "Combat Doctrines",
+      "ability_id": "000011158",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "kor-sarro-khan"
+    },
+    {
+      "datasheet_id": "000002709",
+      "source_book_id": "000000139",
+      "ability": "Transhuman Strategist",
+      "ability_id": "000011162",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "kor-sarro-khan"
+    },
+    {
+      "datasheet_id": "000004187",
+      "source_book_id": "000000139",
+      "ability": "Feel No Pain",
+      "ability_id": "000008338",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "captain-titus"
+    },
+    {
+      "datasheet_id": "000004187",
+      "source_book_id": "000000139",
+      "ability": "Leader",
+      "ability_id": "000008346",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "captain-titus"
+    },
+    {
+      "datasheet_id": "000004187",
+      "source_book_id": "000000139",
+      "ability": "Transhuman Strategist",
+      "ability_id": "000011162",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "captain-titus"
+    },
+    {
+      "datasheet_id": "000004187",
+      "source_book_id": "000000139",
+      "ability": "Combat Doctrines",
+      "ability_id": "000011158",
+      "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
+      "runtime_identity": "captain-titus"
     }
-  ]
+  ],
+  "implementation_followup": {
+    "document": "marine-fire-support.md",
+    "audit": "marine-fire-support-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "infernus-squad",
+      "hellblaster-squad"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "gravis_followup": {
+    "document": "marine-gravis.md",
+    "audit": "marine-gravis-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "aggressor-squad",
+      "apothecary-biologis"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "marksmen_followup": {
+    "document": "marine-eliminators.md",
+    "sternguard_document": "marine-sternguard.md",
+    "audit": "marine-marksmen-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "eliminator-squad",
+      "sternguard-veteran-squad"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "chaplain_followup": {
+    "document": "marine-chaplain.md",
+    "audit": "marine-chaplain-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "chaplain"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "judiciar_followup": {
+    "document": "marine-judiciar.md",
+    "audit": "marine-judiciar-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "judiciar"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "bladeguard_followup": {
+    "document": "marine-bladeguard.md",
+    "audit": "marine-bladeguard-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "bladeguard-veteran-squad"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "ancients_followup": {
+    "document": "marine-ancients.md",
+    "audit": "marine-ancients-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "ancient",
+      "bladeguard-ancient"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "apothecary_followup": {
+    "document": "marine-apothecary.md",
+    "audit": "marine-apothecary-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "apothecary"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "terminator_chaplain_followup": {
+    "document": "marine-terminator-chaplain.md",
+    "audit": "marine-terminator-chaplain-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "chaplain-in-terminator-armour"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "terminator_captain_followup": {
+    "document": "marine-terminator-captain.md",
+    "audit": "marine-terminator-captain-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "captain-in-terminator-armour"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "gravis_ancient_batch_followup": {
+    "document": "marine-gravis-ancient-batch.md",
+    "audit": "marine-gravis-ancient-batch-audit.json",
+    "observed_at": "2026-10-18",
+    "new_implemented_identities": [
+      "captain-in-gravis-armour",
+      "ancient-in-terminator-armour"
+    ],
+    "source_book_id": "000000139",
+    "validation_status": "tests_passed_local_targeted",
+    "current_build_validation": "pending_final_complete_run",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "phobos_batch_followup": {
+    "document": "marine-phobos-batch.md",
+    "audit": "marine-phobos-batch-audit.json",
+    "observed_at": "2026-10-18",
+    "new_implemented_identities": [
+      "infiltrator-squad",
+      "lieutenant-in-phobos-armour"
+    ],
+    "source_book_id": "000000139",
+    "validation_status": "tests_passed_local_targeted",
+    "current_build_validation": "pending_final_complete_run",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "jump_pack_chaplain_followup": {
+    "document": "marine-chaplain-jump-pack.md",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "chaplain-with-jump-pack"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000112",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "validation_artifact": ".tools/verification/20261019T032659770200Z/results.json",
+    "network_validation": "deferred_not_run",
+    "full_local_suite": "pending",
+    "full_match_certified": false
+  },
+  "librarian_terminator_followup": {
+    "document": "marine-librarian-terminator-armour.md",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "librarian-in-terminator-armour"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000079",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "validation_artifact": ".tools/verification/20261019T033840432396Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v12.json",
+    "network_validation": "deferred_not_run",
+    "full_local_suite": "pending",
+    "full_match_certified": false
+  },
+  "librarian_phobos_followup": {
+    "document": "marine-librarian-phobos-armour.md",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "librarian-in-phobos-armour"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000119",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "validation_artifact": ".tools/verification/20261019T040442936488Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v14.json",
+    "network_validation": "deferred_not_run",
+    "full_local_suite": "pending",
+    "full_match_certified": false
+  },
+  "scout_squad_followup": {
+    "document": "marine-scout-squad.md",
+    "audit": "marine-scout-squad-audit.json",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "scout-squad"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001160",
+    "validation_artifact": ".tools/verification/20261019T041415760366Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v15.json",
+    "validation_status": "tests_passed_local_targeted",
+    "current_build_validation": "pending_final_complete_run",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "incursor_squad_followup": {
+    "document": "marine-incursor-squad.md",
+    "audit": "marine-incursor-squad-audit.json",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "incursor-squad"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001159",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "validation_artifact": ".tools/verification/20261019T042405255660Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v17.json",
+    "validation_status": "tests_passed_local_targeted",
+    "current_build_validation": "pending_final_complete_run",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "reiver_squad_followup": {
+    "document": "marine-reiver-squad.md",
+    "audit": "marine-reiver-squad-audit.json",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "reiver-squad"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002718",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "validation_artifact": ".tools/verification/20261019T043352222499Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v18.json",
+    "validation_status": "tests_passed_local_targeted",
+    "current_build_validation": "focused_targeted_passed_full_suite_pending",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "firestrike_servo_turrets_followup": {
+    "document": "marine-firestrike-servo-turrets.md",
+    "audit": "marine-firestrike-servo-turrets-audit.json",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "firestrike-servo-turrets"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000086",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "validation_artifact": ".tools/verification/20261019T044616562986Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v20.json",
+    "validation_status": "tests_passed_local_targeted",
+    "current_build_validation": "focused_targeted_passed_full_suite_pending",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "brutalis_dreadnought_followup": {
+    "document": "marine-brutalis-dreadnought.md",
+    "audit": "marine-brutalis-dreadnought-audit.json",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "brutalis-dreadnought"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000136",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "validation_artifact": ".tools/verification/20261019T053830682027Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v32.json",
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "invictor_tactical_warsuit_followup": {
+    "document": "marine-invictor-tactical-warsuit.md",
+    "audit": "marine-invictor-tactical-warsuit-audit.json",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "invictor-tactical-warsuit"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001156",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "validation_artifact": ".tools/verification/20261019T055549579499Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v35.json",
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "inceptor_squad_followup": {
+    "status": "implemented_and_locally_validated",
+    "source_authority": "Wahapedia 11th-edition local data export",
+    "datasheet_id": "000000125",
+    "implementation_document": "marine-inceptor-squad.md",
+    "local_validation": "Focused profile, composition, cost, weapon trait, Meteoric Descent and Parabolic Jetleap checks passed; final network integration remains deferred."
+  },
+  "storm_speeder_hammerstrike_followup": {
+    "status": "implemented_and_locally_validated",
+    "source_authority": "Wahapedia 11th-edition local data export",
+    "datasheet_id": "000000114",
+    "implementation_document": "marine-storm-speeder-hammerstrike.md",
+    "local_validation": ".tools/verification/20261019T095156133458Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v69.json",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "storm_speeder_hailstrike_followup": {
+    "status": "implemented_and_locally_validated",
+    "source_authority": "Wahapedia 11th-edition local data export",
+    "datasheet_id": "000000124",
+    "implementation_document": "marine-storm-speeder-hailstrike.md",
+    "local_validation": ".tools/verification/20261019T095857106371Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v70.json",
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "storm_speeder_thunderstrike_followup": {
+    "document": "marine-storm-speeder-thunderstrike.md",
+    "audit": "marine-storm-speeder-thunderstrike-audit.json",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "storm-speeder-thunderstrike"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001610",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "validation_artifact": ".tools/verification/20261019T100916115351Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v72.json",
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "gladiator_valiant_followup": {
+    "document": "marine-gladiator-valiant.md",
+    "audit": "marine-gladiator-valiant-audit.json",
+    "observed_at": "2026-10-19",
+    "new_selectable_identities": [
+      "gladiator-valiant"
+    ],
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001825",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "validation_artifact": ".tools/verification/20261019T101548046740Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v73.json",
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "chaplain_on_bike_followup": {
+    "document": "marine-chaplain-on-bike.md",
+    "audit": "marine-chaplain-on-bike-audit.json",
+    "observed_at": "2026-10-19",
+    "implemented_identity": "chaplain-on-bike",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000094",
+    "source_export_updated_at": "2026-10-16T15:03:46-03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v61",
+    "validation_status": "tests_passed_local_targeted",
+    "validation_artifact": ".tools/verification/20261019T110640219017Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v80.json",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "adrax_agatone_followup": {
+    "document": "marine-adrax-agatone.md",
+    "validation_artifact": ".tools/verification/20261019T114211481946Z/results.json",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "kaius_konorius_followup": {
+    "document": "marine-kaius-konorius.md",
+    "validation_artifact": ".tools/verification/20261019T115532567686Z/results.json",
+    "fixed_data_artifact": ".tools/wahapedia-fixed-data-review-v89.json",
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "librarian_profile_followup": {
+    "document": "marine-librarian.md",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002266",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v66",
+    "fixed_data_artifact": ".tools/wahapedia-fixed-data-review-v91.json",
+    "validation_status": "tests_passed_local_targeted; selectable",
+    "implemented_abilities": [
+      "Veil of Time",
+      "Force Dome",
+      "Librarius",
+      "Psychic Hood"
+    ],
+    "validation_artifact": ".tools/verification/20261019T121509900605Z/results.json",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "cato_sicarius_followup": {
+    "document": "marine-cato-sicarius.md",
+    "source_datasheet_id": "000004184",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v79-marneus-calgar-source-profile",
+    "validation_artifact": ".tools/verification/20261019T174559547253Z/results.json",
+    "status": "The exact Victrix Honour Guard Leader target and conditional Calgar-dependent Support replacement pass focused local checks; Cato is not eligible as Warlord while Calgar is in the army."
+  },
+  "victrix_honour_guard_followup": {
+    "document": "marine-victrix-honour-guard.md",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000004185",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v78-victrix-honour-guard-source-profile",
+    "validation_artifact": ".tools/verification/20261019T172535463675Z/results.json",
+    "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "composition_limit": "Currently admitted: fixed Chapter Ancient + Chapter Champion compositions at 3 or 6 models; other legal role combinations are not exposed."
+  },
+  "marneus_calgar_followup": {
+    "document": "marine-marneus-calgar.md",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000004246",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v79-marneus-calgar-source-profile",
+    "implemented_abilities": [
+      "Codex Adept",
+      "Master Tactician",
+      "Thunderhawk Insertion"
+    ],
+    "validation_artifact": ".tools/verification/20261019T174559547253Z/results.json",
+    "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "kor_sarro_khan_followup": {
+    "document": "marine-kor-sarro-khan.md",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002709",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v80-kor-sarro-khan-source-profile",
+    "implemented_abilities": [
+      "Trophy Taker",
+      "For the Khan!"
+    ],
+    "validation_artifact": ".tools/verification/20261019T175834766365Z/results.json",
+    "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "captain_titus_followup": {
+    "document": "marine-captain-titus.md",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000004187",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v81-captain-titus-source-profile",
+    "implemented_abilities": [
+      "Press the Attack",
+      "Righteous Fury",
+      "Honour of Ultramar",
+      "Anti-non-Monster/Vehicle 2+"
+    ],
+    "validation_artifact": ".tools/verification/20261019T181223215266Z/results.json",
+    "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  }
 }

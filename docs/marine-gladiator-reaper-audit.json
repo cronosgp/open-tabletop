@@ -1,0 +1,80 @@
+{
+  "id": "gladiator-reaper-local-audit-2026-10-19-v1",
+  "rules_authority": "Wahapedia 11th-edition local export",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000001667",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "profile_id": "space-marines-e11-fixed-reference-2026-10-19-v53",
+  "profile_digest": "8821bff613a2454405191014b359671931b91c74e87bffe14f6a269bfa723f73",
+  "roster_digest": "6f47e83fa8cdfeace64956bef04de6b42d8e0845fb134751329beff892357b2c",
+  "comparison_report": ".tools/wahapedia-fixed-data-review-v67.json",
+  "fixed_data_check": {
+    "consistent": true,
+    "numeric_or_identity_differences": 0,
+    "keyword_scope_consistent": true,
+    "weapon_profiles_checked": 3,
+    "default_loadout_consistent": true,
+    "composition_consistent": true,
+    "costs_consistent": true,
+    "snapshot_structurally_valid": true
+  },
+  "profile": {
+    "models": 1,
+    "points_first_two": 165,
+    "points_third_plus": 185,
+    "max_supported_copies": 3,
+    "base_size_source_mm": 100,
+    "base_geometry": "circle",
+    "stats": {
+      "M": 10,
+      "T": 10,
+      "Sv": "3+",
+      "W": 12,
+      "Ld": "6+",
+      "OC": 3,
+      "invulnerable": null
+    },
+    "keywords": [
+      "VEHICLE",
+      "SMOKE",
+      "FRAME",
+      "IMPERIUM",
+      "ADEPTUS ASTARTES"
+    ]
+  },
+  "weapons": [
+    "Defensive Array",
+    "Twin Heavy Onslaught Gatling Cannon",
+    "Armoured Hull"
+  ],
+  "abilities": {
+    "Damaged 4": "While this model has 1-4 wounds remaining, its attacks have -1 to Hit.",
+    "Deadly Demise D3": "On a 6 after destruction, each unit within 6 inches suffers a separately rolled D3 mortal-wound packet.",
+    "Reaping Tally": "Ranged attacks targeting a unit without MONSTER or VEHICLE gain +1 AP."
+  },
+  "local_validation": {
+    "artifact": ".tools/verification/20261019T094130522668Z/results.json",
+    "passed_processes": 13,
+    "failed_processes": 0,
+    "network_validation": "deferred_not_run",
+    "scope": [
+      "import",
+      "python",
+      "startup",
+      "test_actions",
+      "test_army_builder",
+      "test_attack_plan",
+      "test_capabilities",
+      "test_current_unit_abilities",
+      "test_damage_allocation",
+      "test_gladiator_reaper_current",
+      "test_implemented_catalog",
+      "test_roster_validation",
+      "test_saved_armies"
+    ]
+  },
+  "limits": [
+    "Full faction and army legality are not certified.",
+    "Network validation is deferred to final integration."
+  ]
+}

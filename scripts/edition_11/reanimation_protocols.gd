@@ -1,4 +1,5 @@
 extends RefCounted
+const ReturnPlacement = preload("res://scripts/edition_11/return_placement.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 ## September 2026 faction rule, scoped to admitted core profiles and Overlord attachments.
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
@@ -165,38 +166,14 @@ static func _prepare_healing(state: Dictionary, squad: int, raw: int) -> Diction
 	return {"error": "", "message": "%s: Reanimation D6 %d becomes %s %d. Preview %d returned models, then confirm." % [state.squads[squad].name, raw, window.current.healing_die, budget, window.current.slots]}
 
 static func projected(state: Dictionary) -> Dictionary:
-	var copy := state.duplicate(true)
-	var current: Dictionary = pending(state).get("current", {})
-	for model: int in current.get("placements", {}):
-		copy.units[model].wounds = 1
-		copy.units[model].position = current.placements[model]
-	return copy
+	return ReturnPlacement.projected(state, pending(state).get("current", {}))
 
 static func position_error(state: Dictionary, model: int, destination: Vector2) -> String:
 	var current: Dictionary = pending(state).get("current", {})
 	if current.is_empty() or model not in returnable(state): return "Choose a destroyed troop model from the active Reanimation unit."
 	if model in current.unplaced: return "Reset this preview before placing a model already declared unplaceable."
 	if not current.placements.has(model) and current.placements.size() + current.unplaced.size() >= current.slots: return "The D3 healing budget is already assigned."
-	if not destination.is_finite(): return "Choose a finite base-centre position."
-	var unit: Dictionary = state.units[model]
-	var radius: float = unit.radius
-	var half := Board.half_board(state)
-	if absf(destination.x) + radius > half.x + EPSILON or absf(destination.y) + radius > half.y + EPSILON: return "The returned model's whole base must fit on the battlefield."
-	var copy := projected(state)
-	copy.units[model].wounds = 1
-	copy.units[model].position = destination
-	var anchor_near := false
-	for anchor: int in current.anchors:
-		if state.units[anchor].wounds > 0 and Geometry.edge(copy.units[model], state.units[anchor]) <= 2.0 + EPSILON: anchor_near = true
-	if not anchor_near: return "Return within 2 inches of a surviving model that was on the battlefield at Command entry; returned models cannot extend this anchor chain."
-	for other: int in copy.units:
-		if other == model or copy.units[other].wounds <= 0 or not copy.units[other].get("on_battlefield", true): continue
-		var distance := Geometry.edge(copy.units[model], copy.units[other])
-		if destination.distance_to(copy.units[other].position) < radius + float(copy.units[other].radius) - EPSILON: return "Returned bases cannot overlap another living or previewed model."
-		if copy.units[other].squad == current.squad and distance > 9.0 + EPSILON: return "Keep the returned model within 9 inches of every model in its unit."
-		if copy.units[other].owner != unit.owner and distance <= 2.0 + EPSILON and copy.units[other].squad not in current.engaged: return "A return cannot create engagement with a new enemy unit."
-	# A return is a setup, not a movement path: only test the endpoint.
-	return Terrain.path_error(copy, model, destination)
+	return ReturnPlacement.error(state, model, destination, current)
 
 static func place_model(state: Dictionary, model: int, destination: Vector2) -> Dictionary:
 	var error := position_error(state, model, destination)

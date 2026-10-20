@@ -52,7 +52,7 @@ func run() -> void:
 		beyond_legacy = beyond_legacy or absf(vertex.x) > 15.001 or absf(vertex.z) > 10.001
 	check(beyond_legacy, "Incursion guides must reach the expanded board rather than clipping to the legacy demo")
 	game.state.phase = "charge"
-	game.state.pending_charge = {"squad": 1, "maximum": 7, "rolls": [3, 4]}
+	game.state.pending_charge = {"squad": 1, "maximum": 7, "rolls": [3, 4], "targets": []}
 	game._refresh()
 	check(is_equal_approx(game.guides.current_range, 7), "Charge guide ignored the actual host roll")
 	game.state.pending_charge = {}

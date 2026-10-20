@@ -1,0 +1,36 @@
+{
+  "id": "space-marines-redemptor-dreadnought-e11-audit-2026-10-19",
+  "source_authority": "Wahapedia 11th edition local extraction",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000002717",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "rules_source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Redemptor-Dreadnought",
+  "implementation": "scripts/edition_11/current_reference_marine_profiles.gd; scripts/edition_11/unit_abilities.gd; scripts/edition_11/attack_sequence.gd; scripts/edition_11/weapon_traits.gd; scripts/edition_11/deadly_demise.gd; scripts/edition_11/unit_actions.gd; scripts/edition_11/army_capabilities.gd",
+  "validation_artifact": ".tools/verification/20261019T052426603673Z/results.json",
+  "registry_followup_validation_artifact": ".tools/verification/20261019T052644446467Z/results.json",
+  "validation_status": "tests_passed_local_targeted",
+  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v29.json",
+  "fixed_data_profiles": 22,
+  "fixed_data_weapon_trait_profiles": 79,
+  "fixed_data_consistent_profiles": 21,
+  "fixed_data_numeric_or_identity_differences": 0,
+  "implemented_abilities": [
+    "Damaged 4: at 1-4 remaining wounds, this model's attacks have -1 to Hit.",
+    "Deadly Demise D3: on a 6 after destruction, each unit within 6 inches receives a separately rolled D3 mortal-wound packet; chained explosions resolve in sequence.",
+    "Duty Eternal: attacks targeting this unit with Strength greater than its Toughness subtract 1 from the Wound roll."
+  ],
+  "wargear_options": [
+    "Fragstorm Grenade Launchers can be replaced with Storm Bolters.",
+    "Heavy Flamer can be replaced with Onslaught Gatling Cannon.",
+    "Heavy Onslaught Gatling Cannon can be replaced with Macro Plasma Incinerator for +10 points.",
+    "Add Icarus Rocket Pod."
+  ],
+  "points": { "first_and_second_copies": 170, "third_plus_copies": 190, "macro_plasma_incinerator_surcharge": 10 },
+  "network_validation": "deferred_not_run",
+  "full_match_certified": false,
+  "known_scope_limits": [
+    "Only the documented profile, wargear options, price check and targeted interactions were admitted.",
+    "Full faction and army legality are not certified.",
+    "Full local regression and final network validation remain pending."
+  ]
+}

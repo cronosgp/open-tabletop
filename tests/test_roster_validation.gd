@@ -3,6 +3,7 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const P = F.P
 const V = C.RosterValidation
+const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 var failures := 0
 func _initialize() -> void: call_deferred("run")
 func check(ok: bool, message: String) -> void:
@@ -13,13 +14,33 @@ func pick(s: Dictionary, owner: int, action: String, model: int = -2, target: in
 	return {}
 func act(s: Dictionary, owner: int, action: String, model: int = -2, target: int = -2) -> String:
 	return C.unit_action(s, owner, pick(s, owner, action, model, target), Vector2.ZERO, s.revision, func() -> int: return 6)
+func model_for(s: Dictionary, identity: String, owner: int) -> int:
+	for model: int in s.units:
+		if s.units[model].owner == owner and str(s.units[model].definition_id).get_slice(":", 3) == identity: return model
+	return -1
 func options() -> Dictionary:
 	return {"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true}
 func run() -> void:
+	check(V.POINTS.get("roboute-guilliman", {}).get("cost", 0) == 415 and V.POINTS.get("roboute-guilliman", {}).get("max_supported_copies", 0) == 1, "Guilliman's construction price and unique-copy boundary come from the current Wahapedia profile")
 	check(V.dp_error([{"id":"gladius", "dp":3}]).is_empty(), "One 3DP detachment is a legal Incursion exception")
 	check(not V.dp_error([{"id":"gladius", "dp":3},{"id":"other", "dp":1}]).is_empty(), "The 3DP exception cannot admit another detachment")
 	check(not V.dp_error([{"id":"same", "dp":1},{"id":"same", "dp":1}]).is_empty(), "Duplicate detachments are rejected")
 	var choices := F.selections()
+	var guilliman_lists := F.selections()
+	guilliman_lists[1].entries = [
+		{"definition_id":"40kdc:11e:adeptus-astartes:roboute-guilliman", "models":1, "copies":1},
+		{"definition_id":"40kdc:11e:adeptus-astartes:captain", "models":1, "copies":1},
+		{"definition_id":"40kdc:11e:adeptus-astartes:intercessor-squad", "models":5, "copies":1}
+	]
+	var guilliman_state := P.initial_state(options(), guilliman_lists)
+	guilliman_state.phase = "deployment"
+	guilliman_state.awakened_dynasty.pending = []
+	var guilliman_model := model_for(guilliman_state, "roboute-guilliman", 1)
+	var competing_warlord := model_for(guilliman_state, "captain", 1)
+	var warlord_choices: Array[int] = []
+	for option: Dictionary in UnitActions.choices(guilliman_state, 1):
+		if option.action == "warlord": warlord_choices.append(int(option.model))
+	check(guilliman_model > 0 and competing_warlord > 0 and warlord_choices == [guilliman_model], "Supreme Commander makes Guilliman the only Warlord choice in checked preparation")
 	var one := V.admit(choices[1])
 	var two := V.admit(choices[2])
 	check(one.error.is_empty() and one.total == 615 and two.error.is_empty() and two.total == 290, "Both armies use current official MFM 1.6 totals, not historical snapshot prices")
@@ -28,10 +49,15 @@ func run() -> void:
 	var necron_full := V.inspect(V.necron_incursion_list().list)
 	check(necron_full.error.is_empty() and necron_full.total == 880 and necron_full.unit_count == 12, "Checked Necrons admit the 880-point repetition-ceiling Incursion list")
 	var invalid: Dictionary = choices[1].duplicate(true)
+	invalid.entries = [{"definition_id":"40kdc:11e:adeptus-astartes:roboute-guilliman", "models":1, "copies":2}]
+	check(not V.admit(invalid).error.is_empty(), "Roboute Guilliman cannot be selected more than once")
+	invalid.entries = [{"definition_id":"40kdc:11e:adeptus-astartes:roboute-guilliman", "models":1, "copies":1}]
+	check(V.admit(invalid).error.is_empty() and V.admit(invalid).total == 415, "Guilliman's one-model roster composition uses the Wahapedia cost")
+	invalid = choices[1].duplicate(true)
 	invalid.entries = [{"definition_id":"40kdc:11e:adeptus-astartes:terminator-squad", "models":5, "copies":3},{"definition_id":"40kdc:11e:adeptus-astartes:captain", "models":1, "copies":1}]
 	check(not V.admit(invalid).error.is_empty(), "Third Terminator is rejected by Incursion's two-unit limit, irrespective of its surcharge")
 	invalid.entries = [{"definition_id":"40kdc:11e:adeptus-astartes:intercessor-squad", "models":5, "copies":4},{"definition_id":"40kdc:11e:adeptus-astartes:captain", "models":1, "copies":1}]
-	check(V.admit(invalid).error.is_empty() and V.admit(invalid).total == 430, "Four Battleline units plus Warlord are admitted")
+	check(V.admit(invalid).error.is_empty() and V.admit(invalid).total == 430, "Four Battleline units plus Warlord are admitted: %s" % str(V.admit(invalid)))
 	invalid.entries[0].copies = 5
 	check(not V.admit(invalid).error.is_empty(), "Battleline cannot use a fifth datasheet copy in Incursion")
 	invalid.entries = [{"definition_id":"40kdc:11e:adeptus-astartes:intercessor-squad", "models":5, "copies":1}]
@@ -39,7 +65,7 @@ func run() -> void:
 	invalid.entries = [{"definition_id":"40kdc:11e:adeptus-astartes:captain", "models":1, "copies":1},{"definition_id":"40kdc:11e:adeptus-astartes:lieutenant", "models":1, "copies":1}]
 	check(not V.admit(invalid).error.is_empty(), "Support without an eligible bodyguard is rejected before preparation")
 	invalid = choices[1].duplicate(true)
-	invalid.entries[0].models = 10
+	invalid.entries = [{"definition_id": "40kdc:11e:adeptus-astartes:captain-in-phobos-armour", "models": 10, "copies": 1}]
 	check(not V.admit(invalid).error.is_empty(), "An unimplemented size is not silently resized or certified")
 	invalid = choices[1].duplicate(true)
 	invalid.entries[0].cost = 1
@@ -62,7 +88,7 @@ func run() -> void:
 	var s := P.initial_state(options(), choices)
 	check(not s.has("error") and V.enabled(s) and s.roster_points_validated and s.training_points == {1:615,2:290} and s.squads[11].training_cost == 190, "Authoritative materialization and reserve costs use verified prices")
 	check(s.stratagems.get("movement_rerolls", false) and s.stratagems.get("attack_rerolls", false) and s.stratagems.get("save_rerolls", false) and s.stratagems.get("damage_rerolls", false) and s.stratagems.get("hazard_rerolls", false) and s.stratagems.get("count_rerolls", false) and s.stratagems.get("escape_rerolls", false), "Checked matches enable every implemented Command Re-roll window")
-	check(s.match_manifest.checked_rosters.digest == V.digest() and s.match_manifest.official_legality_validated and s.roster_validation.full_match_certified, "Checked CA provenance includes the implemented infantry core match")
+	check(s.match_manifest.checked_rosters.digest == V.digest() and not s.match_manifest.official_legality_validated and not s.roster_validation.full_match_certified and not s.match_manifest.checked_rosters.full_match_certified and not s.match_manifest.checked_rosters.official_legality_validated and s.match_manifest.rules_source_status == V.CURRENT_SOURCE_STATUS, "Reference construction preserves provenance without certifying unresolved Codex rules")
 	check(P.from_setup(s.saved_army_setup).pack_hash == s.pack_hash and s.pack_hash != F.fresh().pack_hash, "Setup, save and peer identities freeze the checked profile")
 	check(not V.seal(s,1).is_empty() and not s.roster_validation.armies[1].formations_verified, "Formations cannot be stamped without a Warlord")
 	check(act(s,1,"mission-terrain").is_empty(), "Checked setup integrates with mission choices")
@@ -75,7 +101,7 @@ func run() -> void:
 	check(act(s,1,"warlord",300).is_empty() and not act(s,1,"setup-done").is_empty() and not s.roster_validation.armies[1].formations_verified, "Unattached Support blocks completion without setting the stamp")
 	check(act(s,1,"attach",900,1).is_empty() and act(s,1,"setup-done").is_empty(), "Legal Support/Warlord declarations complete P1 construction checks")
 	check(act(s,2,"warlord",600).is_empty() and act(s,2,"setup-done").is_empty() and s.roster_validation.armies[1].formations_verified and s.roster_validation.armies[2].formations_verified, "Both formations carry a persisted checked status")
-	check(s.roster_validation.full_match_certified, "Warlord/Support stamps complete the checked infantry match")
+	check(not s.roster_validation.full_match_certified and not s.match_manifest.official_legality_validated and not s.match_manifest.checked_rosters.full_match_certified, "Warlord/Support declarations cannot promote unresolved sources to full-match certification")
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	game.auto_models.button_pressed = false

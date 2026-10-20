@@ -1,0 +1,40 @@
+{
+  "id": "marine-invictor-tactical-warsuit-e11-local-audit-2026-10-19",
+  "rules_authority": "Wahapedia 11th-edition local export",
+  "observed_at": "2026-10-19",
+  "source": {
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001156",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Invictor-Tactical-Warsuit",
+    "core_rules_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/"
+  },
+  "implementation": {
+    "runtime_profile": "invictor-tactical-warsuit",
+    "rules": [
+      "Damaged 4",
+      "Deadly Demise D3",
+      "Scouts 8",
+      "Forward Assault Warsuit"
+    ],
+    "construction": {
+      "first_second_copy_points": 135,
+      "third_plus_copy_points": 150,
+      "maximum_supported_copies": 3,
+      "local_wargear_choices": [
+        "Replace Incendium Cannon with Twin Ironhail Autocannon"
+      ]
+    },
+    "validation_artifact": ".tools/verification/20261019T055549579499Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v35.json",
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "full_army_legality_certified": false
+  },
+  "scope_notes": [
+    "Local rule, construction, combat and admission checks only.",
+    "Fixed-data comparison does not certify all optional wargear legality or complete army legality.",
+    "Network validation has not been performed."
+  ]
+}

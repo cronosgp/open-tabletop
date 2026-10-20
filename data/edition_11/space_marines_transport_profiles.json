@@ -1,0 +1,1403 @@
+{
+  "schema_version": 1,
+  "source": "Wahapedia 11th edition local data export",
+  "source_book_id": "000000139",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "profiles": {
+    "land-raider": {
+      "name": "Land Raider",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000065",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "points": 245,
+      "points_by_models": {
+        "1": 245
+      },
+      "third_plus_points_by_models": {
+        "1": 265
+      },
+      "wargear_costs": {},
+      "models": 1,
+      "base_size_source": "Use model",
+      "base_size_source_mm": 150,
+      "base_geometry": "circular vehicle proxy",
+      "base_radius_inches": 2.952755905511811,
+      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "damaged_threshold": 0,
+      "stats": {
+        "movement_inches": 10,
+        "toughness": 12,
+        "save_target": 2,
+        "wounds": 16,
+        "leadership_target": 6,
+        "objective_control": 5,
+        "invulnerable_target": 0
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "DEATHWING",
+        "VEHICLE",
+        "TRANSPORT",
+        "SMOKE",
+        "IMPERIUM",
+        "FRAME"
+      ],
+      "ranged": [
+        {
+          "id": "godhammer-lascannon",
+          "profiles": {
+            "standard": {
+              "name": "Godhammer Lascannon",
+              "range_inches": 48,
+              "attacks": 2,
+              "skill": 3,
+              "strength": 12,
+              "ap": "-3",
+              "damage": "D3+3",
+              "keywords": {}
+            }
+          }
+        },
+        {
+          "id": "godhammer-lascannon-2",
+          "profiles": {
+            "standard": {
+              "name": "Godhammer Lascannon",
+              "range_inches": 48,
+              "attacks": 2,
+              "skill": 3,
+              "strength": 12,
+              "ap": "-3",
+              "damage": "D3+3",
+              "keywords": {}
+            }
+          }
+        },
+        {
+          "id": "twin-heavy-bolter",
+          "profiles": {
+            "standard": {
+              "name": "Twin Heavy Bolter",
+              "range_inches": 36,
+              "attacks": 3,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 2,
+              "keywords": {
+                "twin-linked": true,
+                "rapid-fire": 2,
+                "sustained-hits": 1
+              }
+            }
+          }
+        }
+      ],
+      "melee": [
+        {
+          "id": "armoured-tracks",
+          "profiles": {
+            "standard": {
+              "name": "Armoured Tracks",
+              "range_inches": "Melee",
+              "attacks": 6,
+              "skill": 4,
+              "strength": 8,
+              "ap": 0,
+              "damage": 1,
+              "keywords": {}
+            }
+          }
+        }
+      ],
+      "additional_weapon_profiles": {
+        "ranged": [
+          {
+            "id": "hunter-killer-missile",
+            "profiles": {
+              "standard": {
+                "name": "Hunter-killer Missile",
+                "range_inches": 48,
+                "attacks": 1,
+                "skill": 2,
+                "strength": 14,
+                "ap": "-3",
+                "damage": "D3+3",
+                "keywords": {
+                  "one-shot": true
+                }
+              }
+            }
+          },
+          {
+            "id": "multi-melta",
+            "profiles": {
+              "standard": {
+                "name": "Multi-melta",
+                "range_inches": 18,
+                "attacks": 2,
+                "skill": 3,
+                "strength": 10,
+                "ap": "-3",
+                "damage": "D3+2",
+                "keywords": {
+                  "melta": 3
+                }
+              }
+            }
+          },
+          {
+            "id": "storm-bolter",
+            "profiles": {
+              "standard": {
+                "name": "Storm Bolter",
+                "range_inches": 24,
+                "attacks": 2,
+                "skill": 3,
+                "strength": 5,
+                "ap": "-1",
+                "damage": 1,
+                "keywords": {
+                  "rapid-fire": 2
+                }
+              }
+            }
+          }
+        ],
+        "melee": []
+      },
+      "transport": {
+        "capacity": 14,
+        "required": [
+          "ADEPTUS ASTARTES",
+          "INFANTRY"
+        ],
+        "forbidden": [
+          "JUMP PACK"
+        ],
+        "double_space": [
+          "GRAVIS",
+          "TERMINATOR"
+        ],
+        "abilities": [
+          {
+            "name": "Assault Ramp",
+            "text": "In your Movement phase, when this unit ends a normal move, units embarked within this unit can make an assault disembark move."
+          },
+          {
+            "name": "Power of the Machine Spirit",
+            "text": "This unit’s ranged attacks can:Re-roll one hit roll.Re-roll one wound roll."
+          }
+        ],
+        "options": {
+          "add": [
+            "Hunter-killer Missile",
+            "Multi-melta",
+            "Storm Bolter"
+          ]
+        }
+      }
+    },
+    "land-raider-crusader": {
+      "name": "Land Raider Crusader",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000066",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "points": 230,
+      "points_by_models": {
+        "1": 230
+      },
+      "third_plus_points_by_models": {
+        "1": 250
+      },
+      "wargear_costs": {},
+      "models": 1,
+      "base_size_source": "Use model",
+      "base_size_source_mm": 150,
+      "base_geometry": "circular vehicle proxy",
+      "base_radius_inches": 2.952755905511811,
+      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "damaged_threshold": 0,
+      "stats": {
+        "movement_inches": 12,
+        "toughness": 12,
+        "save_target": 2,
+        "wounds": 16,
+        "leadership_target": 6,
+        "objective_control": 5,
+        "invulnerable_target": 0
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "SMOKE",
+        "DEATHWING",
+        "IMPERIUM",
+        "FRAME",
+        "EXPLOSIVES",
+        "VEHICLE",
+        "TRANSPORT"
+      ],
+      "ranged": [
+        {
+          "id": "hurricane-bolter",
+          "profiles": {
+            "standard": {
+              "name": "Hurricane Bolter",
+              "range_inches": 24,
+              "attacks": 6,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "twin-linked": true,
+                "rapid-fire": 6
+              }
+            }
+          }
+        },
+        {
+          "id": "hurricane-bolter-2",
+          "profiles": {
+            "standard": {
+              "name": "Hurricane Bolter",
+              "range_inches": 24,
+              "attacks": 6,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "twin-linked": true,
+                "rapid-fire": 6
+              }
+            }
+          }
+        },
+        {
+          "id": "twin-assault-cannon",
+          "profiles": {
+            "standard": {
+              "name": "Twin Assault Cannon",
+              "range_inches": 24,
+              "attacks": 6,
+              "skill": 3,
+              "strength": 6,
+              "ap": "-2",
+              "damage": 1,
+              "keywords": {
+                "twin-linked": true,
+                "sustained-hits": 1
+              }
+            }
+          }
+        }
+      ],
+      "melee": [
+        {
+          "id": "armoured-tracks",
+          "profiles": {
+            "standard": {
+              "name": "Armoured Tracks",
+              "range_inches": "Melee",
+              "attacks": 6,
+              "skill": 4,
+              "strength": 8,
+              "ap": 0,
+              "damage": 1,
+              "keywords": {}
+            }
+          }
+        }
+      ],
+      "additional_weapon_profiles": {
+        "ranged": [
+          {
+            "id": "hunter-killer-missile",
+            "profiles": {
+              "standard": {
+                "name": "Hunter-killer Missile",
+                "range_inches": 48,
+                "attacks": 1,
+                "skill": 2,
+                "strength": 14,
+                "ap": "-3",
+                "damage": "D3+3",
+                "keywords": {
+                  "one-shot": true
+                }
+              }
+            }
+          },
+          {
+            "id": "multi-melta",
+            "profiles": {
+              "standard": {
+                "name": "Multi-melta",
+                "range_inches": 18,
+                "attacks": 2,
+                "skill": 3,
+                "strength": 10,
+                "ap": "-3",
+                "damage": "D3+3",
+                "keywords": {
+                  "melta": 3
+                }
+              }
+            }
+          },
+          {
+            "id": "storm-bolter",
+            "profiles": {
+              "standard": {
+                "name": "Storm Bolter",
+                "range_inches": 24,
+                "attacks": 2,
+                "skill": 3,
+                "strength": 5,
+                "ap": "-1",
+                "damage": 1,
+                "keywords": {
+                  "rapid-fire": 2
+                }
+              }
+            }
+          }
+        ],
+        "melee": []
+      },
+      "transport": {
+        "capacity": 16,
+        "required": [
+          "ADEPTUS ASTARTES",
+          "INFANTRY"
+        ],
+        "forbidden": [
+          "JUMP PACK"
+        ],
+        "double_space": [
+          "GRAVIS",
+          "TERMINATOR"
+        ],
+        "abilities": [
+          {
+            "name": "Assault Ramp",
+            "text": "In your Movement phase, when this unit ends a normal move, units embarked within this unit can make an assault disembark move."
+          },
+          {
+            "name": "Fury of the Machine Spirit",
+            "text": "This unit’s ranged attacks that target a unit within 12\" of this unit have [Lethal Hits]."
+          }
+        ],
+        "options": {
+          "add": [
+            "Hunter-killer Missile",
+            "Multi-melta",
+            "Storm Bolter"
+          ]
+        }
+      }
+    },
+    "drop-pod": {
+      "name": "Drop Pod",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000000087",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "points": 60,
+      "points_by_models": {
+        "1": 60
+      },
+      "third_plus_points_by_models": {
+        "1": 70
+      },
+      "wargear_costs": {},
+      "models": 1,
+      "base_size_source": "",
+      "base_size_source_mm": 80,
+      "base_geometry": "circular vehicle proxy",
+      "base_radius_inches": 1.5748031496062993,
+      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "damaged_threshold": 0,
+      "stats": {
+        "movement_inches": 0,
+        "toughness": 7,
+        "save_target": 3,
+        "wounds": 8,
+        "leadership_target": 6,
+        "objective_control": 0,
+        "invulnerable_target": 0
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "VEHICLE",
+        "DEDICATED TRANSPORT",
+        "FRAME",
+        "IMPERIUM",
+        "TRANSPORT"
+      ],
+      "ranged": [],
+      "melee": [],
+      "additional_weapon_profiles": {
+        "ranged": [],
+        "melee": []
+      },
+      "transport": {
+        "capacity": 12,
+        "required": [
+          "ADEPTUS ASTARTES",
+          "INFANTRY"
+        ],
+        "forbidden": [
+          "GRAVIS",
+          "JUMP PACK",
+          "TERMINATOR"
+        ],
+        "double_space": [],
+        "abilities": [
+          {
+            "name": "Drop Pod Assault",
+            "text": "This unit must start the battle in strategic reserves.In your first Movement phase, this unit can make an ingress move.When this unit is set up, all units embarked within this unit must make a disembark/assault disembark move, and those units must be set up more than 8\" away from all enemy units."
+          },
+          {
+            "name": "Deployment Complete",
+            "text": "When this unit is set up and all units embarked within it have disembarked, units cannot embark within this unit."
+          }
+        ],
+        "options": {}
+      }
+    },
+    "land-raider-redeemer": {
+      "name": "Land Raider Redeemer",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002173",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "points": 245,
+      "points_by_models": {
+        "1": 245
+      },
+      "third_plus_points_by_models": {
+        "1": 265
+      },
+      "wargear_costs": {},
+      "models": 1,
+      "base_size_source": "Use model",
+      "base_size_source_mm": 150,
+      "base_geometry": "circular vehicle proxy",
+      "base_radius_inches": 2.952755905511811,
+      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "damaged_threshold": 0,
+      "stats": {
+        "movement_inches": 12,
+        "toughness": 12,
+        "save_target": 2,
+        "wounds": 16,
+        "leadership_target": 6,
+        "objective_control": 5,
+        "invulnerable_target": 0
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "SMOKE",
+        "TRANSPORT",
+        "DEATHWING",
+        "VEHICLE",
+        "EXPLOSIVES",
+        "FRAME",
+        "IMPERIUM"
+      ],
+      "ranged": [
+        {
+          "id": "flamestorm-cannon",
+          "profiles": {
+            "standard": {
+              "name": "Flamestorm Cannon",
+              "range_inches": 12,
+              "attacks": 4,
+              "skill": 0,
+              "strength": 6,
+              "ap": "-2",
+              "damage": 2,
+              "keywords": {
+                "torrent": true,
+                "blast": 2
+              }
+            }
+          }
+        },
+        {
+          "id": "flamestorm-cannon-2",
+          "profiles": {
+            "standard": {
+              "name": "Flamestorm Cannon",
+              "range_inches": 12,
+              "attacks": 4,
+              "skill": 0,
+              "strength": 6,
+              "ap": "-2",
+              "damage": 2,
+              "keywords": {
+                "torrent": true,
+                "blast": 2
+              }
+            }
+          }
+        },
+        {
+          "id": "twin-assault-cannon",
+          "profiles": {
+            "standard": {
+              "name": "Twin Assault Cannon",
+              "range_inches": 24,
+              "attacks": 6,
+              "skill": 3,
+              "strength": 6,
+              "ap": "-2",
+              "damage": 1,
+              "keywords": {
+                "twin-linked": true,
+                "sustained-hits": 1
+              }
+            }
+          }
+        }
+      ],
+      "melee": [
+        {
+          "id": "armoured-tracks",
+          "profiles": {
+            "standard": {
+              "name": "Armoured Tracks",
+              "range_inches": "Melee",
+              "attacks": 6,
+              "skill": 4,
+              "strength": 8,
+              "ap": 0,
+              "damage": 1,
+              "keywords": {}
+            }
+          }
+        }
+      ],
+      "additional_weapon_profiles": {
+        "ranged": [
+          {
+            "id": "hunter-killer-missile",
+            "profiles": {
+              "standard": {
+                "name": "Hunter-killer Missile",
+                "range_inches": 48,
+                "attacks": 1,
+                "skill": 2,
+                "strength": 14,
+                "ap": "-3",
+                "damage": "D3+3",
+                "keywords": {
+                  "one-shot": true
+                }
+              }
+            }
+          },
+          {
+            "id": "multi-melta",
+            "profiles": {
+              "standard": {
+                "name": "Multi-melta",
+                "range_inches": 18,
+                "attacks": 2,
+                "skill": 3,
+                "strength": 10,
+                "ap": "-3",
+                "damage": "D3+2",
+                "keywords": {
+                  "melta": 3
+                }
+              }
+            }
+          },
+          {
+            "id": "storm-bolter",
+            "profiles": {
+              "standard": {
+                "name": "Storm Bolter",
+                "range_inches": 24,
+                "attacks": 2,
+                "skill": 3,
+                "strength": 5,
+                "ap": "-1",
+                "damage": 1,
+                "keywords": {
+                  "rapid-fire": 2
+                }
+              }
+            }
+          }
+        ],
+        "melee": []
+      },
+      "transport": {
+        "capacity": 14,
+        "required": [
+          "ADEPTUS ASTARTES",
+          "INFANTRY"
+        ],
+        "forbidden": [
+          "JUMP PACK"
+        ],
+        "double_space": [
+          "GRAVIS",
+          "TERMINATOR"
+        ],
+        "abilities": [
+          {
+            "name": "Assault Ramp",
+            "text": "In your Movement phase, when this unit ends a normal move, units embarked within this unit can make an assault disembark move."
+          },
+          {
+            "name": "Wrath of the Machine Spirit",
+            "text": "This unit’s ranged attacks that target a unit within 12\" of this unit have [Devastating Wounds: non-Monster/vehicle]."
+          }
+        ],
+        "options": {
+          "add": [
+            "Hunter-killer Missile",
+            "Multi-melta",
+            "Storm Bolter"
+          ]
+        }
+      }
+    },
+    "impulsor": {
+      "name": "Impulsor",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002568",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "points": 70,
+      "points_by_models": {
+        "1": 70
+      },
+      "third_plus_points_by_models": {
+        "1": 80
+      },
+      "wargear_costs": {
+        "Orbital Comms Array": 10
+      },
+      "models": 1,
+      "base_size_source": "100mm",
+      "base_size_source_mm": 100,
+      "base_geometry": "circular vehicle proxy",
+      "base_radius_inches": 1.968503937007874,
+      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "damaged_threshold": 0,
+      "stats": {
+        "movement_inches": 12,
+        "toughness": 9,
+        "save_target": 3,
+        "wounds": 11,
+        "leadership_target": 6,
+        "objective_control": 2,
+        "invulnerable_target": 0
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "TRANSPORT",
+        "DEDICATED TRANSPORT",
+        "VEHICLE",
+        "IMPERIUM",
+        "FRAME"
+      ],
+      "ranged": [
+        {
+          "id": "storm-bolters",
+          "profiles": {
+            "standard": {
+              "name": "Storm Bolters",
+              "range_inches": 24,
+              "attacks": 4,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "rapid-fire": 4
+              }
+            }
+          }
+        }
+      ],
+      "melee": [
+        {
+          "id": "armoured-hull",
+          "profiles": {
+            "standard": {
+              "name": "Armoured Hull",
+              "range_inches": "Melee",
+              "attacks": 3,
+              "skill": 4,
+              "strength": 6,
+              "ap": 0,
+              "damage": 1,
+              "keywords": {}
+            }
+          }
+        }
+      ],
+      "additional_weapon_profiles": {
+        "ranged": [
+          {
+            "id": "ironhail-heavy-stubber",
+            "profiles": {
+              "standard": {
+                "name": "Ironhail Heavy Stubber",
+                "range_inches": 36,
+                "attacks": 3,
+                "skill": 3,
+                "strength": 4,
+                "ap": "-1",
+                "damage": 1,
+                "keywords": {
+                  "rapid-fire": 3
+                }
+              }
+            }
+          },
+          {
+            "id": "fragstorm-grenade-launchers",
+            "profiles": {
+              "standard": {
+                "name": "Fragstorm Grenade Launchers",
+                "range_inches": 18,
+                "attacks": 6,
+                "skill": 3,
+                "strength": 4,
+                "ap": "-1",
+                "damage": 1,
+                "keywords": {
+                  "blast": 2
+                }
+              }
+            }
+          },
+          {
+            "id": "bellicatus-missile-array",
+            "profiles": {
+              "frag": {
+                "name": "Bellicatus Missile Array - Frag",
+                "range_inches": 48,
+                "attacks": 4,
+                "skill": 3,
+                "strength": 4,
+                "ap": "-1",
+                "damage": 1,
+                "keywords": {
+                  "blast": 1
+                }
+              },
+              "icarus": {
+                "name": "Bellicatus Missile Array - Icarus",
+                "range_inches": 48,
+                "attacks": 3,
+                "skill": 3,
+                "strength": 6,
+                "ap": "-1",
+                "damage": 2,
+                "keywords": {
+                  "anti-fly": 2
+                }
+              },
+              "krak": {
+                "name": "Bellicatus Missile Array - Krak",
+                "range_inches": 48,
+                "attacks": 1,
+                "skill": 3,
+                "strength": 10,
+                "ap": "-2",
+                "damage": "D3+3",
+                "keywords": {}
+              }
+            }
+          },
+          {
+            "id": "ironhail-skytalon-array",
+            "profiles": {
+              "standard": {
+                "name": "Ironhail Skytalon Array",
+                "range_inches": 36,
+                "attacks": 6,
+                "skill": 3,
+                "strength": 4,
+                "ap": "-1",
+                "damage": 1,
+                "keywords": {
+                  "rapid-fire": 6
+                }
+              }
+            }
+          }
+        ],
+        "melee": []
+      },
+      "transport": {
+        "capacity": 7,
+        "required": [
+          "ADEPTUS ASTARTES",
+          "INFANTRY"
+        ],
+        "forbidden": [
+          "TERMINATOR",
+          "JUMP PACK"
+        ],
+        "double_space": [
+          "GRAVIS"
+        ],
+        "abilities": [
+        {
+          "name": "Firing Deck",
+          "source_ability_id": "000008334",
+          "parameter": "7",
+          "text": "This ability always takes the form Firing Deck X. In your Shooting phase, each time this TRANSPORT is selected to shoot, if one or more units are embarked within it, select up to X models embarked within this TRANSPORT, excluding models whose units have already been selected to shoot this phase. For each selected model, select one of its ranged weapons, excluding [ONE SHOT] weapons. Until this TRANSPORT has resolved all of its attacks, it has those selected weapons in addition to its other weapons. Until the end of the turn, units embarked within this TRANSPORT are not eligible to shoot."
+        },
+          {
+            "name": "Rapid Disembarkation",
+            "text": "In your Movement phase, when this unit ends an advance move, units embarked within this unit can make a shock disembark move."
+          },
+          {
+            "name": "Orbital Comms Array",
+            "text": "This unit has Scouts 6\"."
+          },
+          {
+            "name": "Shield Dome",
+            "text": "This unit has 5+ InSv."
+          }
+        ],
+        "options": {
+          "one_of": [
+            "Bellicatus Missile Array",
+            "Orbital Comms Array",
+            "Ironhail Skytalon Array",
+            "Shield Dome"
+          ],
+          "replacements": {
+            "Storm Bolters": "Fragstorm Grenade Launchers"
+          },
+          "add": [
+            "Ironhail Heavy Stubber"
+          ],
+          "wargear_costs": {
+            "Orbital Comms Array": 10
+          }
+        }
+      }
+    },
+    "repulsor": {
+      "name": "Repulsor",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002721",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "points": 190,
+      "points_by_models": {
+        "1": 190
+      },
+      "third_plus_points_by_models": {
+        "1": 210
+      },
+      "wargear_costs": {},
+      "models": 1,
+      "base_size_source": "100mm",
+      "base_size_source_mm": 100,
+      "base_geometry": "circular vehicle proxy",
+      "base_radius_inches": 1.968503937007874,
+      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "damaged_threshold": 0,
+      "stats": {
+        "movement_inches": 10,
+        "toughness": 12,
+        "save_target": 3,
+        "wounds": 16,
+        "leadership_target": 6,
+        "objective_control": 5,
+        "invulnerable_target": 0
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "DEATHWING",
+        "TRANSPORT",
+        "SMOKE",
+        "FRAME",
+        "VEHICLE",
+        "IMPERIUM"
+      ],
+      "ranged": [
+        {
+          "id": "defensive-array",
+          "profiles": {
+            "standard": {
+              "name": "Defensive Array",
+              "range_inches": 24,
+              "attacks": 18,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {}
+            }
+          }
+        },
+        {
+          "id": "heavy-onslaught-gatling-cannon",
+          "profiles": {
+            "standard": {
+              "name": "Heavy Onslaught Gatling Cannon",
+              "range_inches": 24,
+              "attacks": 12,
+              "skill": 3,
+              "strength": 6,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "devastating-wounds": true,
+                "sustained-hits": 2
+              }
+            }
+          }
+        },
+        {
+          "id": "hunter-slayer-missile",
+          "profiles": {
+            "standard": {
+              "name": "Hunter-slayer Missile",
+              "range_inches": 48,
+              "attacks": 1,
+              "skill": 2,
+              "strength": 14,
+              "ap": "-3",
+              "damage": "D3+3",
+              "keywords": {
+                "one-shot": true,
+                "indirect-fire": true
+              }
+            }
+          }
+        },
+        {
+          "id": "twin-heavy-bolter",
+          "profiles": {
+            "standard": {
+              "name": "Twin Heavy Bolter",
+              "range_inches": 36,
+              "attacks": 3,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 2,
+              "keywords": {
+                "twin-linked": true,
+                "rapid-fire": 2,
+                "sustained-hits": 1
+              }
+            }
+          }
+        }
+      ],
+      "melee": [
+        {
+          "id": "armoured-hull",
+          "profiles": {
+            "standard": {
+              "name": "Armoured Hull",
+              "range_inches": "Melee",
+              "attacks": 6,
+              "skill": 4,
+              "strength": 8,
+              "ap": 0,
+              "damage": 1,
+              "keywords": {}
+            }
+          }
+        }
+      ],
+      "additional_weapon_profiles": {
+        "ranged": [
+          {
+            "id": "las-talon",
+            "profiles": {
+              "standard": {
+                "name": "Las-talon",
+                "range_inches": 36,
+                "attacks": 2,
+                "skill": 3,
+                "strength": 10,
+                "ap": "-3",
+                "damage": "D3+3",
+                "keywords": {}
+              }
+            }
+          },
+          {
+            "id": "twin-lascannon",
+            "profiles": {
+              "standard": {
+                "name": "Twin Lascannon",
+                "range_inches": 48,
+                "attacks": 1,
+                "skill": 3,
+                "strength": 12,
+                "ap": "-3",
+                "damage": "D3+3",
+                "keywords": {
+                  "twin-linked": true
+                }
+              }
+            }
+          }
+        ],
+        "melee": []
+      },
+      "transport": {
+        "capacity": 14,
+        "required": [
+          "ADEPTUS ASTARTES",
+          "INFANTRY"
+        ],
+        "forbidden": [
+          "JUMP PACK"
+        ],
+        "double_space": [
+          "GRAVIS",
+          "TERMINATOR"
+        ],
+        "abilities": [
+          {
+            "name": "Combat Embarkation",
+            "text": "In your opponent’s Charge phase, when an enemy unit has selected charge targets, you can select one friendly unengaged ADEPTUS ASTARTES unit that was one of those charge targets and is eligible to embark within this TRANSPORT. If every model in that unit is within 3\" of this TRANSPORT, that unit can embark within this TRANSPORT. That enemy unit can then select new charge targets for that charge move."
+          }
+        ],
+        "options": {
+          "replacements": {
+            "Heavy Onslaught Gatling Cannon": "Las-talon",
+            "Twin Heavy Bolter": "Twin Lascannon"
+          }
+        }
+      }
+    },
+    "repulsor-executioner": {
+      "name": "Repulsor Executioner",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002722",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "points": 260,
+      "points_by_models": {
+        "1": 260
+      },
+      "third_plus_points_by_models": {
+        "1": 280
+      },
+      "wargear_costs": {
+        "Heavy Laser Destroyer": 10
+      },
+      "models": 1,
+      "base_size_source": "100mm",
+      "base_size_source_mm": 100,
+      "base_geometry": "circular vehicle proxy",
+      "base_radius_inches": 1.968503937007874,
+      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "damaged_threshold": 0,
+      "stats": {
+        "movement_inches": 10,
+        "toughness": 12,
+        "save_target": 3,
+        "wounds": 16,
+        "leadership_target": 6,
+        "objective_control": 5,
+        "invulnerable_target": 0
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "SMOKE",
+        "VEHICLE",
+        "FRAME",
+        "IMPERIUM",
+        "DEATHWING",
+        "TRANSPORT"
+      ],
+      "ranged": [
+        {
+          "id": "defensive-array",
+          "profiles": {
+            "standard": {
+              "name": "Defensive Array",
+              "range_inches": 24,
+              "attacks": 18,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {}
+            }
+          }
+        },
+        {
+          "id": "heavy-laser-destroyer",
+          "profiles": {
+            "standard": {
+              "name": "Heavy Laser Destroyer",
+              "range_inches": 72,
+              "attacks": 2,
+              "skill": 3,
+              "strength": 16,
+              "ap": "-4",
+              "damage": "D6+4",
+              "keywords": {
+                "heavy": true,
+                "devastating-wounds": true
+              }
+            }
+          }
+        },
+        {
+          "id": "heavy-onslaught-gatling-cannon",
+          "profiles": {
+            "standard": {
+              "name": "Heavy Onslaught Gatling Cannon",
+              "range_inches": 24,
+              "attacks": 12,
+              "skill": 3,
+              "strength": 6,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "devastating-wounds": true,
+                "sustained-hits": 2
+              }
+            }
+          }
+        },
+        {
+          "id": "twin-heavy-bolter",
+          "profiles": {
+            "standard": {
+              "name": "Twin Heavy Bolter",
+              "range_inches": 36,
+              "attacks": 3,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 2,
+              "keywords": {
+                "twin-linked": true,
+                "rapid-fire": 2,
+                "sustained-hits": 1
+              }
+            }
+          }
+        }
+      ],
+      "melee": [
+        {
+          "id": "armoured-hull",
+          "profiles": {
+            "standard": {
+              "name": "Armoured Hull",
+              "range_inches": "Melee",
+              "attacks": 6,
+              "skill": 4,
+              "strength": 8,
+              "ap": 0,
+              "damage": 1,
+              "keywords": {}
+            }
+          }
+        }
+      ],
+      "additional_weapon_profiles": {
+        "ranged": [
+          {
+            "id": "macro-plasma-incinerator",
+            "profiles": {
+              "standard": {
+                "name": "Macro Plasma Incinerator - Standard",
+                "range_inches": 36,
+                "attacks": "D3+3",
+                "skill": 3,
+                "strength": 9,
+                "ap": "-3",
+                "damage": 2,
+                "keywords": {
+                  "blast": 1
+                }
+              },
+              "supercharge": {
+                "name": "Macro Plasma Incinerator - Supercharge",
+                "range_inches": 36,
+                "attacks": "D3+3",
+                "skill": 3,
+                "strength": 10,
+                "ap": "-4",
+                "damage": 3,
+                "keywords": {
+                  "hazardous": true,
+                  "blast": 1
+                }
+              }
+            }
+          }
+        ],
+        "melee": []
+      },
+      "transport": {
+        "capacity": 7,
+        "required": [
+          "ADEPTUS ASTARTES",
+          "INFANTRY"
+        ],
+        "forbidden": [
+          "JUMP PACK"
+        ],
+        "double_space": [
+          "GRAVIS",
+          "TERMINATOR"
+        ],
+        "abilities": [
+          {
+            "name": "Executioner",
+            "text": "This unit’s ranged attacks that target a unit not below half-strength have +1 to hit rolls."
+          }
+        ],
+        "options": {
+          "replacements": {
+            "Heavy Laser Destroyer": "Macro Plasma Incinerator"
+          },
+          "wargear_costs": {
+            "Heavy Laser Destroyer": 10
+          }
+        }
+      }
+    },
+    "rhino": {
+      "name": "Rhino",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002723",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "points": 70,
+      "points_by_models": {
+        "1": 70
+      },
+      "third_plus_points_by_models": {
+        "1": 80
+      },
+      "wargear_costs": {},
+      "models": 1,
+      "base_size_source": "Use model",
+      "base_size_source_mm": 120,
+      "base_geometry": "circular vehicle proxy",
+      "base_radius_inches": 2.362204724409449,
+      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "damaged_threshold": 0,
+      "stats": {
+        "movement_inches": 12,
+        "toughness": 9,
+        "save_target": 3,
+        "wounds": 10,
+        "leadership_target": 6,
+        "objective_control": 2,
+        "invulnerable_target": 0
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "SMOKE",
+        "IMPERIUM",
+        "TRANSPORT",
+        "VEHICLE",
+        "FRAME",
+        "DEDICATED TRANSPORT"
+      ],
+      "ranged": [
+        {
+          "id": "storm-bolter",
+          "profiles": {
+            "standard": {
+              "name": "Storm Bolter",
+              "range_inches": 24,
+              "attacks": 2,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "rapid-fire": 2
+              }
+            }
+          }
+        }
+      ],
+      "melee": [
+        {
+          "id": "armoured-tracks",
+          "profiles": {
+            "standard": {
+              "name": "Armoured Tracks",
+              "range_inches": "Melee",
+              "attacks": 3,
+              "skill": 4,
+              "strength": 6,
+              "ap": 0,
+              "damage": 1,
+              "keywords": {}
+            }
+          }
+        }
+      ],
+      "additional_weapon_profiles": {
+        "ranged": [
+          {
+            "id": "hunter-killer-missile",
+            "profiles": {
+              "standard": {
+                "name": "Hunter-killer Missile",
+                "range_inches": 48,
+                "attacks": 1,
+                "skill": 2,
+                "strength": 14,
+                "ap": "-3",
+                "damage": "D3+3",
+                "keywords": {
+                  "one-shot": true
+                }
+              }
+            }
+          }
+        ],
+        "melee": []
+      },
+      "transport": {
+        "capacity": 12,
+        "required": [
+          "ADEPTUS ASTARTES",
+          "INFANTRY"
+        ],
+        "forbidden": [
+          "GRAVIS",
+          "JUMP PACK",
+          "TERMINATOR"
+        ],
+        "double_space": [],
+        "abilities": [
+          {
+            "name": "Firing Deck",
+            "source_ability_id": "000008334",
+            "parameter": "2",
+            "text": "This ability always takes the form Firing Deck X. In your Shooting phase, each time this TRANSPORT is selected to shoot, if one or more units are embarked within it, select up to X models embarked within this TRANSPORT, excluding models whose units have already been selected to shoot this phase. For each selected model, select one of its ranged weapons, excluding [ONE SHOT] weapons. Until this TRANSPORT has resolved all of its attacks, it has those selected weapons in addition to its other weapons. Until the end of the turn, units embarked within this TRANSPORT are not eligible to shoot."
+          },
+          {
+            "name": "Veiling Smoke (Once per phase, per unit)",
+            "text": "You can target this unit with the Smokescreen stratagem, regardless of any other uses of that stratagem this phase. If you do:That use is -1 CP.That use does not prevent any uses of that stratagem on other units this phase."
+          }
+        ],
+        "options": {
+          "add": [
+            "Hunter-killer Missile"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "space-marines-firestrike-servo-turrets-e11-audit-2026-10-19",
+  "source_authority": "Wahapedia 11th edition local extraction",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000000086",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "rules_source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Firestrike-Servo-turrets",
+  "implementation": "scripts/edition_11/current_reference_marine_profiles.gd; scripts/edition_11/unit_abilities.gd; scripts/edition_11/unit_actions.gd; scripts/edition_11/core_reactions.gd; scripts/edition_11/attack_plan.gd; scripts/edition_11/attack_sequence.gd",
+  "validation_artifact": ".tools/verification/20261019T044616562986Z/results.json",
+  "validation_status": "tests_passed_local_targeted",
+  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v20.json",
+  "fixed_data_consistent": true,
+  "weapon_profiles_checked": 3,
+  "network_validation": "deferred_not_run",
+  "full_match_certified": false,
+  "known_scope_limits": [
+    "Full faction and army legality are not certified.",
+    "Full local regression and final network validation are pending.",
+    "Fire Overwatch continues to use the bounded core reaction and targeting model implemented by this prototype."
+  ]
+}

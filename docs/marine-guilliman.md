@@ -1,0 +1,9 @@
+# Roboute Guilliman — current Wahapedia 11e implementation
+
+The local Wahapedia export identifies Roboute Guilliman as shared Space Marines datasheet `000000138` in book `000000139`, export revision `2026-10-16T21:03:46+03:00`. His one-model profile costs 415 points and uses a 60 mm base. The default profile, characteristics, invulnerable save, keywords, weapon values and traits, composition and cost pass the bounded local comparison against that export.
+
+The consolidated local construction catalog now offers one copy of the 415-point fixed profile. `Supreme Commander` requires Guilliman to be selected as Warlord; the preparation choice only offers him while he is present. Existing execution covers his other current abilities: Codex Adept keeps all three Combat Doctrines active, Primarch of the XIII grants hit and wound re-rolls of 1 to nearby friendly Adeptus Astartes units, Author of the Codex offers an additional doctrine to a visible nearby unit during Movement, Feel No Pain 5+ applies to each wound, Leader of Astartes grants conditional Lone Operative near friendly Astartes Infantry, and Transhuman Strategist handles his Warlord CP effect.
+
+The Hand of Dominion appears in both ranged and melee profiles but is one physical weapon; its shared `physical_weapon_id` lets the audit compare the source loadout correctly. His Emperor’s Sword keeps the extracted CLEAVE 2 and Devastating Wounds traits.
+
+Focused local validation passed 10/10 processes, including the dedicated Guilliman checks, catalog admission, checked-roster cost/uniqueness, Warlord choice, combat doctrines, attack planning, wound prevention and capability metadata. No network validation was run. This admission does not certify every Gladius interaction, every army-construction restriction, other Chapter variants, or full faction/army legality.

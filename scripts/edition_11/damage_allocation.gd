@@ -1,4 +1,5 @@
 extends RefCounted
+const UnitPrevention = preload("res://scripts/edition_11/unit_prevention.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
@@ -11,7 +12,7 @@ static func eligible(state: Dictionary) -> Array[int]:
 	var pending: Dictionary = state.get("pending_attack", {})
 	if pending.is_empty() or pending.current.is_empty(): return []
 	var current: Dictionary = pending.current
-	if current.phase in ["rolls", "damage_decision"]: return []
+	if current.phase in ["rolls", "damage_decision", "damage_ability"]: return []
 	if current.phase == "precision":
 		var result: Array[int] = []
 		result.assign(current.precision_candidates)
@@ -21,12 +22,16 @@ static func eligible(state: Dictionary) -> Array[int]:
 	return Groups.current_models(state, current, current.steps[current.cursor].kind == "devastating")
 
 static func start(state: Dictionary, prepared: Dictionary, squad: int, player: int, entries: Array, melee: bool, assist: bool = false, precision_prompt: bool = true) -> void:
-	state.pending_attack = {"prepared": prepared.duplicate(true), "squad": squad, "player": player, "entries": entries.duplicate(true), "melee": melee,
-		"index": 0, "current": {}, "pools": [], "damage": 0, "killed": 0, "assist": assist, "precision_prompt": precision_prompt, "ability_saves": {}}
+	var bladeguard_effects := {}
+	for target: int in state.squads:
+		var mode := UnitAbilities.Bladeguard.mode(state, target)
+		if not mode.is_empty(): bladeguard_effects[target] = mode
+	state.pending_attack = {"unit_prevention": UnitPrevention.snapshot(state), "bladeguard_effects": bladeguard_effects, "prepared": prepared.duplicate(true), "squad": squad, "player": player, "entries": entries.duplicate(true), "melee": melee,
+		"index": 0, "current": {}, "pools": [], "damage": 0, "killed": 0, "assist": assist, "precision_prompt": precision_prompt, "ability_saves": {}, "aquilon_used": {}, "machine_spirit_used": {"hit": false, "wound": false}}
 	for target: int in prepared.targets: state.pending_attack.ability_saves[target] = UnitAbilities.save_bonus(state, target)
 
 static func saved(state: Dictionary, current: Dictionary, model: int, roll: int) -> bool:
-	var profile := Groups.profile(state, model)
+	var profile := Groups.profile(state, model, state.pending_attack.melee)
 	var bonus: int = state.pending_attack.get("ability_saves", {}).get(state.units[model].squad, 0)
 	return roll != 1 and ((profile.invulnerable_target > 0 and roll + bonus >= profile.invulnerable_target) or roll + bonus + int(current.weapon.ap) >= profile.save_target)
 
@@ -35,7 +40,7 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 	while pending.index < pending.prepared.batches.size():
 		var batch: Dictionary = pending.prepared.batches[pending.index]
 		if pending.current.is_empty() or pending.current.get("phase") == "rolls":
-			var defender := Groups.defender(state, batch.target)
+			var defender := Groups.defender(state, batch.target, pending.melee)
 			if not defender.error.is_empty(): return defender
 			if defender.get("models", []).is_empty():
 				pending.index += 1
@@ -43,14 +48,25 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 			var context: Dictionary = batch.context.duplicate(true)
 			context.defer_saves = true
 			var rolled: Dictionary
-			if context.get("free_wound_reroll", false) or state.get("stratagems", {}).get("attack_rerolls", false) or state.get("stratagems", {}).get("count_rerolls", false):
+			if context.get("free_hit_reroll", false) or context.get("free_wound_reroll", false) or context.get("machine_spirit_power", false) or state.get("stratagems", {}).get("attack_rerolls", false) or state.get("stratagems", {}).get("count_rerolls", false):
 				if pending.current.is_empty():
 					var checkpoint := RollWindows.begin(batch.weapon, defender, context, roller, state.get("stratagems", {}).get("count_rerolls", false))
 					if not checkpoint.error.is_empty(): return checkpoint
 					pending.current = {"phase": "rolls", "target": batch.target, "checkpoint": checkpoint}
 				while pending.current.checkpoint.phase != "complete":
 					var checkpoint: Dictionary = pending.current.checkpoint
-					if checkpoint.phase == "wound" and checkpoint.context.get("free_wound_reroll", false) and not pending.current.get("free_done", false) and not checkpoint.effective_wounds.is_empty():
+					var aquilon_key := str(batch.target)
+					if not pending.aquilon_used.has(aquilon_key): pending.aquilon_used[aquilon_key] = {}
+					if checkpoint.phase == "hit" and checkpoint.context.get("machine_spirit_power", false) and not pending.machine_spirit_used.hit and not RollWindows.eligible(checkpoint).is_empty():
+						state.unit_abilities.window = {"kind": "machine-spirit-hit", "owners": [pending.player], "source": checkpoint.context.get("machine_spirit_source", "Power of the Machine Spirit")}
+						return {"error": "", "complete": false}
+					if checkpoint.phase == "wound" and checkpoint.context.get("machine_spirit_power", false) and not pending.machine_spirit_used.wound and not checkpoint.effective_wounds.is_empty():
+						state.unit_abilities.window = {"kind": "machine-spirit-wound", "owners": [pending.player], "source": checkpoint.context.get("machine_spirit_source", "Power of the Machine Spirit")}
+						return {"error": "", "complete": false}
+					if checkpoint.phase == "hit" and checkpoint.context.get("free_hit_reroll", false) and not pending.aquilon_used[aquilon_key].get("hit", false) and not RollWindows.eligible(checkpoint).is_empty():
+						state.unit_abilities.window = {"kind": "aquilon-hit", "owners": [pending.player]}
+						return {"error": "", "complete": false}
+					if checkpoint.phase == "wound" and checkpoint.context.get("free_wound_reroll", false) and not pending.current.get("free_done", false) and not checkpoint.effective_wounds.is_empty() and (not checkpoint.context.get("aquilon_optics", false) or not pending.aquilon_used[aquilon_key].get("wound", false)):
 						state.unit_abilities.window = {"kind": "wound", "owners": [pending.player]}
 						return {"error": "", "complete": false}
 					var enabled: bool = state.get("stratagems", {}).get("count_rerolls", false) if checkpoint.phase == "generation" else state.get("stratagems", {}).get("attack_rerolls", false)
@@ -77,7 +93,8 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 			rolled.merge({"target_squad": batch.target, "weapon_name": batch.weapon.name, "unsaved": 0, "models_destroyed": 0, "damage_applied": 0, "excess_damage_discarded": 0, "allocations": []})
 			var candidates := Groups.precision_candidates(state, batch)
 			pending.current = {"target": batch.target, "failed_rolls": [], "steps": [], "cursor": 0, "damage": batch.weapon.damage, "weapon": batch.weapon,
-				"result": rolled, "groups": Groups.groups(state, batch.target), "order": [], "precision": -1, "precision_candidates": candidates,
+				"free_damage_reroll": batch.context.get("free_damage_reroll", false), "aquilon_optics": batch.context.get("aquilon_optics", false),
+				"result": rolled, "groups": Groups.groups(state, batch.target, pending.melee), "order": [], "precision": -1, "precision_candidates": candidates,
 				"phase": "precision" if not candidates.is_empty() and rolled.wounds > 0 and pending.precision_prompt else "order"}
 		var current: Dictionary = pending.current
 		if current.phase == "precision": return {"error": "", "complete": false}
@@ -114,6 +131,13 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 			current.result.allocation_groups = current.groups.duplicate(true)
 			current.result.precision_model = current.precision
 			current.phase = "damage"
+		if current.phase == "damage_ability": return {"error": "", "complete": false}
+		if current.phase == "damage_after_ability":
+			var stored: Dictionary = current.pending_damage
+			current.phase = "damage"
+			var committed := _commit_damage_roll(state, stored.model, stored.rolled, roller)
+			if not committed.error.is_empty(): return committed
+			if current.phase == "damage_decision": return {"error": "", "complete": false}
 		if current.phase == "damage_decision": return {"error": "", "complete": false}
 		if current.phase == "damage_finalize":
 			var finalized := _apply_rolled_damage(state, current.pending_damage.model, current.pending_damage.rolled, roller, false)
@@ -124,13 +148,25 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 			var choices := eligible(state)
 			if choices.is_empty(): break
 			var step: Dictionary = current.steps[current.cursor]
+			if step.kind == "devastating":
+				var offered_windows: Dictionary = current.get("layered_ceramite_offered", {})
+				if not offered_windows.get(int(current.cursor), false):
+					var defender_owner := int(state.squads[current.target].owner)
+					var layered_available := false
+					for option: Dictionary in DetachmentStratagems.layered_ceramite_choices(state, defender_owner):
+						if int(option.get("target", -1)) == int(current.target): layered_available = true
+					offered_windows[int(current.cursor)] = true
+					current.layered_ceramite_offered = offered_windows
+					if layered_available:
+						state.unit_abilities.window = {"kind": DetachmentStratagems.LAYERED_CERAMITE_WINDOW, "owners": [defender_owner], "squad": int(current.target), "allocation_cursor": int(current.cursor)}
+						return {"error": "", "complete": false}
 			if step.kind == "normal" and saved(state, current, choices[0], step.save_roll):
 				current.cursor += 1
 				continue
 			if not pending.assist: return {"error": "", "complete": false}
 			var applied := apply(state, choices[0], roller)
 			if not applied.error.is_empty(): return applied
-			if current.phase == "damage_decision": return {"error": "", "complete": false}
+			if current.phase in ["damage_decision", "damage_ability"]: return {"error": "", "complete": false}
 		current.result.remaining_wounds = Groups.defender(state, current.target).remaining_wounds
 		pending.pools.append(current.result)
 		pending.damage += current.result.damage_applied
@@ -151,7 +187,8 @@ static func choice_error(state: Dictionary, player: int, model: int) -> String:
 	return ""
 
 static func apply(state: Dictionary, model: int, roller: Callable) -> Dictionary:
-	var current: Dictionary = state.pending_attack.current
+	var pending: Dictionary = state.pending_attack
+	var current: Dictionary = pending.current
 	if current.phase == "precision":
 		current.precision = model
 		current.phase = "order"
@@ -161,8 +198,23 @@ static func apply(state: Dictionary, model: int, roller: Callable) -> Dictionary
 		return {"error": ""}
 	var rolled := Attacks.RandomStat.roll(current.damage, roller)
 	if not rolled.error.is_empty(): return rolled
+	var aquilon_key := str(current.target)
+	if not pending.aquilon_used.has(aquilon_key): pending.aquilon_used[aquilon_key] = {}
+	var aquilon_available: bool = not current.get("aquilon_optics", false) or not pending.aquilon_used[aquilon_key].get("damage", false)
+	if current.get("free_damage_reroll", false) and aquilon_available and not rolled.rolls.is_empty() and not current.get("damage_reroll_offered", false):
+		current.pending_damage = {"model": model, "rolled": rolled}
+		current.damage_reroll_offered = true
+		current.phase = "damage_ability"
+		current.result.dice_history.append_array(rolled.rolls)
+		if current.get("aquilon_optics", false): pending.aquilon_used[aquilon_key].damage = true
+		state.unit_abilities.window = {"kind": "damage-reroll", "owners": [state.pending_attack.player], "source": "Aquilon Optics" if current.get("aquilon_optics", false) else "Total Obliteration"}
+		return {"error": ""}
+	return _commit_damage_roll(state, model, rolled, roller)
+
+static func _commit_damage_roll(state: Dictionary, model: int, rolled: Dictionary, roller: Callable) -> Dictionary:
+	var current: Dictionary = state.pending_attack.current
 	var pending: Dictionary = state.pending_attack
-	if state.get("stratagems", {}).get("damage_rerolls", false) and not rolled.rolls.is_empty() and Stratagems.eligibility_error(state, pending.player, pending.squad, "command-re-roll").is_empty():
+	if state.get("stratagems", {}).get("damage_rerolls", false) and not rolled.rolls.is_empty() and rolled.get("rerolls", []).is_empty() and Stratagems.eligibility_error(state, pending.player, pending.squad, "command-re-roll").is_empty():
 		current.pending_damage = {"model": model, "rolled": rolled}
 		current.phase = "damage_decision"
 		current.result.dice_history.append_array(rolled.rolls)
@@ -176,7 +228,8 @@ static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictiona
 	var current: Dictionary = state.pending_attack.current
 	var step: Dictionary = current.steps[current.cursor]
 	var before: int = state.units[model].wounds
-	var prevented := Attacks.Prevention.resolve(UnitAbilities.damage(state, model, int(rolled.value)), before, state.units[model].get("feel_no_pain", []), "normal" if step.kind == "normal" else "mortal", roller)
+	var special_kind := "psychic" if current.weapon.get("keywords", {}).get("psychic", false) else ""
+	var prevented := Attacks.Prevention.resolve(UnitAbilities.damage(state, model, int(rolled.value)), before, UnitPrevention.rules(state, model), "normal" if step.kind == "normal" else "mortal", roller, special_kind)
 	if not prevented.error.is_empty(): return prevented
 	var applied: int = prevented.lost
 	current.result.prevented_wounds += prevented.prevented

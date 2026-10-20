@@ -4,6 +4,7 @@ const Checked = preload("res://scripts/edition_11/roster_validation.gd")
 const Capabilities = preload("res://scripts/edition_11/army_capabilities.gd")
 const Pack = preload("res://scripts/data_pack.gd")
 const Roster = preload("res://scripts/army_roster.gd")
+const CurrentMarines = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const DIRECTORY := "res://data/imported/starter-11e-v1"
 const SPECS := {
 	"Space Marines": {"folder": "adeptus-astartes", "source": "intercessor-squad", "models": 5, "template": 1,
@@ -34,12 +35,14 @@ static func inspect(list: Variant) -> Dictionary:
 	var requested := 0
 	for entry: Dictionary in list.entries:
 		requested += int(entry.copies)
-		if entry.unit_id not in spec.aliases: mixed = true
+		if entry.unit_id not in spec.aliases or entry.get("enhancement_id", "") != "": mixed = true
 	if mixed or requested > 2:
 		var entries: Array[Dictionary] = []
 		for entry: Dictionary in list.entries:
 			if entry.faction != list.faction: return {"error": "Mixed factions are unsupported in core-profile training."}
-			entries.append({"definition_id": resolved.unit.id if entry.unit_id in spec.aliases else entry.unit_id, "models": int(entry.models), "copies": int(entry.copies)})
+			var selected := {"definition_id": resolved.unit.id if entry.unit_id in spec.aliases else entry.unit_id, "models": int(entry.models), "copies": int(entry.copies)}
+			if entry.get("enhancement_id", "") != "": selected.enhancement_id = str(entry.enhancement_id)
+			entries.append(selected)
 		var report := Capabilities.admit({"schema_version": 2, "faction": list.faction, "entries": entries, "category": list.category, "points_limit": int(list.points_limit)})
 		if report.error.is_empty(): report.saved_reference_points = Roster.summary(list).points
 		return report
@@ -104,7 +107,13 @@ static func reprice(list: Dictionary) -> Dictionary:
 			var spec: Dictionary = SPECS[updated.faction]
 			var identity: String = definition(updated.faction).unit.id if entry.unit_id in spec.aliases else Capabilities.canonical_id(updated.faction, entry.unit_id)
 			var resolved: Dictionary = report.definitions[identity]
-			entry.cost = resolved.cost
+			if resolved.spec.get("current_reference", false):
+				var profile := CurrentMarines.profile(identity.get_slice(":", 3))
+				entry.cost = int(profile.get("points_by_models", {}).get(int(entry.models), resolved.cost))
+				var tiered: Dictionary = profile.get("third_plus_points_by_models", {})
+				if tiered.has(int(entry.models)): entry.third_plus_cost = int(tiered[int(entry.models)])
+				else: entry.erase("third_plus_cost")
+			else: entry.cost = resolved.cost
 			entry.source_digest = resolved.pack_hash
 		else:
 			entry.cost = report.unit_cost

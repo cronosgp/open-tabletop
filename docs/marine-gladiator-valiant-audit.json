@@ -1,0 +1,33 @@
+{
+  "identity": "gladiator-valiant",
+  "source": {
+    "authority": "Wahapedia 11th-edition local export",
+    "source_book_id": "000000139",
+    "datasheet_id": "000001825",
+    "export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Gladiator-Valiant"
+  },
+  "scope": {
+    "models": 1,
+    "base": "100 mm circle (50 mm radius proxy)",
+    "points_first_second": 165,
+    "points_third_plus": 185,
+    "max_supported_copies": 3,
+    "weapons": [
+      "Defensive Array (Rapid Fire 6)",
+      "Multi-melta x2 (Melta 3 each)",
+      "Twin Las-talon (Twin-linked)",
+      "Armoured Hull"
+    ],
+    "abilities": [
+      "Combat Doctrines",
+      "Damaged 4",
+      "Deadly Demise D3",
+      "Priority Target Acquisition (+1 Strength to ranged attacks against targets within 12 inches)"
+    ]
+  },
+  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v73.json",
+  "local_validation": ".tools/verification/20261019T101548046740Z/results.json",
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_match_certified": false
+}

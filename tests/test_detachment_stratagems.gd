@@ -27,10 +27,16 @@ func find_choice(s: Dictionary, player: int, squad: int, value: String) -> Dicti
 	return {}
 func use(s: Dictionary, player: int, squad: int, value: String) -> String:
 	return C.unit_action(s,player,find_choice(s,player,squad,value),Vector2.ZERO,s.revision,func() -> int: return 6)
+func target_reaction(s: Dictionary, player: int, target: int, attacker: int, kind: String, stratagem: String = "") -> void:
+	s.unit_abilities.window = {"kind": kind, "owners": [player], "squad": target, "attacker_squad": attacker, "stratagem": stratagem, "declaration": {"player": int(s.squads[attacker].owner), "squad": attacker, "entries": [{"target": target}]}}
+func find_action(s: Dictionary, player: int, action: String, target: int) -> Dictionary:
+	for choice: Dictionary in C.unit_choices(s,player):
+		if choice.action == action and choice.target == target: return choice
+	return {}
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s := fixture()
-	check(D.enabled(s) and not D.enabled(F.fresh()),"Only versioned checked matches enable the new effects")
+	check(D.enabled(s) and D.enabled(F.fresh()),"Prepared training and checked-roster matches enable their declared stratagem effects")
 	s.combat_doctrines.active[1] = "devastator"
 	var uses := var_to_bytes(s.combat_doctrines.used)
 	check(use(s,1,1,"assault").is_empty() and s.cp[1] == 2 and C.Doctrines.active_for(s,1) == "assault" and C.Doctrines.active_for(s,5) == "devastator","Adaptive spends one CP, replaces only target doctrine and leaves other units unchanged")
@@ -133,12 +139,15 @@ func run() -> void:
 	s.phase = "shooting"
 	s.active = 2
 	s.unit_abilities.phase_key = C.UnitActions.key(s)
-	check(not find_choice(s,1,1,D.ARMOUR).is_empty() and find_choice(s,1,1,D.STORM).is_empty(),"Armour of Contempt is offered to the Gladius player in the opponent Shooting phase")
-	gun = s.squads[2].weapon.duplicate(true)
+	target_reaction(s,1,1,2,D.ARMOUR_WINDOW)
+	var armour_choice := find_action(s,1,"armour-use",1)
+	check(not armour_choice.is_empty(),"Armour of Contempt is offered to the Gladius player after an enemy targets its unit")
+	gun = s.squads[4].weapon.duplicate(true)
 	gun.ap = -2
-	check(use(s,1,1,D.ARMOUR).is_empty() and s.cp[1] == 2,"Armour of Contempt spends one CP on the targeted Adeptus Astartes unit")
-	var shielded := D.defend(s,4,1,gun)
-	check(shielded.ap == -1 and D.defend(s,5,1,gun).ap == -2 and gun.ap == -2,"Armour worsens AP for the first attacking unit only and does not mutate the source profile")
+	var armour_error := D.use_armour(s,1,1,2)
+	check(armour_error.is_empty() and s.cp[1] == 2,"Armour of Contempt spends one CP and binds the declared attacker")
+	var shielded := D.defend(s,2,1,gun)
+	check(shielded.ap == -1 and D.defend(s,4,1,gun).ap == -2 and gun.ap == -2,"Armour worsens AP for the first attacking unit only and does not mutate the source profile")
 	s = fixture()
 	s.phase = "fight"
 	s.fight_actor = 1
@@ -167,7 +176,11 @@ func run() -> void:
 	s = fixture()
 	s.phase = "fight"
 	s.unit_abilities.phase_key = C.UnitActions.key(s)
-	check(use(s,1,1,D.WORTHY).is_empty() and s.cp[1] == 2,"A Worthy Death spends one CP before casualties")
+	s.active = 2
+	target_reaction(s,1,1,2,D.WORTHY_WINDOW,D.WORTHY)
+	var worthy_choice := find_choice(s,1,1,D.WORTHY)
+	var worthy_result := D.apply(s,1,worthy_choice,func() -> int: return 6)
+	check(worthy_result.error.is_empty() and s.cp[1] == 2,"A Worthy Death spends one CP when the enemy declares an attack against the unit")
 	s.units[101].wounds = 0
 	var held := D.hold_destroyed(s,101,func() -> int: return 4)
 	check(held.error.is_empty() and held.held and s.units[101].wounds == 1 and s.units[101].lingering,"A 4+ keeps the destroyed model on the battlefield")
@@ -177,6 +190,73 @@ func run() -> void:
 	s.squads[1].fought = true
 	D.remove_lingering(s,1)
 	check(s.units[101].wounds == 0 and not s.units[101].has("lingering"),"Lingering models are removed after the unit fights")
+	s = fixture()
+	C.Doctrines.enable(s,"assault-brethren")
+	D.enable_assault_brethren(s)
+	s.phase = "fight"
+	s.active = 2
+	s.unit_abilities.phase_key = C.UnitActions.key(s)
+	s.combat_doctrines.active[1] = "assault"
+	target_reaction(s,1,1,2,D.WORTHY_WINDOW,D.DUTY_IN_DEATH)
+	var duty_choice := find_choice(s,1,1,D.DUTY_IN_DEATH)
+	var duty_result := D.apply(s,1,duty_choice,func() -> int: return 6)
+	check(duty_result.error.is_empty() and s.cp[1] == 2,"Duty in Death is offered from Assault Brethren when its unit is targeted")
+	s.units[101].wounds = 0
+	held = D.hold_destroyed(s,101,func() -> int: return 3)
+	check(held.error.is_empty() and held.held and held.roll == 3 and held.modifier == 1 and s.units[101].lingering,"Assault Doctrine adds 1 to Duty in Death's casualty roll")
+	target_reaction(s,1,5,2,D.WORTHY_WINDOW,D.DUTY_IN_DEATH)
+	check(find_choice(s,1,5,D.DUTY_IN_DEATH).is_empty(),"Duty in Death cannot be reused during the same Fight phase")
+	s.squads[1].fought = true
+	D.remove_lingering(s,1)
+	check(s.units[101].wounds == 0,"Duty in Death model is removed when its unit fights")
+	s = fixture()
+	C.Doctrines.enable(s,"assault-brethren")
+	D.enable_assault_brethren(s)
+	s.phase = "fight"
+	s.fight_actor = 1
+	s.fight_step = "attacks"
+	s.squads[1].charged = true
+	s.combat_doctrines.active[1] = "assault"
+	var gene_choice := find_choice(s,1,1,D.GENE_WROUGHT_MIGHT)
+	var gene_result := D.apply(s,1,gene_choice,func() -> int: return 6)
+	var gene_base: Dictionary = s.squads[1].melee_weapon.duplicate(true)
+	var gene_effect := D.weapon(s,1,gene_base,gene_base,true)
+	check(gene_result.error.is_empty() and gene_effect.keywords.get("lance",false) and gene_effect.ap == gene_base.ap-1,"Gene-Wrought Might grants Lance and Assault Doctrine improves melee AP")
+	s = fixture()
+	C.Doctrines.enable(s,"assault-brethren")
+	D.enable_assault_brethren(s)
+	s.phase = "shooting"
+	s.active = 2
+	s.unit_abilities.phase_key = C.UnitActions.key(s)
+	target_reaction(s,1,1,2,D.ARMOUR_WINDOW)
+	armour_choice = find_action(s,1,"armour-use",1)
+	armour_error = D.use_armour(s,1,1,2)
+	check(armour_error.is_empty() and s.cp[1] == 2 and s.stratagems.uses.back().stratagem == D.ASSAULT_ARMOUR,"Assault Brethren Armour of Contempt uses its own source identity and binds the attacker")
+	s = fixture()
+	C.Doctrines.enable(s,"assault-brethren")
+	D.enable_assault_brethren(s)
+	s.phase = "fight"
+	s.active = 2
+	s.fight_actor = 2
+	s.fight_step = "attacks"
+	s.fight_selected = 2
+	s.squads[2].charged = true
+	s.units[200].position = Vector2.ZERO
+	s.units[100].position = Vector2(1.2,0)
+	var attack_choices := C.AttackPlan.Equipment.choices(s,200,true)
+	if not attack_choices.is_empty():
+		var melee_weapon: Dictionary = attack_choices[0]
+		var declaration := [{"model":200,"target":1,"amount":int(melee_weapon.stats.attacks),"weapon":str(melee_weapon.weapon),"profile":str(melee_weapon.profile)}]
+		var pending_attack := C.resolve_attack_plan(s,2,200,declaration,s.revision,true,true,func() -> int: return 6)
+		check(pending_attack.error.is_empty() and s.unit_abilities.window.get("kind", "") == D.ARMOUR_WINDOW,"Fight attack declaration first offers Armour of Contempt: %s / %s" % [str(pending_attack.get("error", "")), str(s.unit_abilities.window)])
+		var armour_pass := find_action(s,1,"armour-pass",1)
+		var declined_armour := C.unit_action(s,1,armour_pass,Vector2.ZERO,s.revision,func() -> int: return 6)
+		check(declined_armour.is_empty() and s.unit_abilities.window.get("kind", "") == D.WORTHY_WINDOW and s.unit_abilities.window.get("stratagem", "") == D.DUTY_IN_DEATH,"After Armour of Contempt is declined, Fight declaration offers Duty in Death: %s / %s" % [declined_armour, str(s.unit_abilities.window)])
+		var actual_duty_choice := find_choice(s,1,1,D.DUTY_IN_DEATH)
+		var actual_duty_error := C.unit_action(s,1,actual_duty_choice,Vector2.ZERO,s.revision,func() -> int: return 6)
+		check(actual_duty_error.is_empty() and s.cp[1] == 2 and s.stratagems.uses.back().stratagem == D.DUTY_IN_DEATH,"Choosing Duty in Death resumes the pending melee attack and spends one CP: %s / CP %d" % [actual_duty_error, s.cp[1]])
+	else:
+		check(false,"Fixture provides a melee weapon to exercise the attack declaration reaction sequence")
 	s = fixture()
 	s.phase = "movement"
 	s.active = 2

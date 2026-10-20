@@ -1,0 +1,28 @@
+{
+  "identity": "storm-speeder-hammerstrike",
+  "source": {
+    "authority": "Wahapedia 11th-edition local export",
+    "source_book_id": "000000139",
+    "datasheet_id": "000000114",
+    "export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Storm-Speeder-Hammerstrike"
+  },
+  "scope": {
+    "models": 1,
+    "base": "90 mm circle (45 mm radius proxy)",
+    "points_first_second": 140,
+    "points_third_plus": 150,
+    "max_supported_copies": 3,
+    "weapons": [
+      "Hammerstrike Missile Launcher",
+      "Krakstorm Grenade Launchers",
+      "Melta Destroyer (Melta 3)",
+      "Armoured Impact"
+    ],
+    "abilities": ["Deep Strike", "Damaged 4", "Deadly Demise D3", "Hammerstrike"]
+  },
+  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v69.json",
+  "local_validation": ".tools/verification/20261019T095156133458Z/results.json",
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_match_certified": false
+}

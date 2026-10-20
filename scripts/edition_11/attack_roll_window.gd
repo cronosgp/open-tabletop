@@ -133,8 +133,9 @@ static func advance(checkpoint: Dictionary, revision: int, roller: Callable) -> 
 		var wounds: int = next.automatic_wounds
 		var critical := 0
 		for value: int in next.effective_wounds:
-			if Attacks.successful_roll(value, target, modifier): wounds += 1
-			if value == 6: critical += 1
+			var anti_critical := Attacks.anti_critical(value, next.weapon, next.context)
+			if Attacks.successful_roll(value, target, modifier) or anti_critical: wounds += 1
+			if value == 6 or anti_critical: critical += 1
 		var devastating: int = critical if keywords.get("devastating-wounds", false) else 0
 		var saves: Array[int] = []
 		if not next.context.get("defer_saves", false):

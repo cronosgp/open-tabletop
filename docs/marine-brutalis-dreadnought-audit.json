@@ -1,0 +1,42 @@
+{
+  "id": "marine-brutalis-dreadnought-e11-local-audit-2026-10-19",
+  "rules_authority": "Wahapedia 11th-edition local export",
+  "observed_at": "2026-10-19",
+  "source": {
+    "book_id": "000000139",
+    "datasheet_id": "000000136",
+    "export_updated_at": "2026-10-16T21:03:46+03:00",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Brutalis-Dreadnought-UL",
+    "core_stratagem_row_id": "000008335007",
+    "core_rules_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/"
+  },
+  "implementation": {
+    "runtime_profile": "brutalis-dreadnought",
+    "rules": [
+      "Damaged 4",
+      "Deadly Demise D3",
+      "Brutalis Charge",
+      "Tank Shock (Crushing Impact)"
+    ],
+    "construction": {
+      "first_second_copy_points": 160,
+      "third_plus_copy_points": 180,
+      "maximum_supported_copies": 3,
+      "local_wargear_choices": [
+        "Replace Bolt Rifles and Brutalis Fists with Brutalis Talons",
+        "Replace Twin Heavy Bolter with Twin Multi-melta"
+      ]
+    },
+    "validation_artifact": ".tools/verification/20261019T053830682027Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v32.json",
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "full_army_legality_certified": false
+  },
+  "scope_notes": [
+    "Local rule, construction, combat and admission checks only.",
+    "Fixed-data comparison does not certify all optional wargear legality or complete army legality.",
+    "Network validation has not been performed."
+  ]
+}

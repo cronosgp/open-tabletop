@@ -27,7 +27,7 @@ func _initialize() -> void:
 	check(result.prevented == 1 and result.rolls == [4], "Best applicable FNP used once, not stacked")
 	result = P.resolve(1, 2, [{"target": 2, "against": "mortal"}], "normal", roll)
 	check(result.lost == 1 and result.rolls.is_empty(), "Conditional FNP does not protect other damage types")
-	for invalid: Variant in [true, [{"target": 1, "against": "any"}], [{"target": 5, "against": "psychic"}], [{"target": 5, "against": "any", "extra": true}]]:
+	for invalid: Variant in [true, [{"target": 1, "against": "any"}], [{"target": 5, "against": "nonexistent"}], [{"target": 5, "against": "any", "extra": true}]]:
 		check(not P.validate(invalid).is_empty(), "Malformed or unsupported prevention rules fail closed")
 	var s := C.initial_state("legacy-solid-v1", C.Objectives.TRAINING, 2, true)
 	for id: int in s.units:

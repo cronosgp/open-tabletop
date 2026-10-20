@@ -68,9 +68,9 @@ func run() -> void:
 	editor.storage_path = "res://.tools/offline-training-list.json"
 	editor.cache_directory = "res://.tools/no-online-catalog"
 	root.add_child(editor)
-	check(editor.source.catalog.is_empty() and editor.faction_picker.item_count == 2, "Implemented factions remain selectable offline with only the starter pack")
+	check(not editor.source.catalog.is_empty() and editor.source.catalog.provider == "Consolidated local runtime", "Consolidated construction choices load offline without the API")
 	editor._new_training()
-	check(editor._save() and T.inspect(editor.draft).error.is_empty(), "A player can create and save a compatible list through the actual editor without the API")
+	check(editor._save() and T.inspect(editor.draft).error.is_empty() and editor.catalog_boundary.visible, "Historical training fixture remains storable but is explicitly outside the consolidated construction catalog")
 	editor.queue_free()
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)

@@ -1,9 +1,8 @@
 extends RefCounted
 ## Leader attachment and Warlord designation (roadmap A1, first increment).
-## Provisional reference: the attachment permissions below are curated from the
-## pinned community snapshot's four reference squads and must be verified against
-## the final 11e dataslate before being treated as official. Never executes the
-## imported ability DSL; every pairing here is explicit and gated.
+## Older entries retain their historical starter provenance and do not certify
+## current-game legality. The Kaius Konorius entry is sourced from the pinned
+## Wahapedia e11 export; every pairing remains explicit and locally gated.
 
 const Attachments = preload("res://scripts/edition_11/attached_units.gd")
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
@@ -15,6 +14,9 @@ const SOURCE := "community starter snapshot (pre-launch provisional); verify aga
 ## Leader definition_id -> bodyguard definition_ids it may lead (provisional).
 const ATTACHMENTS := {
 	"40kdc:11e:adeptus-astartes:captain": ["40kdc:11e:adeptus-astartes:intercessor-squad", "40kdc:11e:adeptus-astartes:terminator-squad"],
+	"40kdc:11e:adeptus-astartes:kaius-konorius": ["40kdc:11e:adeptus-astartes:sternguard-veteran-squad", "40kdc:11e:adeptus-astartes:bladeguard-veteran-squad", "40kdc:11e:adeptus-astartes:assault-intercessor-squad", "40kdc:11e:adeptus-astartes:victrix-honour-guard"],
+	"40kdc:11e:adeptus-astartes:marneus-calgar": ["40kdc:11e:adeptus-astartes:bladeguard-veteran-squad", "40kdc:11e:adeptus-astartes:terminator-assault-squad", "40kdc:11e:adeptus-astartes:infernus-squad", "40kdc:11e:adeptus-astartes:vanguard-veteran-squad", "40kdc:11e:adeptus-astartes:intercessor-squad", "40kdc:11e:adeptus-astartes:heavy-intercessor-squad", "40kdc:11e:adeptus-astartes:terminator-squad", "40kdc:11e:adeptus-astartes:assault-intercessor-squad", "40kdc:11e:adeptus-astartes:aggressor-squad", "40kdc:11e:adeptus-astartes:sternguard-veteran-squad", "40kdc:11e:adeptus-astartes:company-heroes", "40kdc:11e:adeptus-astartes:victrix-honour-guard", "40kdc:11e:adeptus-astartes:eradicator-squad-with-heavy-bolters", "40kdc:11e:adeptus-astartes:eradicator-squad-with-melta-rifles"],
+	"40kdc:11e:adeptus-astartes:kor-sarro-khan": ["40kdc:11e:adeptus-astartes:bladeguard-veteran-squad", "40kdc:11e:adeptus-astartes:sternguard-veteran-squad", "40kdc:11e:adeptus-astartes:intercessor-squad", "40kdc:11e:adeptus-astartes:assault-intercessor-squad", "40kdc:11e:adeptus-astartes:company-heroes", "40kdc:11e:adeptus-astartes:vanguard-veteran-squad"],
 	"40kdc:11e:necrons:overlord": ["40kdc:11e:necrons:necron-warriors", "40kdc:11e:necrons:immortals"],
 }
 
@@ -31,7 +33,14 @@ static func definition_of(state: Dictionary, squad: int) -> String:
 	return ""
 
 static func is_leader(state: Dictionary, squad: int) -> bool:
-	return definition_of(state, squad) in ATTACHMENTS
+	var identity := definition_of(state, squad)
+	if identity == "40kdc:11e:adeptus-astartes:cato-sicarius" and army_has_calgar(state, int(state.squads[squad].owner)): return false
+	return identity in ATTACHMENTS
+
+static func army_has_calgar(state: Dictionary, player: int) -> bool:
+	for model: int in state.units:
+		if state.units[model].owner == player and str(state.units[model].get("definition_id", "")).get_slice(":", 3) == "marneus-calgar": return true
+	return false
 
 static func can_attach(state: Dictionary, leader: int, bodyguard: int) -> bool:
 	if not state.squads.has(leader) or not state.squads.has(bodyguard): return false
@@ -40,7 +49,7 @@ static func can_attach(state: Dictionary, leader: int, bodyguard: int) -> bool:
 
 static func attach_error(state: Dictionary, leader: int, bodyguard: int) -> String:
 	if state.get("leaders", {}).get("implementation", "") != ID: return "Leader attachment is disabled."
-	if not is_leader(state, leader): return "Select a unit with the Leader ability."
+	if not is_leader(state, leader) and not (definition_of(state, leader) == "40kdc:11e:adeptus-astartes:cato-sicarius" and army_has_calgar(state, int(state.squads.get(leader, {}).get("owner", -1)))): return "Select a unit with the Leader ability or a conditional Support."
 	if not can_attach(state, leader, bodyguard): return "This leader cannot attach to that bodyguard unit."
 	return Attachments.form_practice_unit(state, bodyguard, leader)
 

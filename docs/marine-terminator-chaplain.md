@@ -1,0 +1,23 @@
+# Chaplain in Terminator Armour — current e11 implementation
+
+Reviewed 18 October 2026 against [Wahapedia Chaplain In Terminator Armour](https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain-In-Terminator-Armour), datasheet `000000115`, shared App Space Marines book `000000139`, and [Core Rules](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/) 19.01, 19.04 and 24.12. The pinned export revision is 16 October 2026, 21:03:46 GMT+3. Chapter and Boarding Actions adaptations remain excluded. In particular, the consolidated DEATHWING keyword is not admitted into this shared-book profile.
+
+One model costs 75 points: M5/T6/Sv2/W5/Ld5/OC1, general 4+ invulnerable protection and 50mm base. Fixed default equipment is Storm Bolter and Crozius Arcanum. The former retains Rapid Fire 2; the latter Cleave 1. During preparation the bearer may exchange its bolter for Relic Shield, increasing its maximum wounds to six. The crozius remains and the shield adds no shooting weapon. Swapping back restores the bolter and five wounds; both declarations remain available after attachment and before preparation finishes.
+
+This is a separate Leader from the ordinary Chaplain. Its admitted bodyguard is Terminator Squad. Other sheet links are outside current admission. It has Deep Strike and can enter the existing checked reserve/ingress flow alone or with its eligible attached bodyguard. It grants the unit melee Lance through the existing Litany of Hate mechanism, and does not gain Spiritual Leader from the ordinary Chaplain.
+
+Zealous Fortitude grants the whole current unit Feel No Pain 4+ against mortal wounds. A shared `unit_prevention.gd` derives unit grants from living battlefield sources and combines them with personal prevention rules. The existing wound-prevention engine selects the best applicable threshold and rolls once per prospective wound; a second rule does not create another prevention roll. Ordinary damage receives no benefit from this grant. Attack allocation snapshots retain the unit effect until that attacking unit finishes, as required when its source dies during the attack sequence. Outside that sequence, source death or removal stops the grant. Historical implementations do not acquire it, and malformed personal rules remain validation errors.
+
+The same effective prevention rules feed automatic/manual attack allocation, Hazardous, escape mortal wounds and Explosives. Tests exercise actual automatic and manual devastating-damage allocation, direct escape allocation, mortal versus ordinary packets, overlapping prevention, source loss and historical isolation. Existing Hazardous and Explosives suites provide regression coverage; they do not prove every possible new mixed-unit interaction.
+
+## Reserve cost correction
+
+Attaching a Character now adds its construction cost to the body's stored unit cost. A Terminator unit with this Chaplain therefore costs 265 points for the existing half-points reserve limit. A staged 500-point limit rejects that assignment; a 1000-point limit accepts it and records 265. Attaching either side after it has been assigned to reserves is blocked, avoiding an orphan source reservation. Finish formation declarations before assigning reserves. Other reserve caps, missions and unadmitted transport interactions are not newly certified by this change.
+
+## UI brief and evidence
+
+The player needs to see exactly what the shield replaces and which model gains the wound. Existing viewport, layout, type, color and controls are preserved; only the option label and contextual help change. The label is shortened to fit. Help states the removed bolter, retained crozius, six-wound bearer and reversible preparation choice.
+
+Real Godot before/after captures at 1600x1000 were inspected: `.tools/terminator-chaplain-before.png` and `.tools/terminator-chaplain-after.png`. Both use the same staged admitted-profile preparation fixture, framing and unshielded bearer. The initial label was clipped and generic help omitted the replacement; the revised label and contextual explanation fit. A third real capture, `.tools/terminator-chaplain-shield.png`, shows the successful swap, W6/6 and the option to restore the Storm Bolter. These staged captures do not establish a completed match or every viewport size.
+
+The [audit](marine-terminator-chaplain-audit.json) records 22 comparisons of runtime characteristics, weapon numbers, cost, base and scoped keywords against the local export. Dedicated and regression suites cover admission, preservation of the ordinary Chaplain, protection, equipment, attachment and reserves. Network validation remains deferred to final integration by user instruction; full army and match certification remain incomplete.

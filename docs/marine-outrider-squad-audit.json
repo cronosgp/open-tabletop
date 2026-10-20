@@ -1,0 +1,50 @@
+{
+  "id": "outrider-squad-local-audit-2026-10-19-v1",
+  "rules_authority": "Wahapedia 11th-edition local export",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000002712",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "profile_id": "space-marines-e11-fixed-reference-2026-10-19-v51",
+  "profile_digest": "88a05db1fbe13a63462c596fc994965c9e6ac2e79bf477c5fb73df380bc02c87",
+  "roster_digest": "5b30bdf0ddd2004bac07007c0537b7724fcb85d2719b780333a91e487231911f",
+  "comparison_report": ".tools/wahapedia-fixed-data-review-v65.json",
+  "fixed_data_check": {
+    "consistent": true,
+    "numeric_or_identity_differences": 0,
+    "keyword_scope_consistent": true,
+    "weapon_profiles_checked": 7,
+    "default_loadout_consistent": true,
+    "composition_consistent": true,
+    "costs_consistent": true,
+    "snapshot_structurally_valid": true
+  },
+  "composition": {
+    "models": [3, 6],
+    "points_first_two": {"3": 80, "6": 160},
+    "points_third_plus": {"3": 80, "6": 160},
+    "base_size_source_mm": [90, 52],
+    "base_geometry": "oval",
+    "runtime_geometry": "90mm bounding-circle proxy",
+    "stats": {"M": 12, "T": 6, "Sv": "3+", "W": 4, "Ld": "6+", "OC": 2, "invulnerable": null},
+    "keywords": ["RAVENWING", "MOUNTED", "EXPLOSIVES", "IMPERIUM", "ADEPTUS ASTARTES"]
+  },
+  "equipment_choices": {
+    "sergeant_melee_replacements": ["Power Weapon", "Thunder Hammer"],
+    "plasma_pistol_replacements": "one model per three unit models; free",
+    "leader_attachments": "not enabled in this increment"
+  },
+  "ability": {
+    "name": "Full-throttle Assault",
+    "charge_condition": "The unit made a Charge move this turn.",
+    "thunder_hammer": "+1 to hit and Sustained Hits 1; no Damage bonus",
+    "other_melee": "+1 Damage and Sustained Hits 1"
+  },
+  "local_validation": {
+    "artifact": ".tools/verification/20261019T093253362330Z/results.json",
+    "passed_processes": 12,
+    "failed_processes": 0,
+    "network_validation": "deferred_not_run",
+    "scope": ["import", "python", "startup", "test_actions", "test_army_builder", "test_attack_plan", "test_capabilities", "test_current_unit_abilities", "test_implemented_catalog", "test_outrider_squad_current", "test_roster_validation", "test_saved_armies"]
+  },
+  "limits": ["Oval-base placement uses a circular proxy.", "Outrider leader attachments are not enabled.", "Full faction and army legality are not certified.", "Network validation is deferred to final integration." ]
+}

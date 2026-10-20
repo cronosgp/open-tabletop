@@ -60,7 +60,7 @@ func run() -> void:
 	game.model_imports.load_preview()
 	game.match_tabs.current_tab = 2
 	for frame in range(4): await process_frame
-	check(game.sidebar_panel.size.x <= baseline_width, "Long source entries do not expand the sidebar over the board")
+	check(game.match_tabs.current_tab == 3 and game.workshop_tabs.current_tab == 1 and game.sidebar_panel.position.x >= 16 and game.sidebar_panel.get_rect().end.x <= game.get_viewport().get_visible_rect().size.x - 16, "Long source entries stay within the centered unified workshop")
 	var before := var_to_str(game.state)
 	game.model_imports.scale_input.value = 1.2
 	game.model_imports.rotation_input.value = 45

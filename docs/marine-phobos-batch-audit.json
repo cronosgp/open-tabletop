@@ -1,0 +1,70 @@
+{
+  "id": "marine-phobos-batch-2026-10-18",
+  "source_book_id": "000000139",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "edition": 11,
+  "sources": [
+    {
+      "identity": "infiltrator-squad",
+      "datasheet_id": "000000128",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Infiltrator-Squad"
+    },
+    {
+      "identity": "lieutenant-in-phobos-armour",
+      "datasheet_id": "000002530",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant-In-Phobos-Armour"
+    }
+  ],
+  "versions": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v18",
+    "abilities": "track-a-current-datasheets-2026-10-v20",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v19"
+  },
+  "inventory": {
+    "implemented_shared_marines": 26,
+    "prior_increments_with_historical_test_evidence": 22,
+    "pending_across_latest_batches": 0,
+    "new_in_this_batch": 2,
+    "unimplemented_shared_marines": 59,
+    "necrons": 4
+  },
+  "written_tests": [
+    {
+      "path": "tests/test_infiltrator_squad.gd",
+      "sha256": "4c4aa4c771cf56a0d25278133ae047e456f7806e6bf3d601451b2635a3e1396c"
+    },
+    {
+      "path": "tests/test_phobos_lieutenant.gd",
+      "sha256": "217fd9ba344add5fa622f927d050a5a3fe4f3065d10aa1ce7fb720bf31c8a0fc"
+    },
+    {
+      "path": "tests/marine_phobos_fixture.gd",
+      "sha256": "02ddfcef27d0d85c8dd2017d21de3ea84527c5af0ac7fd8d09dfe3aa1a719191"
+    }
+  ],
+  "validation": {
+    "status": "targeted_local_suites_passed",
+    "test_processes_run": 13,
+    "verification_report": ".tools/verification/20261019T022024657123Z/results.json",
+    "passed_suites": ["test_infiltrator_squad", "test_phobos_lieutenant", "test_implemented_catalog", "test_roster_validation", "test_unit_reserves", "test_capabilities", "test_infiltrators", "test_ancients"],
+    "runtime_data_comparison": "not_run",
+    "production_scripts": "import_passed",
+    "current_build": "pending_final_complete_run",
+    "passed": true
+  },
+  "ui_capture": {
+    "path": ".tools/phobos-batch-preparation.png",
+    "sha256": "6a3fc5a868135a595c2f875e57ab4a947562be73c7a12d38c2cb1df1b4b27948"
+  },
+  "inactive_source_rules_in_admitted_formations": {
+    "lieutenant-in-phobos-armour": [
+      "Scouts 6 inches",
+      "Deep Strike"
+    ]
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_match_certified": false
+}

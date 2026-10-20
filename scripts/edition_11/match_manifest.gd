@@ -29,9 +29,13 @@ static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, ef
 	if options.get("hail_of_bolts", false): state.match_manifest.hail_of_bolts = Combat.HailOfBolts.ID
 	if options.get("oath_of_moment", false): state.match_manifest.oath_of_moment = Combat.OathOfMoment.ID
 	if options.get("reanimation_protocols", false): state.match_manifest.reanimation_protocols = Combat.Reanimation.ID
-	if options.get("combat_doctrines", false): state.match_manifest.combat_doctrines = Combat.Doctrines.ID
+	if options.get("combat_doctrines", false):
+		state.match_manifest.combat_doctrines = Combat.Doctrines.ID
+		var detachment := str(options.get("marine_detachment", "gladius"))
+		if detachment != "gladius": state.match_manifest.marine_detachment = detachment
 	if options.get("awakened_dynasty", false): state.match_manifest.awakened_dynasty = Combat.Awakened.ID
 	if options.get("unit_abilities", false): state.match_manifest.unit_abilities = Combat.UnitAbilities.ID
+	if Combat.DetachmentStratagems.enabled(state): state.match_manifest.detachment_stratagems = Combat.DetachmentStratagems.ID
 	if not reports.is_empty():
 		if reports[1].selection.schema_version == 2 or reports[2].selection.schema_version == 2:
 			state.match_manifest.capabilities = Training.Capabilities.ID
@@ -49,5 +53,5 @@ static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, ef
 		state.match_manifest.first_player = "post-deployment-roll-off"
 	if options.get("checked_rosters", false):
 		state.roster_validation.full_match_certified = false
-		state.match_manifest.checked_rosters = {"implementation": Combat.RosterValidation.ID, "digest": Combat.RosterValidation.digest(), "construction": state.roster_validation.armies.duplicate(true), "full_match_certified": false, "official_legality_validated": false, "source_status": Combat.RosterValidation.CURRENT_SOURCE_STATUS, "scope": "Reference roster snapshot for Gladius vs Awakened on the selected CA 2026-27 ground board; MFM 1.6 prices were checked 17 October, while current Codex datasheet/effect applicability remains pending."}
+		state.match_manifest.checked_rosters = {"implementation": Combat.RosterValidation.ID, "digest": Combat.RosterValidation.digest(), "construction": state.roster_validation.armies.duplicate(true), "full_match_certified": false, "official_legality_validated": false, "source_status": Combat.RosterValidation.CURRENT_SOURCE_STATUS, "scope": "Saved Gladius/Awakened roster snapshot on the selected CA 2026-27 board; legacy MFM 1.6 prices remain attached to old lists, while supported rules use Wahapedia 11e and overall coverage is partial."}
 	state.pack_hash = var_to_str(state.match_manifest).sha256_text()

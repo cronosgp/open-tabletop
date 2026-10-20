@@ -1,0 +1,68 @@
+{
+  "id": "marine-apothecary-e11-2026-10-18",
+  "source": {
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Apothecary",
+    "datasheet_id": "000002773",
+    "book_id": "000000139",
+    "export_updated_at": "2026-10-16T21:03:46+03:00",
+    "edition": 11
+  },
+  "versions": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v14",
+    "abilities": "track-a-current-datasheets-2026-10-v16",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v15"
+  },
+  "admission": {
+    "shared_marines": 20,
+    "necrons": 4,
+    "shared_marines_remaining": 65,
+    "triple_attached_characters": false
+  },
+  "local_validation": {
+    "status": "passed",
+    "report": {
+      "path": ".tools/verification/20261018T170441714552Z/results.json",
+      "sha256": "5057263e6970b9a681d7dfb2e8a97ea7117705b0aa2597608959d369c5364525"
+    },
+    "processes": 12,
+    "godot_suites": 9,
+    "python_checks": 30,
+    "expanded_final_test": {
+      "path": ".tools/apothecary-final.log",
+      "sha256": "8b87a677cd68b1db31f6e9a7e94b591e126f1b4c47db97222e1383ae7ccf6532"
+    },
+    "test_source": {
+      "path": "tests/test_apothecary.gd",
+      "sha256": "4ca82697f295e36c99b948d6d83bc1e2c784450d6fd65e0d45d41fad1a0e8123"
+    },
+    "final_regression": {
+      "path": ".tools/verification/20261018T170813014165Z/results.json",
+      "sha256": "b89d518325488f6f492b7d10f6b091b244503b59f70fbf5d7008f596db39be8d",
+      "status": "passed",
+      "processes": 6,
+      "godot_suites": 3,
+      "python_checks": 30
+    }
+  },
+  "data_check": {
+    "status": "passed",
+    "comparisons": 28,
+    "report": {
+      "path": ".tools/apothecary-data-check.json",
+      "sha256": "a2f7a5dcb859b870c0590dc07013e789a6eaa5bedcc7350638b1286de0b945b1"
+    }
+  },
+  "ui": {
+    "capture": {
+      "path": ".tools/apothecary-healing-after.png",
+      "sha256": "3b2c58b46f745fafa0327f96adb8c24df5682945ff9e99e792debfd64ac30662"
+    },
+    "kind": "actual Godot staged fixture; fixed healing budget",
+    "pre_change_capture": false
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_match_certified": false
+}

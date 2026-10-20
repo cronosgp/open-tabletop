@@ -1,0 +1,25 @@
+{
+  "id": "marine-techmarine-local-audit-2026-10-19-v1",
+  "rules_authority": "Wahapedia 11th-edition local export",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000000140",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Techmarine",
+  "profile_id": "space-marines-e11-fixed-reference-2026-10-19-v38",
+  "identity": "techmarine",
+  "points": 55,
+  "model_count": 1,
+  "capabilities": [
+    "techmarine-lone-operative",
+    "blessings-of-the-omnissiah",
+    "anti-vehicle"
+  ],
+  "local_validation": {
+    "profile": ".tools/verification/20261019T071657757403Z/results.json",
+    "suite": "test_techmarine",
+    "result": "passed"
+  },
+  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v42.json",
+  "network_validation": "deferred_to_final_integration",
+  "full_army_legality_certified": false
+}

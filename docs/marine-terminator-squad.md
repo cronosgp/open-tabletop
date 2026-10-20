@@ -1,0 +1,11 @@
+# Terminator Squad — 19 October 2026
+
+The current 11th-edition record is sourced from the pinned local Wahapedia extraction: Space Marines App (`000000139`), datasheet `000001183`, export revision `2026-10-16T21:03:46+03:00`. The admitted profile uses one Terminator Sergeant and four to nine Terminators, at 5/10 model sizes. The first two units cost 190/380 points; the third and later cost 230/420. Models use 40 mm bases.
+
+Every model starts with a Storm Bolter and Power Fist. The Sergeant can replace its fist with a Chainfist or Power Weapon. Any number of regular Terminators may replace their Power Fists with Chainfists. For each five starting models, one regular Terminator may replace its Storm Bolter with an Assault Cannon or Heavy Flamer, or take a Cyclone Missile Launcher while keeping the Storm Bolter. A 10-model squad can assign two such weapons. Each Cyclone Missile Launcher adds 10 points.
+
+The current profiles include the source Assault Cannon (Sustained Hits 1), Heavy Flamer (Torrent, Blast 2), Cyclone frag/krak profiles, both exported Chainfist profiles and Power Weapon. The Cyclone weapon action adjusts the admitted points total and the model's loadout; switching away from it removes its surcharge.
+
+Deep Strike, Fury of the First and Teleport Homer already have runtime effect hooks. Fury of the First improves AP by 1 when the target is within 9 inches of the attacking Terminator unit. Teleport Homer is declared at the start of the battle; its Rapid Ingress use costs 1 fewer CP, must arrive within 3 inches of the token and more than 8 inches from enemies, and removes the token after use. The token is also removed when an enemy move ends within 1 inch.
+
+Local validation: `tests/test_terminator_squad_current.gd`, `tests/test_implemented_catalog.gd`, and `tests/test_army_builder.gd` check source profiles, size/copy tiers, optional-equipment limits, Cyclone points and roster previews. Fixed-data comparison `.tools/wahapedia-fixed-data-review-v63.json` reports all 9 Terminator weapon profiles/traits consistent, source composition and default loadout consistent, and the shared-keyword context consistent. Snapshot structural validation passed. Network validation remains deferred; full army legality and complete Space Marines support are not certified.

@@ -1,0 +1,124 @@
+extends SceneTree
+const F = preload("res://tests/all_units_fixture.gd")
+const C = F.C
+const Groups = preload("res://scripts/edition_11/defender_groups.gd")
+const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const U = preload("res://scripts/edition_11/unit_prevention.gd")
+var failures := 0
+func check(ok: bool, message: String) -> void:
+ if not ok:
+  push_error(message)
+  failures += 1
+func six() -> int: return 6
+func four() -> int: return 4
+func three() -> int: return 3
+func entry(name: String, models: int = 1) -> Dictionary:
+ return {"definition_id": "40kdc:11e:adeptus-astartes:" + name, "models": models, "copies": 1}
+func fixture(attached: bool = true) -> Dictionary:
+ var lists := F.selections()
+ lists[1].entries = [entry("captain-in-terminator-armour"), entry("intercessor-squad", 5), entry("terminator-squad", 5)]
+ var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
+ if s.has("error"): return s
+ if attached: C.UnitActions.attach(s, 100, 5)
+ s.mission.stage = "battle"
+ s.phase = "shooting"
+ s.turn = 3
+ s.round = 2
+ s.active = 1
+ s.unit_abilities.setup_players = [1, 2]
+ s.unit_abilities.battle_players = [1, 2]
+ s.unit_abilities.window = {}
+ s.unit_abilities.phase_key = C.UnitActions.key(s)
+ s.awakened_dynasty.pending = []
+ s.terrain.areas = []
+ s.cp = {1: 0, 2: 0}
+ for model: int in s.units:
+  s.units[model].on_battlefield = true
+  s.units[model].position = Vector2(-18,16) if s.units[model].owner == 1 else Vector2(18,16)
+ for model: int in C.living(s, 5): s.units[model].position = Vector2(0,-8)
+ s.units[100].position = Vector2(0,-10)
+ return s
+func choose(s: Dictionary, action: String, value: String) -> String:
+ for option: Dictionary in C.unit_choices(s, 1):
+  if option.action == action and option.value == value: return C.unit_action(s, 1, option, Vector2.ZERO, s.revision)
+ return "Choice unavailable"
+func one() -> int: return 1
+func bad() -> int: return 7
+func charge_fixture() -> Dictionary:
+ var s := fixture()
+ s.phase = "charge"
+ s.unit_abilities.phase_key = C.UnitActions.key(s)
+ s.stratagems.movement_rerolls = false
+ for model: int in C.living(s, 2): s.units[model].position = Vector2(0,0)
+ return s
+func _initialize() -> void: call_deferred("run")
+func run() -> void:
+ var s := fixture()
+ check(not s.has("error"), "Terminator Captain admission failed")
+ if s.has("error"):
+  print(s)
+  quit(1)
+  return
+ check(s.training_points[1] == 365 and s.units[100].max_wounds == 6 and is_equal_approx(s.units[100].radius,20.0/25.4), "Captain stats/price/base incorrect")
+ check(C.UnitAbilities.has(s,5,"strategic-acumen") and C.UnitAbilities.has(s,5,"transhuman-strategist") and C.UnitAbilities.has(s,5,"deep-strike") and not C.UnitAbilities.has(s,5,"finest-hour"), "Captain identities/abilities merged")
+ s = charge_fixture()
+ s.squads[5].battle_shocked = true
+ check(C.declare_charge(s,1,500,s.revision,one).error.is_empty() and s.stratagems.pending.get("valour",false), "Free charge decision unavailable at zero CP while shocked")
+ var before := var_to_str(s)
+ check(not C.resolve_roll_reaction(s,2,5,"unstoppable-valour",s.revision,six).is_empty() and var_to_str(s)==before, "Opponent rerolled charge")
+ check(not C.resolve_roll_reaction(s,1,5,"unstoppable-valour",s.revision-1,six).is_empty() and var_to_str(s)==before, "Stale charge reroll accepted")
+ check(not C.resolve_roll_reaction(s,1,5,"unstoppable-valour",s.revision,bad).is_empty() and var_to_str(s)==before, "Invalid dice changed charge")
+ check(C.resolve_roll_reaction(s,1,5,"unstoppable-valour",s.revision,six).is_empty() and s.pending_charge.rolls == [6,6] and s.cp[1]==0 and s.stratagems.uses.is_empty(), "Valour did not replace both dice for zero CP")
+ check(not C.resolve_roll_reaction(s,1,5,"command-re-roll",s.revision,six).is_empty() and not C.resolve_roll_reaction(s,1,5,"unstoppable-valour",s.revision,six).is_empty(), "Charge dice rerolled twice")
+ s = charge_fixture()
+ check(C.declare_charge(s,1,500,s.revision,six).error.is_empty() and C.resolve_roll_reaction(s,1,5,"unstoppable-valour",s.revision,one).is_empty() and s.pending_charge.is_empty() and s.last_command_roll.rolls==[1,1], "Lower reroll result not mandatory")
+ s = charge_fixture()
+ check(C.declare_charge(s,1,500,s.revision,six).error.is_empty() and C.resolve_roll_reaction(s,1,5,"",s.revision).is_empty() and s.pending_charge.rolls==[6,6] and not s.last_command_roll.rerolled, "Accept did not preserve original charge")
+ s = charge_fixture()
+ s.units[100].wounds = 0
+ check(C.declare_charge(s,1,500,s.revision,one).error.is_empty() and s.stratagems.pending.is_empty(), "Dead Captain granted Valour")
+ s = fixture(false)
+ check(C.UnitActions.attachment_allowed(s,100,5) and not C.UnitActions.attachment_allowed(s,100,3), "Captain attachment crosses armour boundary")
+ s.phase = "deployment"
+ s.unit_abilities.setup_players = []
+ check(choose(s,"terminator-captain-gun","combi").is_empty() and choose(s,"terminator-captain-blade","fist").is_empty(), "Captain weapon replacements unavailable")
+ check(s.units[100].ranged_weapons.size()==1 and s.units[100].ranged_weapons[0].profiles.size()==3 and s.units[100].melee_weapons[0].id=="relic-fist", "Combi modes treated as separate weapons or fist missing")
+ var combi: Dictionary = s.units[100].ranged_weapons[0].profiles
+ check(combi.infernus.keywords.torrent and combi.infernus.keywords.blast==1 and combi.damnatus.keywords.melta==2 and combi.damnatus.damage=="D3+2", "Combi characteristics/traits incorrect")
+ C.UnitActions.attach(s,100,5)
+ s.phase = "deployment"
+ check(s.squads[5].training_cost==280 and choose(s,"terminator-captain-gun","bolter").is_empty() and s.units[100].melee_weapons[0].id=="relic-fist", "Gun swap changed fist or attachment cost omitted Captain")
+ check(choose(s,"terminator-captain-blade","weapon").is_empty() and s.units[100].ranged_weapons==P.profile("captain-in-terminator-armour").ranged and s.units[100].melee_weapons==P.profile("captain-in-terminator-armour").melee, "Default equipment not restored after attachment")
+ s.phase = "command"
+ s.unit_abilities.setup_players=[1,2]
+ s.unit_abilities.phase_key=C.UnitActions.key(s)
+ s.combat_doctrines.selected_turn[1]=s.turn
+ var acumen: Dictionary = {}
+ for option: Dictionary in C.unit_choices(s,1):
+  if option.action=="acumen": acumen=option; break
+ check(not acumen.is_empty() and C.unit_action(s,1,acumen,Vector2.ZERO,s.revision).is_empty() and s.unit_abilities.doctrines[5].doctrine==acumen.value, "Strategic Acumen unavailable to Terminator Captain")
+ s = charge_fixture()
+ s.cp[1]=2
+ s.stratagems.attack_rerolls=true
+ check(C.declare_charge(s,1,500,s.revision,one).error.is_empty(), "Charge window setup failed")
+ before=var_to_str(s)
+ check(not C.resolve_roll_reaction(s,1,5,"command-re-roll",s.revision,six).is_empty() and var_to_str(s)==before, "Attack-only reroll option enabled paid charge reroll")
+ s.stratagems.movement_rerolls=true
+ check(C.resolve_roll_reaction(s,1,5,"command-re-roll",s.revision,six).is_empty() and s.cp[1]==1 and s.stratagems.uses.size()==1, "Paid alternative did not consume CP/use")
+ s=fixture(false)
+ s.units[100].ranged_weapons=P.terminator_captain_weapons(true,false).ranged
+ for model: int in C.living(s,2): s.units[model].position=Vector2(0,-2)
+ s.units[100].position=Vector2(0,-8)
+ for mode: String in ["infernus","purgatus","damnatus"]:
+  var rows: Array=[{"model":100,"target":2,"amount":1,"weapon":"combi-weapon","profile":mode}]
+  var prepared := C.AttackPlan.prepare(s,1,false,rows,true)
+  check(prepared.error.is_empty(), "Combi profile rejected by attack engine: "+mode+" "+prepared.error)
+ var mixed: Array=[{"model":100,"target":2,"amount":1,"weapon":"combi-weapon","profile":"infernus"},{"model":100,"target":2,"amount":1,"weapon":"combi-weapon","profile":"purgatus"}]
+ check(not C.AttackPlan.prepare(s,1,false,mixed,true).error.is_empty(), "Two Combi profiles fired in same declaration")
+ var invalid: Dictionary = P.terminator_captain_weapons(true,false).ranged[0].profiles.infernus.duplicate(true)
+ var automatic := C.Attacks.roll_pool(invalid,C.AttackPlan.defender(s,2),{"weapon_count":1,"target_model_count":5,"benefit_of_cover":true},six)
+ check(automatic.error.is_empty() and automatic.hit_rolls.is_empty() and automatic.hits==automatic.attacks, "Torrent with no BS rolled to hit or lost automatic hits in cover")
+ invalid.keywords.erase("torrent")
+ check(not C.Attacks._validate(invalid,C.AttackPlan.defender(s,2),{}).is_empty(), "Zero BS admitted without Torrent")
+ print("Terminator Captain checks: %d failures" % failures)
+ quit(0 if failures==0 else 1)

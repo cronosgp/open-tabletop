@@ -1,0 +1,197 @@
+{
+  "id": "wahapedia-e11-import-audit-2026-10-18",
+  "source_policy": "wahapedia-e11-definitive-2026-10-18",
+  "observed_on": "2026-10-18",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "raw_content_bundled": false,
+  "live_capture_manifest_sha256": "62f4a6ac720d2d65e5c96514c4cc896a23d225b867d9d512d205b6a1eaa619e7",
+  "live_timestamp_bracket_checked": true,
+  "reviewed_manifest_sha256": "1c962e79b023b95a9307a54517f0bce90b82ddfb0d61122da29d68d87c74c7c0",
+  "files": {
+    "Factions": {
+      "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "rows": 25
+    },
+    "Source": {
+      "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "rows": 70
+    },
+    "Datasheets": {
+      "sha256": "3cf9ecf7485240ea07637cf8c5df685fa04fe22f58e3e114e76c10f6275edafb",
+      "rows": 1512
+    },
+    "Datasheets_abilities": {
+      "sha256": "0445afd6d816b3a637761b18ae450689bf29a6f5907ababcdd601b3f4a643643",
+      "rows": 6429
+    },
+    "Datasheets_keywords": {
+      "sha256": "d69ccaff388c103adc68d29168fb7222a79af3481c9e662cecedffb5dccd6e44",
+      "rows": 12959
+    },
+    "Datasheets_models": {
+      "sha256": "d15bd1fa31f72699003ba54e786b0174ef6ede34451096869e307739e619fc66",
+      "rows": 1679
+    },
+    "Datasheets_options": {
+      "sha256": "64d57819acf647e9717f07a18a1fc7dc8793dd33568da944cd458ee7ea69c8fc",
+      "rows": 2357
+    },
+    "Datasheets_wargear": {
+      "sha256": "512c3e7db216cdd919a60a7e148cf5f4258190c54a140fd9da7e5d8e0c8abdf2",
+      "rows": 7783
+    },
+    "Datasheets_unit_composition": {
+      "sha256": "18d131aa9bd7bfa3ff69c9a754d1dbe333e179bb7481a53c4f199cf70e46c7b9",
+      "rows": 1918
+    },
+    "Datasheets_models_cost": {
+      "sha256": "37b121fe82fdee42d93d620ec11ba932112673806a04041f1f60e172d728a428",
+      "rows": 5477
+    },
+    "Datasheets_stratagems": {
+      "sha256": "617f1c77bb352c65c40157f4e3992bbfeeb16b0ce4cca959f30b133a239c0a66",
+      "rows": 55309
+    },
+    "Datasheets_enhancements": {
+      "sha256": "b39320d7c954eecee89554fa08a95f0142e666ed544c716914b883af8f22f770",
+      "rows": 7272
+    },
+    "Datasheets_detachment_abilities": {
+      "sha256": "19bab866fbab43d56c2dcd71238d0f407daf6296da2737fe4158132ac82b69f4",
+      "rows": 8765
+    },
+    "Datasheets_leader": {
+      "sha256": "5e5bca88457f3591fbb3bb50b4d6dc2d904848ea6533fd5778da7dede7e8f94d",
+      "rows": 1254
+    },
+    "Stratagems": {
+      "sha256": "8ceae985a4adec03e90d98f32eecd2647d780dbe74c4d0e64a08bfd123e7cb4b",
+      "rows": 1513
+    },
+    "Abilities": {
+      "sha256": "801f2aa00b15bed7debb80d3ab1982426e42247ed92dfbcfb4a914fee3d69e89",
+      "rows": 100
+    },
+    "Enhancements": {
+      "sha256": "2f3c4142a354d965c0e14c24166581f3c0cc3b5ac903e50a134325edd688a76e",
+      "rows": 934
+    },
+    "Enhancements_wargear": {
+      "sha256": "ed912d67b6a82cebd6a7f64d897f74d9ec7ce9510f2cdb8d79352bd1eb555839",
+      "rows": 7
+    },
+    "Detachment_abilities": {
+      "sha256": "da170039eef0d14765cf5decb1d4b9b68c339cea2cb0b6d3ecfbc98fba405ac3",
+      "rows": 328
+    },
+    "Detachments": {
+      "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585",
+      "rows": 315
+    },
+    "Detachments_chapter_dp": {
+      "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "rows": 3
+    },
+    "Last_update": {
+      "sha256": "009424c88c19a2acbeb06540236acfacf677bf5cd76e5c235fa46ea9e4b58d6e",
+      "rows": 1
+    }
+  },
+  "marine_records": 193,
+  "edition_11_candidates": 190,
+  "source_books": {
+    "Space Marines": 85,
+    "Space Wolves": 21,
+    "Dark Angels": 16,
+    "Blood Angels": 14,
+    "Space Marines (Forge World)": 2,
+    "Black Templars": 15,
+    "Space Marines (Warhammer Legends)": 28,
+    "Deathwatch": 10,
+    "unresolved": 1,
+    "Imperial Agents (Warhammer Legends)": 1
+  },
+  "structurally_valid": false,
+  "validation_error_count": 68,
+  "validation_error_families": {
+    "missing source/faction identity": 2,
+    "unknown datasheet_id": 60,
+    "unknown detachment_id": 6
+  },
+  "runtime_id": "space-marines-e11-fixed-reference-2026-10-18-v3",
+  "runtime_digest": "af1d8fe9328e49c8d76055dc2e74a2aedc95c2a4102ab5bc97389f09def7109d",
+  "profile_comparison": [
+    {
+      "identity": "assault-intercessor-squad",
+      "datasheet_id": "000001606",
+      "numeric_or_identity_differences": [],
+      "keyword_review": {
+        "missing_from_runtime": [],
+        "runtime_extra_or_identity_tags": [],
+        "conditional_source_rows": []
+      },
+      "ability_resolution_issues": []
+    },
+    {
+      "identity": "captain",
+      "datasheet_id": "000000073",
+      "numeric_or_identity_differences": [],
+      "keyword_review": {
+        "missing_from_runtime": [],
+        "runtime_extra_or_identity_tags": [],
+        "conditional_source_rows": []
+      },
+      "ability_resolution_issues": []
+    },
+    {
+      "identity": "heavy-intercessor-squad",
+      "datasheet_id": "000001177",
+      "numeric_or_identity_differences": [],
+      "keyword_review": {
+        "missing_from_runtime": [],
+        "runtime_extra_or_identity_tags": [],
+        "conditional_source_rows": []
+      },
+      "ability_resolution_issues": []
+    },
+    {
+      "identity": "intercessor-squad",
+      "datasheet_id": "000001157",
+      "numeric_or_identity_differences": [],
+      "keyword_review": {
+        "missing_from_runtime": [],
+        "runtime_extra_or_identity_tags": [],
+        "conditional_source_rows": []
+      },
+      "ability_resolution_issues": []
+    },
+    {
+      "identity": "lieutenant",
+      "datasheet_id": "000001346",
+      "numeric_or_identity_differences": [],
+      "keyword_review": {
+        "missing_from_runtime": [],
+        "runtime_extra_or_identity_tags": [],
+        "conditional_source_rows": []
+      },
+      "ability_resolution_issues": []
+    },
+    {
+      "identity": "terminator-squad",
+      "datasheet_id": "000001183",
+      "numeric_or_identity_differences": [],
+      "keyword_review": {
+        "missing_from_runtime": [
+          "DEATHWING"
+        ],
+        "runtime_extra_or_identity_tags": [
+          "TERMINATOR SQUAD"
+        ],
+        "conditional_source_rows": []
+      },
+      "ability_resolution_issues": []
+    }
+  ],
+  "scope": "Captured/indexed data and six-profile numeric audit only. No new playable profiles, executable rules, weapon-keyword certification, complete wargear/options/points legality or full-match certification.",
+  "full_match_certified": false
+}

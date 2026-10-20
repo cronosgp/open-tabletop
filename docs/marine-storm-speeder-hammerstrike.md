@@ -1,0 +1,9 @@
+# Storm Speeder Hammerstrike — current e11 implementation
+
+Implemented 19 October 2026 from the pinned local Wahapedia Space Marines App export (`000000139`), datasheet `000000114`, revision `2026-10-16T21:03:46+03:00`. This is one 90 mm-base model with M14, T9, Sv3+, W11, Ld6+ and OC3. It costs 140 points for each of the first two copies and 150 for the third-plus price tier. Its source keywords are VEHICLE, FLY, FRAME, RAVENWING, IMPERIUM and SPEEDER; ADEPTUS ASTARTES is retained as the runtime faction identity tag.
+
+The fixed loadout is one Hammerstrike Missile Launcher, one Krakstorm Grenade Launcher, one Melta Destroyer and Armoured Impact. The Melta Destroyer has Melta 3. The source also grants Deep Strike, Damaged 4, Deadly Demise D3 and Hammerstrike.
+
+**Hammerstrike** gives each ranged attack made by this unit Sustained Hits 1 when its target enemy unit is within a terrain area. The runtime uses the existing terrain-area geometry: any living target model whose base overlaps an area qualifies, including when its centre is outside the area. Existing Sustained Hits values are not reduced. The rule does not affect melee attacks. The 11e terrain layout is represented at ground level; upper-floor terrain geometry is not part of this increment.
+
+`tests/test_storm_speeder_hammerstrike.gd` checks source identity, characteristics, fixed weapons, copy-tier prices, local catalog publication, materialization, Deep Strike and the two shared vehicle abilities. Combat checks cover each ranged profile, a base overlapping the terrain boundary, targets outside terrain, no melee bonus, and the Damaged 4 threshold. The fixed-data comparison matches all four weapon profiles/traits, uniform loadout, composition, source keywords and costs. This is a bounded local implementation and does not certify full faction or army legality. Network validation remains deferred to final integration.

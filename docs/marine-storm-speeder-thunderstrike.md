@@ -1,0 +1,11 @@
+# Storm Speeder Thunderstrike — current e11 implementation
+
+Implemented 19 October 2026 from the pinned local Wahapedia Space Marines export, shared book `000000139`, datasheet `000001610`, revision `2026-10-16T21:03:46+03:00`. The fixed reference is one 90 mm base proxy with M14, T9, Sv3+, W11, Ld6+ and OC3. Costs are 140 points for each of the first two copies and 150 for the third-plus tier, with a maximum of three copies represented by the current construction scope.
+
+The fixed loadout is a Stormfury Missile Launcher (48", A2, BS3+, S10, AP-3, D3+3), Thunderstrike Icarus Rocket Pod (24", A6, BS3+, S6, AP-1, D2, Anti-Fly 2+), Thunderstrike Las-talon (36", A2, BS3+, S10, AP-3, D3+3) and Armoured Impact (A3, WS4+, S6, AP0, D1). Source keywords include VEHICLE, FLY, RAVENWING, SPEEDER, IMPERIUM and FRAME; ADEPTUS ASTARTES is retained as its faction identity.
+
+**Thunderstrike:** ranged attacks made by this unit against a MONSTER or VEHICLE get +1 to the Wound roll. The modifier does not apply to melee attacks and is handled with the normal Wound modifier cap.
+
+**Shattered Defences:** in your Shooting phase, after this unit shoots, select one enemy MONSTER or VEHICLE unit hit by its attacks. Until phase end, friendly ADEPTUS ASTARTES ranged attacks against that unit gain +1 AP. The action prompt only offers a qualifying living target that was hit. The mark is owned by the Thunderstrike’s side, applies to allied Astartes ranged attacks, excludes melee and enemy attacks, and expires at phase end. Deep Strike, Damaged 4 and Deadly Demise D3 use the existing current core-rule implementations.
+
+`tests/test_storm_speeder_thunderstrike.gd` checks source identity and revision, fixed characteristics, all weapon profiles and Anti-Fly, construction and copy-tier totals, local materialization, ranged and melee Wound modifiers, hit-qualified MONSTER/VEHICLE selection, the Shattered Defences prompt, AP recipient and attack-type limits, and phase expiry. The focused local run passed 8/8 processes in `.tools/verification/20261019T100916115351Z/results.json`. The fixed-data comparison checks all four weapon profiles and traits, source keywords, uniform loadout, composition and tiered costs. This is bounded local support, not certification of complete faction rules or army legality; network validation remains deferred to final integration.

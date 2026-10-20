@@ -42,14 +42,16 @@ static func coherent(state: Dictionary, squad: int) -> bool:
 				frontier.append(other)
 	return reached.size() == ids.size()
 
-static func clear_path(state: Dictionary, model_id: int, destination: Vector2, maximum: float, through_enemies: bool = false) -> bool:
+static func clear_path(state: Dictionary, model_id: int, destination: Vector2, maximum: float, through_enemies: bool = false, through_models: bool = false) -> bool:
 	var model: Dictionary = state.units[model_id]
+	var identity := str(model.get("definition_id", "")).get_slice(":", 3)
+	if identity == "reiver-squad" and state.squads[model.squad].get("reiver_grapnel_launchers", false): through_models = true
 	if not destination.is_finite() or model.position.distance_to(destination) > maximum + EPSILON: return false
 	var radius: float = model.radius
 	var half_board := Movement.half_board(state)
 	if absf(destination.x) > half_board.x - radius + EPSILON or absf(destination.y) > half_board.y - radius + EPSILON: return false
 	if not Terrain.path_error(state, model_id, destination).is_empty(): return false
-	if not through_enemies:
+	if not through_enemies and not through_models:
 		for id: int in state.units:
 			if state.units[id].owner == model.owner or state.units[id].wounds <= 0 or not state.units[id].get("on_battlefield", true): continue
 			var closest := Geometry2D.get_closest_point_to_segment(state.units[id].position, model.position, destination)

@@ -1,0 +1,376 @@
+{
+  "schema_version": 1,
+  "id": "wahapedia-marine-keyword-context-2026-10-19-v48",
+  "scope": "Audit context for the currently exported fixed profiles; not a runtime chapter implementation or general chapter keyword registry. Exported faction keywords are tracked as runtime identity tags and excluded from non-faction datasheet keyword comparison.",
+  "export_updated_at": "2026-10-16T15:03:46-03:00",
+  "source_pages": [
+    {
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "observed_on": "2026-10-18",
+      "html_sha256": "e039ee307b58159cd5e4a7ba2b535bf75fed34b242ddeeb82d2fa0fd16d115bf",
+      "locator": "The Deathwing, App. Dark Angels e11; enclosing chapter filter data-f=AA:ffffffffff,CH:21",
+      "summary": "Dark Angels chapter rule grants Deathwing to the listed friendly Astartes unit families, including Terminator units."
+    },
+    {
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
+      "observed_on": "2026-10-18",
+      "html_sha256": "ec9a95ad5785ae378c8542999d5446bb46c28f170f28b87508dea0a9e3223254",
+      "locator": "Keywords section: tooltipDeathwing span includes clFl CHDA; ordinary Terminator keyword is not in that chapter-filter span",
+      "summary": "The page carries chapter visibility context absent from the exported keyword row."
+    }
+  ],
+  "conditional_keywords": [
+    {
+      "datasheet_id": "000001183",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing"
+    },
+    {
+      "datasheet_id": "000002677",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000002677: non-faction keyword row Deathwing",
+      "scope_note": "Keep out of the shared runtime profile. Dark Angels chapter rules supply this keyword in the chapter-specific context; runtime chapter selection is not implemented."
+    },
+    {
+      "datasheet_id": "000000147",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing"
+    },
+    {
+      "datasheet_id": "000000079",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing"
+    }
+  ],
+  "internal_identity_tags": [
+    {
+      "runtime_identity": "iron-father-feirros",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "iron-father-feirros",
+      "tag": "IRON HANDS",
+      "meaning": "Runtime chapter faction identity tag; excluded from non-faction datasheet keyword comparison and not implemented as a global chapter rule."
+    },
+    {
+      "runtime_identity": "suboden-khan",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "suboden-khan",
+      "tag": "WHITE SCARS",
+      "meaning": "Runtime chapter faction identity tag; excluded from non-faction datasheet keyword comparison and not implemented as a global chapter rule."
+    },
+    {
+      "runtime_identity": "suboden-khan",
+      "tag": "MOBILE",
+      "meaning": "Keyword granted to Suboden Khan's unit by the Skilled Riders ability; derived runtime identity tag, not a printed datasheet keyword row."
+    },
+    {
+      "runtime_identity": "darnath-lysander",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "darnath-lysander",
+      "tag": "IMPERIAL FISTS",
+      "meaning": "Runtime chapter faction identity tag; excluded from non-faction datasheet keyword comparison and not implemented as a global chapter rule."
+    },
+    {
+      "runtime_identity": "tor-garadon",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "tor-garadon",
+      "tag": "IMPERIAL FISTS",
+      "meaning": "Runtime chapter faction identity tag; excluded from non-faction datasheet keyword comparison and not implemented as a global chapter rule."
+    },
+    {
+      "runtime_identity": "librarian",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; the source row marks Adeptus Astartes as a faction keyword and it is excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "captain-on-bike",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction keyword; the local Wahapedia export marks it as a faction keyword, so it is excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "terminator-assault-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "gladiator-valiant",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "land-speeder",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "chaplain-on-bike",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "storm-speeder-thunderstrike",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "desolation-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "lieutenant-with-combi-weapon",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "techmarine",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "roboute-guilliman",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction keyword; the local Wahapedia export marks it as a faction keyword."
+    },
+    {
+      "runtime_identity": "roboute-guilliman",
+      "tag": "ULTRAMARINES",
+      "meaning": "Runtime chapter faction keyword; the local Wahapedia export marks it as a faction keyword."
+    },
+    {
+      "runtime_identity": "captain-in-phobos-armour",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction keyword; the local Wahapedia export marks it as a faction keyword."
+    },
+    {
+      "runtime_identity": "assault-intercessor-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction keyword; the local Wahapedia export marks it as a faction keyword."
+    },
+    {
+      "runtime_identity": "terminator-squad",
+      "tag": "TERMINATOR SQUAD",
+      "meaning": "Existing project identity tag, not an additional exported datasheet keyword."
+    },
+    {
+      "runtime_identity": "infiltrator-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "lieutenant-in-phobos-armour",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "captain-in-gravis-armour",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "ancient-in-terminator-armour",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "assault-intercessors-with-jump-packs",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "captain-with-jump-pack",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "vanguard-veteran-squad-with-jump-packs",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "chaplain-with-jump-pack",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "librarian-in-terminator-armour",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "librarian-in-phobos-armour",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "scout-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "incursor-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "reiver-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "firestrike-servo-turrets",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "redemptor-dreadnought",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction keyword; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "brutalis-dreadnought",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction keyword; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "invictor-tactical-warsuit",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "inceptor-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "intercessor-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "heavy-intercessor-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "company-heroes",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "outrider-squad",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "gladiator-reaper",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "gladiator-lancer",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "storm-speeder-hammerstrike",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "storm-speeder-hailstrike",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "adrax-agatone",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Wahapedia marks this as a faction keyword on Adrax Agatone."
+    },
+    {
+      "runtime_identity": "adrax-agatone",
+      "tag": "SALAMANDERS",
+      "meaning": "Wahapedia marks this as Adrax Agatone’s chapter faction keyword."
+    },
+    {
+      "runtime_identity": "kaius-konorius",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Wahapedia marks this as a faction keyword on Kaius Konorius."
+    },
+    {
+      "runtime_identity": "kaius-konorius",
+      "tag": "ULTRAMARINES",
+      "meaning": "Wahapedia marks this as Kaius Konorius’s chapter faction keyword."
+    },
+    {
+      "runtime_identity": "aethon-shaan",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Wahapedia marks this as a faction keyword on Aethon Shaan."
+    },
+    {
+      "runtime_identity": "aethon-shaan",
+      "tag": "RAVEN GUARD",
+      "meaning": "Wahapedia marks this as Aethon Shaan’s chapter faction keyword."
+    },
+    {
+      "runtime_identity": "captain",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Wahapedia marks this as a faction keyword on the current shared-book Captain sheet."
+    },
+    {
+      "runtime_identity": "invader-atvs",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Wahapedia marks this as a faction keyword on the current shared-book Invader ATVs sheet."
+    },
+    {
+      "runtime_identity": "caanok-var",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "caanok-var",
+      "tag": "IRON HANDS",
+      "meaning": "Runtime chapter faction identity tag; excluded from non-faction datasheet keyword comparison and not implemented as a global chapter rule."
+    },
+    {
+      "runtime_identity": "chief-librarian-tigurius",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "chief-librarian-tigurius",
+      "tag": "ULTRAMARINES",
+      "meaning": "Runtime chapter faction identity tag; excluded from non-faction datasheet keyword comparison and not implemented as a global chapter rule."
+    },
+    {
+      "runtime_identity": "kayvaan-shrike",
+      "tag": "ADEPTUS ASTARTES",
+      "meaning": "Runtime faction identity tag; excluded from non-faction datasheet keyword comparison."
+    },
+    {
+      "runtime_identity": "kayvaan-shrike",
+      "tag": "RAVEN GUARD",
+      "meaning": "Runtime chapter faction identity tag; excluded from non-faction datasheet keyword comparison and not implemented as a global chapter rule."
+    }
+  ]
+}

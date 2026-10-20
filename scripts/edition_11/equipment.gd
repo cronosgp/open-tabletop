@@ -1,6 +1,8 @@
 extends RefCounted
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
+const FiringDeck = preload("res://scripts/edition_11/firing_deck.gd")
+const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 ## Server-owned weapon instances and profiles. Legacy squads expose one default.
 
 static func inventory(state: Dictionary, model: int, melee: bool) -> Array:
@@ -27,7 +29,15 @@ static func choices(state: Dictionary, model: int, melee: bool) -> Array[Diction
 					for keyword: Variant in hunter:
 						if keyword is String: names.append(keyword)
 				label += " [Hunter: %s]" % ("/".join(names) if not names.is_empty() else "unresolved")
-			result.append({"weapon": weapon.id, "profile": profile, "label": label, "stats": stats})
+			var option := {"weapon": weapon.id, "profile": profile, "label": label, "stats": stats}
+			if weapon.has("firing_deck_source_model"):
+				option.firing_deck_source_model = int(weapon.firing_deck_source_model)
+			result.append(option)
+	if melee and MarineEnhancements.imperiums_sword_bearer(state, model):
+		var sword := {"id": "imperiums-sword", "name": "Imperium's Sword", "profiles": {"standard": {
+			"name": "Imperium's Sword", "range_inches": 0.0, "attacks": 6, "skill": 2, "strength": 7, "ap": -3, "damage": 3, "keywords": {}}}}
+		result.append({"weapon": sword.id, "profile": "standard", "label": sword.name, "stats": sword.profiles.standard})
+	if not melee: result.append_array(FiringDeck.weapon_choices(state, model))
 	# Identical weapon instances still need distinct choices in the planner.
 	var counts: Dictionary = {}
 	var ordinal: Dictionary = {}

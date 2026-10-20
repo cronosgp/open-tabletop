@@ -1,0 +1,72 @@
+{
+  "id": "marine-gravis-ancient-batch-2026-10-18",
+  "source_book_id": "000000139",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "edition": 11,
+  "sources": [
+    {
+      "identity": "captain-in-gravis-armour",
+      "datasheet_id": "000001172",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-In-Gravis-Armour"
+    },
+    {
+      "identity": "ancient-in-terminator-armour",
+      "datasheet_id": "000002677",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Ancient-In-Terminator-Armour"
+    }
+  ],
+  "versions": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v17",
+    "abilities": "track-a-current-datasheets-2026-10-v19",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v18"
+  },
+  "inventory": {
+    "implemented_shared_marines": 24,
+    "prior_marine_increments_with_historical_test_evidence": 22,
+    "new_pending_validation": 2,
+    "unimplemented_shared_marines": 61,
+    "necrons": 4
+  },
+  "written_tests": [
+    {
+      "path": "tests/test_gravis_captain.gd",
+      "sha256": "06678bcb8ea57fdf8ed5f66d8eeea96e901508bb25c170c1a9e4bebf7bd9281a"
+    },
+    {
+      "path": "tests/test_terminator_ancient.gd",
+      "sha256": "d8abf62ceb229965d0a7148dc1bd85f12af150cab7f776ec6a2d0b9904a1f03b"
+    },
+    {
+      "path": "tests/marine_gravis_ancient_fixture.gd",
+      "sha256": "b874bbd151325c66635285a8574830897d13fce0471595f8800b6ea3210d2a0c"
+    }
+  ],
+  "validation": {
+    "status": "targeted_local_suites_passed",
+    "test_processes_run": 13,
+    "verification_report": ".tools/verification/20261019T022024657123Z/results.json",
+    "passed_suites": ["test_gravis_captain", "test_terminator_ancient", "test_implemented_catalog", "test_roster_validation", "test_unit_reserves", "test_capabilities", "test_infiltrators", "test_ancients"],
+    "runtime_data_comparison": "not_run",
+    "godot_compilation": "import_passed",
+    "ui_captures": "staged_manual_captures_only; tests were run separately",
+    "current_build": "pending_final_complete_run",
+    "passed": true
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_match_certified": false,
+  "ui_captures": [
+    {
+      "path": ".tools\\gravis-ancient-batch-before.png",
+      "sha256": "7ddece0fe8c2edc390d7026d2d875bd0258935126507fa81e1dff09a3d9ab4e2",
+      "kind": "actual Godot staged preparation fixture; no test assertions executed"
+    },
+    {
+      "path": ".tools\\gravis-ancient-batch-preparation.png",
+      "sha256": "085a93a790a2761a1b85928dcf15d9535a49e5ced571555b6d530d57e1f861df",
+      "kind": "actual Godot staged preparation fixture; no test assertions executed"
+    }
+  ]
+}

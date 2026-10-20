@@ -1,0 +1,44 @@
+{
+  "id": "heavy-intercessor-squad-local-audit-2026-10-19-v1",
+  "rules_authority": "Wahapedia 11th-edition local export",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000001177",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "profile_id": "space-marines-e11-fixed-reference-2026-10-19-v48",
+  "profile_digest": "148c783b3d8397a0f9d099c24bd6e85039ba939a8c0106eb914b6b34427b3a1d",
+  "profile_comparison": {
+    "fixed_data_scope_consistent": true,
+    "numeric_or_identity_differences": 0,
+    "keyword_scope_consistent": true,
+    "weapon_profiles_checked": 4,
+    "weapon_traits_consistent": true,
+    "snapshot_structurally_valid": true
+  },
+  "construction": {
+    "sizes_points": {
+      "5": 115,
+      "10": 230
+    },
+    "catalog_local_only": true
+  },
+  "equipment_option": {
+    "replacement": "Heavy Bolt Rifle replaced by Heavy Bolter",
+    "eligible_model": "non-Sergeant Heavy Intercessor",
+    "limit": "one per five starting models",
+    "points_change": 0
+  },
+  "ability": {
+    "name": "Unyielding in the Face of the Foe",
+    "effect": "+1 to saving throws while this unit controls an objective",
+    "requires_this_squad_to_contribute_OC": true,
+    "attack_modifier_snapshotted": true
+  },
+  "local_validation": {
+    "test": "tests/test_heavy_intercessor_current.gd",
+    "passed": true,
+    "regression_report": ".tools/verification/20261019T084956896863Z/results.json",
+    "regression_processes": 14
+  },
+  "network_validation": "deferred to final integration",
+  "full_army_legality_certified": false
+}

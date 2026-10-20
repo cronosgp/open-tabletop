@@ -3,6 +3,8 @@ const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 ## Core Rules §§01.07, 08.03, 15.01–15.12; reaction cards live in core_reactions.gd.
 const Morale = preload("res://scripts/edition_11/morale.gd")
 const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
+const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
+const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const ID := "core-stratagem-windows-v1"
 const REROLL_ID := "command-reroll-movement-v1"
 const ATTACK_REROLL_ID := "command-reroll-hit-wound-v1"
@@ -16,7 +18,9 @@ const SUPPORTED := {"insane-bravery": {"cost": 1, "window": "before_battle_shock
 	"fire-overwatch": {"cost": 1, "window": "end_movement", "once_per_battle": false},
 	"heroic-intervention": {"cost": 1, "window": "end_charge", "once_per_battle": false},
 	"counteroffensive": {"cost": 2, "window": "after_enemy_fights", "once_per_battle": false},
-	"epic-challenge": {"cost": 1, "window": "selected_to_fight", "once_per_battle": false}}
+	"epic-challenge": {"cost": 1, "window": "selected_to_fight", "once_per_battle": false},
+	"crushing-impact": {"cost": 1, "window": "immediately_after_vehicle_charge", "once_per_battle": false},
+	"explosives": {"cost": 1, "window": "own_shooting_before_shooting", "once_per_battle": false}}
 
 static func enable(state: Dictionary, movement_rerolls: bool = false, attack_rerolls: bool = false, save_rerolls: bool = false, damage_rerolls: bool = false, hazard_rerolls: bool = false, count_rerolls: bool = false, escape_rerolls: bool = false) -> Dictionary:
 	if state.has("error") or state.has("stratagems"): return state
@@ -84,8 +88,8 @@ static func choice_error(state: Dictionary, player: int, squad: int, revision: i
 		if state.phase != "command" or squad not in window.remaining or not Morale.needs_command_roll(state, squad): return "Select a unit that still needs this test."
 	elif window.kind in ["after_advance_roll", "after_charge_roll"]:
 		if squad != window.squad: return "This roll belongs to another unit or ability."
-		if window.kind == "after_charge_roll" and not state.stratagems.get("movement_rerolls", false): return "This roll belongs to another unit or ability."
-		if window.kind == "after_advance_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("sudden", false)): return "This roll belongs to another unit or ability."
+		if window.kind == "after_charge_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("valour", false) or window.get("master_shadows", false)): return "This roll belongs to another unit or ability."
+		if window.kind == "after_advance_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("sudden", false) or window.get("supercharged", false) or window.get("honour_vigilance", false) or window.get("wrath_chapter", false) or window.get("stormseers_wisdom", false)): return "This roll belongs to another unit or ability."
 		if state.phase != ("movement" if window.kind == "after_advance_roll" else "charge"): return "A fase da rolagem mudou."
 	elif window.kind in ["after_hit_roll", "after_wound_roll"]:
 		if not state.stratagems.get("attack_rerolls", false) or squad != window.squad or state.get("pending_attack", {}).is_empty(): return "This decision does not match the pending attack."
@@ -110,6 +114,7 @@ static func use_error(state: Dictionary, player: int, squad: int, stratagem: Str
 	if stratagem not in SUPPORTED: return "Stratagem is not implemented in this window."
 	var rule: Dictionary = SUPPORTED[stratagem]
 	if pending(state).kind not in rule.get("windows", [rule.get("window", "")]): return "Stratagem unavailable in this window."
+	if stratagem == "command-re-roll" and pending(state).kind in ["after_advance_roll", "after_charge_roll"] and not state.stratagems.get("movement_rerolls", false): return "Command Re-roll is disabled for Advance and Charge rolls."
 	if state.cp.get(player, 0) < int(rule.cost) - UnitAbilities.discount(state, player, squad): return "Choose My Will Be Done or pay the normal CP cost."
 	return eligibility_error(state, player, squad, stratagem)
 
@@ -129,9 +134,15 @@ static func eligibility_error(state: Dictionary, player: int, squad: int, strata
 			if use.squad == squad: return "This unit has already been targeted by another stratagem this phase."
 	return ""
 
-static func open_roll(state: Dictionary, player: int, squad: int, kind: String, rolls: Array, draft: Dictionary = {}) -> bool:
-	if not state.get("stratagems", {}).get("movement_rerolls", false) or not eligibility_error(state, player, squad, "command-re-roll").is_empty(): return false
-	state.stratagems.pending = {"kind": kind, "player": player, "squad": squad, "phase_key": phase_key(state), "rolls": rolls.duplicate(), "draft": draft.duplicate(true)}
+static func open_roll(state: Dictionary, player: int, squad: int, kind: String, rolls: Array, draft: Dictionary = {}, wrath_chapter: bool = false) -> bool:
+	var master_shadows: bool = kind == "after_charge_roll" and UnitAbilities.master_shadows_active(state, squad)
+	var supercharged: bool = kind == "after_advance_roll" and StormlanceEnhancements.active(state, squad, StormlanceEnhancements.SUPERCHARGED)
+	var honour_vigilance: bool = kind == "after_advance_roll" and Doctrines.has_doctrine(state, squad, "devastator") and StormlanceEnhancements.honour_of_vigilance_active(state, squad)
+	var stormseers_wisdom: bool = kind == "after_advance_roll" and StormlanceEnhancements.stormseers_wisdom_active(state, squad)
+	var command_reroll: bool = state.get("stratagems", {}).get("movement_rerolls", false) and eligibility_error(state, player, squad, "command-re-roll").is_empty()
+	if not command_reroll and not master_shadows and not supercharged and not honour_vigilance and not wrath_chapter and not stormseers_wisdom: return false
+	if not state.has("stratagems"): state.stratagems = {"pending": {}, "uses": [], "command_done_turn": -1}
+	state.stratagems.pending = {"kind": kind, "player": player, "squad": squad, "phase_key": phase_key(state), "rolls": rolls.duplicate(), "draft": draft.duplicate(true), "master_shadows": master_shadows, "supercharged": supercharged, "honour_vigilance": honour_vigilance, "wrath_chapter": wrath_chapter, "stormseers_wisdom": stormseers_wisdom}
 	return true
 
 static func consume(state: Dictionary, player: int, squad: int, stratagem: String) -> void:

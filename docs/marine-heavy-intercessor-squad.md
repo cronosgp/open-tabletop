@@ -1,0 +1,9 @@
+# Heavy Intercessor Squad — 19 October 2026
+
+The current 11th-edition profile uses the pinned local Wahapedia extraction as its sole rules source: Space Marines App (`000000139`), datasheet `000001177`, export revision `2026-10-16T21:03:46+03:00`. The sheet is admitted into the consolidated local construction catalog at 5 models / 115 points and 10 models / 230 points. The profile records the Sergeant and Heavy Intercessor characteristics, 40 mm bases, source keywords, Bolt Pistols, Heavy Bolt Rifles and Ceramite Fists.
+
+During army preparation, one non-Sergeant model per five starting models can replace its Heavy Bolt Rifle with a Heavy Bolter. The chosen model receives the extracted 36-inch, A3, BS3, S5, AP-1, D2 profile with Heavy, Sustained Hits 1 and Rapid Fire 2. The choice does not change points. A 5-model unit permits one replacement; a 10-model unit permits two. The Sergeant is excluded.
+
+Unyielding in the Face of the Foe grants +1 to saving throws while the unit controls an objective. The combat save modifier checks that the Heavy Intercessor squad is among the contributing squads on a friendly-controlled objective. Being near a friendly objective controlled by another squad is insufficient. The existing damage-resolution hook snapshots the modifier for the attack sequence.
+
+Local validation: `tests/test_heavy_intercessor_current.gd` checks sourced characteristics, options, points, equipment limit, and objective-control behavior; `tests/test_implemented_catalog.gd` checks local publication. Fixed-data comparison `.tools/wahapedia-fixed-data-review-v57.json` reports all 4 Heavy Intercessor weapon profiles/traits consistent, with no numeric, identity, or keyword-scope differences. Snapshot structural validation passed. Network validation remains deferred; this increment does not certify full army legality or the complete Space Marines faction.

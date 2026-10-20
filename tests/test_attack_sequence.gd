@@ -37,6 +37,16 @@ func _initialize() -> void:
 	check(Attacks.wound_target(2, 4) == 6, "Half strength threshold")
 	check(not Attacks.successful_roll(1, 2, 1), "Natural one must fail")
 	check(Attacks.successful_roll(6, 6, -1), "Natural six must succeed")
+	var anti_vehicle_weapon := weapon()
+	anti_vehicle_weapon.attacks = 1
+	anti_vehicle_weapon.strength = 2
+	anti_vehicle_weapon.keywords = {"anti-vehicle": 2}
+	var vehicle_defender := defender()
+	vehicle_defender.toughness = 10
+	var anti_result := resolve(anti_vehicle_weapon, vehicle_defender, {"target_keywords": ["VEHICLE"], "defer_saves": true}, [6, 2])
+	check(anti_result.error.is_empty() and anti_result.wounds == 1 and anti_result.critical_wounds == 1, "Anti-Vehicle 2+ did not make an unmodified 2 a Critical Wound against a Vehicle")
+	anti_result = resolve(anti_vehicle_weapon, vehicle_defender, {"target_keywords": ["INFANTRY"], "defer_saves": true}, [6, 2])
+	check(anti_result.error.is_empty() and anti_result.wounds == 0 and anti_result.critical_wounds == 0, "Anti-Vehicle applied without a Vehicle target")
 	var d := defender()
 	var result := resolve(weapon(), d, {}, [3, 6, 4, 6, 3, 4])
 	check(result.error == "" and result.hits == 2 and result.wounds == 2, "Hit and wound pool")

@@ -1,3 +1,13 @@
+Current status (19 October 2026): Lieutenant follows Captain Titus with its 50-point source profile, Combat Doctrines, all listed weapon options and bearer-only Storm Shield protection. Runtime offers 75 selectable Marine identities, with 10 source identities incomplete or unreconciled. Focused local checks passed. Network validation remains deferred and full faction/army legality is uncertified.
+
+Previous snapshot (18 October 2026, before targeted local validation): [Gravis Captain and Terminator Ancient](marine-gravis-ancient-batch.md) brought the runtime to 24 Marine identities and four Necrons. Its tests have since passed as recorded in the linked batch report.
+
+Current Terminator Captain increment (18 October 2026): [Captain in Terminator Armour](marine-terminator-captain.md) adds the 90-point Leader, Strategic Acumen, Transhuman Strategist, Deep Strike, optional free charge reroll and independent weapon replacements. Admission covers twenty-two shared-book Marine identities and four Necron identities; 63 shared-book Marine identities remain unadmitted. Network validation remains deferred and full faction/army certification incomplete. Earlier increments below are historical.
+
+Current Terminator Chaplain increment (18 October 2026): [Chaplain in Terminator Armour](marine-terminator-chaplain.md) adds the 75-point Leader, unit mortal-wound Feel No Pain 4+, melee Lance, Deep Strike and reversible Relic Shield. Attached Characters now count toward reserve costs. Admission covers twenty-one shared-book Marine identities and four Necron identities; 64 shared-book Marine identities remain unadmitted. Network validation remains deferred and full faction/army certification incomplete. Earlier increments below are historical.
+
+Current Apothecary increment (18 October 2026): [Apothecary and shared healing](marine-apothecary.md) add the 45-point Support, Narthecium D3+1 healing with confirmed return previews, and the explicit Apothecary/Lieutenant attachment exception. Admission now covers twenty shared-book Marine identities and four Necron identities; 65 shared-book Marine identities remain unadmitted. Network validation remains deferred and full faction/army certification incomplete. Earlier increments below are historical.
+
 # Track A — First complete legal match (working plan)
 
 **Locked target:** 1,000-point Incursion, **Space Marines (Gladius Task Force)** vs **Necrons (Awakened Dynasty)**, one Warlord character per side, one official matched-play mission, on a 60 × 44-inch board for the selected current Chapter Approved scenario (the 43 × 43 board remains a training option).
@@ -11,7 +21,7 @@
 - **A2 mission:** [CA 2026-27 mission and deployment](chapter-approved-mission.md), including fixed-scenario/custom-terrain scope. Other missions, layouts and rosters remain separate.
 - **A4 capability registry:** one registry feeds the current admission, validation and interface rules (`scripts/edition_11/capabilities.gd`, `tests/test_capabilities.gd`).
 - **Current abilities and faction effects:** [ten fixed-loadout unit profiles](current-unit-abilities.md), [Combat Doctrines + Codex Discipline](combat-doctrines.md), [Awakened Dynasty Command Protocols](awakened-dynasty.md), and scoped [Reanimation Protocols](reanimation-protocols.md) are implemented with documented source/version boundaries. Historical Oath and incompatible abilities remain isolated. Slain Character revival and other unadmitted compositions are out of scope.
-- **Detachment/core stratagems:** [checked Gladius/Awakened cards](detachment-stratagems.md), Command Re-roll, Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge are available for the checked lists. Enhancements and Explosives/Smokescreen/Crushing Impact remain blocked where unsupported.
+- **Detachment/core stratagems:** [checked Gladius/Awakened cards](detachment-stratagems.md), Command Re-roll, Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge are available for the checked lists. [Explosives](explosives.md) was added 18 October; enhancements and Smokescreen/Crushing Impact remain blocked where unsupported.
 
 This document records Track A's scoped completion and the rule boundaries for the roadmap's [Track A](roadmap.md#a-rules--content-completeness-the-critical-path). The checked match uses 930/880-point lists under the 1,000-point cap; it does not claim complete 1,000-point lists or general-purpose army legality.
 
@@ -65,7 +75,7 @@ The requested ten fixed-profile unit types are covered by [current unit abilitie
 3. **A1 — Detachment effects and stratagems implemented for the checked lists.** Gladius Codex Discipline, Awakened Command Protocols and the documented Gladius/Awakened cards are covered; unsupported options remain blocked.
 4. **A2 — Selected mission and deployment implemented.** See the CA 2026-27 profile and its custom-terrain/source boundaries.
 5. **A3 — Current fixed-roster pricing/construction implemented.** MFM 1.6 checks cover the ten admitted profiles and checked rosters.
-6. **A5 — Remaining infantry core implemented for the checked lists.** [Command Re-roll windows plus Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge](track-a-a5.md) complete the documented match. Explosives/Smokescreen/Crushing Impact stay blocked because these loadouts do not expose those keywords/roles. Filling 930/880 to 1,000 points is catalog work after Track A.
+6. **A5 — Remaining infantry core implemented for the checked lists.** [Command Re-roll windows plus Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge](track-a-a5.md) complete the documented match. [Explosives](explosives.md) is now implemented for existing EXPLOSIVES profiles; Smokescreen/Crushing Impact remain blocked. Filling 930/880 to 1,000 points is catalog work after Track A.
 
 ## Source verification
 

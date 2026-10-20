@@ -3,6 +3,10 @@ extends VBoxContainer
 signal mappings_changed
 signal automatic_status(message: String)
 signal variants_changed(definition: String)
+signal linked_unit_requested
+var linked_unit_button: Button
+var last_linked_definition := ""
+var has_roster_context: Callable
 const CatalogDownload = preload("res://scripts/forceorg_catalog_download.gd")
 var catalog_downloader: Node
 var catalog_definitions: Array[String] = []
@@ -26,6 +30,7 @@ var download_selection := ""
 var settings_path := "user://local-models.cfg"
 var selected_definition: Callable
 var selected_radius: Callable
+var selected_label: Callable
 var mappings: Dictionary = {}
 var variant_mappings: Dictionary = {}
 var variant_cache: Dictionary = {}
@@ -53,6 +58,7 @@ var scale_input: SpinBox
 var rotation_input: SpinBox
 var offset_input: SpinBox
 var preview_root: Node3D
+var preview_camera: Camera3D
 var preview_asset: Dictionary = {}
 var apply_button: Button
 
@@ -186,6 +192,7 @@ func _ready() -> void:
 	preview_root = Node3D.new()
 	viewport.add_child(preview_root)
 	var camera := Camera3D.new()
+	preview_camera = camera
 	viewport.add_child(camera)
 	camera.position = Vector3(1.6, 1.3, 2)
 	camera.look_at(Vector3(0, 0.65, 0))
@@ -196,20 +203,69 @@ func _ready() -> void:
 	rotation_input = _number("Rotation (degrees)", -360, 360, 1, 0)
 	offset_input = _number("Height offset (inches)", -10, 10, 0.01, 0)
 	target = _label("Select a battlefield model to choose a unit type.")
-	apply_button = _button("Save visual for selected unit type", apply_mapping)
+	apply_button = _button("Link to unit type", apply_mapping)
+	apply_button.tooltip_text = "Save a local default for this unit type. Explicit per-miniature variants take priority. Other players keep their own visuals."
+	linked_unit_button = _button("View linked unit", func(): linked_unit_requested.emit())
+	linked_unit_button.visible = false
 	_button("Remove visual for selected unit type", remove_mapping)
 	notice = _label("No model loaded. Source scripts are ignored. Missing models use placeholders. OBJ materials use the selected diffuse image; MTL, normal maps and AssetBundles are not supported yet.")
 	load_settings()
+	_organize_imports()
+
+func _organize_imports() -> void:
+	var original := get_children()
+	var layout := HBoxContainer.new()
+	layout.add_theme_constant_override("separation", 24)
+	add_child(layout)
+	var tabs := TabContainer.new()
+	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	layout.add_child(tabs)
+	var pages := {}
+	for title in ["Source & download", "Local files", "Adjust"]:
+		var page := VBoxContainer.new()
+		page.name = title
+		tabs.add_child(page)
+		pages[title] = page
+	var right := VBoxContainer.new()
+	right.custom_minimum_size.x = 320
+	layout.add_child(right)
+	var preview_heading := Label.new()
+	preview_heading.text = "MODEL PREVIEW"
+	right.add_child(preview_heading)
+	var destination := "Source & download"
+	for control in original:
+		if not control is Control: continue
+		if control is Label:
+			if control.text.begins_with("FORCEORG / TTS MODELS"):
+				control.tooltip_text = control.text
+				control.text = "IMPORT MINIATURE MODELS"
+			if control.text == "Model download folder": destination = "Local files"
+			if control.text == "Optional: local files / cache folder": destination = "Local files"
+			elif control.text.begins_with("Extra visual scale"): destination = "Adjust"
+		if control == download_button: destination = "Source & download"
+		if control is Button and control.text == "Save download folder":
+			control.reparent(pages["Local files"])
+			continue
+		if control is SubViewportContainer or control in [target, apply_button, linked_unit_button, notice]:
+			control.reparent(right)
+		else: control.reparent(pages[destination])
+	for text_label: Label in [notice, selected_description, download_status, lookup_status]:
+		text_label.max_lines_visible = 3
+		text_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 
 func _process(_delta: float) -> void:
+	for text_label: Label in [notice, selected_description, download_status, lookup_status]: text_label.tooltip_text = text_label.text
 	var definition := _definition()
+	if not last_linked_definition.is_empty() and definition != last_linked_definition: last_linked_definition = ""
+	linked_unit_button.visible = not last_linked_definition.is_empty() and has_roster_context.is_valid() and has_roster_context.call()
 	inventory.disabled = downloader.busy or automatic_running or variant_download_active
 	inventory_filter.editable = not downloader.busy and not automatic_running and not variant_download_active
 	download_path.editable = not downloader.busy and not automatic_running and not variant_download_active
 	download_cancel.visible = downloader.busy or automatic_running or variant_download_active
 	var entry := _selected_entry()
 	download_button.disabled = downloader.busy or automatic_running or variant_download_active or entry.get("kind", "") != "CustomMesh" or str(entry.get("references", {}).get("MeshURL", "")).is_empty()
-	target.text = "Target unit type: " + definition if not definition.is_empty() else "Select a battlefield model in Play, then return here."
+	var display_name := str(selected_label.call()) if selected_label.is_valid() else definition
+	target.text = "Target unit: " + display_name if not definition.is_empty() else "Select a roster unit in Army, or a model in Play."
 	apply_button.disabled = downloader.busy or automatic_running or variant_download_active or definition.is_empty() or preview_asset.is_empty() or preview_asset.get("path", "") != mesh_path.text.strip_edges() or preview_asset.get("texture", "") != texture_path.text.strip_edges()
 
 func start_download() -> void:
@@ -394,13 +450,22 @@ func _update_preview() -> void:
 	for child in preview_root.get_children():
 		preview_root.remove_child(child)
 		child.queue_free()
-	if not preview_asset.is_empty(): preview_root.add_child(Assets.visual(preview_asset, _settings()))
+	if not preview_asset.is_empty():
+		preview_root.add_child(Assets.visual(preview_asset, _settings()))
+		var bounds := preload("res://scripts/ui/miniature_preview.gd").bounds_of(preview_root)
+		var center := bounds.get_center()
+		var distance := maxf(2.5, bounds.size.length() * 1.65)
+		preview_camera.position = center + Vector3(0.7, 0.5, 1).normalized() * distance
+		preview_camera.look_at(center)
+		preview_camera.far = maxf(100, distance * 5)
 
 func apply_mapping() -> void:
+	last_linked_definition = ""
+	linked_unit_button.visible = false
 	if automatic_running: return
 	var definition := _definition()
 	if definition.is_empty() or preview_asset.is_empty():
-		notice.text = "Load a model preview and select a battlefield model first."
+		notice.text = "Load a preview and select a roster unit or battlefield model first."
 		return
 	if preview_asset.path != mesh_path.text.strip_edges() or preview_asset.texture != texture_path.text.strip_edges():
 		notice.text = "Reload the preview after changing its files."
@@ -422,14 +487,18 @@ func apply_mapping() -> void:
 	if not _save(next): return
 	mappings = next
 	cache[definition] = preview_asset
+	last_linked_definition = definition
+	linked_unit_button.visible = has_roster_context.is_valid() and has_roster_context.call()
 	mappings_changed.emit()
-	notice.text = "Saved local visual for " + definition + ". Other players keep their own visuals."
+	notice.text = "✓ Linked locally for this unit type. Per-model variants take priority."
 
 func remove_mapping() -> void:
+	last_linked_definition = ""
+	linked_unit_button.visible = false
 	if automatic_running: return
 	var definition := _definition()
 	if definition.is_empty():
-		notice.text = "Select a battlefield model first."
+		notice.text = "Select a roster unit or battlefield model first."
 		return
 	var next := mappings.duplicate(true)
 	next.erase(definition)
@@ -505,7 +574,8 @@ func visual_for(definition: String, base_radius_inches: float = 0.0) -> Node3D:
 	return Assets.visual(cache[definition], settings)
 
 func variants_for(definition: String) -> Array[Dictionary]:
-	var options: Array[Dictionary] = Matcher.variants(definition, catalog.get("entries", [])) if not catalog.is_empty() else []
+	var options: Array[Dictionary] = []
+	if not catalog.is_empty(): options.assign(Matcher.variants(definition, catalog.get("entries", [])))
 	for identity: String in variant_mappings:
 		var mapping: Dictionary = variant_mappings[identity]
 		if str(mapping.get("definition", "")) != definition: continue

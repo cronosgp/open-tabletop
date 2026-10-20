@@ -1,0 +1,9 @@
+# Storm Speeder Hailstrike — current e11 implementation
+
+Implemented 19 October 2026 from the pinned local Wahapedia Space Marines App export (`000000139`), datasheet `000000124`, revision `2026-10-16T21:03:46+03:00`. This is one 90 mm-base model with M14, T9, Sv3+, W11, Ld6+ and OC3. It costs 110 points for each of the first two copies and 120 for the third-plus tier. Its source keywords are RAVENWING, SPEEDER, IMPERIUM, FLY, VEHICLE and FRAME; ADEPTUS ASTARTES is also retained as its faction identity.
+
+The fixed loadout is one Fragstorm Grenade Launcher (Blast 2, Ignores Cover), one Ironhail Heavy Stubber Array (Rapid Fire 6, Ignores Cover), one Onslaught Gatling Cannon (Devastating Wounds against targets without MONSTER or VEHICLE, Ignores Cover) and Armoured Impact.
+
+**Hailstrike:** in its own Shooting phase, after it shoots, select one enemy unit hit by its attacks. Until the end of that phase, ranged attacks made by friendly ADEPTUS ASTARTES units against that target have Ignores Cover. The selection window only offers living enemy units hit by this Hailstrike's resolved attacks. The common cover-mark flow applies the effect to allied Astartes units, excludes the opposing side and melee attacks, and expires the mark at phase end. The datasheet also grants Deep Strike, Damaged 4 and Deadly Demise D3.
+
+`tests/test_storm_speeder_hailstrike.gd` checks the local source IDs, characteristics, weapons and conditional cannon trait, tiered prices, construction admission, materialization, post-hit target selection, the Hailstrike prompt label, cover removal for later Marine shooting, exclusions and phase expiry. The fixed-data comparison checks all four weapon profiles/traits, source keywords, uniform loadout, composition and tiered costs. This is bounded local support, not a certification of complete faction rules or army legality. Network validation remains deferred to final integration.

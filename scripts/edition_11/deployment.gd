@@ -2,6 +2,8 @@ extends RefCounted
 ## Alternating unit placement for the custom prepared-training scenario.
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
+const ScoutMoves = preload("res://scripts/edition_11/scout_moves.gd")
+const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
 const EPSILON := 0.001
 
 static func begin(state: Dictionary) -> void:
@@ -9,7 +11,7 @@ static func begin(state: Dictionary) -> void:
 	var order: Array[int] = []
 	var sides := {1: [], 2: []}
 	for squad: int in state.squads:
-		if not state.get("unit_abilities", {}).get("reserves", {}).has(squad): sides[state.squads[squad].owner].append(squad)
+		if not state.get("unit_abilities", {}).get("reserves", {}).has(squad) and not TransportRules.squad_embarked(state, squad): sides[state.squads[squad].owner].append(squad)
 	sides[1].sort()
 	sides[2].sort()
 	var defender: int = state.get("mission", {}).get("defender", 1)
@@ -48,10 +50,19 @@ static func position_error(state: Dictionary, model: int, position: Vector2) -> 
 	var unit: Dictionary = state.units[model]
 	var radius: float = unit.radius
 	var zone: Rect2 = state.deployment.zones[unit.owner]
-	if position.x - radius < zone.position.x - EPSILON or position.x + radius > zone.end.x + EPSILON or position.y - radius < zone.position.y - EPSILON or position.y + radius > zone.end.y + EPSILON:
-		return "The entire base must fit inside your deployment zone."
+	var inside_zone := position.x - radius >= zone.position.x - EPSILON and position.x + radius <= zone.end.x + EPSILON and position.y - radius >= zone.position.y - EPSILON and position.y + radius <= zone.end.y + EPSILON
+	if not inside_zone:
+		if not Terrain.Detection.infiltrators(state, unit.squad): return "The entire base must fit inside your deployment zone."
+		if absf(position.x) + radius > state.board_size.x / 2.0 + EPSILON or absf(position.y) + radius > state.board_size.y / 2.0 + EPSILON: return "The entire base must fit on the battlefield."
+		var enemy_zone: Rect2 = state.deployment.zones[3 - unit.owner]
+		if position.distance_to(position.clamp(enemy_zone.position, enemy_zone.end)) - radius <= 8.0 + EPSILON: return "Infiltrators must be more than 8 inches from the enemy deployment zone."
+		for enemy: int in state.units:
+			var other: Dictionary = state.units[enemy]
+			if other.owner == unit.owner or other.wounds <= 0 or not other.get("on_battlefield", true): continue
+			if other.squad not in state.deployment.committed and not state.deployment.placed.has(enemy): continue
+			if position.distance_to(other.position) - radius - float(other.radius) <= 8.0 + EPSILON: return "Infiltrators must be more than 8 inches from deployed enemy units."
 	for id: int in state.units:
-		if id == model or state.units[id].wounds <= 0: continue
+		if id == model or state.units[id].wounds <= 0 or not state.units[id].get("on_battlefield", true): continue
 		if state.units[id].squad not in state.deployment.committed and not state.deployment.placed.has(id): continue
 		if position.distance_to(state.units[id].position) < radius + float(state.units[id].radius) - EPSILON:
 			return "Deployment bases cannot overlap."
@@ -88,6 +99,8 @@ static func confirm_error(state: Dictionary) -> String:
 		if not state.deployment.placed.has(id): return "Place every model, or accept the unit's preview positions first."
 		var error := position_error(state, id, state.units[id].position)
 		if not error.is_empty(): return error
+	for id: int in state.units:
+		if str(state.units[id].get("definition_id", "")).get_slice(":", 3) == "vulkan-hestan" and state.units[id].get("on_battlefield", true) and state.deployment.placed.has(id) and state.get("unit_abilities", {}).get("implementation", "") != "" and not state.unit_abilities.get("seeker_objectives", {}).has(id): return "Resolve Vulkan He’stan’s Seeker of the Unfound objective choice before confirming deployment."
 	if not Geometry.coherent(state, squad): return "Restore unit coherency before confirming deployment."
 	return ""
 
@@ -100,7 +113,8 @@ static func confirm(state: Dictionary, player: int, revision: int) -> String:
 	state.deployment.index += 1
 	if state.deployment.index == state.deployment.order.size():
 		state.deployment.complete = true
-		state.phase = "mission_first_turn" if state.get("mission", {}).get("id", "") == "ca-2026-27-dominance-hammer-fixed-v1" else "start_turn"
+		state.phase = "mission_first_turn" if state.get("mission", {}).get("id", "") == "ca-2026-27-dominance-hammer-fixed-v1" else "pre_battle"
+		if state.phase == "pre_battle": ScoutMoves.begin(state)
 	_event(state, "Deployment complete. Roll off for first turn." if state.phase == "mission_first_turn" else "Deployment complete. Player 1 starts round 1." if state.deployment.complete else "Unit deployed; player %d places the next unit." % actor(state))
 	return ""
 

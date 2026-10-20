@@ -38,7 +38,13 @@ def stage(destination, profile):
         shutil.copy2(ROOT / "export_presets.cfg", project)
     for name in ("scripts", "scenes", "tests", "tools"):
         shutil.copytree(ROOT / name, project / name, ignore=shutil.ignore_patterns("__pycache__"))
+    # Offline source-audit tests depend on this small project-authored context file.
+    # Do not stage downloaded Wahapedia catalogs or the rest of the documentation.
+    (project / "docs").mkdir()
+    shutil.copy2(ROOT / "docs/wahapedia-keyword-context.json", project / "docs/wahapedia-keyword-context.json")
     shutil.copytree(ROOT / "data/packs", project / "data/packs")
+    if (ROOT / "data/edition_11").is_dir():
+        shutil.copytree(ROOT / "data/edition_11", project / "data/edition_11")
     if profile == "full":
         source = ROOT / "data/imported/starter-11e-v1"
         lock = json.loads((ROOT / "data/starter.lock.json").read_text(encoding="utf-8"))

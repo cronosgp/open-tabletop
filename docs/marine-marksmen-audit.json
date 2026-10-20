@@ -1,0 +1,152 @@
+{
+  "id": "marine-marksmen-e11-2026-10-18",
+  "edition": "11e",
+  "source_book_id": "000000139",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "catalog_sha256": "c88415a35692cb7d70022cf6af1050244c72713f72230c2bffb74d89bcb90c35",
+  "subjects": [
+    {
+      "name": "Eliminator Squad",
+      "datasheet_id": "000001668",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Eliminator-Squad"
+    },
+    {
+      "name": "Sternguard Veteran Squad",
+      "datasheet_id": "000002255",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Sternguard-Veteran-Squad"
+    }
+  ],
+  "core_rules": [
+    "13.08",
+    "13.09",
+    "13.11.01",
+    "15.10",
+    "24.20",
+    "24.33"
+  ],
+  "implementation": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v10",
+    "unit_abilities": "track-a-current-datasheets-2026-10-v12",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v10",
+    "core_reactions": "core-reaction-stratagems-v3"
+  },
+  "local_validation": {
+    "status": "passed",
+    "reports": [
+      {
+        "scope": "broad_regression",
+        "report": ".tools/verification/20261018T092610034408Z/results.json",
+        "sha256": "9e7bb2edb8c0d7b4fbb7c0d6bc3476fea5a22a9f28fde6bd4a3f00d4e0bffe25",
+        "status": "passed",
+        "processes": 27,
+        "implementation": {
+          "profiles": "space-marines-e11-fixed-reference-2026-10-18-v9",
+          "unit_abilities": "track-a-current-datasheets-2026-10-v11",
+          "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v9",
+          "core_reactions": "core-reaction-stratagems-v3"
+        }
+      },
+      {
+        "scope": "final_controls",
+        "report": ".tools/verification/20261018T093043364849Z/results.json",
+        "sha256": "2d8ae5313d1b3435a8881c7411fb8f255398ba0235cf581bfa4e984b3ba8f150",
+        "status": "passed",
+        "processes": 6,
+        "implementation": {
+          "profiles": "space-marines-e11-fixed-reference-2026-10-18-v9",
+          "unit_abilities": "track-a-current-datasheets-2026-10-v11",
+          "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v9",
+          "core_reactions": "core-reaction-stratagems-v3"
+        }
+      },
+      {
+        "report": ".tools/verification/20261018T094002195005Z/results.json",
+        "sha256": "5b9c28809471c027b8c0a8361a815a07191b7437727deb2ff61c2131eaf1dac9",
+        "status": "passed",
+        "processes": 28,
+        "scope": "chaplain_integration_regression",
+        "implementation": {
+          "profiles": "space-marines-e11-fixed-reference-2026-10-18-v10",
+          "unit_abilities": "track-a-current-datasheets-2026-10-v12",
+          "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v10",
+          "core_reactions": "core-reaction-stratagems-v3"
+        }
+      }
+    ],
+    "python_checks": 30,
+    "broad_godot_suites": 25
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_match_certified": false,
+  "full_faction_certified": false,
+  "limits": [
+    "Shared book only, no chapter or Boarding Actions adaptation",
+    "Other Leader datasheets and complete faction/detachment coverage remain unimplemented",
+    "Ground-level cylindrical geometry; imported mesh visibility and upper floors not certified",
+    "Existing automatic hit reroll and Lethal Hits choice boundaries remain documented"
+  ],
+  "data_comparison": {
+    "status": "passed",
+    "checks": 101,
+    "errors": [],
+    "waivers": [
+      {
+        "unit": "sternguard-veteran-squad",
+        "weapon": "Pyrecannon",
+        "field": "BS_WS",
+        "reason": "Torrent automatically hits; runtime uses inert BS 3 placeholder."
+      }
+    ],
+    "runtime_sha256": "09ef61ed1197b6b6095ea039366c25d652ae3e03b2e27f5ad00e5fbd393ce9fe",
+    "weapon_modes": 15
+  },
+  "conditional_keywords": [
+    {
+      "datasheet_id": "000002255",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "source_section": "The Deathwing, App. Dark Angels (11th edition)",
+      "applied_in_shared_runtime": false
+    }
+  ],
+  "visual_review": {
+    "engine": "Godot 4.7.2",
+    "viewport": [
+      1600,
+      1000
+    ],
+    "kind": "admitted profiles in staged match fixtures",
+    "captures": [
+      {
+        "path": ".tools/marksmen-optics.png",
+        "sha256": "795b1205a8136d3075000bbd3ea60321319ddda1b04eeb60bea260acdeb45b41",
+        "inspected": true
+      },
+      {
+        "path": ".tools/marksmen-sternguard.png",
+        "sha256": "34e8b9e3fbac8ccaa4700e3a9955d9d398b35216b1547895eb22f08a52935a94",
+        "inspected": true
+      },
+      {
+        "path": ".tools/marksmen-smoke.png",
+        "sha256": "bd9743ff51d7464e1577ee3b99e80998f516a6b1b72049fc42617f04046db8d5",
+        "inspected": true
+      }
+    ],
+    "limitations": [
+      "Other viewport sizes not inspected",
+      "Earlier synthetic baseline has a different scroll position, not a matched framing comparison",
+      "Captures do not certify complete matches or imported mesh visibility"
+    ]
+  },
+  "previous_implementation": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v9",
+    "unit_abilities": "track-a-current-datasheets-2026-10-v11",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v9",
+    "core_reactions": "core-reaction-stratagems-v3"
+  }
+}

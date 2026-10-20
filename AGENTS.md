@@ -1,9 +1,14 @@
 # Rules target
 
-- The user requires **official Warhammer 40,000 11th-edition rules**. Always check edition and current faction/Codex/errata applicability before implementing or marking a rule supported.
-- Use https://wahapedia.ru/wh40k11ed/the-rules/core-rules/ and the corresponding `/wh40k11ed/` faction pages as the user's requested reference. Cross-check rule effects and updates against official Games Workshop sources; record discrepancies and source/version boundaries.
+- The user requires **Warhammer 40,000 11th-edition rules as published by Wahapedia**. By explicit user decision on 18 October 2026, Wahapedia `/wh40k11ed/` is the definitive rules authority for this project. See `docs/rules-source-policy.md`.
+- Always use https://wahapedia.ru/wh40k11ed/the-rules/core-rules/, the corresponding `/wh40k11ed/` faction pages and https://wahapedia.ru/wh40k11ed/the-rules/data-export/. Check edition, book/chapter, game mode and current revision before implementing or marking supported. GW Codex/app/errata cross-checks are optional context, not an admission prerequisite and cannot override the selected Wahapedia rules. Older documentation requiring official locators is superseded by this decision.
 - Do not implement an earlier-edition or superseded Codex mechanic as a substitute for current e11 rules, or silently combine incompatible versions. Existing historical training profiles are not current-rule certification; migrate or explicitly isolate them.
 - Keep roadmap, capability metadata and validation claims consistent with implemented e11 scope. A passing test suite alone does not establish rules accuracy or full army legality.
+- Army construction must use only the consolidated local runtime catalog, per user decision on 18 October 2026; do not restore broad API catalog fetching or cached API choices. Pending-validation and historical/unreconciled profiles stay outside new construction choices. Preserve existing lists as explicitly labeled legacy drafts. See `docs/construction-catalog-policy.md`.
+
+# Validation order
+
+- Validation order requested by the user on 18 October 2026: continue implementing Space Marines with local rules/combat/admission checks; defer network validation to the final integration stage. Deferred network checks must not be reported as passed.
 
 # Visual design workflow
 
