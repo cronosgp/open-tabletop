@@ -1,63 +1,52 @@
 # Contributing to Open Tabletop
 
-Thanks for your interest in contributing. Open Tabletop is a two-player Warhammer 40,000 (10th edition) tabletop prototype built in Godot. Contributions are welcome — please read this guide before opening a pull request.
+Thanks for helping improve the project. Read this guide and the repository [agent instructions](AGENTS.md) before changing code, rules, or data.
 
-## Getting started
+## Requirements and clean start
 
-- Godot **4.7.2 stable**, standard edition, no .NET. Older or newer versions may not open the project cleanly.
-- Python **3.10+** (standard library only) for the preparation and verification tools.
+- **Godot 4.7.2 stable**, standard edition, no .NET.
+- **Python 3.10+** for repository verification/build tools; the game itself does not need Python.
 
-### Run the project
+Import `project.godot` in Godot and press **F5**. A clean checkout opens the original movement demo without external data or downloads.
 
-Import `project.godot` in the Godot editor and press **F5**. A clean checkout opens the original movement demo without external data or downloads.
+## Rules and data changes
 
-### Optional starter data (combat exercises)
+- The target rules are official **Warhammer 40,000 11th edition**. Check current edition, faction/Codex publication, and errata before implementing a rule.
+- Datasheet facts use only a verified **local Wahapedia 11e data export** as the project's source of record. See [source policy](docs/data/source-assessment.md) for the proposed local snapshot layout and current pipeline status. Do not replace a missing extract with OpenHammer, 40kdc, another provider, or an older rules profile.
+- Cross-check rule effects and update boundaries against current official Games Workshop sources; document dates, versions, discrepancies, and limitations.
+- Keep third-party source exports local and out of commits/builds. Existing starter importers are legacy/experimental, not the current authoritative data pipeline.
+- Keep unsupported rules visible and gated. A catalog entry, passing test, or selectable unit is not proof of complete rules support or legal army construction.
+- Rules changes should have focused headless tests. Keep the support matrix, capability metadata, roadmap, and feature documentation consistent with the actual scope.
+
+## Verify and build
 
 ```text
-python tools/prepare_starter.py
+python tools/verify.py --godot /path/to/godot --profile demo --network
+python tools/verify.py --godot /path/to/godot --profile full --network
+python tools/build_demo.py --godot /path/to/godot
 ```
 
-This downloads the community snapshot pinned by revision and hashes in `data/starter.lock.json`. Optional data stays in the git-ignored `data/imported/` directory and is never committed.
+Use the Godot console executable on Windows when needed. The demo profile is the offline baseline apart from loopback networking. The full profile currently requires a legacy pinned starter snapshot and does not validate the Wahapedia ingestion policy. Use the full [verification guide](docs/verification/verification.md) for exact requirements, test selection, isolation, and known limitations; report only commands actually run and results actually observed.
 
-## Running the tests
+## Project layout and conventions
 
-```text
-python tools/verify.py --profile demo --network
-python tools/verify.py --profile full --network
-python tools/build_demo.py
-```
+- `scripts/edition_11/` — rules/match modules.
+- `scripts/main.gd` — main-scene UI, board presentation, and network integration.
+- `tests/` — Godot headless tests and Python tests.
+- `tools/` — verification/build helpers and existing legacy importers.
+- `data/` — project-owned demo data and pack schemas; imported third-party content is ignored.
+- `docs/` — topic docs organized by category; add new docs to the [index](docs/README.md).
 
-- `--profile demo` is offline except for local loopback; `full` requires the pinned starter snapshot.
-- Individual suites can be run directly, e.g. `godot --headless --path . --script tests/test_individual_movement.gd`.
-- CI runs the same commands on both Windows and Ubuntu via [`.github/workflows/verify.yml`](.github/workflows/verify.yml).
+Follow the [GDScript style guide](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html) (tabs, `snake_case`) and [PEP 8](https://peps.python.org/pep-0008/) for Python. Use the existing test framework and helpers. Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) (for example `feat:`, `fix:`, `docs:`, `test:`).
 
-Full instructions: [`docs/verification.md`](docs/verification.md).
+## Content and licensing
 
-## Project layout
-
-- `scripts/edition_11/` — rules modules that validate commands independently of rendering.
-- `scripts/main.gd` — board presentation, UI and ENet session handling (gradual separation is on the [roadmap](docs/roadmap.md)).
-- `tests/` — headless Godot suites and Python tests.
-- `tools/` — preparation, verification and export scripts.
-- `docs/` — support matrix, roadmap and per-feature notes.
-
-## Code style
-
-- Follow the official [GDScript style guide](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html) (tabs for indentation, `snake_case` for functions and variables).
-- Python follows [PEP 8](https://peps.python.org/pep-0008/) and uses only the standard library.
-- Rules logic must stay independent of rendering and be covered by a headless test.
-- Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) (e.g. `feat:`, `fix:`, `docs:`, `test:`).
-
-## Content boundary (important)
-
-- Do **not** commit third-party assets: no community catalogs, no downloaded model meshes/textures, no rulebook PDFs. These stay in git-ignored locations (`data/imported/`, `.tools/`) or the user's local folders.
-- Warhammer 40,000 and related names/marks are property of Games Workshop. This project does not redistribute their content.
-- The MIT license applies to the project's own code and original demo content only, not to imported or user-supplied material.
+- Do not commit or distribute Wahapedia exports, community catalogs, downloaded miniature meshes/textures, or rulebook PDFs. Downloads and local availability do not grant redistribution rights.
+- Warhammer 40,000 names and marks belong to Games Workshop. The MIT license covers this project's code and original demo content only; it does not relicense imported or user-provided content.
+- User-supplied visuals remain local and are not transferred to peers.
 
 ## Reporting issues
 
 Use the [bug report](https://github.com/cronosgp/open-tabletop/issues/new?template=bug_report.yml) or [feature request](https://github.com/cronosgp/open-tabletop/issues/new?template=feature_request.yml) templates. For security issues, see [SECURITY.md](SECURITY.md).
 
-## License
-
-By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).

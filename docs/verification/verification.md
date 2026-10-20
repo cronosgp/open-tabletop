@@ -20,7 +20,9 @@ Each run copies the required project files into a new `.tools/verification/<time
 
 Network suites and their variants run sequentially because they use UDP 24560. The runner reserves TCP 24561 as a guard against concurrent runner invocations; it does not provide a game service. Do not launch manual network tests at the same time.
 
-## Optional combat snapshot
+## Legacy optional combat snapshot (not the authoritative source)
+
+The current full test profile still consumes the old 40kdc-data starter snapshot pinned by `data/starter.lock.json`. This is retained only for compatibility and historical exercise tests; it is **not** a Wahapedia export, must not be used to validate current datasheet facts, and is not a fallback for a missing local export. The Wahapedia ingestion migration remains pending.
 
 ```text
 python tools/prepare_starter.py
@@ -28,7 +30,7 @@ python tools/prepare_starter.py --check
 python tools/verify.py --godot /path/to/godot --profile full --network
 ```
 
-The first command explicitly retrieves the community snapshot pinned in `data/starter.lock.json`, validates both faction hashes and installs it under ignored `data/imported/starter-11e-v1`. Existing directories are verified rather than overwritten. `--check` is offline. A different/corrupt snapshot is rejected; preserve it separately before preparing another snapshot. Imported data does not become complete playable faction content merely by passing its hash check.
+The first command explicitly retrieves the legacy community snapshot pinned in `data/starter.lock.json`, validates both faction hashes and installs it under ignored `data/imported/starter-11e-v1`. Existing directories are verified rather than overwritten. `--check` is offline. A different/corrupt snapshot is rejected; preserve it separately before preparing another snapshot. Passing the hash check verifies only this historical test input, not authoritative provenance, current rules, or complete playable faction content.
 
 The full runner verifies the pinned snapshot before copying it. It discovers local Godot suites and host/client pairs, including ranged/melee, vehicle, manual-allocation and random-attack variants. Narrow a reproduction with repeated exact stems:
 

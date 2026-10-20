@@ -15,7 +15,7 @@ Manual paths are checked against terrain, enemy bases, destination overlaps and 
 
 The host can now [certify terrain and coherency exceptions](contact-reachability.md) to an approach requirement. Terrain uses a relaxed route lower bound; coherency considers all friendly models' reachable domains, base-contact locks and retained engagements. An accepted exception is recorded in the event log and replicated to clients. Analysis that reaches its work limit remains inconclusive and does not waive the requirement, so some legal complex placements can still be rejected. Charges check the 1-inch and engagement duties independently.
 
-Normal movement uses [individual model placement](tactical-controls.md), with connected coherency checked at squad confirmation. At End of Turn, each controlling player selects and removes models from their incoherent squad until coherency is restored. Phase advancement is blocked while these choices remain; the interface switches the acting player when the opponent must choose.
+Normal movement uses [individual model placement](../guides/tactical-controls.md), with connected coherency checked at squad confirmation. At End of Turn, each controlling player selects and removes models from their incoherent squad until coherency is restored. Phase advancement is blocked while these choices remain; the interface switches the acting player when the opponent must choose.
 
 ## Fight controls and order
 

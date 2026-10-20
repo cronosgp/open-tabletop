@@ -14,7 +14,7 @@ The **Return to title screen** action shows the same menu during a match. Its **
 
 ## Guided first session (D1)
 
-**Entry:** Title screen → **Start guided match**. This starts a local 290-point sample that the new player controls for both sides. It selects the checked Space Marine and Necron starter lists, current e11 unit abilities, the selected CA mission and required checked-roster options. Automatic model downloads are turned off so the board opens with built-in visuals. The starters teach the interface and construction checks; they are not a full-match army legality certificate. The separate 930/880-point lists documented in [Track A A5](track-a-a5.md) carry the scoped full-match certification.
+**Entry:** Title screen → **Start guided match**. This starts a local 290-point sample that the new player controls for both sides. It selects the checked Space Marine and Necron starter lists, current e11 unit abilities, the selected CA mission and required checked-roster options. Automatic model downloads are turned off so the board opens with built-in visuals. The starters teach the interface and construction checks; they are not a full-match army legality certificate. The separate 930/880-point lists documented in [Track A A5](../project/track-a-a5.md) carry the scoped full-match certification.
 
 | Moment | Player goal | In-game guidance and feedback |
 |---|---|---|

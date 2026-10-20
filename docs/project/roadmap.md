@@ -1,4 +1,4 @@
-Current A3 increment (17 October 2026): [checked Incursion rosters](roster-validation.md) use official MFM 1.6 points for ten fixed profiles, 2/4 repetition limits, the sole-3DP detachment exception and mandatory Warlord/Support declarations. Two 290-point starters, one 930-point Gladius list and one 880-point Awakened list are available under the 1,000-point ceiling. For these checked lists, the [Gladius/Awakened stratagem set](detachment-stratagems.md), selected mission and implemented infantry core rules are certified together. Broader equipment, additional units and complete 1,000-point rosters remain future work.
+Current A3 increment (17 October 2026): [checked Incursion rosters](../rules/roster-validation.md) use official MFM 1.6 points for ten fixed profiles, 2/4 repetition limits, the sole-3DP detachment exception and mandatory Warlord/Support declarations. Two 290-point starters, one 930-point Gladius list and one 880-point Awakened list are available under the 1,000-point ceiling. For these checked lists, the [Gladius/Awakened stratagem set](../rules/detachment-stratagems.md), selected mission and implemented infantry core rules are certified together. Broader equipment, additional units and complete 1,000-point rosters remain future work.
 
 Current Track A status (17 October 2026): A1–A5 are integrated for the documented 930-point Gladius vs 880-point Awakened infantry match. The selected CA 2026-27 mission, ten fixed-loadout profiles, current fixed-roster MFM checks and remaining required infantry core effects are covered. Other rosters, optional wargear, enhancements, unsupported keywords and other terrain/missions remain outside this certification.
 
@@ -27,7 +27,7 @@ What it is **not**: a rules encyclopedia, a single-player AI game, or a "trainin
 | Rules | Checked CA infantry match: ten fixed e11 profiles, declared Leaders/Warlord/Support, Gladius/Awakened rules and stratagems, selected mission/deployment, MFM 1.6 fixed-profile construction, core reactions and recovery | Other armies, optional wargear/enhancements, remaining catalog content, other missions/layouts and unsupported mechanics |
 | Multiplayer | Authoritative host, LAN/direct, snapshots, guest seat credentials (HMAC challenge/proof), rejoin after host restart | Lobby negotiation, encrypted internet transport, relay/service, credential reset UI, accounts |
 | Persistence | Versioned snapshot, atomic replace, checksum, autosave, draft save, local/LAN resume, seat reservation, RNG continuation, hash-chained event/dice journal with verified reconstruction | Visual replay, multiple slots, journal compaction, cross-version migration |
-| Army builder | OpenHammer catalog, filters/variants/budgets, local profiles, checked-roster MFM 1.6 construction and ten fixed profile admissions | Arbitrary units, optional equipment/enhancements and general roster legality |
+| Army builder | Legacy OpenHammer catalog lookup, filters/variants/budgets, local profiles, checked-roster MFM 1.6 construction and ten fixed profile admissions | Migrate authoritative datasheet inputs to local Wahapedia exports; arbitrary units, optional equipment/enhancements and general roster legality |
 | Models | ForceOrg auto-acquire, cached/HTTPS OBJ+diffuse download, saved pawn links, manual override | GLB, AssetBundles, composites/materials, per-model variants |
 | Delivery | Offline verification runner, CI definition, demo export presets | CI execution on GitHub, native builds, cross-platform matches |
 
@@ -48,7 +48,8 @@ Remaining work is organized into eight tracks. Each milestone lists its delivera
 | A3 | Current fixed-roster pricing/construction | MFM 1.6, Incursion ceiling, 2/4 repetitions, sole-3DP exception, Warlord/Support checks; see scope above | The ten admitted profiles and checked lists pass the documented construction validation |
 | A4 | Unified capability registry | One machine-readable "what's supported" registry consumed by the validator, UI and tests | Unsupported content is blocked consistently everywhere from a single source of truth |
 | A5 | Remaining core rules for the shipped lists | [Gladius 930 vs Awakened 880](track-a-a5.md): Command Re-roll plus Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge | Checked CA infantry match certified; remaining 1000-point fill is catalog work |
-| A6 | *Post-launch* expansion | More factions/units/missions, vertical geometry, battlefield editor | Each increment widens the matrix without admitting partially implemented content |
+| A6 | Authoritative local datasheet pipeline | Ingest only verified local Wahapedia 11e Data Export snapshots, preserve manifests/provenance/hashes, and keep derived data local | Clean and existing checkouts can verify a snapshot offline; unsupported or mismatched input fails closed, and no external provider is used as a fallback |
+| A7 | *Post-launch* expansion | More factions/units/missions, vertical geometry, battlefield editor | Each increment widens the matrix from the verified local source without admitting partially implemented content |
 
 ### B. Multiplayer & platform networking
 
@@ -122,7 +123,8 @@ Remaining work is organized into eight tracks. Each milestone lists its delivera
 | 3 | Experience & accessibility | D1–D6, E1–E3 | Onboarding, inline rules, dice, HUD and accessibility ship |
 | 4 | Social & replay | F1–F3, C2 | Spectate and replay ship |
 | 5 | Release | G1, H2–H4 | Windows↔Linux release, licensed, measured |
-| 6 | Post-launch expansion | A6 | Broader coverage on top of a stable platform |
+| 6 | Local source migration | A6 | Verified offline Wahapedia snapshot ingestion replaces legacy authoritative-data inputs |
+| 7 | Post-launch expansion | A7 | Broader coverage on top of a stable platform |
 
 **Tracks D and E are not a final polish pass.** They start in parallel with Phase 1 and gate the release alongside rules and networking. A platform without them is a rules engine with a debug UI.
 

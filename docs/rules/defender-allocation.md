@@ -14,7 +14,7 @@ Other commands are blocked while allocation is pending. Shooting/Fight activatio
 
 Allocation changes miniature wounds as each choice is accepted. A choice and any following pool roll are processed together on a copy of match state; invalid choice, stale revision or dice failure leaves that command's state unchanged and retains earlier accepted allocations. This differs from the automatic assist, which resolves and commits the entire plan in one transaction. There is no cancellation or reroll option after an attack is declared.
 
-The host owns all dice and validates the defender, target group and wounded-model priority. Snapshots carry the pending pool, rolls, cursor and choices. A disconnected guest can rejoin and continue allocation without rerolling. Match snapshots now persist pending choices and dice; the guest proves its locally stored seat credential when reconnecting, including after the host restores a save. See [match persistence](match-persistence.md). Final results record the chosen model, save result, applied damage and discarded excess for each damaging attack.
+The host owns all dice and validates the defender, target group and wounded-model priority. Snapshots carry the pending pool, rolls, cursor and choices. A disconnected guest can rejoin and continue allocation without rerolling. Match snapshots now persist pending choices and dice; the guest proves its locally stored seat credential when reconnecting, including after the host restores a save. See [match persistence](../architecture/match-persistence.md). Final results record the chosen model, save result, applied damage and discarded excess for each damaging attack.
 
 ## Verification and limits
 

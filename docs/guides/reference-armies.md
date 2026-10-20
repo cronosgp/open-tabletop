@@ -1,6 +1,8 @@
 # Mixed reference armies
 
-Implemented on 16 October 2026. These are **core-profile training forces**, using the pinned starter snapshot. They are not complete official armies: characters/warlords, detachments and unlisted unit/faction abilities remain outside this mode. [Intercessor Objective Secured](objective-secured.md) is now available as an explicit option.
+> **Legacy training data:** These reference compositions use the pinned 40kdc-data snapshot and its local costs. They are historical exercise fixtures, not current authoritative datasheet data, official points, or certified legal armies. See the [source policy](../data/source-assessment.md).
+
+Implemented on 16 October 2026. These are **core-profile training forces**, using the pinned starter snapshot. They are not complete official armies: characters/warlords, detachments and unlisted unit/faction abilities remain outside this mode. [Intercessor Objective Secured](../rules/objective-secured.md) is now available as an explicit option.
 
 ## Ready compositions
 
@@ -38,4 +40,4 @@ The next reference-army milestone is to verify and implement these abilities and
 
 Existing single-type one/two-squad selections retain their schema-v1 identity and factory, preserving earlier setup hashes and saves. Mixed or larger selections use a strict schema-v2 public roster nested inside the existing saved-match setup. The match manifest records `mixed-core-profiles-v1`; profiles, notes and reference prices from the local library are not shared. Mixed and legacy selections can face one another when their budget agrees. Local/LAN save/reconstruction uses the same canonical factory.
 
-Automatic ForceOrg matching now recognizes Terminator and Immortal visuals as well. It excludes named Terminator characters and obvious incompatible families, prefers Gauss-labelled Immortals, and preserves the existing manual links and placeholder behavior. Visual variants never configure weapons or rules. Real validation downloaded/linked four unit types, rendered 70 models and completed deployment; see [verification results](verification-results.md).
+Automatic ForceOrg matching now recognizes Terminator and Immortal visuals as well. It excludes named Terminator characters and obvious incompatible families, prefers Gauss-labelled Immortals, and preserves the existing manual links and placeholder behavior. Visual variants never configure weapons or rules. Real validation downloaded/linked four unit types, rendered 70 models and completed deployment; see [verification results](../verification/verification-results.md).

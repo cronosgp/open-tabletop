@@ -44,7 +44,7 @@ def stage(destination, profile):
         lock = json.loads((ROOT / "data/starter.lock.json").read_text(encoding="utf-8"))
         for faction in ("adeptus-astartes", "necrons"):
             if not (source / faction / "manifest.json").is_file():
-                raise ValueError("Full checks require data/imported/starter-11e-v1; see docs/verification.md")
+                raise ValueError("Full checks require data/imported/starter-11e-v1; see docs/verification/verification.md")
             manifest = json.loads((source / faction / "manifest.json").read_text(encoding="utf-8"))
             digest = hashlib.sha256((source / faction / "units.json").read_bytes()).hexdigest()
             if digest != lock["units_sha256"][faction] or manifest["units_sha256"] != digest or manifest["source"]["revision"] != lock["revision"]:

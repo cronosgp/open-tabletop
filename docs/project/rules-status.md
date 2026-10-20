@@ -1,6 +1,6 @@
 # 11e implementation status
 
-Current summary: [support matrix](support-matrix.md), updated 16 October 2026. Sections below are historical increment reports; their “next” and “pending” statements may have been superseded by later entries. Use [verification](verification.md) for the current test commands.
+Current summary: [support matrix](support-matrix.md), updated 16 October 2026. Sections below are historical increment reports; their “next” and “pending” statements may have been superseded by later entries. Use [verification](../verification/verification.md) for the current test commands.
 
 Updated 15 October 2026. Baseline reference: [11e Core Rules and FAQs](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/), particularly §§01.06–01.07, 03.01–03.04, 08.03, and 09.05 for this increment. This is a restricted two-squad integration exercise, not a complete supported edition pack. Imported datasheet conflicts still need resolution.
 
@@ -19,7 +19,7 @@ Validation on Windows: movement, morale/coherency, attack sequence, attack lab, 
 
 ## Next movement increment completed
 
-Advance, Assault shooting eligibility, Ordered Retreat, Desperate Escape, and stationary selections are now available through the UI and host/client commands. Infantry hazard wounds use owner allocation with wounded-model priority; failed placement can be reset while retaining rolls and casualties. Successful moves apply turn-long shooting, charge and action restrictions. A steady squad completing Desperate Escape tests battle-shock. See [movement choices](movement-types.md) for controls and limitations.
+Advance, Assault shooting eligibility, Ordered Retreat, Desperate Escape, and stationary selections are now available through the UI and host/client commands. Infantry hazard wounds use owner allocation with wounded-model priority; failed placement can be reset while retaining rolls and casualties. Successful moves apply turn-long shooting, charge and action restrictions. A steady squad completing Desperate Escape tests battle-shock. See [movement choices](../rules/movement-types.md) for controls and limitations.
 
 `test_movement_types.gd` covers dice validation, retained rolls, movement budgets, mode eligibility, enemy-base traversal, mortal-wound allocation, post-move morale, failed moves and turn restrictions. `test_movement_types_network.gd` covers guest controls, synchronized rolls/budgets, casualties, post-escape morale and stale requests.
 
@@ -37,7 +37,7 @@ Windows validation: seven local rules/UI suites passed, along with six host/clie
 
 ## Approach exception certificates
 
-The host now accepts terrain detours and global coherency exceptions when a relaxed reachability/placement analysis proves the requested approach impossible. The analysis allows teammates to rearrange, respects base-contact locks and retained engagements, checks every live target model, and never treats search exhaustion as proof. Charges independently check 1-inch and engagement duties. Certificate details and human-readable reasons synchronize with match snapshots/events. See [contact reachability](contact-reachability.md) for the mathematical relaxations and remaining limits.
+The host now accepts terrain detours and global coherency exceptions when a relaxed reachability/placement analysis proves the requested approach impossible. The analysis allows teammates to rearrange, respects base-contact locks and retained engagements, checks every live target model, and never treats search exhaustion as proof. Charges independently check 1-inch and engagement duties. Certificate details and human-readable reasons synchronize with match snapshots/events. See [contact reachability](../rules/contact-reachability.md) for the mathematical relaxations and remaining limits.
 
 New tests: `test_contact_reachability.gd` and `test_contact_exceptions_network.gd`. Four local suites passed (certificates, contact actions, melee, tactical guides), as did three host/client loopback suites (exceptions, manual contact, melee). Accepted exception details were rendered and visually checked in the event log on Windows. This does not claim exhaustive certification: enemy-base obstructions and complex unresolved arrangements can still be conservatively rejected. Linux and separate-machine LAN remain unverified.
 
@@ -54,13 +54,13 @@ Each increment needs deterministic rules tests and applicable UI/network checks 
 
 ## Ground terrain increment completed
 
-The default combat map now includes exposed, light and dense terrain with feature heights and per-model traversal permissions. Cover worsens BS by 1 and splits shooting pools per attacker. Hidden, firing history, detection, Obscuring and Gone to Ground synchronize through host snapshots. The renderer and tactical guides use the same layout. [Terrain documentation](terrain.md) explains the cylindrical visibility proxies and geometric limits.
+The default combat map now includes exposed, light and dense terrain with feature heights and per-model traversal permissions. Cover worsens BS by 1 and splits shooting pools per attacker. Hidden, firing history, detection, Obscuring and Gone to Ground synchronize through host snapshots. The renderer and tactical guides use the same layout. [Terrain documentation](../rules/terrain.md) explains the cylindrical visibility proxies and geometric limits.
 
 Eleven local rules/UI suites and eight host/client loopback suites passed on Windows, including new terrain and terrain-network tests. Old solid-map fixtures retain their assertions by explicitly selecting the legacy map. Upper floors, vertical movement, plunging fire and exact imported-mesh visibility remain pending. Objectives, control and scoring are the next major gameplay increment. Linux and separate-machine LAN remain unverified.
 
 ## Objective control and training increment completed
 
-Core terrain-objective control now resolves at phase boundaries, with effective OC, battle-shock, ties and secured-objective retention/loss. A separate custom training mission awards 1 VP per controlled objective at round end and finishes after five rounds with a win or draw. Its configuration, control, scores and result synchronize through the host. Securing remains an internal effect for future verified abilities, not a free player action. See [objectives](objectives.md).
+Core terrain-objective control now resolves at phase boundaries, with effective OC, battle-shock, ties and secured-objective retention/loss. A separate custom training mission awards 1 VP per controlled objective at round end and finishes after five rounds with a win or draw. Its configuration, control, scores and result synchronize through the host. Securing remains an internal effect for future verified abilities, not a free player action. See [objectives](../rules/objectives.md).
 
 Eleven local rules/UI suites and four host/client suites (objectives, terrain, shooting and melee) passed on Windows. The training panel and objective outlines were visually inspected. Official mission decks, deployment, actions and objective consolidation remain pending. Linux and separate-machine LAN remain unverified.
 
@@ -76,7 +76,7 @@ The player battlefield builder is deferred at low priority in the [future backlo
 
 Core action eligibility and same-turn lifecycle are integrated with host commands, phases, movement, morale and casualties. Action starts retain shooting/charge restrictions through failure or completion until turn end, including the Titanic shooting exemption. Pile-in and consolidation do not interrupt actions; accepted other moves, battle-shock, destruction or leaving the battlefield do. Cancelled placement drafts do not count as committed moves.
 
-Custom training now offers Secure Ground: start in your Shooting phase with an eligible unit controlling an objective from within range, once per army per turn; complete at End of Turn if still controlling it from within range, securing the objective. It grants no direct VP. See [actions and limits](actions.md). Official mission actions, cross-turn schedules and eligibility overrides remain future work.
+Custom training now offers Secure Ground: start in your Shooting phase with an eligible unit controlling an objective from within range, once per army per turn; complete at End of Turn if still controlling it from within range, securing the objective. It grants no direct VP. See [actions and limits](../rules/actions.md). Official mission actions, cross-turn schedules and eligibility overrides remain future work.
 
 Ten local suites and five host/client loopback suites passed on Windows. Action progress/completion panels were rendered and inspected. Next priority: multi-unit fight/reaction queues. The battlefield editor remains deferred at low priority. Linux and separate-machine LAN remain unverified.
 
@@ -84,7 +84,7 @@ Ten local suites and five host/client loopback suites passed on Windows. Action 
 
 The optional two-unit-per-player training mode fields four real units and 30 models. Unit IDs are independent of player IDs. Initial pile-in and consolidation decisions are tracked once per unit, active army first; fight selection alternates owners and enforces the current Fights First pool. Overrun commits the activation to the moved unit. All unfought enemies contacted by ongoing/engaging consolidation enter a mandatory reaction queue; the opponent chooses their order before consolidation resumes. Elimination checks the entire army, not a single destroyed unit.
 
-The UI lists eligible units and mandatory reactions, accepts selected-unit declines and provides an enemy contact-target dropdown. Roster size and queue state synchronize through the host. See [multiple units and limits](multiple-units.md).
+The UI lists eligible units and mandatory reactions, accepts selected-unit declines and provides an enemy contact-target dropdown. Roster size and queue state synchronize through the host. See [multiple units and limits](../rules/multiple-units.md).
 
 Thirteen local rules/UI suites and five host/client loopback suites passed on Windows. The 30-model battlefield and multiple-reaction panel were visually inspected. Split attacks across targets, mixed profiles, innate abilities, stratagems, army construction and deployment remain pending. The next combat increment is explicit attack allocation across multiple targets. Linux and separate-machine LAN remain unverified; the battlefield builder remains low priority.
 
@@ -92,7 +92,7 @@ Thirteen local rules/UI suites and five host/client loopback suites passed on Wi
 
 The host now accepts complete per-model plans across several target units. Ranged weapons retain a single target per weapon; a melee weapon can split its fixed A between eligible engaged units, requiring all attacks from every eligible melee model. Plans validate before dice; targets, range, visibility, Rapid Fire and cover freeze before casualties. All pools against one target resolve before the next declared target. Excess attacks never redirect. Damage and activation commit once for the entire plan, with rollback of match state on any pool failure.
 
-The UI supports per-model target/count assignment, replacement, clearing, local cancellation and confirmation. Right-click single-target shortcuts use the same validator. Snapshot results and the event log record target-specific pools and declared assignments. See [attack plans](attack-plans.md).
+The UI supports per-model target/count assignment, replacement, clearing, local cancellation and confirmation. Right-click single-target shortcuts use the same validator. Snapshot results and the event log record target-specific pools and declared assignments. See [attack plans](../rules/attack-plans.md).
 
 Fifteen local rules/UI suites and six host/client loopback scenarios passed on Windows, including ranged/melee plan editing and confirmation, repeat rejection and combat/terrain/queue regressions. The editor and result log were visually inspected. Mixed weapon/profile selection, random A, Extra Attacks, defender choices and attached characters remain pending. Next combat work: defender allocation and mixed profiles. Linux and separate-machine LAN remain unverified.
 
@@ -100,7 +100,7 @@ Fifteen local rules/UI suites and six host/client loopback scenarios passed on W
 
 New matches can enable defender-selected damage within the current homogeneous, non-character group. Saves resolve lowest first; successful saves are automatic and damaging results pause for a defender model choice, prioritizing wounded models. Other commands and queue advancement remain blocked until the whole attack plan completes. Damage applies per accepted choice, excess is discarded, current/future pool state retains frozen targeting, and invalid commands or later dice failures do not lose previous accepted choices. The automatic allocation assist remains available and explicitly labeled.
 
-The next-match setting participates in compatibility checks. Pending rolls, model choices and completion synchronize through host snapshots, including a guest disconnect/rejoin during allocation. See [defender allocation controls and limits](defender-allocation.md).
+The next-match setting participates in compatibility checks. Pending rolls, model choices and completion synchronize through host snapshots, including a guest disconnect/rejoin during allocation. See [defender allocation controls and limits](../rules/defender-allocation.md).
 
 Seventeen local rules/UI/lab suites and eight loopback scenarios passed on Windows. Allocation and wounded-priority panels were rendered and inspected. Mixed allocation groups, attached characters, damage prevention and allocation-triggered abilities remain unsupported. Next combat work: mixed weapon/profile selection. Linux and separate-machine LAN remain unverified; the battlefield builder remains low priority.
 
@@ -108,25 +108,25 @@ Seventeen local rules/UI/lab suites and eight loopback scenarios passed on Windo
 
 An optional varied training roster now gives models server-owned weapon instances and supported profiles. The planner selects per-model weapons/profiles, permits multiple ranged weapon instances, enforces one target/profile per ranged instance and one ordinary melee weapon per model, and uses the selected melee A. Bolt Rifle profiles, Krak launcher, chainsword and alternating Gauss Flayer/Reaper equipment come from the starter import. The roster remains curated practice data, not validation of legal army equipment options.
 
-Range, Assault eligibility, Heavy and Rapid Fire apply to each selected profile. Supported mechanics expand before pooling identical attack properties; unsupported raw mechanics reject before dice. Both automatic and defender-choice allocation preserve the selected weapon identities. Equipment mode enters the compatibility hash and inventory replicates in snapshots. See [equipment controls and limits](equipment.md).
+Range, Assault eligibility, Heavy and Rapid Fire apply to each selected profile. Supported mechanics expand before pooling identical attack properties; unsupported raw mechanics reject before dice. Both automatic and defender-choice allocation preserve the selected weapon identities. Equipment mode enters the compatibility hash and inventory replicates in snapshots. See [equipment controls and limits](../rules/equipment.md).
 
 Eighteen local suites and seven loopback scenarios passed on Windows. Ranged/melee selectors and review panels were visually inspected, including switching between models with different equipment. Next weapon work: Blast, random A/D, Hazardous and other currently unavailable mechanics. Close-quarters, Hunter restrictions, Extra Attacks, Devastating Wounds, mixed defending groups and attached characters remain unsupported. Linux and separate-machine LAN remain unverified; the battlefield builder remains low priority.
 
 ## Blast and random characteristics increment
 
-Frag is available on the curated launcher. Blast uses declared target size; bounded ranged random A is generated per weapon, and random D is rolled after allocation per damaging attack. Results retain raw dice and generated characteristics. Random melee A, Hazardous and Close-quarters profiles remain blocked. See [weapon mechanics](weapon-mechanics.md) for controls, validation and remaining scope. Protocol bumped to v16.
+Frag is available on the curated launcher. Blast uses declared target size; bounded ranged random A is generated per weapon, and random D is rolled after allocation per damaging attack. Results retain raw dice and generated characteristics. Random melee A, Hazardous and Close-quarters profiles remain blocked. See [weapon mechanics](../rules/weapon-mechanics.md) for controls, validation and remaining scope. Protocol bumped to v16.
 
 ## Hazardous and infantry Close-quarters completed
 
 Plasma Standard/Supercharge is available on the first Intercessor in each curated squad. Infantry sidearm selection and engaged Close-quarters targets are checked per model. After all attack pools, Hazardous rolls once per selected weapon, with owner-selected mortal wounds before activation, fight queues or elimination complete. Snapshots preserve hazard rolls and choices across reconnection. Protocol is v17.
 
-Twenty-two local suites and seven loopback scenarios passed on Windows, including Hazardous owner allocation/rejoin and ranged/melee equipment, defender allocation and attack-plan regressions. Plasma and Hazardous controls were visually inspected. See [controls, validation and scope](hazardous.md). Next weapon work: Hunter restrictions and Extra Attacks, then Devastating Wounds. Full MONSTER/VEHICLE shooting exceptions, damage prevention, attached units and mixed defending groups remain unsupported; battlefield editing stays low priority.
+Twenty-two local suites and seven loopback scenarios passed on Windows, including Hazardous owner allocation/rejoin and ranged/melee equipment, defender allocation and attack-plan regressions. Plasma and Hazardous controls were visually inspected. See [controls, validation and scope](../rules/hazardous.md). Next weapon work: Hunter restrictions and Extra Attacks, then Devastating Wounds. Full MONSTER/VEHICLE shooting exceptions, damage prevention, attached units and mixed defending groups remain unsupported; battlefield editing stays low priority.
 
 ## Hunter and Extra Attacks completed
 
 Hunter profiles now restrict targets using imported keyword alternatives, with client filtering and host validation before dice. Extra Attacks now supports all eligible additional melee weapon instances alongside one ordinary weapon, full A per selected profile, independent target splits, extra-only inventories and physical-weapon Hazardous counting. Editing an ordinary weapon preserves extra assignments, and identical instances have numbered choices. Malformed/conflicting restrictions and unimplemented conditional parameters are rejected.
 
-Twenty-three local suites and nine host/client loopback scenarios passed on Windows, including new multi-weapon UI/host checks in automatic and defender-choice modes. Hunter and Extra Attacks planning controls were visually inspected. Protocol is v18. The existing practice roster is unchanged; actual imported Chainfist and servo-arm profiles are exercised in synthetic test fixtures, and Hunter is inspectable in the attack lab. See [controls and scope](weapon-selection.md).
+Twenty-three local suites and nine host/client loopback scenarios passed on Windows, including new multi-weapon UI/host checks in automatic and defender-choice modes. Hunter and Extra Attacks planning controls were visually inspected. Protocol is v18. The existing practice roster is unchanged; actual imported Chainfist and servo-arm profiles are exercised in synthetic test fixtures, and Hunter is inspectable in the attack lab. See [controls and scope](../rules/weapon-selection.md).
 
 Next combat work: Devastating Wounds. Random melee A, full MONSTER/VEHICLE shooting exceptions, damage prevention, mixed defending groups and attached units remain pending. Battlefield editing stays low priority.
 
@@ -134,7 +134,7 @@ Next combat work: Devastating Wounds. Random melee A, full MONSTER/VEHICLE shoot
 
 Critical wound rolls now create no-save mortal packets, resolved after the same identical-attack pool's normal damage. Each critical damages at most one defending model; excess is discarded. Both automatic assist and defender-choice allocation follow this order, with random D rolled after recipient selection and pending steps preserved through reconnection. Hazardous follows all attack damage before activation or fight queues complete. Lethal automatic wounds do not trigger critical-wound effects.
 
-The first Intercessor's curated melee inventory now includes the imported Thunder Hammer as an ordinary weapon alternative. The planner, defender panel, result log and isolated lab expose its behavior. Protocol is v19. Twenty-four local suites and ten loopback scenarios passed on Windows, including a new normal-to-mortal allocation/rejoin scenario. Hammer and mortal-allocation controls were visually inspected. See [controls, rules and limits](devastating-wounds.md).
+The first Intercessor's curated melee inventory now includes the imported Thunder Hammer as an ordinary weapon alternative. The planner, defender panel, result log and isolated lab expose its behavior. Protocol is v19. Twenty-four local suites and ten loopback scenarios passed on Windows, including a new normal-to-mortal allocation/rejoin scenario. Hammer and mortal-allocation controls were visually inspected. See [controls, rules and limits](../rules/devastating-wounds.md).
 
 Next combat work: Feel No Pain and wound prevention. Mixed defending groups, attached characters, Precision, random melee A and full MONSTER/VEHICLE shooting exceptions remain pending. Battlefield editing stays low priority.
 
@@ -144,7 +144,7 @@ Implemented assigned Feel No Pain profiles for normal damage, Devastating Wounds
 
 Added **Start rules lab: mixed defense / Precision**, an explicitly synthetic teaching scenario for these mechanics. It is usable locally and with both peers selecting the same lab before connecting. Scenario-construction helpers can form practice attachments while preserving individual profiles and combined starting strength; official army/MFM attachment permissions and general leader/aura abilities remain disabled.
 
-Protocol is v21. Thirty local suites and fifteen loopback scenarios passed on Windows. New checks include group-order and prevention rejoin, actual UI flow for Precision/decline, Monster/Vehicle modifiers, random melee editing, per-component attached profiles, and the new practice scenario. The allocation panels were rendered and visually inspected. See [current controls, state and limits](advanced-defense.md).
+Protocol is v21. Thirty local suites and fifteen loopback scenarios passed on Windows. New checks include group-order and prevention rejoin, actual UI flow for Precision/decline, Monster/Vehicle modifiers, random melee editing, per-component attached profiles, and the new practice scenario. The allocation panels were rendered and visually inspected. See [current controls, state and limits](../rules/advanced-defense.md).
 
 The user authorized continuation of the roadmap without per-increment approval. Remaining work includes random-A melee splitting, remaining weapon keywords/damage modifiers, conditional and propagated unit abilities, reserves/transports, official missions/stratagems and more complete geometry. Battlefield editing remains low priority. This is still a partial 11e implementation, not a certification of all official rules or army construction.
 
