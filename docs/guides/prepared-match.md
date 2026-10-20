@@ -6,7 +6,7 @@ Update: protocol **v23** adds a separate [saved-list training flow](saved-army-m
 
 ## Start
 
-1. Prepare the pinned optional starter data as described in [verification](verification.md).
+1. Prepare the pinned optional starter data as described in [verification](../verification/verification.md).
 2. In **Match setup**, choose next-match damage allocation/equipment options, then **Prepare custom match: deploy, then play 5 rounds**.
 3. For LAN, select this same mode/options on both peers before the host starts and the guest joins. Hosting starts a fresh setup. No lobby negotiation is implemented yet.
 4. Player 1 deploys Intercessor Squad I; player 2 deploys Necron Warriors I; then each deploys its second unit. Local mode controls the current decision owner automatically.
@@ -31,4 +31,4 @@ The factory fields two current training units per side: ten Marine models and tw
 
 The interface was rendered and inspected at 1280 × 800 on Windows for player 1 deployment, player 2 deployment and the first turn. Controls are above selection/history in Play; zones disappear after setup. A preview whose cursor is entirely outside the battlefield does not create an empty rendering surface. Screenshots and QA logs remain under ignored `.tools/prepared-*` paths.
 
-See [latest verification results](verification-results.md). Linux, separate-machine LAN and internet play are not established by Windows loopback tests.
+See [latest verification results](../verification/verification-results.md). Linux, separate-machine LAN and internet play are not established by Windows loopback tests.

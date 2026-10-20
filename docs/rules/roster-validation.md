@@ -45,4 +45,4 @@ Two additional selectable starter lists use current prices: **Captain + Interces
 
 A3 current pricing and the documented construction/formation checks are implemented for this fixed subset. `roster_points_validated` records points scope. Checked CA matches now set `official_legality_validated` and `full_match_certified` for the implemented Gladius 930 vs Awakened 880 infantry core. Passing tests still cannot establish rules accuracy beyond the checked sources and declared scope.
 
-Filling the remaining points after 930/880 needs more admitted datasheets via the [post-Track-A catalog pipeline](faction-catalog.md). Other missions, terrain layouts and armies remain separate expansions. See [Track A](track-a.md), [A5](track-a-a5.md) and [verification results](verification-results.md).
+Filling the remaining points after 930/880 needs more admitted datasheets via the [post-Track-A catalog pipeline](../data/faction-catalog.md). Other missions, terrain layouts and armies remain separate expansions. See [Track A](../project/track-a.md), [A5](../project/track-a-a5.md) and [verification results](../verification/verification-results.md).

@@ -2,7 +2,7 @@
 
 Final targeted regression `.tools/verification/20261017T162838274829Z` passed **46/46 processes**: isolated import, Python checks, startup, roster construction/local UI save-load, checked-roster host/client restart recovery, selected mission network, current unit abilities network/combat, prepared local/network matches, all ten saved-army network variants, attached Reanimation, faction Reanimation, session recovery, army builder, local armies/models, gameplay layout, match save and reserves. These are affected-scope checks, not a fresh full-suite result. Earlier A2 full-suite history is preserved below.
 
-The final staged project matches all **200** source/project/scene/test/tool/data files byte-for-byte (excluding generated UID/cache files). No application code changed after final staging. Documentation-only updates followed. Current source HTML hashes match the pinned values in [roster validation](roster-validation.md); local links in updated roadmap/source/scope documents resolve.
+The final staged project matches all **200** source/project/scene/test/tool/data files byte-for-byte (excluding generated UID/cache files). No application code changed after final staging. Documentation-only updates followed. Current source HTML hashes match the pinned values in [roster validation](../rules/roster-validation.md); local links in updated roadmap/source/scope documents resolve.
 
 Earlier A3 targeted runs: `20261017T161916492481Z` passed 6/6; `20261017T162155797020Z` passed 5/6 because the new network test host exited before the guest observed the restored result. The fixture now waits for an explicit test-only guest acknowledgement using `tests/network_test_ack.gd`; production RPC behavior was not altered for that acknowledgement. `20261017T162426056652Z` then passed 11/11, before the final label clarification. The final 46/46 run covers that clarification and the corrected fixture.
 
@@ -18,23 +18,23 @@ Full regression `.tools/verification/20261017T155238660406Z` completed **197 pro
 
 Final targeted run `.tools/verification/20261017T160844855675Z` passed **8/8 processes**: isolated import, Python checks, startup, corrected attached-Reanimation host/client, expanded CA local suite and CA host/client. All 197 cases have passing coverage across the full and targeted runs. The final staged project matches all 196 source/project/scene/test/tool/data files byte-for-byte. Compared with the full-run stage, only the corrected old network fixture and additional CA CP/cap assertions differ; both are covered by the final targeted run. No application code changed after full-run staging.
 
-The [selected mission](chapter-approved-mission.md) tests cover stable opt-in identity, current-options admission, rejected foreign/stale choices without dice/mutation, central configuration including two objectives, tied roll-offs, winner-controlled roles, Defender-first deployment, full-base placement and coherent previews for attached/mixed-base units, concealed enemy reserve membership/model flags/order/events, joint reveal, delayed Battle Ready bonus and first-turn roll after deployment. Actual public phase progression plays ten turns with P2 first, preserves five-round ordering, continues after both armies are wiped and determines the VP result once. Checks also cover cumulative primary scoring, shared round and match caps, fifth-round deferral for both players, Character-model Assassination, Fixed-card caps, attached-unit quarter geometry, Battle-shock exclusion and Captain round-start CP when P2 starts. Real UI save/load preserves the pending stage, option and RNG.
+The [selected mission](../rules/chapter-approved-mission.md) tests cover stable opt-in identity, current-options admission, rejected foreign/stale choices without dice/mutation, central configuration including two objectives, tied roll-offs, winner-controlled roles, Defender-first deployment, full-base placement and coherent previews for attached/mixed-base units, concealed enemy reserve membership/model flags/order/events, joint reveal, delayed Battle Ready bonus and first-turn roll after deployment. Actual public phase progression plays ten turns with P2 first, preserves five-round ordering, continues after both armies are wiped and determines the VP result once. Checks also cover cumulative primary scoring, shared round and match caps, fifth-round deferral for both players, Character-model Assassination, Fixed-card caps, attached-unit quarter geometry, Battle-shock exclusion and Captain round-start CP when P2 starts. Real UI save/load preserves the pending stage, option and RNG.
 
 The new network pair uses actual saved-list admission and authenticated RPCs, verifies hidden reserves until both commitments, rejects stale/foreign choices, restarts the host with first turn still unresolved, authenticates rejoin and matches predicted complete state/RNG and exactly five journal dice after the roll. This is loopback host/client coverage, not separate-machine or cross-platform LAN certification.
 
 Windows graphical QA reports `CHAPTER APPROVED VISUAL QA: PASS` in `.tools/qa-chapter-approved.log`. Inspected final captures: `.tools/ca-mission-preparation.png`, `.tools/ca-mission-deployment.png`, `.tools/ca-mission-first-turn.png` and `.tools/ca-mission-battle.png`. These exercise real mission controls, correct 60 x 44 dimensions and assigned-side labels, coherent confirmed deployment, first-turn save/load and the scoreboard. They are staged graphical checks, not a complete manual match.
 
-Sources, official Event Companion v1.3 checksum/cross-checks, preset/custom-terrain boundaries and current e11 card effects are recorded in the [mission document](chapter-approved-mission.md). The selected CA mission and the checked 930/880 lists are certified together for their documented profile. Other points/DP options, wargear, armies, mission/deck/layout configurations and detachment content remain outside this certification. Historical results below retain their earlier scope.
+Sources, official Event Companion v1.3 checksum/cross-checks, preset/custom-terrain boundaries and current e11 card effects are recorded in the [mission document](../rules/chapter-approved-mission.md). The selected CA mission and the checked 930/880 lists are certified together for their documented profile. Other points/DP options, wargear, armies, mission/deck/layout configurations and detachment content remain outside this certification. Historical results below retain their earlier scope.
 
 # Current e11 unit abilities - 17 October 2026
 
 The full run in `.tools/verification/20261017T150930706617Z` completed **194 processes: 192 passed, 2 failed**. The failures were the host/client pair of the pre-existing ranged damage-allocation network scenario; its client had fallen offline before issuing commands. An isolated repeat in `.tools/verification/20261017T152420684863Z` passed **7/7 processes**, including import/Python/startup and both ranged and melee host/client pairs. All 194 full-run cases therefore have passing coverage across these runs, but the full run itself is not reported as wholly green; the intermittent network connection failure remains recorded. Post-run comparison of 193 staged source/project/test/scene/tool/data files found zero differences from the workspace.
 
-The [current unit profile](current-unit-abilities.md) covers ten admitted fixed-loadout types, including Assault/Heavy Intercessors, Lieutenant and Royal Warden. New local suites cover setup/Leader/Support/Warlord permissions, live source propagation, phase timing, CP discounts/limits, doctrine copying, objective conditions, actual combat modifiers, split melee attacks, Overlord damage reduction, free individual wound rerolls, Legion healing rerolls, reserves/Homer geometry, cancellation/confirmation and serialization. The new network pair passes authenticated choices, invalid/stale requests, fresh-host restart, exact state/RNG and journal dice checks. Its initial authentication/list-admission race was corrected to wait for both authentication and deployment readiness. Regression found and corrected an accidental shared weapon-profile mutation in the disabled/legacy path before this final full run.
+The [current unit profile](../rules/current-unit-abilities.md) covers ten admitted fixed-loadout types, including Assault/Heavy Intercessors, Lieutenant and Royal Warden. New local suites cover setup/Leader/Support/Warlord permissions, live source propagation, phase timing, CP discounts/limits, doctrine copying, objective conditions, actual combat modifiers, split melee attacks, Overlord damage reduction, free individual wound rerolls, Legion healing rerolls, reserves/Homer geometry, cancellation/confirmation and serialization. The new network pair passes authenticated choices, invalid/stale requests, fresh-host restart, exact state/RNG and journal dice checks. Its initial authentication/list-admission race was corrected to wait for both authentication and deployment readiness. Regression found and corrected an accidental shared weapon-profile mutation in the disabled/legacy path before this final full run.
 
 Windows graphical QA reports `CURRENT UNIT ABILITIES VISUAL QA: PASS` in `.tools/qa-current-units.log`. Inspected captures are `.tools/current-unit-preparations.png`, `.tools/current-unit-ingress-preview.png` and `.tools/current-unit-implacable-choice.png`. They exercise real UI preparation, visible Homer/arrival previews, free reroll choices and save/load restoration. These are staged fixtures, not a complete manual match.
 
-Sources/version boundaries are recorded in [current-unit-abilities](current-unit-abilities.md): the requested Wahapedia e11 datasheets are cross-checked against official October Marine printed updates, September Necron faction updates and core/appendix timing. Historical incompatible abilities remain isolated. This closes the specified fixed-loadout unit-ability stage; other wargear/enhancements, destroyed Character revival, broader armies, separate-machine LAN or cross-platform execution remain outside the checked profile. Historical results below describe their earlier scope and are superseded where the current profile explicitly expands it.
+Sources/version boundaries are recorded in [current-unit-abilities](../rules/current-unit-abilities.md): the requested Wahapedia e11 datasheets are cross-checked against official October Marine printed updates, September Necron faction updates and core/appendix timing. Historical incompatible abilities remain isolated. This closes the specified fixed-loadout unit-ability stage; other wargear/enhancements, destroyed Character revival, broader armies, separate-machine LAN or cross-platform execution remain outside the checked profile. Historical results below describe their earlier scope and are superseded where the current profile explicitly expands it.
 
 # Attached Reanimation and e11 leading abilities - 17 October 2026
 
@@ -44,7 +44,7 @@ Overlord attachments to Warriors or Immortals now work with Reanimation enabled.
 
 Windows graphical QA reports `ATTACHED REANIMATION VISUAL QA: PASS` in `.tools/qa-attached-reanimation.log`. The inspected `.tools/attached-reanimation-preview.png` shows a D3 of three reserving two wounds of healing and allowing one troop return; real UI save/load preserves the draft and RNG. This is staged QA rather than a complete manual match.
 
-[Source reconciliation](reanimation-protocols.md): e11 core 19 retains the attached unit and combined starting strength; 19.04 retains the surviving leader's ability after bodyguard destruction. Appendix 02.02.04 heals surviving wounded models before non-Character revival. The previous roadmap assumption requiring automatic component separation was incorrect and is superseded here. Current official faction updates and the July character-revival change remain recorded; independently revived Characters, other attachment compositions, multiwound troops, Overlord's remaining abilities, complete datasheet/points/DP legality and official missions remain pending. Enabled implementation IDs advance to v2; enabled v1 saves are not silently migrated. No complete army legality, separate-machine LAN or cross-platform certification is claimed.
+[Source reconciliation](../rules/reanimation-protocols.md): e11 core 19 retains the attached unit and combined starting strength; 19.04 retains the surviving leader's ability after bodyguard destruction. Appendix 02.02.04 heals surviving wounded models before non-Character revival. The previous roadmap assumption requiring automatic component separation was incorrect and is superseded here. Current official faction updates and the July character-revival change remain recorded; independently revived Characters, other attachment compositions, multiwound troops, Overlord's remaining abilities, complete datasheet/points/DP legality and official missions remain pending. Enabled implementation IDs advance to v2; enabled v1 saves are not silently migrated. No complete army legality, separate-machine LAN or cross-platform certification is claimed.
 
 # Awakened Dynasty Command Protocols — 17 October 2026
 
@@ -56,7 +56,7 @@ The network pair authenticates guest attachment selection, rejects invalid/stale
 
 There are now **seven offline presets**, including Overlord + Warriors + Immortals at 245/500 local reference points. Real preset admission, unchanged fresh-launch army selection and save-copy behavior pass. Windows graphical QA at 1280 x 800 reports `11E AWAKENED VISUAL QA: PASS` in `.tools/qa-awakened.log`. The inspected `.tools/awakened-assignment.png` shows the required pre-deployment choice; `.tools/awakened-led-unit.png` shows the 11-model unit and Command Protocols card. Setup/preset captures are also saved. These are staged fixtures, not a complete manual match. Post-run comparison of all 183 staged source/project/test/scene/tool/data files found no differences from the workspace.
 
-[Source checks and limitations](awakened-dynasty.md) follow the user's required e11 baseline. **Complete attachment component separation/starting-strength lifecycle and attached Reanimation remain pending**; the unsupported healing combination is blocked during preparation. Other detachment/Overlord abilities, current datasheet/point/DP certification and official missions remain pending. This does not certify a complete legal Necron match, separate-machine LAN, Linux or exported-native execution.
+[Source checks and limitations](../rules/awakened-dynasty.md) follow the user's required e11 baseline. **Complete attachment component separation/starting-strength lifecycle and attached Reanimation remain pending**; the unsupported healing combination is blocked during preparation. Other detachment/Overlord abilities, current datasheet/point/DP certification and official missions remain pending. This does not certify a complete legal Necron match, separate-machine LAN, Linux or exported-native execution.
 
 # Current e11 Combat Doctrines and Gladius — 17 October 2026
 
@@ -68,7 +68,7 @@ The network pair restores a pending guest doctrine decision in a fresh host proc
 
 Windows graphical QA at 1280 x 800 reports `11E DOCTRINES VISUAL QA: PASS` in `.tools/qa-doctrines11e-final.log`. Inspected captures include `.tools/doctrines-11e-choice.png`, `.tools/doctrines-11e-extra.png` and `.tools/doctrines-11e-charge.png`; setup is captured as `.tools/doctrines-11e-setup.png`. The final selection view was regenerated and inspected after the instruction text changed. These are staged fixtures, not a complete manual match. Post-run hash comparison of all 179 staged project/source/test/scene/tool/data files found no differences from the workspace.
 
-The implementation follows the user's [required e11 baseline](source-assessment.md#required-rules-baseline), with the [doctrine and Gladius source checks](combat-doctrines.md). Captain overrides, current datasheet/ability migration, the remaining Gladius rules, current Awakened Dynasty, official mission and points/DP legality remain pending. No complete current legal army, separate-machine LAN, Linux or native export is certified by these checks.
+The implementation follows the user's [required e11 baseline](../data/source-assessment.md#required-rules-baseline), with the [doctrine and Gladius source checks](../rules/combat-doctrines.md). Captain overrides, current datasheet/ability migration, the remaining Gladius rules, current Awakened Dynasty, official mission and points/DP legality remain pending. No complete current legal army, separate-machine LAN, Linux or native export is certified by these checks.
 
 # Track A: Reanimation Protocols — 16 October 2026
 
@@ -80,7 +80,7 @@ The LAN pair preserves a rolled placement preview through a fresh host-process r
 
 Windows graphical QA at 1280 × 800 reports `REANIMATION VISUAL QA: PASS` in `.tools/qa-reanimation-final.log`. Captures inspected: `.tools/reanimation-preview.png`, `.tools/reanimation-confirm.png` and `.tools/reanimation-restored.png`; setup and choice captures are also saved under `.tools`. These are staged graphical fixtures, not a full manual match. A post-run comparison of the 176 staged source, test, scene, tool, data and project files found no differences from the working project. The runner validates the starter-data lock before staging; unrelated imported datasets are intentionally outside its staged inputs.
 
-[Source and implementation limits](reanimation-protocols.md): September 2026 faction effect, one-wound pure Warriors/Immortals returns and healing living standalone Overlords. Attached-unit/multiwound healing, slain characters, Resurrection Orb and Their Number is Legion remain pending. This does not certify current complete armies, the later Marine Codex, detachments, an official mission or points legality. Separate-machine LAN, Linux and exported-native validation were not added here.
+[Source and implementation limits](../rules/reanimation-protocols.md): September 2026 faction effect, one-wound pure Warriors/Immortals returns and healing living standalone Overlords. Attached-unit/multiwound healing, slain characters, Resurrection Orb and Their Number is Legion remain pending. This does not certify current complete armies, the later Marine Codex, detachments, an official mission or points legality. Separate-machine LAN, Linux and exported-native validation were not added here.
 
 # Track A: Hail of Bolts and Oath profile — 16 October 2026
 
@@ -92,7 +92,7 @@ Oath tests cover Command entry/expiry, authoritative target selection before oth
 
 Windows graphical QA at 1280 × 800 reports `TRACK A OATH/HAIL VISUAL QA: PASS` in `.tools/qa_track_a_oath.log`. Inspected captures: `.tools/track-a-oath-setup.png`, `.tools/track-a-oath-choice.png`, `.tools/track-a-hail-plan.png`, `.tools/track-a-hail-preview.png`. The latter captures scroll to the actual selector and preview; these are staged fixtures rather than a full manual match.
 
-[Hail source and scope](hail-of-bolts.md) and [Oath source/version boundary](oath-of-moment.md) document the June official references. Oath is explicitly a June-2026 Codex-context reference profile, not certification of the later October Codex. Current-Codex migration, Reanimation Protocols, detachments, remaining unit abilities, mixed Leader propagation, official mission and full points/legality remain Track A work. Separate-machine LAN, Linux and exported-native validation were not added here.
+[Hail source and scope](../rules/hail-of-bolts.md) and [Oath source/version boundary](../rules/oath-of-moment.md) document the June official references. Oath is explicitly a June-2026 Codex-context reference profile, not certification of the later October Codex. Current-Codex migration, Reanimation Protocols, detachments, remaining unit abilities, mixed Leader propagation, official mission and full points/legality remain Track A work. Separate-machine LAN, Linux and exported-native validation were not added here.
 
 # Desperate Escape re-rolls — 16 October 2026
 
@@ -102,7 +102,7 @@ The local suite checks strict options and unchanged disabled identities, saved-l
 
 Graphical review at 1280 × 800 checked the advanced checkbox, the Play decision with die selector/CP, and continuation to escape-wound allocation. `.tools/qa_escape_rerolls.log` reports `ESCAPE REROLLS VISUAL QA: PASS`; inspected captures: `.tools/escape-rerolls-setup.png`, `.tools/escape-rerolls-decision.png`, `.tools/escape-rerolls-resolved.png`. These are staged fixtures, not a full manual match.
 
-Scope and source are recorded in [Desperate Escape re-rolls](escape-rerolls.md). This closes the planned Command Re-roll windows for the currently implemented training movement and weapons. Other stratagems, transport hazards, complete official armies, Linux, native exports and separate-machine LAN were not added or verified here.
+Scope and source are recorded in [Desperate Escape re-rolls](../rules/escape-rerolls.md). This closes the planned Command Re-roll windows for the currently implemented training movement and weapons. Other stratagems, transport hazards, complete official armies, Linux, native exports and separate-machine LAN were not added or verified here.
 
 # Implacable Eradication training reference — 16 October 2026
 
@@ -112,7 +112,7 @@ The new local suite covers canonical identity, strict options, objective eligibi
 
 Graphical review at 1280 × 800 verified the advanced option fits and the selected Immortal displays its ability. `.tools/qa_implacable.log` reports `IMPLACABLE VISUAL QA: PASS`; captures `.tools/implacable-setup.png` and `.tools/implacable-play.png` were inspected. This is a staged UI fixture, not a full manual playthrough.
 
-[Source and limitations](implacable-eradication.md): the complete effect is an older-index training reference, not verification of the current official datasheet. Automatic rerolls preserve successful rolls. Native exports, Linux and separate-machine LAN were not verified in this increment.
+[Source and limitations](../rules/implacable-eradication.md): the complete effect is an older-index training reference, not verification of the current official datasheet. Automatic rerolls preserve successful rolls. Native exports, Linux and separate-machine LAN were not verified in this increment.
 
 # Verification results — 16 October 2026
 
@@ -124,7 +124,7 @@ The new local suite covers an opt-in identity, strict boolean options, activatio
 
 Windows graphical review at 1280 × 800 opened Advanced match options and checked the enabled checkbox, selected-unit ability label and secured-objective summary. `.tools/qa_objective_secured.log` reports `OBJECTIVE SECURED VISUAL QA: PASS`; captures: `.tools/objective-secured-setup.png`, `.tools/objective-secured-play.png`. The graphical fixture positions an Intercessor unit at an objective to exercise the phase effect; it is not a separate full-playthrough or separate-machine LAN claim.
 
-The rule source and exact scope are recorded in [Objective Secured](objective-secured.md). Only this unit ability is enabled by its option; other unit/faction abilities, official armies and missions remain incomplete. Native exports, Linux and separate-machine testing were not added in this increment.
+The rule source and exact scope are recorded in [Objective Secured](../rules/objective-secured.md). Only this unit ability is enabled by its option; other unit/faction abilities, official armies and missions remain incomplete. Native exports, Linux and separate-machine testing were not added in this increment.
 
 
 ## Mixed reference armies — 16 October 2026
@@ -135,7 +135,7 @@ New coverage includes equal 480/500-point reference forces, strict schema-v2 adm
 
 Graphical Windows validation at 1280 × 800 used an isolated profile and the real ForceOrg JSON. The app reused existing Marine/Warrior files, downloaded the Terminator and Gauss Immortal OBJ/diffuse pairs, linked all four definitions, rendered 70 models and completed deployment. `.tools/qa_mixed_armies.log` reports `Models ready: 4/4` and `MIXED GRAPHICAL QA: PASS phase=start_turn units=70 mappings=4`. Captures: `.tools/mixed-armies-setup.png`, `.tools/mixed-armies-deployment.png`.
 
-The forces remain core-profile training: no commander/detachment or complete unit/faction abilities, official legality, native export, Linux or separate-machine LAN validation is claimed. See [reference army scope](reference-armies.md).
+The forces remain core-profile training: no commander/detachment or complete unit/faction abilities, official legality, native export, Linux or separate-machine LAN validation is claimed. See [reference army scope](../guides/reference-armies.md).
 
 
 ## Local two-list matches and automatic ForceOrg models — 16 October 2026
@@ -144,7 +144,7 @@ The broad local/LAN regression executed **155 processes** in `.tools/verificatio
 
 The final source passed eight targeted processes in `.tools/verification/20261016T191740718611Z`, covering catalog download, two-list setup, profile copies, cache/link persistence, malformed visuals, cancellation, local-model layout, journal corruption and saved-list admission. The stratagem text check passed separately (4/4 processes) in `.tools/verification/20261016T191850821151Z`. Original broad-run failures remain in their report; follow-up reports record the corrections.
 
-Actual Windows visual/network validation began with an empty profile and no configured source or cache: the app downloaded the ForceOrg JSON, two OBJ meshes and two diffuse images, saved both links and rendered Marines/Necrons during deployment. A separate run reused the external cache, and real catalog-transfer cancellation removed its partial file. Logs: `.tools/qa_forceorg_end_to_end.log`, `.tools/qa_local_armies_models.log`, `.tools/qa_catalog_cancel.log`. Captures: `.tools/local-match-setup.png`, `.tools/local-match-models.png`. See [scope and usage](saved-army-matches.md) and [model details](forceorg-import.md). No native binary, Linux or separate-machine LAN validation is claimed.
+Actual Windows visual/network validation began with an empty profile and no configured source or cache: the app downloaded the ForceOrg JSON, two OBJ meshes and two diffuse images, saved both links and rendered Marines/Necrons during deployment. A separate run reused the external cache, and real catalog-transfer cancellation removed its partial file. Logs: `.tools/qa_forceorg_end_to_end.log`, `.tools/qa_local_armies_models.log`, `.tools/qa_catalog_cancel.log`. Captures: `.tools/local-match-setup.png`, `.tools/local-match-models.png`. See [scope and usage](../guides/saved-army-matches.md) and [model details](../data/forceorg-import.md). No native binary, Linux or separate-machine LAN validation is claimed.
 
 
 ## Latest increment: saved-list training admission (v23)
@@ -157,7 +157,7 @@ Visual QA at 1280 × 800 on Windows covered saved-list review/acceptance, an asy
 
 Rejoin testing exposed stale rendered-piece IDs when resetting from a saved roster to the waiting factory. Host/join/offline transitions now rebuild the piece pool when replacing that state. Public setup reconstruction is verified on initial acceptance/rejoin and reused for ordinary snapshots, avoiding repeated pack reads on every model placement. Setup feedback is visible alongside the setup controls; session text wraps within the sidebar.
 
-Scope and instructions: [saved-list matches](saved-army-matches.md). This admits only one/two supported Intercessor/Warrior units per player under explicitly partial training rules. Arbitrary catalog units, official legality, full abilities, saved matches, native binaries, Linux, remote CI and separate-machine LAN remain outside these verification results.
+Scope and instructions: [saved-list matches](../guides/saved-army-matches.md). This admits only one/two supported Intercessor/Warrior units per player under explicitly partial training rules. Arbitrary catalog units, official legality, full abilities, saved matches, native binaries, Linux, remote CI and separate-machine LAN remain outside these verification results.
 
 ## Earlier increment: army builder and local profiles
 
@@ -169,7 +169,7 @@ Actual OpenHammer refreshes through the Godot HTTP client fetched **1,348 record
 
 A generated Marine base was saved and reopened with real catalog data in a separate QA user profile. The builder, search/variant options and profile library were rendered and inspected at 1280 × 800 on Windows: `.tools/army-builder-top.png`, `.tools/army-builder-catalog.png`, `.tools/army-builder-profile.png`. Final `.tools/army-qa.log` reports `REAL ARMY PROFILE: PASS` without script/rendering errors. Catalog update controls were moved to the top so a first-time user can populate the empty catalog; the UI provides navigation to unit selection and back to saving.
 
-Scope: [army builder](army-builder.md). Lists are persistent local planning documents, not new executable army packs. Official legality/points/composition certification and use of arbitrary saved rosters in enforced matches remain pending. Existing training armies are unchanged. Native binaries, Linux, remote CI and separate-machine LAN were not newly verified.
+Scope: [army builder](../guides/army-builder.md). Lists are persistent local planning documents, not new executable army packs. Official legality/points/composition certification and use of arbitrary saved rosters in enforced matches remain pending. Existing training armies are unchanged. Native binaries, Linux, remote CI and separate-machine LAN were not newly verified.
 
 ## Earlier increment: prepared custom match (v22)
 
@@ -179,7 +179,7 @@ The interface was rendered with the compatibility renderer and visually inspecte
 
 Demo import/export/headless exported startup also passed in `.tools/verification/build-20261016T121909724828Z`; the artifact there supersedes the earlier demo PCK below. No native binary or separate-machine/Linux validation is implied.
 
-Implementation and scope: [prepared custom match](prepared-match.md). Official army legality/point validation, official missions/deployment, persistent saves and full faction abilities remain pending.
+Implementation and scope: [prepared custom match](../guides/prepared-match.md). Official army legality/point validation, official missions/deployment, persistent saves and full faction abilities remain pending.
 
 ## Earlier reproducible-foundation baseline
 
@@ -244,7 +244,7 @@ Separate-machine LAN, internet sessions, native Windows/Linux binaries, Linux ex
 - Save/UI: restauração de janela pendente, limites e CP já gastos; defaults de saves anteriores à opção; configuração fracassada sem substituir a partida em curso; recusa de opção recebida divergente; manifesto/hash e configuração pública das listas preservam a capacidade.
 - Rede: convidado reconecta após descarregar/recriar a cena do host e retomar o save ainda na decisão, resolve Insane Bravery e depois o teste normal. O journal registra somente os dois D6 do teste normal, sem cobrança ou dados duplicados. Reinício em novo processo continua coberto pelo teste geral de recuperação de sessão.
 - QA gráfica Windows 1280 × 800: `.tools/stratagem-window-ui.png` e `.tools/stratagem-resolved-ui.png`; `.tools/stratagem-qa.log` reporta **STRATAGEM UI: PASS**. Os controles da decisão ficam no topo de Play; o resultado informa CP restantes.
-- Fonte lida e inspecionada visualmente: Core Rules 11e, §§01.07, 08.03, 15.01, 15.04, página impressa 56; referência e hash em `docs/core-stratagems.md`. Não foram ativadas habilidades comunitárias provisórias ou outros estratagemas.
+- Fonte lida e inspecionada visualmente: Core Rules 11e, §§01.07, 08.03, 15.01, 15.04, página impressa 56; referência e hash em `docs/rules/core-stratagems.md`. Não foram ativadas habilidades comunitárias provisórias ou outros estratagemas.
 - Escopo de plataforma: Windows/loopback. Sem nova validação LAN entre máquinas, Linux ou builds nativos.
 
 ## Command Re-roll em avanço/carga — 16/10/2026
@@ -257,7 +257,7 @@ Separate-machine LAN, internet sessions, native Windows/Linux binaries, Linux ex
 - Persistência: nova opção possui capability/hash próprios e fica congelada nas listas/manifesto. Configurações antigas sem a opção assumem desativado, inclusive saves com Insane Bravery já ativo; seus hashes continuam válidos. Cliente recusa uma opção recebida divergente.
 - Rede: testes de avanço e carga encerram a sessão original, abrem um **novo processo Godot** e retomam o save com a decisão pendente. Após reconectar, somente os dados adicionais esperados são consumidos (2 D6 totais no avanço e 4 D6 totais na carga com re-roll), o CP é debitado uma vez e o estado RNG final corresponde à sequência de referência.
 - QA gráfica Windows 1280 × 800: `.tools/advance-reroll-ui.png`, `.tools/advance-rerolled-ui.png`, `.tools/charge-reroll-ui.png`, `.tools/charge-rerolled-ui.png`; log `.tools/movement-reroll-qa.log` (**MOVEMENT REROLL UI: PASS**). Conferidos resultados obrigatórios de 6 → 1 no avanço e [6,6] → [1,1] na carga, com aviso explícito de falha e CP restante.
-- Referência: mesmo Core Rules 11e fixado/documentado em `docs/core-stratagems.md`, §15.02. O recurso não habilita re-roll de acertos, ferimentos, defesas, dano, Hazard ou número de ataques. Sem nova validação LAN entre máquinas, Linux ou executáveis nativos.
+- Referência: mesmo Core Rules 11e fixado/documentado em `docs/rules/core-stratagems.md`, §15.02. O recurso não habilita re-roll de acertos, ferimentos, defesas, dano, Hazard ou número de ataques. Sem nova validação LAN entre máquinas, Linux ou executáveis nativos.
 
 ## Command Re-roll em acertos/ferimentos — 16/10/2026
 
@@ -268,7 +268,7 @@ Separate-machine LAN, internet sessions, native Windows/Linux binaries, Linux ex
 - Integração: escolha de um índice elegível, resultado pior obrigatório, recálculo de efeitos críticos, recusa de dado já re-rolado, custo/limite compartilhado, comandos obsoletos/duplicados/alvo incorreto/índice inválido, provedor inválido sem confirmação, bloqueio da alocação durante a escolha, aceitação gratuita seguida de decisão de ferimento, alocação manual e combate do jogador fora do turno. Sem CP/Battle-shock, o ataque segue sem a janela opcional.
 - Save/UI: checkpoints, opções/hash, RNG, journal e limite de uso preservados; opção anterior ausente assume desativada. Configuração pública divergente é recusada. Os testes LAN comparam o estado completo e o RNG após a retomada com uma referência determinística.
 - QA gráfica Windows 1280 × 800: `.tools/hit-reroll-ui.png`, `.tools/wound-reroll-ui.png`, `.tools/attack-rerolled-ui.png`; `.tools/attack-reroll-qa.log` reporta **ATTACK REROLL UI: PASS**. Seletor de D6, aviso antes dos dados posteriores, CP e resultado inspecionados.
-- Referência: Core Rules 11e fixado em `docs/core-stratagems.md`, §§05 e 15.02. Re-rolls de defesa, dano, Hazardous e número de ataques continuam pendentes. Sem nova validação LAN entre máquinas, Linux ou executáveis nativos.
+- Referência: Core Rules 11e fixado em `docs/rules/core-stratagems.md`, §§05 e 15.02. Re-rolls de defesa, dano, Hazardous e número de ataques continuam pendentes. Sem nova validação LAN entre máquinas, Linux ou executáveis nativos.
 
 ## Command Re-roll de defesa — 16/10/2026
 
@@ -280,7 +280,7 @@ Separate-machine LAN, internet sessions, native Windows/Linux binaries, Linux ex
 - Regras: grupos mistos recebem as defesas reordenadas depois da substituição; invulneráveis continuam aplicáveis com AP alto. Devastating Wounds não cria uma janela de save sem dados de defesa. Battle-shock, CP insuficiente e uso anterior pelo defensor suprimem a janela opcional. Os dois jogadores podem gastar Command Re-roll na mesma fase com limites independentes.
 - Persistência: capability/hash e opções congeladas, snapshot/RNG exatos após carga local, reserva de assento autenticada e decisão de defesa preservada depois de encerrar o host e abri-lo em **outro processo**. A rede compara o estado completo e o RNG final com uma resolução de referência.
 - QA gráfica Windows 1280 × 800: `.tools/save-reroll-ui.png` e `.tools/save-rerolled-ui.png`; `.tools/save-reroll-qa.log` reporta **SAVE REROLL UI: PASS**. Conferidos jogador 2 como decisor no turno do jogador 1, seletor de D6, resultado 6 → 1, CP debitado do defensor e alocação manual com dano D3 ainda não rolado.
-- Fonte consultada: Core Rules 11e fixado em `docs/core-stratagems.md`, §§05.03–05.04 e 15.02. Dano, Hazardous e número de ataques ainda não têm Command Re-roll. Escopo da execução: Windows/loopback; sem nova validação entre máquinas, Linux ou executáveis nativos.
+- Fonte consultada: Core Rules 11e fixado em `docs/rules/core-stratagems.md`, §§05.03–05.04 e 15.02. Dano, Hazardous e número de ataques ainda não têm Command Re-roll. Escopo da execução: Windows/loopback; sem nova validação entre máquinas, Linux ou executáveis nativos.
 
 ## Command Re-roll de dano aleatório — 16/10/2026
 
@@ -293,7 +293,7 @@ Separate-machine LAN, internet sessions, native Windows/Linux binaries, Linux ex
 - O laboratório sintético existente, com rifle D3, aceita a opção na UI e inicia com 2 CP por jogador nesse modo de prática. O laboratório sem a opção preserva sua identidade anterior. Testes reais de UI salvam e retomam a janela, verificando estado e RNG exatos. Não foram introduzidos perfis aleatórios nos exércitos iniciais de dano fixo.
 - Rede: o convidado atacante reconecta ao host aberto em outro processo, encontra o mesmo dano/destinatário pendente e usa Command Re-roll uma única vez. Estado completo e RNG final coincidem com uma resolução de referência. A configuração de listas salvas também preserva a nova capacidade.
 - QA gráfica Windows 1280 × 800: `.tools/damage-reroll-ui.png` e `.tools/damage-rerolled-ui.png`; `.tools/damage-reroll-qa.log` reporta **DAMAGE REROLL UI: PASS**. Conferidos expressão/total, D6 bruto, destinatário fixo, save/retomada e CP após a decisão.
-- Referência: Core Rules 11e fixado em `docs/core-stratagems.md`, §15.02, com resolução de dano/prevenção nos módulos existentes. Hazardous e número de ataques continuam pendentes. Sem nova validação LAN entre máquinas, Linux ou executáveis nativos.
+- Referência: Core Rules 11e fixado em `docs/rules/core-stratagems.md`, §15.02, com resolução de dano/prevenção nos módulos existentes. Hazardous e número de ataques continuam pendentes. Sem nova validação LAN entre máquinas, Linux ou executáveis nativos.
 
 ## Command Re-roll de Hazardous de armas — 16/10/2026
 
@@ -304,7 +304,7 @@ Separate-machine LAN, internet sessions, native Windows/Linux binaries, Linux ex
 - Bloqueados alocação durante a decisão, jogador/unidade/revisão/índice incorretos, provedor inválido, uso duplicado/tardio e estratagema sem elegibilidade. CP insuficiente, Battle-shock e uso anterior na fase suprimem a janela opcional. A ativação fica pendente até a escolha e suas consequências terminarem.
 - Persistência: opção e capability próprias, defaults de saves antigos, dados originais e resultado registrado, RNG/estado exatos ao retomar pela UI e após reiniciar o host em processo novo na LAN. O cliente envia somente o índice, sem valores de dados.
 - QA gráfica Windows 1280 × 800: `.tools/hazard-reroll-ui.png` e `.tools/hazard-rerolled-ui.png`; `.tools/hazard-reroll-qa.log` reporta **HAZARDOUS REROLL UI: PASS**. Conferidos plasma supercharge existente no equipamento variado, resultado 6 → 1 obrigatório, CP debitado uma vez e ferida mortal ainda não aplicada.
-- Referência local fixada em `docs/core-stratagems.md`: Core Rules 11e §§06.03, 15.02 e 24.15. Escopo: Hazardous de armas. Re-roll de Desperate Escape e de número de ataques continua pendente; sem nova validação entre máquinas, Linux ou executáveis nativos.
+- Referência local fixada em `docs/rules/core-stratagems.md`: Core Rules 11e §§06.03, 15.02 e 24.15. Escopo: Hazardous de armas. Re-roll de Desperate Escape e de número de ataques continua pendente; sem nova validação entre máquinas, Linux ou executáveis nativos.
 
 ## Command Re-roll de número de ataques — 16/10/2026
 
@@ -315,4 +315,4 @@ Separate-machine LAN, internet sessions, native Windows/Linux binaries, Linux ex
 - Mapeamento de índice achatado para fonte/posição, expressões com vários dados e bônus fixos preservados, fontes fixas e aleatórias combinadas, Rapid Fire/Blast e Torrent. O seletor identifica modelo e expressão reais da fonte; não usa a contagem máxima do lote como expressão. A fixo não cria a janela. CP insuficiente, Battle-shock e uso anterior suprimem a escolha; revisões/índices/jogador/unidade e provedor inválidos são recusados sem confirmar CP/estado.
 - UI/save: o laboratório oferece o perfil sintético random-A de A D3+1 somente com a opção ativa e começa com 2 CP por jogador. O laboratório anterior e as listas iniciais de A fixo ficam preservados. Snapshot e RNG são restaurados exatamente na janela. Rede: convidado reconecta ao host reiniciado, escolhe um dado e termina com estado completo/RNG iguais à referência determinística, sem cobrança ou rolagens repetidas.
 - QA gráfica Windows 1280 × 800: `.tools/count-reroll-ui.png` e `.tools/count-rerolled-ui.png`; `.tools/count-reroll-qa.log` reporta **ATTACK COUNT REROLL UI: PASS**. Conferidos A D3+1, total, dado identificado por fonte, acertos ainda não rolados, save/retomada e resultado pior obrigatório.
-- Referência: Core Rules 11e §15.02 fixado em `docs/core-stratagems.md`. Desperate Escape continua pendente. Escopo de plataforma: Windows/loopback, sem nova validação entre máquinas, Linux ou executáveis nativos.
+- Referência: Core Rules 11e §15.02 fixado em `docs/rules/core-stratagems.md`. Desperate Escape continua pendente. Escopo de plataforma: Windows/loopback, sem nova validação entre máquinas, Linux ou executáveis nativos.

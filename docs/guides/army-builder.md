@@ -1,5 +1,7 @@
 # Construtor de exércitos e perfis locais
 
+> **Fonte de dados:** O catálogo OpenHammer atualmente exibido é um recurso legado de consulta e planejamento, não uma fonte autorizada para fatos de datasheet e11 nem uma validação de legalidade oficial. Para admitir regras ou perfis, use somente um snapshot local verificado da [exportação Wahapedia e11](../data/source-assessment.md). A leitura desse formato ainda não foi migrada para o pipeline deste checkout.
+
 Implementado em 16/10/2026. A aba **Listas** fica disponível desde a abertura do jogo, sem importar os dados do exercício de combate. É um planejador de listas persistentes; ele não habilita automaticamente novas unidades no motor de partidas. A admissão restrita de listas compatíveis está disponível no protocolo v23, conforme [partidas com listas salvas](saved-army-matches.md).
 
 ## Uso
@@ -17,9 +19,9 @@ Uma lista acima do orçamento ou com custos ausentes pode ser salva como rascunh
 
 **Nova base padrão editável** cria um novo rascunho para a facção/orçamento atuais, procurando até um personagem e duas unidades de linha pelos menores custos disponíveis que caibam no limite. A base pode ser parcial ou vazia se o catálogo/orçamento não oferecer essas opções. É um ponto de partida gerado, não uma lista oficial, lista competitiva ou um exército completo garantido. Os exércitos padrão dos exercícios de combate continuam disponíveis em Match setup.
 
-## O que a API fornece
+## Comportamento do catálogo OpenHammer legado
 
-Integração com a [OpenHammer API](https://openhammer-api-production.up.railway.app/) a partir da sua [especificação OpenAPI](https://openhammer-api-production.up.railway.app/openapi.json). A verificação real pelo Godot retornou **35 facções / 1.348 registros em 11e** e **35 facções / 1.380 registros em 10e**. São contagens do provedor observadas nesta data, não uma certificação de cobertura oficial.
+O cliente usa a [OpenHammer API](https://openhammer-api-production.up.railway.app/) e sua [especificação OpenAPI](https://openhammer-api-production.up.railway.app/openapi.json) para consulta do catálogo existente. As contagens históricas de **35 facções / 1.348 registros em 11e** e **35 facções / 1.380 registros em 10e** são apenas observações do provedor, não uma certificação de cobertura ou fonte de regras.
 
 O cliente consulta `/v1/{edition}/stats` e `/v1/{edition}/units?limit=500&offset=...&sort_by=name`. Verifica identidades, paginação sem duplicatas, contagens de unidades/facções, formato e integridade antes de substituir o cache. Requisições têm timeout de 30 segundos, corpo de até 16 MiB, agregado de até 32 MiB e nenhum redirecionamento. A atualização pode ser cancelada; erros ou páginas incompletas não substituem o catálogo anterior. Nenhuma consulta é feita automaticamente durante a abertura de uma partida, edição de uma lista ou resolução de ações.
 
@@ -29,7 +31,7 @@ Somente metadados necessários ao planejador são mantidos: identidades, nomes, 
 
 O custo-base só é associado a uma quantidade quando os limites de composição retornados são estruturalmente consistentes. Variantes usam quantidades/custos explícitos; não há interpolação ou multiplicação por modelo. Composição inválida, preços conflitantes e custos ausentes são mantidos como pendências. Quantidades exibidas como **modelos (API)** são os valores retornados pelo provedor, sem correções presumidas de sargentos, líderes ou membros adicionais.
 
-A API não fornece nesta integração um conjunto oficial datado de atualização de regras, um validador completo de listas, opções executáveis de destacamento/equipamento ou exércitos padrão prontos. Limites de repetição, personagens únicos, aliados oficiais, destacamentos e equipamento continuam sem validação completa. **Dentro do limite de pontos não significa lista oficial válida ou lista executável no jogo.**
+A API não fornece nesta integração um conjunto oficial datado de atualização de regras, um validador completo de listas, opções executáveis de destacamento/equipamento ou exércitos padrão prontos. Limites de repetição, personagens únicos, aliados oficiais, destacamentos e equipamento continuam sem validação completa. **Dentro do limite de pontos não significa lista oficial válida ou lista executável no jogo.** Nenhum dado retornado pela API substitui o snapshot Wahapedia local exigido para perfis e11.
 
 Cada entrada salva inclui a variante, custo e digest da fonte. Atualizar o catálogo não altera listas já salvas. **Recalcular custos pelo catálogo atual** gera uma revisão do rascunho; salvar é uma etapa separada. Se a unidade ou composição não existir mais, a revisão falha preservando a lista anterior.
 
@@ -48,4 +50,4 @@ Listas pessoais compatíveis já podem entrar em treino parcial por Match setup:
 
 Admitir outras unidades e listas oficiais exige resolver um pack compatível e implementar todas as regras, equipamentos, geometrias e restrições exigidas. A seleção de treino requer aceitação explícita do escopo parcial; ela não alega legalidade oficial. A persistência disponível continua sendo de listas/perfis, não de partidas. Veja [o fluxo local/LAN](saved-army-matches.md).
 
-Testes: `test_army_catalog.gd` e `test_army_builder.gd`, incluídos também no perfil offline de verificação. Cobrem paginação, cancelamento/erro, cache offline, variantes de pontos, orçamento, custos desconhecidos, edições/facções, templates, edição/cópias, isolamento e reabertura de perfis, tamanho de arquivos e preservação de dados corrompidos. A atualização real das duas edições, o salvamento/reabertura com dados reais e a interface a 1280 × 800 foram verificados no Windows. Veja [resultados](verification-results.md).
+Testes: `test_army_catalog.gd` e `test_army_builder.gd`, incluídos também no perfil offline de verificação. Cobrem paginação, cancelamento/erro, cache offline, variantes de pontos, orçamento, custos desconhecidos, edições/facções, templates, edição/cópias, isolamento e reabertura de perfis, tamanho de arquivos e preservação de dados corrompidos. A atualização real das duas edições, o salvamento/reabertura com dados reais e a interface a 1280 × 800 foram verificados no Windows. Veja [resultados](../verification/verification-results.md).

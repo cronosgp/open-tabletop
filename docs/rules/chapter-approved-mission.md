@@ -35,4 +35,4 @@ Primary and secondary totals each have their current 45VP match and 15VP round c
 
 This source distinction matters: the `/wh40k11ed/` site also contains historical **2025-26 / edition 10** mission material. That material is not used as a substitute for the current mission.
 
-See [verification results](verification-results.md) for automated and graphical evidence. A2's selected scenario is playable within these boundaries; A3 points/DP/wargear/complete army legality and the remaining required detachment content must still be certified before calling Track A a complete legal match.
+See [verification results](../verification/verification-results.md) for automated and graphical evidence. A2's selected scenario is playable within these boundaries; A3 points/DP/wargear/complete army legality and the remaining required detachment content must still be certified before calling Track A a complete legal match.
