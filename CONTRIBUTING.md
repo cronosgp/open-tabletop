@@ -11,9 +11,9 @@ Import `project.godot` in Godot and press **F5**. A clean checkout opens the ori
 
 ## Rules and data changes
 
-- The target rules are official **Warhammer 40,000 11th edition**. Check current edition, faction/Codex publication, and errata before implementing a rule.
-- Datasheet facts use only a verified **local Wahapedia 11e data export** as the project's source of record. See [source policy](docs/data/source-assessment.md) for the proposed local snapshot layout and current pipeline status. Do not replace a missing extract with OpenHammer, 40kdc, another provider, or an older rules profile.
-- Cross-check rule effects and update boundaries against current official Games Workshop sources; document dates, versions, discrepancies, and limitations.
+- The target is **Warhammer 40,000 11th edition** as represented by the selected Wahapedia `/wh40k11ed/` Core Rules, faction pages, and Data Export. Record the edition, source book/chapter, game mode, and current revision for each implementation scope.
+- Datasheet facts use only a verified **local Wahapedia 11e data export** as the project's source of record. See [source policy](docs/data/source-assessment.md) for the local snapshot layout and current pipeline status. Do not replace a missing extract with OpenHammer, 40kdc, another provider, or an older rules profile.
+- Games Workshop publications may be recorded as context, but they are not an admission prerequisite and do not override the selected Wahapedia reference. Record ambiguities and keep unsupported scope blocked.
 - Keep third-party source exports local and out of commits/builds. Existing starter importers are legacy/experimental, not the current authoritative data pipeline.
 - Keep unsupported rules visible and gated. A catalog entry, passing test, or selectable unit is not proof of complete rules support or legal army construction.
 - Rules changes should have focused headless tests. Keep the support matrix, capability metadata, roadmap, and feature documentation consistent with the actual scope.

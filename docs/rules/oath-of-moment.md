@@ -10,7 +10,7 @@ The [official June Space Marines faction pack](https://assets.warhammer-communit
 
 SHA-256 of the inspected source: `82b2e28b0950c53b12bc83681a3bee3fd6a58cd6d2acd7a9d67d37f2dcbe6f2f`.
 
-The official download catalog was also queried through its public search endpoint. The current Space Marines entry, updated **14 October 2026**, points to [Printed Product Updates v1.1](https://assets.warhammer-community.com/eng_14-10_wh40k_printed_product_updates_space_marines_updates-91hillwcff-wzs8qnozam.pdf), which supplements the new Codex and does not reproduce this army rule. Therefore the June rule is identified as a reference profile in the capability registry, setup, runtime ID and UI. Migrating/certifying against the later Codex remains part of Track A's rules/version and A3 verification work. The June source file and catalog response were inspected locally under `.tools`; they are not required at runtime or bundled content.
+Historical source note: the official download catalog and June Codex-era profile were recorded when this training implementation was first assessed. This option remains an isolated historical profile; it does not claim current e11 support. Current behavior must follow the definitive Wahapedia `/wh40k11ed/` source/version recorded for the active profile, and a separate Games Workshop locator is not an admission prerequisite. The June source file and catalog response were inspected locally under `.tools`; they are not required at runtime or bundled content.
 
 ## Playable scope
 

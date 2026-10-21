@@ -1,0 +1,63 @@
+{
+  "id": "marine-chaplain-e11-2026-10-18",
+  "edition": "11e",
+  "source_book_id": "000000139",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "datasheet_id": "000001174",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain",
+  "data_comparison": {
+    "status": "passed",
+    "numeric_checks": 19,
+    "errors": [],
+    "base_and_points_checked": true,
+    "source_catalog_sha256": "c88415a35692cb7d70022cf6af1050244c72713f72230c2bffb74d89bcb90c35",
+    "runtime_sha256": "23e33f8189672e401d864ffc0effd7ac11b2dce98ee68a384f63e270c873c9b4"
+  },
+  "implementation": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v10",
+    "unit_abilities": "track-a-current-datasheets-2026-10-v12",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v10",
+    "core_reactions": "core-reaction-stratagems-v3"
+  },
+  "local_validation": {
+    "status": "passed",
+    "reports": [
+      {
+        "report": ".tools/verification/20261018T094002195005Z/results.json",
+        "sha256": "5b9c28809471c027b8c0a8361a815a07191b7437727deb2ff61c2131eaf1dac9",
+        "status": "passed",
+        "processes": 28
+      },
+      {
+        "report": ".tools/verification/20261018T094210581057Z/results.json",
+        "sha256": "aae956d232d453bee060e3b57579fabd56f031433a62c577dcc53c05ecc75e6d",
+        "status": "passed",
+        "processes": 4
+      }
+    ],
+    "python_checks": 30,
+    "broad_godot_suites": 25
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_match_certified": false,
+  "full_faction_certified": false,
+  "visual_review": {
+    "kind": "admitted profiles, staged start-phase fixture",
+    "viewport": [
+      1600,
+      1000
+    ],
+    "capture": ".tools/chaplain-spiritual-leader.png",
+    "inspected": true,
+    "other_viewports_checked": false,
+    "sha256": "4e9a7288eb96b1ef3b636f6b4b87056861ddcb13484f25ef1c6f6a3b9ed0f88e"
+  },
+  "limits": [
+    "Shared datasheet and admitted bodyguards only; chapter and Boarding Actions adaptations remain excluded",
+    "Full army and faction interactions not certified",
+    "Ground-level cylindrical geometry, not imported-mesh or upper-floor visibility certification"
+  ]
+}

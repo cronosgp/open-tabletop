@@ -1,0 +1,38 @@
+{
+  "title": "Chaplain on Bike implementation audit",
+  "observed_at": "2026-10-19",
+  "source_authority": "Wahapedia 11th-edition local data export",
+  "source": {
+    "book_id": "000000139",
+    "datasheet_id": "000000094",
+    "export_updated_at": "2026-10-16T21:03:46+03:00",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain-On-Bike"
+  },
+  "scope": {
+    "selectable_identity": "chaplain-on-bike",
+    "points": 75,
+    "composition": "1 model",
+    "base": "90 x 52 mm oval; runtime uses documented 90 mm bounding-circle proxy",
+    "admitted_leader_target": "Outrider Squad",
+    "source_linked_but_not_admitted": "Ravenwing Black Knights; outside consolidated shared-book construction catalog"
+  },
+  "profile_checks": [
+    "M12, T6, Sv3+, 4+ invulnerable, W5, Ld5+, OC2",
+    "Absolvor Bolt Pistol: 18 A1 BS3 S5 AP-2 D2, Close-quarters",
+    "Twin Bolt Rifle: 24 A2 BS3 S5 AP-1 D1, Twin-linked, Rapid Fire 2",
+    "Crozius Arcanum: melee A5 WS2+ S6 AP-1 D2, Cleave 1",
+    "Ravenwing, Chaplain and Mounted keywords; faction identity tag is documented in the keyword context audit"
+  ],
+  "abilities": [
+    "Leader: admitted for Outrider Squad only",
+    "Litany of Hate: attached unit melee attacks gain Lance",
+    "Catechism of Fire: when selected to shoot choose one visible enemy; ranged attacks targeting it gain Devastating Wounds for this phase"
+  ],
+  "validation": {
+    "status": "tests_passed_local_targeted",
+    "artifact": ".tools/verification/20261019T110640219017Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v80.json",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  }
+}

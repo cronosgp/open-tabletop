@@ -30,22 +30,24 @@ static func eligibility_error(state: Dictionary, squad: int) -> String:
 	if unit.battle_shocked and not UnitAbilities.has(state, squad, "tactical-mainstay"): return "Battle-shocked units cannot start actions."
 	if int(unit.stats.objective_control) <= 0: return "The unit needs positive OC to start an action."
 	if engaged(state, squad) and not UnitAbilities.has(state, squad, "tactical-mainstay") and not keyword(state, squad, ["titanic"]): return "Engaged units cannot start actions."
-	if unit.advanced or unit.fell_back: return "Units that Advanced or Fell Back cannot start actions this turn."
+	if (unit.advanced or unit.fell_back) and not UnitAbilities.has(state, squad, "flexible-asset"): return "Units that Advanced or Fell Back cannot start actions this turn."
 	if unit.get("started_action_turn", -1) == state.turn: return "This unit already started an action this turn."
 	if str(unit.get("overwatch_block", "")) == "%d:%s" % [state.turn, state.phase]: return "A unit that fired Overwatch cannot start an action until this phase ends."
+	if str(unit.get("indirect_shooting_block", "")) == "%d:%s" % [state.turn, state.phase]: return "A unit that used Indirect Shooting cannot start an action until this phase ends."
 	return ""
 
 static func shooting_blocked(state: Dictionary, squad: int) -> bool:
+	if int(state.squads[squad].get("firing_deck_blocked_until_turn", -1)) == int(state.get("turn", -2)): return true
 	return state.squads[squad].get("started_action_turn", -1) == state.turn and not UnitAbilities.has(state, squad, "tactical-mainstay") and not keyword(state, squad, ["titanic"])
 
 static func charge_blocked(state: Dictionary, squad: int) -> bool:
-	return state.squads[squad].get("started_action_turn", -1) == state.turn
+	return state.squads[squad].get("started_action_turn", -1) == state.turn or state.squads[squad].get("cannot_charge_until_turn", -1) == state.turn or state.get("unit_abilities", {}).get("used", {}).get("purgation-charge-block:%d:%d" % [squad, int(state.turn)], false)
 
 static func targets(state: Dictionary, squad: int) -> Array[int]:
 	var result: Array[int] = []
 	var objectives: Array = state.get("mission", {}).get("objectives", [])
 	for index in range(objectives.size()):
-		if objectives[index].controller == state.squads[squad].owner and squad in Objectives.controlling_squads(state, objectives[index]): result.append(index)
+		if objectives[index].controller == state.squads[squad].owner and squad in Objectives.controlling_squads(state, objectives[index], Callable(Morale, "objective_control")): result.append(index)
 	return result
 
 static func start_error(state: Dictionary, squad: int, objective: int) -> String:

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-18",
+  "edition": "11e",
+  "rule": "explosives",
+  "aliases": [
+    "grenades"
+  ],
+  "implementation": "core-reaction-stratagems-v2",
+  "source": {
+    "url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+    "sections": [
+      "15.01",
+      "15.05",
+      "10.02",
+      "09.07",
+      "16",
+      "06.02"
+    ],
+    "review": "live HTML checked; no bulk export admission implied",
+    "gw_cross_check": {
+      "url": "https://www.warhammer-community.com/en-gb/downloads/warhammer-40000/",
+      "status": "index opened; rendered page did not expose the core card text; no independent reconciliation claimed"
+    }
+  },
+  "validation": [
+    {
+      "path": ".tools/verification/20261018T044916182784Z/results.json",
+      "sha256": "5cf0af1a387de40300c50dbcff16ce7af024682ca9dc412b33f874055a9e5ba3",
+      "processes": 11,
+      "status": "passed",
+      "checks": [
+        "import",
+        "python",
+        "startup",
+        "test_capabilities",
+        "test_combat_doctrines",
+        "test_core_reactions",
+        "test_current_unit_abilities",
+        "test_current_unit_combat",
+        "test_explosives",
+        "test_marine_ability_boundaries",
+        "test_unit_reserves"
+      ]
+    },
+    {
+      "path": ".tools/verification/20261018T044952496946Z/results.json",
+      "sha256": "f40ce3beb3d9ac70cf5ac6eb93f56978e3290fe35b8125c9584bfa74c961313b",
+      "processes": 7,
+      "status": "passed",
+      "checks": [
+        "import",
+        "python",
+        "startup",
+        "test_current_unit_abilities_network_host",
+        "test_current_unit_abilities_network_client",
+        "test_detachment_stratagems",
+        "test_stratagems"
+      ]
+    }
+  ],
+  "test_sha256": "198822da70812690f3a290cfe656ba0b4c9878e8979d92d3fd8658fa5744cbc2",
+  "full_match_certified": false,
+  "new_playable_profiles": 0,
+  "limitations": [
+    "Existing cylindrical visibility proxy only",
+    "Variant serialization covered; no new Explosives-specific host/client restart scenario",
+    "Network regression exercises existing Reanimation host/client rejoin workflow",
+    "No full army legality, new factions, chapter or optional wargear admission"
+  ]
+}

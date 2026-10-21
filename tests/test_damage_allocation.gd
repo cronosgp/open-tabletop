@@ -1,5 +1,6 @@
 extends SceneTree
 const Combat = preload("res://scripts/edition_11/combat_scenario.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 var calls := 0
 var values: Array[int] = []
@@ -32,17 +33,29 @@ func fixture(attacks: int = 3, damage: int = 1) -> Dictionary:
 func begin(state: Dictionary, roller: Callable = six) -> Dictionary:
 	return Combat.shoot(state, 1, 100, 200, state.revision, true, roller)
 func allocate(state: Dictionary, model: int) -> String:
-	return Combat.allocate_damage(state, 2, model, state.revision, six)
+	var decision := Combat.Allocation.pending_decision(state)
+	var option_id := ""
+	for option: Dictionary in decision.get("legal_options", []):
+		if int(option.get("model", -1)) == model: option_id = str(option.get("id", "")); break
+	var result := MatchCommands.execute(state, Combat.actor(state), {"kind": MatchCommands.ALLOCATE_DAMAGE, "model": model, "revision": state.revision, "decision_id": str(decision.get("decision_id", "")), "option_id": option_id}, six)
+	return str(result.get("error", ""))
 func _initialize() -> void:
 	var state := fixture()
 	check(state.pack_hash != Combat.initial_state("legacy-solid-v1", Combat.Objectives.TRAINING, 2).pack_hash, "Allocation mode participates in compatibility hash")
 	check(begin(state).error.is_empty() and Combat.actor(state) == 2 and not state.squads[1].shot and state.units[201].wounds == 2, "Attack pauses after rolls, before damage/activation, for defender")
+	var allocation_decision := Combat.Allocation.pending_decision(state)
+	var projected_models: Array[int] = []
+	for option: Dictionary in allocation_decision.get("legal_options", []):
+		projected_models.append(int(option.model))
+	check(not allocation_decision.is_empty() and allocation_decision.priority_player_id == 2 and projected_models == [200, 201, 202], "Damage allocation exposes current defenders and priority through the shared decision projection")
 	var before := var_to_str(state)
 	var rolled := calls
 	check(not Combat.advance_phase(state, 2, state.revision).is_empty() and before == var_to_str(state), "Defender cannot advance phase while allocating")
 	check(not Combat.allocate_damage(state, 1, 201, state.revision, six).is_empty() and before == var_to_str(state), "Attacker cannot allocate opponent damage")
 	check(not Combat.allocate_damage(state, 2, 400, state.revision, six).is_empty() and before == var_to_str(state), "Wrong target unit rejected")
 	check(not Combat.allocate_damage(state, 2, 201, -1, six).is_empty() and before == var_to_str(state) and calls == rolled, "Stale choice rejected without rerolling")
+	var missing_identity := MatchCommands.execute(state, 2, {"kind": MatchCommands.ALLOCATE_DAMAGE, "model": 201, "revision": state.revision}, six)
+	check(not missing_identity.error.is_empty() and before == var_to_str(state) and calls == rolled, "A projected damage allocation rejects a missing decision identity without mutation")
 	check(allocate(state, 201).is_empty() and state.units[201].wounds == 1 and state.units[200].wounds == 2, "Defender chooses a model other than lowest ID")
 	check(Combat.Allocation.eligible(state) == [201], "Wounded model becomes mandatory")
 	before = var_to_str(state)

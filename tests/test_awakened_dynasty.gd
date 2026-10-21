@@ -25,6 +25,7 @@ func run() -> void:
 	check(C.select_awakened_attachment(state, 2, 4, 0).is_empty() and not A.needs_setup(state) and state.units[600].squad == 4 and not state.squads.has(6), "Overlord and Warriors become one real unit")
 	check(state.pack_hash == identity and state.cp == {1: 0, 2: 0} and state.squads[4].starting_strength == 11 and state.units[600].max_wounds == 6, "Attachment preserves match identity, wounds, weapons and CP")
 	check(state.deployment.order == [1, 2, 4] and C.Deployment.confirm(state, 1, state.revision) != "", "Deployment order is rebuilt and still requires model placement")
+	check(F.finish_preparations(state).is_empty(), "Both players finish the current-profile army preparations")
 	check(C.Deployment.preset(state, 1, state.revision).is_empty() and C.Deployment.confirm(state, 1, state.revision).is_empty(), "Other player deploys normally after declarations")
 	C.Deployment.preset(state, 2, state.revision)
 	C.Deployment.confirm(state, 2, state.revision)
@@ -80,6 +81,7 @@ func run() -> void:
 	root.add_child(game)
 	game.auto_models.button_pressed = false
 	game.awakened_dynasty_choice.button_pressed = true
+	game.unit_abilities_choice.button_pressed = true
 	F.populate(game, 1)
 	F.populate(game, 2)
 	game.saved_training_consent.button_pressed = true

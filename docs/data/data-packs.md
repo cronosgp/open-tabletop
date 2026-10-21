@@ -1,6 +1,6 @@
 # Legacy independent data-pack format
 
-> **Source boundary:** This format and the existing OpenHammer/40kdc adapters predate the current [Wahapedia local-export policy](source-assessment.md). They are not authoritative inputs for current e11 datasheet facts. Do not use them as a fallback when a verified local Wahapedia export is missing. Migration of the reader and pack pipeline is separate work.
+> **Source boundary:** This format and the existing OpenHammer/40kdc adapters predate the current [Wahapedia local-export policy](source-assessment.md). They are not authoritative inputs for current e11 datasheet facts and must not be used as a fallback. The Wahapedia importer and comparison pipeline already exist; migration of these legacy pack readers is separate work.
 
 The game owns its runtime format and rules implementation. No upstream SDK, Python library, MCP client, or web service is required to run the clean-checkout movement demo. The local data policy and migration boundary are defined in [source assessment](source-assessment.md).
 

@@ -79,7 +79,7 @@ func run() -> void:
 			quit(code)
 			return
 		game._load_match(true)
-		assert(C.RosterValidation.enabled(game.state) and game.state.roster_validation.armies[1].formations_verified and game.state.roster_validation.armies[2].formations_verified and game.state.roster_validation.full_match_certified)
+		assert(C.RosterValidation.enabled(game.state) and game.state.roster_validation.armies[1].formations_verified and game.state.roster_validation.armies[2].formations_verified and not game.state.roster_validation.full_match_certified and not game.state.match_manifest.official_legality_validated)
 		assert(game.mode == "host" and game.official_mission and game.state.phase == "mission_first_turn")
 		var predicted: Dictionary = game.state.duplicate(true)
 		var rng := RandomNumberGenerator.new()

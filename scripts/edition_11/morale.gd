@@ -1,5 +1,10 @@
 extends RefCounted
 ## Per-model Leadership/OC overrides support preconfigured attached units.
+const Ancient = preload("res://scripts/edition_11/ancient_rules.gd")
+const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
+const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
+const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 
 static func living(state: Dictionary, squad: int) -> Array[int]:
 	var ids: Array[int] = []
@@ -15,13 +20,54 @@ static func at_half_strength(state: Dictionary, squad: int) -> bool:
 		return int(state.units[ids[0]].wounds) * 2 <= int(state.units[ids[0]].max_wounds)
 	return ids.size() * 2 <= starting
 
+static func below_half_strength(state: Dictionary, squad: int) -> bool:
+	var ids := living(state, squad)
+	if ids.is_empty(): return false
+	var starting: int = int(state.squads[squad].starting_strength)
+	if starting == 1:
+		return int(state.units[ids[0]].wounds) * 2 < int(state.units[ids[0]].max_wounds)
+	return ids.size() * 2 < starting
+
 static func needs_command_roll(state: Dictionary, squad: int) -> bool:
 	return state.squads[squad].owner == state.active and not living(state, squad).is_empty() and (state.squads[squad].battle_shocked or at_half_strength(state, squad))
 
 static func objective_control(state: Dictionary, id: int) -> int:
 	if not state.units.has(id) or state.units[id].wounds <= 0 or not state.units[id].get("on_battlefield", true): return 0
 	var squad: Dictionary = state.squads[state.units[id].squad]
-	return 0 if squad.battle_shocked else int(state.units[id].get("objective_control", squad.stats.objective_control))
+	if squad.battle_shocked: return 0
+	var value := int(state.units[id].get("objective_control", squad.stats.objective_control)) + Ancient.honour(state, state.units[id].squad)
+	if MarineEnhancements.standard_bearer(state, id): value += 1
+	if UnitAbilities.seeker_of_the_unfound_active(state, id): value += 9
+	if terror_troops_applies(state, id): value -= 1
+	if lord_of_pyroclasts_applies(state, id): value -= 1
+	return maxi(0, value)
+
+static func lord_of_pyroclasts_applies(state: Dictionary, target: int) -> bool:
+	if not state.get("unit_abilities", {}).has("implementation"): return false
+	var enemy := int(state.units[target].squad)
+	for source: int in state.units:
+		var adrax: Dictionary = state.units[source]
+		if adrax.wounds <= 0 or not adrax.get("on_battlefield", true) or adrax.owner == state.units[target].owner: continue
+		if not UnitAbilities.has(state, int(adrax.squad), "lord-of-the-pyroclasts"): continue
+		if FightQueue.engaged(state, enemy) and _unit_engaged_with(state, int(adrax.squad), enemy): return true
+	return false
+
+static func _unit_engaged_with(state: Dictionary, left: int, right: int) -> bool:
+	for model: int in Geometry.alive(state, left):
+		for target: int in Geometry.alive(state, right):
+			if Geometry.edge(state.units[model], state.units[target]) <= 2.001: return true
+	return false
+
+static func terror_troops_applies(state: Dictionary, target: int) -> bool:
+	if not state.get("unit_abilities", {}).has("implementation"): return false
+	var defender: Dictionary = state.units[target]
+	for source: int in state.units:
+		var reiver: Dictionary = state.units[source]
+		if reiver.wounds <= 0 or not reiver.get("on_battlefield", true) or reiver.owner == defender.owner: continue
+		if str(reiver.get("definition_id", "")).get_slice(":", 3) != "reiver-squad": continue
+		if reiver.squad not in state.squads or defender.squad not in state.squads: continue
+		if Geometry.edge(reiver, defender) <= 3.0 + Geometry.EPSILON: return true
+	return false
 
 static func can_start_action(state: Dictionary, squad: int) -> bool:
 	# Morale gate only; phase, move type and action-specific gates are separate.
@@ -45,12 +91,14 @@ static func leadership(state: Dictionary, squad: int) -> Dictionary:
 	for model: int in living(state, squad):
 		var leadership: Variant = state.units[model].get("leadership_target", state.squads[squad].stats.get("leadership_target"))
 		if not (leadership is int or leadership is float) or not is_finite(leadership) or leadership != floor(leadership) or leadership < 2 or leadership > 12: return {"error": "Unresolved model Leadership characteristic."}
+		if UnitAbilities.seeker_of_the_unfound_active(state, model): leadership = mini(int(leadership), 5)
+		if MarineEnhancements.standard_bearer(state, model): leadership = maxi(2, int(leadership) - 1)
 		target = leadership if target == null else mini(int(target), int(leadership))
 	if not (target is int or target is float) or not is_finite(target) or target != floor(target) or target < 2 or target > 12:
 		return {"error": "Battle-shock requires a resolved Leadership characteristic."}
 	return {"error": "", "target": int(target)}
 
-static func roll_battle_shock(state: Dictionary, squad: int, roller: Callable) -> Dictionary:
+static func roll_battle_shock(state: Dictionary, squad: int, roller: Callable, modifier: int = 0) -> Dictionary:
 	var profile := leadership(state, squad)
 	if not profile.error.is_empty(): return profile
 	if not roller.is_valid(): return {"error": "Battle-shock requires host dice."}
@@ -59,4 +107,4 @@ static func roll_battle_shock(state: Dictionary, squad: int, roller: Callable) -
 		var value: Variant = roller.call()
 		if not value is int or value < 1 or value > 6: return {"error": "Dice provider must return an integer from 1 to 6."}
 		rolls.append(value)
-	return {"error": "", "squad": squad, "rolls": rolls, "target": profile.target, "passed": rolls[0] + rolls[1] >= profile.target}
+	return {"error": "", "squad": squad, "rolls": rolls, "target": profile.target, "modifier": modifier, "modified_total": rolls[0] + rolls[1] + modifier, "passed": rolls[0] + rolls[1] + modifier >= profile.target}

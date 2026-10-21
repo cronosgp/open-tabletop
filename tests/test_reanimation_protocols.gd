@@ -3,6 +3,7 @@ const P = preload("res://scripts/edition_11/prepared_training.gd")
 const C = P.Combat
 const R = C.Reanimation
 const Save = preload("res://scripts/match_save.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 class Dice:
 	extends RefCounted
@@ -37,13 +38,29 @@ func run() -> void:
 	for id in [201, 202, 203]: state.units[id].wounds = 0
 	var original: Dictionary = state.units[201].duplicate(true)
 	check(C.advance_phase(state, 2, state.revision, dice.roll).is_empty() and dice.calls == 0 and R.pending(state).remaining == [2, 4], "End of own Command queues every living Necron unit after morale")
+	var reanimation_decision := R.pending_decision(state)
+	var roll_squads: Array[int] = []
+	for option: Dictionary in reanimation_decision.get("legal_options", []):
+		if option.value == "roll": roll_squads.append(int(option.target))
+	check(not reanimation_decision.is_empty() and int(reanimation_decision.priority_player_id) == 2 and roll_squads == [2, 4], "Reanimation projects the eligible remaining units under one decision owner")
 	check(not C.advance_phase(state, 2, state.revision).is_empty() and not C.begin_movement(state, 2, 200, "normal", state.revision).is_empty(), "Mandatory window blocks unrelated commands")
 	var before := var_to_bytes(state)
+	var missing_decision := MatchCommands.execute(state, 2, {"kind": MatchCommands.RESOLVE_REANIMATION, "choice": {"action": "reanimation", "model": -1, "target": 2, "value": "roll"}, "point": Vector2.ZERO, "revision": state.revision}, dice.roll)
+	check(not missing_decision.error.is_empty() and before == var_to_bytes(state) and dice.calls == 0, "A Reanimation projection rejects an unidentified roll without mutation or dice")
+	var roll_option_id := str(reanimation_decision.legal_options[0].id)
+	var invalid_decision := MatchCommands.execute(state, 2, {"kind": MatchCommands.RESOLVE_REANIMATION, "choice": {"_decision_type": MatchCommands.REANIMATION_DECISION_ENVELOPE, "decision_id": reanimation_decision.decision_id, "option_id": "invalid-option", "choice": {"action": "reanimation", "model": -1, "target": 2, "value": "roll"}}, "point": Vector2.ZERO, "revision": state.revision}, dice.roll)
+	check(not invalid_decision.error.is_empty() and before == var_to_bytes(state) and dice.calls == 0, "A Reanimation projection rejects an option outside the current window")
+	check(not roll_option_id.is_empty(), "Reanimation roll choices have stable option IDs")
 	check(not C.resolve_reanimation(state, 1, "roll", 2, -1, Vector2.ZERO, state.revision, dice.roll).is_empty(), "Opponent cannot roll")
 	check(not C.resolve_reanimation(state, 2, "roll", 2, -1, Vector2.ZERO, -1, dice.roll).is_empty(), "Stale revision rejected")
 	check(not decide(state, "bogus", 2, -1, Vector2.ZERO, dice.roll).is_empty() and not decide(state, "roll", 1, -1, Vector2.ZERO, dice.roll).is_empty(), "Unknown action and foreign unit rejected before dice")
 	check(before == var_to_bytes(state) and dice.calls == 0, "Invalid commands leave state and dice untouched")
 	check(decide(state, "roll", 2, -1, Vector2.ZERO, dice.roll).is_empty() and dice.calls == 1 and R.pending(state).current.slots == 3, "D6 six becomes D3 three once")
+	var placement_decision := R.pending_decision(state)
+	var placement_models: Array[int] = []
+	for option: Dictionary in placement_decision.get("legal_options", []):
+		if option.value == "place": placement_models.append(int(option.model))
+	check(not placement_decision.is_empty() and placement_models == [201, 202, 203], "Reanimation exposes destroyed troop placement intents while keeping coordinates rule-validated")
 	check(not decide(state, "roll", 2, -1, Vector2.ZERO, dice.roll).is_empty() and dice.calls == 1, "Cannot reroll a pending unit")
 	check(not decide(state, "confirm").is_empty(), "Cannot confirm unassigned return attempts")
 	check(not decide(state, "place", 2, 201, Vector2(INF, 0)).is_empty() and not decide(state, "place", 2, 201, Vector2(16, 0)).is_empty(), "Nonfinite and off-board bases rejected")

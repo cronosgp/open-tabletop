@@ -68,16 +68,17 @@ func run() -> void:
 	editor.storage_path = "res://.tools/offline-training-list.json"
 	editor.cache_directory = "res://.tools/no-online-catalog"
 	root.add_child(editor)
-	check(editor.source.catalog.is_empty() and editor.faction_picker.item_count == 2, "Implemented factions remain selectable offline with only the starter pack")
+	check(not editor.source.catalog.is_empty() and editor.source.catalog.provider == "Consolidated local runtime", "Consolidated construction choices load offline without the API")
 	editor._new_training()
-	check(editor._save() and T.inspect(editor.draft).error.is_empty(), "A player can create and save a compatible list through the actual editor without the API")
+	check(editor._save() and T.inspect(editor.draft).error.is_empty() and editor.catalog_boundary.visible, "Historical training fixture remains storable but is explicitly outside the consolidated construction catalog")
 	editor.queue_free()
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	game.auto_models.button_pressed = false
 	game.army_builder.store.path = "res://.tools/saved-army-profiles.json"
 	var saved_a: Dictionary = game.army_builder.store.save_list(necrons.list)
-	var saved_b: Dictionary = game.army_builder.store.save_list(marines.list)
+	var current_marines: Dictionary = T.Capabilities.reference_army("Space Marines")
+	var saved_b: Dictionary = game.army_builder.store.save_list(current_marines.list)
 	game._refresh_army_choices()
 	for owner in [1, 2]:
 		var picker: OptionButton = game.saved_army_pickers[owner]
@@ -88,7 +89,14 @@ func run() -> void:
 	check(var_to_str(game.state) == before, "LAN training requires explicit acceptance")
 	game.saved_training_consent.button_pressed = true
 	game._start_saved_match()
-	check(game.saved_army_mode and game.state.units.size() == 20 and game.state.phase == "deployment", "Saved profile choices reach actual prepared gameplay")
+	check(not game.saved_army_mode and var_to_str(game.state) == before, "Historical Necron drafts remain saved but cannot enter new match construction")
+	for owner in [1, 2]:
+		var picker: OptionButton = game.saved_army_pickers[owner]
+		for index in range(picker.item_count):
+			if picker.get_item_metadata(index).get("id", "") == saved_b.list.id: picker.select(index)
+	game.unit_abilities_choice.button_pressed = true
+	game._start_saved_match()
+	check(game.saved_army_mode and game.state.units.size() == 40 and game.state.phase == "deployment", "Current local catalog lists reach actual prepared mirror gameplay")
 	var other = load("res://scenes/main.tscn").instantiate()
 	root.add_child(other)
 	other._start_prepared_match()

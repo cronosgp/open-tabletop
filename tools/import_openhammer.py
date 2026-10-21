@@ -63,7 +63,7 @@ def encode(value):
     return (json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n").encode("utf-8")
 
 
-def write_pack(records, output, edition, source_url, revision=None):
+def write_pack(records, output, edition, source_url, revision=None, page_urls=None):
     if not records:
         raise ValueError("No records returned; pack was not written")
     units = [normalize(record, edition) for record in records]
@@ -71,13 +71,16 @@ def write_pack(records, output, edition, source_url, revision=None):
     if len(ids) != len(set(ids)):
         raise ValueError("Duplicate source IDs")
     content = encode(units)
+    source = {"provider": "openhammer", "url": source_url, "revision": revision,
+             "records_sha256": hashlib.sha256(encode(records)).hexdigest(),
+             "retrieved_at": datetime.now(timezone.utc).isoformat(), "license_status": "unverified"}
+    if page_urls:
+        source["retrieval"] = {"method": "paginated_faction_query", "page_count": len(page_urls),
+                               "page_urls": page_urls}
     manifest = {
         "schema_version": 1, "id": f"openhammer-{edition}-reference", "edition": edition,
         "implementation": "reference-only", "units_sha256": hashlib.sha256(content).hexdigest(),
-        "source": {"provider": "openhammer", "url": source_url, "revision": revision,
-                   "records_sha256": hashlib.sha256(encode(records)).hexdigest(),
-                   "retrieved_at": datetime.now(timezone.utc).isoformat(),
-                   "license_status": "unverified"},
+        "source": source,
         "supported_mechanics": [],
     }
     output = Path(output)
@@ -98,17 +101,26 @@ def main():
     parser.add_argument("--name", help="Partial unit name; required for a live query")
     parser.add_argument("--faction", help="Exact provider faction name")
     parser.add_argument("--limit", type=int, default=2)
+    parser.add_argument("--all-faction", action="store_true",
+                        help="Fetch every page for --faction (records remain reference-only)")
     parser.add_argument("--source-revision", help="Verified upstream release identifier, if known")
     args = parser.parse_args()
     if not 1 <= args.limit <= 50:
         parser.error("limit must be between 1 and 50")
     try:
         if args.input:
+            if args.all_faction:
+                parser.error("--all-faction cannot be combined with --input")
             records = json.loads(args.input.read_text(encoding="utf-8"))
             source_url = args.input.name
+            page_urls = None
         else:
+            if args.all_faction and not args.faction:
+                parser.error("--all-faction requires --faction")
             if not args.name and not args.faction:
                 parser.error("provide --name, --faction or --input")
+            if args.all_faction and args.name:
+                parser.error("--all-faction cannot be combined with --name")
             filters = {"limit": args.limit}
             if args.name:
                 filters["name"] = args.name
@@ -116,17 +128,43 @@ def main():
                 filters["faction"] = args.faction
             query = urllib.parse.urlencode(filters)
             source_url = f"{API}/v1/{args.edition}/units?{query}"
-            request = urllib.request.Request(source_url, headers={"Accept": "application/json"})
-            with urllib.request.urlopen(request, timeout=30) as response:
-                body = response.read(8_000_001)
-            if len(body) > 8_000_000:
-                raise ValueError("Response exceeds import size limit")
-            records = json.loads(body)
+            page_urls = []
+            if args.all_faction:
+                records = []
+                offset = 0
+                while True:
+                    page_filters = dict(filters, offset=offset)
+                    page_url = f"{API}/v1/{args.edition}/units?{urllib.parse.urlencode(page_filters)}"
+                    request = urllib.request.Request(page_url, headers={"Accept": "application/json"})
+                    with urllib.request.urlopen(request, timeout=30) as response:
+                        body = response.read(8_000_001)
+                    if len(body) > 8_000_000:
+                        raise ValueError("Response exceeds import page size limit")
+                    page = json.loads(body)
+                    if not isinstance(page, list):
+                        raise ValueError("Expected a JSON array for every API page")
+                    page_urls.append(page_url)
+                    records.extend(page)
+                    if len(page) < args.limit:
+                        break
+                    offset += len(page)
+                    if offset >= 10_000:
+                        raise ValueError("Faction pagination exceeded the 10,000-record safety limit")
+                if not records:
+                    raise ValueError("No records returned for faction; pack was not written")
+            else:
+                page_urls = None
+                request = urllib.request.Request(source_url, headers={"Accept": "application/json"})
+                with urllib.request.urlopen(request, timeout=30) as response:
+                    body = response.read(8_000_001)
+                if len(body) > 8_000_000:
+                    raise ValueError("Response exceeds import size limit")
+                records = json.loads(body)
         if not isinstance(records, list):
             raise ValueError("Expected a JSON array of unit records")
-        result = write_pack(records, args.output, args.edition, source_url, args.source_revision)
+        result = write_pack(records, args.output, args.edition, source_url, args.source_revision, page_urls)
         print(f"Imported {len(records)} reference records: {result['units_sha256']}")
-        print("Not playable: source version, geometry, and mechanics require verification.")
+        print("Reference-only: verify source version, current rules, geometry, and mechanics before implementation or support.")
     except (ValueError, OSError) as error:
         parser.exit(1, f"Import failed: {error}\n")
 

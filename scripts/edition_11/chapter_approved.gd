@@ -4,6 +4,7 @@ const T = preload("res://scripts/edition_11/terrain.gd")
 const G = preload("res://scripts/edition_11/contact_movement.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
+const ScoutMoves = preload("res://scripts/edition_11/scout_moves.gd")
 const ID := "ca-2026-27-dominance-hammer-fixed-v1"
 const SIZE := Vector2(60, 44)
 
@@ -81,8 +82,9 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 			else:
 				s.first_player = winner
 				s.active = winner
-				s.phase = "start_turn"
+				s.phase = "pre_battle"
 				m.stage = "battle"
+				ScoutMoves.begin(s)
 		"mission-side":
 			m.attacker = selected.target
 			m.defender = 3 - selected.target

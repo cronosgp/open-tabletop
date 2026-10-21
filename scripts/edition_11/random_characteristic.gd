@@ -14,6 +14,13 @@ static func spec(value: Variant) -> Dictionary:
 	if count > 20 or count * sides + bonus > 10000: return {"error": "Random characteristic exceeds limits."}
 	return {"error": "", "count": count, "sides": sides, "bonus": bonus, "minimum": count + bonus, "maximum": count * sides + bonus}
 
+static func add_bonus(value: Variant, extra: int) -> Variant:
+	var parsed := spec(value)
+	if not parsed.error.is_empty() or extra <= 0: return value
+	if parsed.count == 0: return int(parsed.bonus) + extra
+	var dice := "D%d" % parsed.sides if parsed.count == 1 else "%dD%d" % [parsed.count, parsed.sides]
+	return dice if parsed.bonus + extra == 0 else "%s+%d" % [dice, parsed.bonus + extra]
+
 static func random(value: Variant) -> bool:
 	return value is String
 

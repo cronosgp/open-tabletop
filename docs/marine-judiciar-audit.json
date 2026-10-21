@@ -1,0 +1,67 @@
+{
+  "id": "marine-judiciar-e11-2026-10-18",
+  "edition": "11e",
+  "source_book_id": "000000139",
+  "datasheet_id": "000002707",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Judiciar",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "data_comparison": {
+    "status": "passed",
+    "numeric_checks": 24,
+    "errors": [],
+    "source_catalog_sha256": "c88415a35692cb7d70022cf6af1050244c72713f72230c2bffb74d89bcb90c35",
+    "runtime_sha256": "bbdeaae0739ccf0082ee53ff7c449a97ef20af769f3b2a048bc41998a9025ef7",
+    "conditional_save_description": "Against melee attacks only",
+    "float_absolute_tolerance": 1e-12
+  },
+  "implementation": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v11",
+    "unit_abilities": "track-a-current-datasheets-2026-10-v13",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v11"
+  },
+  "local_validation": {
+    "status": "passed",
+    "reports": [
+      {
+        "report": ".tools/verification/20261018T160139306784Z/results.json",
+        "sha256": "8d7979a096e8c7f185000641e25e9c8c8164a3b4936bbb5249a2e446d89cf889",
+        "status": "passed",
+        "processes": 24
+      },
+      {
+        "report": ".tools/verification/20261018T160505630896Z/results.json",
+        "sha256": "c465d2e1aa9961baae86d6a02a148422627e24ea0396aa7e7b71e1d4832981a5",
+        "status": "passed",
+        "processes": 6,
+        "scope": "Final alias-format assertion, Judiciar suite, army builder, prepared match and UI startup after conditional-save copy update"
+      }
+    ],
+    "python_checks": 30,
+    "broad_godot_suites": 21
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_match_certified": false,
+  "full_faction_certified": false,
+  "visual_review": {
+    "kind": "staged admitted-profile attached formation",
+    "viewport": [
+      1600,
+      1000
+    ],
+    "before": ".tools/judiciar-defense-before.png",
+    "after": ".tools/judiciar-defense-after.png",
+    "before_sha256": "9e8ad50932f98a202e5b0a862c1faff6cdc59c4b16ef49372cd798056fb55e94",
+    "after_sha256": "10d6d55c38a16c114aa338be8e648313349d0917db8ef1dd79778a21ff101ff9",
+    "inspected": true,
+    "matched_framing": true,
+    "other_viewports_checked": false
+  },
+  "limits": [
+    "Shared datasheet and admitted bodyguards only; Bladeguard and chapter/Legends variants remain excluded",
+    "Current unit subset does not establish full army legality",
+    "Network validation deferred"
+  ]
+}

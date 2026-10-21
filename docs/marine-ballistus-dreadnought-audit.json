@@ -1,0 +1,25 @@
+{
+  "id": "space-marines-ballistus-dreadnought-e11-audit-2026-10-19",
+  "source_authority": "Wahapedia 11th edition local extraction",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000000091",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "rules_source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Ballistus-Dreadnought",
+  "implementation": "scripts/edition_11/current_reference_marine_profiles.gd; scripts/edition_11/unit_abilities.gd; scripts/edition_11/attack_plan.gd; scripts/edition_11/deadly_demise.gd; scripts/edition_11/core_reactions.gd; scripts/edition_11/combat_scenario.gd; scripts/edition_11/unit_actions.gd; scripts/edition_11/army_capabilities.gd",
+  "validation_artifact": ".tools/verification/20261019T050853510494Z/results.json",
+  "validation_status": "tests_passed_local_targeted",
+  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v25.json",
+  "fixed_data_consistent": true,
+  "implemented_abilities": [
+    "Ballistus Strike: ranged attacks targeting an enemy unit within 24 inches have Sustained Hits 1.",
+    "Damaged 4: while the model has 1–4 wounds remaining, its attacks have -1 to Hit.",
+    "Deadly Demise D3: on a 6 when destroyed, each unit within 6 inches suffers a separately rolled D3 mortal-wound packet; chained Ballistus explosions resolve in sequence."
+  ],
+  "points": { "first_and_second_copies": 150, "third_plus_copies": 170 },
+  "network_validation": "deferred_not_run",
+  "full_match_certified": false,
+  "known_scope_limits": [
+    "Full faction and army legality are not certified.",
+    "Full local regression and final network validation remain pending."
+  ]
+}

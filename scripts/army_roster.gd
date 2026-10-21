@@ -1,5 +1,6 @@
 extends RefCounted
 ## Local list planning, independent of the implemented match rules.
+const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const EDITIONS := ["10e", "11e"]
 const LIMITS := {"training": 500, "incursion": 1000, "strike_force": 2000, "onslaught": 3000, "custom": 0}
 const CHAPTERS := ["Black Templars", "Blood Angels", "Dark Angels", "Deathwatch", "Imperial Fists", "Iron Hands", "Raven Guard", "Salamanders", "Space Wolves", "Ultramarines", "White Scars"]
@@ -53,17 +54,49 @@ static func new_list(edition: String, faction: String, category: String = "incur
 		"points_limit": limit, "allow_allies": false, "entries": [], "notes": "", "catalog_digest": ""}
 
 static func entry(unit: Dictionary, option: int, copies: int = 1) -> Dictionary:
-	return {"unit_id": unit.id, "name": unit.name, "edition": unit.edition, "faction": unit.faction, "role": unit.role,
+	var result := {"unit_id": unit.id, "name": unit.name, "edition": unit.edition, "faction": unit.faction, "role": unit.role,
 		"models": unit.options[option].models, "cost": unit.options[option].cost, "copies": copies, "source_digest": unit.source_digest}
+	if unit.options[option].has("third_plus_cost"): result.third_plus_cost = unit.options[option].third_plus_cost
+	if unit.options[option].has("enhancement_id"): result.enhancement_id = str(unit.options[option].enhancement_id)
+	return result
+
+static func tiered_cost(cost: Variant, third_plus_cost: Variant, copies: int, already_counted: int = 0) -> Variant:
+	if cost == null: return null
+	var later_cost: int = int(third_plus_cost) if integer(third_plus_cost, 1) else int(cost)
+	var first_two := mini(copies, maxi(0, 2 - already_counted))
+	return first_two * int(cost) + (copies - first_two) * later_cost
+
+static func addition_cost(list: Dictionary, unit_id: String, option: Dictionary, copies: int) -> Variant:
+	var already_counted := 0
+	for item: Dictionary in list.get("entries", []):
+		if item.get("unit_id", "") == unit_id: already_counted += int(item.get("copies", 0))
+	return tiered_cost(option.get("cost"), option.get("third_plus_cost"), copies, already_counted)
+
+static func entry_cost(entries: Array, index: int) -> Variant:
+	if index < 0 or index >= entries.size(): return null
+	var item: Dictionary = entries[index]
+	var already_counted := 0
+	for previous in range(index):
+		if entries[previous].get("unit_id", "") == item.get("unit_id", ""): already_counted += int(entries[previous].get("copies", 0))
+	var result: Variant = tiered_cost(item.get("cost"), item.get("third_plus_cost"), int(item.get("copies", 0)), already_counted)
+	if result != null and item.get("enhancement_id", "") != "": result = int(result) + enhancement_cost(str(item.enhancement_id))
+	return result
+
+static func enhancement_cost(enhancement_id: String) -> int:
+	return int(MarineEnhancements.RECORDS.get(enhancement_id, {}).get("cost", 0))
 
 static func summary(list: Dictionary) -> Dictionary:
 	var points := 0
 	var unknown := 0
 	var units := 0
+	var already_counted: Dictionary = {}
 	for item: Dictionary in list.entries:
-		units += int(item.copies)
-		if item.cost == null: unknown += int(item.copies)
-		else: points += int(item.cost) * int(item.copies)
+		var copies := int(item.copies)
+		units += copies
+		if item.cost == null: unknown += copies
+		else: points += int(tiered_cost(item.cost, item.get("third_plus_cost"), copies, int(already_counted.get(item.unit_id, 0))))
+		if item.get("enhancement_id", "") != "": points += enhancement_cost(str(item.enhancement_id))
+		already_counted[item.unit_id] = int(already_counted.get(item.unit_id, 0)) + copies
 	return {"points": points, "unknown": unknown, "units": units, "remaining": int(list.points_limit) - points,
 		"within_budget": units > 0 and unknown == 0 and points <= list.points_limit}
 
@@ -84,6 +117,8 @@ static func validate(list: Variant) -> String:
 		if not faction_allowed(list.faction, item.faction, list.allow_allies): return "Allow allies to include another faction."
 		if not integer(item.get("models"), 0, 1000) or not integer(item.get("copies"), 1, 20): return "Invalid unit/model count."
 		if not item.has("cost") or (item.cost != null and not integer(item.cost, 1)): return "Invalid cost."
+		if item.has("third_plus_cost") and not integer(item.third_plus_cost, 1): return "Invalid third-plus unit cost."
+		if item.has("enhancement_id") and (not item.enhancement_id is String or item.enhancement_id.is_empty() or int(item.copies) != 1): return "An enhancement must be assigned to exactly one unit entry."
 		if item.has("visual_variants"):
 			if not item.visual_variants is Array or item.visual_variants.size() != int(item.models) * int(item.copies): return "Invalid local miniature appearance assignments."
 			for visual_id: Variant in item.visual_variants:
@@ -104,6 +139,7 @@ static func reprice(list: Dictionary, catalog: Dictionary) -> Dictionary:
 		if option < 0: return {"error": "Composition changed in the catalog: " + old.name}
 		var refreshed := entry(unit, option, int(old.copies))
 		if old.has("visual_variants"): refreshed.visual_variants = old.visual_variants.duplicate(true)
+		if old.has("enhancement_id"): refreshed.enhancement_id = old.enhancement_id
 		updated.entries[index] = refreshed
 	updated.catalog_digest = catalog.digest
 	return {"error": "", "list": updated}
@@ -135,6 +171,7 @@ static func read_json(path: String, maximum: int = 16777216) -> Dictionary:
 
 static func catalog_error(catalog: Variant) -> String:
 	if not catalog is Dictionary or catalog.get("schema_version") != 1 or catalog.get("edition") not in EDITIONS or not catalog.get("units") is Array or not catalog.get("digest") is String or not catalog.get("fetched_at") is String: return "Incompatible catalog."
+	if catalog.has("enhancements") and not catalog.enhancements is Array: return "Invalid enhancement catalog."
 	if catalog.units.is_empty() or catalog.units.size() > 10000: return "Invalid unit count."
 	var ids: Dictionary = {}
 	for unit: Variant in catalog.units:
@@ -146,17 +183,19 @@ static func catalog_error(catalog: Variant) -> String:
 		if not unit.get("options") is Array or unit.options.is_empty() or unit.options.size() > 200: return "Invalid points options."
 		for option: Variant in unit.options:
 			if not option is Dictionary or not integer(option.get("models"), 0, 1000) or not option.has("cost") or (option.cost != null and not integer(option.cost, 1)): return "Invalid cost/composition in catalog."
-	if catalog_digest(catalog.units) != catalog.digest: return "Catalog integrity check failed."
+			if option.has("third_plus_cost") and not integer(option.third_plus_cost, 1): return "Invalid third-plus cost/composition in catalog."
+	if catalog_digest(catalog.units, catalog.get("enhancements", [])) != catalog.digest: return "Catalog integrity check failed."
 	return ""
 
-static func catalog_digest(units: Array) -> String:
+static func catalog_digest(units: Array, enhancements: Array = []) -> String:
 	# JSON parses numeric tokens as floats; normalize integer-valued fields before hashing.
 	var canonical := units.duplicate(true)
 	for unit: Dictionary in canonical:
 		for option: Dictionary in unit.options:
 			option.models = int(option.models)
 			if option.cost != null: option.cost = int(option.cost)
-	return JSON.stringify(canonical).sha256_text()
+			if option.has("third_plus_cost"): option.third_plus_cost = int(option.third_plus_cost)
+	return JSON.stringify({"units": canonical, "enhancements": enhancements}).sha256_text()
 
 static func write_json(path: String, data: Dictionary, maximum: int = 16777216) -> String:
 	var text := JSON.stringify(data, "\t")

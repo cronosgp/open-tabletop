@@ -4,11 +4,22 @@ const Combat = preload("res://scripts/edition_11/combat_scenario.gd")
 const Battlefield = preload("res://scripts/edition_11/test_battlefield.gd")
 const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const Training = preload("res://scripts/edition_11/training_roster.gd")
-const ID := "prepared-objective-training-v1"
+const MatchManifest = preload("res://scripts/edition_11/match_manifest.gd")
+const CurrentMarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
+const ID := "prepared-objective-training-v2"
 
 static func initial_state(options: Dictionary = {}, selections: Dictionary = {}) -> Dictionary:
+	var marine_detachment := str(options.get("marine_detachment", "gladius" if options.get("combat_doctrines", false) else "none"))
+	if marine_detachment not in ["none", "gladius", "stormlance", "ironclad-champions", "assault-brethren", "tactical-brethren", "devastator-brethren", "terminator-storm-force", "tacticus-firestorm-force", "tacticus-attack-force", "gravis-linebreaker-force", "wrath-of-the-rock", "spearpoint-task-force", "ironstorm-spearhead", "phobos-shock-force"]: return {"error": "Unsupported Space Marine detachment: " + marine_detachment}
+	if not options.get("combat_doctrines", false) and marine_detachment != "none": return {"error": "Select a Space Marine detachment only with 11e Combat Doctrines enabled."}
+	if options.get("combat_doctrines", false) and marine_detachment == "none": return {"error": "11e Combat Doctrines requires a declared Space Marine detachment."}
+	if marine_detachment == "spearpoint-task-force" and not options.get("unit_abilities", false): return {"error": "Spearpoint Task Force requires current unit abilities enabled for Suboden Khan's end-of-Fight-phase move."}
+	if options.get("checked_rosters", false) and marine_detachment != "gladius": return {"error": "The saved checked-roster snapshot is reconciled for Gladius only."}
+	if options.get("official_mission", false) and marine_detachment != "gladius": return {"error": "This Space Marine detachment is not reconciled for the selected CA mission."}
 	if options.get("combat_doctrines", false) and options.get("oath_of_moment", false): return {"error": "11e Combat Doctrines replaces the historical Oath of Moment profile; these options cannot be combined."}
 	for key: Variant in options:
+		if key == "marine_detachment": continue
 		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts", "oath_of_moment", "reanimation_protocols", "combat_doctrines", "awakened_dynasty", "unit_abilities", "official_mission", "checked_rosters"]: return {"error": "Unsupported match option: " + str(key)}
 		if not options[key] is bool: return {"error": "Match options must be boolean: " + str(key)}
 	if options.get("unit_abilities", false) and (options.get("hail_of_bolts", false) or options.get("objective_secured", false) or options.get("oath_of_moment", false)): return {"error": "Current datasheets cannot combine with historical Hail of Bolts, Objective Secured or Oath profiles."}
@@ -46,7 +57,15 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 		for owner in [1, 2]:
 			var report := Combat.RosterValidation.admit(selections[owner]) if options.get("checked_rosters", false) else Training.admit(selections[owner])
 			if not report.error.is_empty(): return report
+			for resolved: Dictionary in report.definitions.values() if report.has("definitions") else []:
+				if resolved.get("requires_current_abilities", false) and not options.get("unit_abilities", false): return {"error": "This Marine profile requires current unit abilities to be enabled."}
 			reports[owner] = report
+			for entry: Dictionary in report.selection.get("entries", []):
+				var enhancement_id := str(entry.get("enhancement_id", ""))
+				if enhancement_id != "":
+					var enhancement: Dictionary = StormlanceEnhancements.RECORDS.get(enhancement_id, {})
+					if enhancement.is_empty() or str(enhancement.get("detachment", "")) != marine_detachment:
+						return {"error": "The selected enhancement requires its matching Space Marine detachment in the match setup."}
 		if reports[1].selection.category != reports[2].selection.category or reports[1].selection.points_limit != reports[2].selection.points_limit:
 			return {"error": "Players must choose the same category and points limit."}
 	if options.get("official_mission", false) and not reports.is_empty():
@@ -81,6 +100,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 		state.training_points = {1: reports[1].total, 2: reports[2].total}
 		state.saved_army_setup = {"schema_version": 1, "options": {"manual_allocation": manual, "varied_equipment": false},
 			"armies": {1: reports[1].selection, 2: reports[2].selection}}
+		if marine_detachment != "none": state.saved_army_setup.options.marine_detachment = marine_detachment
 		if core: state.saved_army_setup.options.core_stratagems = true
 		if movement_rerolls: state.saved_army_setup.options.movement_rerolls = true
 		if attack_rerolls: state.saved_army_setup.options.attack_rerolls = true
@@ -105,8 +125,10 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 		Combat.Reanimation.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.reanimation_protocols = true
 	if options.get("combat_doctrines", false):
-		Combat.Doctrines.enable(state)
-		if not reports.is_empty(): state.saved_army_setup.options.combat_doctrines = true
+		Combat.Doctrines.enable(state, marine_detachment)
+		if not reports.is_empty():
+			state.saved_army_setup.options.combat_doctrines = true
+			if marine_detachment != "gladius": state.saved_army_setup.options.marine_detachment = marine_detachment
 	if options.get("awakened_dynasty", false):
 		Combat.Awakened.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.awakened_dynasty = true
@@ -115,56 +137,30 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 		if not loadout_error.is_empty(): return {"error": loadout_error}
 		Combat.UnitAbilities.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.unit_abilities = true
+		if marine_detachment == "gladius" and not Combat.DetachmentStratagems.enabled(state): Combat.DetachmentStratagems.enable(state)
+		if marine_detachment == "assault-brethren": Combat.DetachmentStratagems.enable_assault_brethren(state)
+		if marine_detachment == "tactical-brethren": Combat.DetachmentStratagems.enable_tactical_brethren(state)
+		if marine_detachment == "devastator-brethren": Combat.DetachmentStratagems.enable_devastator_brethren(state)
+		if marine_detachment == "stormlance": Combat.DetachmentStratagems.enable_stormlance(state)
+		if marine_detachment == "ironclad-champions": Combat.DetachmentStratagems.enable_ironclad(state)
+		if marine_detachment == "ironstorm-spearhead": Combat.DetachmentStratagems.enable_ironstorm(state)
+		if marine_detachment == "spearpoint-task-force": Combat.DetachmentStratagems.enable_spearpoint(state)
+	var chapter_error := Combat.Doctrines.chapter_restriction_error(state, marine_detachment)
+	if not chapter_error.is_empty(): return {"error": chapter_error}
 	if options.get("official_mission", false):
 		Combat.Mission.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.official_mission = true
 	if options.get("checked_rosters", false):
 		Combat.RosterValidation.enable(state, reports)
 		state.saved_army_setup.options.checked_rosters = true
-	var rosters: Array[Dictionary] = []
-	for owner in [1, 2]:
-		var units: Array[Dictionary] = []
-		for squad: int in state.squads:
-			if state.squads[squad].owner == owner:
-				units.append({"squad": squad, "name": state.squads[squad].name, "models": Combat.living(state, squad).size()})
-		rosters.append({"owner": owner, "units": units, "official_legality_validated": false})
-	state.match_manifest = {"schema_version": 1, "scenario": ID, "rules_implementation": Combat.PACK_ID,
-		"content_hash": state.pack_hash, "battlefield": Battlefield.ID, "mission": Combat.Objectives.TRAINING,
-		"manual_allocation": manual, "varied_equipment": varied, "first_player": 1, "rosters": rosters}
-	if core: state.match_manifest.core_stratagems = Combat.Stratagems.ID
-	if movement_rerolls: state.match_manifest.movement_rerolls = Combat.Stratagems.REROLL_ID
-	if attack_rerolls: state.match_manifest.attack_rerolls = Combat.Stratagems.ATTACK_REROLL_ID
-	if save_rerolls: state.match_manifest.save_rerolls = Combat.Stratagems.SAVE_REROLL_ID
-	if damage_rerolls: state.match_manifest.damage_rerolls = Combat.Stratagems.DAMAGE_REROLL_ID
-	if hazard_rerolls: state.match_manifest.hazard_rerolls = Combat.Stratagems.HAZARD_REROLL_ID
-	if escape_rerolls: state.match_manifest.escape_rerolls = Combat.Stratagems.ESCAPE_REROLL_ID
-	if count_rerolls: state.match_manifest.count_rerolls = Combat.Stratagems.COUNT_REROLL_ID
-	if options.get("objective_secured", false): state.match_manifest.objective_secured = Combat.ObjectiveSecured.ID
-	if options.get("implacable_eradication", false): state.match_manifest.implacable_eradication = Combat.ImplacableEradication.ID
-	if options.get("hail_of_bolts", false): state.match_manifest.hail_of_bolts = Combat.HailOfBolts.ID
-	if options.get("oath_of_moment", false): state.match_manifest.oath_of_moment = Combat.OathOfMoment.ID
-	if options.get("reanimation_protocols", false): state.match_manifest.reanimation_protocols = Combat.Reanimation.ID
-	if options.get("combat_doctrines", false): state.match_manifest.combat_doctrines = Combat.Doctrines.ID
-	if options.get("awakened_dynasty", false): state.match_manifest.awakened_dynasty = Combat.Awakened.ID
-	if options.get("unit_abilities", false): state.match_manifest.unit_abilities = Combat.UnitAbilities.ID
-	if not reports.is_empty():
-		if reports[1].selection.schema_version == 2 or reports[2].selection.schema_version == 2:
-			state.match_manifest.capabilities = Training.Capabilities.ID
-		state.match_manifest.scenario = "saved-army-training-v1"
-		state.match_manifest.saved_armies = state.saved_army_setup.duplicate(true)
-		state.match_manifest.training_points = state.training_points.duplicate()
-		state.match_manifest.official_legality_validated = false
-	if options.get("checked_rosters", false):
-		state.match_manifest.official_legality_validated = true
-	if options.get("official_mission", false):
-		state.match_manifest.mission = Combat.Mission.ID
-		state.match_manifest.battlefield = Combat.Mission.ID
-		state.match_manifest.official_mission = Combat.Mission.ID
-		state.match_manifest.first_player = "post-deployment-roll-off"
-	if options.get("checked_rosters", false):
-		state.roster_validation.full_match_certified = true
-		state.match_manifest.checked_rosters = {"implementation": Combat.RosterValidation.ID, "digest": Combat.RosterValidation.digest(), "construction": state.roster_validation.armies.duplicate(true), "full_match_certified": true, "scope": "Gladius 930 vs Awakened 880 on the selected CA 2026-27 ground board; Explosives/Smokescreen/Crushing Impact stay unused on these loadouts"}
-	state.pack_hash = var_to_str(state.match_manifest).sha256_text()
+	var manifest_options := {
+		"manual_allocation": manual, "varied_equipment": varied, "core_stratagems": core,
+		"movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls,
+		"save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls,
+		"hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls,
+		"count_rerolls": count_rerolls
+	}
+	MatchManifest.seal(state, options, reports, manifest_options, ID)
 	Deployment.begin(state)
 	Combat.Awakened.begin_setup(state)
 	return state
@@ -186,12 +182,14 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 	var index := 0
 	for entry: Dictionary in report.selection.entries:
 		var resolved: Dictionary = report.definitions[entry.definition_id]
+		resolved = report.get("configurations", {}).get("%s:%02d:%s" % [entry.definition_id, int(entry.models), str(entry.get("enhancement_id", ""))], resolved)
 		var spec: Dictionary = resolved.spec
 		for copy in range(entry.copies):
 			var squad := owner + index * 2
 			var group: Dictionary = original.squads[spec.template].duplicate(true)
 			group.name = resolved.unit.name + " %d" % (copy + 1)
 			group.training_cost = resolved.cost
+			group.enhancement_id = str(entry.get("enhancement_id", ""))
 			group.owner = owner
 			group.faction = report.selection.faction
 			group.starting_strength = int(entry.models)
@@ -207,6 +205,11 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 				unit.owner = owner
 				unit.squad = squad
 				unit.definition_id = entry.definition_id
+				unit.enhancement_id = group.enhancement_id if model == 0 else ""
+				if spec.get("current_reference", false): unit.sergeant = model == 0 and entry.definition_id not in ["40kdc:11e:adeptus-astartes:company-heroes", "40kdc:11e:adeptus-astartes:victrix-honour-guard"]
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:company-heroes": unit.company_heroes_model = model
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:victrix-honour-guard": unit.victrix_honour_guard_model = model
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:wardens-of-ultramar": unit.wardens_model = model
 				unit.keywords = resolved.unit.keywords.duplicate()
 				unit.movement = group.stats.movement_inches
 				unit.wounds = int(group.stats.wounds)
@@ -220,10 +223,135 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 
 static func _current_loadouts(state: Dictionary) -> String:
 	var cache: Dictionary = {}
+	var marine_profiles_used := false
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		var source := Combat.UnitAbilities.identity(unit)
 		if source not in Combat.UnitAbilities.RULES: return "Unsupported current unit profile: " + source
+		if str(unit.get("definition_id", "")).begins_with("40kdc:11e:adeptus-astartes:"):
+			var marine_profile := CurrentMarineProfiles.profile(source)
+			if marine_profile.is_empty(): return "No current-reference fixed loadout is recorded for " + source
+			var squad: int = unit.squad
+			state.squads[squad].stats = marine_profile.stats.duplicate(true)
+			if marine_profile.has("points"): state.squads[squad].training_cost = int(marine_profile.get("points_by_models", {}).get(state.squads[squad].starting_strength, marine_profile.points))
+			if not marine_profile.ranged.is_empty():
+				var ranged_profiles: Dictionary = marine_profile.ranged[0].profiles
+				state.squads[squad].weapon = ranged_profiles.values()[0].duplicate(true)
+			else:
+				state.squads[squad].weapon = {}
+			if not marine_profile.melee.is_empty():
+				var melee_profiles: Dictionary = marine_profile.melee[0].profiles
+				state.squads[squad].melee_weapon = melee_profiles.values()[0].duplicate(true)
+			else:
+				state.squads[squad].melee_weapon = {}
+			unit.keywords = marine_profile.keywords.duplicate()
+			unit.movement = int(marine_profile.stats.movement_inches)
+			unit.wounds = int(marine_profile.stats.wounds)
+			unit.max_wounds = int(marine_profile.stats.wounds)
+			if marine_profile.has("base_radius_inches"): unit.radius = float(marine_profile.base_radius_inches)
+			unit.ranged_weapons = marine_profile.ranged.duplicate(true)
+			unit.melee_weapons = marine_profile.melee.duplicate(true)
+			if marine_profile.has("transport"):
+				unit.transport_profile = marine_profile.transport.duplicate(true)
+			if source == "sternguard-veteran-squad" and unit.get("sergeant", false): unit.melee_weapons = [CurrentMarineProfiles.sternguard_melee("chain")]
+			if source == "scout-squad":
+				unit.scout_gun = "boltgun"
+				unit.scout_blade = "combat-knife"
+			if source == "intercessor-squad":
+				unit.intercessor_melee_choice = "knives-and-fists"
+				unit.intercessor_rifle_choice = "bolt-rifle"
+				unit.intercessor_grenade_launcher = false
+			if source == "terminator-squad":
+				unit.terminator_melee_choice = "power-fist"
+				unit.terminator_special_weapon = ""
+			if source == "terminator-assault-squad":
+				unit.terminator_assault_storm_shield = false
+				unit.melee_weapons = [marine_profile.melee[0].duplicate(true)]
+			if source == "captain-on-bike":
+				unit.captain_bike_plasma_pistol = false
+				unit.captain_bike_thunder_hammer = false
+				var bike_weapons := CurrentMarineProfiles.captain_bike_weapons()
+				unit.ranged_weapons = bike_weapons.ranged
+				unit.melee_weapons = bike_weapons.melee
+			if source == "captain":
+				unit.captain_ranged_loadout = "default"
+				unit.captain_power_fist = false
+				unit.relic_shield = false
+				unit.max_wounds = 5
+				var captain_weapons := CurrentMarineProfiles.captain_weapons()
+				unit.ranged_weapons = captain_weapons.ranged
+				unit.melee_weapons = captain_weapons.melee
+			if source == "lieutenant":
+				unit.lieutenant_weapon_package = "default"
+				unit.lieutenant_fists_replacement = "ceramite-fists"
+				unit.lieutenant_storm_shield = false
+				unit.erase("defense")
+				var lieutenant_weapons := CurrentMarineProfiles.lieutenant_weapons()
+				unit.ranged_weapons = lieutenant_weapons.ranged
+				unit.melee_weapons = lieutenant_weapons.melee
+			if source == "invader-atvs":
+				unit.invader_atv_multi_melta = false
+				unit.ranged_weapons = CurrentMarineProfiles.invader_atv_weapons()
+			if source == "company-heroes":
+				var model_index := int(unit.get("company_heroes_model", -1))
+				var heroes_loadouts: Array = marine_profile.get("model_loadouts", [])
+				if model_index < 0 or model_index >= heroes_loadouts.size(): return "Company Heroes requires one of its four source-defined model roles."
+				var heroes_loadout: Dictionary = heroes_loadouts[model_index]
+				unit.ranged_weapons = heroes_loadout.ranged
+				unit.melee_weapons = heroes_loadout.melee
+				unit.keywords = heroes_loadout.keywords
+			if source == "victrix-honour-guard":
+				var model_index := int(unit.get("victrix_honour_guard_model", -1))
+				var guard_loadouts: Array = marine_profile.get("model_loadouts", [])
+				if model_index < 0 or model_index >= int(state.squads[squad].starting_strength): return "Victrix Honour Guard requires its source-defined Ancient, Champion and Guard roles."
+				var guard_loadout: Dictionary = guard_loadouts[mini(model_index, 2)]
+				unit.ranged_weapons = guard_loadout.ranged
+				unit.melee_weapons = guard_loadout.melee
+				unit.keywords = guard_loadout.keywords
+				unit.victrix_honour_guard_role = guard_loadout.role
+			if source == "wardens-of-ultramar":
+				var model_index := int(unit.get("wardens_model", -1))
+				var wardens_loadouts: Array = marine_profile.get("model_loadouts", [])
+				if model_index < 0 or model_index >= wardens_loadouts.size(): return "Wardens of Ultramar requires all six source-defined models."
+				var wardens_loadout: Dictionary = wardens_loadouts[model_index]
+				var wardens_stats: Dictionary = wardens_loadout.stats
+				unit.ranged_weapons = wardens_loadout.ranged.duplicate(true)
+				unit.melee_weapons = wardens_loadout.melee.duplicate(true)
+				unit.max_wounds = int(wardens_stats.wounds)
+				unit.wounds = unit.max_wounds
+				unit.objective_control = int(wardens_stats.objective_control)
+				unit.leadership_target = int(wardens_stats.leadership_target)
+				unit.defense = {"toughness": wardens_stats.toughness, "save_target": wardens_stats.save_target, "invulnerable_target": wardens_stats.invulnerable_target}
+			if source == "outrider-squad":
+				unit.outrider_plasma_pistol = false
+				unit.outrider_melee_choice = "chainsword"
+				var outrider_weapons := CurrentMarineProfiles.outrider_weapons(false, "chainsword")
+				unit.ranged_weapons = outrider_weapons.ranged
+				unit.melee_weapons = outrider_weapons.melee
+			if source == "heavy-intercessor-squad":
+				unit.heavy_intercessor_heavy_bolter = false
+			if source == "brutalis-dreadnought":
+				unit.brutalis_talons = false
+				unit.brutalis_multi_melta = false
+				var brutalis_weapons := CurrentMarineProfiles.brutalis_weapons()
+				unit.ranged_weapons = brutalis_weapons.ranged
+				unit.melee_weapons = brutalis_weapons.melee
+			if source == "invictor-tactical-warsuit":
+				unit.invictor_autocannon = false
+				unit.ranged_weapons = CurrentMarineProfiles.invictor_weapons()
+			if source == "desolation-squad":
+				unit.desolation_rocket = "superfrag"
+				unit.ranged_weapons = CurrentMarineProfiles.desolation_weapons()
+			if source == "vanguard-veteran-squad-with-jump-packs":
+				unit.vanguard_pistol = "heavy-bolt-pistol"
+				unit.vanguard_melee = "default"
+				unit.combat_shield = false
+				var weapons := CurrentMarineProfiles.vanguard_veteran_weapons(unit.get("sergeant", false))
+				unit.ranged_weapons = weapons.ranged
+				unit.melee_weapons = weapons.melee
+				if unit.get("sergeant", false): unit.vanguard_melee = "relic-blade"
+			marine_profiles_used = true
+			continue
 		if not cache.has(source):
 			var faction := "Necrons" if str(unit.definition_id).contains(":necrons:") else "Space Marines"
 			cache[source] = Training.Capabilities.resolve(faction, unit.definition_id)
@@ -249,4 +377,6 @@ static func _current_loadouts(state: Dictionary) -> String:
 			if source == "lieutenant": pistol.strength = 5
 			unit.ranged_weapons.append({"id": "pistol", "profiles": {"standard": pistol}})
 		unit.melee_weapons = [{"id": "melee", "profiles": {"standard": resolved.weapons.blade.duplicate(true)}}]
+	if marine_profiles_used:
+		state.pack_hash = str(state.get("pack_hash", "")) + ":" + CurrentMarineProfiles.ID + ":" + CurrentMarineProfiles.digest()
 	return ""

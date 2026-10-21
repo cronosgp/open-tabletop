@@ -1,6 +1,7 @@
 extends SceneTree
 
 const Save = preload("res://scripts/match_save.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 
 func _initialize() -> void:
 	call_deferred("run")
@@ -40,8 +41,12 @@ func run() -> void:
 	# serialization without JSON coercion or a second dice roll.
 	var interrupted := original.duplicate(true)
 	interrupted["persistence_fixture"] = {"movement": {101: Vector2(2.25, -3.5)}, "pending": [{"dice": [6, 1, 4], "choice": "defender"}], "bounds": Rect2(-1, -2, 3, 4)}
+	var close_frame := ResolutionFrames.begin(interrupted, "phase-close", "phase-close:%d:%s" % [int(interrupted.turn), str(interrupted.phase)], "after-end-of-phase-decisions")
+	assert(not close_frame.is_empty() and ResolutionFrames.suspend(interrupted, str(close_frame.frame_id), "resume-after-opponent-choice").is_empty())
 	assert(Save.write(interrupted, game._save_config(), random_state, {}).is_empty())
-	assert(Save.read().state == interrupted)
+	var interrupted_read := Save.read()
+	assert(interrupted_read.state == interrupted)
+	assert(ResolutionFrames.current(interrupted_read.state).frame_id == close_frame.frame_id and ResolutionFrames.current(interrupted_read.state).status == "suspended")
 	var config: Dictionary = game._save_config()
 	var incompatible: Dictionary = original.duplicate(true)
 	incompatible.pack_hash = "different"

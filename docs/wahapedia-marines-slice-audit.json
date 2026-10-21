@@ -1,0 +1,78 @@
+{
+  "id": "wahapedia-marines-source-slice-2026-10-18",
+  "source_policy": "wahapedia-e11-definitive-2026-10-18",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "source_book": {
+    "id": "000000139",
+    "name": "Space Marines",
+    "type": "App",
+    "edition": "11",
+    "version": "",
+    "errata_date": "01.01.0001 0:00:00",
+    "errata_link": ""
+  },
+  "parent_manifest_sha256": "1c962e79b023b95a9307a54517f0bce90b82ddfb0d61122da29d68d87c74c7c0",
+  "slice_manifest_sha256": "a7b61d73b8a8c331945795a0d574a6745de7ccc052a5b26636807eb2f6bfc052",
+  "catalog_sha256": "c88415a35692cb7d70022cf6af1050244c72713f72230c2bffb74d89bcb90c35",
+  "subject_count": 85,
+  "external_identity_only_count": 41,
+  "structurally_valid": true,
+  "slice_validation_errors": [],
+  "global_errors_preserved": 68,
+  "example_wargear_status": "Excluded because its source_id is missing; it is not a member of the selected shared-book ID. Raw global record retained.",
+  "chapter_context_id": "wahapedia-six-marine-keyword-context-2026-10-18",
+  "chapter_context_sha256": "a632d3c1e42bf6c21e0bcb7e365a8b6a363dd4b4f806c1d107efb567c7393869",
+  "six_fixed_profiles": [
+    {
+      "identity": "assault-intercessor-squad",
+      "datasheet_id": "000001606",
+      "numeric_difference_count": 0,
+      "keyword_scope_consistent": true,
+      "ability_resolution_issues": []
+    },
+    {
+      "identity": "captain",
+      "datasheet_id": "000000073",
+      "numeric_difference_count": 0,
+      "keyword_scope_consistent": true,
+      "ability_resolution_issues": []
+    },
+    {
+      "identity": "heavy-intercessor-squad",
+      "datasheet_id": "000001177",
+      "numeric_difference_count": 0,
+      "keyword_scope_consistent": true,
+      "ability_resolution_issues": []
+    },
+    {
+      "identity": "intercessor-squad",
+      "datasheet_id": "000001157",
+      "numeric_difference_count": 0,
+      "keyword_scope_consistent": true,
+      "ability_resolution_issues": []
+    },
+    {
+      "identity": "lieutenant",
+      "datasheet_id": "000001346",
+      "numeric_difference_count": 0,
+      "keyword_scope_consistent": true,
+      "ability_resolution_issues": []
+    },
+    {
+      "identity": "terminator-squad",
+      "datasheet_id": "000001183",
+      "numeric_difference_count": 0,
+      "keyword_scope_consistent": true,
+      "ability_resolution_issues": []
+    }
+  ],
+  "limits": [
+    "Source relational validity only; not complete executable datasheet support",
+    "External Leader endpoints are identity-only dependencies, not additional admitted units",
+    "Linked chapter/game-mode definitions are preserved as context, not certified as legal options",
+    "No runtime chapter rules or new playable profiles enabled"
+  ],
+  "playable": false,
+  "full_match_certified": false,
+  "catalog_layout": "Subject records with shared definitions stored once, linked by source IDs; external Leader identities stored separately."
+}

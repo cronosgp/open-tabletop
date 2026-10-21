@@ -11,7 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game._start_allocation_practice()
 	check(not game.event_log.visible and not game.result_summary.visible and game.log_toggle.visible, "Detailed history starts collapsed; no result is invented before an attack")
-	check(game.status.get_index() < game.selection_card.get_index(), "Latest notice appears before selection and action controls")
+	check(game.status.get_parent() == game.selection_card.get_parent().get_parent() and game.status.get_index() < game.selection_card.get_parent().get_index(), "Latest notice appears before selection and action controls in the same column")
 	check(game.Combat.shoot(game.state, 1, 100, 200, 0, true, six).error.is_empty(), "Start synthetic attack")
 	game._refresh()
 	check(not game.result_summary.visible and not game.event_log.visible and game.defense_steps.visible, "Pending attack keeps mandatory guidance without exposing a completed result")
@@ -25,6 +25,8 @@ func run() -> void:
 	check(game.state.has("last_attack"), "Attack finishes before summarizing")
 	game._refresh()
 	check(game.result_summary.visible and "RESOLVED" in game.result_summary.text and "Synthetic mixed allocation group" in game.result_summary.tooltip_text, "Compact result links to its full completed attack record")
+	check(game.shooting_complete.visible and not game.plan_begin.visible and not game.lethal_choice.visible, "Completed shooting replaces stale attack controls")
+	check(game.action_unit_picker.visible and "Shooting complete for this unit" in game.decision_label.text, "Completion preserves selection and names the next step in the HUD")
 	check("damage applied" in game.result_summary.tooltip_text and "Feel No Pain" in game.result_summary.tooltip_text and "Excess damage" in game.result_summary.tooltip_text, "Full result separates damage, prevention and excess")
 	check(not game.dice_visual.visible and game.dice_toggle.visible and "Dice:" in game.event_log.text and not game.event_log.visible, "Raw dice remain collapsed until requested")
 	game.dice_toggle.button_pressed = true

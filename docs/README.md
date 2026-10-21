@@ -27,14 +27,19 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 
 ## Data and sources
 
+- [Rules source decision](rules-source-policy.md) — Wahapedia 11e is the definitive project reference.
 - [Source policy and assessment](data/source-assessment.md) — authoritative local datasheet source, verification boundary, and pipeline status.
+- [Construction catalog policy](construction-catalog-policy.md) — local runtime choices, blocked profiles and legacy list handling.
 - [Data-pack format](data/data-packs.md) — existing format and legacy adapter status.
 - [11e starter lab](data/11e-starter.md) — isolated exercise and its legacy sample inputs.
 - [Faction catalog](data/faction-catalog.md) · [ForceOrg import](data/forceorg-import.md) · [Model import validation](data/model-import-validation.md)
+- [Wahapedia importer](wahapedia-import.md) · [Space Marines catalog and source reconciliation](space-marines-catalog.md) · [Consolidated Space Marines profile records](space-marines-profile-records.md) · [Datasheet implementation architecture](datasheet-implementation-architecture.md)
 - [Design-first UI prompting skill](skills/design-first-ui-prompting/SKILL.md) · [progress screenshots](skills/workflow-progress-screenshots/SKILL.md) · [score-to-target workflow](skills/workflow-score-to-target/SKILL.md)
 
 ## Architecture
 
+- [Architecture direction](architecture.md) — target ownership boundaries and migration plan.
+- [Phase, action and decision flow](architecture/phase-action-decision-flow.md) — progression stages, pending decisions, suspension/resume and phase-close gate.
 - [Match history](architecture/match-history.md)
 - [Match persistence](architecture/match-persistence.md)
 

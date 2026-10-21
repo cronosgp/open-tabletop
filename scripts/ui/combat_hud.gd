@@ -2,6 +2,16 @@ extends Control
 
 signal menu_requested
 signal focus_requested
+signal help_requested
+
+const STEP_ORDER: Array[String] = ["command", "movement", "shooting", "charge", "fight"]
+const STEP_LABELS := {
+	"command": "Command",
+	"movement": "Move",
+	"shooting": "Shoot",
+	"charge": "Charge",
+	"fight": "Fight",
+}
 
 var round_label: Label
 var decision_label: Label
@@ -9,6 +19,7 @@ var objective_label: Label
 var connection_label: Label
 var focus_button: Button
 var menu_button: Button
+var step_labels: Dictionary = {}
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -19,9 +30,9 @@ func _build() -> void:
 	var bar := PanelContainer.new()
 	bar.anchor_right = 1.0
 	bar.offset_left = 16
-	bar.offset_top = 14
+	bar.offset_top = 12
 	bar.offset_right = -16
-	bar.offset_bottom = 100
+	bar.offset_bottom = 96
 	bar.mouse_filter = Control.MOUSE_FILTER_STOP
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color("11181e")
@@ -32,91 +43,122 @@ func _build() -> void:
 	style.set_corner_radius_all(6)
 	style.content_margin_left = 12
 	style.content_margin_right = 12
-	style.content_margin_top = 9
-	style.content_margin_bottom = 9
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
 	bar.add_theme_stylebox_override("panel", style)
 	add_child(bar)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 13)
-	bar.add_child(row)
-	var game_state := VBoxContainer.new()
-	game_state.custom_minimum_size.x = 220
-	row.add_child(game_state)
-	var game_title := Label.new()
-	game_title.text = "OPEN TABLETOP"
-	game_title.add_theme_font_size_override("font_size", 12)
-	game_title.add_theme_color_override("font_color", Color("d8ad5e"))
-	game_state.add_child(game_title)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 6)
+	bar.add_child(column)
+	var steps := HBoxContainer.new()
+	steps.add_theme_constant_override("separation", 6)
+	column.add_child(steps)
 	round_label = Label.new()
-	round_label.add_theme_font_size_override("font_size", 17)
+	round_label.custom_minimum_size = Vector2(72, 0)
+	round_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	round_label.add_theme_font_size_override("font_size", 14)
 	round_label.add_theme_color_override("font_color", Color("f1ede2"))
-	game_state.add_child(round_label)
-	var divider := ColorRect.new()
-	divider.custom_minimum_size = Vector2(1, 50)
-	divider.color = Color("35434b")
-	row.add_child(divider)
-	var decision_panel := VBoxContainer.new()
-	decision_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	decision_panel.add_theme_constant_override("separation", 2)
-	row.add_child(decision_panel)
-	var decision_heading := Label.new()
-	decision_heading.text = "CURRENT DECISION"
-	decision_heading.add_theme_font_size_override("font_size", 11)
-	decision_heading.add_theme_color_override("font_color", Color("d8ad5e"))
-	decision_panel.add_child(decision_heading)
-	decision_label = Label.new()
-	decision_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	decision_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	decision_label.add_theme_font_size_override("font_size", 15)
-	decision_label.add_theme_color_override("font_color", Color("eee9df"))
-	decision_panel.add_child(decision_label)
-	var objective_panel := VBoxContainer.new()
-	objective_panel.custom_minimum_size.x = 330
-	objective_panel.add_theme_constant_override("separation", 2)
-	row.add_child(objective_panel)
-	var objective_heading := Label.new()
-	objective_heading.text = "MISSION / SCORE"
-	objective_heading.add_theme_font_size_override("font_size", 11)
-	objective_heading.add_theme_color_override("font_color", Color("d8ad5e"))
-	objective_panel.add_child(objective_heading)
+	steps.add_child(round_label)
+	for step_id: String in STEP_ORDER:
+		var chip := Label.new()
+		chip.text = STEP_LABELS[step_id]
+		chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		chip.tooltip_text = "Turn phase %d of %d" % [STEP_ORDER.find(step_id) + 1, STEP_ORDER.size()]
+		chip.add_theme_font_size_override("font_size", 14)
+		chip.add_theme_color_override("font_color", Color("4d5c66"))
+		steps.add_child(chip)
+		step_labels[step_id] = chip
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	steps.add_child(spacer)
 	objective_label = Label.new()
-	objective_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	objective_label.add_theme_font_size_override("font_size", 13)
+	objective_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	objective_label.add_theme_font_size_override("font_size", 14)
 	objective_label.add_theme_color_override("font_color", Color("c4ced1"))
-	objective_panel.add_child(objective_label)
+	steps.add_child(objective_label)
 	connection_label = Label.new()
-	connection_label.custom_minimum_size.x = 112
+	connection_label.custom_minimum_size.x = 88
 	connection_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	connection_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	connection_label.add_theme_font_size_override("font_size", 12)
 	connection_label.add_theme_color_override("font_color", Color("8fc8bd"))
-	row.add_child(connection_label)
+	steps.add_child(connection_label)
 	focus_button = Button.new()
-	focus_button.text = "FOCUS"
-	focus_button.custom_minimum_size = Vector2(68, 40)
-	focus_button.tooltip_text = "Center the camera on the selected unit (F). This only changes your camera view."
+	focus_button.text = "Focus"
+	focus_button.custom_minimum_size = Vector2(64, 28)
+	focus_button.tooltip_text = "Center the camera on the selected unit (F). Camera only."
 	focus_button.disabled = true
 	focus_button.pressed.connect(func(): focus_requested.emit())
-	row.add_child(focus_button)
+	steps.add_child(focus_button)
+	var help_button := Button.new()
+	help_button.text = "Help"
+	help_button.custom_minimum_size = Vector2(54, 28)
+	help_button.tooltip_text = "Toggle Help / Play: instructions, technical details and display preferences."
+	help_button.pressed.connect(func(): help_requested.emit())
+	steps.add_child(help_button)
 	menu_button = Button.new()
-	menu_button.text = "MENU"
-	menu_button.custom_minimum_size = Vector2(82, 40)
+	menu_button.text = "Menu"
+	menu_button.custom_minimum_size = Vector2(64, 28)
 	menu_button.tooltip_text = "Open the local menu. A LAN match continues for the other player."
 	menu_button.pressed.connect(func(): menu_requested.emit())
-	var menu_style := StyleBoxFlat.new()
-	menu_style.bg_color = Color("29353c")
-	menu_style.border_color = Color("65737b")
-	menu_style.set_border_width_all(1)
-	menu_style.set_corner_radius_all(4)
-	menu_button.add_theme_stylebox_override("normal", menu_style)
-	row.add_child(menu_button)
+	steps.add_child(menu_button)
+	decision_label = Label.new()
+	decision_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	decision_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	decision_label.add_theme_font_size_override("font_size", 16)
+	decision_label.add_theme_color_override("font_color", Color("eee9df"))
+	column.add_child(decision_label)
 
 func set_round(text: String) -> void:
 	round_label.text = text
 
+func set_steps(phase: String, round_number: int, actor: int) -> void:
+	var mapped := phase
+	if phase in ["start_turn", "command"]: mapped = "command"
+	elif phase == "end_turn": mapped = "fight"
+	var current_index := STEP_ORDER.find(mapped)
+	if phase.is_empty():
+		current_index = -1
+	elif current_index < 0:
+		round_label.text = "Setup"
+		round_label.tooltip_text = "Round %d · Player %d" % [round_number, actor]
+	else:
+		round_label.text = "R%d  P%d" % [round_number, actor]
+		round_label.tooltip_text = "Round %d · Player %d to act" % [round_number, actor]
+	for index in STEP_ORDER.size():
+		var step_id: String = STEP_ORDER[index]
+		var chip: Label = step_labels[step_id]
+		var color := Color("4d5c66")
+		chip.text = "%d %s" % [index + 1, STEP_LABELS[step_id]]
+		var background := StyleBoxFlat.new()
+		background.bg_color = Color.TRANSPARENT
+		background.set_corner_radius_all(4)
+		background.content_margin_left = 6
+		background.content_margin_right = 6
+		background.content_margin_top = 4
+		background.content_margin_bottom = 4
+		if current_index >= 0 and index < current_index:
+			color = Color("7f8c86")
+			chip.text = "✓ " + STEP_LABELS[step_id]
+		elif index == current_index:
+			color = Color("f2df83")
+			chip.text = "%d %s · NOW" % [index + 1, STEP_LABELS[step_id]]
+			background.bg_color = Color("343126")
+		chip.add_theme_stylebox_override("normal", background)
+		chip.add_theme_color_override("font_color", color)
+
 func set_connection(text: String) -> void:
 	connection_label.text = text
+
+func set_complete(round_number: int) -> void:
+	round_label.text = "Result"
+	round_label.tooltip_text = "Recorded result · round %d" % round_number
+	for step: String in STEP_ORDER:
+		var chip: Label = step_labels[step]
+		chip.text = STEP_LABELS[step]
+		chip.add_theme_color_override("font_color", Color("7f8c86"))
+		chip.remove_theme_stylebox_override("normal")
 
 func set_focus_available(available: bool) -> void:
 	focus_button.disabled = not available

@@ -6,25 +6,31 @@ static func has_keyword(model: Dictionary, keyword: String) -> bool:
 		if str(item).to_upper() == keyword: return true
 	return false
 
-static func roll(state: Dictionary, squad: int, count: int, roller: Callable) -> Dictionary:
+static func roll(state: Dictionary, squad: int, count: int, roller: Callable, modifiers: Array = []) -> Dictionary:
 	var rolls: Array[int] = []
 	for index in range(count):
 		if not roller.is_valid(): return {"error": "Missing hazard dice provider."}
 		var value: Variant = roller.call()
 		if not value is int or value < 1 or value > 6: return {"error": "Hazard dice must be integers from 1 to 6."}
 		rolls.append(value)
-	return from_rolls(state, squad, rolls)
+	return from_rolls(state, squad, rolls, modifiers)
 
-static func from_rolls(state: Dictionary, squad: int, rolls: Array) -> Dictionary:
+static func from_rolls(state: Dictionary, squad: int, rolls: Array, modifiers: Array = []) -> Dictionary:
+	if not modifiers.is_empty() and modifiers.size() != rolls.size(): return {"error": "Each hazard die requires its own modifier."}
 	var alive := Geometry.alive(state, squad)
 	var heavy := not alive.is_empty()
 	for id: int in alive:
 		if not has_keyword(state.units[id], "MONSTER") and not has_keyword(state.units[id], "VEHICLE"): heavy = false
 	var failures := 0
-	for value: Variant in rolls:
+	var effective: Array[int] = []
+	for index in range(rolls.size()):
+		var value: Variant = rolls[index]
 		if not value is int or value < 1 or value > 6: return {"error": "Hazard dice must be integers from 1 to 6."}
-		if value <= 2: failures += 1
-	return {"error": "", "rolls": rolls.duplicate(), "failures": failures, "total": failures * (3 if heavy else 1), "allocations": [], "discarded": 0}
+		var modifier: Variant = modifiers[index] if not modifiers.is_empty() else 0
+		if not modifier is int or modifier < -10 or modifier > 10: return {"error": "Invalid hazard modifier."}
+		effective.append(value + modifier)
+		if value + modifier <= 2: failures += 1
+	return {"error": "", "rolls": rolls.duplicate(), "modifiers": modifiers.duplicate(), "effective_rolls": effective, "failures": failures, "total": failures * (3 if heavy else 1), "allocations": [], "discarded": 0}
 
 static func eligible(state: Dictionary) -> Array[int]:
 	if not state.get("stratagems", {}).get("pending", {}).is_empty(): return []

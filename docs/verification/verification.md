@@ -14,6 +14,25 @@ On Windows, pass the console executable, e.g. `--godot .tools/godot/Godot_v4.7.2
 
 The demo profile needs no external data, assets, model library or network downloads. `--network` runs a local host/client pair; without it, loopback tests are omitted. The runner imports resources, runs Python tests, checks main-scene startup, and runs the selected Godot suites. The CI definition in `.github/workflows/verify.yml` runs this baseline on Windows and Linux. It must actually run remotely before being reported as passing there.
 
+To see the exact Godot suite names without installing or locating Godot, run `python tools/verify.py --list-suites`. Each run's `results.json` records the profile, selected suites, resolved Godot executable, timeout, network setting and UTC start time alongside per-process results.
+
+For fast iteration, use the focused profile with one or more exact suite names. It stages the same isolated, data-free project but skips the broad Python suite and main-scene startup check:
+
+```text
+python tools/verify.py --godot /path/to/godot --profile focused --only test_phase_progression
+python tools/verify.py --godot /path/to/godot --profile focused --network --only test_prepared_match_network
+```
+
+The focused profile requires `--only` so it cannot accidentally look like a full project verification. It runs the static architecture dependency checks and verification-runner unit tests, but skips the broader Python suite and main-scene startup check. A selected network suite requires `--network` and runs with the same sequential host/client isolation as other profiles. The runner walks each selected test's preloaded GDScript dependencies and rejects suites that reference the legacy starter snapshot before launching Godot; use the targeted or full profile for those suites.
+
+For a data-backed local rules regression, use the targeted profile. It verifies and stages the pinned legacy snapshot when a selected suite depends on it; independent suites run without that local snapshot. It runs only the requested Godot suites plus the fast architecture and runner tests:
+
+```text
+python tools/verify.py --godot /path/to/godot --profile targeted --only test_combat_doctrines
+```
+
+The targeted profile skips broad Python discovery and main-scene startup. Its `results.json` records whether the legacy starter snapshot was staged. It is a faster regression check, not a replacement for the full profile or evidence of current rules accuracy. Network suites still require `--network`, and project policy defers network validation to final integration.
+
 The army catalog/profile suites also belong to the demo profile. They use synthetic data and an offline fake transport; no public API is queried during these suites. Live API/catalog and graphical checks are separate evidence recorded in [results](verification-results.md).
 
 Each run copies the required project files into a new `.tools/verification/<timestamp>/project` directory. Godot user data and Python temporary files are redirected to separate profiles inside that run. The player's normal model mappings/download folder are never used. Logs, engine logs and machine-readable `results.json` remain in the run directory. A test process times out after 45 seconds by default; override with `--timeout`. Initial resource import gets at least 120 seconds. Nonzero exits and Godot script/runtime errors fail the run even when Godot returns zero.

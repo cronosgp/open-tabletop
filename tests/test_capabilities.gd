@@ -32,11 +32,17 @@ func run() -> void:
 	check(Capabilities.supported("objective-secured") and Capabilities.supported("hail-of-bolts") and Capabilities.supported("implacable-eradication") and Capabilities.supported("leader"), "Implemented abilities are marked supported")
 	check(Capabilities.supported("insane-bravery") and Capabilities.supported("command-re-roll"), "Core stratagems are marked supported")
 	check(Capabilities.supported("fire-overwatch") and Capabilities.supported("heroic-intervention") and Capabilities.supported("counteroffensive") and Capabilities.supported("epic-challenge"), "Infantry core reaction stratagems are marked supported")
-	check(Capabilities.known("explosives") and not Capabilities.supported("explosives") and not Capabilities.supported("smokescreen") and not Capabilities.supported("crushing-impact"), "Keyword/role core cards unused by these lists stay blocked")
+	check(Capabilities.supported("explosives") and Capabilities.supported("smokescreen") and Capabilities.supported("crushing-impact") and Capabilities.supported("brutalis-charge") and Capabilities.supported("forward-assault-warsuit") and Capabilities.supported("scouts-8") and Capabilities.supported("targeter-optics"), "Tank Shock, Brutalis Charge, Forward Assault, Invictor Scouts 8 and Desolation Targeter Optics are available within their tested local scope")
 	check(Capabilities.supported("deep-strike") and Capabilities.supported("their-number-is-legion"), "Current unit implementations are registered")
+	check(Capabilities.supported("veil-of-time") and Capabilities.supported("force-dome"), "Librarian level-1 psychic abilities are registered after focused local checks")
+	check(Capabilities.supported("master-of-shadows") and Capabilities.supported("blackwing-mantle"), "Aethon Shaan's current charge and Heroic Intervention abilities are registered")
+	check(Capabilities.supported("rampart") and Capabilities.supported("icon-of-obstinacy") and Capabilities.supported("siege-captain") and Capabilities.supported("signum-array"), "Current Epic Hero combat abilities are registered")
 	check(Capabilities.supported("oath-of-moment") and Capabilities.KNOWN["oath-of-moment"].get("reference", false), "Oath has an explicit versioned reference implementation")
 	check(Capabilities.supported("reanimation-protocols"), "Scoped Reanimation implementation is registered")
-	check(Capabilities.supported("combat-doctrines") and Capabilities.category("combat-doctrines") == Capabilities.CATEGORY_FACTION and Capabilities.supported("codex-discipline") and Capabilities.supported("awakened-dynasty"), "Implemented e11 doctrine and detachment effects are registered")
+	var pending_local := ["vanguard-ambushers", "ironstorm-layered-ceramite", "ironstorm-might-of-the-machine-spirit", "ironstorm-headhunter-doctrine"]
+	for capability: String in pending_local:
+		check(not Capabilities.supported(capability), "%s remains blocked pending local validation" % capability)
+	check(Capabilities.supported("combat-doctrines") and Capabilities.category("combat-doctrines") == Capabilities.CATEGORY_FACTION and Capabilities.supported("codex-discipline") and Capabilities.supported("awakened-dynasty") and Capabilities.supported("ironstorm-auto-targeters") and Capabilities.supported("ironstorm-redoubtable-machine-spirit") and Capabilities.supported("ironstorm-gunnery-honours"), "Implemented e11 doctrine, Ironstorm rule and enhancements are registered")
 	check(Capabilities.supported("gladius-storm-of-devastation") and Capabilities.supported("gladius-adaptive-strategy") and Capabilities.supported("gladius-armour-of-contempt") and Capabilities.supported("gladius-might-of-angels") and Capabilities.supported("gladius-a-worthy-death") and Capabilities.supported("gladius-responsive-tactics") and Capabilities.supported("protocol-of-the-hungry-void") and Capabilities.supported("protocol-of-the-sudden-storm") and Capabilities.supported("protocol-of-the-conquering-tyrant") and Capabilities.supported("protocol-of-the-undying-legions") and Capabilities.supported("protocol-of-the-eternal-revenant") and Capabilities.supported("protocol-of-the-vengeful-stars"), "Implemented Gladius/Awakened stratagems are registered")
 	check(Capabilities.supported("rapid-ingress") and Capabilities.category("transhuman-strategist") == Capabilities.CATEGORY_FACTION, "Current reserve stratagem and Captain army rule are classified")
 	check(not Capabilities.supported("upper-floors"), "Geometry gaps stay blocked")
@@ -47,6 +53,11 @@ func run() -> void:
 	Capabilities.admit(state, "objective-secured", "intercessor-objective-secured-v1")
 	Capabilities.admit_squad(state, 1, "objective-secured")
 	check(Capabilities.enabled(state, "objective-secured") and state.capabilities["objective-secured"].implementation == "intercessor-objective-secured-v1", "admit records the implementation and enabled flag")
+	for capability: String in pending_local:
+		check(not Capabilities.admit(state, capability, "unvalidated-test") and not Capabilities.enabled(state, capability), "%s cannot be admitted before local validation" % capability)
+	check(not Capabilities.admit_squad(state, 1, "vanguard-ambushers") and "vanguard-ambushers" not in state.squads[1].get("enabled_abilities", []), "Unsupported squad abilities cannot bypass the capability gate")
+	state.capabilities["ironstorm-headhunter-doctrine"] = {"implementation": "legacy-snapshot", "enabled": true}
+	check(not Capabilities.enabled(state, "ironstorm-headhunter-doctrine"), "Saved capability flags cannot bypass current support gates")
 	check("objective-secured" in state.squads[1].enabled_abilities and "objective-secured" not in state.squads[1].disabled_abilities, "admit_squad moves the capability to enabled")
 	check("deep-strike" in state.squads[1].disabled_abilities and "oath-of-moment" in state.squads[2].disabled_abilities, "Unrelated disabled abilities are preserved")
 	Capabilities.admit_squad(state, 1, "objective-secured")

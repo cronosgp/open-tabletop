@@ -1,0 +1,130 @@
+{
+  "id": "marine-fire-support-e11-2026-10-18",
+  "edition": "11e",
+  "source_policy": "wahapedia-e11-definitive-2026-10-18",
+  "reviewed_at": "2026-10-18",
+  "source_book_id": "000000139",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "catalog_sha256": "c88415a35692cb7d70022cf6af1050244c72713f72230c2bffb74d89bcb90c35",
+  "live_pages_rechecked": true,
+  "subjects": [
+    {
+      "datasheet_id": "000000126",
+      "name": "Infernus Squad",
+      "source_book_id": "000000139",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Infernus-Squad",
+      "models": [
+        5,
+        10
+      ],
+      "points": {
+        "5": 95,
+        "10": 190
+      },
+      "base_mm": 32,
+      "implemented_ability": "driven-from-cover",
+      "optional_wargear": "none"
+    },
+    {
+      "datasheet_id": "000002098",
+      "name": "Hellblaster Squad",
+      "source_book_id": "000000139",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Hellblaster-Squad",
+      "models": [
+        5,
+        10
+      ],
+      "points": {
+        "5": 115,
+        "10": 230
+      },
+      "base_mm": 32,
+      "implemented_ability": "rites-of-thermal-appeasement",
+      "optional_wargear": "Sergeant Bolt Pistol replacement with Plasma Pistol; both profiles"
+    }
+  ],
+  "implementation": {
+    "marine_profiles": "space-marines-e11-fixed-reference-2026-10-18-v4",
+    "unit_abilities": "track-a-current-datasheets-2026-10-v3",
+    "army_capabilities": "mixed-core-profiles-v2",
+    "checked_construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v4"
+  },
+  "validation": [
+    {
+      "path": ".tools/verification/20261018T050423267434Z/results.json",
+      "sha256": "b6cb39d018e1bb2f66cfe21ba1ce996f08c2d140bc958369d2060a655e82ef11",
+      "status": "passed",
+      "checks": [
+        "import",
+        "python",
+        "startup",
+        "test_army_builder",
+        "test_attack_plan",
+        "test_current_unit_abilities",
+        "test_current_unit_combat",
+        "test_equipment",
+        "test_explosives",
+        "test_hazard_rerolls",
+        "test_hazardous",
+        "test_marine_ability_boundaries",
+        "test_marine_fire_support",
+        "test_mixed_armies",
+        "test_roster_validation"
+      ]
+    },
+    {
+      "path": ".tools/verification/20261018T050838746886Z/results.json",
+      "sha256": "6065b856297ed1dd1ed7e642af91798aa55f420c3feffa8b2849c995b6f162b4",
+      "status": "passed",
+      "checks": [
+        "import",
+        "python",
+        "startup",
+        "test_army_builder",
+        "test_capabilities",
+        "test_marine_fire_support",
+        "test_roster_validation"
+      ]
+    }
+  ],
+  "python_checks": 30,
+  "network_validation": "deferred_by_user_until_final_integration",
+  "gui_capture": {
+    "kind": "staged real Godot setup fixture",
+    "viewport": [
+      1600,
+      1000
+    ],
+    "before": ".tools/marine-support-setup-before.png",
+    "after": ".tools/marine-support-setup-after.png",
+    "inspected": true,
+    "limitations": [
+      "Not a complete played mission",
+      "No smaller viewport claim"
+    ]
+  },
+  "source_hashes": {
+    "scripts/edition_11/current_reference_marine_profiles.gd": "13a3fec5cfa1e9ed05bd012974467d4c7c73c157a7e7011fb59e71d28fb3918a",
+    "scripts/edition_11/unit_abilities.gd": "d22c606018db138767dd599227753fa946bd8c77cc096383bbc9c15a4f60e30f",
+    "scripts/edition_11/hazardous.gd": "0d4b752f5d4763e4b5d1262b6f597fdc9f4ec39e820294e23508e4d84827c242",
+    "scripts/edition_11/army_capabilities.gd": "2055f8972f153ed004bd5e4b6827db433eb723a71520c7fbce31efb53a844fde",
+    "scripts/edition_11/unit_actions.gd": "6e2316efb53c9870da789f7d3e2afa4e785df307b4962a26119b8cbacae6714d",
+    "tests/test_marine_fire_support.gd": "bc58ebbad0d12d42f9313b340ac7ef919166b0adb2ee0c7b9d9a19105e1a02ba",
+    "tests/test_army_builder.gd": "4d0731a378bf9484c008c54e63ebaf5411eaab2c80abc39e88a927d785146adb"
+  },
+  "discovery_identity_snapshot": {
+    "path": ".tools/openhammer-marines-identities-20261018.json",
+    "sha256": "44759141766377d73b661e8e62fd6618b613d591f9195279820a5f56c8c943a1",
+    "use": "Exact catalog ID mapping only; provider rules, composition and prices are not admitted"
+  },
+  "selectable_shared_marine_identities": 8,
+  "shared_book_identities_in_source_slice": 85,
+  "remaining_shared_book_identities_not_admitted": 77,
+  "full_match_certified": false,
+  "limitations": [
+    "Original six profiles retain earlier fixed-loadout boundaries",
+    "Other Marine Leaders/Support, chapters, detachments and transports remain separate implementation work",
+    "No independent GW MFM re-certification of these two prices",
+    "No network validation for the expanded scope"
+  ]
+}

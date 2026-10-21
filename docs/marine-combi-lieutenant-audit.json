@@ -1,0 +1,22 @@
+{
+  "id": "wahapedia-marine-lieutenant-combi-local-admission-2026-10-19-v2",
+  "rules_authority": "Wahapedia 11th-edition local extraction",
+  "source": {
+    "book_id": "000000139",
+    "book_name": "Space Marines",
+    "datasheet_id": "000000076",
+    "datasheet_name": "Lieutenant with Combi-weapon",
+    "export_updated_at": "2026-10-16T21:03:46+03:00"
+  },
+  "scope": "Fixed characteristics, default weapons, profiles, weapon traits, cost, Feel No Pain 5+, Infiltrators, Lone Operative, Stealth, Priority Target Identified, and Evade and Survive locally implemented and targeted-tested.",
+  "local_data_test": "tests/test_lieutenant_combi_weapon.gd",
+  "local_data_test_status": "passed_with_behavior_checks",
+  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v41.json",
+  "profile_export_id": "space-marines-e11-fixed-reference-2026-10-19-v36",
+  "validation_artifact": ".tools/verification/20261019T065023692405Z/results.json",
+  "wahapedia_import_comparison_python_tests": "25_passed",
+  "local_validation": "passed_targeted",
+  "construction_catalog_status": "admitted_local_catalog",
+  "network_validation": "deferred_to_final_integration",
+  "full_match_certified": false
+}

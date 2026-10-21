@@ -4,6 +4,7 @@ const Checked = preload("res://scripts/edition_11/roster_validation.gd")
 const Capabilities = preload("res://scripts/edition_11/army_capabilities.gd")
 const Pack = preload("res://scripts/data_pack.gd")
 const Roster = preload("res://scripts/army_roster.gd")
+const CurrentMarines = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const DIRECTORY := "res://data/imported/starter-11e-v1"
 const SPECS := {
 	"Space Marines": {"folder": "adeptus-astartes", "source": "intercessor-squad", "models": 5, "template": 1,
@@ -34,12 +35,14 @@ static func inspect(list: Variant) -> Dictionary:
 	var requested := 0
 	for entry: Dictionary in list.entries:
 		requested += int(entry.copies)
-		if entry.unit_id not in spec.aliases: mixed = true
+		if entry.unit_id not in spec.aliases or entry.get("enhancement_id", "") != "": mixed = true
 	if mixed or requested > 2:
 		var entries: Array[Dictionary] = []
 		for entry: Dictionary in list.entries:
 			if entry.faction != list.faction: return {"error": "Mixed factions are unsupported in core-profile training."}
-			entries.append({"definition_id": resolved.unit.id if entry.unit_id in spec.aliases else entry.unit_id, "models": int(entry.models), "copies": int(entry.copies)})
+			var selected := {"definition_id": resolved.unit.id if entry.unit_id in spec.aliases else entry.unit_id, "models": int(entry.models), "copies": int(entry.copies)}
+			if entry.get("enhancement_id", "") != "": selected.enhancement_id = str(entry.enhancement_id)
+			entries.append(selected)
 		var report := Capabilities.admit({"schema_version": 2, "faction": list.faction, "entries": entries, "category": list.category, "points_limit": int(list.points_limit)})
 		if report.error.is_empty(): report.saved_reference_points = Roster.summary(list).points
 		return report
@@ -76,6 +79,19 @@ static func admit(selection: Variant) -> Dictionary:
 	return {"error": "", "selection": canonical, "total": total, "unit_cost": resolved.cost, "pack_hash": resolved.pack_hash,
 		"template": resolved.template, "unsupported_abilities": resolved.unit.get("unsupported_rules", []).duplicate()}
 
+## Admission for a new match. Historical training and unreconciled profiles may
+## still be inspected or used to reconstruct old saves, but cannot enter new
+## construction through this boundary.
+static func admit_current_catalog(list: Variant) -> Dictionary:
+	var report := Capabilities.admit(list) if list is Dictionary and list.get("schema_version") == 2 and not list.has("edition") else inspect(list)
+	if not report.get("error", "").is_empty(): return report
+	if int(report.selection.get("schema_version", 0)) != 2:
+		return {"error": "This saved list uses a historical training profile and remains a legacy draft."}
+	for resolved: Dictionary in report.get("definitions", {}).values():
+		if not resolved.get("spec", {}).get("current_reference", false):
+			return {"error": "This saved list contains historical profiles and remains a legacy draft."}
+	return report
+
 static func digest(selection: Dictionary) -> String:
 	var report := admit(selection)
 	return JSON.stringify(report.selection).sha256_text() if report.error.is_empty() else ""
@@ -104,7 +120,13 @@ static func reprice(list: Dictionary) -> Dictionary:
 			var spec: Dictionary = SPECS[updated.faction]
 			var identity: String = definition(updated.faction).unit.id if entry.unit_id in spec.aliases else Capabilities.canonical_id(updated.faction, entry.unit_id)
 			var resolved: Dictionary = report.definitions[identity]
-			entry.cost = resolved.cost
+			if resolved.spec.get("current_reference", false):
+				var profile := CurrentMarines.profile(identity.get_slice(":", 3))
+				entry.cost = int(profile.get("points_by_models", {}).get(int(entry.models), resolved.cost))
+				var tiered: Dictionary = profile.get("third_plus_points_by_models", {})
+				if tiered.has(int(entry.models)): entry.third_plus_cost = int(tiered[int(entry.models)])
+				else: entry.erase("third_plus_cost")
+			else: entry.cost = resolved.cost
 			entry.source_digest = resolved.pack_hash
 		else:
 			entry.cost = report.unit_cost
@@ -114,28 +136,11 @@ static func reprice(list: Dictionary) -> Dictionary:
 ## Built-ins are independent copies, never inserted into a profile implicitly.
 static func presets(checked: bool = false) -> Array[Dictionary]:
 	var lists: Array[Dictionary] = []
-	for faction: String in ["Space Marines", "Necrons"]:
-		for copies in [1, 2]:
-			var result := template(faction, "training", 500)
-			if not result.error.is_empty(): continue
-			var list: Dictionary = result.list
-			list.entries.resize(copies)
-			list.id = "preset:" + faction + ":" + str(copies)
-			list.name = "%s • %d squad%s" % [faction, copies, "s" if copies > 1 else ""]
-			if inspect(list).error.is_empty(): lists.append(list)
-	for faction: String in ["Space Marines", "Necrons"]:
-		var result := Capabilities.reference_army(faction)
-		if result.error.is_empty() and inspect(result.list).error.is_empty(): lists.append(result.list)
-	var led := awakened_reference()
-	if led.error.is_empty() and inspect(led.list).error.is_empty(): lists.append(led.list)
-	if checked:
-		for faction in ["Space Marines", "Necrons"]:
-			var result := Checked.preset(faction)
-			if result.error.is_empty(): lists.append(result.list)
-		var full := Checked.marine_incursion_list()
-		if full.error.is_empty(): lists.append(full.list)
-		var necron_full := Checked.necron_incursion_list()
-		if necron_full.error.is_empty(): lists.append(necron_full.list)
+	# New-match choices come only from the current local Space Marine catalog.
+	# Historical starter and MFM-derived profiles remain available through their
+	# explicit legacy loading paths; they are not fresh construction presets.
+	var reference := Capabilities.reference_army("Space Marines")
+	if reference.error.is_empty() and inspect(reference.list).error.is_empty(): lists.append(reference.list)
 	return lists
 
 static func awakened_reference() -> Dictionary:

@@ -6,8 +6,9 @@ extends RefCounted
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
 const Prevention = preload("res://scripts/edition_11/wound_prevention.gd")
-const IMPLEMENTATION := "11e-identical-attacks-v4"
-const SUPPORTED_KEYWORDS := ["lethal-hits", "rapid-fire", "sustained-hits", "torrent", "heavy", "twin-linked", "assault", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "devastating-wounds", "precision"]
+const IMPLEMENTATION := "11e-identical-attacks-v8-anti-exclusions"
+const SUPPORTED_KEYWORDS := ["lethal-hits", "rapid-fire", "sustained-hits", "torrent", "heavy", "twin-linked", "assault", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "devastating-wounds", "precision", "cleave", "melta", "psychic", "anti-fly", "anti-vehicle", "anti-infantry", "anti-character", "anti-non-monster-vehicle", "indirect-fire", "one-shot"]
+const ANTI_KEYWORDS := ["anti-fly", "anti-vehicle", "anti-infantry", "anti-character", "anti-non-monster-vehicle"]
 
 class Dice:
 	extends RefCounted
@@ -31,6 +32,19 @@ static func wound_target(strength: int, toughness: int) -> int:
 	if strength * 2 <= toughness: return 6
 	return 5
 
+static func anti_critical(roll: int, weapon: Dictionary, context: Dictionary) -> bool:
+	var keywords: Dictionary = weapon.get("keywords", {})
+	var targets: Array = context.get("target_keywords", [])
+	for anti_keyword: String in ANTI_KEYWORDS:
+		var threshold := int(keywords.get(anti_keyword, 0))
+		if anti_keyword == "anti-non-monster-vehicle":
+			var excluded := "MONSTER" in targets or "VEHICLE" in targets
+			if threshold > 0 and roll >= threshold and not excluded: return true
+			continue
+		var target_keyword := anti_keyword.trim_prefix("anti-").to_upper()
+		if threshold > 0 and roll >= threshold and target_keyword in targets: return true
+	return false
+
 static func successful_roll(unmodified: int, target: int, modifier: int = 0) -> bool:
 	# Natural 1 fails and natural 6 succeeds independently of modifiers.
 	return unmodified == 6 or (unmodified != 1 and unmodified + modifier >= target)
@@ -40,24 +54,28 @@ static func _positive_integer(value: Variant) -> bool:
 
 static func _validate(weapon: Dictionary, defender: Dictionary, context: Dictionary) -> String:
 	if not defender.get("error", "").is_empty(): return defender.error
+	var unskilled_torrent: bool = weapon.get("keywords", {}) is Dictionary and weapon.get("keywords", {}).get("torrent", false) == true and (weapon.get("skill") == null or (weapon.get("skill") is int and weapon.skill == 0))
 	for key in ["skill", "strength"]:
-		if not _positive_integer(weapon.get(key)):
+		if not _positive_integer(weapon.get(key)) and not (key == "skill" and unskilled_torrent):
 			return "Requires a positive fixed integer weapon stat: " + key
 	for key in ["attacks", "damage"]:
 		if not RandomStat.spec(weapon.get(key)).error.is_empty(): return "Invalid random/fixed characteristic: " + key
-	if weapon.skill < 2 or weapon.skill > 6: return "Skill must be 2–6."
+	if not unskilled_torrent and (weapon.skill < 2 or weapon.skill > 6): return "Skill must be 2–6, or 0 for a Torrent weapon with no BS."
 	var ap: Variant = weapon.get("ap")
 	if not (ap is int or ap is float) or not is_finite(ap) or ap != floor(ap) or ap > 0 or ap < -10:
 		return "AP must be an integer from -10 to 0."
 	if not weapon.get("keywords", {}) is Dictionary: return "Invalid weapon keywords."
+	var keywords: Dictionary = weapon.get("keywords", {})
 	for keyword: Variant in weapon.get("keywords", {}):
 		if keyword not in SUPPORTED_KEYWORDS: return "Unsupported weapon mechanic: " + str(keyword)
-		if keyword in ["rapid-fire", "sustained-hits"] and not _positive_integer(weapon.keywords[keyword]):
-			return "Keyword requires a positive integer: " + keyword
-		if keyword not in ["rapid-fire", "sustained-hits", "blast", "hunter"] and not weapon.keywords[keyword] is bool:
+		if keyword in ["rapid-fire", "sustained-hits", "cleave", "melta"] or keyword in ANTI_KEYWORDS:
+			if not _positive_integer(weapon.keywords[keyword]): return "Keyword requires a positive integer: " + keyword
+		if keyword not in ["rapid-fire", "sustained-hits", "blast", "hunter", "cleave", "melta"] and keyword not in ANTI_KEYWORDS and not weapon.keywords[keyword] is bool:
 			return "Keyword flag requires a boolean: " + keyword
 	var hunter_error := Traits.hunter_error(weapon, context.get("target_keywords"))
 	if not hunter_error.is_empty(): return hunter_error
+	for keyword: String in ANTI_KEYWORDS:
+		if keywords.has(keyword) and not context.get("target_keywords") is Array: return "Anti-target keywords require target keywords at declaration."
 	if weapon.get("keywords", {}).has("blast") and not weapon.keywords.blast is bool and not _positive_integer(weapon.keywords.blast): return "Blast needs a boolean or positive integer."
 	if weapon.get("keywords", {}).get("blast", false):
 		if not context.get("target_model_count") is int or context.target_model_count < 0: return "Blast requires target size at selection."
@@ -85,7 +103,7 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 		return "Invalid or excessive identical weapon count."
 	if not context.has("attack_sources"):
 		var maximum: int = RandomStat.spec(weapon.attacks).maximum
-		if weapon.get("keywords", {}).has("rapid-fire") and context.get("distance_inches", INF) <= float(weapon.get("range_inches", 0)) / 2.0: maximum += int(weapon.keywords["rapid-fire"])
+		if weapon.get("keywords", {}).has("rapid-fire") and context.get("rapid_fire_active", context.get("distance_inches", INF) <= float(weapon.get("range_inches", 0)) / 2.0): maximum += int(weapon.keywords["rapid-fire"])
 		if weapon.get("keywords", {}).get("blast", false): maximum += (1 if weapon.keywords.blast is bool else int(weapon.keywords.blast)) * floori(float(context.target_model_count) / 5.0)
 		if maximum * shooters > 1000: return "Attack generation exceeds prototype limit."
 	if context.has("attack_sources"):
@@ -101,12 +119,23 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 		return "Unresolved effects must be implemented before resolving this attack."
 	if context.get("wound_reroll", "none") not in ["none", "ones", "failed"]: return "Unsupported wound re-roll mode."
 	if context.get("hit_reroll", "none") not in ["none", "failed", "ones"]: return "Unsupported hit re-roll mode."
+	if not context.get("indirect_fire", false) is bool: return "Indirect Fire context must be a boolean."
+	if context.get("indirect_fire", false):
+		if not keywords.get("indirect-fire", false): return "Indirect Fire context requires an Indirect Fire weapon."
+		if context.get("hit_reroll", "none") != "none": return "Indirect Fire attacks cannot re-roll hit rolls."
+		if context.get("indirect_hit_cap", 0) not in [3, 5]: return "Indirect Fire requires the applicable natural-hit failure threshold."
+	elif context.has("indirect_hit_cap"):
+		return "Natural-hit failure thresholds apply only to Indirect Fire attacks."
 	for key in ["hit_modifier", "wound_modifier"]:
 		var value: Variant = context.get(key, 0)
 		if not (value is int or value is float) or not is_finite(value) or value != floor(value) or absf(value) > 1:
 			return "Only final roll modifiers between -1 and +1 are accepted."
-	var keywords: Dictionary = weapon.get("keywords", {})
+	if context.has("snap_hit_threshold"):
+		var snap_threshold: Variant = context.snap_hit_threshold
+		if not context.get("snap_shooting", false) or not snap_threshold is int or snap_threshold < 2 or snap_threshold > 6:
+			return "Snap-shooting hit thresholds must be unmodified values from 2 to 6."
 	if not context.get("benefit_of_cover", false) is bool: return "Benefit of cover must be a boolean computed by the match rules."
+	if context.has("rapid_fire_active") and not context.rapid_fire_active is bool: return "Rapid Fire range state must be computed by the match rules."
 	if keywords.has("rapid-fire"):
 		var distance: Variant = context.get("distance_inches")
 		var weapon_range: Variant = weapon.get("range_inches")
@@ -147,8 +176,9 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 		var replacements := reroll_hit_pool(effective_hits, effective_skill, hit_modifier, context, dice)
 		for replacement: Dictionary in replacements: hit_rolls.append(replacement.replacement)
 	for roll: int in effective_hits:
+		if context.get("indirect_fire", false) and roll <= int(context.get("indirect_hit_cap", 5)): continue
 		if context.get("snap_shooting", false):
-			if roll != 6: continue
+			if roll < int(context.get("snap_hit_threshold", 6)): continue
 			normal_hits += 1
 			continue
 		if not successful_roll(roll, effective_skill, hit_modifier): continue
@@ -171,8 +201,9 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 		effective[index] = dice.d6()
 		wound_rolls.append(effective[index])
 	for roll: int in effective:
-		if successful_roll(roll, target, wound_modifier): wounds += 1
-		if roll == 6: critical_wounds += 1
+		var anti_critical_hit := anti_critical(roll, weapon, context)
+		if successful_roll(roll, target, wound_modifier) or anti_critical_hit: wounds += 1
+		if roll == 6 or anti_critical_hit: critical_wounds += 1
 	var devastating := critical_wounds if keywords.get("devastating-wounds", false) else 0
 	if not context.get("defer_saves", false):
 		for wound in range(wounds - devastating): save_rolls.append(dice.d6())
@@ -205,7 +236,7 @@ static func generate_attacks(weapon: Dictionary, context: Dictionary, roller: Ca
 	var sources: Array = context.get("attack_sources", [])
 	if sources.is_empty():
 		var bonus := 0
-		if weapon.keywords.has("rapid-fire") and context.distance_inches <= weapon.range_inches / 2.0: bonus += int(weapon.keywords["rapid-fire"])
+		if weapon.keywords.has("rapid-fire") and context.get("rapid_fire_active", context.distance_inches <= weapon.range_inches / 2.0): bonus += int(weapon.keywords["rapid-fire"])
 		if weapon.keywords.get("blast", false): bonus += (1 if weapon.keywords.blast is bool else int(weapon.keywords.blast)) * floori(float(context.target_model_count) / 5.0)
 		for index in range(int(context.get("weapon_count", 1))): sources.append({"expression": weapon.attacks, "bonus": bonus})
 	var count := 0
@@ -247,7 +278,8 @@ static func resolve(weapon: Dictionary, defender: Dictionary, context: Dictionar
 		result.damage_rolls.append(rolled_damage)
 		result.dice_history.append_array(rolled_damage.rolls)
 		var damage: int = rolled_damage.value
-		var prevented := Prevention.resolve(damage, int(remaining[0]), profiles[0].rules, "normal" if step.kind == "normal" else "mortal", roller)
+		var special_kind := "psychic" if weapon.get("keywords", {}).get("psychic", false) else ""
+		var prevented := Prevention.resolve(damage, int(remaining[0]), profiles[0].rules, "normal" if step.kind == "normal" else "mortal", roller, special_kind)
 		if not prevented.error.is_empty(): return prevented
 		result.prevention_rolls.append(prevented)
 		result.prevented_wounds += prevented.prevented
@@ -270,7 +302,7 @@ static func resolve(weapon: Dictionary, defender: Dictionary, context: Dictionar
 
 static func reroll_wound(value: int, target: int, modifier: int, weapon: Dictionary, context: Dictionary) -> bool:
 	# Training policy: preserve successful rolls; never fish for critical wounds.
-	var failed := not successful_roll(value, target, modifier)
+	var failed := not successful_roll(value, target, modifier) and not anti_critical(value, weapon, context)
 	var mode: String = context.get("wound_reroll", "none")
 	return (mode == "ones" and value == 1) or (failed and (mode == "failed" or (weapon.get("keywords", {}).get("twin-linked", false) and context.get("use_twin_linked", true))))
 

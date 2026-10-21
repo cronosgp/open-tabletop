@@ -1,0 +1,22 @@
+{
+  "id": "space-marines-reiver-squad-e11-audit-2026-10-19",
+  "source_authority": "Wahapedia 11th edition local extraction",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000002718",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "rules_source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Reiver-Squad",
+  "implementation": "scripts/edition_11/current_reference_marine_profiles.gd; scripts/edition_11/reivers.gd; scripts/edition_11/unit_abilities.gd; scripts/edition_11/unit_actions.gd; scripts/edition_11/morale.gd; scripts/edition_11/combat_scenario.gd; scripts/edition_11/contact_movement.gd",
+  "validation_artifact": ".tools/verification/20261019T043352222499Z/results.json",
+  "validation_status": "tests_passed_local_targeted",
+  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v18.json",
+  "fixed_data_consistent": true,
+  "weapon_profiles_checked": 3,
+  "network_validation": "deferred_not_run",
+  "full_match_certified": false,
+  "known_scope_limits": [
+    "Full faction/army legality is not certified.",
+    "Upper-floor/vertical terrain geometry is not supported by the current board model.",
+    "External Phobos Captain link remains excluded.",
+    "Network validation and full local regression are deferred."
+  ]
+}

@@ -17,15 +17,15 @@ Combat exercises are separate from the clean-checkout demo. Their exact data req
 
 ## Rules and datasheet sources
 
-The project targets official **11th-edition** rules. The required local reference for datasheet data is an export obtained from [Wahapedia's 11th-edition data export](https://wahapedia.ru/wh40k11ed/the-rules/data-export/). Keep raw exports local and ignored by Git under the proposed structure:
+The project targets **Warhammer 40,000 11th edition**. Wahapedia's `/wh40k11ed/` Core Rules and faction pages are the project's definitive rules reference. Datasheet facts come from the corresponding local export snapshot:
 
 ```text
 .tools/wahapedia/11e/<faction>/<snapshot-id>/
 ```
 
-Record the export URL, edition, retrieval date, snapshot identity, filenames, and SHA-256 hashes alongside each local snapshot. Do not commit or redistribute extracted third-party content. For rule effects, Codex updates, errata, and version boundaries, also cross-check current official Games Workshop publications and record any discrepancy. See [agent instructions](AGENTS.md) and the [source policy](docs/data/source-assessment.md).
+Record the export URL, edition, retrieval date, snapshot identity, filenames, and SHA-256 hashes alongside each local snapshot. Do not commit or redistribute extracted third-party content. Official Games Workshop material may be used as context, but is not an admission prerequisite and does not override the selected Wahapedia rules. See [agent instructions](AGENTS.md) and the [source policy](docs/data/source-assessment.md).
 
-**Pipeline status:** this checkout does not yet contain a Wahapedia-export ingestion tool or local snapshot. Existing OpenHammer/40kdc adapters and starter packs are legacy/experimental inputs, not authoritative sources for current datasheet facts or evidence of rules support. Do not fall back to those providers when the required local export is absent; the ingestion migration is separate work.
+**Catalog status:** the consolidated local runtime catalog offers all 85 shared-book Space Marine identities. This does not certify every rules interaction or general army legality. New construction choices use only that local catalog; broad OpenHammer API fetching and cached API choices are not part of the workflow. Existing OpenHammer/40kdc adapters and starter packs remain isolated legacy/experimental tooling, not authoritative sources for current datasheet facts.
 
 ## Verify changes
 

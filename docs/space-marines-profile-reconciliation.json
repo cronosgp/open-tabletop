@@ -1,0 +1,1191 @@
+{
+  "current_source_policy": {
+    "id": "wahapedia-e11-definitive-2026-10-18",
+    "document": "rules-source-policy.md",
+    "authority": "Wahapedia /wh40k11ed/",
+    "official_gw_confirmation_required": false,
+    "preferred_ingestion": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "remaining_gate": "Current Wahapedia snapshot reconciliation, complete executable effects and scope/interaction validation; no automatic full-match certification."
+  },
+  "snapshot_id": "space-marines-fixed-profile-reconciliation-2026-10-18",
+  "schema_version": 1,
+  "edition": 11,
+  "observed_at": "2026-10-19",
+  "status": "baseline_plus_wahapedia_runtime_followups_full_faction_incomplete",
+  "scope": "The current selectable catalog contains all 85 shared-book Marine identities from the local Wahapedia e11 inventory, including Wardens of Ultramar. The original seven-profile baseline and dated review records remain historical inputs. Local Wahapedia e11 increments and their artifacts are recorded in follow-up entries. No full army legality certification.",
+  "sources": {
+    "reference": {
+      "publisher": "Wahapedia",
+      "edition_path": "/wh40k11ed/",
+      "observed_app_version": "2.8.1 / October 2026",
+      "observed_at": "2026-10-18",
+      "pages": [
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Assault-Intercessor-Squad",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Heavy-Intercessor-Squad",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Roboute-Guilliman",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain-On-Bike"
+      ]
+    },
+    "official_updates": [
+      {
+        "title": "Warhammer 40,000 – Balance Update: Emboldened Astartes",
+        "date": "2026-09-30",
+        "url": "https://www.warhammer-community.com/en-gb/articles/rylbvfnv/warhammer-40000-balance-update-emboldened-astartes/",
+        "cross_checked": "GW states most Tacticus and Terminator profiles gain +1 Toughness; Gravis profiles are excluded; boltguns and chainswords generally gain +1 Strength, and some gain +1 AP.",
+        "limit": "The article is a change summary and does not reproduce each Codex datasheet, fixed loadout or ability text. Exact current Codex/app applicability remains unverified."
+      },
+      {
+        "title": "Codex: Space Marines announcement and first datasheet preview",
+        "urls": [
+          "https://www.warhammer-community.com/en-gb/articles/jfqdowqw/behold-the-most-impressive-codex-space-marines-yet/",
+          "https://www.warhammer-community.com/en-gb/articles/paxsnmde/first-look-space-marines-datasheets/"
+        ],
+        "cross_checked": "GW announced the Codex scope and published selected first-look effects.",
+        "limit": "The public articles do not provide the complete datasheet set or an exact locator for every migrated profile."
+      },
+      {
+        "title": "Munitorum Field Manual 1.6",
+        "observed_at": "2026-10-17",
+        "sha256_space_marines_html": "af280e710928f49d6c22775ae48fa9a5fe78de7560cf2c6712eb6d48a885c5e5",
+        "cross_checked": "Fixed-profile costs below match the captured official MFM 1.6 snapshot observed after the official downloads hub update on 14 October 2026."
+      }
+    ],
+    "official_datasheet_status": "not_required_under_wahapedia_definitive_policy"
+  },
+  "review_2026_10_18": {
+    "report": "space-marines-fixed-profile-audit.md",
+    "scope": "Historical review state as of 18 October 2026: the selectable catalog contained 60 shared-book Marine identities and 25 remained incomplete or unreconciled. Later 19 October local Wahapedia increments, including the current 72-identity catalog, are recorded in follow-up entries. The historical state is not a current catalog count; no full army legality certification is implied.",
+    "reference_result": "Default characteristics and weapon tables agree with the observed e11 pages. Captain and Lieutenant were missing TACTICUS and EXPLOSIVES; corrected in reference profile v3.",
+    "official_result": "The 30 September GW update confirms the broad characteristics/weapon changes only. The 14 September datasheet preview does not provide these six complete datasheets. The downloads hub links MFM updated 14 October; the MFM faction endpoint failed through the web reader, so prices remain the previously captured 17 October snapshot, not a new price verification.",
+    "official_datasheets_verified": false,
+    "full_match_certified": false,
+    "remaining_gates": [
+      "Reconcile each profile with a pinned current Wahapedia e11 snapshot",
+      "Complete effect, timing and interaction review including shared core and detachment dependencies",
+      "Current Wahapedia attachment and construction applicability"
+    ]
+  },
+  "profiles": [
+    {
+      "id": "space-marines/intercessor-squad",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
+      "composition": [
+        5,
+        10
+      ],
+      "points": {
+        "5": 85,
+        "10": 170
+      },
+      "model": {
+        "move_inches": 6,
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 2,
+        "leadership": "6+",
+        "objective_control": 2
+      },
+      "default_loadout": [
+        "Bolt Pistol",
+        "Bolt Rifle - Saturation",
+        "Knives and Fists"
+      ],
+      "source_delta": "T5 and current weapon profiles replace the starter-pack T4 / S4 rifle values. Both current bolt-rifle modes are recorded and exposed by the experimental materializer; Saturation is its initial default.",
+      "ability_ids": [
+        "bolter-discipline",
+        "tactical-mainstay"
+      ],
+      "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/assault-intercessor-squad",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Assault-Intercessor-Squad",
+      "composition": [
+        5,
+        10
+      ],
+      "points": {
+        "5": 85,
+        "10": 170
+      },
+      "model": {
+        "move_inches": 6,
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 2,
+        "leadership": "6+",
+        "objective_control": 2
+      },
+      "default_loadout": [
+        "Heavy Bolt Pistol",
+        "Chainsword"
+      ],
+      "source_delta": "T5 and S5 chainsword replace the starter-pack T4 / S4 profile. Current ability is Targeted Intercession.",
+      "ability_ids": [
+        "targeted-intercession"
+      ],
+      "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/heavy-intercessor-squad",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Heavy-Intercessor-Squad",
+      "composition": [
+        5,
+        10
+      ],
+      "points": {
+        "5": 115,
+        "10": 230
+      },
+      "model": {
+        "move_inches": 5,
+        "toughness": 6,
+        "save": "3+",
+        "wounds": 3,
+        "leadership": "6+",
+        "objective_control": 2
+      },
+      "default_loadout": [
+        "Bolt Pistol",
+        "Heavy Bolt Rifle",
+        "Ceramite Fists"
+      ],
+      "default_ranged_profiles": [
+        {
+          "name": "Bolt Pistol",
+          "range_inches": 12,
+          "attacks": 1,
+          "skill": 3,
+          "strength": 5,
+          "ap": -1,
+          "damage": 1,
+          "keywords": [
+            "close-quarters"
+          ]
+        },
+        {
+          "name": "Heavy Bolt Rifle",
+          "range_inches": 30,
+          "attacks": 2,
+          "skill": 3,
+          "strength": 5,
+          "ap": -1,
+          "damage": 2,
+          "keywords": [
+            "heavy",
+            "rapid-fire-1"
+          ]
+        }
+      ],
+      "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/terminator-squad",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
+      "composition": [
+        5,
+        10
+      ],
+      "points": {
+        "5": 190,
+        "10": 380
+      },
+      "model": {
+        "move_inches": 5,
+        "toughness": 6,
+        "save": "2+",
+        "invulnerable_save": "4+",
+        "wounds": 3,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Storm Bolter",
+        "Power Fist"
+      ],
+      "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/captain",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 90
+      },
+      "model": {
+        "move_inches": 6,
+        "toughness": 5,
+        "save": "3+",
+        "invulnerable_save": "4+",
+        "wounds": 5,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Heavy Bolt Pistol",
+        "Master-crafted Bolter",
+        "Master-crafted Power Weapon"
+      ],
+      "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/lieutenant",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 50
+      },
+      "model": {
+        "move_inches": 6,
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 4,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Bolt Pistol",
+        "Master-crafted Bolter",
+        "Ceramite Fists"
+      ],
+      "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
+      "status": "reference_checked_official_codex_locator_pending"
+    },
+    {
+      "id": "space-marines/roboute-guilliman",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Roboute-Guilliman",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 415
+      },
+      "model": {
+        "base": "60mm",
+        "move_inches": 8,
+        "toughness": 10,
+        "save": "2+",
+        "invulnerable_save": "4+",
+        "wounds": 16,
+        "leadership": "5+",
+        "objective_control": 4
+      },
+      "default_loadout": [
+        "Hand of Dominion (ranged and melee profiles)",
+        "Emperor’s Sword"
+      ],
+      "source_delta": "Current-reference profile and rules use the local Wahapedia e11 export. Both Hand of Dominion modes share one physical weapon identity. Emperor’s Sword CLEAVE 2 and Devastating Wounds match the extracted profile.",
+      "runtime_admission": "selectable_from_consolidated_local_catalog_at_415_points; unique-copy and Warlord constraints checked locally",
+      "ability_ids": [
+        "codex-adept",
+        "primarch-of-the-xiii",
+        "author-of-the-codex",
+        "leader-of-the-astartes",
+        "feel-no-pain-5-guilliman",
+        "supreme-commander",
+        "transhuman-strategist"
+      ],
+      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed"
+    },
+    {
+      "id": "space-marines/terminator-assault-squad",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Assault-Squad",
+      "composition": [
+        5,
+        10
+      ],
+      "points": {
+        "5": 170,
+        "10": 340,
+        "third_plus_5": 210,
+        "third_plus_10": 380,
+        "per_storm_shield": 5
+      },
+      "model": {
+        "base": "40mm",
+        "move_inches": 5,
+        "toughness": 6,
+        "save": "2+",
+        "invulnerable_save": "4+",
+        "wounds": 3,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Twin Lightning Claws"
+      ],
+      "optional_replacement": "Each model may replace Twin Lightning Claws with Storm Shield and Thunder Hammer; Storm Shield adds 1 Wound and costs 5 points.",
+      "source_delta": "Current shared-book profile, weapon traits, composition and prices match the local Wahapedia e11 extraction; DEATHWING is conditional Dark Angels chapter context and is not granted in the shared profile.",
+      "runtime_admission": "selectable from consolidated local catalog with 5/10 models and first-to-second/third-plus prices",
+      "ability_ids": [
+        "deep-strike",
+        "teleport-homer",
+        "terminatus-assault",
+        "storm-shield"
+      ],
+      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed"
+    },
+    {
+      "id": "space-marines/captain-on-bike",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-On-Bike",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 110,
+        "third_plus_1": 110
+      },
+      "model": {
+        "base": "90x52mm oval",
+        "move_inches": 12,
+        "toughness": 6,
+        "save": "3+",
+        "invulnerable_save": "4+",
+        "wounds": 6,
+        "leadership": "6+",
+        "objective_control": 2
+      },
+      "default_loadout": [
+        "Heavy Bolt Pistol",
+        "Twin Bolt Rifle",
+        "Master-crafted Power Weapon"
+      ],
+      "optional_replacements": [
+        "Heavy Bolt Pistol to Plasma Pistol",
+        "Master-crafted Power Weapon to Thunder Hammer"
+      ],
+      "source_delta": "Profile, default loadout, weapon profiles/traits, composition and points match the pinned Wahapedia e11 extraction. The exported Ravenwing keyword is preserved as recorded.",
+      "runtime_admission": "selectable from consolidated local catalog at 110 points; Leader attaches to Outrider Squad in current local scope",
+      "ability_ids": [
+        "leader",
+        "strategic-acumen",
+        "transhuman-strategist",
+        "into-the-fray"
+      ],
+      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed"
+    },
+    {
+      "id": "space-marines/adrax-agatone",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Adrax-Agatone",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 90,
+        "third_plus_1": 90
+      },
+      "model": {
+        "base": "40mm",
+        "move_inches": 6,
+        "toughness": 5,
+        "save": "2+",
+        "invulnerable_save": "4+",
+        "wounds": 5,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Drakkis",
+        "Malleus Noctum"
+      ],
+      "source_delta": "Characteristics, default weapon package, composition and points match local Wahapedia e11 export; faction keywords SALAMANDERS and ADEPTUS ASTARTES are retained.",
+      "runtime_admission": "selectable at 90 points; Leader bodyguards restricted to source-linked identities currently admitted locally.",
+      "ability_ids": [
+        "leader",
+        "transhuman-strategist",
+        "lord-of-the-pyroclasts",
+        "unto-the-anvil"
+      ],
+      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed"
+    },
+    {
+      "id": "space-marines/chief-librarian-tigurius",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chief-Librarian-Tigurius",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 115,
+        "third_plus_1": 115
+      },
+      "model": {
+        "base": "40mm",
+        "move_inches": 6,
+        "toughness": 5,
+        "save": "3+",
+        "invulnerable_save": "4+",
+        "wounds": 5,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Bolt Pistol",
+        "Storm of the Emperor’s Wrath",
+        "Rod of Tigurius"
+      ],
+      "source_delta": "Characteristics, weapons and points transcribed from the local Wahapedia e11 export. Faction keywords ADEPTUS ASTARTES and ULTRAMARINES are retained. Vanguard Veteran Squad is an exact source Leader target but its distinct non-Jump-Pack profile is not currently admitted.",
+      "runtime_admission": "Selectable at 115 points; six exact Leader targets are admitted locally; the unavailable Vanguard Veteran Squad pairing remains unsupported.",
+      "ability_ids": [
+        "leader",
+        "combat-doctrines",
+        "transhuman-strategist",
+        "librarius",
+        "hood-of-hellfire",
+        "prescience",
+        "telepathic-assault"
+      ],
+      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed"
+    },
+    {
+      "id": "space-marines/kayvaan-shrike",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Kayvaan-Shrike",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 95,
+        "third_plus_1": 95
+      },
+      "model": {
+        "base": "40mm",
+        "move_inches": 12,
+        "toughness": 4,
+        "save": "3+",
+        "invulnerable_save": "4+",
+        "wounds": 5,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Blackout",
+        "Raven’s Talons"
+      ],
+      "source_delta": "Characteristics, default weapons and points match the local Wahapedia e11 export. ADEPTUS ASTARTES and RAVEN GUARD are faction keywords; IMPERIUM, FLY, JUMP PACK, PHOBOS and SMOKE are retained non-faction keywords.",
+      "runtime_admission": "Selectable at 95 points; Leader pairings are restricted to the two exact, locally admitted Jump Pack datasheets.",
+      "ability_ids": [
+        "deep-strike",
+        "leader",
+        "lone-operative",
+        "combat-doctrines",
+        "transhuman-strategist",
+        "trifold-path-of-shadow",
+        "echo-of-the-ravenspire"
+      ],
+      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed"
+    },
+    {
+      "id": "space-marines/cato-sicarius",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Cato-Sicarius",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 115,
+        "third_plus_1": 115
+      },
+      "model": {
+        "base": "40mm",
+        "move_inches": 6,
+        "toughness": 5,
+        "save": "2+",
+        "invulnerable_save": "4+",
+        "wounds": 5,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Artisan Plasma Pistol",
+        "Talassarian Tempest Blade - Strike",
+        "Talassarian Tempest Blade - Coup de Grace",
+        "Talassarian Tempest Blade - Sweep"
+      ],
+      "source_delta": "The three melee profiles are retained as distinct attacks with Devastating Wounds, Precision and Sustained Hits 1 respectively. Source leader target is Victrix Honour Guard.",
+      "runtime_admission": "Selectable at 115 points. Cato attaches to the exact admitted Victrix Honour Guard target; other bodyguards are rejected.",
+      "ability_ids": [
+        "leader",
+        "combat-doctrines",
+        "transhuman-strategist",
+        "captain-of-the-honour-guard",
+        "knight-champion-of-macragge",
+        "honour-or-death"
+      ],
+      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed; Calgar-dependent Support interaction locally validated"
+    },
+    {
+      "id": "space-marines/victrix-honour-guard",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Victrix-Honour-Guard",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004185",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "composition": [
+        3,
+        6
+      ],
+      "points": {
+        "3": 135,
+        "6": 265,
+        "third_plus_3": 165,
+        "third_plus_6": 295
+      },
+      "model": {
+        "base": "40mm",
+        "move_inches": 6,
+        "toughness": 5,
+        "save": "2+",
+        "invulnerable_save": null,
+        "wounds": 3,
+        "leadership": "6+",
+        "objective_control": 2
+      },
+      "default_loadout": [
+        "Banner of Macragge (Chapter Ancient)",
+        "Master-crafted Bolt Carbine",
+        "Blades of Honour (Chapter Champion)",
+        "Master-crafted Power Weapon"
+      ],
+      "source_delta": "Ancient and Champion are modeled as distinct roles with EPIC HERO and role keywords; runtime admits the fixed 3/6-model Ancient+Champion compositions with source-listed weapons and banner cost.",
+      "runtime_admission": "Selectable at banner-inclusive 135/265 points, with 165/295 third-plus tiers, using the fixed Ancient+Champion compositions. Cato’s exact Leader target is now admitted; other legal role combinations are not exposed.",
+      "ability_ids": [
+        "combat-doctrines",
+        "glory-of-ultramar",
+        "honour-guard-of-macragge",
+        "banner-of-macragge"
+      ],
+      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed"
+    },
+    {
+      "id": "space-marines/marneus-calgar",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Marneus-Calgar",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004246",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 180
+      },
+      "model": {
+        "base": "50mm",
+        "move_inches": 6,
+        "toughness": 6,
+        "save": "2+",
+        "invulnerable_save": "4+",
+        "wounds": 6,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Gauntlets of Ultramar"
+      ],
+      "source_delta": "Fixed Epic Hero profile. The ranged and melee Gauntlets of Ultramar plus Overhead Smash are represented; Overhead Smash retains Extra Attacks.",
+      "runtime_admission": "Selectable at 180 points. Codex Adept, Master Tactician and Thunderhawk Insertion are locally implemented. Fourteen exact source Leader targets are recorded; only targets with admitted compatible profiles are available. Cato becomes Support only while Calgar is in the army and keeps Victrix Honour Guard as his exact attachment target.",
+      "ability_ids": [
+        "deep-strike",
+        "leader",
+        "combat-doctrines",
+        "codex-adept",
+        "master-tactician",
+        "thunderhawk-insertion"
+      ],
+      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed"
+    },
+    {
+      "id": "space-marines/kor-sarro-khan",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Kor-sarro-Khan",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000002709",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 80
+      },
+      "model": {
+        "base": "40mm",
+        "move_inches": 6,
+        "toughness": 5,
+        "save": "3+",
+        "invulnerable_save": "4+",
+        "wounds": 5,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Anzuq",
+        "Bolt Pistol",
+        "Moonfang"
+      ],
+      "source_delta": "Fixed White Scars Epic Hero profile. Anzuq has Anti-Infantry 4+; Moonfang has Anti-Character 5+, Precision and Devastating Wounds.",
+      "runtime_admission": "Selectable at 80 points. Trophy Taker and For the Khan! are locally implemented; six exact source Leader targets are recorded and availability is bounded to admitted compatible profiles.",
+      "ability_ids": [
+        "leader",
+        "combat-doctrines",
+        "transhuman-strategist",
+        "trophy-taker",
+        "for-the-khan"
+      ],
+      "status": "implemented_and_locally_validated_in_admitted_scope"
+    },
+    {
+      "id": "space-marines/captain-titus",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-Titus",
+      "source_book_id": "000000139",
+      "source_datasheet_id": "000004187",
+      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "composition": [
+        1
+      ],
+      "points": {
+        "1": 115
+      },
+      "model": {
+        "base": "40mm",
+        "move_inches": 6,
+        "toughness": 5,
+        "save": "3+",
+        "invulnerable_save": "4+",
+        "wounds": 6,
+        "leadership": "6+",
+        "objective_control": 1
+      },
+      "default_loadout": [
+        "Bolt Pistol",
+        "Master-crafted Bolter",
+        "Master-crafted Chainsword"
+      ],
+      "source_delta": "Fixed Ultramarines Epic Hero profile. Master-crafted Chainsword has Anti-non-Monster/Vehicle 2+. The local Leader table has no attachment targets.",
+      "runtime_admission": "Selectable at 115 points. Press the Attack, Righteous Fury and Honour of Ultramar are locally implemented; Feel No Pain 5+, Leader, Combat Doctrines and Transhuman Strategist use the shared runtime.",
+      "ability_ids": [
+        "feel-no-pain-5",
+        "leader",
+        "combat-doctrines",
+        "transhuman-strategist",
+        "press-the-attack",
+        "righteous-fury",
+        "honour-of-ultramar"
+      ],
+      "status": "implemented_and_locally_validated_in_admitted_scope"
+    }
+  ],
+  "runtime_migration": {
+    "legacy_pack": "data/imported/starter-11e-v1",
+    "fixed_marine_profiles": "Loaded by scripts/edition_11/current_reference_marine_profiles.gd in the experimental fixed-profile materializer. Its identifier and data digest are included in the match content hash.",
+    "known_issue": "The separate mixed-core training mode and Necron profiles still use the historical pack. Optional wargear and non-default profile variants are not part of this original profile reconciliation snapshot. Guilliman now uses the current-reference catalog and extracted 415-point cost.",
+    "next_step": "Continue reconciling the remaining shared-book datasheets and their executable interactions from the local Wahapedia export; defer network checks to final integration.",
+    "support_claim": "No profile in this snapshot is certified as a current complete Codex datasheet or full legal army entry.",
+    "terminator_assault_squad": {
+      "validation_artifact": ".tools/verification/20261019T111723260184Z/results.json",
+      "fixed_data_artifact": ".tools/wahapedia-fixed-data-review-v83.json",
+      "validation_status": "targeted_local_checks_passed; network deferred to final integration"
+    },
+    "captain_on_bike": {
+      "validation_artifact": ".tools/verification/20261019T112505737398Z/results.json",
+      "fixed_data_artifact": ".tools/wahapedia-fixed-data-review-v85.json",
+      "validation_status": "targeted_local_checks_passed; network deferred to final integration"
+    },
+    "adrax_agatone": {
+      "validation_artifact": ".tools/verification/20261019T114211481946Z/results.json",
+      "fixed_data_artifact": ".tools/wahapedia-fixed-data-review-v87.json",
+      "validation_status": "targeted_local_checks_passed; network deferred to final integration"
+    },
+    "kaius_konorius": {
+      "validation_artifact": ".tools/verification/20261019T115532567686Z/results.json",
+      "fixed_data_artifact": ".tools/wahapedia-fixed-data-review-v91.json",
+      "validation_status": "profile, catalog, Leader, Warlord, wound-prevention and targeted combat checks passed; network deferred to final integration"
+    }
+  },
+  "fixed_data_review": {
+    "report": ".tools/wahapedia-fixed-data-review-v91.json",
+    "status": "45_profiles_196_weapon_profiles_44_of_45_bounded_checks_pass_ancient_deathwing_keyword_context_unresolved",
+    "full_match_certified": false
+  },
+  "behavior_review": {
+    "report": "wahapedia-marine-behavior-audit.json",
+    "status": "bounded_local_behavior_checks_passed_broader_interactions_pending",
+    "full_match_certified": false
+  },
+  "implementation_followup": {
+    "document": "marine-fire-support.md",
+    "audit": "marine-fire-support-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "infernus-squad",
+      "hellblaster-squad"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "scope": "Historical review state as of 18 October 2026: the selectable catalog contained 60 shared-book Marine identities and 25 remained incomplete or unreconciled. Later 19 October local Wahapedia increments are recorded in follow-up entries. The historical state is not a current catalog count; no full army legality certification is implied."
+  },
+  "gravis_followup": {
+    "document": "marine-gravis.md",
+    "audit": "marine-gravis-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "aggressor-squad",
+      "apothecary-biologis"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "marksmen_followup": {
+    "document": "marine-eliminators.md",
+    "sternguard_document": "marine-sternguard.md",
+    "audit": "marine-marksmen-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "eliminator-squad",
+      "sternguard-veteran-squad"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "chaplain_followup": {
+    "document": "marine-chaplain.md",
+    "audit": "marine-chaplain-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "chaplain"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "judiciar_followup": {
+    "document": "marine-judiciar.md",
+    "audit": "marine-judiciar-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "judiciar"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "bladeguard_followup": {
+    "document": "marine-bladeguard.md",
+    "audit": "marine-bladeguard-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "bladeguard-veteran-squad"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "ancients_followup": {
+    "document": "marine-ancients.md",
+    "audit": "marine-ancients-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "ancient",
+      "bladeguard-ancient"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "apothecary_followup": {
+    "document": "marine-apothecary.md",
+    "audit": "marine-apothecary-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "apothecary"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "terminator_chaplain_followup": {
+    "document": "marine-terminator-chaplain.md",
+    "audit": "marine-terminator-chaplain-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "chaplain-in-terminator-armour"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "terminator_captain_followup": {
+    "document": "marine-terminator-captain.md",
+    "audit": "marine-terminator-captain-audit.json",
+    "observed_at": "2026-10-18",
+    "new_selectable_identities": [
+      "captain-in-terminator-armour"
+    ],
+    "source_book_id": "000000139",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "gravis_ancient_batch_followup": {
+    "document": "marine-gravis-ancient-batch.md",
+    "audit": "marine-gravis-ancient-batch-audit.json",
+    "observed_at": "2026-10-18",
+    "new_implemented_identities": [
+      "captain-in-gravis-armour",
+      "ancient-in-terminator-armour"
+    ],
+    "source_book_id": "000000139",
+    "validation_status": "tests_passed_local_targeted",
+    "current_build_validation": "pending_final_complete_run",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "phobos_batch_followup": {
+    "document": "marine-phobos-batch.md",
+    "audit": "marine-phobos-batch-audit.json",
+    "observed_at": "2026-10-18",
+    "new_implemented_identities": [
+      "infiltrator-squad",
+      "lieutenant-in-phobos-armour"
+    ],
+    "source_book_id": "000000139",
+    "validation_status": "tests_passed_local_targeted",
+    "current_build_validation": "pending_final_complete_run",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "land_speeder_followup": {
+    "document": "marine-land-speeder.md",
+    "audit": "marine-land-speeder-audit.json",
+    "observed_at": "2026-10-19",
+    "implemented_identity": "land-speeder",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002711",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v60",
+    "validation_status": "tests_passed_local_targeted",
+    "validation_artifact": ".tools/verification/20261019T104954638154Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v78.json",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "chaplain_on_bike_followup": {
+    "document": "marine-chaplain-on-bike.md",
+    "audit": "marine-chaplain-on-bike-audit.json",
+    "observed_at": "2026-10-19",
+    "implemented_identity": "chaplain-on-bike",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000094",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v61",
+    "validation_status": "tests_passed_local_targeted",
+    "validation_artifact": ".tools/verification/20261019T110640219017Z/results.json",
+    "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v80.json",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "adrax_agatone_followup": {
+    "document": "marine-adrax-agatone.md",
+    "validation_artifact": ".tools/verification/20261019T114211481946Z/results.json",
+    "fixed_data_artifact": ".tools/wahapedia-fixed-data-review-v87.json",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "librarian_profile_followup": {
+    "document": "marine-librarian.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002266",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v66",
+    "validation_status": "tests_passed_local_targeted; selectable",
+    "implemented_abilities": [
+      "Librarius",
+      "Psychic Hood",
+      "Veil of Time",
+      "Force Dome"
+    ],
+    "validation_artifact": ".tools/verification/20261019T121509900605Z/results.json",
+    "fixed_data_artifact": ".tools/wahapedia-fixed-data-review-v91.json",
+    "local_profile_check": "tests/test_librarian_current.gd",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "cato_sicarius_followup": {
+    "document": "marine-cato-sicarius.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000004184",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v79-marneus-calgar-source-profile",
+    "validation_status": "tests_passed_local_targeted; selectable at 115 points",
+    "implemented_abilities": [
+      "Knight Champion of Macragge",
+      "Honour or Death",
+      "Combat Doctrines",
+      "Transhuman Strategist"
+    ],
+    "exact_leader_target": "Victrix Honour Guard (000004185), admitted in the consolidated local catalog and verified as Cato’s exact target.",
+    "conditional_dependency": "Captain of the Honour Guard is locally implemented: when Calgar is in the army, Cato changes from Leader to Support, retains only the source-listed Victrix Honour Guard target, and cannot be selected as Warlord.",
+    "validation_artifact": ".tools/verification/20261019T174559547253Z/results.json",
+    "local_profile_check": "tests/test_cato_sicarius.gd",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "status": "Cato source profile, exact Victrix Leader target, and Calgar-dependent Support replacement passed focused local checks."
+  },
+  "victrix_honour_guard_followup": {
+    "document": "marine-victrix-honour-guard.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000004185",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v79-marneus-calgar-source-profile",
+    "validation_status": "tests_passed_local_targeted; selectable at 135/265 points",
+    "implemented_abilities": [
+      "Glory of Ultramar",
+      "Honour Guard of Macragge",
+      "Banner of Macragge",
+      "Combat Doctrines"
+    ],
+    "validation_artifact": ".tools/verification/20261019T172535463675Z/results.json",
+    "local_profile_check": "tests/test_victrix_honour_guard.gd",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "marneus_calgar_followup": {
+    "document": "marine-marneus-calgar.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000004246",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v79-marneus-calgar-source-profile",
+    "runtime_export_artifact": ".tools/marine-runtime-v105.json",
+    "validation_artifact": ".tools/verification/20261019T174559547253Z/results.json",
+    "local_profile_check": "tests/test_marneus_calgar.gd",
+    "implemented_abilities": [
+      "Deep Strike",
+      "Leader",
+      "Combat Doctrines",
+      "Codex Adept",
+      "Master Tactician",
+      "Thunderhawk Insertion",
+      "Captain of the Honour Guard interaction"
+    ],
+    "leader_targets_from_source": 14,
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "limitations": "Leader options are bounded to admitted profiles; Thunderhawk Insertion accepts one friendly Gravis, Phobos or Tacticus unit; network validation and full army/faction legality are not certified."
+  },
+  "kor_sarro_khan_followup": {
+    "document": "marine-kor-sarro-khan.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002709",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v80-kor-sarro-khan-source-profile",
+    "runtime_export_artifact": ".tools/marine-runtime-v106.json",
+    "validation_artifact": ".tools/verification/20261019T175834766365Z/results.json",
+    "local_profile_check": "tests/test_kor_sarro_khan.gd",
+    "implemented_abilities": [
+      "Leader",
+      "Combat Doctrines",
+      "Transhuman Strategist",
+      "Trophy Taker",
+      "For the Khan!"
+    ],
+    "leader_targets_from_source": 6,
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "limitations": "Only the non-jump Vanguard Veteran Squad is a Leader target. Attachment options are bounded to admitted compatible profiles. Local targeted checks do not certify full army/faction legality."
+  },
+  "captain_titus_followup": {
+    "document": "marine-captain-titus.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000004187",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v81-captain-titus-source-profile",
+    "runtime_export_artifact": ".tools/marine-runtime-v107.json",
+    "validation_artifact": ".tools/verification/20261019T181223215266Z/results.json",
+    "local_profile_check": "tests/test_captain_titus.gd",
+    "implemented_abilities": [
+      "Feel No Pain 5+",
+      "Leader",
+      "Combat Doctrines",
+      "Transhuman Strategist",
+      "Press the Attack",
+      "Righteous Fury",
+      "Honour of Ultramar",
+      "Anti-non-Monster/Vehicle 2+"
+    ],
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "limitations": "The local Leader target table has no target entries for Titus. Focused local checks do not establish full army/faction legality."
+  },
+  "lieutenant_source_reconciliation_followup": {
+    "document": "marine-lieutenant.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001346",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v82-lieutenant-source-reconciliation",
+    "implemented_profile": "50 points, one 40 mm model, source characteristics, keywords, default loadout and every exported weapon replacement; optional Storm Shield grants a bearer-only 4+ invulnerable save with the Neo-volkite package",
+    "implemented_abilities": [
+      "Support",
+      "Combat Doctrines",
+      "Tactical Precision",
+      "Demi-company Commander"
+    ],
+    "runtime_export_artifact": ".tools/marine-runtime-v108.json",
+    "validation_artifact": ".tools/verification/20261019T183235481116Z/results.json",
+    "local_profile_check": "tests/test_marine_lieutenant.gd",
+    "validation_status": "tests_passed_local_targeted",
+    "catalog_status": "selectable_from_consolidated_local_catalog",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "limitations": "Network validation remains deferred to final integration. Focused checks and source reconciliation do not certify complete faction composition or full army legality."
+  },
+  "vulkan_hestan_followup": {
+    "document": "marine-vulkan-hestan.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002726",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v84-vulkan-hestan",
+    "implemented_profile": "105 points, one 40 mm model, exported characteristics, keywords and fixed Bolt Pistol, Gauntlet of the Forge and Spear of Vulkan profiles",
+    "implemented_abilities": [
+      "Leader",
+      "Combat Doctrines",
+      "Transhuman Strategist",
+      "Seeker of the Unfound",
+      "Forgefather"
+    ],
+    "validation_artifact": ".tools/verification/20261019T184929707752Z/results.json",
+    "local_profile_check": "tests/test_vulkan_hestan.gd",
+    "validation_status": "tests_passed_local_targeted",
+    "catalog_status": "selectable_from_consolidated_local_catalog",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "limitations": "Vulkan is admitted with the locally supported source-listed Leader targets. Focused local checks do not certify complete faction composition or full army legality.",
+    "runtime_export_artifact": ".tools/marine-runtime-v109.json"
+  },
+  "rhino_followup": {
+    "document": "marine-transports.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002723",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "implemented_profile": "70 points for one model, 80 points for each copy after the second, extracted characteristics, keywords, default weapon inventory, optional Hunter-killer Missile, 12-model Transport capacity and source restrictions",
+    "implemented_abilities": ["Veiling Smoke", "Transport", "Emergency Disembark"],
+    "validation_artifact": ".tools/verification/20261019T204954010696Z/results.json",
+    "local_profile_check": "tests/test_marine_rhino_admission.gd",
+    "validation_status": "tests_passed_local_targeted",
+    "catalog_status": "selectable_from_consolidated_local_catalog",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "limitations": "Focused local checks do not certify complete faction composition or full army legality. Geometry uses the documented circular vehicle proxy."
+  },
+  "firing_deck_followup": {
+    "document": "marine-transports.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_ability_id": "000008334",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "parameters": {"impulsor": 7, "rhino": 2},
+    "implemented_scope": "Shooting-phase passenger weapon selection in the transport attack plan; excludes passenger models whose unit already shot and One Shot profiles; enforces one ranged weapon profile per selected passenger model and Firing Deck X; locks embarked units from shooting for the turn when their transport is selected to shoot; resolves the weapons as part of the transport attack activation.",
+    "validation_artifact": ".tools/verification/20261019T215152941353Z/results.json",
+    "local_profile_check": "tests/test_marine_firing_deck.gd",
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "limitations": "Focused local checks validate only the bounded Firing Deck implementation. Network validation and full army legality remain uncertified."
+  },
+  "gladius_rules_followup": {
+    "document": "combat-doctrines.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "detachment_id": "000000750",
+    "detachment_ability": {"id": "000008355", "name": "Codex Discipline"},
+    "stratagem_ids": ["000008352002", "000008352003", "000008352004", "000008352005", "000008352006", "000008352007"],
+    "validation_artifact": ".tools/verification/20261019T215152941353Z/results.json",
+    "local_suites": ["test_combat_doctrines.gd", "test_detachment_stratagems.gd"],
+    "validation_status": "tests_passed_local_targeted",
+    "source_discrepancy": "The local Detachments.csv row lists Priority Assets for Gladius, while the prior page-context review recorded more than one disposition. Mission compatibility is unresolved and remains uncertified.",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "stormlance_detachment_followup": {
+    "document": "combat-doctrines.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "detachment_id": "000000796",
+    "detachment_ability": {"id": "000008485", "name": "Lightning-fast Strike"},
+    "stratagem_ids_implemented": ["000008487002", "000008487003", "000008487004"],
+    "enhancement_ids_implemented_local_validation_pending": ["000008486002", "000008486003"],
+    "implemented_scope": "Declared local detachment selection; +2 inches Movement for friendly Adeptus Astartes Mounted and Speeder units, including Normal, Advance and Fall Back movement allowances; Sudden Onslaught fixed Advance; Wind-Swift Evasion end-Fight movement preview; Hurtling Targets pre-dice defender reaction and ranged -1 to Hit; local catalog/admission and runtime paths for Supercharged Engines and Auspex Triangulation Shrines on the supported eligible profiles.",
+    "validation_artifact": ".tools/verification/20261019T220424916822Z/results.json",
+    "local_suites": ["test_combat_doctrines.gd", "test_capabilities.gd"],
+    "validation_status": "tests_passed_local_targeted",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "mission_compatibility": "not_certified",
+    "full_match_certified": false,
+    "stratagem_validation_artifact": null,
+    "stratagem_validation_status": "tests_passed_local_partial",
+    "stratagem_validation_suites": ["test_combat_doctrines.gd", "test_detachment_stratagems.gd", "test_attack_sequence.gd", "test_movement_rerolls.gd", "test_capabilities.gd"],
+    "limitations": "Wind-Swift obstacle/crowded-base interactions need broader coverage; the two exported enhancements have implementation and authored focused checks but are not locally validated in the current increment. The selected CA mission and checked-roster snapshot remain Gladius-only; no full army legality certification."
+  },
+  "transport_admission_followup": {
+    "document": "marine-transports.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "datasheet_ids": {
+      "land-raider": "000000065",
+      "land-raider-crusader": "000000066",
+      "land-raider-redeemer": "000002173",
+      "drop-pod": "000000087",
+      "impulsor": "000002568",
+      "repulsor": "000002721",
+      "repulsor-executioner": "000002722",
+      "rhino": "000002723"
+    },
+    "validation_artifact": ".tools/verification/20261019T205749184284Z/results.json",
+    "construction_cap_followup_artifact": ".tools/verification/20261019T210109473257Z/results.json",
+    "local_profile_check": "tests/test_marine_transport_admission.gd",
+    "catalog_status": "all_eight_transport_profiles_selectable_from_consolidated_local_catalog",
+    "local_rules_status": "23_of_23_focused_local_processes_passed",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "limitations": "Transport support is bounded to locally extracted profiles and implemented interactions. Wardens of Ultramar was added in the follow-up recorded below; no full faction or army legality certification is implied."
+  },
+  "wardens_of_ultramar_followup": {
+    "document": "marine-wardens-ultramar.md",
+    "observed_at": "2026-10-19",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000004188",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "implemented_profile": "six fixed 40 mm models for 115 points; individual defense and weapon profiles retained, including Gaius Silva's 5+ invulnerable save",
+    "implemented_abilities": ["Support", "Combat Doctrines", "Raise the Banner", "Strategium Command"],
+    "strategium_command_scope": "After deployment, select up to three deployed friendly Adeptus Astartes units; redeploy with normal set-up restrictions or place in Strategic Reserves without the normal points cap; resolves before Scouts.",
+    "validation_artifacts": [".tools/verification/20261019T211419295401Z/results.json", ".tools/verification/20261019T212547325101Z/results.json", ".tools/verification/20261019T212717951667Z/results.json"],
+    "local_profile_check": "tests/test_marine_wardens_profile.gd",
+    "validation_status": "tests_passed_local_targeted",
+    "catalog_status": "selectable_from_consolidated_local_catalog",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "limitations": "Local checks cover only this bounded profile and implemented interactions. Complete faction construction and full army legality remain uncertified."
+  }
+}

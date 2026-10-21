@@ -1,0 +1,33 @@
+{
+  "identity": "storm-speeder-hailstrike",
+  "source": {
+    "authority": "Wahapedia 11th-edition local export",
+    "source_book_id": "000000139",
+    "datasheet_id": "000000124",
+    "export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Storm-Speeder-Hailstrike"
+  },
+  "scope": {
+    "models": 1,
+    "base": "90 mm circle (45 mm radius proxy)",
+    "points_first_second": 110,
+    "points_third_plus": 120,
+    "max_supported_copies": 3,
+    "weapons": [
+      "Fragstorm Grenade Launchers (Blast 2, Ignores Cover)",
+      "Ironhail Heavy Stubber Array (Rapid Fire 6, Ignores Cover)",
+      "Onslaught Gatling Cannon (conditional Devastating Wounds, Ignores Cover)",
+      "Armoured Impact"
+    ],
+    "abilities": [
+      "Deep Strike",
+      "Damaged 4",
+      "Deadly Demise D3",
+      "Hailstrike"
+    ]
+  },
+  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v70.json",
+  "local_validation": ".tools/verification/20261019T095857106371Z/results.json",
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_match_certified": false
+}

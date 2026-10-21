@@ -1,6 +1,8 @@
 extends RefCounted
 ## Ground-level terrain and explicit cylindrical visibility proxies.
 const Board = preload("res://scripts/rules.gd")
+const Smoke = preload("res://scripts/edition_11/smokescreen.gd")
+const Detection = preload("res://scripts/edition_11/detection_rules.gd")
 const EPSILON := 0.001
 const SIGHT_RADIUS := 0.5 / 25.4 # Half of the required 1mm sightline width.
 const DEFAULT_LAYOUT := "terrain-11e-v1"
@@ -35,6 +37,15 @@ static func has_keyword(model: Dictionary, keywords: Array[String]) -> bool:
 		if keyword.to_lower() in keywords: return true
 	return false
 
+static func mobile_unit(state: Dictionary, model: int) -> bool:
+	if has_keyword(state.units[model], ["mobile"]): return true
+	var squad: int = state.units[model].squad
+	var mobile: Dictionary = state.get("detachment_stratagems", {}).get("mobile", {}).get(squad, {})
+	if mobile.get("phase_key", "") == "%d:%s" % [state.get("turn", -1), state.get("phase", "")]: return true
+	for member: int in _alive(state, squad):
+		if str(state.units[member].get("definition_id", "")).ends_with(":suboden-khan"): return true
+	return false
+
 static func within(model: Dictionary, bounds: Rect2) -> bool:
 	return model.position.distance_to(model.position.clamp(bounds.position, bounds.end)) <= float(model.radius) + EPSILON
 
@@ -53,7 +64,7 @@ static func segment_hits(first: Vector2, last: Vector2, rect: Rect2) -> bool:
 
 static func movement_obstacles(state: Dictionary, model: int) -> Array[Rect2]:
 	var blocked: Array[Rect2] = []
-	var passes_dense := has_keyword(state.units[model], ["infantry", "beasts", "swarm", "mobile"])
+	var passes_dense := has_keyword(state.units[model], ["infantry", "beasts", "swarm"]) or mobile_unit(state, model)
 	for area: Dictionary in areas(state):
 		for feature: Dictionary in area.features:
 			if area.category == "legacy" or (area.category == "dense" and not passes_dense and float(feature.height) > 2.0): blocked.append(feature.bounds)
@@ -126,7 +137,7 @@ static func pair(state: Dictionary, observer: int, target: int) -> Dictionary:
 				if area.category == "dense": dense_blocked = true
 	var is_hidden := hidden(state, target)
 	var grounded := is_hidden and dense_blocked
-	var detection := 12.0 if grounded else 15.0
+	var detection := Detection.detection_range(state, target, grounded)
 	var distance: float = maxf(0.0, first.position.distance_to(last.position) - float(first.radius) - float(last.radius))
 	if is_hidden and distance > detection + EPSILON:
 		return {"visible": false, "fully_visible": false, "hidden": true, "detection": detection, "gone_to_ground": grounded}
@@ -152,6 +163,7 @@ static func benefit_of_cover(state: Dictionary, observer: int, squad: int) -> bo
 	if legacy(state): return false
 	var ids := _alive(state, squad)
 	if ids.is_empty(): return false
+	if Detection.stealth(state, squad) or Smoke.cover(state, observer, squad): return true
 	for id: int in ids:
 		var in_area := has_keyword(state.units[id], ["infantry", "beasts", "swarm"]) and not model_areas(state, id).is_empty()
 		if not in_area and pair(state, observer, id).fully_visible: return false
@@ -164,3 +176,43 @@ static func targeting(state: Dictionary, observer: int, squad: int) -> Dictionar
 		visible = visible or pair(state, observer, id).visible
 		distance = minf(distance, maxf(0.0, state.units[observer].position.distance_to(state.units[id].position) - float(state.units[observer].radius) - float(state.units[id].radius)))
 	return {"visible": visible, "distance": distance, "cover": benefit_of_cover(state, observer, squad)}
+
+static func visible_features(state: Dictionary, observer: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if not state.units.has(observer) or state.units[observer].wounds <= 0: return result
+	var terrain_areas := areas(state)
+	for area_index in range(terrain_areas.size()):
+		var area: Dictionary = terrain_areas[area_index]
+		for feature_index in range(area.get("features", []).size()):
+			if _feature_visible(state, observer, area_index, feature_index):
+				result.append({"area": area_index, "feature": feature_index, "label": "%s · section %d" % [str(area.get("name", "Terrain")), feature_index + 1]})
+	return result
+
+static func _feature_visible(state: Dictionary, observer: int, area_index: int, feature_index: int) -> bool:
+	var terrain_areas := areas(state)
+	if area_index < 0 or area_index >= terrain_areas.size(): return false
+	var area: Dictionary = terrain_areas[area_index]
+	var features: Array = area.get("features", [])
+	if feature_index < 0 or feature_index >= features.size(): return false
+	var rect: Rect2 = features[feature_index].bounds
+	var center := rect.get_center()
+	var samples: Array[Vector2] = [center, rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y),
+		Vector2(center.x, rect.position.y), Vector2(rect.end.x, center.y), Vector2(center.x, rect.end.y), Vector2(rect.position.x, center.y)]
+	var origin: Vector2 = state.units[observer].position
+	for target: Vector2 in samples:
+		var blocked := false
+		for blocker_index in range(terrain_areas.size()):
+			var blocker: Dictionary = terrain_areas[blocker_index]
+			if blocker_index != area_index and blocker.category in ["light", "dense"] and not within(state.units[observer], blocker.bounds) and segment_hits(origin, target, blocker.bounds.grow(SIGHT_RADIUS)):
+				blocked = true
+				break
+			for other_feature_index in range(blocker.get("features", []).size()):
+				if blocker_index == area_index and other_feature_index == feature_index: continue
+				var other: Dictionary = blocker.features[other_feature_index]
+				if float(other.get("height", 0.0)) < float(state.units[observer].get("sight_height", 1.3)): continue
+				if segment_hits(origin, target, other.bounds.grow(SIGHT_RADIUS)):
+					blocked = true
+					break
+			if blocked: break
+		if not blocked: return true
+	return false

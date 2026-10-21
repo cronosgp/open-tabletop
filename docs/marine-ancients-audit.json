@@ -1,0 +1,109 @@
+{
+  "id": "marine-ancients-e11-2026-10-18",
+  "edition": "11e",
+  "source_book_id": "000000139",
+  "datasheet_ids": {
+    "ancient": "000002775",
+    "bladeguard-ancient": "000001165"
+  },
+  "source_urls": [
+    "https://wahapedia.ru/wh40k11ed/factions/space-marines/Ancient",
+    "https://wahapedia.ru/wh40k11ed/factions/space-marines/Bladeguard-Ancient"
+  ],
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "data_comparison": {
+    "status": "passed",
+    "numeric_checks": 64,
+    "errors": [],
+    "float_absolute_tolerance": 1e-12,
+    "source_catalog_sha256": "c88415a35692cb7d70022cf6af1050244c72713f72230c2bffb74d89bcb90c35",
+    "runtime_sha256": "a8899eb06ccba47deaaa7d000dc51bda4057f378cdb2826467fbe37d609f9859",
+    "comparison_scope": "Printed base characteristics; Honour of the Company modifies OC during play, not the stored source profile."
+  },
+  "implementation": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v13",
+    "unit_abilities": "track-a-current-datasheets-2026-10-v15",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v13",
+    "files": [
+      {
+        "path": "scripts/edition_11/ancient_rules.gd",
+        "sha256": "fde208d43fbddd266030eb2b201b4500d3ad3ec34ab39abb27b33c87f307dfbd"
+      },
+      {
+        "path": "scripts/edition_11/support_attachments.gd",
+        "sha256": "7d4ceeaf2793c2a7d2cb3f0dd34099fedc95ffb07c591f85b4b6f3a37641cb17"
+      },
+      {
+        "path": "scripts/edition_11/morale.gd",
+        "sha256": "7043d774c2edb5ba16ea4c85e3d10f1f1bde555bb44ba59c1b9d150840fedaa4"
+      },
+      {
+        "path": "scripts/edition_11/attack_plan.gd",
+        "sha256": "81082bf8ce3481f72d69058d77b31f17c6057a20137a22705c337a8e24197d43"
+      },
+      {
+        "path": "tests/test_ancients.gd",
+        "sha256": "7815bfb0aef29f1873ff3847d50cd3e1edef8efc55978bc5945fc3b135a7b6fe"
+      }
+    ]
+  },
+  "local_validation": {
+    "status": "passed",
+    "reports": [
+      {
+        "report": ".tools/verification/20261018T163915122250Z/results.json",
+        "sha256": "25f8c89212fc153deef39833625eee15b8667d6d2c79686bbf8d2346a776868f",
+        "status": "passed",
+        "processes": 24,
+        "scope": "21 Godot suites plus import, Python and startup before final UI copy and supplementary public-attachment test"
+      },
+      {
+        "report": ".tools/verification/20261018T164446594870Z/results.json",
+        "sha256": "ceace62ab415219fec21e069c725e8e408f0d2861377996f4200e87cbcd36f29",
+        "status": "passed",
+        "processes": 7,
+        "scope": "Final UI copy, live planner count, both banner sources and public Support attachment commands; 4 Godot suites plus import, Python and startup"
+      }
+    ],
+    "python_checks": 30,
+    "broad_godot_suites": 21,
+    "final_godot_suites": 4
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_match_certified": false,
+  "full_faction_certified": false,
+  "visual_review": {
+    "kind": "staged admitted-profile fixtures",
+    "viewport": [
+      1600,
+      1000
+    ],
+    "captures": [
+      {
+        "path": ".tools/ancients-prep-before.png",
+        "sha256": "95ee922ec7bbabf00e6a0ace783e6a40113d7b1952e78dc2cdb01fdd3db4bf12",
+        "inspected": true
+      },
+      {
+        "path": ".tools/ancients-prep-after.png",
+        "sha256": "0abd49a14e59e286f0b0d934837928059321be0643f5902f7c78873cc4de0a17",
+        "inspected": true
+      },
+      {
+        "path": ".tools/ancients-deeds-after.png",
+        "sha256": "5517d1f97dbaeb2ac7aac5d121c99808b2f750e02e953af900a0c3ea54d8c230",
+        "inspected": true
+      }
+    ],
+    "other_viewports_checked": false,
+    "initial_missing_visual_bounds_capture_replaced": true
+  },
+  "limits": [
+    "Current shared-book profiles and admitted bodyguards only",
+    "No chapter, Legends or Boarding Actions adaptations",
+    "Full army/faction/network certification incomplete"
+  ]
+}

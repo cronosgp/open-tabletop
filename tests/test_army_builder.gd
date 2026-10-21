@@ -3,7 +3,7 @@ const R = preload("res://scripts/army_roster.gd")
 const F = preload("res://tests/fixtures/army_catalog_fixture.gd")
 const Profiles = preload("res://scripts/army_profiles.gd")
 const BuilderPanel = preload("res://scripts/army_builder_panel.gd")
-const ROOT := "res://.tools/army-builder-test"
+var ROOT := "res://.tools/army-builder-test-%d" % OS.get_process_id()
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -38,6 +38,9 @@ func run() -> void:
 	panel.storage_path = ROOT.path_join("profiles.json")
 	panel.cache_directory = ROOT.path_join("catalogs")
 	root.add_child(panel)
+	# Synthetic persistence fixtures are injected explicitly; production ignores API caches.
+	panel.source.catalog = catalog
+	panel._fill_factions()
 	for index in range(panel.faction_picker.item_count):
 		if panel.faction_picker.get_item_text(index) == "Space Marines":
 			panel.faction_picker.select(index)
@@ -46,6 +49,7 @@ func run() -> void:
 	panel._select_unit(0)
 	panel.choice_picker.select(1)
 	panel.copies.value = 2
+	check("20 models" in panel.addition_summary.text and "300 pts added" in panel.addition_summary.text, "Addition preview multiplies both composition and points by copies")
 	panel._add()
 	check(panel.draft.entries[0].visual_variants.size() == panel.draft.entries[0].models * panel.draft.entries[0].copies, "Every miniature receives a local appearance slot in the army draft")
 	panel.draft.entries[0].visual_variants[0] = "variant-one"
@@ -78,7 +82,7 @@ func run() -> void:
 	panel._select_entry(0)
 	panel.entry_models_input.value = 9
 	panel._apply_entry_size()
-	check(panel.draft.entries[0].models == 9 and panel.draft.entries[0].cost == null and panel.draft.entries[0].visual_variants.size() == 18, "Editing model count marks price unconfirmed and resizes appearance slots")
+	check(panel.draft.entries[0].models == 10 and panel.draft.entries[0].cost == 150 and panel.draft.entries[0].visual_variants.size() == 20 and "outside the consolidated" in panel.notice.text, "Unsupported composition edit preserves cost and appearance assignments")
 	panel.entry_models_input.value = 10
 	panel._apply_entry_size()
 	panel._reprice()
@@ -91,6 +95,42 @@ func run() -> void:
 	check(not corrupt.error.is_empty() and not corrupt.save_list(standard).error.is_empty() and FileAccess.get_file_as_string(corrupt_path) == "{broken", "Malformed profiles cannot be overwritten with an empty library")
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
-	check(game.match_tabs.get_tab_title(3) == "Armies" and game.army_builder != null and not game.combat_enabled, "Builder is accessible without requiring a combat exercise")
+	check(game.match_tabs.get_tab_title(3) == "Army & Models" and game.army_builder != null and not game.combat_enabled and game.workshop_tabs.is_ancestor_of(game.model_imports), "Unified builder and imports are accessible without requiring a combat exercise")
+	var local_panel = game.army_builder
+	var api := {"id": "openhammer:11e:Space%20Marines:b007-fc7b-8e4a-b017", "name": "Infernus Squad", "edition": "11e", "faction": "Space Marines", "role": "Infantry", "source_digest": "stale-api", "options": [{"models": 1, "cost": 85}, {"models": 6, "cost": 180}]}
+	panel.unit_picker.add_item("Infernus Squad")
+	panel.unit_picker.set_item_metadata(panel.unit_picker.item_count - 1, api)
+	panel._select_unit(panel.unit_picker.item_count - 1)
+	check(panel.choice_picker.item_count == 2 and "10 models (Wahapedia e11)" in panel.choice_picker.get_item_text(1) and panel.selected_unit.options[1].cost == 190, "Actual builder offers approved 5/10 Infernus choices instead of stale API sizes/costs")
+	panel.draft = R.new_list("11e", "Space Marines", "incursion", 1000)
+	panel.source.catalog.units.append(api)
+	panel.choice_picker.select(1)
+	panel.copies.value = 1
+	panel._add()
+	check(panel.draft.entries.is_empty() and "outside the consolidated local catalog" in panel.notice.text, "An API-only identity cannot enter the local construction catalog")
+	var local_infernus: Dictionary = local_panel.source.lookup("40kdc:11e:adeptus-astartes:infernus-squad")
+	local_panel.unit_picker.clear()
+	local_panel.unit_picker.add_item(local_infernus.name)
+	local_panel.unit_picker.set_item_metadata(0, local_infernus)
+	local_panel._select_unit(0)
+	local_panel.draft = R.new_list("11e", "Space Marines", "incursion", 1000)
+	local_panel.choice_picker.select(1)
+	local_panel._add()
+	check(local_panel.draft.entries.size() == 1 and local_panel.draft.entries[0].unit_id == "40kdc:11e:adeptus-astartes:infernus-squad" and local_panel.draft.entries[0].models == 10 and local_panel.draft.entries[0].cost == 190, "Builder stores the local canonical identity, size and current source cost")
+	local_panel._reprice()
+	check(local_panel.draft.entries[0].cost == 190, "Explicit repricing preserves the approved profile price")
+	var local_terminators: Dictionary = local_panel.source.lookup("40kdc:11e:adeptus-astartes:terminator-squad")
+	local_panel.unit_picker.clear()
+	local_panel.unit_picker.add_item(local_terminators.name)
+	local_panel.unit_picker.set_item_metadata(0, local_terminators)
+	local_panel._select_unit(0)
+	local_panel.draft = R.new_list("11e", "Space Marines", "custom", 2000)
+	local_panel.choice_picker.select(0)
+	local_panel.copies.value = 3
+	check("3rd+ 230 pts" in local_panel.choice_picker.get_item_text(0) and "610 pts added" in local_panel.addition_summary.text, "Builder preview exposes the sourced later-copy tier and charges the third Terminator squad at its correct cost")
+	local_panel._add()
+	check(local_panel.draft.entries[0].get("third_plus_cost", -1) == 230 and R.summary(local_panel.draft).points == 610 and "610 pts" in local_panel.entries.get_item_text(0), "Builder saves and displays tiered Terminator prices accurately")
+	local_panel._reprice()
+	check(R.summary(local_panel.draft).points == 610, "Explicit repricing retains the tiered current-source price")
 	print("Army builder/profile checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

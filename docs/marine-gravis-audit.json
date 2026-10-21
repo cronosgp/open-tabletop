@@ -1,0 +1,83 @@
+{
+  "id": "marine-gravis-e11-2026-10-18",
+  "edition": "11e",
+  "source_book_id": "000000139",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "catalog_sha256": "c88415a35692cb7d70022cf6af1050244c72713f72230c2bffb74d89bcb90c35",
+  "subjects": [
+    {
+      "name": "Apothecary Biologis",
+      "datasheet_id": "000000060",
+      "source_book_id": "000000139",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Apothecary-Biologis",
+      "live_page_rechecked": true
+    },
+    {
+      "name": "Aggressor Squad",
+      "datasheet_id": "000002099",
+      "source_book_id": "000000139",
+      "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Aggressor-Squad",
+      "live_page_rechecked": true
+    }
+  ],
+  "implementation": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v5",
+    "unit_abilities": "track-a-current-datasheets-2026-10-v4",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v5"
+  },
+  "local_validation": {
+    "report": ".tools/verification/20261018T053122122317Z/results.json",
+    "sha256": "af94768967315619cd46c854f0d40485a8e88020edf85d4796ceeae4d755030f",
+    "status": "passed",
+    "processes": 14,
+    "checks": [
+      "import",
+      "python",
+      "startup",
+      "test_aggressors",
+      "test_army_builder",
+      "test_biologis",
+      "test_capabilities",
+      "test_combat_doctrines",
+      "test_current_unit_combat",
+      "test_equipment",
+      "test_marine_ability_boundaries",
+      "test_marine_fire_support",
+      "test_roster_validation",
+      "test_unit_reserves"
+    ],
+    "python_checks": 30
+  },
+  "source_hashes": {
+    "scripts/edition_11/current_reference_marine_profiles.gd": "f9f76c85ad95338c61bff93a31cc6bec307be917e05fa066de5b2f8aefe8d352",
+    "scripts/edition_11/unit_abilities.gd": "567cbcf481a5613c238c099e1ddca21d3a3715aa917bd436df30a4697761e7f3",
+    "scripts/edition_11/unit_actions.gd": "cdd7d1722b35412d11ba076eef1bd5888dd86966244a702dee42f35ce69ae4ee",
+    "scripts/edition_11/army_capabilities.gd": "0de125a5e11f2a02c23c2328f04b293d97dfeb0ae2cfd09504141628f00b0d05",
+    "scripts/edition_11/roster_validation.gd": "5e1a9be85d6e13d7db2d9c9c05fa5c3bc24b6ac37bdaf3ff34dacd3cffd259c0",
+    "tests/test_aggressors.gd": "97d229fdac6ad61a86710c571d2843d02770e267ddc855fc712419abdfd800c6",
+    "tests/test_biologis.gd": "59c9aed67ae6041baf0ce49e49c08c1d1c6c7bd1c585b6a92d0fb77101bac83d"
+  },
+  "gui": {
+    "type": "staged real Godot setup fixture",
+    "viewport": [
+      1600,
+      1000
+    ],
+    "before": ".tools/gravis-setup-before.png",
+    "after": ".tools/gravis-setup-after.png",
+    "inspected": true,
+    "finding": "Whole-unit equipment label shortened so the full package fits at the captured viewport"
+  },
+  "network_validation": "deferred_by_user_to_final_integration",
+  "selectable_shared_marine_identities": 10,
+  "shared_book_source_identities": 85,
+  "remaining_shared_book_identities_not_admitted": 75,
+  "full_match_certified": false,
+  "limitations": [
+    "Original six profiles retain fixed-loadout scope",
+    "Other source-book/chapter Leaders and Support pairings remain unadmitted",
+    "Lethal Hits reuses the current shared resolver; no new per-critical-hit manual decline window",
+    "No new GW MFM certification or network validation",
+    "No small-window or completed-mission visual claim"
+  ]
+}

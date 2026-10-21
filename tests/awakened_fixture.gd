@@ -2,6 +2,7 @@ extends RefCounted
 const P = preload("res://scripts/edition_11/prepared_training.gd")
 const C = P.Combat
 const A = C.Awakened
+const UnitActions = C.UnitActions
 static func selections() -> Dictionary:
 	return {1: {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [
 		{"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 5, "copies": 1}]},
@@ -9,8 +10,28 @@ static func selections() -> Dictionary:
 		{"definition_id": A.OVERLORD, "models": 1, "copies": 1},
 		{"definition_id": A.BODYGUARDS[0], "models": 10, "copies": 1},
 		{"definition_id": A.BODYGUARDS[1], "models": 5, "copies": 1}]}}
-static func fresh(options: Dictionary = {"awakened_dynasty": true}) -> Dictionary:
-	return P.initial_state(options, selections())
+static func fresh(options: Dictionary = {}) -> Dictionary:
+	var enabled_options := {"awakened_dynasty": true, "unit_abilities": true}
+	for key: Variant in options: enabled_options[key] = options[key]
+	return P.initial_state(enabled_options, selections())
+
+static func finish_preparations(state: Dictionary) -> String:
+	var action := UnitActions.setup_actor(state)
+	if action == 1:
+		var marine_done := _choice(state, 1, "setup-done")
+		if not marine_done.is_empty(): return marine_done
+	if UnitActions.setup_actor(state) == 2:
+		var warlord := _choice(state, 2, "warlord", 600)
+		if not warlord.is_empty(): return warlord
+		var necron_done := _choice(state, 2, "setup-done")
+		if not necron_done.is_empty(): return necron_done
+	return "" if UnitActions.setup_actor(state) == -1 else "Preparation fixture did not finish both players."
+
+static func _choice(state: Dictionary, player: int, action: String, model: int = -1) -> String:
+	for option: Dictionary in C.unit_choices(state, player):
+		if option.action == action and (model < 0 or option.model == model):
+			return C.unit_action(state, player, option, Vector2.ZERO, state.revision)
+	return "Missing preparation choice: %s" % action
 static func populate(game, owner: int) -> void:
 	var selection: Dictionary = selections()[owner]
 	var list := P.Training.Roster.new_list("11e", selection.faction, "incursion", 1000)

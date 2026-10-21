@@ -17,6 +17,8 @@ const PHASES := {
 
 const DEFINITIONS := {
 	"assault": {"name": "Assault", "rule": "A unit that Advanced can use Assault Shooting if it has an Assault weapon; that shooting can select only Assault weapons.", "ref": "§§10.05, 24.04"},
+	"anti-fly": {"name": "Anti-Fly X+", "rule": "Against a target with the FLY keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "Core Rules — Anti-X"},
+	"anti-vehicle": {"name": "Anti-Vehicle X+", "rule": "Against a target with the VEHICLE keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "Core Rules — Anti-X"},
 	"blast": {"name": "Blast", "rule": "Adds attack dice for each five models the target had when selected (round down). Blast X adds X dice per five. It cannot target an engaged unit.", "ref": "§24.05"},
 	"close-quarters": {"name": "Close-quarters", "rule": "Enables close-quarters shooting against units your unit is engaged with, subject to the shooting-type and model restrictions in the Core Rules.", "ref": "§§10.06, 24.07"},
 	"devastating-wounds": {"name": "Devastating Wounds", "rule": "A critical wound inflicts mortal wounds equal to the weapon's Damage after its normal damage; each critical wound can damage at most one model, and excess is lost.", "ref": "§24.10"},

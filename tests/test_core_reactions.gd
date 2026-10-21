@@ -3,6 +3,10 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const R = preload("res://scripts/edition_11/core_reactions.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: push_error(message); failures += 1
@@ -37,9 +41,28 @@ func run() -> void:
 	check(R.enabled(s) and C.Capabilities.supported("fire-overwatch") and C.Capabilities.enabled(s, "fire-overwatch"), "Checked matches enable the infantry core reactions")
 	for model: int in C.living(s, 1): s.units[model].position = Vector2(0, 0)
 	for model: int in C.living(s, 4): s.units[model].position = Vector2(8, 0)
-	s.unit_abilities.window = {"kind": "end", "owners": [2]}
+	var fire_overwatch_close_error := C.advance_phase(s, 1, int(s.revision))
+	var fire_overwatch_frame := ResolutionFrames.current(s)
+	check(fire_overwatch_close_error.is_empty() and s.phase == "movement" and fire_overwatch_frame.status == "suspended", "End of Movement opens an eligible core reaction window and suspends its close")
 	check(not find_choice(s, 2, 4, R.OVERWATCH).is_empty(), "Fire Overwatch is offered at the end of the opponent Movement phase")
-	check(use(s, 2, 4, R.OVERWATCH).is_empty() and s.cp[2] == 2 and C.actor(s) == 2 and R.overwatch_shooter(s, 4), "Overwatch spends 1 CP and gives the reacting unit the next shooting window")
+	var decision := PendingDecisions.current(s, ["unit-actions"])
+	var selected_overwatch := find_choice(s, 2, 4, R.OVERWATCH)
+	var overwatch_option_id := ""
+	for option: Dictionary in decision.get("legal_options", []):
+		if option.get("action", "") == selected_overwatch.get("action", "") and int(option.get("target", -1)) == int(selected_overwatch.get("target", -2)) and str(option.get("value", "")) == R.OVERWATCH:
+			overwatch_option_id = str(option.get("id", ""))
+	var decision_before_wrong_owner := var_to_str(s)
+	var wrong_owner_result := MatchCommands.execute(s, 1, {"kind": MatchCommands.SELECT_UNIT_CHOICE,
+		"choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": decision.get("decision_id", ""), "option_id": overwatch_option_id, "choice": selected_overwatch},
+		"point": Vector2.ZERO, "revision": int(s.revision)})
+	check(decision.get("source", "") == "unit-actions" and int(decision.get("priority_player_id", -1)) == 2 and decision.legal_options.size() > 0 and C.actor(s) == 2 and decision.get("resume_frame_id", "") == fire_overwatch_frame.frame_id, "The opponent owns the normalized Fire Overwatch decision linked to phase close")
+	check(not wrong_owner_result.get("error", "").is_empty() and var_to_str(s) == decision_before_wrong_owner, "The active player cannot resolve the opponent's reaction decision")
+	check(not PhaseCloseGate.close_request_error(s, 2, int(s.revision)).is_empty(), "Phase close stays blocked while the Fire Overwatch decision is open")
+	var overwatch_result := MatchCommands.execute(s, 2, {"kind": MatchCommands.SELECT_UNIT_CHOICE,
+		"choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": decision.get("decision_id", ""), "option_id": overwatch_option_id, "choice": selected_overwatch},
+		"point": Vector2.ZERO, "revision": int(s.revision)})
+	check(overwatch_result.get("error", "").is_empty() and s.cp[2] == 2 and R.overwatch_shooter(s, 4) and ResolutionFrames.current(s).status == "suspended", "The identified reaction spends CP, resumes with its shooting action and retains the phase-close frame")
+	check(not PhaseCloseGate.close_request_error(s, 2, int(s.revision)).is_empty(), "The pending Overwatch attack still blocks phase close after the reaction is selected")
 	check(C.attack_window_error(s, 2, 400, s.revision, false).is_empty(), "Overwatch shooting is legal during Movement")
 	check(not C.attack_window_error(s, 2, 400, s.revision, true).is_empty(), "Overwatch cannot be used as a melee attack")
 	var targets := C.AttackPlan.legal_targets(s, 400, false)
@@ -49,6 +72,25 @@ func run() -> void:
 	check(not C.AttackPlan.legal_targets(far, 400, false).has(1), "Overwatch cannot pick a target beyond 24 inches")
 	var prepared := C.AttackPlan.prepare(s, 4, false, C.AttackPlan.single_target(s, 4, 1, false), true)
 	check(prepared.error.is_empty() and prepared.batches[0].context.get("snap_shooting", false) and prepared.batches[0].context.get("hit_reroll", "none") == "none", "Overwatch plans snap shooting without hit rerolls")
+	var framed_state := fixture()
+	for model: int in C.living(framed_state, 1): framed_state.units[model].position = Vector2(0, 0)
+	for model: int in C.living(framed_state, 4): framed_state.units[model].position = Vector2(8, 0)
+	var close_error := C.advance_phase(framed_state, 1, int(framed_state.revision))
+	var close_frame := ResolutionFrames.current(framed_state)
+	var close_decision := PendingDecisions.current(framed_state, ["unit-actions"])
+	check(close_error.is_empty() and framed_state.phase == "movement" and close_frame.status == "suspended", "The real phase-close flow suspends on its open reaction window")
+	check(close_decision.get("resume_frame_id", "") == close_frame.frame_id and close_decision.get("action_id", "") == close_frame.action_id, "The opponent's reaction decision links to the persisted phase-close continuation")
+	var pass_choice: Dictionary = {}
+	for choice: Dictionary in C.unit_choices(framed_state, 2):
+		if choice.get("action", "") == "pass": pass_choice = choice
+	var pass_option_id := ""
+	for option: Dictionary in close_decision.get("legal_options", []):
+		if option.get("action", "") == pass_choice.get("action", "") and int(option.get("target", -1)) == int(pass_choice.get("target", -2)):
+			pass_option_id = str(option.get("id", ""))
+	var pass_result := MatchCommands.execute(framed_state, 2, {"kind": MatchCommands.SELECT_UNIT_CHOICE,
+		"choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": close_decision.get("decision_id", ""), "option_id": pass_option_id, "choice": pass_choice},
+		"point": Vector2.ZERO, "revision": int(framed_state.revision)})
+	check(not pass_option_id.is_empty() and pass_result.get("error", "").is_empty() and framed_state.phase == "shooting" and ResolutionFrames.current(framed_state).is_empty(), "Resolving the opponent's pass resumes and completes the phase-close frame")
 	s = fixture()
 	s.phase = "charge"
 	s.active = 1
@@ -57,7 +99,7 @@ func run() -> void:
 	for model: int in C.living(s, 4): s.units[model].position = Vector2(8, 0)
 	s.core_reactions.chargers = [1]
 	s.squads[1].charge_declared = true
-	s.unit_abilities.window = {"kind": "end", "owners": [2]}
+	check(C.UnitActions.open_end(s), "End of Charge opens an eligible Heroic Intervention window")
 	check(not find_choice(s, 2, 4, R.HEROIC).is_empty() and not find_choice(s, 2, 4, R.FRAY).is_empty(), "Both Heroic Intervention modes are offered at the end of the opponent Charge phase")
 	check(use(s, 2, 4, R.HEROIC).is_empty() and s.cp[2] == 2 and C.actor(s) == 2 and R.heroic_charger(s, 2, 4), "Leap to Defend spends 1 CP and opens a charge for the reacting unit")
 	var declared := C.declare_charge(s, 2, 400, s.revision, func() -> int: return 6)
@@ -70,7 +112,7 @@ func run() -> void:
 	s.unit_abilities.phase_key = C.UnitActions.key(s)
 	for model: int in C.living(s, 1): s.units[model].position = Vector2(0, 0)
 	for model: int in C.living(s, 4): s.units[model].position = Vector2(4, 0)
-	s.unit_abilities.window = {"kind": "end", "owners": [2]}
+	check(C.UnitActions.open_end(s), "End of Charge opens an eligible Into the Fray window")
 	check(use(s, 2, 4, R.FRAY).is_empty() and s.cp[2] == 1, "Into the Fray costs 2 CP")
 	var fray := C.declare_charge(s, 2, 400, s.revision, func() -> int: return 6)
 	if not C.Stratagems.pending(s).is_empty(): check(C.resolve_roll_reaction(s, 2, 4, "", s.revision).is_empty(), "Fray charge window can be accepted")

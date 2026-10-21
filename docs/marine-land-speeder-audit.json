@@ -1,0 +1,32 @@
+{
+  "identity": "land-speeder",
+  "source": {
+    "authority": "Wahapedia 11th-edition local export",
+    "source_book_id": "000000139",
+    "datasheet_id": "000002711",
+    "export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Land-Speeder"
+  },
+  "scope": {
+    "models": 1,
+    "base": "105 x 70 mm oval; 52.5 mm bounding-circle proxy",
+    "points": 105,
+    "max_supported_copies": 3,
+    "weapons": [
+      "Multi-melta (Melta 3)",
+      "Onslaught Gatling Cannon (Devastating Wounds except MONSTER/VEHICLE)",
+      "Stormfury Missile Launcher",
+      "optional Pyrecannon replacement (Torrent, Blast 2)",
+      "Armoured Impact"
+    ],
+    "abilities": [
+      "Combat Doctrines",
+      "Deep Strike",
+      "Purgation Run: after shooting in own Shooting phase, optional Normal Move up to D6; no charge until end of turn"
+    ]
+  },
+  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v78.json",
+  "local_validation": ".tools/verification/20261019T104954638154Z/results.json",
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_match_certified": false
+}

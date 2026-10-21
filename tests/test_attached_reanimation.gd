@@ -25,6 +25,7 @@ func _initialize() -> void:
 	s.units[400].wounds = 0
 	s.units[401].wounds = 0
 	check(R.roll_unit(s, 4, six).error.is_empty(), "Roll attached unit once")
+	check(R.accept_roll(s, false, six).error.is_empty(), "Accept Their Number is Legion before allocating returned models")
 	check(R.pending(s).current.healed == {600: 2} and R.pending(s).current.slots == 1, "D3 three heals two Overlord wounds before one troop return")
 	check(s.units[600].wounds == 4 and s.units[400].wounds == 0, "Healing and returns remain staged together")
 	check(R.suggest(s).error.is_empty(), "Mixed healing has a valid return preview")
@@ -45,6 +46,6 @@ func _initialize() -> void:
 	s = fresh()
 	s.units[600].wounds = 1
 	s.units[400].wounds = 0
-	check(R.roll_unit(s, 4, six).error.is_empty() and R.pending(s).current.is_empty() and s.units[600].wounds == 4 and s.units[400].wounds == 0, "Insufficient budget heals only leader and performs no return")
+	check(R.roll_unit(s, 4, six).error.is_empty() and R.accept_roll(s, false, six).error.is_empty() and R.pending(s).current.is_empty() and s.units[600].wounds == 4 and s.units[400].wounds == 0, "Insufficient budget heals only leader and performs no return")
 	print("Attached Reanimation checks: %d failures" % failures)
 	quit(1 if failures else 0)

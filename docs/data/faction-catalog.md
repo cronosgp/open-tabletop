@@ -1,36 +1,27 @@
 # Faction catalog admission
 
-> **Current source boundary:** The game's catalog UI still has legacy OpenHammer lookup behavior. It is not an accepted source of current datasheet facts. A new profile must be grounded in a verified local [Wahapedia e11 Data Export snapshot](source-assessment.md); if the extract is unavailable, defer admission.
+Army construction exposes only profiles published by the consolidated local runtime catalog. Its current Marine boundary is all 85 shared-book Space Marine identities from the selected Wahapedia 11e export. Publication in that catalog does not imply complete rules coverage, full faction legality, or match certification. See [current support](../project/support-matrix.md).
 
-## Current app behavior
+## Admission controls
 
-- **Listas** can display catalog records for browsing and local planning. Provider presence, points, composition, or variant selection does not establish current rules accuracy or official list legality.
-- Match admission is controlled by [`capabilities.gd`](../../scripts/edition_11/capabilities.gd), the local fixed-profile definitions, and the applicable roster validator.
-- A blocked unit must remain visibly blocked with its reason; never infer support from a catalog flag or match a unit by name alone.
-- The online OpenHammer integration and imported starter packs are legacy/experimental. The local-export ingestion migration has not been implemented in this checkout.
+- [`implemented_army_catalog.gd`](../../scripts/implemented_army_catalog.gd) derives choices from the runtime admission inventory and applies its publication gate.
+- [`capabilities.gd`](../../scripts/edition_11/capabilities.gd), local profile definitions, and roster validation provide the corresponding behavior and scope gates.
+- Pending-validation and historical/unreconciled profiles stay out of new choices. Existing affected lists remain labeled legacy drafts.
+- A blocked unit must retain an explicit reason. Do not infer support from a catalog row or match a unit by name alone.
 
-## Admission sequence for a datasheet
+## Source and data pipeline
 
-1. Locate the record in the verified local Wahapedia 11e export and record its faction, source identity, snapshot ID, and file/hash provenance.
-2. Preserve the original extracted record. Normalize into the project format without silently inventing values or discarding unsupported fields.
-3. Check current rules effects, official points, and errata against applicable Games Workshop publications; record version boundaries and conflicts. Do not merge incompatible editions or sources silently.
-4. Enumerate every required model composition, weapon/equipment option, keyword, ability trigger, target, timing, use limit, duration, and interaction for the claimed scope.
-5. Implement the complete admitted scope and explicit unsupported gates. Add tests for both the rule and illegal/unsupported cases.
-6. Update capability metadata, roster validation, documentation, and the support matrix together. Being selectable is not equivalent to being fully implemented or certified.
+The project's source decision is Wahapedia's `/wh40k11ed/` rules and faction pages, with the local Data Export as the sole accepted source for extracted datasheet facts. The repository has importer, slicing, comparison, and fixed-data audit tools; they consume local snapshots for offline preparation. Record snapshot identity, retrieval time, exported filenames, and SHA-256 hashes. Keep raw and derived third-party data local and out of Git and releases. See [source assessment](source-assessment.md) and [importer guide](../wahapedia-import.md).
 
-## Local data contract
+OpenHammer and 40kdc adapters remain isolated legacy/experimental workflows. They do not feed current construction choices and are not fallback sources for missing Wahapedia data. Official Games Workshop publications may provide context but do not gate admission or override the selected Wahapedia revision.
 
-Until a migration tool is available, the intended raw snapshot location is:
+## Admission sequence
 
-```text
-.tools/wahapedia/11e/<faction>/<snapshot-id>/
-```
+1. Identify the profile in a verified local Wahapedia 11e snapshot and record its faction, source identity, snapshot, and file/hash provenance.
+2. Preserve the extracted record and normalize it without inventing values or silently dropping unsupported fields.
+3. Record the source edition, book/chapter, mode, and revision for the claimed scope.
+4. Enumerate the compositions, options, keywords, effects, triggers, timings, limits, durations, and interactions included in that scope.
+5. Implement the declared behavior and explicit unsupported gates, with focused checks for supported and rejected cases.
+6. Align capability metadata, roster admission, topic documentation, support matrix, and verification claims.
 
-Each snapshot needs a manifest with the exact export URL, edition, retrieval time, identity, filenames, SHA-256 hashes, and parsing notes. Keep raw and derived third-party data ignored by Git and out of releases. See the [source policy](source-assessment.md) for conflict handling and migration requirements.
-
-## Scope and non-goals
-
-- Do not use OpenHammer, 40kdc-data, a provider API, or previous-edition profiles as authoritative inputs for current e11 datasheets.
-- Do not admit every catalog entry in one batch or enable a profile before its declared behavior is implemented and tested.
-- Shared faction and chapter-specific content remain separate scopes; chapter substitutions, supplements, and other publications need their own source review and capability boundaries.
-- Catalog browsing, budget presets, and passing tests are not a complete army-construction validator.
+Catalog browsing, prices, and passing tests alone do not establish complete rules support or legal army construction.

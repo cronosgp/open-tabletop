@@ -1,0 +1,80 @@
+{
+  "id": "marine-terminator-captain-e11-2026-10-18",
+  "source": {
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-In-Terminator-Armour",
+    "datasheet_id": "000000135",
+    "book_id": "000000139",
+    "edition": 11,
+    "export_updated_at": "2026-10-16T21:03:46+03:00",
+    "scope_exclusions": [
+      "Deathwing/chapter adaptations",
+      "Boarding Actions",
+      "unadmitted bodyguards"
+    ]
+  },
+  "versions": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v16",
+    "abilities": "track-a-current-datasheets-2026-10-v18",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v17",
+    "attack_validation": "11e-identical-attacks-v5"
+  },
+  "admission": {
+    "shared_marines": 22,
+    "necrons": 4,
+    "shared_marines_remaining": 63
+  },
+  "local_validation": {
+    "status": "passed",
+    "report": {
+      "path": ".tools/verification/20261018T173206563487Z/results.json",
+      "sha256": "60d9189854cbbec6ae9abb1a00dc1e64aa8b55961775cd88064a67fad453abc0"
+    },
+    "processes": 17,
+    "godot_suites": 14,
+    "python_checks": 30,
+    "earlier_report": {
+      "path": ".tools/verification/20261018T172848928279Z/results.json",
+      "sha256": "f573d50503c43efe5ef2d45c7cb3ef2572f2082df07c7df7e313a625cde07036"
+    },
+    "expanded_dedicated_log": {
+      "path": ".tools/terminator-captain-final.log",
+      "sha256": "afe0396e5b40cb1974fcd37a058365b21f38de1f6aaebee340299dad75f6a640"
+    },
+    "dedicated_test": {
+      "path": "tests/test_terminator_captain.gd",
+      "sha256": "d4894a203013b897b6a4d50928e6054860cfa4c924e9897a0ecb6f8eed09e986"
+    }
+  },
+  "data_check": {
+    "status": "passed",
+    "comparisons": 46,
+    "report": {
+      "path": ".tools/terminator-captain-data-check.json",
+      "sha256": "5d4dbb00ce7e460582f47349c03738897b6a88f7db3cd00a5ba4060c5d2b424e"
+    },
+    "normalizations": {
+      "printed BS -": "runtime 0 for Torrent only"
+    }
+  },
+  "ui": {
+    "captures": [
+      {
+        "path": ".tools/terminator-captain-before.png",
+        "sha256": "e68cc3f51fda3de476c75fb0b274f59c2e1c741372424707634455b788e6a64d"
+      },
+      {
+        "path": ".tools/terminator-captain-after.png",
+        "sha256": "8a3d3fd899d931a4ecd0931741130e40d3b22892478107ac07b7f0cf84a5dbce"
+      }
+    ],
+    "kind": "actual Godot staged charge fixture; fixed [1,1] roll; 0 CP; 1600x1000",
+    "equipment_help_separately_captured": false,
+    "completed_match": false
+  },
+  "free_reroll_scope": "Current checked-match reaction infrastructure; both dice once; not a paid stratagem",
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_match_certified": false
+}

@@ -22,6 +22,8 @@ func prepared() -> Dictionary:
 	var s := F.fresh()
 	check(not s.has("error"), "All ten canonical profiles materialize")
 	if s.has("error"): return {}
+	for model: int in [300, 900]:
+		check("TACTICUS" in s.units[model].keywords and "EXPLOSIVES" in s.units[model].keywords, "Current-reference Captain and Lieutenant retain their datasheet keywords before attachment")
 	check(C.select_awakened_attachment(s, 2, 2, 0).is_empty(), "Overlord leads Immortals before other preparation")
 	check(act(s, 1, "attach", 300, 7).is_empty(), "Captain leads current Intercessors")
 	check(act(s, 1, "attach", 900, 1).is_empty(), "Lieutenant joins Assault Intercessors as Support")
@@ -55,9 +57,9 @@ func run() -> void:
 	C.Actions.start(s, 7, 0)
 	check(not C.Actions.shooting_blocked(s, 7), "Tactical Mainstay action does not block shooting")
 	s.squads[7].battle_shocked = false
-	check(A.save_bonus(s, 5) == 1, "Heavy Intercessors gain save bonus while within a controlled objective")
+	check(A.save_bonus(s, 5, Callable(C.Morale, "objective_control")) == 1, "Heavy Intercessors gain save bonus while within a controlled objective")
 	s.squads[5].battle_shocked = true
-	check(A.save_bonus(s, 5) == 0, "Battle-shocked unit without positive OC is not controlling the objective")
+	check(A.save_bonus(s, 5, Callable(C.Morale, "objective_control")) == 0, "Battle-shocked unit without positive OC is not controlling the objective")
 	s.squads[5].battle_shocked = false
 	var gun: Dictionary = Equipment.select(s, 1100, false).stats
 	check(A.weapon(s, 1100, 2, gun, false).ap == gun.ap - 1, "Fury of the First improves AP within nine inches by unit distance")

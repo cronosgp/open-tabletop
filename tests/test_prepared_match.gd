@@ -55,7 +55,7 @@ func run() -> void:
 	game._request_deployment_preset()
 	check(not game.deployment_confirm_button.disabled and "5/5" in game.deployment_help.text, "Preset placement enables explicit confirmation")
 	game._request_end()
-	check(C.actor(game.state) == 2 and "Player 2" in game.decision_label.text, "UI identifies next decision owner")
+	check(C.actor(game.state) == 2 and "player 2" in game.decision_label.text.to_lower(), "UI identifies next decision owner")
 	game._start_objectives()
 	check(not game.prepared_match and game.state.phase == "start_turn", "Existing exercises remain separate")
 	print("Prepared match checks: %d failures" % failures)

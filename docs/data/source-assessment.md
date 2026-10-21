@@ -2,7 +2,9 @@
 
 ## Required rules baseline
 
-The target is official **Warhammer 40,000 11th edition**. Use [Wahapedia's e11 Core Rules](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/) and corresponding `/wh40k11ed/` faction pages as the project's reference, and cross-check current rule effects and updates against official Games Workshop publications. Record source dates, publication/version boundaries, discrepancies, and unresolved interpretations.
+The target is **Warhammer 40,000 11th edition**. By user decision, [Wahapedia's e11 Core Rules](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/), corresponding `/wh40k11ed/` faction pages and Data Export are the definitive project references. Check the edition, book/chapter, game mode and current revision, and record the selected source/version with each implementation scope.
+
+Official Games Workshop publications may provide context but are not an admission prerequisite and do not override the selected Wahapedia source. Do not mix editions or superseded profiles. Preserve unresolved ambiguities as explicit blockers rather than silently merging incompatible versions.
 
 Do not substitute 10th-edition or superseded Codex rules, combine incompatible versions, or treat historical training profiles as current-rule certification. Historical profiles must be migrated or explicitly isolated. See [AGENTS.md](../../AGENTS.md) for the rules that apply to every agent contribution.
 
@@ -10,7 +12,7 @@ Do not substitute 10th-edition or superseded Codex rules, combine incompatible v
 
 The project's sole accepted source for local datasheet extraction is the Wahapedia 11th-edition [Data Export](https://wahapedia.ru/wh40k11ed/the-rules/data-export/) page. For purposes of the local data pipeline, a **verified local export snapshot** is the source of record for extracted datasheet fields. OpenHammer, 40kdc-data, memory, search results, and previous-edition packs are not substitutes.
 
-This is a project source policy, not a claim that Wahapedia is an official Games Workshop publication or that an extracted record is automatically rules-correct, complete, licensed for redistribution, implemented, or validated. Cross-check rules effects, Codex/faction changes, FAQs, errata, and update boundaries with official Games Workshop sources. If those sources and the local export appear to disagree, preserve the source/version details, mark the issue unresolved, and do not silently reconcile or certify the affected behavior.
+This is a project source policy, not a claim that Wahapedia is an official Games Workshop publication or that an extracted record is automatically complete, licensed for redistribution, implemented, or validated. Use the chosen Wahapedia edition/page/export and its recorded revision as the rules/data baseline. Do not replace it with another source's interpretation. Record ambiguities within that selected source and keep unsupported scope blocked.
 
 ## Local snapshot layout
 
@@ -32,9 +34,9 @@ Raw extracts and derived third-party content must not be committed, bundled, or 
 
 ## Current checkout and migration boundary
 
-The current checkout has **no Wahapedia export snapshot or Wahapedia ingestion tool**. The tracked `data/starter.lock.json` and existing 40kdc/OpenHammer import tools describe legacy experimental workflows. They may support isolated historical exercises, but they are not authoritative for current e11 datasheet facts and cannot establish rules support. Do not run them as a fallback when the required local export is absent.
+The repository contains Wahapedia import, slice, comparison and fixed-data tooling; its outputs and source audits are local preparation inputs. The consolidated runtime construction catalog currently exposes all 85 shared-book Space Marine identities from the selected local e11 source. This publication scope does not certify every identity's complete rules interactions, full faction coverage or general army legality. The tracked starter lock and OpenHammer/40kdc adapters are legacy workflows, not authoritative e11 data and not fallback sources.
 
-The ingestion migration is separate work. It must:
+Future changes to the ingestion pipeline must:
 
 1. Read only a verified local snapshot and fail clearly for a missing export, mismatched hash, unknown schema, or unsupported field.
 2. Preserve raw files, provenance, snapshot identity, and unsupported source fields instead of silently dropping them.
@@ -44,6 +46,6 @@ The ingestion migration is separate work. It must:
 
 ## Current e11 evidence
 
-The [checked Combat Doctrines/Gladius scope](../rules/combat-doctrines.md), [Awakened Dynasty scope](../rules/awakened-dynasty.md), [unit abilities](../rules/current-unit-abilities.md), and [selected mission](../rules/chapter-approved-mission.md) document the reference and official update boundaries used for those increments. They certify only the expressly documented profiles and interactions; they do not establish complete faction coverage or general army legality.
+The [checked Combat Doctrines/Gladius scope](../rules/combat-doctrines.md), [Awakened Dynasty scope](../rules/awakened-dynasty.md), [unit abilities](../rules/current-unit-abilities.md), and [selected mission](../rules/chapter-approved-mission.md) document the selected Wahapedia source revisions and the expressly bounded profiles/interactions for those increments. They do not establish complete faction coverage or general army legality.
 
 The [11e attack lab](11e-starter.md) and [data-pack format](data-packs.md) still describe legacy input tooling. Their continued presence does not change the source policy above.

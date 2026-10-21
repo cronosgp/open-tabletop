@@ -1,0 +1,30 @@
+{
+  "id": "wahapedia-six-marine-behavior-review-2026-10-18",
+  "source_policy": "wahapedia-e11-definitive-2026-10-18",
+  "report": "wahapedia-marine-behavior-review.md",
+  "review_kind": "Bounded behavior characterization of existing fixed-profile rules; no new runtime rule implementation.",
+  "unit_ability_implementation": "track-a-current-datasheets-2026-10-v2",
+  "local_suites": {
+    "test_marine_ability_boundaries": "passed",
+    "test_current_unit_abilities": "passed",
+    "test_current_unit_combat": "passed",
+    "test_unit_reserves": "passed",
+    "test_combat_doctrines": "passed"
+  },
+  "python_test_count": 30,
+  "python_status": "passed",
+  "startup_status": "passed",
+  "new_boundary_test_sha256": "f388893e90419eb4709e56a591d71f0cbcbc14118d3d1407ef998e96c67b97ba",
+  "isolated_results_sha256": "efc46bc1a7be4a49a278569f63fb226ce9416855ef8782cff09f619f1a516e76",
+  "initial_loopback_network_status": "host_and_client_timed_out_at_45_seconds",
+  "network_retry_status": "host_and_client_passed_with_90_second_process_timeout",
+  "full_match_certified": false,
+  "new_playable_profiles": 0,
+  "limitations": [
+    "Not every timing/casualty/revival interaction was exhausted",
+    "No complete chapter, optional wargear or army legality certification",
+    "No Linux, separate-machine LAN or graphical review"
+  ],
+  "network_retry_results_sha256": "e4f1416ef9f148fb233ca06f5ad7cfff7c8b6d6b8613caa294fd0a3461f74cad",
+  "network_scope": "Existing local host/client rejoin and fresh-host recovery through a Necron Reanimation scenario; not every Marine ability in network play."
+}

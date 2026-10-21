@@ -1,0 +1,28 @@
+{
+  "id": "datasheet-pricing-consolidation-2026-10-18",
+  "construction_version": "incursion-fixed-rosters-mfm1.6-2026-10-18-v14",
+  "price_comparison": {
+    "status": "passed",
+    "records": 23,
+    "differences": [],
+    "before_sha256": "a54108c0d5711f5f32b2ac342c0093ddfda07b416c6f595cb75321c24e092d2f",
+    "after_sha256": "6c28354e4e2f5cb142496377ce42fb780b1698c76055f3402f61e2a747f501b7",
+    "unadmitted_partial_profiles_priced": false
+  },
+  "local_validation": {
+    "status": "passed",
+    "report": ".tools/verification/20261018T165119486486Z/results.json",
+    "report_sha256": "dfda6e30a5a25e0353ab495da3f2c1b35a0043b166e620efc7bdcae54981a071",
+    "processes": 18,
+    "godot_suites": 15,
+    "python_checks": 30,
+    "final_roster_log": ".tools/catalog-pricing-final.log",
+    "final_roster_log_sha256": "55f2acdde572736893840bfc6c2b5f88f5759e623a4459dba0fc985393007fbe"
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "new_datasheets_admitted": [],
+  "full_match_certified": false
+}

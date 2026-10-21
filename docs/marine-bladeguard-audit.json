@@ -1,0 +1,125 @@
+{
+  "id": "marine-bladeguard-e11-2026-10-18",
+  "edition": "11e",
+  "source_book_id": "000000139",
+  "datasheet_id": "000000071",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Bladeguard-Veteran-Squad",
+  "core_source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+  "core_sections": [
+    "01.02.02 Persisting Rules Effects",
+    "19.04 Abilities in Attached Units"
+  ],
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "data_comparison": {
+    "status": "passed",
+    "numeric_checks": 50,
+    "errors": [],
+    "float_absolute_tolerance": 1e-12,
+    "source_catalog_sha256": "c88415a35692cb7d70022cf6af1050244c72713f72230c2bffb74d89bcb90c35",
+    "runtime_sha256": "ab844043bf8b610f299ae657d675d0509a03dca61022f9727e63957366378879",
+    "third_copy_prices": "Source retains 110/200; third and later copies explicitly outside admission."
+  },
+  "implementation": {
+    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v12",
+    "unit_abilities": "track-a-current-datasheets-2026-10-v14",
+    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v12",
+    "files": [
+      {
+        "path": "scripts/edition_11/bladeguard.gd",
+        "sha256": "67842495e347e6fe2ac99610280b6d265944e70cf7e8d7a4beb5cb0403beafd8"
+      },
+      {
+        "path": "scripts/edition_11/damage_allocation.gd",
+        "sha256": "d6f55b72c36345afa43e7573e2bd453247feb4ecfbdc92b3adc4bb6cd9536df5"
+      },
+      {
+        "path": "scripts/edition_11/attack_plan.gd",
+        "sha256": "a35a99a908b212d87904e67609b9fba7bd22fde3a00379cc82e75e2f9f3513dd"
+      },
+      {
+        "path": "scripts/edition_11/unit_actions.gd",
+        "sha256": "956ed42beaa515cbc963d28563b75da64249a8ed58a5985e108e3a87e3f0cd3f"
+      },
+      {
+        "path": "tests/test_bladeguard.gd",
+        "sha256": "8b8a56aba112de4f3c2e3cbf3cb55c5c1164c989105e0a875d025144d9f077eb"
+      }
+    ]
+  },
+  "local_validation": {
+    "status": "passed",
+    "reports": [
+      {
+        "report": ".tools/verification/20261018T162208380530Z/results.json",
+        "sha256": "7c7dcdd930b7bea86fc4b5917b85bfab52450905ba5d0ad846582b36514c0fe8",
+        "status": "passed",
+        "processes": 21,
+        "scope": "18 Godot suites plus import, Python and startup; before final Core 19.04 source-expiry refinement"
+      },
+      {
+        "report": ".tools/verification/20261018T162715005531Z/results.json",
+        "sha256": "deae4215695c2dd37c84ef09b9fd1b9e804992f3044d77ba8fbf79b86f2af022",
+        "status": "passed",
+        "processes": 9,
+        "scope": "Final source-expiry implementation, attached Judiciar Precision, manual allocation, declarations, prepared controls; 6 Godot suites plus import, Python and startup"
+      }
+    ],
+    "python_checks": 30,
+    "broad_godot_suites": 18,
+    "direct_final_bladeguard_suite": {
+      "log": ".tools/bladeguard-final.log",
+      "sha256": "2d3ea94e22d6018ad168f780d9b272e1e1e390d1d3480b8ab5d3dc59e0fdbf14",
+      "status": "passed",
+      "includes": [
+        "source loss after attacking unit completes",
+        "manual allocation",
+        "multi-target declarations",
+        "attached Judiciar Precision and Devastating Wounds"
+      ]
+    },
+    "earlier_attempt": {
+      "report": ".tools/verification/20261018T161838110430Z/results.json",
+      "status": "import_timeout",
+      "test_suites_run": false
+    },
+    "final_godot_suites": 6
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_match_certified": false,
+  "full_faction_certified": false,
+  "visual_review": {
+    "kind": "staged Marine-versus-Marine training fixture, checked admission tested separately",
+    "viewport": [
+      1600,
+      1000
+    ],
+    "captures": [
+      {
+        "path": ".tools/bladeguard-before.png",
+        "sha256": "f15888d0a4135afc2b046580d8187b75558627b867f9937214757c1e4c57d6a3",
+        "inspected": true
+      },
+      {
+        "path": ".tools/bladeguard-after.png",
+        "sha256": "39c96947897e974bdb035473a50439ce48a553f4c0fcf2e2b45968ecaf533de8",
+        "inspected": true
+      },
+      {
+        "path": ".tools/bladeguard-defender.png",
+        "sha256": "a9c44882235494a8d0497b9fdac946481b4aba4d60a40286ed33a915536185dd",
+        "inspected": true
+      }
+    ],
+    "initial_fixture_priority_annotation_corrected": true,
+    "other_viewports_checked": false
+  },
+  "limits": [
+    "3/6-model fixed formations and first two copies only; third-copy escalation excluded by admission",
+    "Chapter Deathwing keyword and chapter/Legends/Boarding Actions profiles excluded",
+    "Other linked Characters remain unadmitted",
+    "No network or full faction/army certification"
+  ]
+}

@@ -1,0 +1,392 @@
+{
+  "id": "wahapedia-marine-fixed-data-review-2026-10-19-v42",
+  "current_comparison": {
+    "artifact": ".tools/wahapedia-fixed-data-review-v87.json",
+    "runtime_export": ".tools/marine-runtime-v75.json",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v64",
+    "runtime_profile_digest": "6382149a2164d30b33854b219abd04d8cf87ad80ed00394318e9d86ba9582c54",
+    "runtime_roster_digest": "62853ee9634204acbd12c2f6544e76015f39fdeb639f0d712c1ff53f9a8a4f5a",
+    "keyword_context_id": "wahapedia-marine-keyword-context-2026-10-19-v37",
+    "keyword_context_sha256": "b303f71c2288aedadfecaa1b95ac86725bc51cc8c11d7017d63747a7abfba5e6",
+    "comparison_sha256": "3498f5259b95aefcbaf3d9e828fa52c7777b0bbe7ece849f9c3e99e8e2ea94d3",
+    "profile_count": 43,
+    "weapon_trait_profile_count": 189,
+    "fixed_data_consistent_profile_count": 42,
+    "numeric_or_identity_differences": 0,
+    "full_match_certified": false
+  },
+  "rules_authority": "Wahapedia 11th-edition local export",
+  "export_updated_at": "2026-10-16T21:03:46+03:00",
+  "slice_manifest_sha256": "927a0297009c1de4514f9edeb729cb7bdcb4476cc7a5825d91d290d042d597f1",
+  "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v64",
+  "runtime_profile_digest": "6382149a2164d30b33854b219abd04d8cf87ad80ed00394318e9d86ba9582c54",
+  "runtime_roster_digest": "62853ee9634204acbd12c2f6544e76015f39fdeb639f0d712c1ff53f9a8a4f5a",
+  "keyword_context_id": "wahapedia-marine-keyword-context-2026-10-19-v37",
+  "keyword_context_sha256": "b303f71c2288aedadfecaa1b95ac86725bc51cc8c11d7017d63747a7abfba5e6",
+  "comparison_sha256": "3498f5259b95aefcbaf3d9e828fa52c7777b0bbe7ece849f9c3e99e8e2ea94d3",
+  "comparison_artifact": ".tools/wahapedia-fixed-data-review-v87.json",
+  "scope": "Last recorded report: 43 profiles checked against the pinned local Wahapedia e11 export; zero numeric/identity differences, 42/43 bounded fixed-data checks pass. Adrax Agatone matches profile, weapons/traits, default loadout, composition and 90-point cost. The Ancient in Terminator Armour DEATHWING interpretation is documented by the keyword-context follow-up below; comparator confirmation remains pending. Network, full-match and army-legality certification remain deferred or out of scope.",
+  "keyword_context_followup": {
+    "context_id": "wahapedia-marine-keyword-context-2026-10-19-v48",
+    "datasheet_id": "000002677",
+    "classification": "DEATHWING is treated as Dark Angels-only for this shared datasheet; the local runtime does not grant the chapter keyword.",
+    "evidence": "Pinned local Datasheets_keywords.csv row plus the recorded Wahapedia The Deathwing chapter-filter context.",
+    "comparison_status": "not_regenerated; retain the previous 42/43 report until a local comparator run confirms the revised scope"
+  },
+  "profiles": [
+    {
+      "identity": "adrax-agatone",
+      "source_datasheet_id": "000002100",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 2,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "ancient-in-terminator-armour",
+      "source_datasheet_id": "000002677",
+      "fixed_data_scope_consistent": false,
+      "weapon_profiles_checked": 2,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": [
+        "DEATHWING"
+      ]
+    },
+    {
+      "identity": "assault-intercessor-squad",
+      "source_datasheet_id": "000001606",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 8,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "assault-intercessors-with-jump-packs",
+      "source_datasheet_id": "000002776",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 2,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "ballistus-dreadnought",
+      "source_datasheet_id": "000000091",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 5,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "brutalis-dreadnought",
+      "source_datasheet_id": "000000136",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 6,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "captain",
+      "source_datasheet_id": "000000073",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "captain-in-gravis-armour",
+      "source_datasheet_id": "000001172",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 2,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "captain-in-phobos-armour",
+      "source_datasheet_id": "000002701",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "captain-on-bike",
+      "source_datasheet_id": "000002702",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 6,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "captain-with-jump-pack",
+      "source_datasheet_id": "000000083",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 2,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "chaplain-on-bike",
+      "source_datasheet_id": "000000094",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "chaplain-with-jump-pack",
+      "source_datasheet_id": "000000112",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 2,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "company-heroes",
+      "source_datasheet_id": "000002772",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 5,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "desolation-squad",
+      "source_datasheet_id": "000002270",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 6,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "firestrike-servo-turrets",
+      "source_datasheet_id": "000000086",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "gladiator-lancer",
+      "source_datasheet_id": "000002705",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "gladiator-reaper",
+      "source_datasheet_id": "000001667",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "gladiator-valiant",
+      "source_datasheet_id": "000001825",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 5,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "heavy-intercessor-squad",
+      "source_datasheet_id": "000001177",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 4,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "inceptor-squad",
+      "source_datasheet_id": "000000125",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 4,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "incursor-squad",
+      "source_datasheet_id": "000001159",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "infiltrator-squad",
+      "source_datasheet_id": "000000128",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "intercessor-squad",
+      "source_datasheet_id": "000001157",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 13,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "invictor-tactical-warsuit",
+      "source_datasheet_id": "000001156",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 6,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "land-speeder",
+      "source_datasheet_id": "000002711",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 5,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "librarian-in-phobos-armour",
+      "source_datasheet_id": "000000119",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 4,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "librarian-in-terminator-armour",
+      "source_datasheet_id": "000000079",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 4,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "lieutenant",
+      "source_datasheet_id": "000001346",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "lieutenant-in-phobos-armour",
+      "source_datasheet_id": "000002530",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 2,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "lieutenant-with-combi-weapon",
+      "source_datasheet_id": "000000076",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "outrider-squad",
+      "source_datasheet_id": "000002712",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 7,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "redemptor-dreadnought",
+      "source_datasheet_id": "000002717",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 9,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "reiver-squad",
+      "source_datasheet_id": "000002718",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "roboute-guilliman",
+      "source_datasheet_id": "000000138",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "scout-squad",
+      "source_datasheet_id": "000001160",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 9,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "storm-speeder-hailstrike",
+      "source_datasheet_id": "000000124",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 4,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "storm-speeder-hammerstrike",
+      "source_datasheet_id": "000000114",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 4,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "storm-speeder-thunderstrike",
+      "source_datasheet_id": "000001610",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 4,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "techmarine",
+      "source_datasheet_id": "000000140",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 3,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "terminator-assault-squad",
+      "source_datasheet_id": "000000118",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 2,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "terminator-squad",
+      "source_datasheet_id": "000001183",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 9,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    },
+    {
+      "identity": "vanguard-veteran-squad-with-jump-packs",
+      "source_datasheet_id": "000000147",
+      "fixed_data_scope_consistent": true,
+      "weapon_profiles_checked": 7,
+      "numeric_or_identity_differences": 0,
+      "unresolved_keyword_context": []
+    }
+  ],
+  "full_match_certified": false,
+  "local_validation": ".tools/verification/20261019T110640219017Z/results.json",
+  "follow_up_local_validation": ".tools/verification/20261019T114211481946Z/results.json",
+  "profile_count": 43,
+  "weapon_trait_profile_count": 189,
+  "fixed_data_consistent_profile_count": 42,
+  "numeric_or_identity_differences": 0,
+  "runtime_export": ".tools/marine-runtime-v75.json"
+}

@@ -1,6 +1,6 @@
 # 11e implementation status
 
-Current summary: [support matrix](support-matrix.md), updated 16 October 2026. Sections below are historical increment reports; their “next” and “pending” statements may have been superseded by later entries. Use [verification](../verification/verification.md) for the current test commands.
+Current summary: [support matrix](support-matrix.md), updated 21 October 2026. Sections below are historical increment reports; their “next” and “pending” statements may have been superseded by later entries. Use [verification](../verification/verification.md) for the current test commands.
 
 Updated 15 October 2026. Baseline reference: [11e Core Rules and FAQs](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/), particularly §§01.06–01.07, 03.01–03.04, 08.03, and 09.05 for this increment. This is a restricted two-squad integration exercise, not a complete supported edition pack. Imported datasheet conflicts still need resolution.
 

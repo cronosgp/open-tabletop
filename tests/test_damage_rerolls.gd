@@ -95,7 +95,7 @@ func run() -> void:
 	game.damage_reroll_choice.button_pressed = true
 	game._start_allocation_practice()
 	assert(game.damage_rerolls and game.core_stratagems and game.state.cp == {1: 2, 2: 2})
-	assert("SYNTHETIC RULES LAB" in game.session_label.text)
+	assert(game.state.get("rules_practice", false) and "SYNTHETIC RULES LAB" in game.session_label.tooltip_text)
 	game.rng.seed = 42
 	game._apply_attack(1, 100, 200, 0, true)
 	game._request_skip_precision()
@@ -103,7 +103,8 @@ func run() -> void:
 		if not S.pending(game.state).is_empty() or game.state.pending_attack.is_empty(): break
 		var eligible: Array = C.Allocation.eligible(game.state)
 		assert(not eligible.is_empty())
-		game._apply_allocate_damage(C.actor(game.state), eligible[0], game.state.revision)
+		var identity: Dictionary = game._damage_decision_identity(eligible[0])
+		game._apply_allocate_damage(C.actor(game.state), eligible[0], game.state.revision, identity.decision_id, identity.option_id)
 	assert(S.pending(game.state).kind == "after_damage_roll" and game.reaction_die.visible and not game.reaction_use.disabled)
 	var snapshot := var_to_bytes(game.state)
 	var rng_state: int = game.rng.state

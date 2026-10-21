@@ -13,13 +13,13 @@ func run() -> void:
 	game._start_allocation_practice()
 	var before := var_to_str(game.state)
 	game._begin_attack_plan()
-	check("1 • Select" in game.plan_steps.text and "4 • Review" in game.plan_steps.text and "0 assignments" in game.plan_steps.text, "Planner presents selection through review without rolling dice")
+	check("Select → Assign → Review" in game.plan_steps.text and "0 assignments" in game.plan_steps.text and "4 • Review" in game.attack_reference.text, "Compact planner keeps full instructions accessible in Help without rolling dice")
 	game._assign_attack()
-	check("1 assignments" in game.plan_steps.text and "Synthetic mixed allocation group" in game.plan_steps.text and not game.plan_confirm.disabled, "Review names the target and assignment count")
+	check("1 assignments" in game.plan_steps.text and "Synthetic mixed allocation group" in game.plan_summary.text and not game.plan_confirm.disabled, "Review names the target and assignment count")
 	check(var_to_str(game.state) == before, "Editing and review do not mutate combat state")
 	game.selected = 201
 	game._refresh()
-	check("no model from the attacking unit" in game.plan_steps.text and game.plan_add.disabled, "Wrong unit selection gives an explicit selection instruction")
+	check("Select a model from" in game.plan_steps.text and game.plan_add.disabled, "Wrong unit selection gives an explicit selection instruction")
 	game.attack_draft = {}
 	game.selected = -1
 	check(game.Combat.shoot(game.state, 1, 100, 200, 0, true, roll).error.is_empty(), "Attack enters Precision")
@@ -28,7 +28,7 @@ func run() -> void:
 	before = var_to_str(game.state)
 	var pick: int = game.defense_picker.get_item_index(202)
 	game.defense_picker.item_selected.emit(pick)
-	check(game.selected == 202 and "Model 202" in game.defense_steps.text and not game.allocate_button.disabled, "Dropdown selection updates board selection and confirmation guidance")
+	check(game.selected == 202 and "Model 202" in game.defense_picker.get_item_text(game.defense_picker.selected) and not game.allocate_button.disabled, "Dropdown selection updates board selection and its visible model label")
 	check(var_to_str(game.state) == before, "Choosing an eligible model does not commit a decision")
 	game.defense_picker.item_selected.emit(0)
 	check(game.selected == -1 and game.allocate_button.disabled and var_to_str(game.state) == before, "Returning to the prompt clears selection without declining Precision")

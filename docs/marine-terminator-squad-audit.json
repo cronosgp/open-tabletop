@@ -1,0 +1,61 @@
+{
+  "id": "terminator-squad-local-audit-2026-10-19-v1",
+  "rules_authority": "Wahapedia 11th-edition local export",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000001183",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "profile_id": "space-marines-e11-fixed-reference-2026-10-19-v50",
+  "profile_digest": "e46176ab71478ad429e1770775233fafea8cc172676eec9c02b3b24bebd9faf1",
+  "comparison_report": ".tools/wahapedia-fixed-data-review-v63.json",
+  "fixed_data_check": {
+    "consistent": true,
+    "numeric_or_identity_differences": 0,
+    "keyword_scope_consistent": true,
+    "weapon_profiles_checked": 9,
+    "default_loadout_consistent": true,
+    "composition_consistent": true,
+    "snapshot_structurally_valid": true
+  },
+  "compositions": {
+    "5": {
+      "first_two_cost": 190,
+      "third_plus_cost": 230
+    },
+    "10": {
+      "first_two_cost": 380,
+      "third_plus_cost": 420
+    }
+  },
+  "wargear": {
+    "sergeant_power_fist_replacements": [
+      "chainfist",
+      "power-weapon"
+    ],
+    "any_number_regular_power_fists_replaceable_with": "chainfist",
+    "special_ranged_weapons_per_five_starting_models": 1,
+    "special_ranged_choices": [
+      "assault-cannon",
+      "heavy-flamer",
+      "cyclone-missile-launcher"
+    ],
+    "cyclone_retains_storm_bolter": true,
+    "cyclone_cost": 10
+  },
+  "runtime_abilities": [
+    "deep-strike",
+    "fury-of-the-first",
+    "teleport-homer"
+  ],
+  "local_tests": [
+    "tests/test_terminator_squad_current.gd",
+    "tests/test_implemented_catalog.gd",
+    "tests/test_army_builder.gd"
+  ],
+  "visual_review": {
+    "capture_1280x800": ".tools/terminator-tiered-price-preview.png",
+    "capture_1024x640_content_viewport": ".tools/terminator-tiered-price-small.png",
+    "before_capture": "Prior .tools/workshop-add-desktop.png is an older synthetic catalog fixture, not an equivalent-data baseline."
+  },
+  "network_validation": "deferred to final integration",
+  "full_army_legality_certified": false
+}
