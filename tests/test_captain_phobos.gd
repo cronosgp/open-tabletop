@@ -106,7 +106,13 @@ func run() -> void:
 	s.units[enemy].position = Vector2(1.8, 0)
 	s.phase = "fight"
 	s.active = 2
-	check(Fluidity.open_end_fight(s) and C.UnitActions.actor(s) == 1, "Opponent Fight end did not open Fall Back reaction")
+	check(squad in Fluidity.end_fight_squads(s, 1), "Engaged Captain's unit was not eligible for end-of-Fight Tactical Fluidity")
+	var end_opened := C.UnitActions.open_end(s)
+	if end_opened and C.UnitActions.actor(s) == 2:
+		var opponent_pass := choose(s, 2, "pass")
+		check(not opponent_pass.is_empty() and C.unit_action(s, 2, opponent_pass, Vector2.ZERO, s.revision, six).is_empty(), "Opponent could not pass its earlier end-of-Fight choices")
+	check(end_opened and C.UnitActions.actor(s) == 1 and not choose(s, 1, "fluidity-end", squad).is_empty(), "Opponent Fight end did not offer the Captain's Fall Back reaction")
+	check(C.unit_action(s, 1, choose(s, 1, "fluidity-end", squad), Vector2.ZERO, s.revision, six).is_empty(), "Tactical Fluidity end-of-Fight activation failed")
 	check(C.unit_action(s, 1, choose(s, 1, "fluidity-use", squad), Vector2.ZERO, s.revision, six).is_empty(), "Tactical Fluidity Fall Back selection failed")
 	if s.unit_abilities.window.get("kind", "") == Fluidity.PLACEMENT:
 		check(s.unit_abilities.window.distance == 6 and act(s, 1, "fluidity-place", squad, Vector2(-2, 0)).is_empty(), "Tactical Fluidity Fall Back preview rejected valid move")

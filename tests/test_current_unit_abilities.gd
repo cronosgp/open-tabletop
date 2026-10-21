@@ -57,9 +57,9 @@ func run() -> void:
 	C.Actions.start(s, 7, 0)
 	check(not C.Actions.shooting_blocked(s, 7), "Tactical Mainstay action does not block shooting")
 	s.squads[7].battle_shocked = false
-	check(A.save_bonus(s, 5) == 1, "Heavy Intercessors gain save bonus while within a controlled objective")
+	check(A.save_bonus(s, 5, Callable(C.Morale, "objective_control")) == 1, "Heavy Intercessors gain save bonus while within a controlled objective")
 	s.squads[5].battle_shocked = true
-	check(A.save_bonus(s, 5) == 0, "Battle-shocked unit without positive OC is not controlling the objective")
+	check(A.save_bonus(s, 5, Callable(C.Morale, "objective_control")) == 0, "Battle-shocked unit without positive OC is not controlling the objective")
 	s.squads[5].battle_shocked = false
 	var gun: Dictionary = Equipment.select(s, 1100, false).stats
 	check(A.weapon(s, 1100, 2, gun, false).ap == gun.ap - 1, "Fury of the First improves AP within nine inches by unit distance")

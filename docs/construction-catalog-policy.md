@@ -2,7 +2,7 @@ Current status (19 October 2026): all 85 shared-book Space Marine identities, in
 
 User decision, 18 October 2026: the army builder offers only sheets whose rules are consolidated in the game. It no longer fetches the broad OpenHammer API catalog or loads its cached catalogs.
 
-`scripts/implemented_army_catalog.gd` derives choices from the explicit runtime admission inventory. Its conservative publication gate requires a current-reference profile, no `tests_written_not_run` or `local_checks_pending` marker, a resolvable runtime definition and declared current model-count prices. Sizes and prices come from that same local profile; this does not independently establish full army legality or final network readiness. Rule authority remains Wahapedia e11 under `rules-source-policy.md`.
+`scripts/implemented_army_catalog.gd` derives choices from the explicit runtime admission inventory. Its conservative publication gate requires a current-reference profile, no `tests_written_not_run` or `local_checks_pending` marker, a resolvable runtime definition and declared current model-count prices. Sizes and prices come from that same local profile; this does not independently establish full army legality or final network readiness. Rule authority remains Wahapedia e11 under [source assessment](data/source-assessment.md).
 
 Current status (19 October 2026): all 85 shared-book Space Marine identities, including Wardens of Ultramar, pass the local construction gate. Four Necron profiles remain outside this Space Marines construction catalog. This publication boundary does not certify full faction legality or final network readiness.
 

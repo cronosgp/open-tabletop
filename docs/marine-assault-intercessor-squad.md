@@ -1,7 +1,0 @@
-# Assault Intercessor Squad — current local profile
-
-This migration uses the pinned Wahapedia 11e Space Marines export: book `000000139`, datasheet `000001606`, export timestamp `2026-10-16T21:03:46+03:00`. The fixed profile is 5 or 10 models at 85 or 170 points, on 32 mm bases. Its characteristics are M6, T5, Sv3+, W2, Ld6+, OC2, with the shared `ADEPTUS ASTARTES`, `BATTLELINE`, `INFANTRY`, `TACTICUS`, `EXPLOSIVES` and `IMPERIUM` keywords.
-
-The selectable fixed loadout is one Heavy Bolt Pistol and one Chainsword per model. The export's Sergeant replacements (Hand Flamer or Plasma Pistol; Power Fist, Power Weapon or Thunder Hammer) are retained as additional source profiles for audit, but cannot be selected in construction. `Targeted Intercession` is active: after the unit makes a charge move, its melee attacks gain +1 Strength and +1 AP for the turn. The effect is resolved through the attack profile and does not alter ranged attacks or the printed weapon data.
-
-Local checks cover the source ID/revision, characteristics, faction keyword, 5/10 prices, default kit, optional source weapon profiles, construction-catalog publication, roster pricing, and charged/uncharged melee behavior. Focused offline validation passed 11/11 processes. The bounded comparison found no numeric or identity differences; the remaining `DEATHWING` keyword-context issue is on Ancient in Terminator Armour. The imported raw CSV snapshot still has structural warnings. Network validation is deferred, and full faction/army legality is not certified.

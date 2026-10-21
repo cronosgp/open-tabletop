@@ -2,6 +2,7 @@ extends RefCounted
 ## Techmarine rules from the local Wahapedia 11e extraction.
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
+const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 
 static func identity(unit: Dictionary) -> String:
 	return str(unit.get("definition_id", "")).get_slice(":", 3)
@@ -77,7 +78,7 @@ static func modifier_ignore_active(state: Dictionary, model: int) -> bool:
 	if state.units.has(model):
 		var squad: int = int(state.units[model].get("squad", -1))
 		var spirit: Dictionary = state.get("detachment_stratagems", {}).get("might_machine_spirit", {}).get(squad, {})
-		if not spirit.is_empty() and int(state.units[model].get("owner", -1)) == int(spirit.get("owner", -2)) and int(state.turn) < int(spirit.get("expires_turn", -1)): return true
+		if Capabilities.enabled(state, "ironstorm-might-of-the-machine-spirit") and not spirit.is_empty() and int(state.units[model].get("owner", -1)) == int(spirit.get("owner", -2)) and int(state.turn) < int(spirit.get("expires_turn", -1)): return true
 	var marks: Dictionary = state.get("unit_abilities", {}).get("techmarine_blessings", {})
 	var mark: Dictionary = marks.get(model, {})
 	return not mark.is_empty() and state.units.has(model) and int(state.units[model].get("owner", 0)) == int(mark.get("owner", -1)) and int(state.turn) < int(mark.get("expires_turn", -1))

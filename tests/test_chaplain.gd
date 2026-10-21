@@ -147,7 +147,11 @@ func run() -> void:
  check(C.unit_action(s, 1, selected, Vector2.ZERO, s.revision).is_empty(), "Spiritual Leader failed in a mixed start window")
  for row: Dictionary in C.unit_choices(s, 1):
   if row.value == "smokescreen": smoke = row
- check(not smoke.is_empty() and C.unit_action(s, 1, smoke, Vector2.ZERO, s.revision).is_empty() and s.cp[1] == 0 and s.core_reactions.smoke.squad == 5, "Restored unit could not use Smokescreen in the same start window")
+ var smoke_recorded := false
+ check(not smoke.is_empty() and C.unit_action(s, 1, smoke, Vector2.ZERO, s.revision).is_empty() and s.cp[1] == 0, "Restored unit could not use Smokescreen in the same start window")
+ for record: Dictionary in s.core_reactions.smoke:
+  if int(record.get("squad", -1)) == 5: smoke_recorded = true
+ check(smoke_recorded, "Smokescreen did not record the eligible squad")
  var invalid := lists()
  invalid[1].entries[0].copies = 3
  check(not C.RosterValidation.admit(invalid[1]).error.is_empty(), "Chaplain repetition cap omitted")

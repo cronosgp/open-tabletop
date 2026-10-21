@@ -110,17 +110,10 @@ func run() -> void:
 	for index in range(game.saved_army_pickers[1].item_count):
 		var metadata: Variant = game.saved_army_pickers[1].get_item_metadata(index)
 		if metadata is Dictionary and str(metadata.get("id", "")).begins_with("preset:checked-mfm16"): checked_ids.append(metadata.id)
-	check(game.official_mission_choice.button_pressed and game.unit_abilities_choice.button_pressed and "preset:checked-mfm16:Space Marines" in checked_ids and "preset:checked-mfm16:Necrons" in checked_ids, "UI enables the required rules and adds two independent checked presets")
-	check("preset:checked-mfm16-1000:Space Marines" in checked_ids and "preset:checked-mfm16-1000:Necrons" in checked_ids, "UI offers the 930-point Gladius and 880-point Awakened Incursion lists")
+	check(checked_ids.is_empty(), "Historical MFM rosters stay out of new-match construction choices")
 	game._start_saved_match()
-	check(game.checked_rosters and V.enabled(game.state) and "MFM 1.6" in game.saved_army_review.text and game.state.training_points == {1:290,2:290}, "Real saved-list admission displays verified and stored prices separately")
-	var saved: Dictionary = game.state.duplicate(true)
-	var rng_state: int = game.rng.state
-	game._save_match()
-	game.state = F.fresh()
-	game._load_match()
-	check(game.state == saved and game.rng.state == rng_state and game.checked_rosters and game.checked_rosters_choice.button_pressed, "Save/load preserves source identity, option and pending formation checks")
-	var corrupt: Dictionary = game.state.duplicate(true)
+	check(not game.saved_army_mode and "historical" in game.status.text, "Historical MFM checks cannot start a new current-catalog match")
+	var corrupt: Dictionary = s.duplicate(true)
 	corrupt.roster_validation.digest = "stale"
 	check(not V.enabled(corrupt), "A changed pricing profile is not silently treated as checked")
 	print("Roster validation checks: %d failures" % failures)

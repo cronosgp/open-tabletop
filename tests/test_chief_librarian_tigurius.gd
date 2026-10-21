@@ -115,13 +115,13 @@ func run() -> void:
 	check(not prescience.is_empty(), "Prescience is offered in the Movement phase")
 	dice_queue = [4]
 	if not prescience.is_empty(): check(C.unit_action(state, 1, prescience, Vector2.ZERO, state.revision, queued_die).is_empty(), "Prescience resolves its psychic test")
-	check(Abilities.save_bonus(state, squad) == 1 and not state.squads[squad].battle_shocked, "Successful Prescience grants +1 to saves")
+	check(Abilities.save_bonus(state, squad, Callable(C.Morale, "objective_control")) == 1 and not state.squads[squad].battle_shocked, "Successful Prescience grants +1 to saves")
 	state.turn = 2
 	Abilities.start_command(state)
-	check(Abilities.save_bonus(state, squad) == 1, "Prescience lasts through the opponent's turn")
+	check(Abilities.save_bonus(state, squad, Callable(C.Morale, "objective_control")) == 1, "Prescience lasts through the opponent's turn")
 	state.turn = 3
 	Abilities.start_command(state)
-	check(Abilities.save_bonus(state, squad) == 0, "Prescience expires at the start of Tigurius's next turn")
+	check(Abilities.save_bonus(state, squad, Callable(C.Morale, "objective_control")) == 0, "Prescience expires at the start of Tigurius's next turn")
 	state.phase = "shooting"
 	state.active = 1
 	var telepathic := action(state, "tigurius-psychic", "telepathic-assault", immortals)

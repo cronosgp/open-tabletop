@@ -77,7 +77,8 @@ func run() -> void:
 	game.auto_models.button_pressed = false
 	game.army_builder.store.path = "res://.tools/saved-army-profiles.json"
 	var saved_a: Dictionary = game.army_builder.store.save_list(necrons.list)
-	var saved_b: Dictionary = game.army_builder.store.save_list(marines.list)
+	var current_marines: Dictionary = T.Capabilities.reference_army("Space Marines")
+	var saved_b: Dictionary = game.army_builder.store.save_list(current_marines.list)
 	game._refresh_army_choices()
 	for owner in [1, 2]:
 		var picker: OptionButton = game.saved_army_pickers[owner]
@@ -88,7 +89,14 @@ func run() -> void:
 	check(var_to_str(game.state) == before, "LAN training requires explicit acceptance")
 	game.saved_training_consent.button_pressed = true
 	game._start_saved_match()
-	check(game.saved_army_mode and game.state.units.size() == 20 and game.state.phase == "deployment", "Saved profile choices reach actual prepared gameplay")
+	check(not game.saved_army_mode and var_to_str(game.state) == before, "Historical Necron drafts remain saved but cannot enter new match construction")
+	for owner in [1, 2]:
+		var picker: OptionButton = game.saved_army_pickers[owner]
+		for index in range(picker.item_count):
+			if picker.get_item_metadata(index).get("id", "") == saved_b.list.id: picker.select(index)
+	game.unit_abilities_choice.button_pressed = true
+	game._start_saved_match()
+	check(game.saved_army_mode and game.state.units.size() == 40 and game.state.phase == "deployment", "Current local catalog lists reach actual prepared mirror gameplay")
 	var other = load("res://scenes/main.tscn").instantiate()
 	root.add_child(other)
 	other._start_prepared_match()

@@ -1,9 +1,0 @@
-# Invader ATVs — current e11 implementation
-
-This increment uses the pinned local Wahapedia export only: shared Space Marines source `000000139`, datasheet `000004247`, export updated `2026-10-16T21:03:46+03:00`. The unit contains one or two Invader ATV models. Each model has M10, T6, Sv3+, W8, Ld6+, OC2 and no invulnerable save. Current unit costs are 65/130 points, with third-and-later copies at 75/140.
-
-Every model defaults to Bolt Pistol, Onslaught Gatling Cannon, Twin Bolt Rifle and Armoured Impact. Each model can independently replace its Onslaught Gatling Cannon with a Multi-melta for 5 points. Twin Bolt Rifle keeps Twin-linked, Assault and Rapid Fire 2. The Onslaught Gatling Cannon has Devastating Wounds only against non-Monster/non-Vehicle targets; Multi-melta has Melta 3. The source says “Use model” for base size; the flat-board runtime uses an explicitly labelled 90 x 52 mm oval footprint proxy for these unbased vehicles.
-
-Aggressive Reconnaissance gives the unit's ranged attacks +1 to wound in its own Shooting phase against an enemy unit that has no other enemy unit within 6 inches. The check measures edge-to-edge distance between the target and other living units belonging to the same opponent. The modifier is frozen into each prepared attack context, combines with the existing modifier cap, and does not apply in Overwatch.
-
-Focused local checks passed for source characteristics, default and replacement weapon profiles, one/two-model construction, first/third-copy costs, per-model Multi-melta selection and cost, attack-phase timing, isolated-target bonus and removal of that bonus when another enemy unit is nearby. The fixed-data report checks this profile's data against the local extraction. Network validation remains deferred; this increment does not certify full faction or army legality.

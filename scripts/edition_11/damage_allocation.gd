@@ -1,12 +1,14 @@
 extends RefCounted
 const UnitPrevention = preload("res://scripts/edition_11/unit_prevention.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const Morale = preload("res://scripts/edition_11/morale.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const RollWindows = preload("res://scripts/edition_11/attack_roll_window.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
 const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
+const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 
 static func eligible(state: Dictionary) -> Array[int]:
 	var pending: Dictionary = state.get("pending_attack", {})
@@ -21,6 +23,31 @@ static func eligible(state: Dictionary) -> Array[int]:
 	if current.cursor >= current.steps.size(): return []
 	return Groups.current_models(state, current, current.steps[current.cursor].kind == "devastating")
 
+## Common projection for Precision, mixed-defender order and damage recipient choices.
+## The attacker/defender allocation rules remain authoritative in choice_error/apply.
+static func pending_decision(state: Dictionary) -> Dictionary:
+	for required: String in ["revision", "pending_attack", "squads", "units"]:
+		if not state.has(required): return {}
+	var pending: Dictionary = state.get("pending_attack", {})
+	if pending.is_empty() or pending.get("current", {}).is_empty() or not Stratagems.pending(state).is_empty() or not state.get("pending_hazard", {}).is_empty(): return {}
+	if not state.get("unit_abilities", {}).get("window", {}).is_empty(): return {}
+	var current: Dictionary = pending.current
+	if current.phase in ["rolls", "damage_decision", "damage_ability", "damage_after_ability", "damage_finalize"]: return {}
+	var target := int(current.get("target", -1))
+	if not state.get("squads", {}).has(target): return {}
+	var owner := int(pending.player) if current.phase == "precision" else int(state.squads[target].owner)
+	if owner not in [1, 2]: return {}
+	var options: Array[Dictionary] = []
+	if current.phase == "precision" and choice_error(state, owner, -1).is_empty():
+		options.append({"label": "Skip Precision selection", "action": "damage-allocation", "model": -1, "target": target, "value": "precision"})
+	for model: int in eligible(state):
+		if not choice_error(state, owner, model).is_empty(): continue
+		var label := "Assign the next damaging attack to model %d" % model
+		if current.phase == "precision": label = "Use Precision against model %d" % model
+		options.append({"label": label, "action": "damage-allocation", "model": model, "target": target, "value": str(current.phase)})
+	if options.is_empty(): return {}
+	return PendingDecision.create(state, "damage-allocation", "attack:%s" % str(current.phase), owner, options, current.phase == "precision")
+
 static func start(state: Dictionary, prepared: Dictionary, squad: int, player: int, entries: Array, melee: bool, assist: bool = false, precision_prompt: bool = true) -> void:
 	var bladeguard_effects := {}
 	for target: int in state.squads:
@@ -28,7 +55,7 @@ static func start(state: Dictionary, prepared: Dictionary, squad: int, player: i
 		if not mode.is_empty(): bladeguard_effects[target] = mode
 	state.pending_attack = {"unit_prevention": UnitPrevention.snapshot(state), "bladeguard_effects": bladeguard_effects, "prepared": prepared.duplicate(true), "squad": squad, "player": player, "entries": entries.duplicate(true), "melee": melee,
 		"index": 0, "current": {}, "pools": [], "damage": 0, "killed": 0, "assist": assist, "precision_prompt": precision_prompt, "ability_saves": {}, "aquilon_used": {}, "machine_spirit_used": {"hit": false, "wound": false}}
-	for target: int in prepared.targets: state.pending_attack.ability_saves[target] = UnitAbilities.save_bonus(state, target)
+	for target: int in prepared.targets: state.pending_attack.ability_saves[target] = UnitAbilities.save_bonus(state, target, Callable(Morale, "objective_control"))
 
 static func saved(state: Dictionary, current: Dictionary, model: int, roll: int) -> bool:
 	var profile := Groups.profile(state, model, state.pending_attack.melee)

@@ -1,6 +1,6 @@
 extends RefCounted
 ## Visual-only aliases for playable profiles. Never infer game rules from model names.
-## This Necron body was visually verified in docs/model-import-validation.md.
+## This Necron body was visually verified in docs/data/model-import-validation.md.
 ## Its parent is a separate base; the board already supplies the gameplay base.
 const VERIFIED_NECRON_BODY = "https://steamusercontent-a.akamaihd.net/ugc/1344838192475887657/22D8862FB1ED4E13B18FDC6F3CA44A064C13D17C/"
 static func choose(definition: String, entries: Array) -> Dictionary:

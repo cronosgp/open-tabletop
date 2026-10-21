@@ -1,7 +1,0 @@
-# Vulkan He’stan
-
-Implemented 19 October 2026 from the pinned local Wahapedia 11th-edition Space Marines export: shared book `000000139`, datasheet `000002726`, export revision `2026-10-16T21:03:46+03:00`. Vulkan costs 105 points for one 40 mm model. His profile, keywords, Bolt Pistol, Gauntlet of the Forge (including Torrent) and Spear of Vulkan (including Devastating Wounds) are copied from that local extraction.
-
-The admitted rules are Leader, Combat Doctrines, Transhuman Strategist, Seeker of the Unfound and Forgefather. The first time Vulkan is set up on the battlefield, he chooses his objective; while he is within objective range, his OC is 10, his Leadership is 5+, and he has Feel No Pain 4+. Once in his Shooting phase, he marks one visible enemy unit within 24 inches. Until the phase ends, friendly Adeptus Astartes Melta and Torrent attacks against the marked unit gain +2 Strength. Supported bodyguard choices are limited to locally admitted source-listed targets: Infernus Squad, Bladeguard Veteran Squad, Eradicator Squad with Melta Rifles, Company Heroes and Assault Intercessor Squad.
-
-Focused validation passed 4/4 processes (import, Python checks, startup and `test_vulkan_hestan`) in `.tools/verification/20261019T184929707752Z/results.json`. This is local validation only. Network checks remain deferred to final integration; full faction and army legality are not certified.

@@ -7,7 +7,9 @@ const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
 const EPS := 0.001
 
 static func begin(s: Dictionary) -> void:
-	if not A.enabled(s): return
+	if not A.enabled(s):
+		s.phase = "start_turn"
+		return
 	var strategium_owners: Array[int] = []
 	for owner in [int(s.get("first_player", 1)), 3 - int(s.get("first_player", 1))]:
 		for squad: int in s.squads:

@@ -63,10 +63,10 @@ func run() -> void:
  check(s.mission.objectives[0].secured == 0 and C.advance_phase(s, 1, s.revision, six).is_empty() and s.mission.objectives[0].secured == 1, "Raise the Banner did not secure at end of own Movement")
  for model: int in s.units:
   if s.units[model].owner == 1: s.units[model].position = Vector2(-18, 16)
- C.Objectives.resolve_control(s)
+ C.Objectives.resolve_control(s, Callable(C.Morale, "objective_control"))
  check(s.mission.objectives[0].controller == 1 and s.mission.objectives[0].secured == 1, "Banner security vanished when unit left")
  s.units[200].position = Vector2(0, -8)
- C.Objectives.resolve_control(s)
+ C.Objectives.resolve_control(s, Callable(C.Morale, "objective_control"))
  check(s.mission.objectives[0].controller == 2 and s.mission.objectives[0].secured == 0, "Banner prevented later enemy capture")
  s = fixture()
  s.units[100].wounds = 0

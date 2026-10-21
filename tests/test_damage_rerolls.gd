@@ -103,7 +103,8 @@ func run() -> void:
 		if not S.pending(game.state).is_empty() or game.state.pending_attack.is_empty(): break
 		var eligible: Array = C.Allocation.eligible(game.state)
 		assert(not eligible.is_empty())
-		game._apply_allocate_damage(C.actor(game.state), eligible[0], game.state.revision)
+		var identity: Dictionary = game._damage_decision_identity(eligible[0])
+		game._apply_allocate_damage(C.actor(game.state), eligible[0], game.state.revision, identity.decision_id, identity.option_id)
 	assert(S.pending(game.state).kind == "after_damage_roll" and game.reaction_die.visible and not game.reaction_use.disabled)
 	var snapshot := var_to_bytes(game.state)
 	var rng_state: int = game.rng.state

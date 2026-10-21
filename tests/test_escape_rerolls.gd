@@ -36,7 +36,7 @@ func run() -> void:
 	check(P.initial_state({"core_stratagems": true}).pack_hash != P.initial_state({"core_stratagems": true, "escape_rerolls": true}).pack_hash, "Enabled capability has a distinct identity")
 	var marine := P.Training.inspect(P.Training.Capabilities.reference_army("Space Marines").list)
 	var necron := P.Training.inspect(P.Training.Capabilities.reference_army("Necrons").list)
-	var prepared := P.initial_state({"core_stratagems": true, "escape_rerolls": true}, {1: marine.selection, 2: necron.selection})
+	var prepared := P.initial_state({"unit_abilities": true, "core_stratagems": true, "escape_rerolls": true}, {1: marine.selection, 2: necron.selection})
 	check(prepared.saved_army_setup.options.escape_rerolls and P.from_setup(prepared.saved_army_setup).pack_hash == prepared.pack_hash, "Saved-list setup freezes and reconstructs the option")
 	var state := fixture()
 	values = [1, 6, 6]
@@ -136,7 +136,7 @@ func run() -> void:
 	game.escape_rerolls = false
 	game.mode = "client"
 	game.receive_state(prepared)
-	check(game.mode == "local" and "Desperate Escape" in game.status.text, "Conflicting peer settings are rejected")
+	check(game.mode == "local" and not game.escape_rerolls and not game.state.stratagems.get("escape_rerolls", false) and "different" in game.status.text.to_lower(), "Conflicting peer settings are rejected before changing the local match")
 	game.queue_free()
 	await process_frame
 	if failures == 0: print("ESCAPE REROLLS: PASS")

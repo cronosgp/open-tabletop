@@ -16,18 +16,19 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute(DIR)
 	var presets := Training.presets()
-	check(presets.size() == 7, "Seven offline presets include the Overlord-led training list")
+	check(presets.size() == 1 and presets[0].faction == "Space Marines", "Fresh construction presets use only the current local Space Marine catalog")
 	for list: Dictionary in presets:
-		check(Training.inspect(list).error.is_empty() and list.points_limit == 500, "Default lists pass real canonical admission")
+		check(Training.inspect(list).error.is_empty() and list.points_limit == 1000, "Current local reference passes canonical admission at its declared limit")
 	presets[0].entries.clear()
 	check(not Training.presets()[0].entries.is_empty(), "Preset edits cannot mutate future defaults")
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	game.auto_models.button_pressed = false
-	check(game._picked_army(1).faction == "Space Marines" and game._picked_army(2).faction == "Necrons", "Fresh launch preselects two different ready armies")
+	game.unit_abilities_choice.button_pressed = true
+	check(game._picked_army(1).faction == "Space Marines" and game._picked_army(2).faction == "Space Marines", "Fresh launch preselects the current local reference for both seats")
 	check(game.army_builder.store.active().lists.is_empty(), "Showing defaults does not silently populate the profile")
 	game._start_saved_match()
-	check(game.state.phase == "deployment" and game.state.units.size() == 30, "One local action starts both default armies without LAN consent")
+	check(game.state.phase == "deployment" and game.state.units.size() == 40, "One local action starts both current local reference armies without LAN consent")
 	game._save_selected_army(1)
 	var saved: Dictionary = game.army_builder.store.active().lists[0]
 	check(not saved.id.begins_with("preset:") and Training.inspect(saved).error.is_empty(), "Save copy generates an editable independent profile entry")
@@ -35,7 +36,7 @@ func run() -> void:
 	game.saved_army_pickers[2].select(0)
 	game._start_saved_match()
 	check(var_to_str(game.state) == previous, "An incomplete setup preserves the current match")
-	game.saved_army_pickers[2].select(1)
+	game.saved_army_pickers[2].select(2)
 	game._start_saved_match()
 	check(game.state.squads[1].faction == game.state.squads[2].faction, "Local setup supports mirror matches")
 	var definition: String = Training.definition("Space Marines").unit.id

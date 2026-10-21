@@ -14,7 +14,7 @@ func fixture() -> Dictionary:
 	state.units[100].position = Vector2(2, 0)
 	state.units[200].position = Vector2(10, 0)
 	state.phase = "shooting"
-	Combat.Objectives.resolve_control(state)
+	Combat.Objectives.resolve_control(state, Callable(Combat.Morale, "objective_control"))
 	return state
 func start(state: Dictionary) -> String:
 	return Combat.start_action(state, 1, 100, 0, state.revision)
@@ -90,7 +90,7 @@ func _initialize() -> void:
 	state = fixture()
 	start(state)
 	state.units[100].position = Vector2(6, 0)
-	Combat.Objectives.resolve_control(state)
+	Combat.Objectives.resolve_control(state, Callable(Combat.Morale, "objective_control"))
 	Actions.complete_end_turn(state)
 	check(state.squads[1].last_action.status == "failed" and state.mission.objectives[0].secured == 0, "Training completion requires control and range")
 	state = fixture()

@@ -47,7 +47,7 @@ static func targets(state: Dictionary, squad: int) -> Array[int]:
 	var result: Array[int] = []
 	var objectives: Array = state.get("mission", {}).get("objectives", [])
 	for index in range(objectives.size()):
-		if objectives[index].controller == state.squads[squad].owner and squad in Objectives.controlling_squads(state, objectives[index]): result.append(index)
+		if objectives[index].controller == state.squads[squad].owner and squad in Objectives.controlling_squads(state, objectives[index], Callable(Morale, "objective_control")): result.append(index)
 	return result
 
 static func start_error(state: Dictionary, squad: int, objective: int) -> String:

@@ -81,9 +81,23 @@ func run() -> void:
 	staged = W.advance(staged, staged.revision, dice.roll)
 	check(dice.offset == 3 and staged.hit_rolls == [4] and staged.rerolled_hits == [0], "Generation continuation also applies Oath once")
 	check(not A._validate(weapon, defender, {"hit_reroll": "invented"}).is_empty(), "Unknown hit policy rejected")
-	var marine := P.Training.inspect(P.Training.Capabilities.reference_army("Space Marines").list)
-	var necron := P.Training.inspect(P.Training.Capabilities.reference_army("Necrons").list)
+	var marine_template := P.Training.template("Space Marines", "training", 500)
+	var necron_template := P.Training.template("Necrons", "training", 500)
+	if not marine_template.get("error", "").is_empty() or not necron_template.get("error", "").is_empty():
+		push_error("Oath fixture template failed: Marine=%s; Necron=%s" % [str(marine_template.get("error", "")), str(necron_template.get("error", ""))])
+		quit(1)
+		return
+	var marine := P.Training.inspect(marine_template.list)
+	var necron := P.Training.inspect(necron_template.list)
+	if not marine.get("error", "").is_empty() or not necron.get("error", "").is_empty():
+		push_error("Oath fixture admission failed: Marine=%s; Necron=%s" % [str(marine.get("error", "")), str(necron.get("error", ""))])
+		quit(1)
+		return
 	state = P.initial_state({"oath_of_moment": true}, {1: marine.selection, 2: necron.selection})
+	if state.has("error"):
+		push_error("Oath match fixture failed: %s" % str(state.error))
+		quit(1)
+		return
 	check(P.from_setup(state.saved_army_setup).pack_hash == state.pack_hash and state.oath_of_moment.owners == [1], "Mixed army setup freezes the declared profile")
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)

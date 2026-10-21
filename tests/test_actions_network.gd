@@ -18,7 +18,7 @@ func run() -> void:
 		for id: int in game.state.units:
 			if id not in [100, 200]: game.state.units[id].wounds = 0
 		game.state.units[200].position = Vector2(2, 0)
-		game.Combat.Objectives.resolve_control(game.state)
+		game.Combat.Objectives.resolve_control(game.state, Callable(game.Combat.Morale, "objective_control"))
 		for attempt in range(100):
 			if game.guest_id != 0: break
 			await create_timer(0.1).timeout

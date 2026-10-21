@@ -1,8 +1,18 @@
 extends SceneTree
 const Seat = preload("res://scripts/session_seat.gd")
 const Save = preload("res://scripts/match_save.gd")
+const MatchSession = preload("res://scripts/network/match_session.gd")
 
 func _initialize() -> void:
+	var match_session = MatchSession.new()
+	match_session.start_host()
+	assert(not match_session.accepts_guest_command(0))
+	assert(not match_session.accepts_guest_command(2))
+	match_session.admit(2)
+	assert(match_session.accepts_guest_command(2))
+	assert(not match_session.accepts_guest_command(3))
+	match_session.peer_disconnected(2)
+	assert(not match_session.accepts_guest_command(2))
 	var session := Seat.create()
 	assert(Seat.valid_session(session))
 	session.token = Seat.secret()

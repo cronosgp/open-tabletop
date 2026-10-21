@@ -26,6 +26,14 @@ func run() -> void:
 	values = [6, 1]
 	assert(C.begin_movement(state, 1, 100, "advance", 0, die).is_empty())
 	assert(state.pending_move.is_empty() and S.pending(state).rolls == [6] and count == 1)
+	var decision := S.pending_decision(state)
+	assert(decision.get("action_id", null) == "movement:1:1:movement" and decision.get("resume_frame_id", null) == state.resolution_frames.back().frame_id and state.resolution_frames.back().status == "suspended")
+	var accept_option := ""
+	var reroll_option := ""
+	for option: Dictionary in decision.get("legal_options", []):
+		if option.value == "": accept_option = str(option.id)
+		if option.value == "command-re-roll": reroll_option = str(option.id)
+	assert(not decision.is_empty() and int(decision.priority_player_id) == 1 and not accept_option.is_empty() and not reroll_option.is_empty() and accept_option != reroll_option)
 	var before := var_to_bytes(state)
 	assert(not C.move(state, 1, 100, Vector2(-7, -8), state.revision).is_empty())
 	assert(not C.advance_phase(state, 1, state.revision, die).is_empty())
@@ -37,12 +45,14 @@ func run() -> void:
 	assert(var_to_bytes(state) == before and count == 1)
 	assert(C.resolve_roll_reaction(state, 1, 1, "command-re-roll", state.revision, die).is_empty())
 	assert(count == 2 and state.pending_move.bonus == 1 and state.cp[1] == 3 and S.pending(state).is_empty())
+	assert(state.resolution_frames.size() == 1 and state.resolution_frames.back().status == "resolving" and state.resolution_frames.back().resume_point == "movement-placement")
 	assert(state.last_command_roll.original_rolls == [6] and state.last_command_roll.rolls == [1])
 	assert(C.move(state, 1, 100, Vector2(-7, -8), state.revision).is_empty())
 	assert(C.finish_movement(state, 1, state.revision, true).is_empty())
 	assert(state.pending_move.bonus == 1 and state.units[100].position == Vector2(-8, -8))
 	assert(not C.resolve_roll_reaction(state, 1, 1, "command-re-roll", state.revision, die).is_empty())
 	assert(C.finish_movement(state, 1, state.revision).is_empty())
+	assert(state.resolution_frames.is_empty())
 	values = [4]
 	assert(C.begin_movement(state, 1, 300, "advance", state.revision, die).is_empty())
 	assert(S.pending(state).is_empty() and state.pending_move.bonus == 4 and state.cp[1] == 3)
@@ -52,10 +62,14 @@ func run() -> void:
 	var start := count
 	assert(C.declare_charge(state, 1, 100, 0, die).error.is_empty())
 	assert(S.pending(state).rolls == [1, 1] and state.pending_charge.is_empty())
+	var charge_decision := S.pending_decision(state)
+	assert(charge_decision.get("action_id", "").begins_with("charge:1:1:charge") and charge_decision.get("resume_frame_id", "") == state.resolution_frames.back().frame_id and state.resolution_frames.back().status == "suspended")
 	assert(not C.select_charge_target(state, 1, 200, state.revision).error.is_empty())
 	assert(C.resolve_roll_reaction(state, 1, 1, "command-re-roll", state.revision, die).is_empty())
 	assert(count - start == 4 and state.pending_charge.rolls == [6, 6] and state.pending_charge.maximum == 12 and state.cp[1] == 3)
+	assert(state.resolution_frames.size() == 1 and state.resolution_frames.back().status == "resolving" and state.resolution_frames.back().resume_point == "charge-target-selection")
 	assert(C.select_charge_target(state, 1, 200, state.revision).error.is_empty())
+	assert(C.decline_charge(state, 1, state.revision).is_empty() and state.resolution_frames.is_empty())
 	assert(not C.resolve_roll_reaction(state, 1, 1, "command-re-roll", state.revision, die).is_empty())
 	# A worse charge result is mandatory; it cannot be replaced by the original.
 	state = fixture("charge")

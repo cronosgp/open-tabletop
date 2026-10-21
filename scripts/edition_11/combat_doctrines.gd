@@ -1,10 +1,11 @@
 extends RefCounted
-const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
 ## Current 11e army rule plus the explicitly declared Space Marine detachment effects.
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const Marines = preload("res://scripts/edition_11/oath_of_moment.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const ID := "combat-doctrines-11e-gladius-v1"
 const REFERENCE := "https://wahapedia.ru/wh40k11ed/factions/space-marines/#Combat-Doctrines"
 const NAMES := {"none": "No doctrine this turn", "devastator": "Devastator: shoot after Advance", "tactical": "Tactical: shoot and charge after Fall Back", "assault": "Assault: charge after Advance"}
@@ -19,7 +20,7 @@ static func enable(state: Dictionary, detachment: Variant = "gladius") -> void:
 	var owners: Array[int] = []
 	for owner in [1, 2]:
 		if Marines.marine_army(state, owner): owners.append(owner)
-	state.combat_doctrines = {"implementation": ID, "owners": owners, "detachment": selected_detachment, "gladius": selected_detachment == "gladius", "stormlance": selected_detachment == "stormlance", "ironclad_champions": selected_detachment == "ironclad-champions", "ironstorm_spearhead": selected_detachment == "ironstorm-spearhead", "extra_used": {}, "active": {}, "used": {}, "selected_turn": {}, "spearpoint_destroyed_units": {}}
+	state.combat_doctrines = {"implementation": ID, "owners": owners, "detachment": selected_detachment, "gladius": selected_detachment == "gladius", "stormlance": selected_detachment == "stormlance", "ironclad_champions": selected_detachment == "ironclad-champions", "ironstorm_spearhead": selected_detachment == "ironstorm-spearhead", "extra_used": {}, "active": {}, "used": {}, "selected_turn": {}, "spearpoint_destroyed_units": {}, "cp_pending_turn": -1}
 	state.marine_enhancements = {"standard_used": {}, "standard_active": {}}
 	Capabilities.admit(state, "combat-doctrines", ID)
 	if selected_detachment == "gladius": Capabilities.admit(state, "codex-discipline", ID)
@@ -48,7 +49,7 @@ static func chapter_restriction_error(state: Dictionary, detachment: String) -> 
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		if unit.get("wounds", 0) <= 0: continue
-		var identity := UnitAbilities.identity(unit)
+		var identity := AbilityCatalog.identity(unit)
 		if not profile_cache.has(identity): profile_cache[identity] = MarineProfiles.profile(identity)
 		var profile: Dictionary = profile_cache[identity]
 		var keywords: Array = profile.get("keywords", unit.get("keywords", []))
@@ -74,6 +75,15 @@ static func start_command(state: Dictionary) -> void:
 static func needs_choice(state: Dictionary) -> bool:
 	return enabled(state) and state.get("test_winner", 0) == 0 and state.phase == "command" and state.combat_doctrines.selected_turn.get(state.active, -1) != state.turn and not available(state, state.active).is_empty()
 
+## Normalized read-only view; choice_error/select_doctrine remain authoritative.
+static func pending_decision(state: Dictionary) -> Dictionary:
+	if not needs_choice(state): return {}
+	var owner := int(state.active)
+	var options: Array[Dictionary] = [{"label": NAMES.none, "action": "combat-doctrine", "value": "none"}]
+	for doctrine: String in available(state, owner):
+		options.append({"label": NAMES[doctrine], "action": "combat-doctrine", "value": doctrine})
+	return PendingDecision.create(state, "combat-doctrines", "command-phase:doctrine", owner, options, false)
+
 static func choice_error(state: Dictionary, player: int, doctrine: String, revision: int) -> String:
 	if not needs_choice(state): return "No Combat Doctrine decision is pending."
 	if revision != state.revision: return "State changed; synchronize before selecting a doctrine."
@@ -95,7 +105,7 @@ static func record_selection(state: Dictionary, player: int, doctrine: String) -
 	state.combat_doctrines.used[player].append(doctrine)
 
 static func active_for(state: Dictionary, squad: int) -> String:
-	if not UnitAbilities.doctrine(state, squad).is_empty(): return UnitAbilities.doctrine(state, squad)
+	if not AbilityCatalog.doctrine(state, squad).is_empty(): return AbilityCatalog.doctrine(state, squad)
 	if not enabled(state) or not state.squads.has(squad): return ""
 	var owner: int = state.squads[squad].owner
 	if owner not in state.combat_doctrines.owners or not Marines.marine_army(state, owner): return ""
@@ -107,11 +117,11 @@ static func active_doctrines_for(state: Dictionary, squad: int) -> Array[String]
 	var result: Array[String] = []
 	var selected := active_for(state, squad)
 	if selected in ORDER: result.append(selected)
-	for doctrine: String in UnitAbilities.additional_doctrines(state, squad):
+	for doctrine: String in AbilityCatalog.additional_doctrines(state, squad):
 		if doctrine in ORDER and doctrine not in result: result.append(doctrine)
 	for doctrine: String in MarineEnhancements.additional_doctrines(state, squad):
 		if doctrine in ORDER and doctrine not in result: result.append(doctrine)
-	if UnitAbilities.has(state, squad, "codex-adept"):
+	if AbilityCatalog.has(state, squad, "codex-adept"):
 		for doctrine: String in ORDER:
 			if doctrine not in result: result.append(doctrine)
 	return result
@@ -128,15 +138,15 @@ static func weapon(state: Dictionary, squad: int, profile: Dictionary, melee: bo
 static func shoot_after_fallback(state: Dictionary, squad: int) -> bool:
 	var mobile_lethality: Dictionary = state.get("detachment_stratagems", {}).get("mobile_lethality", {}).get(squad, {})
 	var mobile_lethality_active: bool = state.get("detachment_stratagems", {}).get("implementation", "") == "gladius-awakened-stratagems-11e-v5" and int(mobile_lethality.get("turn", -1)) == int(state.get("turn", -2))
-	return has_doctrine(state, squad, "tactical") or UnitAbilities.has(state, squad, "adaptive-strategy") or mobile_lethality_active
+	return has_doctrine(state, squad, "tactical") or AbilityCatalog.has(state, squad, "adaptive-strategy") or mobile_lethality_active
 
 static func charge_error(state: Dictionary, squad: int) -> String:
-	if state.squads[squad].advanced and not has_doctrine(state, squad, "assault") and not UnitAbilities.has(state, squad, "spear-of-chogoris") and not storm_swift_onslaught(state, squad): return "A unit that Advanced needs Assault Doctrine to declare a charge."
-	if state.squads[squad].fell_back and not has_doctrine(state, squad, "tactical") and not UnitAbilities.has(state, squad, "adaptive-strategy") and not storm_swift_onslaught(state, squad): return "A unit that Fell Back needs Tactical Doctrine to declare a charge."
+	if state.squads[squad].advanced and not has_doctrine(state, squad, "assault") and not AbilityCatalog.has(state, squad, "spear-of-chogoris") and not storm_swift_onslaught(state, squad): return "A unit that Advanced needs Assault Doctrine to declare a charge."
+	if state.squads[squad].fell_back and not has_doctrine(state, squad, "tactical") and not AbilityCatalog.has(state, squad, "adaptive-strategy") and not storm_swift_onslaught(state, squad): return "A unit that Fell Back needs Tactical Doctrine to declare a charge."
 	return ""
 
 static func advance_bonus(state: Dictionary, squad: int) -> int:
-	return 1 if has_doctrine(state, squad, "assault") and UnitAbilities.has(state, squad, "spear-of-chogoris") else 0
+	return 1 if has_doctrine(state, squad, "assault") and AbilityCatalog.has(state, squad, "spear-of-chogoris") else 0
 
 ## Storm-swift Onslaught: Adeptus Astartes units may charge after Advancing or Falling Back.
 static func storm_swift_onslaught(state: Dictionary, squad: int) -> bool:
@@ -165,7 +175,7 @@ static func _squad_destroyed(state: Dictionary, squad: int) -> bool:
 	return true
 
 static func charge_bonus(state: Dictionary, squad: int) -> int:
-	var bonus := 1 if has_doctrine(state, squad, "assault") and UnitAbilities.has(state, squad, "spear-of-chogoris") else 0
+	var bonus := 1 if has_doctrine(state, squad, "assault") and AbilityCatalog.has(state, squad, "spear-of-chogoris") else 0
 	if death_blow(state, squad): bonus += 1
 	return bonus
 
@@ -283,7 +293,7 @@ static func ironstorm_auto_targeters(state: Dictionary, model: int) -> bool:
 	var owner := int(unit.get("owner", -1))
 	if not state.squads.has(squad) or int(state.squads[squad].get("owner", -2)) != owner: return false
 	if owner not in state.combat_doctrines.owners or not Marines.marine_army(state, owner): return false
-	var identity := UnitAbilities.identity(unit)
+	var identity := AbilityCatalog.identity(unit)
 	var profile := MarineProfiles.profile(identity)
 	var keywords: Array = profile.get("keywords", unit.get("keywords", []))
 	var normalized: Array[String] = []

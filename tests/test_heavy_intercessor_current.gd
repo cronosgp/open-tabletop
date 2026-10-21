@@ -52,10 +52,10 @@ func run() -> void:
 			check(option_for(U.choices(state, 1), sergeant).is_empty(), "The Sergeant cannot take the Heavy Bolter option")
 			var own_objective := {"kind": "marker", "position": state.units[trooper].position, "controller": 1, "secured": 0}
 			state.mission.objectives = [own_objective]
-			Objectives.resolve_control(state)
-			check(squad in Objectives.controlling_squads(state, state.mission.objectives[0]) and A.save_bonus(state, squad) == 1, "Unyielding grants +1 to saves while this squad controls its objective")
+			Objectives.resolve_control(state, Callable(F.C.Morale, "objective_control"))
+			check(squad in Objectives.controlling_squads(state, state.mission.objectives[0], Callable(F.C.Morale, "objective_control")) and A.save_bonus(state, squad, Callable(F.C.Morale, "objective_control")) == 1, "Unyielding grants +1 to saves while this squad controls its objective")
 			state.mission.objectives = [{"kind": "marker", "position": Vector2(100, 100), "controller": 1, "secured": 0}]
-			check(A.save_bonus(state, squad) == 0, "An objective controlled elsewhere does not grant the save bonus")
+			check(A.save_bonus(state, squad, Callable(F.C.Morale, "objective_control")) == 0, "An objective controlled elsewhere does not grant the save bonus")
 
 	var ten := F.selections()
 	for entry: Dictionary in ten[1].entries:

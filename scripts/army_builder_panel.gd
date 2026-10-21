@@ -1052,7 +1052,10 @@ func _reprice() -> void:
 func _new_reference() -> void:
 	_sync()
 	if draft.edition != "11e":
-		notice.text = "Reference armies use the pinned 11e training pack."
+		notice.text = "Current reference construction is available only for the local Space Marine catalog."
+		return
+	if draft.faction != "Space Marines":
+		notice.text = "Current Necron profiles are not in the local construction catalog. Existing Necron lists remain legacy drafts."
 		return
 	var result := Training.Capabilities.reference_army(draft.faction)
 	if not result.error.is_empty():
@@ -1062,4 +1065,4 @@ func _new_reference() -> void:
 	draft.id = ""
 	dirty = true
 	_render_draft()
-	notice.text = "Mixed reference created: 480/500 local pack points. Unit and faction abilities remain unavailable; save a copy to your profile."
+	notice.text = "Space Marine reference created from the local Wahapedia profile catalog. This composition is not a complete army legality claim; save a copy to your profile."
