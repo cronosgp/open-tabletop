@@ -1,4 +1,4 @@
-Current status (19 October 2026): all 85 shared-book Marine sheets have joined the local Wahapedia e11 catalog after focused profile, rules, construction admission and materialization checks. Wardens of Ultramar also has local Strategium Command coverage. Network checks remain deferred to final integration; full army and faction legality remain uncertified.
+Historical catalog status (19 October 2026): the runtime exposed 85 shared-book Marine profile candidates and Wardens of Ultramar had focused Strategium Command checks. The 20 October coverage matrix records 20 profiles without source identity metadata, six direct fixed-data comparisons, and no complete 85-sheet scope validation. Network checks remain deferred to final integration; full army and faction legality remain uncertified.
 
 Previous snapshot (18 October 2026, before targeted local validation): [Gravis Captain and Terminator Ancient](marine-gravis-ancient-batch.md) brought the runtime to 24 Marine identities and four Necrons. Its tests have since passed as recorded in the linked batch report.
 
@@ -56,7 +56,6 @@ Updated 18 October 2026. This summary records the latest source boundary. The 17
 Headless rules tests, two-process loopback, graphical review, separate-machine LAN, Windows/Linux interoperability and exported-native testing are distinct evidence. A passing Windows loopback run does not prove Linux or internet play.
 
 Use [verification instructions](verification.md) for reproducible commands and [the roadmap](roadmap.md) for remaining milestones. Do not interpret synthetic defense/vehicle fixtures as support for complete army construction.
-
 
 
 

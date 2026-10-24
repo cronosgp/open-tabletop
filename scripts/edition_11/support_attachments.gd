@@ -2,14 +2,14 @@ extends RefCounted
 ## Current admitted Support links; chapter/Legends dependencies are excluded.
 const BODYGUARDS := {
  "lieutenant-in-phobos-armour": ["infiltrator-squad", "eliminator-squad", "incursor-squad", "reiver-squad"],
- "ancient-in-terminator-armour": ["terminator-squad"],
- "apothecary": ["bladeguard-veteran-squad", "intercessor-squad", "assault-intercessor-squad", "infernus-squad", "hellblaster-squad", "sternguard-veteran-squad"],
- "lieutenant": ["bladeguard-veteran-squad", "intercessor-squad", "assault-intercessor-squad", "infernus-squad", "hellblaster-squad", "sternguard-veteran-squad"],
+ "ancient-in-terminator-armour": ["terminator-squad", "terminator-assault-squad"],
+ "apothecary": ["bladeguard-veteran-squad", "intercessor-squad", "assault-intercessor-squad", "infernus-squad", "hellblaster-squad", "sternguard-veteran-squad", "company-heroes", "desolation-squad"],
+ "lieutenant": ["bladeguard-veteran-squad", "intercessor-squad", "assault-intercessor-squad", "infernus-squad", "hellblaster-squad", "sternguard-veteran-squad", "company-heroes", "desolation-squad"],
  "judiciar": ["bladeguard-veteran-squad", "intercessor-squad", "assault-intercessor-squad", "infernus-squad", "sternguard-veteran-squad"],
  "apothecary-biologis": ["aggressor-squad", "heavy-intercessor-squad", "eradicator-squad-with-heavy-bolters", "eradicator-squad-with-melta-rifles"],
- "ancient": ["intercessor-squad", "assault-intercessor-squad", "infernus-squad", "hellblaster-squad", "sternguard-veteran-squad"],
+ "ancient": ["intercessor-squad", "assault-intercessor-squad", "infernus-squad", "hellblaster-squad", "sternguard-veteran-squad", "desolation-squad"],
  "bladeguard-ancient": ["bladeguard-veteran-squad"],
- "wardens-of-ultramar": ["intercessor-squad", "bladeguard-veteran-squad", "sternguard-veteran-squad", "assault-intercessor-squad", "vanguard-veteran-squad"]}
+ "wardens-of-ultramar": ["intercessor-squad", "bladeguard-veteran-squad", "sternguard-veteran-squad", "assault-intercessor-squad"]}
 const CONDITIONAL_BODYGUARDS := {"cato-sicarius": ["victrix-honour-guard"]}
 
 static func is_support_identity(identity: String, calgar_in_army: bool) -> bool:

@@ -1,11 +1,14 @@
 {
   "current_source_policy": {
-    "id": "wahapedia-e11-definitive-2026-10-18",
+    "id": "wahapedia-e11-definitive-data-and-rules-2026-10-20",
+    "superseded_policy_id": "wahapedia-e11-gw-cross-check-required-2026-10-20",
     "document": "rules-source-policy.md",
     "authority": "Wahapedia /wh40k11ed/",
     "official_gw_confirmation_required": false,
+    "previous_official_gw_confirmation_required": true,
+    "previous_official_gw_policy_status": "superseded_by_wahapedia_only_user_decision",
     "preferred_ingestion": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
-    "remaining_gate": "Current Wahapedia snapshot reconciliation, complete executable effects and scope/interaction validation; no automatic full-match certification."
+    "remaining_gate": "Current Wahapedia snapshot reconciliation, complete executable effects and scope/interaction validation; no automatic full-match certification. Official GW cross-check is not required."
   },
   "pack_id": "space-marines-e11-rule-definitions",
   "schema_version": 1,
@@ -57,7 +60,7 @@
       "space-marines/vulkan-hestan"
     ],
     "profile_boundary": "Runtime admission includes all 85 shared-book Marine identities from the local Wahapedia e11 inventory, including Wardens of Ultramar. Five historical profiles remain outside construction. Per-profile local Wahapedia revision, executable effects, model-count limits and local validation remain explicit; no full army legality certification is implied.",
-    "source_policy": "Wahapedia /wh40k11ed/ is definitive. Check current edition, source book, chapter/game mode and snapshot applicability for each slice. OpenHammer is discovery only; GW cross-checks are optional context. Imported records are not automatically playable.",
+    "source_policy": "Wahapedia /wh40k11ed/ is definitive for datasheet data and rules. Check current edition, source book, chapter/game mode and snapshot applicability for each slice. Official GW cross-check is not required. OpenHammer is discovery only. Imported records are not automatically playable.",
     "definition_only_datasheets": [
       "space-marines/bladeguard-veteran-squad",
       "space-marines/redemptor-dreadnought",
@@ -82,7 +85,7 @@
       "current_codex_boundary_checked_2026_10_18": {
         "announcement": "https://www.warhammer-community.com/en-gb/articles/jfqdowqw/behold-the-most-impressive-codex-space-marines-yet/",
         "first_datasheet_preview": "https://www.warhammer-community.com/en-gb/articles/paxsnmde/first-look-space-marines-datasheets/",
-        "status": "The official preview establishes a new Codex with 85 datasheets and 15 detachments, while the 14 September preview describes new datasheet effects and psychic levels. These pages do not reproduce the full Codex. Existing implemented Marine records require a current app/Codex applicability check before current full-match certification."
+        "status": "Optional official previews establish broad Codex context but do not replace the definitive Wahapedia e11 source. Existing Marine records require current local source, implementation and scope validation; GW applicability checks are not a support gate."
       },
       "official_mfm_snapshot": {
         "version": "1.6",
@@ -95,14 +98,14 @@
         "version": "1.7",
         "legal_from": "2026-04-22",
         "url": "https://assets.warhammer-community.com/eng_22-04_wh40k_faction-pack_space_marines-zppopfaqrv-asmlu7vbjq.pdf",
-        "use": "Official supplement/update evidence. No per-rule locator from this document has yet been reconciled to the definitions below."
+        "use": "Optional official context only; Wahapedia e11 remains definitive and this document is not required for support admission."
       },
       "balance_update_2026_09_30": {
         "title": "Warhammer 40,000 – Balance Update: Emboldened Astartes",
         "url": "https://www.warhammer-community.com/en-gb/articles/rylbvfnv/warhammer-40000-balance-update-emboldened-astartes/",
         "use": "Official summary confirms Astartes characteristic and weapon changes around the Codex release. It does not reproduce or verify the ability text defined in this file."
       },
-      "rule_text_status": "pending_exact_current_codex_or_errata_locator_per_record"
+      "rule_text_status": "not_required_by_current_source_policy"
     }
   },
   "interaction_resolutions": [
@@ -116,7 +119,7 @@
         "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
         "https://wahapedia.ru/wh40k11ed/factions/space-marines/#Codex-Discipline"
       ],
-      "official_check": "required_before_implementation_or_support_claim"
+      "official_check": "not_required_by_current_source_policy"
     },
     {
       "id": "attached-unit-ability-scope",
@@ -125,7 +128,7 @@
       "sources": [
         "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/#Abilities-in-Attached-Units-19.04"
       ],
-      "official_check": "required_before_implementation_or_support_claim"
+      "official_check": "not_required_by_current_source_policy"
     },
     {
       "id": "cp-gain-and-teleport-homer-cost",
@@ -137,7 +140,7 @@
         "https://wahapedia.ru/wh40k11ed/factions/space-marines/#Transhuman-Strategist",
         "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad"
       ],
-      "official_check": "required_before_implementation_or_support_claim"
+      "official_check": "not_required_by_current_source_policy"
     },
     {
       "id": "tactical-mainstay-and-actions",
@@ -147,7 +150,7 @@
         "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
         "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/#Battle-shock-Rolls-01.07"
       ],
-      "official_check": "required_before_implementation_or_support_claim"
+      "official_check": "not_required_by_current_source_policy"
     },
     {
       "id": "hazardous-roll-resolution",
@@ -156,7 +159,7 @@
       "sources": [
         "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/"
       ],
-      "official_check": "required_before_implementation_or_support_claim"
+      "official_check": "not_required_by_current_source_policy"
     },
     {
       "id": "secured-objective-persistence",
@@ -165,7 +168,7 @@
       "sources": [
         "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/"
       ],
-      "official_check": "required_before_implementation_or_support_claim"
+      "official_check": "not_required_by_current_source_policy"
     },
     {
       "id": "incursor-haywire-mine-boarding-adaptation",
@@ -175,7 +178,7 @@
         "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Incursor-Squad",
         "https://wahapedia.ru/wh40k11ed/factions/space-marines/"
       ],
-      "official_check": "required_before_implementation_or_support_claim"
+      "official_check": "not_required_by_current_source_policy"
     }
   ],
   "definitions": [
@@ -208,7 +211,7 @@
       "resolved_interactions": [
         "Strategic Acumen spends the shared doctrine selection allowance; Demi-company Commander only activates the selected doctrine for its unit; Gladius Codex Discipline grants one additional selection."
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -227,7 +230,7 @@
         "Hit-roll modifier limits",
         "attached Leader and Support models treated as part of the attacking unit"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -247,7 +250,7 @@
         "Action-specific completion and interruption rules",
         "other effects that independently prevent shooting"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -266,7 +269,7 @@
         "attacks split across multiple targets",
         "weapon-profile modifiers and AP limits"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -287,7 +290,7 @@
         "save-roll modifier limits",
         "the timing of control during a sequence of attacks"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -308,7 +311,7 @@
         "reserve arrival timing",
         "effects changing the minimum setup distance"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_local_terminator_jump_pack_phobos_and_reiver_grav_chute_scope",
       "implementation_reference": "marine-reiver-squad.md"
     },
@@ -337,7 +340,7 @@
         "token placement legality and geometry",
         "the removal check if multiple units end moves within range"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -356,7 +359,7 @@
         "attached models",
         "AP modifier limits"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -387,7 +390,7 @@
         "leader death and bodyguard separation",
         "support attachment coexistence"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "fixed_scope_only"
     },
     {
@@ -408,7 +411,7 @@
         "The selected doctrine replaces any doctrine already active for this Captain unit; Demi-company Commander may copy this selection to the Lieutenant unit."
       ],
       "interactions_to_validate": [],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -427,7 +430,7 @@
         "Captain destroyed before resolving its attacks",
         "modifiers to Attacks and Devastating Wounds"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -446,7 +449,7 @@
       "interactions_to_validate": [
         "other CP gain effects and exact official Codex/errata applicability"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -472,7 +475,7 @@
         }
       ],
       "fixed_match_combination": "The Lieutenant may be attached as Support to a bodyguard that already has the listed Captain as its Leader, subject to the one-of-each core limit.",
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "fixed_scope_only"
     },
     {
@@ -491,7 +494,7 @@
         "critical hit rules",
         "other Lethal Hits sources"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -510,7 +513,7 @@
       "interactions_to_validate": [
         "use tracking when multiple Captains or Lieutenants exist"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -535,7 +538,7 @@
         "Attached units containing mixed keywords",
         "precise timing relative to other after-attack effects"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -565,7 +568,7 @@
         "Hit-roll modifier limits",
         "ability scope while Attached"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -626,7 +629,7 @@
         "choice to skip Wound roll",
         "interaction with Critical Wounds and Devastating Wounds"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -648,7 +651,7 @@
         "multiple objectives controlled by one unit",
         "Battle-shock and objective control"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_company_heroes_scope",
       "implementation_document": "marine-company-heroes.md"
     },
@@ -666,7 +669,7 @@
         "Wound-roll modifier limits with other effects",
         "Attached Leaders and target-unit modifier aggregation"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_company_heroes_scope",
       "implementation_document": "marine-company-heroes.md"
     },
@@ -684,7 +687,7 @@
         "Wound-roll modifier limits with other effects",
         "weapon Strength and unit Toughness comparison at attack declaration"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_redemptor_scope",
       "implementation_document": "marine-redemptor-dreadnought.md"
     },
@@ -706,7 +709,7 @@
         "mixed keywords and VEHICLE keyword checks",
         "Critical Hit requirements"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_gravis_scope",
       "implementation_document": "marine-gravis.md"
     },
@@ -726,7 +729,7 @@
         "multiple end-of-phase control effects",
         "mission scoring timing"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -746,7 +749,7 @@
         "detection range modifiers across models in a unit",
         "when an attack ends Hidden status"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -764,7 +767,7 @@
         "cover determination",
         "weapons using indirect fire"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -781,7 +784,7 @@
         "which dice are rerolled for multi-die Damage characteristics",
         "reroll eligibility if another rule already rerolled the die"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_eradicator_scope",
       "implementation_document": "marine-eradicators.md"
     },
@@ -799,7 +802,7 @@
         "core/hidden-detection-range-13-09"
       ],
       "interactions_to_validate": [],
-      "official_check": "Wahapedia e11 checked 2026-10-18; independent GW confirmation is not required.",
+      "official_check": "Historical note: GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_eliminator_scope",
       "implementation_document": "marine-eliminators.md",
       "validated_interactions": [
@@ -830,7 +833,7 @@
       },
       "duration": "As specified by the chosen effect; the detection increase ends when this unit has shot.",
       "interactions_to_validate": [],
-      "official_check": "Wahapedia e11 checked 2026-10-18; independent GW confirmation is not required.",
+      "official_check": "Historical note: GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_eliminator_scope",
       "implementation_document": "marine-eliminators.md",
       "validated_interactions": [
@@ -854,7 +857,7 @@
       "effect": "While an enemy unit is scanned, ranged attacks that target it can re-roll Hit rolls of 1.",
       "duration": "Until the end of the Shooting phase, by the core persisting-effect rule for a Shooting-phase trigger with no other duration stated.",
       "interactions_to_validate": [],
-      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "official_check": "not_required_by_current_source_policy",
       "definition_status": "implemented_in_admitted_incursor_squad_scope",
       "implementation_reference": "marine-incursor-squad.md",
       "validation_artifact": ".tools/verification/20261019T042405255660Z/results.json"
@@ -878,7 +881,7 @@
         "In the Pilum Strike Team Boarding Actions rules adaptation, this datasheet ability is explicitly lost."
       ],
       "interactions_to_validate": [],
-      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "official_check": "not_required_by_current_source_policy",
       "definition_status": "implemented_in_admitted_incursor_squad_scope",
       "implementation_reference": "marine-incursor-squad.md",
       "validation_artifact": ".tools/verification/20261019T042405255660Z/results.json"
@@ -894,7 +897,7 @@
       "effect": "That enemy model has -1 to its Objective Control characteristic.",
       "duration": "While the enemy model is within 3 inches of this unit.",
       "interactions_to_validate": [],
-      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "official_check": "not_required_by_current_source_policy",
       "definition_status": "implemented_in_admitted_reiver_squad_scope",
       "implementation_reference": "marine-reiver-squad.md"
     },
@@ -909,7 +912,7 @@
       "effect": "Resolve the specified Battle-shock roll for each eligible enemy unit.",
       "duration": "The ability resolves at the start of each Fight phase.",
       "interactions_to_validate": [],
-      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "official_check": "not_required_by_current_source_policy",
       "definition_status": "implemented_in_admitted_reiver_squad_scope",
       "implementation_reference": "marine-reiver-squad.md"
     },
@@ -924,7 +927,7 @@
       "effect": "This unit can move through all types of model and ignores vertical distance when determining how far it moved.",
       "duration": "For each move made while equipped with Grapnel Launchers.",
       "interactions_to_validate": [],
-      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "official_check": "not_required_by_current_source_policy",
       "definition_status": "implemented_in_admitted_reiver_squad_scope",
       "implementation_reference": "marine-reiver-squad.md"
     },
@@ -942,7 +945,7 @@
         "core/deep-strike-24-09"
       ],
       "interactions_to_validate": [],
-      "official_check": "not_required_under_wahapedia_definitive_policy",
+      "official_check": "not_required_by_current_source_policy",
       "definition_status": "implemented_in_admitted_reiver_squad_scope",
       "implementation_reference": "marine-reiver-squad.md"
     },
@@ -960,7 +963,7 @@
         "target model count fixed at Select Targets",
         "Blast interaction with other attack modifiers"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -976,7 +979,7 @@
       "interactions_to_validate": [
         "Future setup-distance modifier providers remain unadmitted."
       ],
-      "official_check": "Wahapedia e11 checked 2026-10-18; independent GW confirmation is not required.",
+      "official_check": "Historical note: GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_eliminator_scope",
       "implementation_document": "marine-eliminators.md",
       "validated_interactions": [
@@ -1014,7 +1017,7 @@
         "unit must be wholly within deployment zone before making a Scout move",
         "movement geometry and coherency"
       ],
-      "official_check": "Wahapedia e11 local extraction checked; independent GW confirmation is not required.",
+      "official_check": "Historical note: GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_local_scout_incursor_reiver_and_phobos_scope",
       "implementation_reference": "marine-reiver-squad.md"
     },
@@ -1037,7 +1040,7 @@
         "effect when a target unit changes model count after target selection",
         "number of times the ability may select a target in one phase"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_eradicator_scope",
       "implementation_document": "marine-eradicators.md"
     },
@@ -1056,7 +1059,7 @@
         "Ingress moves made through the shared reserve flow",
         "Out-of-phase ranged attacks within the same turn"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_inceptor_scope",
       "implementation_document": "marine-inceptor-squad.md"
     },
@@ -1075,7 +1078,7 @@
         "unengaged check",
         "re-entry timing and the shared Strategic Reserves deadline"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_inceptor_scope",
       "implementation_document": "marine-inceptor-squad.md"
     },
@@ -1095,7 +1098,7 @@
         "mortal-wound resolution and allocation",
         "multiple charge moves in one turn"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -1109,7 +1112,7 @@
       "effect": "That move does not by itself prevent this unit from being eligible to start an Action.",
       "duration": "The eligibility permission applies after the specified move; all other Action restrictions still apply.",
       "interactions_to_validate": [],
-      "official_check": "Wahapedia e11 local extraction checked; independent GW confirmation is not required.",
+      "official_check": "Historical note: GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_scout_squad_scope",
       "implementation_reference": "marine-scout-squad.md"
     },
@@ -1132,7 +1135,7 @@
         "non-Character restriction on revival",
         "model-specific versus unit-level healing"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -1152,7 +1155,7 @@
         "attached models in the unit",
         "Strength characteristic modifiers"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_gravis_scope",
       "implementation_document": "marine-gravis.md"
     },
@@ -1175,7 +1178,7 @@
         "visibility requirement to select the target",
         "detection range modifiers from multiple sources"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -1196,7 +1199,7 @@
         "revival of a destroyed non-Character model after all living models are fully healed",
         "use in a phase other than the controlling player Command phase"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -1222,7 +1225,7 @@
         "attack declarations that pause for optional reactions before dice are rolled"
       ],
       "implementation_scope": "Shared ranged attack handler; locally tested against the extracted Land Raider Hunter-killer Missile and separate One Shot weapon instances.",
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "validation_artifact": ".tools/verification/20261019T204041881249Z/results.json",
       "definition_status": "implemented_and_locally_validated_in_scope"
     },
@@ -1241,7 +1244,7 @@
         "critical-hit effects and attack sequencing",
         "unit ability granting Sustained Hits to attacks"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -1260,7 +1263,7 @@
         "random mortal-wound value per unit",
         "sequence with Fight on Death"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -1278,7 +1281,7 @@
         "single-model units with remaining wounds",
         "restoring wounds above the threshold"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed"
     },
     {
@@ -1296,7 +1299,7 @@
         "Attacks characteristic modifiers",
         "out-of-phase attacks in the same turn"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -1314,7 +1317,7 @@
         "wargear eligibility per model",
         "saving throw modifiers do not modify invulnerable saves"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -1336,7 +1339,7 @@
         "Critical Hit requirements for bonus hits",
         "attack rules that already grant Sustained Hits"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "current_reference_transcribed_definition_only"
     },
     {
@@ -1591,7 +1594,7 @@
         "unmodified 4+ snap hit threshold",
         "no Critical Hits or Hit re-rolls while snap shooting"
       ],
-      "official_check": "not_required_by_user_source_policy",
+      "official_check": "not_required_by_current_source_policy",
       "definition_status": "implemented_in_admitted_firestrike_servo_turrets_scope",
       "implementation_document": "marine-firestrike-servo-turrets.md",
       "validated_interactions": [
@@ -1624,7 +1627,7 @@
         "a normal Vehicle can still use Tank Shock this phase",
         "ordinary Tank Shock still costs 1 CP"
       ],
-      "official_check": "not_required_by_user_source_policy",
+      "official_check": "not_required_by_current_source_policy",
       "definition_status": "implemented_in_admitted_brutalis_scope",
       "implementation_document": "marine-brutalis-dreadnought.md"
     },
@@ -1652,7 +1655,7 @@
         "mortal wounds resolve using ordinary defender allocation",
         "Brutalis exception does not consume another unit’s phase use"
       ],
-      "official_check": "not_required_by_user_source_policy",
+      "official_check": "not_required_by_current_source_policy",
       "definition_status": "implemented_in_admitted_brutalis_scope",
       "implementation_document": "marine-brutalis-dreadnought.md"
     },
@@ -1730,7 +1733,7 @@
         "core hit and damage modifiers",
         "weapon profile copies and attack-plan propagation"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_outrider_scope",
       "implementation_document": "marine-outrider-squad.md"
     },
@@ -1752,7 +1755,7 @@
         "target keyword checks for mixed attached units",
         "weapon conditional traits on the same target"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_in_admitted_gladiator_reaper_scope",
       "implementation_document": "marine-gladiator-reaper.md"
     },
@@ -1975,7 +1978,7 @@
         "Dynamic OC and Leadership while within and outside range",
         "Feel No Pain in the active allocation path"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_and_locally_validated_in_admitted_scope",
       "source_book_id": "000000139",
       "source_datasheet_id": "000002726",
@@ -2001,7 +2004,7 @@
         "Friendly Adeptus Astartes attacker restriction",
         "Phase expiry and target selection once per phase"
       ],
-      "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
+      "official_check": "Official GW cross-check is not required by the current Wahapedia-only source policy.",
       "definition_status": "implemented_and_locally_validated_in_admitted_scope",
       "source_book_id": "000000139",
       "source_datasheet_id": "000002726",
@@ -2734,7 +2737,7 @@
     }
   ],
   "open_questions": [
-    "Continue validating each newly admitted rule against the local Wahapedia e11 export and its shared core-rule dependencies; GW corroboration is optional and does not gate admission.",
+    "Continue validating each newly admitted rule against the local Wahapedia e11 export and shared core-rule dependencies. Official GW cross-checks are optional context and do not gate support claims.",
     "Validate action timing, Battle-shock, objective-control timing, attached-unit abilities and per-unit/per-turn use tracking against the complete core rules and runtime."
   ],
   "source_conflicts": [
@@ -2749,7 +2752,7 @@
         "Oath of Moment listed as army rule"
       ],
       "current_reference_contrast": "Current faction page uses Combat Doctrines and Tacticus profiles such as Intercessors at T5.",
-      "status": "blocked_from_current_definition_pending_official_codex_or_errata_reconciliation"
+      "status": "blocked_pending_current_wahapedia_source_reconciliation"
     },
     {
       "id": "sternguard-page-is-chapter-variant",

@@ -3,7 +3,7 @@ extends SceneTree
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const IDENTITIES := ["chaplain-on-bike", "captain-on-bike", "adrax-agatone", "kaius-konorius", "librarian", "aethon-shaan", "intercessor-squad", "assault-intercessor-squad", "heavy-intercessor-squad", "terminator-squad", "terminator-assault-squad", "captain", "lieutenant",
-	"infiltrator-squad", "lieutenant-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "suboden-khan", "iron-father-feirros", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "victrix-honour-guard", "marneus-calgar", "caanok-var", "ancient-in-terminator-armour", "assault-intercessors-with-jump-packs", "captain-with-jump-pack", "vanguard-veteran-squad-with-jump-packs", "chaplain-with-jump-pack", "librarian-in-terminator-armour", "librarian-in-phobos-armour", "captain-in-phobos-armour", "scout-squad", "incursor-squad", "reiver-squad", "firestrike-servo-turrets", "ballistus-dreadnought", "redemptor-dreadnought", "brutalis-dreadnought", "invictor-tactical-warsuit", "desolation-squad", "lieutenant-with-combi-weapon", "techmarine", "roboute-guilliman", "inceptor-squad", "company-heroes", "outrider-squad", "gladiator-reaper", "gladiator-valiant", "gladiator-lancer", "land-speeder", "storm-speeder-hammerstrike", "storm-speeder-hailstrike", "storm-speeder-thunderstrike", "invader-atvs", "kor-sarro-khan", "captain-titus", "vulkan-hestan", "land-raider", "land-raider-crusader", "drop-pod", "land-raider-redeemer", "impulsor", "repulsor", "repulsor-executioner", "rhino"]
+	"infiltrator-squad", "lieutenant-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "suboden-khan", "iron-father-feirros", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "victrix-honour-guard", "marneus-calgar", "caanok-var", "ancient-in-terminator-armour", "wardens-of-ultramar", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "bladeguard-veteran-squad", "judiciar", "chaplain", "sternguard-veteran-squad", "eliminator-squad", "eradicator-squad-with-melta-rifles", "eradicator-squad-with-heavy-bolters", "apothecary-biologis", "aggressor-squad", "infernus-squad", "hellblaster-squad", "assault-intercessors-with-jump-packs", "captain-with-jump-pack", "vanguard-veteran-squad-with-jump-packs", "chaplain-with-jump-pack", "librarian-in-terminator-armour", "librarian-in-phobos-armour", "captain-in-phobos-armour", "scout-squad", "incursor-squad", "reiver-squad", "firestrike-servo-turrets", "ballistus-dreadnought", "redemptor-dreadnought", "brutalis-dreadnought", "invictor-tactical-warsuit", "desolation-squad", "lieutenant-with-combi-weapon", "techmarine", "roboute-guilliman", "inceptor-squad", "company-heroes", "outrider-squad", "gladiator-reaper", "gladiator-valiant", "gladiator-lancer", "land-speeder", "storm-speeder-hammerstrike", "storm-speeder-hailstrike", "storm-speeder-thunderstrike", "invader-atvs", "kor-sarro-khan", "captain-titus", "vulkan-hestan", "land-raider", "land-raider-crusader", "drop-pod", "land-raider-redeemer", "impulsor", "repulsor", "repulsor-executioner", "rhino"]
 
 func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
@@ -45,6 +45,52 @@ func _initialize() -> void:
 			var relic_shield: Dictionary = Profiles.captain_weapons("relic-shield")
 			var power_fist: Dictionary = Profiles.captain_weapons("default", true)
 			profiles[identity].additional_weapon_profiles = {"ranged": [neo_volkite.ranged[0], plasma_pistol.ranged[0], relic_shield.ranged[0]], "melee": [power_fist.melee[0]]}
+		if identity == "captain-with-jump-pack":
+			var hand_flamer: Dictionary = Profiles.jump_pack_captain_weapons("hand-flamer")
+			var plasma_pistol: Dictionary = Profiles.jump_pack_captain_weapons("plasma-pistol")
+			var power_fist: Dictionary = Profiles.jump_pack_captain_weapons("power-fist")
+			var relic_weapon: Dictionary = Profiles.jump_pack_captain_weapons("relic-weapon")
+			var thunder_hammer: Dictionary = Profiles.jump_pack_captain_weapons("thunder-hammer-shield")
+			profiles[identity].additional_weapon_profiles = {
+				"ranged": [hand_flamer.ranged[0], plasma_pistol.ranged[0]],
+				"melee": [power_fist.melee[0], relic_weapon.melee[0], thunder_hammer.melee[0]]}
+		if identity == "captain-in-gravis-armour":
+			var blade_loadout: Dictionary = Profiles.gravis_captain_weapons("blade")
+			var chainsword_loadout: Dictionary = Profiles.gravis_captain_weapons("chainsword")
+			var fist_loadout: Dictionary = Profiles.gravis_captain_weapons("fist")
+			profiles[identity].additional_weapon_profiles = {
+				"ranged": [blade_loadout.ranged[0]],
+				"melee": [blade_loadout.melee[0], blade_loadout.melee[1], chainsword_loadout.melee[1], fist_loadout.melee[1]]}
+		if identity == "sternguard-veteran-squad":
+			profiles[identity].additional_weapon_profiles = {
+				"ranged": [Profiles.sternguard_gun("heavy"), Profiles.sternguard_gun("pyre")],
+				"melee": [Profiles.sternguard_melee("chain"), Profiles.sternguard_melee("fist"), Profiles.sternguard_melee("power")]}
+		if identity == "assault-intercessors-with-jump-packs":
+			profiles[identity].additional_weapon_profiles = {
+				"ranged": [Profiles.jump_pack_pistol("hand-flamer"), Profiles.jump_pack_pistol("plasma-pistol")],
+				"melee": [Profiles.jump_pack_sergeant_melee("power-fist"), Profiles.jump_pack_sergeant_melee("power-weapon")]}
+		if identity == "captain-in-terminator-armour":
+			var alternatives: Dictionary = Profiles.terminator_captain_weapons(true, true)
+			profiles[identity].additional_weapon_profiles = {"ranged": alternatives.ranged, "melee": alternatives.melee}
+		if identity == "bladeguard-veteran-squad":
+			profiles[identity].additional_weapon_profiles = {
+				"ranged": [Profiles.bladeguard_pistol("volkite"), Profiles.bladeguard_pistol("plasma")],
+				"melee": []}
+		if identity == "eradicator-squad-with-melta-rifles":
+			profiles[identity].additional_weapon_profiles = {"ranged": [Profiles.eradicator_ranged(true)], "melee": []}
+		if identity == "hellblaster-squad":
+			profiles[identity].additional_weapon_profiles = {"ranged": [Profiles.hellblaster_pistol(true)], "melee": []}
+		if identity == "eliminator-squad":
+			profiles[identity].additional_weapon_profiles = {
+				"ranged": [Profiles.eliminator_gun("carbine"), Profiles.eliminator_gun("las")],
+				"melee": []}
+		if identity == "aggressor-squad":
+			profiles[identity].additional_weapon_profiles = {"ranged": Profiles.aggressor_ranged(true), "melee": []}
+		if identity == "lieutenant-in-phobos-armour":
+			profiles[identity].additional_weapon_profiles = {"ranged": Profiles.phobos_lieutenant_gun(true), "melee": []}
+		if identity == "ancient":
+			var power_loadout: Dictionary = Profiles.ancient_weapons(true)
+			profiles[identity].additional_weapon_profiles = {"ranged": [], "melee": [power_loadout.melee[1]]}
 		if identity == "company-heroes":
 			var ranged: Array[Dictionary] = []
 			var melee: Array[Dictionary] = []

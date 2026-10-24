@@ -2,6 +2,8 @@
 
 18 October 2026. The [Wahapedia importer](wahapedia-import.md) now has a source-bounded extraction stage and a joined local catalog. This advances structured import; it does not admit additional playable units or certify complete rule effects.
 
+**Current follow-up boundary (20 October 2026):** the 85-row source inventory and runtime profile coverage are summarized in the [coverage matrix](space-marines-coverage.md). The six fixed-profile comparison below is historical evidence for those six only; later runtime admission does not mean the remaining 79 sheets were source-reconciled or fully implemented. Source snapshot files are not present in this worktree, so no new source comparison is claimed.
+
 ## Actual result
 
 Source `000000139` is the e11 App Space Marines shared book. Extraction from the pinned 16 October export produces **85 subject datasheets**, **41 external identity-only Leader endpoints**, and **zero structural validation errors** in the selected tables. The parent export's **68 errors remain recorded** in the slice manifest. No global source row was deleted, guessed or repaired.
@@ -18,7 +20,7 @@ The [e11 faction page, The Deathwing](https://wahapedia.ru/wh40k11ed/factions/sp
 
 The [checked audit context](wahapedia-keyword-context.json) records these page locators and HTML hashes, scoped to the observed export revision and exact Terminator/source-book IDs. The comparator now separates the conditional DEATHWING row from ordinary shared keywords. `TERMINATOR SQUAD` remains explicitly identified as a project identity tag, rather than an extra publisher keyword.
 
-All six fixed profiles now have **zero numeric differences** and **consistent shared-context keyword sets** in the audit. This does not grant any Dark Angels rule in the runtime. An audit with `--chapter dark-angels` reports the runtime's missing DEATHWING keyword; a different export revision requires the contextual evidence to be rechecked instead of silently suppressing the difference.
+The six audited fixed profiles have **zero numeric differences** and **consistent shared-context keyword sets** in the recorded audit. This does not grant any Dark Angels rule in the runtime. An audit with `--chapter dark-angels` reports the runtime's missing DEATHWING keyword; a different export revision requires the contextual evidence to be rechecked instead of silently suppressing the difference.
 
 ## Reproduce
 
@@ -31,6 +33,6 @@ Use a fresh output directory. Optional repeated `--datasheet-id` arguments narro
 
 ## Validation and remaining work
 
-All **25 Python tests passed**, including global-error isolation, selected broken-reference retention, external Leader identity boundaries, wrong-edition/cross-book rejection, repeatability, raw/catalog tampering and chapter/revision keyword checks. This increment changes offline tooling and audit metadata only; no runtime rules, UI or protocol changed.
+The historical run recorded **25 Python tests passed**, including global-error isolation, selected broken-reference retention, external Leader identity boundaries, wrong-edition/cross-book rejection, repeatability, raw/catalog tampering and chapter/revision keyword checks. This increment changed offline tooling and audit metadata only; no runtime rules, UI or protocol changed. The source snapshot and those verification logs are not present in the current worktree.
 
-Follow-up delivered: [weapon traits, default equipment, fixed model counts and default-unit costs](wahapedia-fixed-data-review.md) agree for all six fixed profiles. Next: executable effect/timing/interaction validation. Optional equipment, chapter armies, the other 79 profiles, complete roster legality and full-match certification remain unsupported beyond their previously declared experimental scope.
+Follow-up delivered: [weapon traits, default equipment, fixed model counts and default-unit costs](wahapedia-fixed-data-review.md) agree for all six fixed profiles. Later increments added runtime profiles for the full 85-sheet shared-book inventory, but optional equipment, complete effect/timing/interaction validation, full roster legality and full-match certification remain incomplete; see the [current coverage matrix](space-marines-coverage.md).

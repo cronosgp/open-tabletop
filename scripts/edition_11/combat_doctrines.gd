@@ -26,7 +26,7 @@ static func enable(state: Dictionary, detachment: Variant = "gladius") -> void:
 	if selected_detachment == "stormlance": Capabilities.admit(state, "lightning-fast-strike", ID)
 	if selected_detachment == "ironclad-champions": Capabilities.admit(state, "enduring-vengeance", ID)
 	if selected_detachment == "ironstorm-spearhead": Capabilities.admit(state, "ironstorm-auto-targeters", ID)
-	if selected_detachment == "phobos-shock-force": Capabilities.admit(state, "vanguard-ambushers", ID)
+	if selected_detachment == "phobos-shock-force" and Capabilities.supported("vanguard-ambushers"): Capabilities.admit(state, "vanguard-ambushers", ID)
 	if selected_detachment == "terminator-storm-force": Capabilities.admit(state, "death-blow", ID)
 	if selected_detachment == "tacticus-firestorm-force": Capabilities.admit(state, "codex-fire-patterns", ID)
 	if selected_detachment == "tacticus-attack-force": Capabilities.admit(state, "wrath-of-the-chapter", ID)

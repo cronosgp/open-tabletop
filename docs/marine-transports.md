@@ -35,4 +35,4 @@ Status: internal rules work in progress, not admitted for army construction. Sou
 - All eight source profiles are now selectable through the consolidated local e11 catalog. Rhino and the other seven transports pass focused checks for source prices, unit limits, roster admission, current-ability materialization and the shared transport runtime. Drop Pod materializes with empty ranged and melee inventories, as listed in its source profile.
 - This admission covers bounded local rule support and does not certify complete faction composition or full army legality. Network validation remains deferred to final integration.
 
-Wardens of Ultramar was added after the transport increment; see [its profile and local checks](marine-wardens-ultramar.md). All 85 shared-book Marine identities are now selectable.
+Wardens of Ultramar was added after the transport increment; see [its profile and local checks](marine-wardens-ultramar.md). The runtime exposes 85 shared-book profile candidates, but this selection count is not complete datasheet support; see the [current coverage matrix](space-marines-coverage.md).

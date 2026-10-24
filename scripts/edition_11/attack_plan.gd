@@ -18,6 +18,7 @@ const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Allocation = preload("res://scripts/edition_11/damage_allocation.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const Morale = preload("res://scripts/edition_11/morale.gd")
+const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const Incursors = preload("res://scripts/edition_11/incursors.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
 const FiringDeck = preload("res://scripts/edition_11/firing_deck.gd")
@@ -27,6 +28,17 @@ static func _combine_rerolls(current: String, additional: String) -> String:
 	if current == "failed" or additional == "failed": return "failed"
 	if current == "ones" or additional == "ones": return "ones"
 	return current
+
+static func vanguard_wound_reroll(state: Dictionary, squad: int, melee: bool) -> String:
+	if not Capabilities.supported("vanguard-ambushers"): return "none"
+	return _vanguard_wound_reroll(state, squad, melee)
+
+static func _vanguard_wound_reroll(state: Dictionary, squad: int, melee: bool) -> String:
+	if str(state.get("phase", "")) != ("fight" if melee else "shooting"): return "none"
+	var doctrines: Dictionary = state.get("combat_doctrines", {})
+	if str(doctrines.get("detachment", "")) != "phobos-shock-force": return "none"
+	var ambush_marks: Dictionary = doctrines.get("vanguard_ambushers", {})
+	return "ones" if int(ambush_marks.get(squad, -1)) == int(state.get("turn", -2)) else "none"
 
 static func _enhancement_weapon(state: Dictionary, model: int, profile: Dictionary, melee: bool) -> Dictionary:
 	var laurels := MarineEnhancements.laurels_bearer(state, model)
@@ -242,9 +254,8 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		context.hit_modifier += UnitAbilities.damaged_attack_penalty(state, model)
 		var reroll_mode := UnitAbilities.implacable_mode(state, squad, row.target) if UnitAbilities.enabled(state) else Implacable.mode(state, squad, row.target)
 		if reroll_mode != "none": context.wound_reroll = reroll_mode
-		var ambush_marks: Dictionary = state.get("combat_doctrines", {}).get("vanguard_ambushers", {})
-		if str(state.get("combat_doctrines", {}).get("detachment", "")) == "phobos-shock-force" and int(ambush_marks.get(squad, -1)) == int(state.turn):
-			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "ones")
+		var ambush_reroll := vanguard_wound_reroll(state, squad, melee)
+		if ambush_reroll != "none": context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), ambush_reroll)
 		if UnitAbilities.identity(state.units[model]) == "kaius-konorius" and UnitAbilities.has(state, squad, "calgars-champion") and UnitAbilities.has_target_keyword(state, row.target, "CHARACTER"):
 			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
 			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "ones")

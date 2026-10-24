@@ -60,4 +60,4 @@ The optional final argument checks that a real imported snapshot loads offline b
 
 ## Next extension
 
-Use bulk snapshots to expand the candidate catalog quickly, then select a coherent vertical slice. Check that slice against its current e11 reference and applicable GW updates before implementing or marking it supported. Preserve provider IDs rather than treating names as unique identities. Verify required geometry, and enable only units whose complete behavior is supported. External updates must never change an active match automatically.
+Use bulk snapshots to expand the candidate catalog quickly, then select a coherent vertical slice. Check that slice against its current Wahapedia e11 reference before implementing or marking it supported. Preserve provider IDs rather than treating names as unique identities. Verify required geometry, and enable only units whose complete behavior is supported. External updates must never change an active match automatically.

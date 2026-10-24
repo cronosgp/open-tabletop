@@ -19,7 +19,7 @@ static func _build_profiles() -> Dictionary:
 	},
 	"victrix-honour-guard": {
 		"name": "Victrix Honour Guard", "source_book_id": "000000139", "source_datasheet_id": "000004185", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-		"points": 135, "points_by_models": {3: 135, 6: 265}, "third_plus_points_by_models": {3: 165, 6: 295}, "models": 3, "base_size_source_mm": 40, "base_radius_inches": 20.0 / 25.4,
+		"points": 120, "points_by_models": {3: 120, 6: 250}, "third_plus_points_by_models": {3: 150, 6: 280}, "models": 3, "base_size_source_mm": 40, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 2, "wounds": 3, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES", "ULTRAMARINES"],
 		"default_loadout_by_role": {"Chapter Ancient": {"Banner of Macragge": 1, "Master-crafted Bolt Carbine": 1, "Master-crafted Power Weapon": 1}, "Chapter Champion": {"Blades of Honour": 1}, "Victrix Honour Guard": {"Master-crafted Bolt Carbine": 1, "Master-crafted Power Weapon": 1}},
@@ -99,7 +99,7 @@ static func _build_profiles() -> Dictionary:
 	},
 	"company-heroes": {
 		"name": "Company Heroes", "source_book_id": "000000139", "source_datasheet_id": "000002772", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-		"points": 125, "points_by_models": {4: 125}, "third_plus_points_by_models": {4: 145}, "models": 4, "base_radius_inches": 40.0 / 25.4,
+		"points": 125, "points_by_models": {4: 125}, "third_plus_points_by_models": {4: 145}, "models": 4, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"default_loadout_by_role": {
@@ -291,7 +291,7 @@ static func _build_profiles() -> Dictionary:
 		"name": "Darnath Lysander", "source_book_id": "000000139", "source_datasheet_id": "000002105", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
 		"points": 160, "points_by_models": {1: 160}, "max_supported_copies": 1, "models": 1, "base_radius_inches": 25.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 2, "wounds": 7, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
-		"keywords": ["INFANTRY", "TERMINATOR", "EPIC HERO", "CAPTAIN", "IMPERIUM", "ADEPTUS ASTARTES", "IMPERIAL FISTS"],
+		"keywords": ["INFANTRY", "TERMINATOR", "EPIC HERO", "CHARACTER", "CAPTAIN", "IMPERIUM", "ADEPTUS ASTARTES", "IMPERIAL FISTS"],
 		"ranged": [],
 		"melee": [{"id": "fist-of-dorn", "profiles": {"standard": _weapon("Fist of Dorn", 0.0, 5, 2, 10, -3, 3, {"devastating-wounds": true, "cleave": 1})}}]
 	},
@@ -390,7 +390,7 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "relics-of-battle", "profiles": {"standard": _weapon("Relics of Battle", 0.0, 4, 3, 5, -2, 2, {})}}]
 	},
 	"bladeguard-veteran-squad": {
-		"name": "Bladeguard Veteran Squad", "max_supported_copies": 2, "points": 90, "points_by_models": {3: 90, 6: 180}, "models": 3, "base_radius_inches": 20.0 / 25.4,
+		"name": "Bladeguard Veteran Squad", "max_supported_copies": 2, "points": 90, "points_by_models": {3: 90, 6: 180}, "third_plus_points_by_models": {3: 110, 6: 200}, "models": 3, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 3, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "heavy-bolt-pistol", "profiles": {"standard": _weapon("Heavy Bolt Pistol", 18.0, 1, 3, 5, -1, 1, {"close-quarters": true})}}],
@@ -448,7 +448,7 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "crozius-arcanum", "profiles": {"standard": _weapon("Crozius Arcanum", 0.0, 5, 2, 6, -1, 2, {"cleave": 1})}}]
 	},
 	"sternguard-veteran-squad": {
-		"name": "Sternguard Veteran Squad", "points": 105, "points_by_models": {5: 105, 10: 210}, "models": 5, "base_radius_inches": 16.0 / 25.4,
+		"name": "Sternguard Veteran Squad", "points": 105, "points_by_models": {5: 105, 10: 210}, "third_plus_points_by_models": {5: 120, 10: 225}, "models": 5, "base_radius_inches": 16.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -471,7 +471,7 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 3, 3, 5, 0, 1, {})}}]
 	},
 	"eradicator-squad-with-melta-rifles": {
-		"name": "Eradicator Squad with Melta Rifles", "points": 100, "points_by_models": {3: 100, 6: 200}, "models": 3, "base_radius_inches": 20.0 / 25.4,
+		"name": "Eradicator Squad with Melta Rifles", "points": 100, "points_by_models": {3: 100, 6: 200}, "third_plus_points_by_models": {3: 120, 6: 220}, "models": 3, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 3, "wounds": 3, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "GRAVIS", "IMPERIUM", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -483,7 +483,7 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 3, 3, 5, 0, 1, {})}}]
 	},
 	"eradicator-squad-with-heavy-bolters": {
-		"name": "Eradicator Squad with Heavy Bolters", "points": 100, "points_by_models": {3: 100, 6: 215}, "models": 3, "base_radius_inches": 20.0 / 25.4,
+		"name": "Eradicator Squad with Heavy Bolters", "points": 100, "points_by_models": {3: 100, 6: 215}, "third_plus_points_by_models": {3: 130, 6: 245}, "models": 3, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 3, "wounds": 3, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "GRAVIS", "IMPERIUM", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -509,7 +509,7 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "twin-power-fists", "profiles": {"standard": _weapon("Twin Power Fists", 0.0, 3, 3, 8, -2, 2, {"twin-linked": true})}}]
 	},
 	"infernus-squad": {
-		"name": "Infernus Squad", "points": 95, "points_by_models": {5: 95, 10: 190}, "models": 5, "base_radius_inches": 16.0 / 25.4,
+		"name": "Infernus Squad", 		"points": 95, "points_by_models": {5: 95, 10: 190}, "third_plus_points_by_models": {5: 105, 10: 200}, "models": 5, "base_radius_inches": 16.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -519,7 +519,7 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 3, 3, 5, 0, 1, {})}}]
 	},
 	"hellblaster-squad": {
-		"name": "Hellblaster Squad", "points": 115, "points_by_models": {5: 115, 10: 230}, "models": 5, "base_radius_inches": 16.0 / 25.4,
+		"name": "Hellblaster Squad", "points": 115, "points_by_models": {5: 115, 10: 230}, "third_plus_points_by_models": {5: 130, 10: 245}, "models": 5, "base_radius_inches": 16.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -578,7 +578,7 @@ static func _build_profiles() -> Dictionary:
 	},
 	"assault-intercessors-with-jump-packs": {
 		"name": "Assault Intercessors With Jump Packs", "source_book_id": "000000139", "source_datasheet_id": "000002776", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-		"points": 95, "points_by_models": {5: 95, 10: 190}, "max_supported_copies": 2, "models": 5, "base_radius_inches": 16.0 / 25.4,
+		"points": 95, "points_by_models": {5: 95, 10: 190}, "third_plus_points_by_models": {5: 105, 10: 200}, "max_supported_copies": 2, "models": 5, "base_radius_inches": 16.0 / 25.4,
 		"stats": {"movement_inches": 12, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "FLY", "JUMP PACK", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "heavy-bolt-pistol", "profiles": {"standard": _weapon("Heavy Bolt Pistol", 18.0, 1, 3, 5, -1, 1, {"close-quarters": true})}}],

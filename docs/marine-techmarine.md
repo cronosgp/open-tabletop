@@ -6,6 +6,7 @@ The fixed profile is one Techmarine for 55 points, on a 40 mm base, with M6, T5,
 
 Implemented datasheet rules:
 
+- **Leader:** may attach to Assault Intercessors, Intercessors or Desolation Squads, matching the pinned local export.
 - **Techmarine:** gains Lone Operative while within 3 inches of a friendly Adeptus Astartes Vehicle unit. The check follows living battlefield models and uses edge-to-edge base distance. The faction identity comes from the local Space Marines definition ID or the explicit Adeptus Astartes keyword; enemy and non-Astartes Vehicles do not qualify.
 - **Blessings of the Omnissiah:** at the start or end of this unit's own move in the Movement phase, select one friendly Adeptus Astartes Vehicle model within 3 inches. Roll D3 and restore up to that many wounds, capped at the model's maximum. Its attacks ignore hit and wound modifiers until the start of the Techmarine's next Movement phase. Start timing can be deferred to the end timing; resolve the choice before continuing the move. Reserve set-up is not treated as a move.
 

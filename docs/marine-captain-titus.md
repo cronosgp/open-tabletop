@@ -10,7 +10,7 @@ Captain Titus is one Ultramarines Epic Hero model at 115 points on a 40mm base: 
 - **Master-crafted Bolter:** 24”, A2, BS2+, S5, AP-1, D2; Assault, Rapid Fire 1, Heavy.
 - **Master-crafted Chainsword:** melee A8, WS2+, S5, AP-1, D2; Anti-non-Monster/Vehicle 2+.
 
-The local Leader target table contains no attachment targets for Titus; construction does not offer him as a Leader attachment.
+The local Leader target table lists Bladeguard Veterans, Hellblasters, Intercessors, Sternguard Veterans, Assault Intercessors and Infernus Squads. The runtime exposes these exact targets and rejects unlisted bodyguards.
 
 ## Implemented rules
 

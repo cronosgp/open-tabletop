@@ -35,10 +35,8 @@ const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const Attachments = preload("res://scripts/edition_11/attached_units.gd")
 const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
-const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
 const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
 const Hammer = preload("res://scripts/edition_11/hammer_of_wrath.gd")
-const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const TacticalFluidity = preload("res://scripts/edition_11/tactical_fluidity.gd")
 const PurgationRun = preload("res://scripts/edition_11/purgation_run.gd")
 const VictrixHonourGuard = preload("res://scripts/edition_11/victrix_honour_guard.gd")
@@ -293,7 +291,6 @@ static func advance_phase(state: Dictionary, player: int, revision: int, roller:
 	else:
 		if state.phase == "fight": DetachmentStratagems.remove_lingering(state)
 		if state.phase == "movement":
-			_resolve_vanguard_ambushers(state)
 			for squad: int in state.squads:
 				if state.squads[squad].owner == state.active and not state.squads[squad].moved:
 					state.squads[squad].move_type = "stationary"
@@ -318,19 +315,6 @@ static func advance_phase(state: Dictionary, player: int, revision: int, roller:
 	_event(state, "Player %d: %s" % [state.active, state.phase] + (" • " + ability_note if not ability_note.is_empty() else ""))
 	if state.phase == "fight" and Reivers.begin_fight(state): _event(state, "Fearsome Assault: resolve the required Battle-shock tests before the Fight sequence.")
 	return ""
-
-static func _resolve_vanguard_ambushers(state: Dictionary) -> void:
-	if str(state.get("combat_doctrines", {}).get("detachment", "")) != "phobos-shock-force": return
-	if not state.combat_doctrines.has("vanguard_ambushers"): state.combat_doctrines.vanguard_ambushers = {}
-	for squad: int in state.squads:
-		if int(state.squads[squad].owner) != int(state.active): continue
-		if not UnitAbilities.has_target_keyword(state, squad, "PHOBOS"): continue
-		var alive := Contact.alive(state, squad)
-		if alive.is_empty(): continue
-		var is_hidden := true
-		for model: int in alive:
-			if not Terrain.hidden(state, model): is_hidden = false
-		if is_hidden: state.combat_doctrines.vanguard_ambushers[squad] = int(state.turn)
 
 static func select_oath_target(state: Dictionary, player: int, target: int, revision: int) -> String:
 	var error := OathOfMoment.choice_error(state, player, target, revision)
