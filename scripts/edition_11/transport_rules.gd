@@ -8,7 +8,10 @@ const DetachmentStratagems = preload("res://scripts/edition_11/detachment_strata
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Hazardous = preload("res://scripts/edition_11/hazardous.gd")
 const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const EMERGENCY_WINDOW := "transport-emergency"
+const DISEMBARK_WINDOW := "transport-disembark"
 const COMBAT_EMBARKATION_WINDOW := "repulsor-combat-embarkation"
 const IMPULSOR_SYSTEMS := ["none", "bellicatus-missile-array", "orbital-comms-array", "ironhail-skytalon-array", "shield-dome"]
 const IMPULSOR_SYSTEM_NAMES := {"none": "No optional array or Shield Dome", "bellicatus-missile-array": "Bellicatus Missile Array", "orbital-comms-array": "Orbital Comms Array", "ironhail-skytalon-array": "Ironhail Skytalon Array", "shield-dome": "Shield Dome"}
@@ -369,26 +372,51 @@ static func _passengers(state: Dictionary, transport_model: int) -> Array[int]:
 		if squad not in result and not models(state, squad).is_empty(): result.append(squad)
 	return result
 
-static func _mark_drop_pod_disembark_window(window: Dictionary, transport_model: int, player: int, remaining: Array[int]) -> void:
+static func _drop_pod_action_id(state: Dictionary, transport_model: int, player: int) -> String:
+	return "drop-pod-assault:%d:%d:%d:%d" % [int(state.get("turn", 0)), transport_model, player, int(state.get("revision", -1))]
+
+static func _mark_drop_pod_disembark_window(window: Dictionary, transport_model: int, player: int, remaining: Array[int], frame_id: String, parent_frame_id: String) -> void:
 	window.mandatory_drop_pod = true
 	window.drop_pod_assault = true
 	window.drop_pod_transport = transport_model
 	window.drop_pod_player = player
 	window.drop_pod_remaining = remaining.duplicate()
+	window.resolution_frame_id = frame_id
+	window.parent_frame_id = parent_frame_id
 
 static func _finish_drop_pod_passenger(state: Dictionary, window: Dictionary, roller: Callable) -> String:
 	var transport_model := int(window.get("drop_pod_transport", -1))
+	var frame_id := str(window.get("resolution_frame_id", ""))
+	var parent_frame_id := str(window.get("parent_frame_id", ""))
+	var frame := ResolutionFrames.current(state)
+	if frame_id.is_empty() or str(frame.get("frame_id", "")) != frame_id or str(frame.get("kind", "")) != "transport-drop-pod-assault":
+		return "The Drop Pod Assault continuation is missing."
 	var remaining: Array = window.get("drop_pod_remaining", []).duplicate()
+	if remaining.is_empty() and not parent_frame_id.is_empty():
+		var raw_frames: Variant = state.get("resolution_frames", [])
+		if typeof(raw_frames) != TYPE_ARRAY: return "The ingress continuation beneath Drop Pod Assault is missing."
+		var frames: Array = raw_frames
+		if frames.size() < 2 or typeof(frames[frames.size() - 2]) != TYPE_DICTIONARY: return "The ingress continuation beneath Drop Pod Assault is missing."
+		var parent_frame: Dictionary = frames[frames.size() - 2]
+		if str(parent_frame.get("frame_id", "")) != parent_frame_id:
+			return "The ingress continuation beneath Drop Pod Assault is missing."
 	state.unit_abilities.transport_window = {}
 	state.unit_abilities.window = {}
 	if remaining.is_empty():
+		var frame_error := ResolutionFrames.complete(state, frame_id)
+		if not frame_error.is_empty(): return frame_error
+		if not parent_frame_id.is_empty():
+			var parent_frame := ResolutionFrames.current(state)
+			if str(parent_frame.get("frame_id", "")) != parent_frame_id: return "The ingress continuation beneath Drop Pod Assault is missing."
+			var parent_error := ResolutionFrames.complete(state, parent_frame_id)
+			if not parent_error.is_empty(): return parent_error
 		if state.units.has(transport_model): state.units[transport_model].drop_pod_deployment_complete = true
 		return ""
 	var next_squad := int(remaining.pop_front())
 	var player := int(window.get("drop_pod_player", state.active))
 	var error := begin_disembark(state, player, transport_model, next_squad, "rapid", roller, true)
 	if not error.is_empty(): return error
-	_mark_drop_pod_disembark_window(state.unit_abilities.transport_window, transport_model, player, remaining)
+	_mark_drop_pod_disembark_window(state.unit_abilities.transport_window, transport_model, player, remaining, frame_id, parent_frame_id)
 	return ""
 
 static func begin_drop_pod_arrival(state: Dictionary, player: int, transport_model: int, roller: Callable) -> String:
@@ -400,7 +428,23 @@ static func begin_drop_pod_arrival(state: Dictionary, player: int, transport_mod
 	var first_squad: int = passenger_squads.pop_front()
 	var error := begin_disembark(state, player, transport_model, first_squad, "rapid", roller, true)
 	if not error.is_empty(): return error
-	_mark_drop_pod_disembark_window(state.unit_abilities.transport_window, transport_model, player, passenger_squads)
+	var parent_frame_id := ""
+	var parent_frame := ResolutionFrames.current(state)
+	if str(parent_frame.get("kind", "")) == "unit-action" and str(parent_frame.get("action_id", "")).begins_with("ingress:"):
+		parent_frame_id = str(parent_frame.get("frame_id", ""))
+	var frame := ResolutionFrames.begin(state, "transport-drop-pod-assault", _drop_pod_action_id(state, transport_model, player), "drop-pod-passenger-disembark")
+	if frame.is_empty():
+		state.unit_abilities.transport_window = {}
+		state.unit_abilities.window = {}
+		return "Could not open the Drop Pod Assault continuation frame."
+	var frame_id := str(frame.get("frame_id", ""))
+	var suspend_error := ResolutionFrames.suspend(state, frame_id, "drop-pod-passenger-disembark")
+	if not suspend_error.is_empty():
+		ResolutionFrames.complete(state, frame_id)
+		state.unit_abilities.transport_window = {}
+		state.unit_abilities.window = {}
+		return suspend_error
+	_mark_drop_pod_disembark_window(state.unit_abilities.transport_window, transport_model, player, passenger_squads, frame_id, parent_frame_id)
 	return ""
 
 static func passengers_of_destroyed(state: Dictionary, destroyed_models: Array[int]) -> Array[Dictionary]:
@@ -411,7 +455,7 @@ static func passengers_of_destroyed(state: Dictionary, destroyed_models: Array[i
 			result.append({"transport": transport_model, "passenger_squad": passenger_squad})
 	return result
 
-static func _set_window_actor(state: Dictionary, player: int, kind: String = "transport-emergency") -> void:
+static func _set_window_actor(state: Dictionary, player: int, kind: String = EMERGENCY_WINDOW) -> void:
 	state.unit_abilities.window = {"kind": kind, "owners": [player]}
 
 static func _emergency_finish(state: Dictionary, window: Dictionary) -> void:
@@ -662,10 +706,21 @@ static func begin_disembark(state: Dictionary, player: int, transport_model: int
 	var passenger_models := models(state, passenger_squad)
 	var hazard := Hazardous.roll(state, passenger_squad, passenger_models.size(), roller)
 	if not hazard.error.is_empty(): return hazard.error
+	var resolution_frame_id := ""
+	if not forced_drop_pod:
+		var action_id := "transport-disembark:%d:%d:%d:%d" % [int(state.get("turn", 0)), transport_model, passenger_squad, int(state.get("revision", -1))]
+		var frame := ResolutionFrames.begin(state, "transport-disembark", action_id, "transport-hazard-and-placement")
+		if frame.is_empty(): return "Could not open the transport disembarkation continuation frame."
+		resolution_frame_id = str(frame.get("frame_id", ""))
+		var suspend_error := ResolutionFrames.suspend(state, resolution_frame_id, "transport-hazard-and-placement")
+		if not suspend_error.is_empty():
+			ResolutionFrames.complete(state, resolution_frame_id)
+			return suspend_error
 	state.unit_abilities.transport_window = {"kind": "disembark", "player": player, "transport": transport_model, "passenger_squad": passenger_squad, "mode": mode, "models": passenger_models, "placements": {}, "origins": {}, "prior_flags": {}, "hazard_rolls": hazard.rolls, "hazard_remaining": hazard.failures, "hazard_allocations": [], "stage": "placement"}
+	if not resolution_frame_id.is_empty(): state.unit_abilities.transport_window.resolution_frame_id = resolution_frame_id
+	_set_window_actor(state, player, DISEMBARK_WINDOW)
 	if hazard.failures > 0:
 		state.unit_abilities.transport_window.stage = "hazard"
-		_set_window_actor(state, player, "transport-disembark")
 	for model: int in passenger_models:
 		state.unit_abilities.transport_window.origins[model] = state.units[model].position
 		state.unit_abilities.transport_window.prior_flags[model] = state.units[model].get("on_battlefield", false)
@@ -700,11 +755,18 @@ static func _emergency_hazards_complete(state: Dictionary, window: Dictionary) -
 	_set_window_actor(state, int(window.active_player))
 	if window.models.is_empty(): _emergency_finish(state, window)
 
-static func _disembark_hazards_complete(state: Dictionary, window: Dictionary, roller: Callable) -> void:
+static func _disembark_hazards_complete(state: Dictionary, window: Dictionary, roller: Callable) -> String:
 	window.models = window.models.filter(func(model: int) -> bool: return int(state.units[model].get("wounds", 0)) > 0)
 	window.stage = "placement"
-	_set_window_actor(state, int(window.player), "transport-disembark")
+	_set_window_actor(state, int(window.player), DISEMBARK_WINDOW)
 	if window.models.is_empty():
+		var resolution_frame_id := str(window.get("resolution_frame_id", ""))
+		if not resolution_frame_id.is_empty() and not window.get("mandatory_drop_pod", false):
+			var active_frame := ResolutionFrames.current(state)
+			if str(active_frame.get("frame_id", "")) != resolution_frame_id or str(active_frame.get("kind", "")) != "transport-disembark":
+				return "The active transport disembarkation continuation is missing."
+			var frame_error := ResolutionFrames.complete(state, resolution_frame_id)
+			if not frame_error.is_empty(): return frame_error
 		var passenger_squad := int(window.passenger_squad)
 		for model: int in state.units:
 			if int(state.units[model].get("squad", -1)) == passenger_squad: state.units[model].erase("embarked_transport")
@@ -712,7 +774,8 @@ static func _disembark_hazards_complete(state: Dictionary, window: Dictionary, r
 		state.squads[passenger_squad].erase("embarked_this_turn")
 		state.unit_abilities.transport_window = {}
 		state.unit_abilities.window = {}
-	if window.get("mandatory_drop_pod", false) and window.models.is_empty(): _finish_drop_pod_passenger(state, window, roller)
+	if window.get("mandatory_drop_pod", false) and window.models.is_empty(): return _finish_drop_pod_passenger(state, window, roller)
+	return ""
 
 static func apply(state: Dictionary, player: int, selected: Dictionary, point: Vector2, roller: Callable = Callable()) -> String:
 	var action := str(selected.get("action", ""))
@@ -741,7 +804,9 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		if int(window.hazard_remaining) <= 0 or _emergency_mortal_candidates(state, window).is_empty():
 			window.hazard_remaining = 0
 			if window.kind == "emergency": _emergency_hazards_complete(state, window)
-			else: _disembark_hazards_complete(state, window, roller)
+			else:
+				var hazard_error := _disembark_hazards_complete(state, window, roller)
+				if not hazard_error.is_empty(): return hazard_error
 		return ""
 	if action == "transport-emergency-unplaceable":
 		if window.get("kind", "") != "emergency" or window.get("stage", "") != "placement" or int(selected.model) not in window.models: return "Select a passenger model still awaiting emergency placement."
@@ -781,6 +846,12 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"transport-disembark-confirm":
 			var error := confirm_error(state)
 			if not error.is_empty(): return error
+			var resolution_frame_id := str(window.get("resolution_frame_id", ""))
+			if not resolution_frame_id.is_empty():
+				var active_frame := ResolutionFrames.current(state)
+				var expected_frame_kind := "transport-drop-pod-assault" if window.get("mandatory_drop_pod", false) else "transport-disembark"
+				if str(active_frame.get("frame_id", "")) != resolution_frame_id or str(active_frame.get("kind", "")) != expected_frame_kind:
+					return "The active transport disembarkation continuation is missing."
 			var passenger_squad := int(window.passenger_squad)
 			for model: int in window.models:
 				state.units[model].position = window.placements[model]
@@ -813,6 +884,9 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				else:
 					state.unit_abilities.transport_window = {}
 					state.unit_abilities.window = {}
+			if not resolution_frame_id.is_empty() and not window.get("mandatory_drop_pod", false):
+				var frame_error := ResolutionFrames.complete(state, resolution_frame_id)
+				if not frame_error.is_empty(): return frame_error
 			return ""
 		_:
 			return "Unsupported transport action."

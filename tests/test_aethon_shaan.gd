@@ -5,6 +5,7 @@ const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd
 const Core = preload("res://scripts/edition_11/core_reactions.gd")
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -98,13 +99,29 @@ func run() -> void:
 	for model: int in C.living(s, infantry_squad): s.units[model].position = Vector2(-2, 3)
 	for model: int in C.living(s, enemy_squad): s.units[model].position = Vector2(4, 0)
 	var master := by_action(C.UnitActions.choices(s, 1), "master-shadows", infantry_squad)
-	check(not master.is_empty() and C.unit_action(s, 1, master, Vector2.ZERO, s.revision, one).is_empty(), "Master of Shadows selects a friendly Astartes Infantry unit in Command")
+	check(not master.is_empty() and C.UnitActions.pending_decision(s).is_empty(), "Master of Shadows offers an immediate Command choice without a persisted decision")
+	if not master.is_empty():
+		var before_wrong_master_choice_owner := var_to_bytes(s)
+		var wrong_master_choice_owner := MatchCommands.execute(s, 2, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": master, "revision": s.revision}, one)
+		check(not str(wrong_master_choice_owner.get("error", "")).is_empty() and var_to_bytes(s) == before_wrong_master_choice_owner, "The opponent cannot submit or mutate the immediate Master of Shadows choice")
+		var master_choice_result := MatchCommands.execute(s, 1, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": master, "revision": s.revision}, one)
+		check(str(master_choice_result.get("error", "")).is_empty(), "Master of Shadows selects a friendly Astartes Infantry unit through the public command")
 	check(C.UnitAbilities.master_shadows_active(s, infantry_squad) and not C.UnitAbilities.master_shadows_active(s, enemy_squad), "Master of Shadows is scoped to the selected friendly unit")
 	s.phase = "charge"
 	s.unit_abilities.phase_key = C.UnitActions.key(s)
 	var declared := C.declare_charge(s, 1, infantry, s.revision, one)
 	check(declared.error.is_empty() and s.stratagems.pending.get("master_shadows", false), "Master of Shadows opens a free Charge re-roll decision without Command Re-roll enabled")
-	check(C.resolve_roll_reaction(s, 1, infantry_squad, "master-shadows", s.revision, six).is_empty() and s.pending_charge.rolls == [6, 6] and s.cp[1] == 0 and s.last_command_roll.source == "master-shadows", "Master of Shadows re-rolls both Charge dice for 0 CP and keeps the mandatory result")
+	var reaction_decision := C.Stratagems.pending_decision(s)
+	var master_option: Dictionary = {}
+	for option: Dictionary in reaction_decision.get("legal_options", []):
+		if int(option.get("target", -1)) == infantry_squad and str(option.get("value", "")) == "master-shadows": master_option = option
+	var master_choice := {"action": "stratagem-reaction", "model": -1, "target": infantry_squad, "value": "master-shadows", "die": -1}
+	var master_envelope := {"_decision_type": MatchCommands.STRATAGEM_DECISION_ENVELOPE, "decision_id": str(reaction_decision.get("decision_id", "")), "option_id": str(master_option.get("id", "")), "choice": master_choice}
+	var before_wrong_master_owner := var_to_bytes(s)
+	var wrong_master_owner := MatchCommands.execute(s, 2, {"kind": MatchCommands.COMMAND_REACTION, "choice": master_envelope, "revision": s.revision}, six)
+	check(not str(wrong_master_owner.get("error", "")).is_empty() and var_to_bytes(s) == before_wrong_master_owner, "The opponent cannot submit or mutate Master of Shadows' Charge re-roll decision")
+	var master_result := MatchCommands.execute(s, 1, {"kind": MatchCommands.COMMAND_REACTION, "choice": master_envelope, "revision": s.revision}, six)
+	check(str(master_result.get("error", "")).is_empty() and s.pending_charge.rolls == [6, 6] and s.cp[1] == 0 and s.last_command_roll.source == "master-shadows", "Master of Shadows re-rolls both Charge dice through the public command for 0 CP and keeps the mandatory result")
 	s.turn = 2
 	check(C.UnitAbilities.master_shadows_active(s, infantry_squad), "Master of Shadows remains active through the opponent's turn")
 	s.turn = 3

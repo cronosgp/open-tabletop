@@ -7,6 +7,8 @@ const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const ScoutMoves = preload("res://scripts/edition_11/scout_moves.gd")
 const Supports = preload("res://scripts/edition_11/support_attachments.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -14,11 +16,22 @@ func check(ok: bool, message: String) -> void:
 		push_error(message)
 		failures += 1
 
+func submit_choice(state: Dictionary, player: int, selected: Dictionary, point: Vector2 = Vector2.ZERO) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	var payload := selected
+	if not decision.is_empty():
+		var projected: Dictionary = {}
+		for option: Dictionary in decision.get("legal_options", []):
+			if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+		if projected.is_empty(): return {"error": "The selected choice is not in the current Strategium decision."}
+		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "point": point, "choice": payload})
+
 func act(state: Dictionary, player: int, action: String, target: int = -999, point: Vector2 = Vector2.ZERO) -> String:
 	var available: Array = F.C.unit_choices(state, player)
 	for option: Dictionary in available:
 		if option.action == action and (target == -999 or int(option.target) == target):
-			return F.C.unit_action(state, player, option, point, state.revision)
+			return str(submit_choice(state, player, option, point).get("error", ""))
 	return "Missing choice: " + action
 
 func _initialize() -> void: call_deferred("run")
@@ -94,8 +107,14 @@ func run() -> void:
 	for index in range(6): state.units[100000 + index].on_battlefield = true
 	ScoutMoves.begin(state)
 	check(state.unit_abilities.window.get("kind", "") == "strategium-command" and ScoutMoves.actor(state) == 1, "Strategium Command resolves after both armies deploy and before Scouts")
+	var selected_choice: Dictionary = {}
+	for option: Dictionary in F.C.unit_choices(state, 1):
+		if option.action == "strategium-select" and int(option.target) == squad: selected_choice = option; break
+	var before_wrong_strategium_owner := var_to_bytes(state)
+	var wrong_strategium_owner := submit_choice(state, 2, selected_choice)
+	check(not selected_choice.is_empty() and not str(wrong_strategium_owner.get("error", "")).is_empty() and before_wrong_strategium_owner == var_to_bytes(state), "Strategium rejects the other player through its projected command without mutation")
 	var selected := act(state, 1, "strategium-select", squad)
-	check(selected.is_empty(), "Strategium Command can select an Adeptus Astartes unit")
+	check(selected.is_empty(), "Strategium Command can select an Adeptus Astartes unit through the public command")
 	check(act(state, 1, "strategium-reserve", squad).is_empty(), "Strategium Command can place a selected unit into Strategic Reserves")
 	check(state.unit_abilities.reserves.get(squad, {}).get("source", "") == "strategium-command" and state.unit_abilities.reserves[squad].get("bypass_limit", false) and not state.units[100000].on_battlefield, "Strategium reserve placement records its reserve-limit exception and removes the unit")
 	var additional_targets: Array[int] = []

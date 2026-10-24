@@ -99,7 +99,7 @@ static func advance_destroyed_mark_queue(state: Dictionary, selected_squad: int,
 static func has(state: Dictionary, squad: int, name: String) -> bool:
 	return AbilityCatalog.has(state, squad, name)
 static func enable(state: Dictionary) -> void:
-	state.unit_abilities = {"implementation": ID, "used": {}, "doctrines": {}, "additional_doctrines": {}, "discounts": {}, "discount_armed": {}, "phase_start": -1, "end_done": "", "window": {}, "reserves": {}, "homers": {}, "force_dome": {}, "veil_of_time_pending": {}, "master_shadows": {}, "thunderhawk_targets": {}, "seeker_objectives": {}, "forgefather_targets": {}, "setup_done": false}
+	state.unit_abilities = {"implementation": ID, "used": {}, "doctrines": {}, "additional_doctrines": {}, "discounts": {}, "discount_armed": {}, "phase_start": -1, "end_done": "", "window": {}, "reserves": {}, "homers": {}, "force_dome": {}, "veil_of_time_pending": {}, "master_shadows": {}, "thunderhawk_targets": {}, "seeker_objectives": {}, "forgefather_targets": {}, "weapon_skill_characteristic_modifiers": {"squads": {}, "models": {}}, "setup_done": false}
 	for squad: int in state.squads:
 		state.squads[squad].disabled_abilities = []
 		for model: int in Geometry.alive(state, squad):

@@ -1,4 +1,5 @@
 extends SceneTree
+# Prepared-training setup materializes the local legacy starter at res://data/imported/starter-11e-v1.
 func _initialize() -> void: call_deferred("run")
 func revision(game: Node, wanted: int) -> bool:
 	for attempt in range(100):

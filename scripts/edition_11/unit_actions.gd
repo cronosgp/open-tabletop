@@ -34,12 +34,48 @@ const VictrixHonourGuard = preload("res://scripts/edition_11/victrix_honour_guar
 const LeaderCatalog = preload("res://scripts/edition_11/leader_catalog.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
+const CommandBattleShock = preload("res://scripts/edition_11/command_battle_shock.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 
 static func key(state: Dictionary) -> String:
 	return "%d:%s" % [state.turn, state.phase]
 
+static func _ingress_action_id(state: Dictionary, player: int, squad: int, homer: bool) -> String:
+	return "ingress:%d:%s:%d:%d:%s" % [int(state.get("turn", 0)), str(state.get("phase", "")), player, squad, "homer" if homer else "reserve"]
+
+static func _ingress_frame_error(state: Dictionary, window: Dictionary) -> String:
+	var frame_id := str(window.get("resolution_frame_id", ""))
+	var owners: Array = window.get("owners", [])
+	if owners.is_empty(): return "The active ingress continuation has no decision owner."
+	var action_id := _ingress_action_id(state, int(owners[0]), int(window.get("squad", -1)), bool(window.get("homer", false)))
+	var frame := ResolutionFrames.current(state)
+	if frame_id.is_empty() or str(frame.get("frame_id", "")) != frame_id or str(frame.get("kind", "")) != "unit-action" or str(frame.get("action_id", "")) != action_id:
+		return "The active ingress continuation is missing."
+	return ""
+
 static func pending(state: Dictionary) -> Dictionary:
 	return state.get("unit_abilities", {}).get("window", {})
+
+## Exhaustive discriminator set for persisted UnitActions windows handled by this dispatcher.
+## Keep unknown kinds out of the generic phase-window decline path.
+static func supported_window_kind(kind: String) -> bool:
+	return kind in [
+		"start", "end", "counter", "demi",
+		"damage-reroll", "aquilon-hit", "machine-spirit-hit", "machine-spirit-wound", "wound",
+		DeadlyDemise.WINDOW, DetachmentStratagems.LAYERED_CERAMITE_WINDOW,
+		"evade-and-survive", "evade-placement", CatoSicarius.WINDOW, CatoSicarius.PLACEMENT,
+		TacticalFluidity.WINDOW, TacticalFluidity.PLACEMENT, PurgationRun.WINDOW, PurgationRun.PLACEMENT,
+		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, "forward-assault-mark",
+		CoreReactions.EXPLOSIVES, CoreReactions.CRUSHING_MORTAL, Hammer.MORTAL_WINDOW, Hammer.ID,
+		DetachmentStratagems.HEADHUNTER_WINDOW, DetachmentStratagems.UNSTOPPABLE_WINDOW,
+		DetachmentStratagems.ARMOUR_WINDOW, DetachmentStratagems.WORTHY_WINDOW,
+		"mounted-shooting-reaction", "stormlance-hurtling", "blessings-of-the-omnissiah",
+		"healing", "healing-order", TransportRules.EMERGENCY_WINDOW, TransportRules.DISEMBARK_WINDOW, TransportRules.COMBAT_EMBARKATION_WINDOW,
+		"bladeguard", "phobos-shrouding", Incursors.DIVINATOR_WINDOW, Incursors.MINE_WINDOW,
+		CoreReactions.TIGURIUS_MORTAL, "scouts", "strategium-command",
+		"driven-from-cover", "hailstrike", "shattered-defences", "tactics", "eternal", "ingress",
+		CoreReactions.CRUSHING, DetachmentStratagems.MOVEMENT_REACTION_WINDOW
+	]
 
 static func setup_actor(state: Dictionary) -> int:
 	if not A.enabled(state) or state.phase != "deployment": return -1
@@ -49,15 +85,40 @@ static func setup_actor(state: Dictionary) -> int:
 
 static func actor(state: Dictionary) -> int:
 	if setup_actor(state) > 0: return setup_actor(state)
+	if state.get("phase", "") == "deployment" and D.current(state) >= 0:
+		var deploying_owner := D.actor(state)
+		if not choices(state, deploying_owner).is_empty(): return deploying_owner
+	if DetachmentStratagems.vengeful_actor(state) > 0: return DetachmentStratagems.vengeful_actor(state)
+	var reanimation := R.pending(state)
+	if bool(reanimation.get("current", {}).get("reroll_pending", false)): return int(reanimation.get("player", -1))
 	if pending(state).get("kind", "") == DeadlyDemise.WINDOW and not pending(state).get("owners", []).is_empty(): return int(pending(state).owners[0])
 	if battle_actor(state) > 0: return battle_actor(state)
 	if ScoutMoves.actor(state) > 0: return ScoutMoves.actor(state)
-	if not state.get("fearsome_assault", {}).is_empty(): return int(state.fearsome_assault.get("owner", -1))
+	if CommandBattleShock.actor(state) > 0: return CommandBattleShock.actor(state)
+	var adamantine_pending := DetachmentStratagems.adamantine_pending(state)
+	if not adamantine_pending.is_empty() and not adamantine_pending.get("current_result", {}).is_empty(): return int(adamantine_pending.get("decision_owner", -1))
+	if not state.get("fearsome_assault", {}).is_empty():
+		var fearsome: Dictionary = state.fearsome_assault
+		if not fearsome.get("current_result", {}).is_empty(): return int(fearsome.get("decision_owner", -1))
+		return int(fearsome.get("owner", -1))
 	var window := pending(state)
-	return int(window.owners[0]) if not window.is_empty() else -1
+	if not window.is_empty(): return int(window.owners[0])
+	return DetachmentStratagems.undying_actor(state)
 
 ## Common decision envelope for the combined phase-start/end ability/reaction windows.
 ## Specialized action handlers remain authoritative and recompute choices on submit.
+static func phase_decision_actor(state: Dictionary) -> int:
+	# MatchActor validates pending containers before using this read-only shortcut.
+	# Keep the same priority as pending_decision(), without building every legal
+	# Overwatch/ability option just to read the owner of a phase window.
+	var command_morale_decision := CommandBattleShock.pending_decision(state)
+	if not command_morale_decision.is_empty(): return int(command_morale_decision.priority_player_id)
+	var window := pending(state)
+	if str(window.get("kind", "")) not in ["start", "end"] or not A.enabled(state): return -1
+	var owners: Variant = window.get("owners", [])
+	if not owners is Array or owners.is_empty() or not owners[0] is int or int(owners[0]) not in [1, 2]: return -1
+	return int(owners[0])
+
 static func phase_decision(state: Dictionary) -> Dictionary:
 	var window := pending(state)
 	var kind := str(window.get("kind", ""))
@@ -66,23 +127,38 @@ static func phase_decision(state: Dictionary) -> Dictionary:
 	if owners.is_empty(): return {}
 	var owner := int(owners[0])
 	var options := choices(state, owner)
-	var pass_allowed := options.any(func(option: Dictionary) -> bool: return option.get("action", "") == "pass")
+	var pass_allowed := options.any(func(option: Dictionary) -> bool: return option.get("action", "") in ["pass", "detachment-movement-pass"])
 	return PendingDecision.create(state, "unit-actions", "%s-phase:%s" % [kind, str(state.get("phase", ""))], owner, options, pass_allowed)
 
 ## Normalized projection of specialized unit-ability and preparation windows.
 ## Rule handlers still recompute their legal options when a command is submitted.
 static func pending_decision(state: Dictionary) -> Dictionary:
+	var command_morale_decision := CommandBattleShock.pending_decision(state)
+	if not command_morale_decision.is_empty(): return command_morale_decision
 	var phase_choice := phase_decision(state)
 	if not phase_choice.is_empty(): return phase_choice
 	var owner := actor(state)
 	if owner <= 0: return {}
 	var window := pending(state)
 	var timing: String
-	if not window.is_empty():
+	if DetachmentStratagems.vengeful_actor(state) == owner:
+		timing = "shooting:vengeful-reaction"
+	elif bool(R.pending(state).get("current", {}).get("reroll_pending", false)):
+		var reanimation_kind := str(R.pending(state).get("kind", ""))
+		timing = "post-destruction:%s:reanimation-reroll" % str(state.get("phase", "")) if reanimation_kind == "undying" else "command-phase:reanimation-reroll"
+	elif DetachmentStratagems.undying_actor(state) == owner:
+		timing = "post-attack:%s:undying-legions" % str(state.get("phase", ""))
+	elif not window.is_empty():
 		var kind := str(window.get("kind", "pending-choice"))
 		timing = "%s:%s" % [str(state.get("phase", "")), str(window.get("trigger", kind))]
+	elif not state.get("fearsome_assault", {}).is_empty():
+		timing = "fight:fearsome-assault"
+	elif battle_actor(state) == owner:
+		timing = "%s:battle-start-declarations" % str(state.get("phase", ""))
 	elif setup_actor(state) == owner:
 		timing = "%s:army-preparation" % str(state.get("phase", ""))
+	elif state.get("phase", "") == "deployment" and D.current(state) >= 0 and D.actor(state) == owner:
+		timing = "deployment:unit-choice"
 	else:
 		return {}
 	var options := choices(state, owner)
@@ -209,8 +285,11 @@ static func _reserve_required_drop_pods(state: Dictionary, player: int) -> Strin
 static func choices(state: Dictionary, player: int) -> Array:
 	var result: Array = []
 	if state.get("test_winner", 0) != 0: return result
+	if not CommandBattleShock.pending(state).is_empty(): return CommandBattleShock.choices(state, player)
+	var ability_window := pending(state)
+	if not ability_window.is_empty() and not supported_window_kind(str(ability_window.get("kind", ""))): return []
 	result.append_array(StormlanceEnhancements.standard_fight_choices(state, player))
-	if not A.enabled(state): return result
+	if not A.enabled(state): return [] if not pending(state).is_empty() else result
 	if not state.get("unit_abilities", {}).get("transport_window", {}).is_empty():
 		result.append_array(TransportRules.choices(state, player))
 		result.append_array(DetachmentStratagems.layered_ceramite_choices(state, player))
@@ -224,6 +303,11 @@ static func choices(state: Dictionary, player: int) -> Array:
 		if rp.player == player and rp.current.get("reroll_pending", false):
 			result.append(choice("Their Number is Legion: keep D6 %d" % rp.current.raw_roll, "legion-keep"))
 			result.append(choice("Their Number is Legion: re-roll once (new result required)", "legion-reroll"))
+		return result
+	if DetachmentStratagems.undying_actor(state) == player and DetachmentStratagems.vengeful_actor(state) != player:
+		for option: Dictionary in DetachmentStratagems.choices(state, player):
+			if str(option.get("value", "")) == DetachmentStratagems.UNDYING: result.append(option)
+		result.append(choice("Decline Undying Legions for this attack", "undying-pass"))
 		return result
 	var strat_window: Dictionary = state.get("stratagems", {}).get("pending", {})
 	if not strat_window.is_empty():
@@ -328,6 +412,14 @@ static func choices(state: Dictionary, player: int) -> Array:
 					result.append(choice("Embark %s in %s" % [state.squads[squad].name, state.squads[state.units[transport_model].squad].name], "transport-embark", passenger_models[0], transport_model))
 	if state.phase == "shooting" and state.active == player:
 		result.append_array(auspex_triangulation_choices(state, player))
+		if state.get("mission", {}).get("primary_id", "") == "secure-asset":
+			var home_role := "attacker" if player == state.get("mission", {}).get("attacker", 0) else "defender"
+			for squad: int in state.squads:
+				if int(state.squads[squad].owner) != player or G.alive(state, squad).is_empty(): continue
+				for objective_index in Actions.targets(state, squad):
+					if state.mission.objectives[objective_index].get("role", "") == home_role: continue
+					if not Actions.start_error(state, squad, objective_index).is_empty(): continue
+					result.append(choice("Secure Asset: %s secures %s" % [state.squads[squad].name, state.mission.objectives[objective_index].name], "mission-secure-asset", G.alive(state, squad)[0], objective_index))
 		for model: int in state.units:
 			var vulkan: Dictionary = state.units[model]
 			if vulkan.owner != player or vulkan.wounds <= 0 or not vulkan.get("on_battlefield", true) or A.identity(vulkan) != "vulkan-hestan": continue
@@ -603,6 +695,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 				if not state.unit_abilities.reserves.has(squad): result.append(choice("Place %s in strategic reserves" % state.squads[squad].name, "reserve", -1, squad))
 
 		return result
+	if not DetachmentStratagems.adamantine_pending(state).is_empty(): return DetachmentStratagems.adamantine_decision_choices(state, player)
 	if not state.get("fearsome_assault", {}).is_empty(): return Reivers.choices(state, player)
 	var battle := battle_actor(state)
 	if battle > 0:
@@ -697,6 +790,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 			result.append(choice("Confirm %s move" % movement_source, "tactics-confirm"))
 			result.append(choice("Leave %s in place" % state.squads[window.squad].name, "tactics-cancel"))
 			return result
+		if window.kind == DetachmentStratagems.MOVEMENT_REACTION_WINDOW:
+			return DetachmentStratagems.movement_reaction_choices(state, player)
 		if window.kind == "eternal":
 			result.append(choice("Eternal Revenant: preview returned model %d" % window.model, "eternal-place", window.model, window.squad))
 			result.append(choice("Confirm Eternal Revenant set-up", "eternal-confirm", window.model, window.squad))
@@ -723,7 +818,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 			for squad: int in TacticalFluidity.end_fight_squads(state, player):
 				var suboden := squad in TacticalFluidity.suboden_squads(state, player)
 				var mode := "Normal Move" if suboden else ("Fall Back" if FightQueue.engaged(state, squad) else "Normal Move")
-				var limit := "6 inches"
+				var limit := "%d inches" % int(state.units[G.alive(state, squad)[0]].get("movement", 0)) if suboden else "6 inches"
 				var source := "Suboden Khan: Wrath of the First Khan" if suboden else "Captain in Phobos Armour: Tactical Fluidity"
 				result.append(choice("%s: %s up to %s" % [source, mode, limit], "storm-swift-move" if suboden else "fluidity-end", -1, squad))
 			for squad: int in echo_ravenspire_squads(state, player):
@@ -737,9 +832,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 			result.append_array(DetachmentStratagems.choices(state, player))
 			result.append_array(CoreReactions.choices(state, player))
 		if state.phase == "movement" and state.active != player and state.has("stratagems"):
-			for squad: int in state.unit_abilities.reserves:
-				if state.squads[squad].owner != player or state.unit_abilities.used.get("ingress:%d:%s" % [player, key(state)], false) or state.squads[squad].battle_shocked: continue
-				if not StormlanceEnhancements.ingress_round_allowed(state, squad): continue
+			for squad: int in rapid_ingress_squads(state, player):
 				if state.cp[player] >= 1: result.append(choice("Rapid Ingress: %s (1 CP)" % state.squads[squad].name, "ingress", -1, squad))
 				if state.unit_abilities.homers.has(squad): result.append(choice("Rapid Ingress via Teleport Homer: %s (0 CP)" % state.squads[squad].name, "homer-ingress", -1, squad))
 			result.append_array(DetachmentStratagems.choices(state, player))
@@ -761,6 +854,11 @@ static func choices(state: Dictionary, player: int) -> Array:
 		if state.pending_move.is_empty() and state.pending_contact.is_empty():
 			result.append_array(DetachmentStratagems.choices(state, player))
 			result.append_array(CoreReactions.choices(state, player))
+			var has_vengeful_pass := result.any(func(option: Dictionary) -> bool: return str(option.get("action", "")) == "vengeful-pass")
+			if state.phase == "shooting" and DetachmentStratagems.vengeful_actor(state) == player and not has_vengeful_pass:
+				result.append(choice("Decline Vengeful Stars or Hail of Vengeance", "vengeful-pass"))
+			if DetachmentStratagems.undying_actor(state) == player:
+				result.append(choice("Decline Undying Legions for this attack", "undying-pass"))
 		return result
 	if not state.pending_move.is_empty() or not state.pending_contact.is_empty():
 		result.append_array(DetachmentStratagems.layered_ceramite_choices(state, player))
@@ -850,6 +948,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 		for squad: int in state.unit_abilities.reserves:
 			if state.squads[squad].owner != player: continue
 			if TransportRules.is_drop_pod(state, squad) or StormlanceEnhancements.ingress_round_allowed(state, squad): result.append(choice("Drop Pod Assault ingress: %s" % state.squads[squad].name if TransportRules.is_drop_pod(state, squad) else "Deep Strike ingress: %s" % state.squads[squad].name, "ingress", -1, squad))
+	if DetachmentStratagems.undying_actor(state) == player:
+		result.append(choice("Decline Undying Legions for this attack", "undying-pass"))
 	return result
 
 static func catechism_fire_choices(state: Dictionary, player: int) -> Array:
@@ -999,11 +1099,34 @@ static func open_end(state: Dictionary) -> bool:
 	if not A.enabled(state) or state.phase not in ["command", "movement", "shooting", "charge", "fight"] or state.unit_abilities.end_done == key(state): return false
 	var owners: Array = []
 	for owner in [state.active, 3 - int(state.active)]:
-		if orb_available(state, owner) or DetachmentStratagems.eternal_pending(state, owner) or CoreReactions.end_available(state, owner) or (state.phase == "movement" and owner != state.active and state.round > 1 and not state.unit_abilities.reserves.is_empty()) or (state.phase == "fight" and owner != state.active and (not parabolic_jetleap_squads(state, owner).is_empty() or not echo_ravenspire_squads(state, owner).is_empty() or not DetachmentStratagems.withdraw_and_regroup_squads(state, owner).is_empty())) or (state.phase == "fight" and (not DetachmentStratagems.wind_swift_squads(state, owner).is_empty() or not TacticalFluidity.end_fight_squads(state, owner).is_empty())): owners.append(owner)
+		if orb_available(state, owner) or DetachmentStratagems.eternal_pending(state, owner) or CoreReactions.end_available(state, owner) or not rapid_ingress_squads(state, owner).is_empty() or (state.phase == "fight" and owner != state.active and (not parabolic_jetleap_squads(state, owner).is_empty() or not echo_ravenspire_squads(state, owner).is_empty() or not DetachmentStratagems.withdraw_and_regroup_squads(state, owner).is_empty())) or (state.phase == "fight" and (not DetachmentStratagems.wind_swift_squads(state, owner).is_empty() or not TacticalFluidity.end_fight_squads(state, owner).is_empty())): owners.append(owner)
 	state.unit_abilities.end_done = key(state)
 	if not owners.is_empty(): state.unit_abilities.window = {"kind": "end", "owners": owners}
 	if owners.is_empty(): return false
 	return true
+
+static func rapid_ingress_squads(state: Dictionary, player: int) -> Array[int]:
+	## Keep end-window ownership aligned with choices(): reserve presence alone does not create a reaction.
+	var result: Array[int] = []
+	if state.get("phase", "") != "movement" or player == int(state.get("active", -1)) or not state.has("stratagems"): return result
+	var abilities_value: Variant = state.get("unit_abilities", {})
+	if typeof(abilities_value) != TYPE_DICTIONARY: return result
+	var abilities: Dictionary = abilities_value
+	var reserves_value: Variant = abilities.get("reserves", {})
+	var used_value: Variant = abilities.get("used", {})
+	var homers_value: Variant = abilities.get("homers", {})
+	if typeof(reserves_value) != TYPE_DICTIONARY or typeof(used_value) != TYPE_DICTIONARY or typeof(homers_value) != TYPE_DICTIONARY: return result
+	var reserves: Dictionary = reserves_value
+	var used: Dictionary = used_value
+	var homers: Dictionary = homers_value
+	for squad_value: Variant in reserves:
+		var squad := int(squad_value)
+		if not state.get("squads", {}).has(squad) or int(state.squads[squad].get("owner", -1)) != player: continue
+		if used.get("ingress:%d:%s" % [player, key(state)], false) or state.squads[squad].get("battle_shocked", false): continue
+		if not StormlanceEnhancements.ingress_round_allowed(state, squad): continue
+		if int(state.get("cp", {}).get(player, 0)) >= 1 or homers.has(squad): result.append(squad)
+	result.sort()
+	return result
 
 static func parabolic_jetleap_squads(state: Dictionary, owner: int) -> Array[int]:
 	var result: Array[int] = []
@@ -1034,9 +1157,19 @@ static func point_error(state: Dictionary, point: Vector2, radius: float) -> Str
 	return ""
 
 static func apply(state: Dictionary, player: int, selected: Dictionary, point: Vector2, roller: Callable) -> Dictionary:
+	if str(selected.get("action", "")) == "command-battle-shock-decision":
+		return CommandBattleShock.resolve(state, player, selected, int(state.get("revision", -1)), roller)
 	if str(selected.get("action", "")) == "standard-exhortation":
 		var exhortation_error := StormlanceEnhancements.apply_standard_exhortation(state, player, selected)
 		return {"error": exhortation_error} if not exhortation_error.is_empty() else {"message": "Ancient Exhortation: the unit’s melee attacks gain +1 Attack until the end of the phase."}
+	if str(selected.get("action", "")) == "mission-secure-asset":
+		var asset_model: Dictionary = state.units.get(int(selected.get("model", -1)), {})
+		if state.get("mission", {}).get("primary_id", "") != "secure-asset" or asset_model.is_empty() or int(asset_model.get("owner", -1)) != player:
+			return {"error": "Secure Asset requires the selected current mission and one of your units."}
+		var asset_error := Actions.start_error(state, int(asset_model.squad), int(selected.get("target", -1)))
+		if not asset_error.is_empty(): return {"error": asset_error}
+		Actions.start(state, int(asset_model.squad), int(selected.get("target", -1)))
+		return {"message": "%s started Secure Asset on %s; complete it at end of turn while controlling the objective." % [state.squads[int(asset_model.squad)].name, state.mission.objectives[int(selected.target)].name]}
 	var a: Dictionary = state.unit_abilities
 	var model: int = selected.model
 	var target: int = selected.target
@@ -1180,6 +1313,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		Incursors.DIVINATOR_WINDOW: return Incursors.choose(state, player, selected)
 		"haywire-mine": return Incursors.haywire(state, player, selected, roller)
 		"fearsome-assault": return Reivers.resolve(state, player, selected, roller)
+		"adamantine-terror-decision": return DetachmentStratagems.resolve_adamantine_decision(state, player, selected, roller)
 		"reiver-grav-chutes", "reiver-grapnel-launchers":
 			if not state.squads.has(target) or state.squads[target].owner != player or selected.value not in ["on", "off"]: return {"error": "This option belongs to a Reiver Squad unit."}
 			var members := G.alive(state, target)
@@ -1601,6 +1735,11 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				state.reanimation.pending = {"kind": "undying", "led": spent.led, "player": player, "turn": state.turn, "remaining": [squad], "current": {}, "results": []}
 				return R.roll_unit(state, squad, roller)
 			return spent
+		"detachment-movement-pass":
+			var movement_reaction_window: Dictionary = a.get("window", {})
+			if movement_reaction_window.get("kind", "") != DetachmentStratagems.MOVEMENT_REACTION_WINDOW or movement_reaction_window.get("owners", []) != [player]: return {"error": "No matching post-move detachment reaction is pending."}
+			a.window = movement_reaction_window.get("resume_window", {})
+			return {"error": ""}
 		"hurtling-use", "evasive-use", "mounted-reaction-pass":
 			var hurtling_window: Dictionary = a.get("window", {})
 			if hurtling_window.get("kind", "") not in ["mounted-shooting-reaction", "stormlance-hurtling"] or hurtling_window.get("owners", []) != [player] or int(hurtling_window.get("squad", -1)) != target: return {"error": "No matching mounted-unit shooting reaction is pending."}
@@ -1634,6 +1773,10 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"vengeful-pass":
 			DetachmentStratagems.clear_vengeful(state)
 			return {"error": ""}
+		"undying-pass":
+			if DetachmentStratagems.undying_actor(state) != player: return {"error": "No matching Undying Legions reaction is pending."}
+			state.detachment_stratagems.after.undying_closed = true
+			return {"error": "", "message": "Undying Legions declined."}
 		"head-hunter-pass":
 			var headhunter_window: Dictionary = a.get("window", {})
 			if headhunter_window.get("kind", "") != DetachmentStratagems.HEADHUNTER_WINDOW or headhunter_window.get("owners", []) != [player] or int(headhunter_window.get("squad", -1)) != target: return {"error": "No matching Headhunter Doctrine decision is pending."}
@@ -1894,7 +2037,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if not error.is_empty(): return {"error": error}
 			a.window.positions[model] = point
 		"tactics-confirm": return DetachmentStratagems.confirm_tactics(state)
-		"tactics-cancel": a.window = {}
+		"tactics-cancel": a.window = a.window.get("resume_window", {})
 		"eternal-place":
 			var error := DetachmentStratagems.eternal_position_error(state, model, point)
 			if not error.is_empty(): return {"error": error}
@@ -1903,14 +2046,35 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"ingress", "homer-ingress":
 			if not state.squads.has(target) or int(state.squads[target].get("owner", -1)) != player: return {"error": "Select one of your own reserve units to ingress."}
 			if state.round <= 1 and not TransportRules.is_drop_pod(state, target) and not StormlanceEnhancements.chogorian_huntmaster_active(state, target): return {"error": "This unit cannot make an ingress move before battle round 2."}
-			a.window = {"kind": "ingress", "owners": [player], "squad": target, "positions": {}, "homer": selected.action == "homer-ingress", "return_window": a.window.duplicate(true)}
+			var parent_frame := ResolutionFrames.current(state)
+			if int(state.get("active", -1)) != player and str(parent_frame.get("kind", "")) == "phase-close" and str(parent_frame.get("status", "")) == "resolving":
+				var parent_suspend_error := ResolutionFrames.suspend(state, str(parent_frame.get("frame_id", "")), "opponent-rapid-ingress")
+				if not parent_suspend_error.is_empty(): return {"error": parent_suspend_error}
+			var homer: bool = str(selected.get("action", "")) == "homer-ingress"
+			var ingress_action_id := _ingress_action_id(state, player, target, homer)
+			var ingress_frame := ResolutionFrames.begin(state, "unit-action", ingress_action_id, "ingress-placement")
+			if ingress_frame.is_empty(): return {"error": "Could not open the ingress continuation frame."}
+			var ingress_frame_id := str(ingress_frame.get("frame_id", ""))
+			var ingress_suspend_error := ResolutionFrames.suspend(state, ingress_frame_id, "ingress-placement")
+			if not ingress_suspend_error.is_empty():
+				ResolutionFrames.complete(state, ingress_frame_id)
+				return {"error": ingress_suspend_error}
+			a.window = {"kind": "ingress", "owners": [player], "squad": target, "positions": {}, "homer": homer, "resolution_frame_id": ingress_frame_id, "return_window": a.window.duplicate(true)}
 		"ingress-place":
 			var error := ingress_position_error(state, model, point)
 			if not error.is_empty(): return {"error": error}
 			a.window.positions[model] = point
-		"ingress-cancel": a.window = a.window.return_window
+		"ingress-cancel":
+			var window: Dictionary = a.window
+			var frame_error := _ingress_frame_error(state, window)
+			if not frame_error.is_empty(): return {"error": frame_error}
+			var complete_error := ResolutionFrames.complete(state, str(window.resolution_frame_id))
+			if not complete_error.is_empty(): return {"error": complete_error}
+			a.window = window.return_window
 		"ingress-confirm":
 			var window: Dictionary = a.window
+			var frame_error := _ingress_frame_error(state, window)
+			if not frame_error.is_empty(): return {"error": frame_error}
 			var projected := state.duplicate(true)
 			for id: int in state.units:
 				if state.units[id].squad != window.squad: continue
@@ -1943,6 +2107,12 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				var pod_model := TransportRules.drop_pod_model(state, int(window.squad))
 				var pod_error := TransportRules.begin_drop_pod_arrival(state, player, pod_model, roller)
 				if not pod_error.is_empty(): return {"error": pod_error}
+				if state.get("unit_abilities", {}).get("transport_window", {}).is_empty():
+					var ingress_complete_error := ResolutionFrames.complete(state, str(window.resolution_frame_id))
+					if not ingress_complete_error.is_empty(): return {"error": ingress_complete_error}
+			else:
+				var ingress_complete_error := ResolutionFrames.complete(state, str(window.resolution_frame_id))
+				if not ingress_complete_error.is_empty(): return {"error": ingress_complete_error}
 	return {"error": ""}
 
 static func ingress_position_error(state: Dictionary, model: int, point: Vector2) -> String:
@@ -1998,6 +2168,7 @@ static func battle_actor(state: Dictionary) -> int:
 static func end_move(state: Dictionary, moved_squad: int) -> void:
 	DetachmentStratagems.record_move(state, moved_squad)
 	if not A.enabled(state): return
+	DetachmentStratagems.open_movement_reaction(state, moved_squad)
 	for squad: int in state.unit_abilities.homers.keys():
 		if state.squads[squad].owner == state.squads[moved_squad].owner: continue
 		for model: int in G.alive(state, moved_squad):
@@ -2008,6 +2179,38 @@ static func end_move(state: Dictionary, moved_squad: int) -> void:
 	CombiLieutenant.open_after_enemy_move(state, moved_squad)
 	CatoSicarius.open_after_enemy_move(state, moved_squad)
 	Techmarine.open_for_move(state, moved_squad, "end")
+
+## Return the squad whose Movement action owns the open decision stack.
+## These specialized windows can be nested through resume_window, so inspect the whole stack.
+static func movement_reaction_squad(state: Dictionary) -> int:
+	return _movement_reaction_squad(pending(state), 0)
+
+static func _movement_reaction_squad(window: Dictionary, depth: int) -> int:
+	if window.is_empty() or depth >= 8: return -1
+	var kind := str(window.get("kind", ""))
+	if kind == DetachmentStratagems.UNSTOPPABLE_WINDOW and str(window.get("action", "")) == "movement":
+		var selected_squad: Variant = window.get("squad", -1)
+		if selected_squad is int and selected_squad >= 0: return selected_squad
+	if kind in [CatoSicarius.WINDOW, CatoSicarius.PLACEMENT]:
+		var trigger: Variant = window.get("trigger", -1)
+		if trigger is int and trigger >= 0: return trigger
+	if kind == DetachmentStratagems.MOVEMENT_REACTION_WINDOW:
+		var trigger: Variant = window.get("squad", -1)
+		if trigger is int and trigger >= 0: return trigger
+	if kind == "tactics":
+		var trigger: Variant = window.get("trigger", -1)
+		if trigger is int and trigger >= 0: return trigger
+	if kind in ["evade-and-survive", "evade-placement"]:
+		var queue: Array = window.get("queue", [])
+		if not queue.is_empty() and typeof(queue[0]) == TYPE_DICTIONARY:
+			var row: Dictionary = queue[0]
+			var trigger: Variant = row.get("trigger", -1)
+			if trigger is int and trigger >= 0: return trigger
+	if kind == "blessings-of-the-omnissiah" and str(window.get("moment", "")) == "end":
+		var moved_squad: Variant = window.get("squad", -1)
+		if moved_squad is int and moved_squad >= 0: return moved_squad
+	var resume_window: Variant = window.get("resume_window", {})
+	return _movement_reaction_squad(resume_window, depth + 1) if typeof(resume_window) == TYPE_DICTIONARY else -1
 
 static func optics_choices(state: Dictionary, player: int, only_squad: int = -1) -> Array:
 	var result: Array = []

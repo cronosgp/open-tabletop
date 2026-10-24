@@ -114,11 +114,14 @@ func _ready() -> void:
 	profile_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	profile_row.add_child(profile_picker)
 	profile_picker.item_selected.connect(_select_profile)
+	var create_profile_row := row()
 	profile_name = LineEdit.new()
 	profile_name.placeholder_text = "New profile name"
 	profile_name.max_length = 80
-	profile_row.add_child(profile_name)
-	button("Create profile", _create_profile, profile_row)
+	profile_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	profile_name.custom_minimum_size.x = 180
+	create_profile_row.add_child(profile_name)
+	button("Create profile", _create_profile, create_profile_row)
 	saved_lists_view = ItemList.new()
 	saved_lists_view.custom_minimum_size.y = 90
 	saved_lists_view.item_selected.connect(_select_saved_list)

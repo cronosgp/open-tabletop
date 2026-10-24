@@ -6,6 +6,7 @@ const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -110,7 +111,12 @@ func run() -> void:
 	for option: Dictionary in choices:
 		if option.action == "signum-array" and option.model == tor and option.target == target: selected = option
 	check(not selected.is_empty(), "Signum Array offers a visible enemy within 18 inches")
-	check(C.unit_action(state, 1, selected, Vector2.ZERO, state.revision).is_empty(), "Signum Array can be applied to the selected enemy")
+	check(C.UnitActions.pending_decision(state).is_empty(), "Signum Array is an immediate Shooting choice in this setup")
+	var before_wrong_signum_owner := var_to_bytes(state)
+	var wrong_signum_owner := MatchCommands.execute(state, 2, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": selected, "revision": state.revision})
+	check(not str(wrong_signum_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_signum_owner, "The opponent cannot submit or mutate the immediate Signum Array target choice")
+	var signum_result := MatchCommands.execute(state, 1, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": selected, "revision": state.revision})
+	check(str(signum_result.get("error", "")).is_empty(), "Signum Array applies through the public command to the selected enemy")
 	check(C.UnitAbilities.signum_array_active(state, 1, target) and not C.UnitAbilities.signum_array_active(state, 1, other), "The chosen target alone loses cover for this Shooting phase")
 	attack = AttackPlan.prepare(state, heavy_squad, false, [{"model": heavy_model, "target": target, "weapon": heavy_weapon, "profile": "standard", "amount": 1}], false)
 	check(attack.error.is_empty() and not bool(attack.batches[0].context.benefit_of_cover), "Signum Array removes cover from the attack context")

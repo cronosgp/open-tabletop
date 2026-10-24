@@ -14,6 +14,7 @@ static func build(config: Dictionary, finished: Dictionary) -> Dictionary:
 	elif config.get("prepared_match", false):
 		var options := {}
 		for key: String in OPTIONS: options[key] = config.get(key, false)
+		options.primary_mission = config.get("official_primary_mission", "battlefield-dominance")
 		candidate = Prepared.initial_state(options)
 	elif config.get("allocation_practice", false):
 		candidate = Battlefield.apply(Lab.initial_state(config.get("damage_rerolls", false), config.get("count_rerolls", false)))

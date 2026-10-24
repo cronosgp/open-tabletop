@@ -6,6 +6,7 @@ const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
 const Allocation = preload("res://scripts/edition_11/damage_allocation.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const CombatDoctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -42,6 +43,23 @@ func assignment(state: Dictionary, weapon_index: int = 0) -> Dictionary:
 	var choices: Array[Dictionary] = AttackPlan.Equipment.choices(state, 100, false)
 	return {"model": 100, "target": 2, "amount": 1, "weapon": choices[weapon_index].weapon, "profile": choices[weapon_index].profile}
 
+func submit_choice(state: Dictionary, player: int, action: String, target: int = -1, roller: Callable = Callable()) -> Dictionary:
+	var decision := UnitActions.pending_decision(state)
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No matching UnitActions decision for Player %d." % player}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == action and int(option.get("target", -1)) == target:
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "The pending decision does not offer %s for target %d." % [action, target]}
+	var selected: Dictionary = {}
+	for option: Dictionary in UnitActions.choices(state, player):
+		if str(option.get("action", "")) == action and int(option.get("target", -1)) == target:
+			selected = option
+			break
+	if selected.is_empty(): return {"error": "UnitActions no longer offers %s for target %d." % [action, target]}
+	return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, roller)
+
 func run() -> void:
 	var crusader := make_state("land-raider-crusader")
 	var prepared := AttackPlan.prepare(crusader, 1, false, [assignment(crusader)], false)
@@ -68,19 +86,26 @@ func run() -> void:
 	var hit_choices := UnitActions.choices(land_raider, 1)
 	var hit_reroll := hit_choices.filter(func(choice: Dictionary) -> bool: return choice.action == "machine-spirit-reroll")
 	check(not hit_reroll.is_empty(), "Power of the Machine Spirit offers individual Hit dice")
+	var hit_decision_id := str(UnitActions.pending_decision(land_raider).get("decision_id", ""))
+	var hit_save: Dictionary = bytes_to_var(var_to_bytes(land_raider))
+	check(str(UnitActions.pending_decision(hit_save).get("decision_id", "")) == hit_decision_id, "Machine Spirit Hit decision identity survives save/restore")
+	land_raider = hit_save
+	var close_before_machine_spirit := var_to_bytes(land_raider)
+	check(not F.C.advance_phase(land_raider, 1, land_raider.revision).is_empty() and close_before_machine_spirit == var_to_bytes(land_raider), "Phase close cannot bypass Machine Spirit's pending attack choice")
+	var hit_before_wrong_owner := var_to_bytes(land_raider)
+	var wrong_hit := submit_choice(land_raider, 2, "machine-spirit-reroll", int(hit_reroll[0].target) if not hit_reroll.is_empty() else -1, Callable(self, "_roll_three"))
+	check(not str(wrong_hit.get("error", "")).is_empty() and hit_before_wrong_owner == var_to_bytes(land_raider), "Opponent cannot mutate Machine Spirit Hit decision")
 	if not hit_reroll.is_empty():
-		var applied := UnitActions.apply(land_raider, 1, hit_reroll[0], Vector2.ZERO, Callable(self, "_roll_three"))
+		var applied := submit_choice(land_raider, 1, "machine-spirit-reroll", int(hit_reroll[0].target), Callable(self, "_roll_three"))
 		check(applied.get("error", "").is_empty() and land_raider.pending_attack.machine_spirit_used.hit, "Land Raider Hit re-roll is optional and used at most once")
-	result = Allocation.pump(land_raider, Callable(self, "_roll_three"))
-	check(result.get("error", "").is_empty() and land_raider.unit_abilities.window.get("kind", "") == "machine-spirit-wound", "Land Raider may separately choose one ranged Wound re-roll")
+	check(land_raider.unit_abilities.window.get("kind", "") == "machine-spirit-wound", "Land Raider may separately choose one ranged Wound re-roll")
 	var wound_choices := UnitActions.choices(land_raider, 1)
 	var wound_reroll := wound_choices.filter(func(choice: Dictionary) -> bool: return choice.action == "machine-spirit-reroll")
 	check(not wound_reroll.is_empty(), "Power of the Machine Spirit offers individual Wound dice")
 	if not wound_reroll.is_empty():
-		var applied := UnitActions.apply(land_raider, 1, wound_reroll[0], Vector2.ZERO, Callable(self, "_roll_three"))
-		check(applied.get("error", "").is_empty() and land_raider.pending_attack.machine_spirit_used.wound, "Land Raider Wound re-roll is optional and used at most once")
-	result = Allocation.pump(land_raider, Callable(self, "_roll_three"))
-	check(result.get("error", "").is_empty() and result.get("complete", false), "Land Raider attack sequence resumes and completes after its chosen re-rolls")
+		var applied := submit_choice(land_raider, 1, "machine-spirit-reroll", int(wound_reroll[0].target), Callable(self, "_roll_three"))
+		check(applied.get("error", "").is_empty() and (land_raider.pending_attack.is_empty() or land_raider.pending_attack.machine_spirit_used.wound), "Land Raider Wound re-roll is optional, used at most once, and resumes the attack")
+	check(land_raider.pending_attack.is_empty(), "Land Raider attack sequence resumes and completes after its chosen re-rolls")
 	var split_targets := make_state("land-raider")
 	split_targets.squads[3] = {"owner": 2, "name": "Second Target", "starting_strength": 1, "stats": {"toughness": 4, "save_target": 7, "wounds": 100, "objective_control": 1}, "battle_shocked": false}
 	split_targets.units[300] = {"owner": 2, "squad": 3, "definition_id": "test:target", "position": Vector2(0, 3), "radius": 0.5, "keywords": ["INFANTRY"], "wounds": 100, "max_wounds": 100, "on_battlefield": true}
@@ -93,12 +118,11 @@ func run() -> void:
 	result = Allocation.pump(split_targets, Callable(self, "_roll_three"))
 	check(result.get("error", "").is_empty() and split_targets.unit_abilities.window.get("kind", "") == "machine-spirit-hit", "The first target batch may use the Machine Spirit Hit re-roll")
 	var finish_hit := UnitActions.choices(split_targets, 1).filter(func(choice: Dictionary) -> bool: return choice.action == "machine-spirit-finish")
-	if not finish_hit.is_empty(): UnitActions.apply(split_targets, 1, finish_hit[0], Vector2.ZERO, Callable(self, "_roll_three"))
-	result = Allocation.pump(split_targets, Callable(self, "_roll_three"))
+	var split_hit_finish := submit_choice(split_targets, 1, "machine-spirit-finish", -1, Callable(self, "_roll_three")) if not finish_hit.is_empty() else {"error": "missing Hit choice"}
+	check(split_hit_finish.get("error", "").is_empty() and split_targets.unit_abilities.window.get("kind", "") == "machine-spirit-wound", "Finishing the first Hit choice resumes the attack into its Wound choice")
 	var finish_wound := UnitActions.choices(split_targets, 1).filter(func(choice: Dictionary) -> bool: return choice.action == "machine-spirit-finish")
-	if not finish_wound.is_empty(): UnitActions.apply(split_targets, 1, finish_wound[0], Vector2.ZERO, Callable(self, "_roll_three"))
-	result = Allocation.pump(split_targets, Callable(self, "_roll_three"))
-	check(result.get("error", "").is_empty() and result.get("complete", false) and split_targets.pending_attack.machine_spirit_used.hit and split_targets.pending_attack.machine_spirit_used.wound, "Power of the Machine Spirit is once per Land Raider attack activation, even across targets")
+	var split_wound_finish := submit_choice(split_targets, 1, "machine-spirit-finish", -1, Callable(self, "_roll_three")) if not finish_wound.is_empty() else {"error": "missing Wound choice"}
+	check(split_wound_finish.get("error", "").is_empty() and split_targets.pending_attack.is_empty(), "Power of the Machine Spirit is once per Land Raider attack activation across targets, then resumes to completion")
 	var ironstorm := make_state("storm-speeder-hailstrike")
 	CombatDoctrines.enable(ironstorm, "ironstorm-spearhead")
 	check(CombatDoctrines.ironstorm_auto_targeters(ironstorm, 100), "Ironstorm Auto-targeters accepts a friendly Astartes Vehicle that is not a Walker")
@@ -110,13 +134,11 @@ func run() -> void:
 	check(result.get("error", "").is_empty() and ironstorm.unit_abilities.window.get("source", "") == "Ironstorm Auto-targeters", "Ironstorm Hit re-roll window retains its Wahapedia rule name")
 	var iron_reroll := UnitActions.choices(ironstorm, 1).filter(func(choice: Dictionary) -> bool: return choice.action == "machine-spirit-reroll")
 	check(not iron_reroll.is_empty() and iron_reroll[0].label.begins_with("Ironstorm Auto-targeters"), "Ironstorm offers a source-labelled optional Hit re-roll")
-	if not iron_reroll.is_empty(): UnitActions.apply(ironstorm, 1, iron_reroll[0], Vector2.ZERO, Callable(self, "_roll_three"))
-	result = Allocation.pump(ironstorm, Callable(self, "_roll_three"))
-	check(result.get("error", "").is_empty() and ironstorm.unit_abilities.window.get("kind", "") == "machine-spirit-wound", "Ironstorm separately offers one Wound re-roll")
+	if not iron_reroll.is_empty(): submit_choice(ironstorm, 1, "machine-spirit-reroll", int(iron_reroll[0].target), Callable(self, "_roll_three"))
+	check(ironstorm.unit_abilities.window.get("kind", "") == "machine-spirit-wound", "Ironstorm separately offers one Wound re-roll")
 	var iron_finish := UnitActions.choices(ironstorm, 1).filter(func(choice: Dictionary) -> bool: return choice.action == "machine-spirit-finish")
-	if not iron_finish.is_empty(): UnitActions.apply(ironstorm, 1, iron_finish[0], Vector2.ZERO, Callable(self, "_roll_three"))
-	result = Allocation.pump(ironstorm, Callable(self, "_roll_three"))
-	check(result.get("error", "").is_empty() and result.get("complete", false) and ironstorm.pending_attack.machine_spirit_used.hit and ironstorm.pending_attack.machine_spirit_used.wound, "Ironstorm can use each optional re-roll once and then complete its attack")
+	if not iron_finish.is_empty(): submit_choice(ironstorm, 1, "machine-spirit-finish", -1, Callable(self, "_roll_three"))
+	check(ironstorm.pending_attack.is_empty(), "Ironstorm can use each optional re-roll once and then complete its attack")
 	var iron_walker := make_state("redemptor-dreadnought")
 	CombatDoctrines.enable(iron_walker, "ironstorm-spearhead")
 	check(not CombatDoctrines.ironstorm_auto_targeters(iron_walker, 100), "Ironstorm Auto-targeters excludes Walker vehicles")

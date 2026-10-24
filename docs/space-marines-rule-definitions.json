@@ -453,7 +453,7 @@
       "id": "core/support-24-34",
       "name": "Support",
       "kind": "attachment_role",
-      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
+      "source_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
       "source_section": "Core Abilities / Support 24.34",
       "timing": "Muster Armies step, before the battle.",
       "eligibility": "A Support unit and a bodyguard unit listed as supported by its datasheet.",
@@ -473,7 +473,7 @@
       ],
       "fixed_match_combination": "The Lieutenant may be attached as Support to a bodyguard that already has the listed Captain as its Leader, subject to the one-of-each core limit.",
       "official_check": "Not independently GW-reconciled; the selected Wahapedia e11 source policy applies.",
-      "definition_status": "fixed_scope_only"
+      "definition_status": "current_reference_transcribed; runtime locally validated for admitted links"
     },
     {
       "id": "space-marines/lieutenant/tactical-precision",
@@ -1550,7 +1550,7 @@
       "source_datasheet_id": "000000119",
       "source_export_updated_at": "2026-10-16T15:03:46-03:00",
       "condition": "Own Shooting phase; select a visible enemy unit.",
-      "effect": "Make a Psychic roll; on 1, the attached unit becomes Battle-shocked. Otherwise its ranged attacks ignore cover against that enemy for the phase.",
+      "effect": "Make a Psychic roll; on 1, the attached unit becomes Battle-shocked. Otherwise friendly Adeptus Astartes ranged attacks ignore cover against that enemy for the phase.",
       "definition_status": "implemented_in_admitted_phobos_librarian_scope",
       "implementation_document": "marine-librarian-phobos-armour.md"
     },

@@ -1,22 +1,29 @@
-# Partidas com listas salvas
+# Saved-army matches
 
-## Escopo atual
+## Current scope
 
-Novas partidas de treino aceitam listas resolvidas pelo catálogo local consolidado de Space Marines. O preset atual é um espelho de 550 pontos dentro de um limite personalizado de 1000; pontos e perfis vêm do snapshot local Wahapedia 11e. Isso não certifica legalidade completa de exército.
+New training matches accept lists from the consolidated local Space Marines catalog. **Start tactical training** selects distinct Fire and Manoeuvre / Close Assault forces with current abilities and Gladius/Core stratagems. The general saved-list picker retains the 550-point mirror as its default and offers both tactical forces separately. All use custom 1,000-point ceilings; points and profiles come from the local catalog. Neither scenario certifies complete army legality. See [tactical training](tactical-training.md).
 
-Listas históricas, inclusive os perfis Necron e rosters com preços MFM, continuam salvas e editáveis como drafts legados. Elas podem ser inspecionadas e mantidas na biblioteca, mas não podem entrar em uma nova partida pelo fluxo de construção atual. Essa barreira não apaga nem migra saves antigos.
+Historical lists, including Necron profiles and MFM-priced rosters, remain readable and editable as legacy drafts. They are not eligible for new matches through the current construction flow. This does not delete or migrate existing saves.
 
-## Fluxo local
+## Start a local match
 
-1. Abra **Match setup → LOCAL MATCH • TWO ARMIES**.
-2. Escolha uma lista atual em cada seletor. O lançamento novo preseleciona o preset Space Marine para ambos os lados.
-3. Revise as opções e inicie a partida. Drafts históricos são identificados pelo relatório e bloqueados na admissão.
-4. Use **Save a copy of player …** para criar uma cópia editável no perfil. Alterações na cópia não modificam o preset.
+1. Open **New match** from the title screen.
+2. Choose a saved list for each player in **Local match • saved armies**. The current Space Marines practice list is selected by default for both players.
+3. Review each faction, unit count and points limit. The match summary identifies the scenario and enabled rules; detailed limitations are available in its tooltip and under **Advanced match options**.
+4. Choose **Start local match**. Invalid or legacy selections keep the action disabled and explain what needs attention.
 
-`training_roster.gd` mantém inspeção de dados legados separada da admissão de construção atual. `prepared_training.gd` rematerializa listas aceitas e sela os respectivos perfis no manifesto. A retomada de um save existente segue sua identidade gravada; ela não promove o roster a uma escolha nova do catálogo.
+A local match can proceed with default equipment. In-army equipment changes are optional and require explicit confirmation during army preparation. Use **Save a copy of player …'s list to my profile** to create an editable copy; edits do not change the preset.
 
-## Rede e limites
+## Start saved-list LAN training
 
-O projeto mantém adaptadores de LAN e caminhos antigos de seleção, mas a validação de rede para o escopo Space Marine atual está adiada até a integração final. Não conte exercícios locais ou testes de loopback como validação de rede entre jogadores.
+1. Select the lists and review the training scope in **New match**.
+2. Open **Play over LAN** and accept **LAN: accept partial training rules**. The existing Host and Join actions start saved-list training while this option is accepted.
+3. Player 1 hosts and Player 2 joins. Each connected player chooses only their own list in the in-match **Choose your army** panel and explicitly selects **Submit my army list**. Lists selected on the New match screen are not submitted automatically.
+4. The panel reports which player has submitted and who is still waiting. Once both lists pass admission, the match moves to deployment. A failed selection stays in army selection and reports the host's validation reason.
 
-Modelos são visuais e não alteram regras, bases ou elegibilidade. Veja [importação de modelos](../data/forceorg-import.md), [política do catálogo](../construction-catalog-policy.md) e a [matriz de suporte](../project/support-matrix.md).
+The host-authoritative LAN path exists, but current Space Marine network validation remains deferred until final integration. Local and loopback checks are not evidence of cross-machine validation.
+
+## Models and data boundaries
+
+Models are presentation only; they do not change rules, bases or eligibility. Visual links and downloaded model files stay local and are not included in match snapshots. See [model import](../data/forceorg-import.md), [construction catalog policy](../construction-catalog-policy.md) and the [support matrix](../project/support-matrix.md).

@@ -5,6 +5,7 @@ const DIRECTORY := "user://matches/journals"
 const MAX_BYTES := 64 * 1024 * 1024
 const MAX_RECORD := 2 * 1024 * 1024
 const ZERO := "0000000000000000000000000000000000000000000000000000000000000000"
+var storage_directory := DIRECTORY
 var id := ""
 var entries: Array = []
 var observed: Dictionary = {}
@@ -32,7 +33,7 @@ func reset(state: Dictionary) -> void:
 	pending_dice = []
 
 func path() -> String:
-	return DIRECTORY.path_join(id + ".journal")
+	return storage_directory.path_join(id + ".journal")
 
 func checkpoint() -> Dictionary:
 	return {"version": 1, "id": id, "count": entries.size(), "offset": offset, "hash": tip}
@@ -82,7 +83,7 @@ func append(state: Dictionary, dice: Array, kind: String) -> String:
 	if not Save.safe(entry): return "Unsupported data type in match history."
 	var bytes := var_to_bytes(entry)
 	if bytes.size() > MAX_RECORD or offset + bytes.size() + 68 > MAX_BYTES: return "Match history file limit reached."
-	var error := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIRECTORY))
+	var error := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(storage_directory))
 	if error != OK: return error_string(error)
 	var file := FileAccess.open(path(), FileAccess.READ_WRITE if FileAccess.file_exists(path()) else FileAccess.WRITE_READ)
 	if file == null: return error_string(FileAccess.get_open_error())
@@ -110,7 +111,7 @@ func restore(reference: Dictionary, state: Dictionary) -> String:
 		return ""
 	if reference.get("version") != 1 or not valid_id(reference.get("id")) or not valid_id(reference.get("hash")): return "Invalid history reference."
 	if not reference.get("count") is int or not reference.get("offset") is int or reference.count < 1 or reference.offset < 68 or reference.offset > MAX_BYTES: return "Invalid history limits."
-	var source := DIRECTORY.path_join(reference.id + ".journal")
+	var source := storage_directory.path_join(reference.id + ".journal")
 	var file := FileAccess.open(source, FileAccess.READ)
 	if file == null or file.get_length() < reference.offset: return "Match history is missing or incomplete."
 	var loaded: Array = []
@@ -140,7 +141,7 @@ func restore(reference: Dictionary, state: Dictionary) -> String:
 		# Preserve orphaned records in the original file. Continue only the prefix
 		# committed by the save, in a new file; no truncation or replay of actions.
 		restored_id = Crypto.new().generate_random_bytes(32).hex_encode()
-		var branch := FileAccess.open(DIRECTORY.path_join(restored_id + ".journal"), FileAccess.WRITE)
+		var branch := FileAccess.open(storage_directory.path_join(restored_id + ".journal"), FileAccess.WRITE)
 		if branch == null: return "Could not create the history continuation."
 		branch.store_buffer(prefix)
 		branch.flush()
@@ -160,6 +161,18 @@ func page(start: int = -1) -> Dictionary:
 	var items: Array = []
 	for index in range(first, mini(entries.size(), first + 20)):
 		var entry: Dictionary = entries[index].duplicate(true)
+		var patch: Dictionary = entry.get("patch", {})
+		var attack: Dictionary = patch.get("last_attack", {})
+		if not attack.is_empty():
+			var summary := {"pools": [], "hazardous": {"total": int(attack.get("hazardous", {}).get("total", 0))}}
+			var squads: Dictionary = patch.get("squads", observed.get("squads", {}))
+			for pool: Dictionary in attack.get("pools", []):
+				var target := int(pool.get("target_squad", -1))
+				var public_pool := {"weapon_name": str(pool.get("weapon_name", "Weapon")), "target_name": str(squads.get(target, {}).get("name", "Defending unit"))}
+				for key: String in ["attacks", "hits", "wounds", "damage_applied", "models_destroyed", "prevented_wounds", "excess_damage_discarded"]:
+					public_pool[key] = int(pool.get(key, 0))
+				summary.pools.append(public_pool)
+			entry.attack_summary = summary
 		entry.erase("patch")
 		entry.erase("removed")
 		items.append(entry)

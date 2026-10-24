@@ -3,6 +3,7 @@ extends RefCounted
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Morale = preload("res://scripts/edition_11/morale.gd")
+const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const FEARSOME := "fearsome-assault"
 
 static func begin_fight(state: Dictionary) -> bool:
@@ -28,7 +29,16 @@ static func begin_fight(state: Dictionary) -> bool:
 
 static func choices(state: Dictionary, player: int) -> Array:
 	var pending: Dictionary = state.get("fearsome_assault", {})
-	if pending.is_empty() or int(pending.get("owner", -1)) != player: return []
+	if pending.is_empty(): return []
+	var current_result: Dictionary = pending.get("current_result", {})
+	if not current_result.is_empty():
+		var target := int(current_result.get("squad", -1))
+		if int(pending.get("decision_owner", -1)) != player or not state.squads.has(target): return []
+		var decision_options: Array[Dictionary] = [{"label": "Keep the current Fearsome Assault result for %s" % state.squads[target].name, "action": FEARSOME, "model": -1, "target": target, "value": "keep"}]
+		if MarineEnhancements.tempered_in_battle_active(state, target):
+			decision_options.append({"label": "Tempered in Battle: re-roll both Leadership dice for %s (free)" % state.squads[target].name, "action": FEARSOME, "model": -1, "target": target, "value": "tempered-in-battle"})
+		return decision_options
+	if int(pending.get("owner", -1)) != player: return []
 	var result: Array[Dictionary] = []
 	for squad: int in pending.get("targets", []):
 		if not state.squads.has(squad) or Geometry.alive(state, squad).is_empty(): continue
@@ -38,9 +48,30 @@ static func choices(state: Dictionary, player: int) -> Array:
 static func resolve(state: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
 	if selected not in choices(state, player): return {"error": "Fearsome Assault requires each eligible enemy unit to take its Battle-shock test."}
 	var target: int = int(selected.target)
-	var result := Morale.roll_battle_shock(state, target, roller, -1)
-	if not result.error.is_empty(): return result
-	var was_battle_shocked: bool = state.squads[target].battle_shocked
+	var result: Dictionary
+	var was_battle_shocked: bool
+	var current_result: Dictionary = state.fearsome_assault.get("current_result", {})
+	if not current_result.is_empty():
+		was_battle_shocked = bool(state.fearsome_assault.get("was_battle_shocked", false))
+		if selected.value == "tempered-in-battle":
+			if not MarineEnhancements.tempered_in_battle_active(state, target): return {"error": "Tempered in Battle does not apply to this Leadership roll."}
+			result = Morale.roll_battle_shock(state, target, roller, -1)
+			if not result.error.is_empty(): return result
+			result["rerolled_from"] = current_result.get("rolls", []).duplicate()
+		else:
+			if selected.value != "keep": return {"error": "Choose whether to keep or re-roll the Fearsome Assault result."}
+			result = current_result.duplicate(true)
+	else:
+		result = Morale.roll_battle_shock(state, target, roller, -1)
+		if not result.error.is_empty(): return result
+		was_battle_shocked = bool(state.squads[target].battle_shocked)
+		if MarineEnhancements.tempered_in_battle_active(state, target):
+			result["source"] = FEARSOME
+			result["modified_total"] = int(result.rolls[0]) + int(result.rolls[1]) - 1
+			state.fearsome_assault.current_result = result.duplicate(true)
+			state.fearsome_assault.was_battle_shocked = was_battle_shocked
+			state.fearsome_assault.decision_owner = int(state.squads[target].owner)
+			return {"error": "", "pending_reroll": true, "message": "Fearsome Assault Leadership result is waiting for the target unit's controller."}
 	state.squads[target].battle_shocked = was_battle_shocked or not result.passed
 	result["source"] = FEARSOME
 	result["modifier"] = -1
@@ -52,5 +83,9 @@ static func resolve(state: Dictionary, player: int, selected: Dictionary, roller
 	if complete:
 		state.last_fearsome_assault = state.fearsome_assault.results.duplicate(true)
 		state.erase("fearsome_assault")
+	else:
+		state.fearsome_assault.erase("current_result")
+		state.fearsome_assault.erase("was_battle_shocked")
+		state.fearsome_assault.erase("decision_owner")
 	var message := "Fearsome Assault: %s rolled %s (-1 = %d vs Leadership %d) — %s." % [state.squads[target].name, str(result.rolls), int(result.modified_total), int(result.target), "passed" if result.passed else "Battle-shocked"]
 	return {"error": "", "result": result, "complete": complete, "message": message}

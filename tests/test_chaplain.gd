@@ -3,6 +3,7 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 ## Canonical entries sort as Captain 100, Chaplain 300, bodyguard 500.
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok:
@@ -47,6 +48,14 @@ func choice(s: Dictionary, action: String, target: int = -999, model: int = -999
  for row: Dictionary in C.unit_choices(s, 1):
   if row.action == action and (target == -999 or row.target == target) and (model == -999 or row.model == model): return row
  return {}
+func submit_normalized_choice(s: Dictionary, player: int, selected: Dictionary, revision: int = -2147483648) -> Dictionary:
+ var decision := C.UnitActions.pending_decision(s)
+ if decision.is_empty(): return {"error": "No UnitActions decision is pending."}
+ var projected: Dictionary = {}
+ for option: Dictionary in decision.get("legal_options", []):
+  if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+ if projected.is_empty(): return {"error": "The selected option is not in the current projected decision."}
+ return MatchCommandService.execute(s, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(s.revision) if revision == -2147483648 else revision, "point": Vector2.ZERO, "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}})
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
  var s := fixture()
@@ -61,9 +70,10 @@ func run() -> void:
  check(C.UnitActions.actor(s) == 1 and not choice(s, "spiritual-leader", 5).is_empty(), "Six-inch start-window target rejected")
  var selected := choice(s, "spiritual-leader", 5)
  var before := var_to_str(s)
- check(not C.unit_action(s, 2, selected, Vector2.ZERO, s.revision).is_empty() and var_to_str(s) == before, "Wrong player cleared Battle-shock")
- check(not C.unit_action(s, 1, selected, Vector2.ZERO, s.revision - 1).is_empty() and var_to_str(s) == before, "Stale Spiritual Leader changed state")
- check(C.unit_action(s, 1, selected, Vector2.ZERO, s.revision).is_empty() and not s.squads[5].battle_shocked and s.cp[1] == 0, "Spiritual Leader failed or spent CP")
+ check(not submit_normalized_choice(s, 2, selected).is_empty() and var_to_str(s) == before, "Wrong player cleared Battle-shock")
+ check(not submit_normalized_choice(s, 1, selected, s.revision - 1).is_empty() and var_to_str(s) == before, "Stale Spiritual Leader changed state")
+ var normalized_selected := submit_normalized_choice(s, 1, selected)
+ check(str(normalized_selected.get("error", "")).is_empty() and not s.squads[5].battle_shocked and s.cp[1] == 0, "Spiritual Leader failed or spent CP: %s; battle_shocked=%s" % [str(normalized_selected), str(s.squads[5].battle_shocked)])
  s.squads[5].battle_shocked = true
  s.phase = "shooting"
  open_start(s)
@@ -104,6 +114,8 @@ func run() -> void:
  open_start(s)
  if C.Doctrines.needs_choice(s):
   check(C.select_combat_doctrine(s, 1, "none", s.revision).is_empty(), "Doctrine choice failed before Spiritual Leader")
+ var command_start_frame := C.ResolutionFrames.current(s)
+ check(command_start_frame.get("kind", "") == "phase-start" and command_start_frame.get("status", "") == "suspended" and not C.UnitActions.phase_decision(s).is_empty(), "Command Doctrine continuation carries into the pending phase-start ability window")
  check(not choice(s, "spiritual-leader", 5).is_empty(), "Own Command doctrine decision consumed Spiritual Leader start window")
  s = fixture()
  s.phase = "deployment"
@@ -111,7 +123,11 @@ func run() -> void:
  check(not choice(s, "warlord", -999, 300).is_empty() and C.UnitActions.attachment_allowed(s, 300, 5), "Chaplain Warlord or Leader declaration omitted")
  check(not C.UnitActions.attachment_allowed(s, 100, 3), "Captain attached to a Chaplain instead of a bodyguard")
  selected = choice(s, "attach", 5, 300)
- check(C.unit_action(s, 1, selected, Vector2.ZERO, s.revision).is_empty() and s.units[300].squad == 5 and s.units[300].attachment_role == "leader", "Chaplain attachment failed")
+ var before_wrong_attachment_owner := var_to_bytes(s)
+ var wrong_attachment_owner := submit_normalized_choice(s, 2, selected)
+ check(not str(wrong_attachment_owner.get("error", "")).is_empty() and var_to_bytes(s) == before_wrong_attachment_owner, "The opponent cannot submit or mutate the Chaplain's attachment choice")
+ var attachment_result := submit_normalized_choice(s, 1, selected)
+ check(str(attachment_result.get("error", "")).is_empty() and s.units[300].squad == 5 and s.units[300].attachment_role == "leader", "Chaplain attachment uses the normalized command")
  check(not C.UnitActions.attachment_allowed(s, 100, 5), "Second Leader attached to the same bodyguard")
  # Bodyguard gains Lance while the source lives; it is not a flat wound bonus.
  var blade: Dictionary = Profiles.profile("intercessor-squad").melee[0].profiles.standard
@@ -139,16 +155,36 @@ func run() -> void:
  s.phase = "shooting"
  s.cp[1] = 1
  open_start(s)
+ C._event(s, "Start of Shooting")
  var smoke: Dictionary = {}
  for row: Dictionary in C.unit_choices(s, 1):
   if row.value == "smokescreen": smoke = row
  check(smoke.is_empty(), "Shocked Eliminators offered Smokescreen before restoration")
  selected = choice(s, "spiritual-leader", 5)
- check(C.unit_action(s, 1, selected, Vector2.ZERO, s.revision).is_empty(), "Spiritual Leader failed in a mixed start window")
+ var phase_start_frame := C.ResolutionFrames.current(s)
+ check(phase_start_frame.get("kind", "") == "phase-start" and phase_start_frame.get("status", "") == "suspended", "Start-of-phase abilities suspend a persisted phase-start frame")
+ var phase_start_decision := C.UnitActions.phase_decision(s)
+ var phase_start_decision_id: String = phase_start_decision.decision_id
+ var restored_start: Dictionary = bytes_to_var(var_to_bytes(s))
+ var restored_start_decision := C.UnitActions.phase_decision(restored_start)
+ check(restored_start_decision.get("decision_id", "") == phase_start_decision_id and restored_start_decision.get("legal_options", []) == phase_start_decision.legal_options and restored_start_decision.get("resume_frame_id", "") == phase_start_frame.get("frame_id", ""), "Mixed start-window decision and continuation survive serialization")
+ var before_start_close := var_to_bytes(restored_start)
+ check(not C.advance_phase(restored_start, C.actor(restored_start), restored_start.revision).is_empty() and var_to_bytes(restored_start) == before_start_close, "A restored phase-start ability choice blocks phase close without mutation")
+ s = restored_start
+ selected = choice(s, "spiritual-leader", 5)
+ var normalized_spiritual := submit_normalized_choice(s, 1, selected)
+ check(str(normalized_spiritual.get("error", "")).is_empty(), "Spiritual Leader failed in a mixed start window: " + str(normalized_spiritual.get("error", "")))
+ check(C.ResolutionFrames.current(s).get("frame_id", "") == phase_start_frame.get("frame_id", "") and C.ResolutionFrames.current(s).get("status", "") == "suspended", "Spiritual Leader resumes the same frame while the start window remains open")
  for row: Dictionary in C.unit_choices(s, 1):
   if row.value == "smokescreen": smoke = row
  var smoke_recorded := false
- check(not smoke.is_empty() and C.unit_action(s, 1, smoke, Vector2.ZERO, s.revision).is_empty() and s.cp[1] == 0, "Restored unit could not use Smokescreen in the same start window")
+ var normalized_smoke := submit_normalized_choice(s, 1, smoke)
+ check(not smoke.is_empty() and str(normalized_smoke.get("error", "")).is_empty() and s.cp[1] == 0, "Restored unit could not use Smokescreen in the same start window: " + str(normalized_smoke.get("error", "")))
+ var pass_choice: Dictionary = {}
+ for row: Dictionary in C.unit_choices(s, 1):
+  if row.action == "pass": pass_choice = row
+ var normalized_pass := submit_normalized_choice(s, 1, pass_choice)
+ check(not pass_choice.is_empty() and str(normalized_pass.get("error", "")).is_empty() and C.ResolutionFrames.current(s).is_empty(), "Declining remaining start-window choices completes its frame: " + str(normalized_pass.get("error", "")))
  for record: Dictionary in s.core_reactions.smoke:
   if int(record.get("squad", -1)) == 5: smoke_recorded = true
  check(smoke_recorded, "Smokescreen did not record the eligible squad")

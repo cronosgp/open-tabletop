@@ -22,6 +22,7 @@ const Incursors = preload("res://scripts/edition_11/incursors.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
 const FiringDeck = preload("res://scripts/edition_11/firing_deck.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
+const WeaponCharacteristics = preload("res://scripts/edition_11/weapon_characteristics.gd")
 
 static func _combine_rerolls(current: String, additional: String) -> String:
 	if current == "failed" or additional == "failed": return "failed"
@@ -140,7 +141,7 @@ static func prepare(state: Dictionary, squad: int, melee: bool, entries: Array, 
 	else:
 		if MarineEnhancements.active(state, squad, MarineEnhancements.MASTER_FORGED_FIREARMS) or MarineEnhancements.honour_of_vigilance_active(state, squad) or MarineEnhancements.hunters_eye_active(state, squad): return _prepare_equipped(state, squad, melee, entries, lethal, hail_target, indirect_shooting)
 	if UnitAbilities.enabled(state): return _prepare_equipped(state, squad, melee, entries, lethal, hail_target, indirect_shooting)
-	if str(state.get("combat_doctrines", {}).get("detachment", "")) == "ironstorm-spearhead": return _prepare_equipped(state, squad, melee, entries, lethal, hail_target, indirect_shooting)
+	if Doctrines.detachment_for(state, int(state.squads[squad].get("owner", -1))) == "ironstorm-spearhead": return _prepare_equipped(state, squad, melee, entries, lethal, hail_target, indirect_shooting)
 	var ability_error := Hail.choice_error(state, squad, hail_target, melee)
 	if not ability_error.is_empty(): return {"error": ability_error}
 	if hail_target != -1:
@@ -243,7 +244,7 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		var reroll_mode := UnitAbilities.implacable_mode(state, squad, row.target) if UnitAbilities.enabled(state) else Implacable.mode(state, squad, row.target)
 		if reroll_mode != "none": context.wound_reroll = reroll_mode
 		var ambush_marks: Dictionary = state.get("combat_doctrines", {}).get("vanguard_ambushers", {})
-		if str(state.get("combat_doctrines", {}).get("detachment", "")) == "phobos-shock-force" and int(ambush_marks.get(squad, -1)) == int(state.turn):
+		if Doctrines.detachment_for(state, int(state.squads[squad].get("owner", -1))) == "phobos-shock-force" and int(ambush_marks.get(squad, -1)) == int(state.turn):
 			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "ones")
 		if UnitAbilities.identity(state.units[model]) == "kaius-konorius" and UnitAbilities.has(state, squad, "calgars-champion") and UnitAbilities.has_target_keyword(state, row.target, "CHARACTER"):
 			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
@@ -337,6 +338,9 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		for keyword in ["rapid-fire", "assault", "heavy", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "lance", "cleave", "melta"]: profile.keywords.erase(keyword)
 		if UnitAbilities.enabled(state): context.use_lethal_hits = true
 		if not lethal and not UnitAbilities.enabled(state): profile.keywords.erase("lethal-hits")
+		var skill_characteristic := "WS" if melee else "BS"
+		var ignore_skill_modifiers := DetachmentStratagems.might_ignore_active(state, squad) or UnitAbilities.Techmarine.characteristic_modifier_ignore_active(state, model)
+		profile.skill = WeaponCharacteristics.apply_skill_modifier(profile.skill, WeaponCharacteristics.modifier(state, squad, model, skill_characteristic), ignore_skill_modifiers)
 		profile.attacks = 1
 		var signature := {"skill": profile.skill, "strength": profile.strength, "ap": profile.ap, "damage": profile.damage, "keywords": profile.keywords}
 		var key := "%d:%s:%s:%d" % [row.target, var_to_str(signature), str(context.benefit_of_cover), context.hit_modifier]
@@ -446,8 +450,11 @@ static func _prepare_legacy(state: Dictionary, squad: int, melee: bool, entries:
 			var sight := Terrain.targeting(state, model, target)
 			cover = sight.cover
 			rapid_fire_active = Doctrines.rapid_fire_active(state, squad, weapon, sight.distance)
-		var key := "%d:%s:%s" % [target, str(cover), str(rapid_fire_active)]
-		if not batches.has(key): batches[key] = {"target": target, "cover": cover, "rapid_fire_active": rapid_fire_active, "count": 0}
+		var skill_characteristic := "WS" if melee else "BS"
+		var ignore_skill_modifiers := DetachmentStratagems.might_ignore_active(state, squad) or UnitAbilities.Techmarine.characteristic_modifier_ignore_active(state, model)
+		var effective_skill: Variant = WeaponCharacteristics.apply_skill_modifier(weapon.get("skill"), WeaponCharacteristics.modifier(state, squad, model, skill_characteristic), ignore_skill_modifiers)
+		var key := "%d:%s:%s:%s" % [target, str(cover), str(rapid_fire_active), str(effective_skill)]
+		if not batches.has(key): batches[key] = {"target": target, "cover": cover, "rapid_fire_active": rapid_fire_active, "skill": effective_skill, "count": 0}
 		batches[key].count += entry.amount
 	if melee:
 		for model: int in Geometry.alive(state, squad):
@@ -482,6 +489,7 @@ static func _prepare_legacy(state: Dictionary, squad: int, melee: bool, entries:
 				context.rapid_fire_active = batch.rapid_fire_active
 				context.benefit_of_cover = batch.cover
 				context.heavy_eligible = not state.squads[squad].set_up_this_turn and state.squads[squad].moved_distance <= 3.0
+			profile.skill = batch.skill
 			var error := Attacks._validate(profile, defender(state, target, melee), context)
 			if not error.is_empty(): return {"error": error}
 			var count: int = profile.attacks * context.weapon_count

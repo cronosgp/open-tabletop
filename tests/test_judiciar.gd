@@ -4,6 +4,7 @@ const C = F.C
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok:
@@ -24,6 +25,15 @@ func fixture() -> Dictionary:
   s.unit_abilities.window = {}
  return s
 func dice() -> int: return 4
+func submit_attachment(s: Dictionary, player: int, selected: Dictionary) -> Dictionary:
+ var decision := C.UnitActions.pending_decision(s)
+ if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No matching attachment decision for Player %d." % player}
+ var projected: Dictionary = {}
+ for option: Dictionary in decision.get("legal_options", []):
+  if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+ if projected.is_empty(): return {"error": "Judiciar attachment is not present in the current decision."}
+ var choice := {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+ return MatchCommands.execute(s, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": choice, "revision": int(s.revision)})
 func attack(s: Dictionary, melee: bool) -> Dictionary:
  var weapon := {"name": "Conditional save probe", "attacks": 1, "skill": 2, "strength": 10, "ap": -6, "damage": 1, "range_inches": 24, "keywords": {}}
  return C.AttackPlan.resolve(s, {"targets": [3], "batches": [{"target": 3, "weapon": weapon, "context": {"weapon_count": 1}}]}, dice, melee)
@@ -62,7 +72,11 @@ func run() -> void:
   quit(1)
   return
  check(not Roster.seal(s, 1).is_empty(), "Unattached Support passed checked formation")
- check(C.unit_action(s, 1, attach, Vector2.ZERO, s.revision).is_empty(), "Judiciar attachment rejected")
+ var before_wrong_attachment_owner := var_to_bytes(s)
+ var wrong_attachment_owner := submit_attachment(s, 2, attach)
+ check(not str(wrong_attachment_owner.get("error", "")).is_empty() and var_to_bytes(s) == before_wrong_attachment_owner, "The opponent cannot submit or mutate the Judiciar attachment decision")
+ var attachment_result := submit_attachment(s, 1, attach)
+ check(str(attachment_result.get("error", "")).is_empty(), "Judiciar attachment uses the normalized command")
  check(s.units[300].attachment_role == "support" and s.units[300].squad == 1, "Judiciar consumed Leader slot")
  check(Groups.profile(s, 300).invulnerable_target == 0 and Groups.profile(s, 300, true).invulnerable_target == 4 and Groups.profile(s, 100, true).invulnerable_target == 0, "Attachment lost or shared conditional invulnerable save")
  s.pending_attack = {"melee": true, "ability_saves": {}}

@@ -5,6 +5,9 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const A = preload("res://scripts/edition_11/unit_abilities.gd")
 const Victrix = preload("res://scripts/edition_11/victrix_honour_guard.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 var failures := 0
 
 func six() -> int: return 6
@@ -51,6 +54,19 @@ func action(state: Dictionary, player: int, action_id: String, target: int = -1,
 		if option.action == action_id and (target < 0 or int(option.target) == target) and (model < 0 or int(option.model) == model): return option
 	return {}
 
+func submit_choice(state: Dictionary, player: int, selected: Dictionary, point: Vector2 = Vector2.ZERO, roller: Callable = Callable()) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	var payload: Dictionary = selected
+	if not decision.is_empty():
+		var projected: Dictionary = {}
+		for option: Dictionary in decision.get("legal_options", []):
+			if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+				projected = option
+				break
+		if projected.is_empty(): return {"error": "The current decision does not project the submitted Glory of Ultramar choice."}
+		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "point": point, "choice": payload}, roller)
+
 func _initialize() -> void: call_deferred("run")
 
 func run() -> void:
@@ -95,7 +111,12 @@ func run() -> void:
 	state.squads[guard_squad].charged = true
 	var banner_use := action(state, 1, "victrix-banner", guard_squad)
 	check(not banner_use.is_empty(), "Banner of Macragge can be chosen when Victrix is selected to fight")
-	if not banner_use.is_empty(): C.unit_action(state, 1, banner_use, Vector2.ZERO, state.revision, six)
+	if not banner_use.is_empty():
+		var before_banner := var_to_bytes(state)
+		var wrong_owner := submit_choice(state, 2, banner_use, Vector2.ZERO, six)
+		check(not str(wrong_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_banner, "Opponent cannot activate the Banner of Macragge")
+		var banner_result := submit_choice(state, 1, banner_use, Vector2.ZERO, six)
+		check(str(banner_result.get("error", "")).is_empty(), "Banner activation uses the current public UnitActions decision: " + str(banner_result.get("error", "")))
 	check(state.unit_abilities.used.get("banner-macragge-used:1", false) and state.unit_abilities.banner_active.has(guard_squad) and action(state, 1, "victrix-banner", guard_squad).is_empty(), "Banner use is once per battle for the whole army")
 	state.unit_abilities.banner_active = {guard_squad: {"owner": 1, "turn": 1}}
 	var blade: Dictionary = state.units[champion_model].melee_weapons[0].profiles.standard
@@ -113,21 +134,39 @@ func run() -> void:
 	Victrix.open_after_enemy_shot(state, shooter, [{"target_squad": guard_squad, "models_destroyed": 1, "allocations": [{"model": champion_model}]}])
 	check(state.unit_abilities.window.is_empty(), "Glory does not trigger when the pool does not identify a destroyed Victrix model")
 	state.units[guard_model].wounds = 0
+	var attack_action_id := "attack:%d:%d:shooting:test" % [state.turn, shooter]
+	check(not C.ResolutionFrames.begin(state, "attack", attack_action_id, "attack-finalization").is_empty(), "A completed enemy attack opens a persisted resolution frame")
 	Victrix.open_after_enemy_shot(state, shooter, [{"target_squad": guard_squad, "models_destroyed": 1, "allocations": [{"model": guard_model}]}])
 	check(state.unit_abilities.window.get("kind", "") == Victrix.WINDOW and state.unit_abilities.window.squad == guard_squad, "A casualty from the resolved enemy attacks opens Glory of Ultramar")
+	var post_attack_frame_error := C._complete_attack_resolution_frame(state, attack_action_id)
+	var glory_frame := C.ResolutionFrames.current(state)
+	check(post_attack_frame_error.is_empty() and glory_frame.get("status", "") == "suspended" and glory_frame.get("resume_point", "") == "attack-post-resolution-choice", "Glory of Ultramar suspends the attack continuation")
+	var glory_decision := PendingDecisions.current(state, ["unit-actions"])
+	var glory_decision_id: String = str(glory_decision.get("decision_id", ""))
+	check(glory_decision.get("resume_frame_id", "") == glory_frame.get("frame_id", "") and glory_decision.get("priority_player_id", -1) == 1, "Glory decision identifies the suspended attack frame and defender owner")
+	check(not PhaseCloseGate.close_request_error(state, 2, state.revision).is_empty(), "Shooting close remains blocked while Glory is pending")
 	var use := action(state, 1, "glory-use", guard_squad)
 	check(not use.is_empty(), "The defending player receives the optional Surge move")
 	if not use.is_empty():
-		check(C.unit_action(state, 1, use, Vector2.ZERO, state.revision, six).is_empty(), "Glory of Ultramar rolls its D6 distance")
+		var before_wrong_owner := var_to_bytes(state)
+		var wrong_owner_result := submit_choice(state, 2, use, Vector2.ZERO, six)
+		check(not str(wrong_owner_result.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_owner, "The shooting attacker cannot submit or mutate the defender's Glory choice")
+		state = bytes_to_var(var_to_bytes(state))
+		glory_decision = PendingDecisions.current(state, ["unit-actions"])
+		check(glory_decision.get("decision_id", "") == glory_decision_id and glory_decision.get("resume_frame_id", "") == glory_frame.get("frame_id", ""), "Glory decision and attack frame survive save/restore")
+		use = action(state, 1, "glory-use", guard_squad)
+		check(str(submit_choice(state, 1, use, Vector2.ZERO, six).get("error", "")).is_empty(), "Glory of Ultramar rolls its D6 distance through the normalized command")
+		check(C.ResolutionFrames.current(state).get("frame_id", "") == glory_frame.get("frame_id", ""), "Glory placement retains the same attack continuation")
 		var place := action(state, 1, "glory-place", guard_squad, ancient_model)
 		check(not place.is_empty(), "Surge move offers placement for surviving models")
 		if not place.is_empty():
 			var destination: Vector2 = state.units[ancient_model].position + Vector2(0.5, 0)
-			var move_error := C.unit_action(state, 1, place, destination, state.revision, six)
-			check(move_error.is_empty(), "A surviving model can preview a legal Surge move: " + move_error)
+			var move_result := submit_choice(state, 1, place, destination, six)
+			check(str(move_result.get("error", "")).is_empty(), "A surviving model can preview a legal Surge move through the normalized command")
 			var confirm := action(state, 1, "glory-confirm", guard_squad)
-			var confirm_error := "Missing confirm choice" if confirm.is_empty() else C.unit_action(state, 1, confirm, Vector2.ZERO, state.revision, six)
+			var confirm_error := "Missing confirm choice" if confirm.is_empty() else str(submit_choice(state, 1, confirm, Vector2.ZERO, six).get("error", ""))
 			check(confirm_error.is_empty() and state.squads[guard_squad].move_type == "surge", "The confirmed move is recorded as a Surge move: " + confirm_error)
+			check(C.ResolutionFrames.current(state).is_empty(), "Completing Glory closes the attack continuation")
 	state.phase = "movement"
 	state.active = 1
 	state.unit_abilities.window = {}

@@ -7,6 +7,8 @@ const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
 const AttackSequence = preload("res://scripts/edition_11/attack_sequence.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -33,6 +35,18 @@ func selected(state: Dictionary, player: int, action: String, model: int, target
 	for option: Dictionary in C.UnitActions.choices(state, player):
 		if option.action == action and option.model == model and option.target == target: return option
 	return {}
+
+func submit_choice(state: Dictionary, player: int, choice: Dictionary) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty():
+		return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": choice}, func() -> int: return 6)
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(choice.get("action", "")) and int(option.get("model", -1)) == int(choice.get("model", -1)) and int(option.get("target", -1)) == int(choice.get("target", -1)) and str(option.get("value", "")) == str(choice.get("value", "")):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "The current Fight-start decision does not offer this choice."}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": choice}}, func() -> int: return 6)
 
 func _initialize() -> void: call_deferred("run")
 
@@ -68,8 +82,15 @@ func run() -> void:
 	state.units[target_model].position = Vector2(1.5, 0)
 	var fury := selected(state, 1, "righteous-fury", model, squad)
 	check(not fury.is_empty(), "Righteous Fury is offered when Titus is selected to fight")
-	var activated := C.UnitActions.apply(state, 1, fury, Vector2.ZERO, func() -> int: return 6)
-	check(activated.error.is_empty() and state.unit_abilities.used.get("righteous-active:%d" % squad, false), "Righteous Fury activates once and selects Titus to fight")
+	var fury_decision := PendingDecisions.current(state, ["unit-actions"])
+	var fury_restore: Dictionary = bytes_to_var(var_to_bytes(state))
+	check(fury_decision.is_empty() and not selected(fury_restore, 1, "righteous-fury", model, squad).is_empty(), "Fight activation exposes Titus's Righteous Fury as a current command choice")
+	var before_wrong_fury := var_to_bytes(fury_restore)
+	var wrong_fury := submit_choice(fury_restore, 2, fury)
+	check(not str(wrong_fury.get("error", "")).is_empty() and before_wrong_fury == var_to_bytes(fury_restore), "The opponent cannot activate Titus's Fight-start Righteous Fury decision")
+	var activated := submit_choice(fury_restore, 1, fury)
+	state = fury_restore
+	check(activated.get("error", "").is_empty() and state.unit_abilities.used.get("righteous-active:%d" % squad, false), "Normalized Righteous Fury activates once and selects Titus to fight")
 	var chainsword: Dictionary = profile.melee[0].profiles.standard
 	var press := C.UnitAbilities.weapon(state, model, target, chainsword, true)
 	check(press.strength == 6 and press.keywords.get("sustained-hits", 0) == 1, "Righteous Fury adds Strength and Press the Attack grants Sustained Hits 1 against Infantry")
@@ -92,7 +113,7 @@ func run() -> void:
 	second_activation_state.fight_actor = 1
 	second_activation_state.fight_selected = -1
 	check(selected(second_activation_state, 1, "righteous-fury", model, squad).is_empty(), "Righteous Fury is not offered again during the same battle")
-	var repeat_fury := C.UnitActions.apply(state, 1, fury, Vector2.ZERO, func() -> int: return 3)
+	var repeat_fury := submit_choice(state, 1, fury)
 	check(not repeat_fury.error.is_empty(), "Righteous Fury is limited to once per battle per army")
 	var d3_heal_state := state.duplicate(true)
 	d3_heal_state.squads[squad].fought = false

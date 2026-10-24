@@ -5,6 +5,9 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Prevention = preload("res://scripts/edition_11/unit_prevention.gd")
 const ScoutMoves = preload("res://scripts/edition_11/scout_moves.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -46,6 +49,34 @@ func option(state: Dictionary, player: int, action: String, value: String, targe
 	for item: Dictionary in C.unit_choices(state, player):
 		if item.action == action and item.value == value and (target == -999 or item.target == target): return item
 	return {}
+
+func submit_scout_choice(state: Dictionary, player: int, action: String, model: int, target: int, point: Vector2 = Vector2.ZERO) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No Scout decision belongs to Player %d." % player}
+	var projected: Dictionary = {}
+	for choice: Dictionary in decision.get("legal_options", []):
+		if str(choice.get("action", "")) == action and int(choice.get("model", -1)) == model and int(choice.get("target", -1)) == target:
+			projected = choice
+			break
+	var selected: Dictionary = {}
+	for choice: Dictionary in C.unit_choices(state, player):
+		if str(choice.get("action", "")) == action and int(choice.get("model", -1)) == model and int(choice.get("target", -1)) == target:
+			selected = choice
+			break
+	if projected.is_empty() or selected.is_empty(): return {"error": "The current Scout decision does not offer %s." % action}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "point": point, "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, six)
+
+func submit_projected_choice(state: Dictionary, player: int, selected: Dictionary, roller: Callable = six) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty():
+		return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": selected}, roller)
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "Selected choice is not in the current UnitActions projection."}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, roller)
 
 func _initialize() -> void:
 	var profile := Profiles.profile("librarian-in-phobos-armour")
@@ -91,7 +122,12 @@ func _initialize() -> void:
 	var enemy_squad: int = soul_state.units[enemy].squad
 	var soul := option(soul_state, 1, "librarius-power", "soul-sight", enemy_squad)
 	check(not soul.is_empty(), "Soul Sight is offered for a visible enemy in the Phobos Librarian's Shooting phase")
-	if not soul.is_empty(): check(C.unit_action(soul_state, 1, soul, Vector2.ZERO, soul_state.revision, six).is_empty(), "Soul Sight psychic roll resolves")
+	if not soul.is_empty():
+		var before_wrong_soul_owner := var_to_bytes(soul_state)
+		var wrong_soul_owner := submit_projected_choice(soul_state, 2, soul)
+		check(not str(wrong_soul_owner.get("error", "")).is_empty() and before_wrong_soul_owner == var_to_bytes(soul_state), "The opponent cannot submit or mutate Soul Sight's decision")
+		var soul_result := submit_projected_choice(soul_state, 1, soul)
+		check(str(soul_result.get("error", "")).is_empty(), "Soul Sight psychic roll resolves through the match command: " + str(soul_result))
 	var source_squad: int = soul_state.units[found[0]].squad
 	var target_squad: int = soul_state.units[enemy].squad
 	var pistol: Dictionary = Profiles.profile("librarian-in-phobos-armour").ranged[0].profiles.standard
@@ -102,7 +138,7 @@ func _initialize() -> void:
 	var unrelated := -1
 	for model: int in soul_state.units:
 		if soul_state.units[model].owner == 1 and C.UnitAbilities.identity(soul_state.units[model]) == "intercessor-squad": unrelated = model
-	check(unrelated >= 0 and not C.UnitAbilities.weapon(soul_state, unrelated, target_squad, Profiles.profile("intercessor-squad").ranged[0].profiles.values()[0], false).keywords.get("ignores-cover", false), "Soul Sight does not affect another friendly unit")
+	check(unrelated >= 0 and C.UnitAbilities.weapon(soul_state, unrelated, target_squad, Profiles.profile("intercessor-squad").ranged[0].profiles.values()[0], false).keywords.get("ignores-cover", false), "Soul Sight applies to other friendly ranged attacks against the marked enemy")
 	check(C.UnitActions.librarius_choices(soul_state, 1).is_empty(), "Soul Sight consumes the Phobos Librarian's one level-1 power for this battle round")
 
 	var incoming := make_state()
@@ -111,6 +147,7 @@ func _initialize() -> void:
 	incoming.phase = "shooting"
 	incoming.active = 2
 	incoming.unit_abilities.setup_players = [1, 2]
+	incoming.manual_allocation = true
 	incoming.terrain.areas = []
 	for model: int in incoming.units: incoming.units[model].position = Vector2(-4, 0) if incoming.units[model].owner == 1 else Vector2(4, 0)
 	var attacker: int = find(incoming)[2]
@@ -121,9 +158,39 @@ func _initialize() -> void:
 	var declaration := [{"model": attacker, "target": defender_squad, "amount": 1, "weapon": attack_weapon.id, "profile": profile_name}]
 	var declared := C.resolve_attack_plan(incoming, 2, attacker, declaration, incoming.revision, false, false, six)
 	check(declared.error.is_empty() and incoming.unit_abilities.window.get("kind", "") == "phobos-shrouding", "Shrouding opens after the enemy selects the unit and before attack dice")
+	var attack_frame := ResolutionFrames.current(incoming)
+	var attack_decision := PendingDecisions.current(incoming, ["unit-actions"])
+	check(attack_frame.get("kind", "") == "attack" and attack_frame.get("status", "") == "suspended" and attack_frame.get("resume_point", "") == "attack-phobos-shrouding", "Pre-dice Shrouding reaction suspends a persisted attack frame")
+	check(attack_decision.get("action_id", "") == attack_frame.get("action_id", "") and attack_decision.get("resume_frame_id", "") == attack_frame.get("frame_id", ""), "Normalized Shrouding decision identifies its attack continuation")
+	var declaration_action_id := str(attack_frame.get("action_id", ""))
+	incoming = bytes_to_var(var_to_bytes(incoming))
+	attack_frame = ResolutionFrames.current(incoming)
+	attack_decision = PendingDecisions.current(incoming, ["unit-actions"])
+	check(attack_decision.get("resume_frame_id", "") == attack_frame.get("frame_id", "") and attack_frame.get("status", "") == "suspended", "Serialized match preserves the pending attack frame and decision identity")
 	var shrouding := option(incoming, 1, "phobos-shrouding", "use", defender_squad)
 	check(not shrouding.is_empty(), "Defender receives an explicit Shrouding choice")
-	if not shrouding.is_empty(): check(C.unit_action(incoming, 1, shrouding, Vector2.ZERO, incoming.revision, six).is_empty(), "Shrouding roll resumes the frozen attack declaration")
+	if not shrouding.is_empty():
+		var before_wrong_shrouding_owner := var_to_bytes(incoming)
+		var wrong_shrouding_owner := submit_projected_choice(incoming, 2, shrouding)
+		check(not str(wrong_shrouding_owner.get("error", "")).is_empty() and var_to_bytes(incoming) == before_wrong_shrouding_owner, "Attacker cannot resolve the defender's Shrouding reaction")
+		check(not C.advance_phase(incoming, 2, incoming.revision).is_empty(), "Shooting close remains blocked while Shrouding is pending")
+		var shrouding_result := submit_projected_choice(incoming, 1, shrouding)
+		check(str(shrouding_result.get("error", "")).is_empty(), "Shrouding roll resumes the frozen attack declaration: " + str(shrouding_result.get("error", "")))
+	attack_frame = ResolutionFrames.current(incoming)
+	var damage_decision := PendingDecisions.current(incoming, ["damage-allocation"])
+	check(not incoming.pending_attack.is_empty() and attack_frame.get("kind", "") == "attack" and attack_frame.get("status", "") == "suspended" and attack_frame.get("action_id", "") == declaration_action_id and incoming.pending_attack.get("resolution_action_id", "") == declaration_action_id, "Attack allocation suspends the same pre-dice action frame")
+	check(damage_decision.get("action_id", "") == declaration_action_id and damage_decision.get("resume_frame_id", "") == attack_frame.get("frame_id", ""), "Damage-allocation projection keeps the declaration's frame identity")
+	var allocation_steps := 0
+	while not incoming.pending_attack.is_empty() and allocation_steps < 20:
+		damage_decision = PendingDecisions.current(incoming, ["damage-allocation"])
+		if damage_decision.get("legal_options", []).is_empty(): break
+		var allocation_model := int(damage_decision.legal_options[0].get("model", -1))
+		var allocation_error := C.allocate_damage(incoming, int(damage_decision.priority_player_id), allocation_model, incoming.revision, six)
+		check(allocation_error.is_empty(), "Defender resolves allocation under the resumed attack frame")
+		if not allocation_error.is_empty(): break
+		allocation_steps += 1
+	check(allocation_steps > 0, "Resumed attack exposes a legal damage-allocation choice")
+	check(ResolutionFrames.current(incoming).is_empty() and incoming.pending_attack.is_empty(), "Attack frame completes only after damage allocation finishes")
 	check(incoming.unit_abilities.used.get("librarius:%d:%d" % [defender_squad, incoming.round], "") == "shrouding" and C.UnitAbilities.hit_bonus(incoming, incoming.units[attacker].squad, defender_squad, false) == -1, "Shrouding spends level-1 capacity and applies -1 to hit through the phase")
 	check(not incoming.squads[defender_squad].battle_shocked, "A successful Shrouding psychic roll leaves the unit unshocked")
 	incoming.phase = "fight"
@@ -139,7 +206,9 @@ func _initialize() -> void:
 	for model: int in failed_cast.units: failed_cast.units[model].position = Vector2(-4, 0) if failed_cast.units[model].owner == 1 else Vector2(4, 0)
 	enemy = find(failed_cast)[2]
 	soul = option(failed_cast, 1, "librarius-power", "soul-sight", failed_cast.units[enemy].squad)
-	if not soul.is_empty(): check(C.unit_action(failed_cast, 1, soul, Vector2.ZERO, failed_cast.revision, one).is_empty() and failed_cast.squads[found[1]].battle_shocked, "A Psychic roll of 1 Battle-shocks the Phobos unit")
+	if not soul.is_empty():
+		var failed_soul_result := submit_projected_choice(failed_cast, 1, soul, one)
+		check(str(failed_soul_result.get("error", "")).is_empty() and failed_cast.squads[found[1]].battle_shocked, "A Psychic roll of 1 Battle-shocks the Phobos unit through the match command")
 	check(C.UnitActions.librarius_choices(failed_cast, 1).is_empty(), "Failed cast still consumes Librarius level-1 capacity")
 
 	var scout := make_state()
@@ -158,18 +227,22 @@ func _initialize() -> void:
 		if item.action == "scout-move": scout_start = item
 	check(not scout_start.is_empty() and C.actor(scout) == 1 and scout.phase == "pre_battle", "Standalone Phobos Librarian receives its alternating pre-battle Scout choice (distance %d; queue %s; window %s; phase %s)" % [C.UnitAbilities.scout_distance(scout, scout_squad), str(scout.unit_abilities.get("scout_queue", [])), str(scout.unit_abilities.get("window", {})), scout.phase])
 	if not scout_start.is_empty():
-		check(C.unit_action(scout, 1, scout_start, Vector2.ZERO, scout.revision).is_empty(), "Scout move opens per-model position previews")
+		var start_result := submit_scout_choice(scout, 1, "scout-move", -1, scout_squad)
+		check(str(start_result.get("error", "")).is_empty(), "Scout move opens per-model position previews")
 		var place: Dictionary = {}
 		for item: Dictionary in C.unit_choices(scout, 1):
 			if item.action == "scout-place" and item.model == scout_model: place = item
 		check(not place.is_empty(), "Scout move exposes model placement input")
 		if not place.is_empty():
-			check(not C.unit_action(scout, 1, place, Vector2(-18.9, 0), scout.revision).is_empty(), "Scout rejects movement beyond six inches")
-			check(C.unit_action(scout, 1, place, Vector2(-19, 0), scout.revision).is_empty(), "Scout accepts a six-inch move within coherency and enemy-distance constraints")
+			var too_far := submit_scout_choice(scout, 1, "scout-place", scout_model, scout_squad, Vector2(-18.9, 0))
+			check(not str(too_far.get("error", "")).is_empty(), "Scout rejects movement beyond six inches")
+			var within_range := submit_scout_choice(scout, 1, "scout-place", scout_model, scout_squad, Vector2(-19, 0))
+			check(str(within_range.get("error", "")).is_empty(), "Scout accepts a six-inch move within coherency and enemy-distance constraints")
 		var confirm: Dictionary = {}
 		for item: Dictionary in C.unit_choices(scout, 1):
 			if item.action == "scout-confirm": confirm = item
-		check(not confirm.is_empty() and C.unit_action(scout, 1, confirm, Vector2.ZERO, scout.revision).is_empty(), "Scout positions confirm before the first turn")
+		var confirmation := submit_scout_choice(scout, 1, "scout-confirm", -1, scout_squad)
+		check(not confirm.is_empty() and str(confirmation.get("error", "")).is_empty(), "Scout positions confirm before the first turn")
 		check(scout.phase == "start_turn" and scout.units[scout_model].position == Vector2(-19, 0), "Scout move resolves before round one")
 
 	var reserve_scout := make_state()
@@ -189,17 +262,20 @@ func _initialize() -> void:
 		if item.action == "scout-setup": scout_setup = item
 	check(not scout_setup.is_empty(), "Scout choice allows a reserved unit to set up in its deployment zone")
 	if not scout_setup.is_empty():
-		check(C.unit_action(reserve_scout, 1, scout_setup, Vector2.ZERO, reserve_scout.revision).is_empty(), "Reserved Scout unit opens set-up placement")
+		var setup_result := submit_scout_choice(reserve_scout, 1, "scout-setup", -1, scout_squad)
+		check(str(setup_result.get("error", "")).is_empty(), "Reserved Scout unit opens set-up placement")
 		var reserve_place: Dictionary = {}
 		for item: Dictionary in C.unit_choices(reserve_scout, 1):
 			if item.action == "scout-place" and item.model == scout_model: reserve_place = item
-		var reserve_place_error := "missing placement choice"
-		if not reserve_place.is_empty(): reserve_place_error = C.unit_action(reserve_scout, 1, reserve_place, Vector2(-25, 0), reserve_scout.revision)
+		var reserve_place_result: Dictionary = {"error": "missing placement choice"}
+		if not reserve_place.is_empty(): reserve_place_result = submit_scout_choice(reserve_scout, 1, "scout-place", scout_model, scout_squad, Vector2(-25, 0))
 		var reserve_confirm: Dictionary = {}
 		for item: Dictionary in C.unit_choices(reserve_scout, 1):
 			if item.action == "scout-confirm": reserve_confirm = item
-		var reserve_confirm_error := "missing confirmation choice"
-		if not reserve_confirm.is_empty(): reserve_confirm_error = C.unit_action(reserve_scout, 1, reserve_confirm, Vector2.ZERO, reserve_scout.revision)
+		var reserve_confirm_result: Dictionary = {"error": "missing confirmation choice"}
+		if not reserve_confirm.is_empty(): reserve_confirm_result = submit_scout_choice(reserve_scout, 1, "scout-confirm", -1, scout_squad)
+		var reserve_place_error := str(reserve_place_result.get("error", ""))
+		var reserve_confirm_error := str(reserve_confirm_result.get("error", ""))
 		check(reserve_place_error.is_empty() and reserve_confirm_error.is_empty() and reserve_scout.phase == "start_turn", "Reserved Scout unit sets up wholly in its deployment zone (place: %s; confirm: %s)" % [reserve_place_error, reserve_confirm_error])
 		check(reserve_scout.units[scout_model].get("on_battlefield", false) and not reserve_scout.unit_abilities.reserves.has(scout_squad), "Scout set-up removes the unit from Strategic Reserves")
 

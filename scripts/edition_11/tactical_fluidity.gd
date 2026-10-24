@@ -42,12 +42,11 @@ static func _eligible(state: Dictionary, squad: int, owner: int, mode: String) -
 
 static func suboden_squads(state: Dictionary, owner: int) -> Array[int]:
 	var result: Array[int] = []
-	if state.phase != "fight" or not Doctrines.enabled(state) or str(state.combat_doctrines.get("detachment", "")) != "spearpoint-task-force": return result
+	if state.phase != "fight" or not Doctrines.enabled(state) or Doctrines.detachment_for(state, owner) != "spearpoint-task-force": return result
 	if owner not in state.combat_doctrines.get("owners", []): return result
 	for squad: int in state.squads:
 		if int(state.squads[squad].get("owner", -1)) != owner: continue
-		if not state.combat_doctrines.get("spearpoint_destroyed_units", {}).get(squad, false): continue
-		if Queue.engaged(state, squad): continue
+		if not state.squads[squad].get("fight_eligible", false): continue
 		if Geometry.alive(state, squad).is_empty(): continue
 		var has_living_suboden := false
 		for model: int in Geometry.alive(state, squad):
@@ -77,18 +76,9 @@ static func start_end_fight(state: Dictionary, player: int, squad: int) -> Strin
 	return ""
 
 static func start_storm_swift(state: Dictionary, player: int, squad: int) -> String:
-	if squad not in suboden_squads(state, player): return "Wrath of the First Khan requires Suboden Khan's unit to have destroyed an enemy unit this Fight phase and be outside Engagement Range."
-	var mode := "normal"
-	var origins := {}
-	var positions := {}
-	var distances := {}
-	for model: int in Geometry.alive(state, squad):
-		origins[model] = state.units[model].position
-		positions[model] = state.units[model].position
-		distances[model] = 6.0
-	var use_key := "storm-swift-onslaught:%d:%d:%s" % [squad, int(state.turn), str(state.phase)]
-	state.unit_abilities.used[use_key] = true
-	state.unit_abilities.window = {"kind": PLACEMENT, "owners": [player], "squad": squad, "mode": mode, "distance": 6.0, "distance_by_model": distances, "origins": origins, "positions": positions, "source": "storm-swift-onslaught", "resume_window": state.unit_abilities.get("window", {}).duplicate(true)}
+	if squad not in suboden_squads(state, player): return "Wrath of the First Khan requires Suboden Khan's unit to have been eligible to fight this phase."
+	var mode := "fallback" if Queue.engaged(state, squad) else "normal"
+	state.unit_abilities.window = {"kind": WINDOW, "owners": [player], "squad": squad, "mode": mode, "source": "storm-swift-onslaught", "resume_window": state.unit_abilities.get("window", {}).duplicate(true)}
 	return ""
 
 static func open_after_shot(state: Dictionary, squad: int) -> void:
@@ -105,9 +95,11 @@ static func choices(state: Dictionary, player: int) -> Array:
 		for model: int in window.positions: result.append({"label": "%s: preview model %d" % [title, model], "action": "fluidity-place", "model": model, "target": int(window.squad), "value": ""})
 		result.append({"label": "Confirm %s move" % title, "action": "fluidity-confirm", "model": -1, "target": int(window.squad), "value": ""})
 		return result
+	var movement := int(state.units[Geometry.alive(state, int(window.squad))[0]].get("movement", 0))
+	var movement_label := "Normal Move up to D6 inches" if window.mode == "shoot" else ("Normal Move up to %d inches" % movement if window.mode == "normal" else "Fall Back up to %d inches" % movement)
 	return [
-		{"label": "%s %d: %s — %s" % ["Suboden Khan" if window.get("source", "") == "storm-swift-onslaught" else "Captain", int(Geometry.alive(state, int(window.squad))[0]), "Wrath of the First Khan" if window.get("source", "") == "storm-swift-onslaught" else "Tactical Fluidity", "Normal Move up to D6 inches" if window.mode == "shoot" else ("Normal Move up to 6 inches" if window.mode == "normal" else "Fall Back up to 6 inches")], "action": "fluidity-use", "model": -1, "target": int(window.squad), "value": ""},
-		{"label": "Decline Tactical Fluidity", "action": "fluidity-pass", "model": -1, "target": int(window.squad), "value": ""}
+		{"label": "%s %d: %s — %s" % ["Suboden Khan" if window.get("source", "") == "storm-swift-onslaught" else "Captain", int(Geometry.alive(state, int(window.squad))[0]), "Wrath of the First Khan" if window.get("source", "") == "storm-swift-onslaught" else "Tactical Fluidity", movement_label], "action": "fluidity-use", "model": -1, "target": int(window.squad), "value": ""},
+		{"label": "Decline %s" % ("Wrath of the First Khan" if window.get("source", "") == "storm-swift-onslaught" else "Tactical Fluidity"), "action": "fluidity-pass", "model": -1, "target": int(window.squad), "value": ""}
 	]
 
 static func _advance(state: Dictionary) -> void:
@@ -126,17 +118,21 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 	if window.get("kind", "") == WINDOW:
 		if int(window.get("owners", [0])[0]) != player or int(window.squad) != squad: return {"error": "This Tactical Fluidity choice belongs to the pending Captain."}
 		if selected.action == "fluidity-pass":
+			if window.get("source", "") == "storm-swift-onslaught":
+				var storm_swift_key := "storm-swift-onslaught:%d:%d:%s" % [squad, int(state.turn), str(state.phase)]
+				state.unit_abilities.used[storm_swift_key] = true
 			if window.mode == "fallback" and window.get("resume_window", {}).get("kind", "") == "end":
 				state.unit_abilities.used["tactical-fluidity-end:%d:%d" % [squad, int(state.turn)]] = true
 			_advance(state)
 			return {"error": ""}
-		if selected.action != "fluidity-use": return {"error": "Choose to use or decline Tactical Fluidity."}
+			if selected.action != "fluidity-use": return {"error": "Choose to use or decline the pending ability."}
 		var storm_swift: bool = window.get("source", "") == "storm-swift-onslaught"
 		if storm_swift:
-			if squad not in suboden_squads(state, player): return {"error": "Wrath of the First Khan's eligibility changed before the move."}
+			if squad not in suboden_squads(state, player) or window.mode != ("fallback" if Queue.engaged(state, squad) else "normal"): return {"error": "Wrath of the First Khan's eligibility or engagement state changed before the move."}
 		elif not _eligible(state, squad, player, str(window.mode)):
 			return {"error": "Tactical Fluidity's phase, engagement or once-per-round condition is no longer met."}
 		var distance := 6
+		if storm_swift: distance = int(state.units[Geometry.alive(state, squad)[0]].get("movement", 0))
 		if window.mode == "shoot" and not storm_swift:
 			var roll := RandomStat.roll("D6", roller)
 			if not roll.error.is_empty(): return roll
@@ -146,9 +142,12 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		for model: int in Geometry.alive(state, squad):
 			origins[model] = state.units[model].position
 			positions[model] = state.units[model].position
-		if not storm_swift: state.unit_abilities.used[_used_key(squad, int(state.round))] = true
+		if storm_swift:
+			var storm_swift_key := "storm-swift-onslaught:%d:%d:%s" % [squad, int(state.turn), str(state.phase)]
+			state.unit_abilities.used[storm_swift_key] = true
+		else: state.unit_abilities.used[_used_key(squad, int(state.round))] = true
 		var distance_by_model := {}
-		for model: int in origins: distance_by_model[model] = float(distance)
+		for model: int in origins: distance_by_model[model] = float(state.units[model].get("movement", distance)) if storm_swift else float(distance)
 		state.unit_abilities.window = {"kind": PLACEMENT, "owners": [player], "squad": squad, "mode": window.mode, "distance": distance, "distance_by_model": distance_by_model, "origins": origins, "positions": positions, "source": window.get("source", "tactical-fluidity"), "resume_window": window.get("resume_window", {}), "queue": window.get("queue", [])}
 		var title := "Wrath of the First Khan" if storm_swift else "Tactical Fluidity"
 		return {"error": "", "message": "%s: move up to %d inches." % [title, distance]}
@@ -168,7 +167,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				longest = maxf(longest, Vector2(window.origins[model]).distance_to(Vector2(window.positions[model])))
 			if not Geometry.coherent(projected, squad): return {"error": "The move must leave the unit coherent."}
 			if window.mode == "shoot" and Queue.engaged(projected, squad): return {"error": "The Normal Move must end unengaged."}
-			if window.get("source", "") == "storm-swift-onslaught" and Queue.engaged(projected, squad): return {"error": "Wrath of the First Khan's Normal Move must end outside Engagement Range."}
+			if window.get("source", "") == "storm-swift-onslaught" and window.mode == "normal" and Queue.engaged(projected, squad): return {"error": "Wrath of the First Khan's Normal Move must end outside Engagement Range."}
 			if window.mode == "fallback" and (not Queue.engaged(state, squad) or Queue.engaged(projected, squad)): return {"error": "The Fall Back move must start engaged and end unengaged."}
 			for model: int in window.positions:
 				state.units[model].position = window.positions[model]

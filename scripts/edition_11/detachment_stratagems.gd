@@ -6,6 +6,7 @@ const G = preload("res://scripts/edition_11/contact_movement.gd")
 const Marines = preload("res://scripts/edition_11/oath_of_moment.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const ID := "gladius-awakened-stratagems-11e-v5"
 const ADAPTIVE := "gladius-adaptive-strategy"
 const STORM := "gladius-storm-of-devastation"
@@ -35,6 +36,7 @@ const IRONSTORM_HEADHUNTER := "ironstorm-headhunter-doctrine"
 const HAIL_OF_VENGEANCE := "devastator-brethren-hail-of-vengeance"
 const STORM_OF_FIRE := "devastator-brethren-storm-of-fire"
 const WORTHY_WINDOW := "worthy-death"
+const MOVEMENT_REACTION_WINDOW := "detachment-movement-reaction"
 const MERCY_IS_WEAKNESS := "ironclad-mercy-is-weakness"
 const ADAMANTINE_TERROR := "ironclad-adamantine-terror"
 const UNSTOPPABLE_ADVANCE := "ironclad-unstoppable-advance"
@@ -52,6 +54,7 @@ const VENGEFUL := "protocol-of-the-vengeful-stars"
 const Queue = preload("res://scripts/edition_11/fight_queue.gd")
 const TacticalFluidity = preload("res://scripts/edition_11/tactical_fluidity.gd")
 const Morale = preload("res://scripts/edition_11/morale.gd")
+const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 
 static func enable(s: Dictionary) -> void:
 	s.detachment_stratagems = {"implementation": ID, "modes": ["checked"], "hungry": {}, "storm": {}, "armour": {}, "might": {}, "worthy": {}, "tactics": {}, "sudden": {}, "tyrant": {}, "sudden_onslaught": {}, "wind_swift": {}, "hurtling": {}, "spearpoint_melee": {}, "evasive": {}, "mobile_lethality": {}, "adamantine": {}, "mercy": {}, "mobile": {}, "spotted": {}, "after": {}, "last_move": {}, "destroyed": [], "revived": {}, "vengeful": {}}
@@ -112,7 +115,7 @@ static func enable_ironstorm(s: Dictionary) -> void:
 	for ability in [IRONSTORM_LAYERED_CERAMITE, IRONSTORM_MIGHT, IRONSTORM_HEADHUNTER]: Registry.admit(s, ability, ID)
 
 static func ironstorm_enabled(s: Dictionary, player: int) -> bool:
-	return enabled(s) and "ironstorm" in s.detachment_stratagems.get("modes", []) and str(s.get("combat_doctrines", {}).get("detachment", "")) == "ironstorm-spearhead" and player in s.get("combat_doctrines", {}).get("owners", [])
+	return enabled(s) and "ironstorm" in s.detachment_stratagems.get("modes", []) and Doctrines.detachment_for(s, player) == "ironstorm-spearhead" and player in s.get("combat_doctrines", {}).get("owners", [])
 
 static func ironstorm_vehicle_unit(s: Dictionary, squad: int, ignore_detachment_exclusions: bool = false) -> bool:
 	if not s.squads.has(squad): return false
@@ -153,6 +156,78 @@ static func adamantine_targets(s: Dictionary, squad: int) -> Array[int]:
 	result.sort()
 	return result
 
+static func adamantine_pending(s: Dictionary) -> Dictionary:
+	return s.get("detachment_stratagems", {}).get("adamantine_pending", {})
+
+static func adamantine_decision_choices(s: Dictionary, player: int) -> Array[Dictionary]:
+	var pending := adamantine_pending(s)
+	var result: Array[Dictionary] = []
+	var current: Dictionary = pending.get("current_result", {})
+	var target := int(current.get("squad", -1))
+	if pending.is_empty() or current.is_empty() or int(pending.get("decision_owner", -1)) != player or not s.squads.has(target): return result
+	result.append({"label": "Keep Adamantine Terror's current result for %s" % s.squads[target].name, "action": "adamantine-terror-decision", "model": -1, "target": target, "value": "keep"})
+	if MarineEnhancements.tempered_in_battle_active(s, target):
+		result.append({"label": "Tempered in Battle: re-roll both Leadership dice for %s (free)" % s.squads[target].name, "action": "adamantine-terror-decision", "model": -1, "target": target, "value": "tempered-in-battle"})
+	return result
+
+static func _apply_adamantine_result(s: Dictionary, pending: Dictionary, result: Dictionary, was_battle_shocked: bool) -> void:
+	var target := int(result.get("squad", -1))
+	s.squads[target].battle_shocked = was_battle_shocked or not bool(result.get("passed", false))
+	result["source"] = ADAMANTINE_TERROR
+	result["modifier"] = -1
+	result["modified_total"] = int(result.rolls[0]) + int(result.rolls[1]) - 1
+	result["phase_key"] = phase_key(s)
+	pending.results.append(result.duplicate(true))
+	var targets: Array = pending.get("targets", [])
+	if not targets.is_empty() and int(targets[0]) == target: targets.pop_front()
+	pending.targets = targets
+	pending.erase("current_result")
+	pending.erase("was_battle_shocked")
+	pending.erase("decision_owner")
+
+static func _pump_adamantine(s: Dictionary, roller: Callable) -> Dictionary:
+	var pending: Dictionary = adamantine_pending(s)
+	while not pending.is_empty() and not pending.get("targets", []).is_empty():
+		var target := int(pending.targets[0])
+		var result := Morale.roll_battle_shock(s, target, roller, -1)
+		if not result.error.is_empty(): return result
+		if MarineEnhancements.tempered_in_battle_active(s, target):
+			result["source"] = ADAMANTINE_TERROR
+			result["modified_total"] = int(result.rolls[0]) + int(result.rolls[1]) - 1
+			pending.current_result = result.duplicate(true)
+			pending.was_battle_shocked = bool(s.squads[target].battle_shocked)
+			pending.decision_owner = int(s.squads[target].owner)
+			return {"error": "", "pending_reroll": true, "message": "Adamantine Terror Leadership result is waiting for the target unit's controller."}
+		_apply_adamantine_result(s, pending, result, bool(s.squads[target].battle_shocked))
+	var completed_results: Array = []
+	if not pending.is_empty():
+		completed_results = pending.get("results", []).duplicate(true)
+		s.detachment_stratagems.last_adamantine_terror = completed_results.duplicate(true)
+		s.detachment_stratagems.erase("adamantine_pending")
+		s.last_adamantine_terror = s.detachment_stratagems.last_adamantine_terror.duplicate(true)
+	var messages: Array[String] = []
+	for result: Dictionary in completed_results:
+		messages.append("%s %s (-1 = %d vs Leadership %d): %s" % [s.squads[int(result.squad)].name, str(result.rolls), int(result.modified_total), int(result.target), "passed" if result.passed else "Battle-shocked"])
+	return {"error": "", "message": "Adamantine Terror: " + "; ".join(messages) + "."}
+
+static func resolve_adamantine_decision(s: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
+	var choices := adamantine_decision_choices(s, player)
+	if selected not in choices: return {"error": "Choose a current Adamantine Terror Leadership result decision."}
+	var pending: Dictionary = adamantine_pending(s)
+	var current: Dictionary = pending.get("current_result", {}).duplicate(true)
+	var target := int(current.get("squad", -1))
+	var was_battle_shocked := bool(pending.get("was_battle_shocked", false))
+	var result: Dictionary
+	if selected.value == "tempered-in-battle":
+		if not MarineEnhancements.tempered_in_battle_active(s, target): return {"error": "Tempered in Battle does not apply to this Leadership roll."}
+		result = Morale.roll_battle_shock(s, target, roller, -1)
+		if not result.error.is_empty(): return result
+		result["rerolled_from"] = current.get("rolls", []).duplicate()
+	else:
+		result = current
+	_apply_adamantine_result(s, pending, result, was_battle_shocked)
+	return _pump_adamantine(s, roller)
+
 static func adamantine_squads(s: Dictionary, player: int) -> Array[int]:
 	var result: Array[int] = []
 	if not enabled(s) or not s.has("stratagems") or not A.enabled(s) or s.phase != "fight": return result
@@ -186,16 +261,16 @@ static func stormlance_unit(s: Dictionary, squad: int, mounted_only: bool = fals
 	return found
 
 static func spearpoint_enabled(s: Dictionary, player: int) -> bool:
-	return enabled(s) and "spearpoint" in s.detachment_stratagems.get("modes", []) and s.get("combat_doctrines", {}).get("detachment", "") == "spearpoint-task-force" and player in s.get("combat_doctrines", {}).get("owners", [])
+	return enabled(s) and "spearpoint" in s.detachment_stratagems.get("modes", []) and Doctrines.detachment_for(s, player) == "spearpoint-task-force" and player in s.get("combat_doctrines", {}).get("owners", [])
 
 static func assault_brethren_enabled(s: Dictionary, player: int) -> bool:
-	return enabled(s) and "assault-brethren" in s.detachment_stratagems.get("modes", []) and s.get("combat_doctrines", {}).get("detachment", "") == "assault-brethren" and player in s.get("combat_doctrines", {}).get("owners", [])
+	return enabled(s) and "assault-brethren" in s.detachment_stratagems.get("modes", []) and Doctrines.detachment_for(s, player) == "assault-brethren" and player in s.get("combat_doctrines", {}).get("owners", [])
 
 static func tactical_brethren_enabled(s: Dictionary, player: int) -> bool:
-	return enabled(s) and "tactical-brethren" in s.detachment_stratagems.get("modes", []) and s.get("combat_doctrines", {}).get("detachment", "") == "tactical-brethren" and player in s.get("combat_doctrines", {}).get("owners", [])
+	return enabled(s) and "tactical-brethren" in s.detachment_stratagems.get("modes", []) and Doctrines.detachment_for(s, player) == "tactical-brethren" and player in s.get("combat_doctrines", {}).get("owners", [])
 
 static func devastator_brethren_enabled(s: Dictionary, player: int) -> bool:
-	return enabled(s) and "devastator-brethren" in s.detachment_stratagems.get("modes", []) and s.get("combat_doctrines", {}).get("detachment", "") == "devastator-brethren" and player in s.get("combat_doctrines", {}).get("owners", [])
+	return enabled(s) and "devastator-brethren" in s.detachment_stratagems.get("modes", []) and Doctrines.detachment_for(s, player) == "devastator-brethren" and player in s.get("combat_doctrines", {}).get("owners", [])
 
 static func worthy_stratagem(s: Dictionary, player: int) -> String:
 	if assault_brethren_enabled(s, player): return DUTY_IN_DEATH
@@ -285,9 +360,9 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 	rule = rule_of(rule)
 	if rule != ETERNAL:
 		if not s.squads.has(squad) or s.squads[squad].owner != player or living(s, squad).is_empty(): return "Choose a living friendly unit."
-		if s.squads[squad].battle_shocked: return "Battle-shocked units cannot receive friendly stratagems."
+		if bool(s.squads[squad].get("battle_shocked", false)): return "Battle-shocked units cannot receive friendly stratagems."
 	if rule == ADAPTIVE:
-		if s.phase != "command" or s.active != player or not s.get("combat_doctrines", {}).get("gladius", false) or player not in s.combat_doctrines.owners or "checked" not in s.detachment_stratagems.get("modes", []): return "Adaptive Strategy requires your Gladius Command phase."
+		if s.phase != "command" or s.active != player or Doctrines.detachment_for(s, player) != "gladius" or player not in s.combat_doctrines.owners or "checked" not in s.detachment_stratagems.get("modes", []): return "Adaptive Strategy requires your Gladius Command phase."
 	elif rule == STORM:
 		if s.phase != "shooting" or s.active != player or not Marines.marine_army(s, player) or s.squads[squad].shot or "checked" not in s.detachment_stratagems.get("modes", []): return "Storm of Devastation requires your Gladius Shooting phase and a unit that has not shot."
 	elif rule == STORM_OF_FIRE:
@@ -403,7 +478,9 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 	elif rule == UNDYING:
 		var after: Dictionary = s.detachment_stratagems.get("after", {})
 		if player not in s.get("awakened_dynasty", {}).get("owners", []): return "Undying Legions requires an Awakened unit."
+		if s.phase not in ["shooting", "fight"] or not Reanimation.enabled(s) or not supported_reanimation_unit(s, squad): return "Undying Legions requires a supported Necron unit in the opponent's Shooting or Fight phase."
 		if after.get("phase_key", "") != phase_key(s) or squad not in after.get("victims", []): return "Undying Legions is used just after an enemy unit destroys models in your unit."
+		if bool(after.get("undying_closed", false)): return "The Undying Legions reaction for this attack has already been resolved."
 	elif rule == ETERNAL:
 		if player not in s.get("awakened_dynasty", {}).get("owners", []): return "Eternal Revenant requires an Awakened Infantry Character."
 		if s.get("unit_abilities", {}).get("window", {}).get("kind", "") != "end": return "Eternal Revenant is used at the end of the phase."
@@ -416,6 +493,7 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		if not _character_unit(s, squad): return "Vengeful Stars requires a living Necron Character unit."
 		var after: Dictionary = s.detachment_stratagems.get("after", {})
 		if after.get("phase_key", "") != phase_key(s) or after.get("wiped", []).is_empty(): return "Vengeful Stars is used just after an enemy unit destroys a nearby Necron unit."
+		if bool(after.get("vengeful_closed", false)): return "The Vengeful Stars reaction for this attack has already been resolved."
 		if living(s, int(after.get("attacker", -1))).is_empty(): return "The destroying unit must still be on the battlefield."
 		if not _near_wiped(s, squad, after.wiped, 6.0): return "Vengeful Stars requires a Character within 6 inches of the destroyed unit."
 	else: return "Unknown detachment stratagem."
@@ -637,13 +715,7 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 			var maximum := 3 if rule == HUNTERS_INSTINCTS else 6
 			if not rolled is int or rolled < 1 or rolled > maximum: return {"error": "%s die result is outside its legal range." % ("Hunter's Instincts" if rule == HUNTERS_INSTINCTS else "D6" if rule == MASTERFUL_TACTICS else "Responsive Tactics")}
 			inches = int(rolled) + 3 if rule == HUNTERS_INSTINCTS else int(rolled)
-	var terror_results: Array[Dictionary] = []
-	if rule == ADAMANTINE_TERROR:
-		for enemy: int in adamantine_targets(s, int(selected.target)):
-			var morale: Dictionary = Morale.roll_battle_shock(s, enemy, roller, -1)
-			if not morale.error.is_empty(): return morale
-			morale["source"] = ADAMANTINE_TERROR
-			terror_results.append(morale)
+	var terror_targets: Array = adamantine_targets(s, int(selected.target)) if rule == ADAMANTINE_TERROR else []
 	var stratagem_cost := 2 if rule == HAIL_OF_VENGEANCE else 1
 	s.cp[player] -= maxi(0, stratagem_cost - A.discount(s, player, selected.target))
 	A.consume_discount(s, player, selected.target)
@@ -671,7 +743,10 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		var origins := {}
 		for model: int in living(s, selected.target): origins[model] = s.units[model].position
 		s.detachment_stratagems.tactics[selected.target] = {"inches": inches, "origins": origins, "phase_key": phase_key(s), "source": rule}
-		s.unit_abilities.window = {"kind": "tactics", "owners": [player], "squad": selected.target, "positions": {}, "source": rule}
+		var reaction_window: Dictionary = s.get("unit_abilities", {}).get("window", {}).duplicate(true)
+		var trigger := int(reaction_window.get("squad", s.detachment_stratagems.get("last_move", {}).get("squad", -1))) if reaction_window.get("kind", "") == MOVEMENT_REACTION_WINDOW else int(s.detachment_stratagems.get("last_move", {}).get("squad", -1))
+		s.unit_abilities.window = {"kind": "tactics", "owners": [player], "squad": selected.target, "positions": {}, "source": rule,
+			"trigger": trigger, "resume_window": reaction_window}
 		var move_name := "Hunter's Instincts" if rule == HUNTERS_INSTINCTS else "Masterful Tactics" if rule == MASTERFUL_TACTICS else "Responsive Tactics"
 		return {"error": "", "message": "%s: Normal Move up to %d inches; preview every model and confirm." % [move_name, inches]}
 	elif rule == DOMINATION_FIRE:
@@ -684,6 +759,7 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		var victims: Array = s.detachment_stratagems.after.get("victims", [])
 		victims.erase(selected.target)
 		s.detachment_stratagems.after.victims = victims
+		s.detachment_stratagems.after.undying_closed = true
 		return {"error": "", "undying": selected.target, "led": led(s, selected.target)}
 	elif rule == VENGEFUL:
 		s.detachment_stratagems.vengeful = {"player": player, "squad": selected.target, "attacker": int(s.detachment_stratagems.after.attacker), "phase_key": phase_key(s)}
@@ -693,13 +769,8 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		s.detachment_stratagems.hail_of_vengeance_pending = {}
 	elif rule == MERCY_IS_WEAKNESS: s.detachment_stratagems.mercy[selected.target] = {"phase_key": phase_key(s), "mode": str(selected.mode)}
 	elif rule == ADAMANTINE_TERROR:
-		for result: Dictionary in terror_results:
-			s.squads[int(result.squad)].battle_shocked = bool(s.squads[int(result.squad)].battle_shocked) or not bool(result.passed)
-		s.last_adamantine_terror = terror_results.duplicate(true)
-		var messages: Array[String] = []
-		for result: Dictionary in terror_results:
-			messages.append("%s %s (-1 = %d vs Leadership %d): %s" % [s.squads[int(result.squad)].name, str(result.rolls), int(result.modified_total), int(result.target), "passed" if result.passed else "Battle-shocked"])
-		return {"error": "", "message": "Adamantine Terror: " + "; ".join(messages) + "."}
+		s.detachment_stratagems.adamantine_pending = {"owner": player, "source_squad": int(selected.target), "phase_key": phase_key(s), "targets": terror_targets.duplicate(), "results": []}
+		return _pump_adamantine(s, roller)
 	elif rule == IRONSTORM_MIGHT:
 		s.detachment_stratagems.might_machine_spirit[selected.target] = {"owner": player, "expires_turn": int(s.turn) + 2}
 	elif rule == IRONSTORM_HEADHUNTER:
@@ -721,7 +792,8 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	elif rule == ETERNAL:
 		var destroyed := _destroyed_record(s, player, selected.target, selected.model)
 		s.detachment_stratagems.revived[destroyed.model] = true
-		s.unit_abilities.window = {"kind": "eternal", "owners": [player], "model": destroyed.model, "squad": destroyed.squad, "origin": destroyed.position, "max_wounds": destroyed.max_wounds, "positions": {}}
+		var resume_window: Dictionary = s.unit_abilities.get("window", {}).duplicate(true)
+		s.unit_abilities.window = {"kind": "eternal", "owners": [player], "model": destroyed.model, "squad": destroyed.squad, "origin": destroyed.position, "max_wounds": destroyed.max_wounds, "positions": {}, "resume_window": resume_window}
 	else: return {"error": "Unknown detachment stratagem."}
 	return {"error": ""}
 
@@ -732,7 +804,7 @@ static func storm_active(s: Dictionary, squad: int) -> bool:
 	return enabled(s) and s.detachment_stratagems.storm.get(squad, {}).get("phase_key", "") == phase_key(s)
 
 static func suppression_hit_modifier(s: Dictionary, squad: int) -> int:
-	if not enabled(s) or not s.squads.has(squad) or str(s.get("combat_doctrines", {}).get("detachment", "")) != "tactical-brethren" or living(s, squad).is_empty(): return 0
+	if not enabled(s) or not s.squads.has(squad) or Doctrines.detachment_for(s, int(s.squads[squad].get("owner", -1))) != "tactical-brethren" or living(s, squad).is_empty(): return 0
 	var record: Dictionary = s.detachment_stratagems.get("suppressed", {}).get(squad, {})
 	if not record.is_empty() and int(s.turn) < int(record.get("turn", -2)) + 2: return -1
 	return 0
@@ -884,9 +956,32 @@ static func remove_lingering(s: Dictionary, squad: int = -1) -> void:
 static func record_move(s: Dictionary, squad: int) -> void:
 	if enabled(s) and s.squads.has(squad): s.detachment_stratagems.last_move = {"squad": squad, "owner": s.squads[squad].owner, "phase_key": phase_key(s)}
 
+static func open_movement_reaction(s: Dictionary, moved_squad: int) -> bool:
+	if not enabled(s) or s.phase != "movement" or not s.squads.has(moved_squad) or int(s.squads[moved_squad].owner) != int(s.active): return false
+	var player := 3 - int(s.active)
+	var has_reaction := false
+	for option: Dictionary in choices(s, player):
+		if str(option.get("value", "")) in [TACTICS, MASTERFUL_TACTICS, HUNTERS_INSTINCTS]:
+			has_reaction = true
+			break
+	if not has_reaction: return false
+	var previous: Dictionary = s.get("unit_abilities", {}).get("window", {}).duplicate(true)
+	s.unit_abilities.window = {"kind": MOVEMENT_REACTION_WINDOW, "owners": [player], "squad": moved_squad,
+		"phase_key": phase_key(s), "resume_window": previous}
+	return true
+
+static func movement_reaction_choices(s: Dictionary, player: int) -> Array[Dictionary]:
+	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+	if window.get("kind", "") != MOVEMENT_REACTION_WINDOW or window.get("owners", []) != [player] or window.get("phase_key", "") != phase_key(s): return []
+	var result: Array[Dictionary] = []
+	for option: Dictionary in choices(s, player):
+		if str(option.get("value", "")) in [TACTICS, MASTERFUL_TACTICS, HUNTERS_INSTINCTS]: result.append(option)
+	result.append({"label": "Pass post-move reaction", "action": "detachment-movement-pass", "model": -1, "target": int(window.get("squad", -1)), "value": ""})
+	return result
+
 static func after_attacks(s: Dictionary, attacker: int, targets: Array, killed: int, prepared: Dictionary = {}, resolved: Dictionary = {}) -> void:
 	if not enabled(s): return
-	if s.squads.has(attacker) and s.get("combat_doctrines", {}).get("detachment", "") == "tactical-brethren" and "tactical-brethren" in s.detachment_stratagems.get("modes", []) and s.phase == "shooting" and int(s.active) == int(s.squads[attacker].owner):
+	if s.squads.has(attacker) and Doctrines.detachment_for(s, int(s.squads[attacker].get("owner", -1))) == "tactical-brethren" and "tactical-brethren" in s.detachment_stratagems.get("modes", []) and s.phase == "shooting" and int(s.active) == int(s.squads[attacker].owner):
 		var hit_targets: Array[int] = []
 		var batches: Array = prepared.get("batches", [])
 		var pools: Array = resolved.get("pools", [])
@@ -924,8 +1019,28 @@ static func after_attacks(s: Dictionary, attacker: int, targets: Array, killed: 
 			if is_astartes and int(target) not in devastator_victims: devastator_victims.append(int(target))
 		if living(s, target).is_empty(): wiped.append({"squad": target, "origin": origin, "attacker": attacker})
 		else: victims.append(target)
-	if not victims.is_empty() or not wiped.is_empty(): s.detachment_stratagems.after = {"phase_key": phase_key(s), "attacker": attacker, "victims": victims, "wiped": wiped}
+	if not victims.is_empty() or not wiped.is_empty(): s.detachment_stratagems.after = {"phase_key": phase_key(s), "attacker": attacker, "victims": victims, "wiped": wiped, "undying_closed": false}
 	if not devastator_victims.is_empty(): s.detachment_stratagems.hail_of_vengeance_pending = {"phase_key": phase_key(s), "player": int(s.squads[devastator_victims[0]].owner), "attacker": attacker, "victims": devastator_victims}
+
+static func supported_reanimation_unit(s: Dictionary, squad: int) -> bool:
+	if not s.squads.has(squad) or not Reanimation.enabled(s): return false
+	for model: int in s.units:
+		if int(s.units[model].get("squad", -1)) == squad and str(s.units[model].get("definition_id", "")).begins_with("40kdc:11e:necrons:"):
+			return Reanimation.supported_unit(s, squad)
+	return false
+
+static func undying_actor(s: Dictionary) -> int:
+	if not enabled(s) or s.phase not in ["shooting", "fight"]: return -1
+	if not s.get("unit_abilities", {}).get("window", {}).is_empty() or not s.get("reanimation", {}).get("pending", {}).is_empty(): return -1
+	var after: Dictionary = s.get("detachment_stratagems", {}).get("after", {})
+	if after.get("phase_key", "") != phase_key(s) or bool(after.get("undying_closed", false)): return -1
+	var attacker := int(after.get("attacker", -1))
+	if not s.squads.has(attacker): return -1
+	var player := 3 - int(s.squads[attacker].get("owner", -1))
+	if player not in s.get("awakened_dynasty", {}).get("owners", []): return -1
+	for squad_value: Variant in after.get("victims", []):
+		if error(s, player, int(squad_value), UNDYING).is_empty(): return player
+	return -1
 
 static func record_destroyed(s: Dictionary, model: int) -> void:
 	if not enabled(s) or not s.units.has(model): return
@@ -952,6 +1067,11 @@ static func vengeful_actor(s: Dictionary) -> int:
 	if hail.get("phase_key", "") == phase_key(s) and int(hail.get("player", -1)) > 0: return int(hail.player)
 	var pending_hail: Dictionary = s.detachment_stratagems.get("hail_of_vengeance_pending", {})
 	if pending_hail.get("phase_key", "") == phase_key(s) and int(pending_hail.get("player", -1)) > 0: return int(pending_hail.player)
+	var after: Dictionary = s.detachment_stratagems.get("after", {})
+	var player := 3 - int(s.get("active", -1))
+	if s.phase == "shooting" and after.get("phase_key", "") == phase_key(s) and not after.get("wiped", []).is_empty() and player in s.get("awakened_dynasty", {}).get("owners", []):
+		for squad: int in s.squads:
+			if error(s, player, squad, VENGEFUL).is_empty(): return player
 	return -1
 
 static func vengeful_shooter(s: Dictionary, squad: int) -> bool:
@@ -971,6 +1091,7 @@ static func reactive_shooting_target(s: Dictionary, squad: int) -> int:
 
 static func clear_vengeful(s: Dictionary) -> void:
 	if enabled(s):
+		if not s.detachment_stratagems.get("after", {}).is_empty(): s.detachment_stratagems.after.vengeful_closed = true
 		s.detachment_stratagems.vengeful = {}
 		s.detachment_stratagems.hail_of_vengeance = {}
 		s.detachment_stratagems.hail_of_vengeance_pending = {}
@@ -1040,7 +1161,7 @@ static func confirm_tactics(s: Dictionary) -> Dictionary:
 		projected.units[model].position = point
 	if Queue.engaged(projected, window.squad): return {"error": "The reaction move must end unengaged."}
 	for model: int in living(s, window.squad): s.units[model].position = window.positions.get(model, s.units[model].position)
-	s.unit_abilities.window = {}
+	s.unit_abilities.window = window.get("resume_window", {})
 	return {"error": ""}
 
 static func eternal_position_error(s: Dictionary, model: int, point: Vector2) -> String:
@@ -1076,7 +1197,7 @@ static func confirm_eternal(s: Dictionary) -> Dictionary:
 	s.squads[s.units[model].squad].moved = true
 	s.squads[s.units[model].squad].shot = true
 	s.squads[s.units[model].squad].fought = true
-	s.unit_abilities.window = {}
+	s.unit_abilities.window = window.get("resume_window", {})
 	return {"error": ""}
 
 static func _has_keyword(unit: Dictionary, word: String) -> bool:

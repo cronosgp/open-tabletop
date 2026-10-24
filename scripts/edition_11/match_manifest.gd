@@ -47,15 +47,21 @@ static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, ef
 	if options.get("reanimation_protocols", false): state.match_manifest.reanimation_protocols = Reanimation.ID
 	if options.get("combat_doctrines", false):
 		state.match_manifest.combat_doctrines = Doctrines.ID
-		var detachment := str(options.get("marine_detachment", "gladius"))
-		if detachment != "gladius": state.match_manifest.marine_detachment = detachment
+		var detachments: Dictionary = options.get("marine_detachments", {}).duplicate(true)
+		if detachments.is_empty():
+			var detachment := str(options.get("marine_detachment", "gladius"))
+			detachments = {1: detachment, 2: detachment}
+		state.match_manifest.marine_detachments = detachments
+		if detachments.get(1, detachments.get("1", "")) == detachments.get(2, detachments.get("2", "")):
+			var common := str(detachments.get(1, detachments.get("1", "gladius")))
+			if common != "gladius": state.match_manifest.marine_detachment = common
 	if options.get("awakened_dynasty", false): state.match_manifest.awakened_dynasty = Awakened.ID
 	if options.get("unit_abilities", false): state.match_manifest.unit_abilities = UnitAbilities.ID
 	if DetachmentStratagems.enabled(state): state.match_manifest.detachment_stratagems = DetachmentStratagems.ID
 	if not reports.is_empty():
 		if reports[1].selection.schema_version == 2 or reports[2].selection.schema_version == 2:
 			state.match_manifest.capabilities = TrainingCapabilities.ID
-		state.match_manifest.scenario = "saved-army-training-v1"
+		state.match_manifest.scenario = str(options.get("training_scenario_id", "saved-army-training-v1"))
 		state.match_manifest.saved_armies = state.saved_army_setup.duplicate(true)
 		state.match_manifest.training_points = state.training_points.duplicate()
 		state.match_manifest.official_legality_validated = false
@@ -66,8 +72,14 @@ static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, ef
 		state.match_manifest.mission = Mission.ID
 		state.match_manifest.battlefield = Mission.ID
 		state.match_manifest.official_mission = Mission.ID
+		state.match_manifest.primary_mission = str(options.get("primary_mission", "battlefield-dominance"))
+		state.match_manifest.terrain_layout = str(options.get("terrain_layout", Mission.DEFAULT_TERRAIN_LAYOUT))
 		state.match_manifest.first_player = "post-deployment-roll-off"
 	if options.get("checked_rosters", false):
 		state.roster_validation.full_match_certified = false
 		state.match_manifest.checked_rosters = {"implementation": RosterValidation.ID, "digest": RosterValidation.digest(), "construction": state.roster_validation.armies.duplicate(true), "full_match_certified": false, "official_legality_validated": false, "source_status": RosterValidation.CURRENT_SOURCE_STATUS, "scope": "Saved Gladius/Awakened roster snapshot on the selected CA 2026-27 board; legacy MFM 1.6 prices remain attached to old lists, while supported rules use Wahapedia 11e and overall coverage is partial."}
+	if str(options.get("training_scenario_id", "")) == "marine-tactical-training-v1":
+		# Presentation metadata is persisted with the match so the optional practice
+		# checklist can survive save/resume without changing rules resolution.
+		state.training_experiments = {"standard_plasma": false, "supercharged_plasma": false, "hazardous": false}
 	state.pack_hash = var_to_str(state.match_manifest).sha256_text()

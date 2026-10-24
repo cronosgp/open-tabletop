@@ -1,6 +1,7 @@
 extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Scenario = preload("res://scripts/edition_11/combat_scenario.gd")
@@ -16,6 +17,9 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 
 func queued_die() -> int: return dice_queue.pop_front() if not dice_queue.is_empty() else 6
+
+func submit_choice(state: Dictionary, player: int, choice: Dictionary) -> Dictionary:
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": choice, "revision": int(state.revision)}, Callable(self, "queued_die"))
 
 func selections() -> Dictionary:
 	var result := F.selections()
@@ -90,7 +94,12 @@ func _initialize() -> void:
 	state.units[C.living(state, squad)[0]].defense = {"invulnerable_target": 3}
 	var dome := power_choice(state, "force-dome")
 	check(not dome.is_empty(), "Force Dome is offered in the Librarian's Movement phase")
-	if not dome.is_empty(): check(C.unit_action(state, 1, dome, Vector2.ZERO, state.revision, queued_die).is_empty(), "Force Dome resolves its psychic roll")
+	if not dome.is_empty():
+		var before_wrong_dome_owner := var_to_bytes(state)
+		var wrong_dome_owner := submit_choice(state, 2, dome)
+		check(not str(wrong_dome_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_dome_owner, "The opponent cannot submit or mutate Force Dome")
+		var dome_result := submit_choice(state, 1, dome)
+		check(str(dome_result.get("error", "")).is_empty(), "Force Dome resolves its psychic roll through the common match command")
 	var librarian_defense := Groups.profile(state, librarian)
 	var bodyguard_model := C.living(state, squad)[0]
 	var bodyguard_defense := Groups.profile(state, bodyguard_model)
@@ -105,7 +114,7 @@ func _initialize() -> void:
 	dome_one_state.active = 1
 	var dome_one := power_choice(dome_one_state, "force-dome")
 	dice_queue = [1]
-	if not dome_one.is_empty(): check(C.unit_action(dome_one_state, 1, dome_one, Vector2.ZERO, dome_one_state.revision, queued_die).is_empty(), "Force Dome resolves when its psychic roll is 1")
+	if not dome_one.is_empty(): check(str(submit_choice(dome_one_state, 1, dome_one).get("error", "")).is_empty(), "Force Dome resolves through the common match command when its psychic roll is 1")
 	var dome_one_squad := find_bodyguard_squad(dome_one_state)
 	check(dome_one_state.squads[dome_one_squad].battle_shocked and Groups.profile(dome_one_state, find_librarian(dome_one_state)).invulnerable_target == 4, "A psychic roll of 1 causes Battle-shock and Force Dome still grants its save")
 	var veil_state := make_state()
@@ -120,7 +129,7 @@ func _initialize() -> void:
 	var veil := power_choice(veil_state, "veil-of-time")
 	check(not veil.is_empty(), "Veil of Time is offered before an eligible Advance")
 	dice_queue = [6]
-	if not veil.is_empty(): check(C.unit_action(veil_state, 1, veil, Vector2.ZERO, veil_state.revision, queued_die).is_empty(), "Veil of Time resolves its psychic roll")
+	if not veil.is_empty(): check(str(submit_choice(veil_state, 1, veil).get("error", "")).is_empty(), "Veil of Time resolves its psychic roll through the common match command")
 	check(not veil_state.squads[veil_squad].battle_shocked and veil_state.unit_abilities.veil_of_time_pending.has(veil_squad), "Veil arms the Advance replacement on a successful psychic roll")
 	dice_queue = [2]
 	var movement_error := Scenario.begin_movement(veil_state, 1, veil_model, "advance", veil_state.revision, queued_die)
@@ -138,7 +147,7 @@ func _initialize() -> void:
 	var veil_one_squad := find_bodyguard_squad(veil_one_state)
 	var veil_one := power_choice(veil_one_state, "veil-of-time")
 	dice_queue = [1]
-	if not veil_one.is_empty(): check(C.unit_action(veil_one_state, 1, veil_one, Vector2.ZERO, veil_one_state.revision, queued_die).is_empty(), "Veil of Time resolves its psychic roll of 1")
+	if not veil_one.is_empty(): check(str(submit_choice(veil_one_state, 1, veil_one).get("error", "")).is_empty(), "Veil of Time resolves through the common match command when its psychic roll is 1")
 	check(veil_one_state.squads[veil_one_squad].battle_shocked and veil_one_state.unit_abilities.veil_of_time_pending.has(veil_one_squad), "A psychic roll of 1 Battle-shocks the unit and still arms the Advance replacement")
 	print("Current Librarian profile checks: %d failures" % failures)
 	quit(1 if failures else 0)

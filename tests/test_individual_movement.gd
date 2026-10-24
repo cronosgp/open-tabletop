@@ -18,6 +18,9 @@ func _initialize() -> void:
 	var other: Vector2 = state.units[101].position
 	check(Combat.move(state, 1, 100, Vector2(-13, -4), state.revision) == "", "Individual movement rejected")
 	check(state.resolution_frames.size() == 1 and state.resolution_frames.back().kind == "unit-action" and state.resolution_frames.back().status == "resolving", "Movement draft opens an action-level resolution frame")
+	var movement_frame: Dictionary = state.resolution_frames.back().duplicate(true)
+	state = bytes_to_var(var_to_bytes(state))
+	check(state.pending_move.get("squad", -1) == 1 and state.resolution_frames.back() == movement_frame, "Serialized movement draft retains its pending placement and action frame")
 	check(state.units[101].position == other, "Squadmate moved with selected miniature")
 	check(is_equal_approx(Combat.movement_remaining(state, 100), 5.0), "Selected model budget incorrect")
 	check(is_equal_approx(Combat.movement_remaining(state, 101), 6.0), "Squadmate budget consumed")

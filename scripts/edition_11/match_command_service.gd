@@ -1,6 +1,7 @@
 extends RefCounted
 ## Executes gameplay commands without depending on UI or transport state.
 const Combat = preload("res://scripts/edition_11/combat_scenario.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 
 const ADVANCE_PHASE := "advance-phase"
 const SELECT_DOCTRINE := "select-doctrine"
@@ -8,6 +9,7 @@ const SELECT_UNIT_CHOICE := "select-unit-choice"
 const BEGIN_MOVEMENT := "begin-movement"
 const ABANDON_FALL_BACK := "abandon-fall-back"
 const ALLOCATE_ESCAPE_WOUND := "allocate-escape-wound"
+const ESCAPE_WOUND_DECISION_ENVELOPE := "escape-wound-decision-v1"
 const FINISH_MOVEMENT := "finish-movement"
 const CHARGE_ROLL := "charge-roll"
 const CHARGE_TARGET := "charge-target"
@@ -30,7 +32,9 @@ const RESOLVE_REANIMATION := "resolve-reanimation"
 const SELECT_AWAKENED_ATTACHMENT := "select-awakened-attachment"
 const STRATAGEM_DECISION_ENVELOPE := "stratagem-decision-v1"
 const REANIMATION_DECISION_ENVELOPE := "reanimation-decision-v1"
+const COHERENCY_DECISION_ENVELOPE := "coherency-decision-v1"
 const Deployment = preload("res://scripts/edition_11/deployment.gd")
+const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
 
 static func execute(state: Dictionary, player: int, command: Dictionary, roller: Callable = Callable()) -> Dictionary:
 	var kind := str(command.get("kind", ""))
@@ -40,7 +44,7 @@ static func execute(state: Dictionary, player: int, command: Dictionary, roller:
 		SELECT_UNIT_CHOICE: return _select_unit_choice(state, player, command, roller)
 		BEGIN_MOVEMENT: return _begin_movement(state, player, command, roller)
 		ABANDON_FALL_BACK: return _apply_string_action(Combat.abandon_fall_back(state, player, int(command.get("revision", -1))), "Fall Back not completed. Positions restored; casualties retained and movement selection consumed.")
-		ALLOCATE_ESCAPE_WOUND: return _apply_string_action(Combat.allocate_escape_wound(state, player, int(command.get("model", -1)), int(command.get("revision", -1)), roller), "Escape mortal wound allocated.")
+		ALLOCATE_ESCAPE_WOUND: return _allocate_escape_wound(state, player, command, roller)
 		FINISH_MOVEMENT: return _finish_movement(state, player, command, roller)
 		CHARGE_ROLL: return _charge_roll(state, player, command, roller)
 		CHARGE_TARGET: return _apply_dictionary_action(Combat.select_charge_target(state, player, int(command.get("target", -1)), int(command.get("revision", -1))))
@@ -76,6 +80,8 @@ static func _advance_phase(state: Dictionary, player: int, command: Dictionary, 
 	return _success("Phase: %s. %s" % [state.phase, guidance])
 
 static func _select_doctrine(state: Dictionary, player: int, command: Dictionary) -> Dictionary:
+	var decision_state_error := Combat.PhaseCloseGate.decision_container_error(state, "combat-doctrines")
+	if not decision_state_error.is_empty(): return _failure(decision_state_error)
 	var doctrine := str(command.get("doctrine", ""))
 	var revision := int(command.get("revision", -1))
 	var decision := Combat.Doctrines.pending_decision(state)
@@ -97,9 +103,30 @@ static func _select_unit_choice(state: Dictionary, player: int, command: Diction
 		option_id = str(choice.get("option_id", ""))
 		choice = choice.get("choice", {})
 	if not choice is Dictionary: return _failure("Invalid unit choice.")
-	var decision := Combat.UnitActions.pending_decision(state)
+	var pending_deadly_value: Variant = state.get("pending_deadly_demise", {})
+	if typeof(pending_deadly_value) != TYPE_DICTIONARY: return _failure("Cannot resolve a unit choice while destruction state is invalid.")
+	var pending_deadly: Dictionary = pending_deadly_value
+	for source: String in ["mission-preparation", "unit-actions"]:
+		var decision_state_error := Combat.PhaseCloseGate.decision_container_error(state, source)
+		if not decision_state_error.is_empty(): return _failure(decision_state_error)
+	var ability_state_error := Combat.PhaseCloseGate.unit_action_state_error(state)
+	if not ability_state_error.is_empty(): return _failure(ability_state_error)
+	var decision := PendingDecisions.current(state, ["mission-preparation", "unit-actions"])
+	if not pending_deadly.is_empty():
+		var destruction_choice_available := false
+		for option: Dictionary in decision.get("legal_options", []):
+			var action := str(option.get("action", ""))
+			if action == "deadly-demise-allocate" or action.begins_with("transport-disembark-") or action.begins_with("layered-ceramite-"):
+				destruction_choice_available = true
+				break
+		if not destruction_choice_available: return _failure("Resolve pending destruction effects before submitting another unit choice.")
 	var selection := _projected_option(decision, player, decision_id, option_id)
 	if not selection.error.is_empty(): return selection
+	if decision.is_empty():
+		var admission_error := Combat.PhaseCloseGate.command_error(state, player, int(command.get("revision", -1)), "", "", true)
+		if not admission_error.is_empty(): return _failure(admission_error)
+		if player != Combat.MatchActor.player(state) and not _allows_non_actor_unit_choice(state, player, choice):
+			return _failure("Wait for your action window.")
 	var projected_option: Dictionary = selection.option
 	if not projected_option.is_empty() and not _choice_matches_projection(choice, projected_option):
 		return _failure("Choose an option from the current decision window.")
@@ -108,7 +135,20 @@ static func _select_unit_choice(state: Dictionary, player: int, command: Diction
 	var error := Combat.unit_action(state, player, choice, point, revision, roller)
 	if not error.is_empty(): return _failure(error)
 	var action := str(choice.get("action", ""))
-	return _success("Mission choice saved." if action.begins_with("mission-") else "Unit ability choice saved.")
+	if action == "setup-done":
+		var next_owner := Combat.UnitActions.setup_actor(state)
+		return _success("Player %d's army is ready. Player %d is preparing next." % [player, next_owner] if next_owner > 0 else "Both armies are prepared. Continue to the next match step.")
+	if action.begins_with("mission-"): return _success("Mission choice saved.")
+	if action in ["aggressor-loadout", "inceptor-loadout", "land-speeder-cannon", "intercessor-melee", "intercessor-rifle", "intercessor-grenade-launcher", "heavy-intercessor-bolter", "terminator-melee", "terminator-special-weapon", "terminator-assault-loadout", "outrider-melee", "outrider-plasma-pistol", "eliminator-troopers", "eliminator-sergeant", "ancient-loadout", "jump-pack-captain-loadout", "gravis-captain-loadout", "terminator-captain-gun", "terminator-captain-blade", "captain-ranged-loadout", "captain-melee-loadout", "lieutenant-ranged-loadout", "lieutenant-melee-loadout", "lieutenant-storm-shield", "terminator-chaplain-shield", "captain-loadout", "lieutenant-loadout", "impulsor-loadout", "transport-weapon-loadout", "eliminator-loadout", "phobos-lieutenant-gun", "relic-shield", "apothecary-loadout", "redemptor-loadout", "dreadnought-loadout", "heavy-weapon-loadout"]:
+		return _success("Equipment updated.")
+	return _success("Unit ability choice saved.")
+
+## Protocol of the Hungry Void is available in the Fight phase for either player's eligible unit.
+## Keep this exception narrow; ordinary immediate choices still require the current match actor.
+static func _allows_non_actor_unit_choice(state: Dictionary, player: int, choice: Dictionary) -> bool:
+	if str(choice.get("action", "")) != "detachment-stratagem" or str(choice.get("value", "")) != DetachmentStratagems.HUNGRY: return false
+	if str(state.get("phase", "")) != "fight" or player == Combat.MatchActor.player(state): return false
+	return Combat.unit_choices(state, player).has(choice)
 
 static func _choice_matches_projection(choice: Dictionary, option: Dictionary) -> bool:
 	var matches := (
@@ -199,7 +239,27 @@ static func _deployment_confirm(state: Dictionary, player: int, command: Diction
 static func _allocate_damage(state: Dictionary, player: int, command: Dictionary, roller: Callable) -> Dictionary:
 	var model := int(command.get("model", -1))
 	var revision := int(command.get("revision", -1))
-	var pending_attack: Dictionary = state.get("pending_attack", {})
+	var pending_deadly_value: Variant = state.get("pending_deadly_demise", {})
+	if typeof(pending_deadly_value) != TYPE_DICTIONARY: return _failure("Cannot allocate damage while destruction resolution state is invalid.")
+	var pending_deadly: Dictionary = pending_deadly_value
+	if not pending_deadly.is_empty(): return _failure("Resolve pending destruction effects before allocating damage.")
+	var abilities_value: Variant = state.get("unit_abilities", {})
+	if typeof(abilities_value) != TYPE_DICTIONARY: return _failure("Cannot allocate damage while unit ability state is invalid.")
+	var abilities: Dictionary = abilities_value
+	var transport_window_value: Variant = abilities.get("transport_window", {})
+	if typeof(transport_window_value) != TYPE_DICTIONARY: return _failure("Cannot allocate damage while transport resolution state is invalid.")
+	var transport_window: Dictionary = transport_window_value
+	if not transport_window.is_empty(): return _failure("Resolve transport placement or Hazardous allocation before allocating attack damage.")
+	var ability_window_value: Variant = abilities.get("window", {})
+	if typeof(ability_window_value) != TYPE_DICTIONARY: return _failure("Cannot allocate damage while unit ability choice state is invalid.")
+	var ability_window: Dictionary = ability_window_value
+	if not ability_window.is_empty(): return _failure("Resolve the pending unit ability choice before allocating damage.")
+	var pending_attack_value: Variant = state.get("pending_attack", {})
+	if typeof(pending_attack_value) != TYPE_DICTIONARY: return _failure("Cannot allocate damage while damage allocation state is invalid.")
+	var pending_attack: Dictionary = pending_attack_value
+	var pending_hazard_value: Variant = state.get("pending_hazard", {})
+	if typeof(pending_hazard_value) != TYPE_DICTIONARY: return _failure("Cannot allocate damage while Hazardous allocation state is invalid.")
+	var pending_hazard: Dictionary = pending_hazard_value
 	if not pending_attack.is_empty():
 		var decision := Combat.Allocation.pending_decision(state)
 		if decision.is_empty(): return _failure("Resolve the current attack decision before allocating damage.")
@@ -211,16 +271,44 @@ static func _allocate_damage(state: Dictionary, player: int, command: Dictionary
 	else:
 		var selection := _projected_option({}, player, str(command.get("decision_id", "")), str(command.get("option_id", "")))
 		if not selection.error.is_empty(): return selection
-	var error: String = Combat.allocate_hazard(state, player, model, revision, roller) if not state.get("pending_hazard", {}).is_empty() else Combat.allocate_damage(state, player, model, revision, roller)
+	var error: String = Combat.allocate_hazard(state, player, model, revision, roller) if not pending_hazard.is_empty() else Combat.allocate_damage(state, player, model, revision, roller)
 	var message := "Recipient confirmed. The attacker resolves damage before prevention and casualties." if Combat.Stratagems.pending(state).get("kind") == "after_damage_roll" else "Damage choice accepted; continue allocation or the next action window."
 	return _apply_string_action(error, message)
 
 static func _remove_coherency(state: Dictionary, player: int, command: Dictionary) -> Dictionary:
 	var model := int(command.get("model", -1))
+	var decision := PendingDecisions.current(state, ["coherency"])
+	var selection := _projected_option(decision, player, str(command.get("decision_id", "")), str(command.get("option_id", "")))
+	if not selection.error.is_empty(): return selection
+	var option: Dictionary = selection.option
+	if str(option.get("action", "")) != "remove-coherency-model" or int(option.get("model", -1)) != model:
+		return _failure("Choose a casualty from the current coherency decision.")
 	var error: String = Combat.remove_for_coherency(state, player, model, int(command.get("revision", -1)))
 	return _apply_string_action(error, "Model %d removed for coherency." % model)
 
+static func _allocate_escape_wound(state: Dictionary, player: int, command: Dictionary, roller: Callable) -> Dictionary:
+	var submitted: Variant = command.get("choice", {})
+	var decision_id := str(command.get("decision_id", ""))
+	var option_id := str(command.get("option_id", ""))
+	if submitted is Dictionary and str(submitted.get("_decision_type", "")) == ESCAPE_WOUND_DECISION_ENVELOPE:
+		decision_id = str(submitted.get("decision_id", ""))
+		option_id = str(submitted.get("option_id", ""))
+		submitted = submitted.get("choice", {})
+	if not submitted is Dictionary: return _failure("Invalid escape-wound allocation choice.")
+	var decision := PendingDecisions.current(state, ["escape-wounds"])
+	var selection := _projected_option(decision, player, decision_id, option_id)
+	if not selection.error.is_empty(): return selection
+	var model := int(submitted.get("model", -1))
+	var projected_option: Dictionary = selection.option
+	if projected_option.is_empty() or str(projected_option.get("action", "")) != "allocate-escape-mortal-wound" or int(projected_option.get("model", -1)) != model:
+		return _failure("Choose a model from the current escape-wound decision.")
+	if int(projected_option.get("target", -1)) != int(state.get("pending_move", {}).get("squad", -1)):
+		return _failure("The current escape-wound target changed; refresh the available models.")
+	return _apply_string_action(Combat.allocate_escape_wound(state, player, model, int(command.get("revision", -1)), roller), "Escape mortal wound allocated.")
+
 static func _command_reaction(state: Dictionary, player: int, command: Dictionary, roller: Callable) -> Dictionary:
+	var stratagem_state_error := Combat.PhaseCloseGate.stratagem_state_error(state)
+	if not stratagem_state_error.is_empty(): return _failure(stratagem_state_error)
 	var window: Dictionary = Combat.Stratagems.pending(state)
 	var decision := Combat.Stratagems.pending_decision(state)
 	var submitted: Variant = command.get("choice", {})
@@ -244,19 +332,39 @@ static func _command_reaction(state: Dictionary, player: int, command: Dictionar
 	var revision := int(command.get("revision", -1))
 	var die := int(submitted.get("die", -1))
 	var error: String
+	if kind == "before_battle_shock" and stratagem == "my-will-be-done":
+		var discount_choice: Dictionary = {}
+		for unit_choice: Dictionary in Combat.unit_choices(state, player):
+			if str(unit_choice.get("action", "")) == "discount" and int(unit_choice.get("target", -1)) == squad:
+				discount_choice = unit_choice
+				break
+		if discount_choice.is_empty(): return _failure("My Will Be Done is no longer available for this unit.")
+		error = Combat.unit_action(state, player, discount_choice, Vector2.ZERO, revision, roller)
+		return _apply_string_action(error, "My Will Be Done discount armed for the selected unit.")
 	if kind == "after_escape_roll": error = Combat.resolve_escape_reaction(state, player, squad, stratagem, revision, die, roller)
+	elif kind == "after_escape_battle_shock_roll": error = Combat.resolve_escape_morale_reaction(state, player, squad, stratagem, revision, roller)
 	elif kind == "after_hazardous_roll": error = Combat.resolve_hazard_reaction(state, player, squad, stratagem, revision, die, roller)
 	elif kind in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_attack_count_roll"]: error = Combat.resolve_attack_reaction(state, player, squad, stratagem, revision, die, roller)
-	elif kind == "before_battle_shock": error = Combat.resolve_command_reaction(state, player, squad, stratagem, revision, roller)
+	elif kind in ["before_battle_shock", "after_battle_shock_roll"]: error = Combat.resolve_command_reaction(state, player, squad, stratagem, revision, roller)
 	else: error = Combat.resolve_roll_reaction(state, player, squad, stratagem, revision, roller)
 	return _apply_string_action(error, "Command reaction resolved.")
 
 static func _select_oath_target(state: Dictionary, player: int, command: Dictionary) -> Dictionary:
+	var decision_state_error := Combat.PhaseCloseGate.decision_container_error(state, "oath-of-moment")
+	if not decision_state_error.is_empty(): return _failure(decision_state_error)
 	var target := int(command.get("target", -1))
+	var decision := Combat.OathOfMoment.pending_decision(state)
+	var selection := _projected_option(decision, player, str(command.get("decision_id", "")), str(command.get("option_id", "")))
+	if not selection.error.is_empty(): return selection
+	var projected_option: Dictionary = selection.option
+	if not projected_option.is_empty() and (str(projected_option.get("action", "")) != "oath-target" or int(projected_option.get("target", -1)) != target):
+		return _failure("Choose an option from the current Oath of Moment decision.")
 	var error: String = Combat.select_oath_target(state, player, target, int(command.get("revision", -1)))
 	return _apply_string_action(error, "Oath of Moment: " + str(state.get("squads", {}).get(target, {}).get("name", "target")) + ". Continue the Command phase.")
 
 static func _resolve_reanimation(state: Dictionary, player: int, command: Dictionary, roller: Callable) -> Dictionary:
+	var reanimation_state_error := Combat.PhaseCloseGate.reanimation_state_error(state)
+	if not reanimation_state_error.is_empty(): return _failure(reanimation_state_error)
 	var window := Combat.Reanimation.pending(state)
 	var decision := Combat.Reanimation.pending_decision(state)
 	var submitted: Variant = command.get("choice", {})
@@ -281,7 +389,15 @@ static func _resolve_reanimation(state: Dictionary, player: int, command: Dictio
 	return _success(message)
 
 static func _select_awakened_attachment(state: Dictionary, player: int, command: Dictionary) -> Dictionary:
+	var decision_state_error := Combat.PhaseCloseGate.decision_container_error(state, "awakened-attachment")
+	if not decision_state_error.is_empty(): return _failure(decision_state_error)
 	var bodyguard := int(command.get("bodyguard", -1))
+	var decision := PendingDecisions.current(state, ["awakened-attachment"])
+	var selection := _projected_option(decision, player, str(command.get("decision_id", "")), str(command.get("option_id", "")))
+	if not selection.error.is_empty(): return selection
+	var projected_option: Dictionary = selection.option
+	if not projected_option.is_empty() and (str(projected_option.get("action", "")) != "awakened-attachment" or int(projected_option.get("target", -2)) != bodyguard):
+		return _failure("Choose an Overlord attachment option from the current decision.")
 	var error: String = Combat.select_awakened_attachment(state, player, bodyguard, int(command.get("revision", -1)))
 	if not error.is_empty(): return _failure(error)
 	var message := "Overlord assignment saved. " + ("Declare the next Overlord." if Combat.Awakened.needs_setup(state) else ("Finish army preparations, then deploy." if Combat.UnitAbilities.enabled(state) else "Review and confirm deployment for every model."))

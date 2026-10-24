@@ -116,12 +116,30 @@ def timestamp(rows):
         tzinfo=timezone(timedelta(hours=3))).isoformat()
 
 
+def manifest_file_hash(manifest, name):
+    """Accept both importer captures and the local raw-snapshot manifest."""
+    files = manifest.get("files", {})
+    if isinstance(files, dict):
+        entry = files.get(name, files.get(name + ".csv", {}))
+        return entry.get("sha256") if isinstance(entry, dict) else None
+    if isinstance(files, list):
+        for entry in files:
+            if isinstance(entry, dict) and entry.get("filename") == name + ".csv":
+                return entry.get("sha256")
+    return None
+
+
+def is_wahapedia_e11_manifest(manifest):
+    return (manifest.get("provider") == "wahapedia"
+            and manifest.get("edition") in ["11e", "Warhammer 40,000 11th edition"])
+
+
 def load_snapshot(path):
     """Verify raw hashes before returning captured or explicitly scoped tables."""
     root = Path(path)
     manifest_bytes = (root / "manifest.json").read_bytes()
     manifest = json.loads(manifest_bytes)
-    if manifest.get("edition") != "11e" or manifest.get("provider") != "wahapedia":
+    if not is_wahapedia_e11_manifest(manifest):
         raise ValueError("Expected a Wahapedia e11 snapshot")
     allow_empty = manifest.get("artifact_type") == "scoped_audit_slice"
     tables = {}
@@ -238,12 +256,20 @@ def capture(output, input_dir=None):
     notes = []
     input_manifest = None
     input_manifest_digest = None
-    if input_dir is not None and (Path(input_dir).parent / "manifest.json").is_file():
-        parent_data = (Path(input_dir).parent / "manifest.json").read_bytes()
+    input_snapshot_id = None
+    if input_dir is not None:
+        input_path = Path(input_dir)
+        manifest_paths = [input_path / "manifest.json", input_path.parent / "manifest.json"]
+        parent_path = next((path for path in manifest_paths if path.is_file()), None)
+    else:
+        parent_path = None
+    if parent_path is not None:
+        parent_data = parent_path.read_bytes()
         input_manifest = json.loads(parent_data)
-        if input_manifest.get("provider") != "wahapedia" or input_manifest.get("edition") != "11e":
+        if not is_wahapedia_e11_manifest(input_manifest):
             raise ValueError("Offline parent manifest is not Wahapedia e11")
         input_manifest_digest = sha(parent_data)
+        input_snapshot_id = input_manifest.get("snapshot_id")
     if input_dir is None:
         before, before_meta = fetch("Last_update")
         before_stamp = timestamp(parse("Last_update", before))
@@ -251,6 +277,9 @@ def capture(output, input_dir=None):
         before = (Path(input_dir) / "Last_update.csv").read_bytes()
         before_meta = {"local_path": str((Path(input_dir) / "Last_update.csv").resolve()), "sha256": sha(before)}
         before_stamp = timestamp(parse("Last_update", before))
+        if input_manifest is not None and input_manifest.get("export_updated_at"):
+            if input_manifest["export_updated_at"] != before_stamp:
+                raise ValueError("Export timestamp disagrees with offline parent manifest")
     for name in HEADERS:
         if name == "Last_update":
             data, meta = before, before_meta
@@ -261,8 +290,12 @@ def capture(output, input_dir=None):
             data = source.read_bytes()
             meta = {"local_path": str(source.resolve()), "sha256": sha(data), "bytes": len(data)}
         blobs[name] = data
-        if input_manifest is not None and sha(data) != input_manifest["files"][name]["sha256"]:
-            raise ValueError(f"Changed offline snapshot file: {name}")
+        if input_manifest is not None:
+            expected_hash = manifest_file_hash(input_manifest, name)
+            if not expected_hash:
+                raise ValueError(f"Offline parent manifest has no hash for {name}.csv")
+            if sha(data) != expected_hash:
+                raise ValueError(f"Changed offline snapshot file: {name}")
         (raw / (name + ".csv")).write_bytes(data)
         provenance[name] = meta
         (output / "capture-status.json").write_bytes(encode({"status": "incomplete", "playable": False, "files": provenance}))
@@ -278,6 +311,7 @@ def capture(output, input_dir=None):
                 "source_policy": "wahapedia-e11-definitive-2026-10-18",
                 "specification": SPEC, "export_updated_at": before_stamp,
                 "mode": "local_files" if input_dir else "live_download",
+                "input_snapshot_id": input_snapshot_id,
                 "input_manifest_sha256": input_manifest_digest,
                 "live_timestamp_bracket_checked": input_dir is None,
                 "last_update_after": after_meta, "files": provenance,

@@ -3,6 +3,8 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -22,6 +24,18 @@ func by_action(options: Array, action: String, target: int = -1, value: String =
 	for option: Dictionary in options:
 		if option.action == action and (target < 0 or option.target == target) and (value.is_empty() or option.value == value): return option
 	return {}
+
+func submit_projected_choice(state: Dictionary, player: int, selected: Dictionary, decision_id: String = "", option_id: String = "") -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty():
+		return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": selected}, func() -> int: return 6)
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "Selected choice is not in the current UnitActions projection."}
+	return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": decision_id if not decision_id.is_empty() else str(decision.get("decision_id", "")), "option_id": option_id if not option_id.is_empty() else str(projected.get("id", "")), "choice": selected}}, func() -> int: return 6)
 
 func _initialize() -> void: call_deferred("run")
 
@@ -58,9 +72,16 @@ func run() -> void:
 	for option: Dictionary in choices:
 		if option.action == "warlord" and option.model == captain: warlord_available = true
 	check(warlord_available, "Captain is offered for Warlord designation")
+	var loadout_owner_decision := PendingDecisions.current(s, ["unit-actions"])
+	var first_ranged := by_action(choices, "captain-ranged-loadout", squad, "neo-volkite")
+	var before_loadout_choice := var_to_bytes(s)
+	var wrong_owner_loadout := submit_projected_choice(s, 2, first_ranged)
+	var stale_loadout_option := submit_projected_choice(s, 1, first_ranged, str(loadout_owner_decision.get("decision_id", "")), "stale-option")
+	check(not wrong_owner_loadout.get("error", "").is_empty() and not stale_loadout_option.get("error", "").is_empty() and before_loadout_choice == var_to_bytes(s), "Wrong-owner and stale Captain loadout options are rejected unchanged")
 	for ranged: String in ["neo-volkite", "plasma-pistol", "relic-shield"]:
 		var ranged_choice := by_action(choices, "captain-ranged-loadout", squad, ranged)
-		var ranged_result: String = C.unit_action(s, 1, ranged_choice, Vector2.ZERO, s.revision) if not ranged_choice.is_empty() else "choice missing"
+		var ranged_response := submit_projected_choice(s, 1, ranged_choice) if not ranged_choice.is_empty() else {"error": "choice missing"}
+		var ranged_result := str(ranged_response.get("error", ""))
 		check(not ranged_choice.is_empty() and ranged_result.is_empty(), "Captain's %s replacement is selectable from the source options" % ranged)
 		if ranged == "neo-volkite":
 			check(s.units[captain].ranged_weapons.size() == 1 and s.units[captain].ranged_weapons[0].profiles.standard.keywords.get("devastating-wounds", false), "Neo-volkite option replaces both default guns and keeps Devastating Wounds")
@@ -71,11 +92,13 @@ func run() -> void:
 			check(s.units[captain].max_wounds == 6 and C.UnitAbilities.has(s, squad, "relic-shield") and s.units[captain].ranged_weapons.size() == 1, "Relic Shield replaces the bolter, preserves Heavy Bolt Pistol and grants +1 W")
 		choices = C.UnitActions.choices(s, 1)
 	var fist := by_action(choices, "captain-melee-loadout", squad, "power-fist")
-	var fist_result: String = C.unit_action(s, 1, fist, Vector2.ZERO, s.revision) if not fist.is_empty() else "choice missing"
+	var fist_response := submit_projected_choice(s, 1, fist) if not fist.is_empty() else {"error": "choice missing"}
+	var fist_result := str(fist_response.get("error", ""))
 	check(not fist.is_empty() and fist_result.is_empty() and s.units[captain].melee_weapons[0].profiles.standard.strength == 8, "Power Fist replaces the Master-crafted Power Weapon independently")
 	choices = C.UnitActions.choices(s, 1)
 	var restore := by_action(choices, "captain-ranged-loadout", squad, "default")
-	var restore_result: String = C.unit_action(s, 1, restore, Vector2.ZERO, s.revision) if not restore.is_empty() else "choice missing"
+	var restore_response := submit_projected_choice(s, 1, restore) if not restore.is_empty() else {"error": "choice missing"}
+	var restore_result := str(restore_response.get("error", ""))
 	check(not restore.is_empty() and restore_result.is_empty() and s.units[captain].max_wounds == 5 and not C.UnitAbilities.has(s, squad, "relic-shield"), "Restoring default ranged weapons removes Relic Shield and its wound")
 
 	s.phase = "command"
@@ -84,8 +107,11 @@ func run() -> void:
 	s.combat_doctrines.selected_turn[1] = s.turn
 	choices = C.UnitActions.choices(s, 1)
 	var acumen := by_action(choices, "acumen", squad, "assault")
-	var acumen_result: String = C.unit_action(s, 1, acumen, Vector2.ZERO, s.revision) if not acumen.is_empty() else "choice missing"
-	check(not acumen.is_empty() and acumen_result.is_empty() and C.Doctrines.active_for(s, squad) == "assault", "Strategic Acumen activates its selected doctrine for the Captain")
+	var owner_snapshot := var_to_bytes(s)
+	var wrong_owner_result := submit_projected_choice(s, 2, acumen) if not acumen.is_empty() else {"error": "choice missing"}
+	check(not str(wrong_owner_result.get("error", "")).is_empty() and var_to_bytes(s) == owner_snapshot, "Opponent cannot choose the Captain's Strategic Acumen doctrine")
+	var acumen_result := submit_projected_choice(s, 1, acumen) if not acumen.is_empty() else {"error": "choice missing"}
+	check(not acumen.is_empty() and str(acumen_result.get("error", "")).is_empty() and C.Doctrines.active_for(s, squad) == "assault", "Strategic Acumen activates its selected doctrine for the Captain")
 	s.unit_abilities.warlords = {1: captain}
 	s.round = 1
 	s.cp[1] = 0

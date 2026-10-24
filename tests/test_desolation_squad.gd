@@ -1,5 +1,6 @@
 extends SceneTree
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Plan = preload("res://scripts/edition_11/attack_plan.gd")
@@ -63,7 +64,7 @@ func run() -> void:
 		if choice.action == "desolation-rocket" and choice.model == sergeant and choice.value == "vengor": option = choice
 	check(not option.is_empty(), "Only the Sergeant's preparation choices offer the Vengor Launcher")
 	if not option.is_empty():
-		var error := F.C.unit_action(state, 1, option, Vector2.ZERO, state.revision)
+		var error := PublicUnitCommand.error(state, 1, option)
 		check(error.is_empty() and state.squads[squad].training_cost == 145 and state.units[sergeant].ranged_weapons[2].profiles.standard.keywords.get("indirect-fire", false), "Selecting Vengor updates equipment and adds five points: " + error)
 	for model: int in members:
 		if model != sergeant: check(state.units[model].desolation_rocket == "superfrag", "Non-Sergeant retains the default Superfrag profile")

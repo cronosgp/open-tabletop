@@ -5,6 +5,8 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Actions = preload("res://scripts/edition_11/actions.gd")
 const ScoutMoves = preload("res://scripts/edition_11/scout_moves.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -31,6 +33,33 @@ func option(state: Dictionary, player: int, action: String, model: int, value: S
 	for item: Dictionary in C.unit_choices(state, player):
 		if item.action == action and item.model == model and item.value == value: return item
 	return {}
+
+func submit_scout_choice(state: Dictionary, player: int, action: String, model: int, target: int, point: Vector2 = Vector2.ZERO) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No Scout decision belongs to Player %d." % player}
+	var projected: Dictionary = {}
+	for choice: Dictionary in decision.get("legal_options", []):
+		if str(choice.get("action", "")) == action and int(choice.get("model", -1)) == model and int(choice.get("target", -1)) == target:
+			projected = choice
+			break
+	var selected: Dictionary = {}
+	for choice: Dictionary in C.unit_choices(state, player):
+		if str(choice.get("action", "")) == action and int(choice.get("model", -1)) == model and int(choice.get("target", -1)) == target:
+			selected = choice
+			break
+	if projected.is_empty() or selected.is_empty(): return {"error": "The current Scout decision does not offer %s." % action}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "point": point, "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, func() -> int: return 6)
+
+func submit_preparation_choice(state: Dictionary, player: int, selected: Dictionary, decision_id: String = "", option_id: String = "") -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty(): return {"error": "No current Scout preparation decision is open."}
+	var projected: Dictionary = {}
+	for candidate: Dictionary in decision.get("legal_options", []):
+		if str(candidate.get("action", "")) == str(selected.get("action", "")) and int(candidate.get("model", -1)) == int(selected.get("model", -1)) and int(candidate.get("target", -1)) == int(selected.get("target", -1)) and str(candidate.get("value", "")) == str(selected.get("value", "")):
+			projected = candidate
+			break
+	if projected.is_empty(): return {"error": "The current Scout preparation decision does not offer this choice."}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": decision_id if not decision_id.is_empty() else str(decision.get("decision_id", "")), "option_id": option_id if not option_id.is_empty() else str(projected.get("id", "")), "choice": selected}}, func() -> int: return 6)
 
 func _initialize() -> void:
 	var profile := Profiles.profile("scout-squad")
@@ -63,19 +92,27 @@ func _initialize() -> void:
 	state.phase = "deployment"
 	state.unit_abilities.setup_players = []
 	var sniper := option(state, 1, "scout-gun", scouts[0], "sniper-rifle")
-	check(not sniper.is_empty() and C.unit_action(state, 1, sniper, Vector2.ZERO, state.revision).is_empty(), "One Scout may replace its Boltgun with a Sniper Rifle")
+	var prep_decision := PendingDecisions.current(state, ["unit-actions"])
+	var before_scout_choice := var_to_bytes(state)
+	var wrong_owner_scout := submit_preparation_choice(state, 2, sniper)
+	var stale_scout := submit_preparation_choice(state, 1, sniper, str(prep_decision.get("decision_id", "")), "stale-option")
+	check(not wrong_owner_scout.get("error", "").is_empty() and not stale_scout.get("error", "").is_empty() and before_scout_choice == var_to_bytes(state), "Wrong-owner and stale Scout preparation commands are rejected unchanged")
+	var sniper_result := submit_preparation_choice(state, 1, sniper)
+	check(not sniper.is_empty() and sniper_result.get("error", "").is_empty(), "One Scout may replace its Boltgun with a Sniper Rifle through the public command")
 	check(option(state, 1, "scout-gun", scouts[1], "sniper-rifle").is_empty(), "A five-model squad cannot exceed one Sniper Rifle")
 	var heavy := option(state, 1, "scout-gun", scouts[1], "heavy-bolter")
-	check(not heavy.is_empty() and C.unit_action(state, 1, heavy, Vector2.ZERO, state.revision).is_empty(), "One Scout may take the Heavy Bolter option")
+	var heavy_result := submit_preparation_choice(state, 1, heavy)
+	check(not heavy.is_empty() and heavy_result.get("error", "").is_empty(), "One Scout may take the Heavy Bolter option through the public command")
 	check(option(state, 1, "scout-gun", scouts[2], "missile-launcher").is_empty(), "Heavy Bolter and Missile Launcher share one special-weapon slot per five models")
 	var shotgun := option(state, 1, "scout-gun", scouts[2], "shotgun")
-	check(not shotgun.is_empty() and C.unit_action(state, 1, shotgun, Vector2.ZERO, state.revision).is_empty(), "Any Scout may replace its Boltgun with a Shotgun")
+	var shotgun_result := submit_preparation_choice(state, 1, shotgun)
+	check(not shotgun.is_empty() and shotgun_result.get("error", "").is_empty(), "Any Scout may replace its Boltgun with a Shotgun through the public command")
 	var sergeant_shotgun := option(state, 1, "scout-gun", sergeant, "shotgun")
 	var chainsword := option(state, 1, "scout-blade", sergeant, "chainsword")
 	check(not sergeant_shotgun.is_empty() and not chainsword.is_empty(), "Scout Sergeant receives both source-listed individual wargear options")
-	if not sergeant_shotgun.is_empty(): check(C.unit_action(state, 1, sergeant_shotgun, Vector2.ZERO, state.revision).is_empty() and state.units[sergeant].ranged_weapons[1].id == "shotgun", "Sergeant Shotgun replaces the Boltgun while retaining its Bolt Pistol")
+	if not sergeant_shotgun.is_empty(): check(submit_preparation_choice(state, 1, sergeant_shotgun).get("error", "").is_empty() and state.units[sergeant].ranged_weapons[1].id == "shotgun", "Sergeant Shotgun replaces the Boltgun while retaining its Bolt Pistol")
 	chainsword = option(state, 1, "scout-blade", sergeant, "chainsword")
-	if not chainsword.is_empty(): check(C.unit_action(state, 1, chainsword, Vector2.ZERO, state.revision).is_empty() and state.units[sergeant].melee_weapons[0].id == "chainsword", "Sergeant Chainsword replaces the Combat Knife")
+	if not chainsword.is_empty(): check(submit_preparation_choice(state, 1, chainsword).get("error", "").is_empty() and state.units[sergeant].melee_weapons[0].id == "chainsword", "Sergeant Chainsword replaces the Combat Knife through the public command")
 	var ten_state := make_state(10)
 	var ten_squad := -1
 	var ten_scouts: Array[int] = []
@@ -88,7 +125,7 @@ func _initialize() -> void:
 	check(ten_scouts.size() == 9 and ten_squad >= 0, "Ten-model source composition includes one Sergeant and nine Scouts")
 	for slot in [0, 1]:
 		var sniper_choice := option(ten_state, 1, "scout-gun", ten_scouts[slot], "sniper-rifle")
-		if not sniper_choice.is_empty(): C.unit_action(ten_state, 1, sniper_choice, Vector2.ZERO, ten_state.revision)
+		if not sniper_choice.is_empty(): check(submit_preparation_choice(ten_state, 1, sniper_choice).get("error", "").is_empty(), "Each permitted Sniper Rifle choice uses the public command")
 	check(option(ten_state, 1, "scout-gun", ten_scouts[2], "sniper-rifle").is_empty(), "Ten-model squad may take two Sniper Rifles")
 
 	var attached_state := make_state()
@@ -125,14 +162,15 @@ func _initialize() -> void:
 		if item.action == "scout-move": scout_move = item
 	check(not scout_move.is_empty(), "Scout Squad enters the pre-battle Scouts sequence")
 	if not scout_move.is_empty():
-		C.unit_action(scout_state, 1, scout_move, Vector2.ZERO, scout_state.revision)
+		var scout_start := submit_scout_choice(scout_state, 1, "scout-move", -1, scout)
 		var move_ok := true
 		for index: int in positions:
-			var place: Dictionary = option(scout_state, 1, "scout-place", index)
-			if place.is_empty() or not C.unit_action(scout_state, 1, place, Vector2(-10, scout_state.units[index].position.y), scout_state.revision).is_empty(): move_ok = false
+			var placed := submit_scout_choice(scout_state, 1, "scout-place", index, scout, Vector2(-10, scout_state.units[index].position.y))
+			if not str(placed.get("error", "")).is_empty(): move_ok = false
 		var confirm: Dictionary = {}
 		for item: Dictionary in C.unit_choices(scout_state, 1):
 			if item.action == "scout-confirm": confirm = item
-		check(move_ok and not confirm.is_empty() and C.unit_action(scout_state, 1, confirm, Vector2.ZERO, scout_state.revision).is_empty() and scout_state.phase == "start_turn", "Scout Squad moves up to 6 inches coherently and resolves before turn one")
+		var confirmed := submit_scout_choice(scout_state, 1, "scout-confirm", -1, scout)
+		check(str(scout_start.get("error", "")).is_empty() and move_ok and not confirm.is_empty() and str(confirmed.get("error", "")).is_empty() and scout_state.phase == "start_turn", "Scout Squad moves up to 6 inches coherently and resolves before turn one")
 	print("Scout Squad checks: %d failures" % failures)
 	quit(1 if failures else 0)

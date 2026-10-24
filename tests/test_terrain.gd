@@ -29,6 +29,20 @@ func defender() -> Dictionary:
 func _initialize() -> void:
 	var state := fixture()
 	check(state.terrain.id == Terrain.DEFAULT_LAYOUT and state.terrain.areas.size() == 3, "Default terrain layout missing")
+	var objective_bounds: Array[Rect2] = [Rect2(-19, -14, 6, 4), Rect2(13, 10, 6, 4), Rect2(-9, 12, 6, 4), Rect2(3, -16, 6, 4), Rect2(-3, -2, 6, 4)]
+	var layout_signatures: Array[String] = []
+	for option: Dictionary in Terrain.event_layout_options():
+		var event_layout: Dictionary = Terrain.layout(str(option.id))
+		var signature: Array[String] = []
+		check(event_layout.areas.size() == 6, "%s should contain its proxy terrain areas" % option.label)
+		for area: Dictionary in event_layout.areas:
+			var bounds: Rect2 = area.bounds
+			check(Rect2(-30, -22, 60, 44).encloses(bounds), "%s terrain must fit the 60 x 44 board" % option.label)
+			for objective: Rect2 in objective_bounds:
+				check(not bounds.intersects(objective), "%s terrain must not overlap mission objective areas" % option.label)
+			signature.append(str(bounds))
+		layout_signatures.append("|".join(signature))
+	check(layout_signatures.size() == 3 and layout_signatures[0] != layout_signatures[1] and layout_signatures[1] != layout_signatures[2], "Three distinct 11e layouts should be playable")
 	check(state.pack_hash != Combat.initial_state("legacy-solid-v1").pack_hash, "Terrain not pinned in match identity")
 	check(Combat.initial_state("unknown").has("error"), "Unknown layout silently accepted")
 	# Infantry phase through dense walls but cannot finish inside their material.
@@ -41,7 +55,7 @@ func _initialize() -> void:
 	state.units[100].keywords = ["Vehicle"]
 	check(not Combat.Contact.clear_path(state, 100, Vector2(-1, 0), 6), "Vehicle crossed a tall dense wall at ground level")
 	state.units[100].keywords = ["Mobile"]
-	check(Combat.Contact.clear_path(state, 100, Vector2(-1, 0), 6), "Mobile cannot cross dense wall horizontally")
+	check(Combat.Contact.clear_path(state, 100, Vector2(-1, 0), 6), "Mobile can cross dense wall horizontally")
 	state.units[100].elevation = 1.0
 	check(not Combat.Contact.clear_path(state, 100, Vector2(-1, 0), 6), "Unsupported upper-floor move accepted")
 	# All models cross light features; destinations still respect physical walls.
@@ -55,14 +69,16 @@ func _initialize() -> void:
 	state.units[100].position = Vector2(-13, 1)
 	state.units[200].position = Vector2(-9, 4.7)
 	check(Terrain.targeting(state, 100, 2).cover and not Terrain.hidden(state, 200), "Exposed terrain cover/Hidden semantics incorrect")
-	# Light terrain detection: boundary uses base distance, not centre distance.
+	# Light and dense terrain can make a model Hidden; detection uses base distance.
 	state = fixture()
 	state.units[200].position = Vector2(10, -3.2)
+	check(Terrain.hidden(state, 200), "A model within a light terrain area can be Hidden")
+	state.units[200].position = Vector2(0, 1.5)
 	var radii: float = state.units[100].radius + state.units[200].radius
-	state.units[100].position = Vector2(10 - 15 - radii, -3.2)
+	state.units[100].position = Vector2(15 + radii, 1.5)
 	var visibility := Terrain.pair(state, 100, 200)
 	check(visibility.hidden and visibility.visible and visibility.detection == 15, "Detection boundary incorrectly rejected")
-	state.units[100].position.x -= 0.02
+	state.units[100].position.x += 0.02
 	check(not Terrain.pair(state, 100, 200).visible, "Hidden model visible beyond detection")
 	state.squads[2].last_ranged_turn = 1
 	check(not Terrain.hidden(state, 200) and Terrain.pair(state, 100, 200).visible, "Firing did not reveal hidden unit")

@@ -2,6 +2,8 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -40,6 +42,16 @@ func choose(s: Dictionary, action: String, target: int) -> Dictionary:
 	for option: Dictionary in C.unit_choices(s, 1):
 		if option.action == action and option.target == target: return option
 	return {}
+func submit_preparation_choice(s: Dictionary, player: int, selected: Dictionary, decision_id: String = "", option_id: String = "") -> Dictionary:
+	var decision := PendingDecisions.current(s, ["unit-actions"])
+	if decision.is_empty(): return {"error": "No current UnitActions preparation decision."}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "The loadout is absent from the current UnitActions decision."}
+	return MatchCommandService.execute(s, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": decision_id if not decision_id.is_empty() else str(decision.get("decision_id", "")), "option_id": option_id if not option_id.is_empty() else str(projected.get("id", "")), "choice": selected}, "revision": s.revision})
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s := fixture()
@@ -75,7 +87,14 @@ func run() -> void:
 	s.phase = "deployment"
 	s.unit_abilities.setup_players = []
 	var option := choose(s, "aggressor-loadout", 1)
-	check(not option.is_empty() and C.unit_action(s, 1, option, Vector2.ZERO, s.revision).is_empty(), "Whole-unit alternate loadout can be declared in preparation")
+	var loadout_decision := PendingDecisions.current(s, ["unit-actions"])
+	var projected_loadout: Dictionary = loadout_decision.get("legal_options", []).filter(func(candidate: Dictionary) -> bool: return str(candidate.get("action", "")) == "aggressor-loadout" and int(candidate.get("target", -1)) == 1)[0]
+	var before_loadout := var_to_bytes(s)
+	var wrong_owner_loadout := submit_preparation_choice(s, 2, option)
+	var stale_loadout := submit_preparation_choice(s, 1, option, str(loadout_decision.decision_id), "stale-option")
+	check(not wrong_owner_loadout.get("error", "").is_empty() and not stale_loadout.get("error", "").is_empty() and before_loadout == var_to_bytes(s), "Wrong-owner and stale loadout options are rejected without mutation")
+	var accepted_loadout := submit_preparation_choice(s, 1, option, str(loadout_decision.decision_id), str(projected_loadout.id))
+	check(not option.is_empty() and accepted_loadout.get("error", "").is_empty(), "Whole-unit alternate loadout uses the public preparation command")
 	for model: int in C.living(s, 1):
 		check(s.units[model].ranged_weapons.size() == 2 and s.units[model].ranged_weapons[0].id == "auto-boltstorm-gauntlets" and s.units[model].ranged_weapons[1].id == "fragstorm-grenade-launcher", "Every Aggressor receives the complete alternate weapon package")
 	check(s.units[300].ranged_weapons[0].id == "flamestorm-gauntlets", "A different Aggressor squad retains its chosen equipment")
@@ -89,7 +108,8 @@ func run() -> void:
 	s.phase = "deployment"
 	s.unit_abilities.setup_players = []
 	option = choose(s, "aggressor-loadout", 1)
-	check(C.unit_action(s, 1, option, Vector2.ZERO, s.revision).is_empty() and s.units[100].ranged_weapons.size() == 1, "Preparation can restore Flamestorm as one weapon with two modes")
+	var restored_loadout := submit_preparation_choice(s, 1, option)
+	check(restored_loadout.get("error", "").is_empty() and s.units[100].ranged_weapons.size() == 1, "Public preparation command can restore Flamestorm as one weapon with two modes")
 	s.phase = "shooting"
 	s.unit_abilities.setup_players = [1, 2]
 	check(choose(s, "aggressor-loadout", 1).is_empty(), "Loadout cannot be changed after preparation")

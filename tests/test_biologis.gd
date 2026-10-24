@@ -2,6 +2,8 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -26,7 +28,16 @@ func option(s: Dictionary, action: String, model: int = -2, target: int = -2) ->
 		if selected.action == action and (model == -2 or selected.model == model) and (target == -2 or selected.target == target): return selected
 	return {}
 func apply(s: Dictionary, selected: Dictionary) -> String:
-	return C.unit_action(s, 1, selected, Vector2.ZERO, s.revision)
+	var decision := PendingDecisions.current(s, ["mission-preparation", "unit-actions"])
+	var payload := selected
+	if not decision.is_empty():
+		var projected: Dictionary = {}
+		for option: Dictionary in decision.get("legal_options", []):
+			if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+		if projected.is_empty(): return "The selected preparation option is not in the current projection."
+		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	var result := MatchCommands.execute(s, 1, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(s.get("revision", -1)), "point": Vector2.ZERO, "choice": payload})
+	return str(result.get("error", ""))
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s := fixture()
