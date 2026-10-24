@@ -260,6 +260,8 @@ static func resolve(weapon: Dictionary, defender: Dictionary, context: Dictionar
 	var result := roll_pool(weapon, defender, context, roller)
 	if not result.error.is_empty(): return result
 	var steps := allocation_steps(result, weapon, defender)
+	# Record the already-resolved saves for presentation, including zero-damage attacks.
+	result.saves_passed = result.save_rolls.size() - steps.filter(func(step: Dictionary) -> bool: return step.kind == "normal").size()
 	var remaining: Array = defender.remaining_wounds.duplicate()
 	var profiles: Array[Dictionary] = []
 	for index in range(remaining.size()): profiles.append({"wounds": remaining[index], "index": index, "rules": defender.prevention[index] if not defender.get("prevention", []).is_empty() else []})

@@ -23,6 +23,16 @@ func run() -> void:
 	assert(journal.entries.size() == 46 and journal.page(0).items.size() == 20)
 	assert(journal.page(0).items[1].messages == ["Test event 0"])
 	assert(not journal.page(0).items[0].has("patch"))
+	# Synthetic presentation fixture: public summaries must not expose raw patches
+	# or modify the hashed journal entries that saves depend on.
+	state.revision += 1
+	state.last_attack = {"pools": [{"weapon_name": "Summary fixture", "target_squad": 2, "hits": 2, "wounds": 2, "damage_applied": 4, "models_destroyed": 2}]}
+	assert(journal.capture(state).is_empty())
+	var entries_before := Journal.digest(journal.entries)
+	var public_entry: Dictionary = journal.page().items[-1]
+	assert(public_entry.attack_summary.pools[0].damage_applied == 4 and public_entry.attack_summary.pools[0].models_destroyed == 2)
+	assert(not public_entry.attack_summary.pools[0].target_name.is_empty() and not public_entry.has("patch"))
+	assert(Journal.digest(journal.entries) == entries_before)
 	var checkpoint: Dictionary = journal.checkpoint()
 	var restored = Journal.new()
 	assert(restored.restore(checkpoint, state).is_empty())

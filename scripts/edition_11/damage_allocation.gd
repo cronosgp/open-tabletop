@@ -117,7 +117,7 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 				rolled = pending.current.checkpoint.result
 			else: rolled = Attacks.roll_pool(batch.weapon, defender, context, roller)
 			if not rolled.error.is_empty(): return rolled
-			rolled.merge({"target_squad": batch.target, "weapon_name": batch.weapon.name, "unsaved": 0, "models_destroyed": 0, "damage_applied": 0, "excess_damage_discarded": 0, "allocations": []})
+			rolled.merge({"target_squad": batch.target, "weapon_name": batch.weapon.name, "saves_passed": 0, "unsaved": 0, "models_destroyed": 0, "damage_applied": 0, "excess_damage_discarded": 0, "allocations": []})
 			var candidates := Groups.precision_candidates(state, batch)
 			pending.current = {"target": batch.target, "failed_rolls": [], "steps": [], "cursor": 0, "damage": batch.weapon.damage, "weapon": batch.weapon,
 				"free_damage_reroll": batch.context.get("free_damage_reroll", false), "aquilon_optics": batch.context.get("aquilon_optics", false),
@@ -188,6 +188,7 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 						state.unit_abilities.window = {"kind": DetachmentStratagems.LAYERED_CERAMITE_WINDOW, "owners": [defender_owner], "squad": int(current.target), "allocation_cursor": int(current.cursor)}
 						return {"error": "", "complete": false}
 			if step.kind == "normal" and saved(state, current, choices[0], step.save_roll):
+				current.result.saves_passed = int(current.result.get("saves_passed", 0)) + 1
 				current.cursor += 1
 				continue
 			if not pending.assist: return {"error": "", "complete": false}

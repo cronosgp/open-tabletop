@@ -1,10 +1,12 @@
 extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const R = preload("res://scripts/edition_11/core_reactions.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -31,6 +33,17 @@ func choice(s: Dictionary, player: int, squad: int, action: String, value: Strin
 	for option: Dictionary in C.unit_choices(s, player):
 		if option.action == action and option.target == squad and option.value == value: return option
 	return {}
+
+func submit_choice(s: Dictionary, player: int, selected: Dictionary) -> Dictionary:
+	var decision := C.UnitActions.pending_decision(s)
+	if decision.is_empty(): return {"error": "No pending UnitActions decision."}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "The selected choice is not in the current projection."}
+	return MatchCommands.execute(s, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(s.revision), "point": Vector2.ZERO, "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}})
 
 func _initialize() -> void: call_deferred("run")
 
@@ -63,7 +76,12 @@ func run() -> void:
 		s.phase = "deployment"
 		s.unit_abilities.setup_players = []
 		var swap := choice(s, 1, squad, "firestrike-gun", "autocannon")
-		var swap_result := C.unit_action(s, 1, swap, Vector2.ZERO, s.revision) if not swap.is_empty() else "choice unavailable"
+		var preparation := C.UnitActions.pending_decision(s)
+		var before_swap := var_to_bytes(s)
+		var wrong_owner_swap := PublicUnitCommand.submit(s, 2, swap)
+		var stale_swap := PublicUnitCommand.submit(s, 1, swap, Vector2.ZERO, Callable(), str(preparation.get("decision_id", "")), "stale-option")
+		check(not wrong_owner_swap.get("error", "").is_empty() and not stale_swap.get("error", "").is_empty() and before_swap == var_to_bytes(s), "Wrong-owner and stale Firestrike loadout commands are rejected unchanged")
+		var swap_result := PublicUnitCommand.error(s, 1, swap) if not swap.is_empty() else "choice unavailable"
 		if not swap_result.is_empty(): print("Firestrike gear diagnostic: ", swap_result)
 		check(not swap.is_empty() and swap_result.is_empty() and s.units[models[0]].ranged_weapons[0].id == "twin-firestrike-autocannon", "A turret can replace its Las-talon with the source-listed Autocannon")
 		var model0_las := false
@@ -97,9 +115,12 @@ func run() -> void:
 		check(sentinel_error.is_empty(), "Sentinel Protocols allows Fire Overwatch after another unit already used it this phase")
 		check(not R.error(s, 1, ordinary_squad, R.OVERWATCH).is_empty(), "The extra Overwatch use does not grant another use to a non-Sentinel unit")
 		var overwatch := choice(s, 1, squad, "core-stratagem", R.OVERWATCH)
-		var overwatch_result := C.unit_action(s, 1, overwatch, Vector2.ZERO, s.revision) if not overwatch.is_empty() else "choice unavailable"
-		if not overwatch_result.is_empty(): print("Firestrike Overwatch use diagnostic: ", overwatch_result)
-		check(not overwatch.is_empty() and overwatch_result.is_empty(), "Firestrike may take the extra Fire Overwatch use")
+		var wrong_owner_snapshot := var_to_str(s)
+		var wrong_owner_result := submit_choice(s, 2, overwatch) if not overwatch.is_empty() else {"error": "choice unavailable"}
+		check(not str(wrong_owner_result.get("error", "")).is_empty() and var_to_str(s) == wrong_owner_snapshot, "Firestrike Overwatch rejects the non-priority player without mutation")
+		var overwatch_result := submit_choice(s, 1, overwatch) if not overwatch.is_empty() else {"error": "choice unavailable"}
+		if not str(overwatch_result.get("error", "")).is_empty(): print("Firestrike Overwatch use diagnostic: ", overwatch_result)
+		check(not overwatch.is_empty() and str(overwatch_result.get("error", "")).is_empty(), "Firestrike may take the extra Fire Overwatch use")
 		check(not R.error(s, 1, squad, R.OVERWATCH).is_empty(), "This Firestrike unit cannot use Sentinel Protocols twice in one phase")
 		var plan := C.AttackPlan.prepare(s, squad, false, C.AttackPlan.single_target(s, squad, 2, false), true)
 		check(plan.get("error", "").is_empty() and plan.get("batches", []).size() > 0 and plan.batches[0].context.snap_shooting and plan.batches[0].context.snap_hit_threshold == 4 and plan.batches[0].context.hit_reroll == "none", "Firestrike snap shooting hits on unmodified 4+ without hit re-rolls")

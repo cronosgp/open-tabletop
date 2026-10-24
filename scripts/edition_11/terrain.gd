@@ -6,8 +6,29 @@ const Detection = preload("res://scripts/edition_11/detection_rules.gd")
 const EPSILON := 0.001
 const SIGHT_RADIUS := 0.5 / 25.4 # Half of the required 1mm sightline width.
 const DEFAULT_LAYOUT := "terrain-11e-v1"
+const TAKE_AND_HOLD_LAYOUTS := {
+	"ca-2026-27-take-and-hold-mirror-a-v1": {"label": "Layout A", "image": "43_Take_and_Hold_vs_Take_and_Hold_Layout_A.png"},
+	"ca-2026-27-take-and-hold-mirror-b-v1": {"label": "Layout B", "image": "44_Take_and_Hold_vs_Take_and_Hold_Layout_B.png"},
+	"ca-2026-27-take-and-hold-mirror-c-v1": {"label": "Layout C", "image": "45_Take_and_Hold_vs_Take_and_Hold_Layout_C.png"}
+}
+
+static func event_layout_options() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for id: String in TAKE_AND_HOLD_LAYOUTS:
+		var item: Dictionary = TAKE_AND_HOLD_LAYOUTS[id].duplicate(true)
+		item.id = id
+		result.append(item)
+	return result
+
+static func is_event_layout(id: String) -> bool:
+	return TAKE_AND_HOLD_LAYOUTS.has(id)
+
+static func event_layout_image_path(id: String) -> String:
+	if not TAKE_AND_HOLD_LAYOUTS.has(id): return ""
+	return ".tools/wahapedia/11e/event-layouts/take-and-hold-mirror/" + str(TAKE_AND_HOLD_LAYOUTS[id].image)
 
 static func layout(id: String = DEFAULT_LAYOUT) -> Dictionary:
+	if is_event_layout(id): return _event_companion_layout(id)
 	if id == "legacy-solid-v1":
 		var areas: Array[Dictionary] = []
 		for index in range(Board.TERRAIN.size()):
@@ -24,6 +45,42 @@ static func layout(id: String = DEFAULT_LAYOUT) -> Dictionary:
 		{"name": "Barricade", "category": "light", "bounds": Rect2(7, -5, 4, 2), "features": [
 			{"bounds": Rect2(7, -4.1, 4, 0.2), "height": 1.0, "blocks_end": true}]}
 	]}
+
+static func _event_companion_layout(id: String) -> Dictionary:
+	var areas: Array[Dictionary] = []
+	match id:
+		"ca-2026-27-take-and-hold-mirror-a-v1":
+			areas = [
+				_proxy_area("Northwest ruin", "dense", Rect2(-29, 16, 7, 5), [Rect2(-29, 16, 5, 0.35), Rect2(-29, 16, 0.35, 4)]),
+				_proxy_area("Southwest ruin", "dense", Rect2(-29, -21, 7, 5), [Rect2(-29, -16.35, 5, 0.35), Rect2(-22.35, -20, 0.35, 4)]),
+				_proxy_area("Northeast ruin", "dense", Rect2(22, 16, 7, 5), [Rect2(24, 16, 5, 0.35), Rect2(28.65, 16, 0.35, 4)]),
+				_proxy_area("Southeast ruin", "dense", Rect2(22, -21, 7, 5), [Rect2(24, -16.35, 5, 0.35), Rect2(22, -20, 0.35, 4)]),
+				_proxy_area("Northwest barricade", "light", Rect2(-29, -4, 6, 2), [Rect2(-29, -3.1, 6, 0.2)]),
+				_proxy_area("Southeast barricade", "light", Rect2(23, 2, 6, 2), [Rect2(23, 2.9, 6, 0.2)])]
+		"ca-2026-27-take-and-hold-mirror-b-v1":
+			areas = [
+				_proxy_area("Northwest ruin", "dense", Rect2(-29, 16, 7, 5), [Rect2(-24.35, 16, 0.35, 4), Rect2(-29, 20.65, 5, 0.35)]),
+				_proxy_area("Southwest ruin", "dense", Rect2(-29, -21, 7, 5), [Rect2(-29, -20.65, 5, 0.35), Rect2(-22.35, -20, 0.35, 4)]),
+				_proxy_area("Northeast ruin", "dense", Rect2(22, 16, 7, 5), [Rect2(22, 16, 5, 0.35), Rect2(26.65, 16, 0.35, 4)]),
+				_proxy_area("Southeast ruin", "dense", Rect2(22, -21, 7, 5), [Rect2(28.65, -20, 0.35, 4), Rect2(24, -16.35, 5, 0.35)]),
+				_proxy_area("West barricade", "light", Rect2(-29, -3, 6, 2), [Rect2(-29, -2.1, 6, 0.2)]),
+				_proxy_area("East barricade", "light", Rect2(23, 5, 6, 2), [Rect2(23, 5.9, 6, 0.2)])]
+		"ca-2026-27-take-and-hold-mirror-c-v1":
+			areas = [
+				_proxy_area("Northwest ruin", "dense", Rect2(-29, 16, 7, 5), [Rect2(-29, 16, 0.35, 4), Rect2(-28.65, 20.65, 5, 0.35)]),
+				_proxy_area("Southwest ruin", "dense", Rect2(-29, -21, 7, 5), [Rect2(-29, -20.65, 5, 0.35), Rect2(-22.35, -20, 0.35, 4)]),
+				_proxy_area("Northeast ruin", "dense", Rect2(22, 16, 7, 5), [Rect2(28.65, 16, 0.35, 4), Rect2(22, 16, 5, 0.35)]),
+				_proxy_area("Southeast ruin", "dense", Rect2(22, -21, 7, 5), [Rect2(22, -20, 0.35, 4), Rect2(24, -16.35, 5, 0.35)]),
+				_proxy_area("Northwest barricade", "light", Rect2(-29, -3, 6, 2), [Rect2(-29, -2.1, 6, 0.2)]),
+				_proxy_area("Northeast barricade", "light", Rect2(23, -3, 6, 2), [Rect2(23, -2.1, 6, 0.2)])]
+	return {"id": id, "areas": areas}
+
+static func _proxy_area(area_name: String, category: String, bounds: Rect2, walls: Array[Rect2]) -> Dictionary:
+	var features: Array[Dictionary] = []
+	var height := 4.0 if category == "dense" else 1.0
+	for wall: Rect2 in walls:
+		features.append({"bounds": wall, "height": height, "blocks_end": true})
+	return {"name": area_name, "category": category, "bounds": bounds, "features": features}
 
 static func areas(state: Dictionary) -> Array:
 	if state.has("terrain"): return state.terrain.areas

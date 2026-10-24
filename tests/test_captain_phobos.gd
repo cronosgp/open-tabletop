@@ -5,6 +5,9 @@ const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd
 const A = C.UnitAbilities
 const Fluidity = preload("res://scripts/edition_11/tactical_fluidity.gd")
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -52,9 +55,35 @@ func choose_value(state: Dictionary, owner: int, action: String, model: int, val
 func act(state: Dictionary, owner: int, action: String, target: int, point: Vector2 = Vector2.ZERO) -> String:
 	var row := choose(state, owner, action, target)
 	if row.is_empty(): return "missing choice: " + action
-	var error := C.unit_action(state, owner, row, point, state.revision, six)
+	var error := PublicUnitCommand.error(state, owner, row, point, six)
 	if not error.is_empty(): print(action, " failed: ", error)
 	return error
+func submit_public_choice(state: Dictionary, owner: int, action_id: String, target: int = -1, model: int = -1, point: Vector2 = Vector2.ZERO, value: String = "") -> Dictionary:
+	var decision := C.UnitActions.pending_decision(state)
+	var selected: Dictionary = {}
+	for candidate: Dictionary in C.unit_choices(state, owner):
+		if str(candidate.get("action", "")) == action_id and int(candidate.get("target", -1)) == target and int(candidate.get("model", -1)) == model and (value.is_empty() or str(candidate.get("value", "")) == value):
+			selected = candidate
+			break
+	if selected.is_empty(): return {"error": "UnitActions no longer offers %s for target %d/model %d." % [action_id, target, model]}
+	if decision.is_empty():
+		return MatchCommandService.execute(state, owner, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "point": point, "choice": selected}, six)
+	if int(decision.get("priority_player_id", -1)) != owner: return {"error": "No matching UnitActions decision for Player %d." % owner}
+	var projected: Dictionary = {}
+	for candidate: Dictionary in decision.get("legal_options", []):
+		if str(candidate.get("action", "")) == action_id and int(candidate.get("target", -1)) == target and int(candidate.get("model", -1)) == model and (value.is_empty() or str(candidate.get("value", "")) == value):
+			projected = candidate
+			break
+	if projected.is_empty(): return {"error": "The pending decision does not offer %s for target %d/model %d." % [action_id, target, model]}
+	return MatchCommandService.execute(state, owner, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "point": point, "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, six)
+
+func submit_doctrine(state: Dictionary, owner: int, doctrine: String) -> Dictionary:
+	var decision := C.Doctrines.pending_decision(state)
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != owner: return {"error": "No matching Combat Doctrine decision belongs to Player %d." % owner}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) != "combat-doctrine" or str(option.get("value", "")) != doctrine: continue
+		return MatchCommandService.execute(state, owner, {"kind": MatchCommandService.SELECT_DOCTRINE, "revision": int(state.get("revision", -1)), "doctrine": doctrine, "decision_id": str(decision.get("decision_id", "")), "option_id": str(option.get("id", ""))}, six)
+	return {"error": "The current Combat Doctrine decision does not offer %s." % doctrine}
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s := fixture()
@@ -76,11 +105,13 @@ func run() -> void:
 	check(not choose_model(s, 1, "warlord", captain).is_empty(), "Captain Warlord choice missing")
 	s.phase = "command"
 	s.unit_abilities.phase_key = C.UnitActions.key(s)
-	check(C.select_combat_doctrine(s, 1, "none", s.revision).is_empty(), "Start-of-Command doctrine choice failed")
+	check(str(submit_doctrine(s, 1, "none").get("error", "")).is_empty(), "Start-of-Command doctrine command failed")
 	var acumen := choose_value(s, 1, "acumen", captain, "assault")
-	check(not acumen.is_empty() and C.unit_action(s, 1, acumen, Vector2.ZERO, s.revision, six).is_empty() and C.Doctrines.active_for(s, squad) == "assault", "Captain Strategic Acumen failed to activate a doctrine")
+	var acumen_result := submit_public_choice(s, 1, "acumen", squad, captain, Vector2.ZERO, "assault")
+	check(not acumen.is_empty() and str(acumen_result.get("error", "")).is_empty() and C.Doctrines.active_for(s, squad) == "assault", "Captain Strategic Acumen failed to activate a doctrine: " + str(acumen_result.get("error", "")))
 	var demi_pass := choose(s, 1, "pass")
-	if not demi_pass.is_empty(): C.unit_action(s, 1, demi_pass, Vector2.ZERO, s.revision, six)
+	var demi_pass_result := submit_public_choice(s, 1, "pass") if not demi_pass.is_empty() else {"error": "No pass choice is available."}
+	check(str(demi_pass_result.get("error", "")).is_empty(), "Post-doctrine end-of-Command decision passes through the normalized command: " + str(demi_pass_result.get("error", "")))
 	s.phase = "start_turn"
 	s.unit_abilities.warlords = {1: captain}
 	var cp_before: int = s.cp[1]
@@ -89,14 +120,41 @@ func run() -> void:
 	# After the unit shoots, use its once-per-round D6 Normal Move.
 	s.phase = "shooting"
 	s.unit_abilities.setup_players = [1, 2]
-	s.squads[squad].shot = true
-	Fluidity.open_after_shot(s, squad)
+	var target_model := model_for(s, "necron-warriors", 2)
+	var target_squad: int = int(s.units[target_model].squad)
+	for index in range(C.living(s, target_squad).size()):
+		var target_member: int = C.living(s, target_squad)[index]
+		s.units[target_member].position = Vector2(-8, -12 + float(index) * 1.0)
+	var shot := C.resolve_attack_plan(s, 1, captain, [{"model": captain, "target": target_squad, "amount": 1, "weapon": str(s.units[captain].ranged_weapons[0].id), "profile": "standard"}], s.revision, false, true, six)
+	check(shot.error.is_empty() and s.squads[squad].shot and s.unit_abilities.window.get("kind", "") == Fluidity.WINDOW, "A completed Captain shooting action opens the Tactical Fluidity decision")
+	var attack_frame := C.ResolutionFrames.current(s)
+	var attack_decision := C.UnitActions.pending_decision(s)
+	check(attack_frame.get("kind", "") == "attack" and attack_frame.get("status", "") == "suspended" and attack_decision.get("resume_frame_id", "") == attack_frame.get("frame_id", ""), "Tactical Fluidity decision retains the completed attack frame")
+	var before_close := var_to_bytes(s)
+	check(not C.advance_phase(s, 1, s.revision).is_empty() and before_close == var_to_bytes(s), "Phase close cannot skip Tactical Fluidity")
 	check(C.UnitActions.actor(s) == 1 and not choose(s, 1, "fluidity-use", squad).is_empty(), "Post-shot Tactical Fluidity window missing")
-	check(C.unit_action(s, 1, choose(s, 1, "fluidity-use", squad), Vector2.ZERO, s.revision, six).is_empty(), "Tactical Fluidity D6 choice failed")
-	check(s.unit_abilities.window.distance == 6 and act(s, 1, "fluidity-place", squad, Vector2(-16, -12)).is_empty(), "Tactical Fluidity preview rejected valid move")
-	check(act(s, 1, "fluidity-confirm", squad).is_empty() and s.units[captain].position == Vector2(-16, -12), "Tactical Fluidity Normal Move confirmation failed")
-	Fluidity.open_after_shot(s, squad)
-	check(s.unit_abilities.window.is_empty(), "Tactical Fluidity reused in the same battle round")
+	var use_decision_id := str(C.UnitActions.pending_decision(s).get("decision_id", ""))
+	var wrong_owner_before := var_to_bytes(s)
+	var wrong_owner_use := submit_public_choice(s, 2, "fluidity-use", squad)
+	check(not str(wrong_owner_use.get("error", "")).is_empty() and wrong_owner_before == var_to_bytes(s), "Opponent cannot activate the Captain's Tactical Fluidity decision")
+	var use_result := submit_public_choice(s, 1, "fluidity-use", squad)
+	check(str(use_result.get("error", "")).is_empty(), "Normalized Tactical Fluidity D6 choice failed: " + str(use_result.get("error", "")))
+	check(C.ResolutionFrames.current(s).get("frame_id", "") == attack_frame.get("frame_id", ""), "Tactical Fluidity placement step retains the same attack frame")
+	check(s.unit_abilities.window.distance == 6 and str(C.UnitActions.pending_decision(s).get("decision_id", "")) != use_decision_id, "Tactical Fluidity opens a new placement decision after the D6 roll")
+	var placement_save: Dictionary = bytes_to_var(var_to_bytes(s))
+	var placement_decision_id := str(C.UnitActions.pending_decision(placement_save).get("decision_id", ""))
+	var placement_frame_id := str(C.ResolutionFrames.current(placement_save).get("frame_id", ""))
+	var early_close_before := var_to_bytes(placement_save)
+	check(not C.advance_phase(placement_save, 1, placement_save.revision).is_empty() and early_close_before == var_to_bytes(placement_save), "Phase close remains blocked during the normalized Tactical Fluidity placement")
+	var fluidity_model := int(placement_save.unit_abilities.window.positions.keys()[0])
+	var wrong_owner_place := submit_public_choice(placement_save, 2, "fluidity-place", squad, fluidity_model, Vector2(-16, -12))
+	check(not str(wrong_owner_place.get("error", "")).is_empty() and str(C.UnitActions.pending_decision(placement_save).get("decision_id", "")) == placement_decision_id, "Opponent cannot mutate the Tactical Fluidity placement decision")
+	var preview_result := submit_public_choice(placement_save, 1, "fluidity-place", squad, fluidity_model, Vector2(-16, -12))
+	var confirm_result := submit_public_choice(placement_save, 1, "fluidity-confirm", squad)
+	check(str(preview_result.get("error", "")).is_empty() and str(confirm_result.get("error", "")).is_empty() and placement_save.units[captain].position == Vector2(-16, -12), "Normalized Tactical Fluidity Normal Move confirmation failed: " + str(preview_result.get("error", "")) + " / " + str(confirm_result.get("error", "")))
+	check(placement_frame_id == str(attack_frame.get("frame_id", "")), "Tactical Fluidity placement resumes the same suspended attack frame")
+	Fluidity.open_after_shot(placement_save, squad)
+	check(placement_save.unit_abilities.window.is_empty(), "Tactical Fluidity reused in the same battle round")
 	# A separate trigger at the end of the opposing Fight phase permits Fall Back.
 	s = fixture()
 	captain = model_for(s, "captain-in-phobos-armour")
@@ -106,16 +164,32 @@ func run() -> void:
 	s.units[enemy].position = Vector2(1.8, 0)
 	s.phase = "fight"
 	s.active = 2
+	s.fight_actor = 2
+	s.fight_step = "complete"
+	s.unit_abilities.window = {}
+	s.unit_abilities.end_done = ""
+	s.unit_abilities.phase_key = C.UnitActions.key(s)
+	s.resolution_frames = []
 	check(squad in Fluidity.end_fight_squads(s, 1), "Engaged Captain's unit was not eligible for end-of-Fight Tactical Fluidity")
-	var end_opened := C.UnitActions.open_end(s)
-	if end_opened and C.UnitActions.actor(s) == 2:
-		var opponent_pass := choose(s, 2, "pass")
-		check(not opponent_pass.is_empty() and C.unit_action(s, 2, opponent_pass, Vector2.ZERO, s.revision, six).is_empty(), "Opponent could not pass its earlier end-of-Fight choices")
-	check(end_opened and C.UnitActions.actor(s) == 1 and not choose(s, 1, "fluidity-end", squad).is_empty(), "Opponent Fight end did not offer the Captain's Fall Back reaction")
-	check(C.unit_action(s, 1, choose(s, 1, "fluidity-end", squad), Vector2.ZERO, s.revision, six).is_empty(), "Tactical Fluidity end-of-Fight activation failed")
-	check(C.unit_action(s, 1, choose(s, 1, "fluidity-use", squad), Vector2.ZERO, s.revision, six).is_empty(), "Tactical Fluidity Fall Back selection failed")
-	if s.unit_abilities.window.get("kind", "") == Fluidity.PLACEMENT:
-		check(s.unit_abilities.window.distance == 6 and act(s, 1, "fluidity-place", squad, Vector2(-2, 0)).is_empty(), "Tactical Fluidity Fall Back preview rejected valid move")
-		check(act(s, 1, "fluidity-confirm", squad).is_empty() and s.squads[squad].fell_back and not C._engaged(s, squad), "Fall Back did not end unengaged")
+	var close_error := C.advance_phase(s, 2, s.revision)
+	var end_decision := C.UnitActions.pending_decision(s)
+	check(close_error.is_empty() and end_decision.get("timing", "") == "end-phase:fight" and ResolutionFrames.current(s).get("kind", "") == "phase-close", "Fight close suspends its phase-close frame for the normalized Tactical Fluidity decision: " + close_error)
+	var opponent_pass := submit_public_choice(s, 2, "pass")
+	check(str(opponent_pass.get("error", "")).is_empty() and C.UnitActions.actor(s) == 1, "Opponent can pass earlier end-of-Fight choices before Tactical Fluidity: " + str(opponent_pass.get("error", "")))
+	var fluidity_start := submit_public_choice(s, 1, "fluidity-end", squad)
+	var phase_close_frame_id := str(ResolutionFrames.current(s).get("frame_id", ""))
+	check(str(fluidity_start.get("error", "")).is_empty() and s.unit_abilities.window.get("kind", "") == Fluidity.WINDOW and phase_close_frame_id.begins_with("phase-close:"), "Normalized Tactical Fluidity choice opens its Fall Back subchoice under the same phase-close frame: " + str(fluidity_start.get("error", "")))
+	var fluidity_use := submit_public_choice(s, 1, "fluidity-use", squad)
+	check(str(fluidity_use.get("error", "")).is_empty() and s.unit_abilities.window.get("kind", "") == Fluidity.PLACEMENT and s.unit_abilities.window.distance == 6, "Normalized subchoice starts the six-inch Fall Back placement: " + str(fluidity_use.get("error", "")))
+	var placement_restored: Dictionary = bytes_to_var(var_to_bytes(s))
+	var before_pending_close := var_to_bytes(placement_restored)
+	var pending_close_error := C.advance_phase(placement_restored, 1, placement_restored.revision)
+	check(not pending_close_error.is_empty() and before_pending_close == var_to_bytes(placement_restored) and str(ResolutionFrames.current(placement_restored).get("frame_id", "")) == phase_close_frame_id, "Phase close cannot skip the serialized Tactical Fluidity placement")
+	var move_model := int(placement_restored.unit_abilities.window.positions.keys()[0])
+	var move_preview := submit_public_choice(placement_restored, 1, "fluidity-place", squad, move_model, Vector2(-2, 0))
+	var move_confirm := submit_public_choice(placement_restored, 1, "fluidity-confirm", squad)
+	check(str(move_preview.get("error", "")).is_empty() and str(move_confirm.get("error", "")).is_empty() and placement_restored.squads[squad].fell_back and not C._engaged(placement_restored, squad) and placement_restored.unit_abilities.window.get("kind", "") == "end" and str(ResolutionFrames.current(placement_restored).get("frame_id", "")) == phase_close_frame_id, "Tactical Fluidity confirms a legal Fall Back, returns to the end window and keeps the same phase-close frame: " + str(move_preview.get("error", "")) + " / " + str(move_confirm.get("error", "")))
+	var final_end_pass := submit_public_choice(placement_restored, 1, "pass")
+	check(str(final_end_pass.get("error", "")).is_empty() and placement_restored.phase == "end_turn" and (ResolutionFrames.current(placement_restored).is_empty() or str(ResolutionFrames.current(placement_restored).get("action_id", "")) != "phase-close:%d:fight" % int(placement_restored.turn)), "Passing after the Fall Back resumes Fight close: " + str(final_end_pass.get("error", "")))
 	print("Captain in Phobos Armour checks: %d failures" % failures)
 	quit(1 if failures else 0)

@@ -24,7 +24,7 @@ func run() -> void:
 	game._refresh()
 	check(var_to_str(game.state) == before and game.rng.state == rng_before and var_to_str(game.journal.checkpoint()) == journal_before, "Repeated activity refresh preserves state, RNG and journal")
 	game._open_waiting_history()
-	check(game.match_tabs.current_tab == 6 and game.log_toggle.button_pressed and game.event_log.visible, "History shortcut opens existing full reader")
+	check(game.tactical_overlay.visible and game.tactical_overlay_content == game.history_scroll and not game.event_log.visible, "Waiting activity opens the dedicated battle log")
 	check(var_to_str(game.state) == before, "Reading history does not commit a command")
 	game.state.events.append({"revision": 2, "message": "Unit movement confirmed."})
 	game._refresh()
@@ -42,4 +42,6 @@ func run() -> void:
 	game._refresh()
 	check(not game.waiting_activity.visible, "Own decision does not show waiting activity")
 	print("Waiting activity UI checks: %d failures" % failures)
+	game.free()
+	await process_frame
 	quit(0 if failures == 0 else 1)

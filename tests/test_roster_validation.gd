@@ -4,6 +4,8 @@ const C = F.C
 const P = F.P
 const V = C.RosterValidation
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 func _initialize() -> void: call_deferred("run")
 func check(ok: bool, message: String) -> void:
@@ -13,7 +15,33 @@ func pick(s: Dictionary, owner: int, action: String, model: int = -2, target: in
 		if selected.action == action and (model == -2 or selected.model == model) and (target == -2 or selected.target == target): return selected
 	return {}
 func act(s: Dictionary, owner: int, action: String, model: int = -2, target: int = -2) -> String:
-	return C.unit_action(s, owner, pick(s, owner, action, model, target), Vector2.ZERO, s.revision, func() -> int: return 6)
+	var selected := pick(s, owner, action, model, target)
+	if action.begins_with("mission-"):
+		return str(submit_mission_choice(s, owner, selected, func() -> int: return 6).get("error", ""))
+	return str(submit_public_unit_choice(s, owner, selected).get("error", ""))
+func submit_public_unit_choice(s: Dictionary, owner: int, selected: Dictionary) -> Dictionary:
+	var decision := PendingDecisions.current(s, ["unit-actions"])
+	var payload: Dictionary = selected
+	if not decision.is_empty():
+		if int(decision.get("priority_player_id", -1)) != owner: return {"error": "The current unit-action decision belongs to another player."}
+		var projected: Dictionary = {}
+		for option: Dictionary in decision.get("legal_options", []):
+			if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+				projected = option
+				break
+		if projected.is_empty(): return {"error": "The selected unit action is not in the current decision projection."}
+		payload = {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	return MatchCommandService.execute(s, owner, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "choice": payload, "point": Vector2.ZERO, "revision": int(s.revision)}, func() -> int: return 6)
+func submit_mission_choice(s: Dictionary, owner: int, selected: Dictionary, roller: Callable) -> Dictionary:
+	var decision := PendingDecisions.current(s, ["mission-preparation"])
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "The mission choice is not in the current projection."}
+	var payload := {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	return MatchCommandService.execute(s, owner, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "choice": payload, "point": Vector2.ZERO, "revision": int(s.revision)}, roller)
 func model_for(s: Dictionary, identity: String, owner: int) -> int:
 	for model: int in s.units:
 		if s.units[model].owner == owner and str(s.units[model].definition_id).get_slice(":", 3) == identity: return model
@@ -95,7 +123,7 @@ func run() -> void:
 	# Tied role dice require a new roll; deterministic direct provider selects P1 next.
 	var rolls: Array[int] = [6,1]
 	var selected := pick(s,1,"mission-roles")
-	check(C.unit_action(s,1,selected,Vector2.ZERO,s.revision,func() -> int: return rolls.pop_front()).is_empty(), "Role roll-off")
+	check(submit_mission_choice(s, 1, selected, func() -> int: return rolls.pop_front()).get("error", "").is_empty(), "Role roll-off")
 	check(act(s,1,"mission-side",-2,1).is_empty() and act(s,1,"mission-ready",-2,0).is_empty() and act(s,2,"mission-ready",-2,0).is_empty(), "Mission preparation")
 	check(C.select_awakened_attachment(s,2,4,s.revision).is_empty(), "Checked Overlord uses verified pairing")
 	check(act(s,1,"warlord",300).is_empty() and not act(s,1,"setup-done").is_empty() and not s.roster_validation.armies[1].formations_verified, "Unattached Support blocks completion without setting the stamp")

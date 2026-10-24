@@ -485,7 +485,7 @@
           "id": "fearsome-assault",
           "name": "Fearsome Assault",
           "status": "implemented_in_admitted_reiver_squad_scope",
-          "implementation_scope": "At Fight phase start, unique enemy units engaged with one or more Reiver units take Battle-shock tests at -1; existing Battle-shock remains if that test passes."
+          "implementation_scope": "At Fight phase start, unique enemy units engaged with one or more Reiver units take Battle-shock tests at -1; existing Battle-shock remains if that test passes. If an eligible Tempered in Battle aura applies, the target controller can keep the roll or reroll both dice before application."
         },
         {
           "id": "grapnel-launchers",
@@ -2646,8 +2646,9 @@
           "points": 10,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "Friendly Adeptus Astartes units within 6 inches can re-roll Leadership rolls.",
-          "wahapedia_export_row_id": "000011220002",
-          "status": "implemented_local_checks_pending"
+          "wahapedia_export_row_id": "000010155002",
+          "status": "implemented_admitted_bounded_local_checks_passed_network_pending",
+          "implementation_scope": "The local construction catalog admits this 10-point Wrath of the Rock enhancement for eligible Adeptus Astartes bearers. Its optional full 2D6 reroll suspends Command Battle-shock, post-move Desperate Escape, Fearsome Assault and Adamantine Terror Leadership results. Each continuation survives serialization, blocks phase close, routes the choice to the affected unit's controller, and resumes after resolution. Prepared matches preserve separate per-player detachments. Network validation and full Dark Angels army legality remain uncertified."
         },
         {
           "id": "lord-of-the-ravenwing",
@@ -2655,8 +2656,9 @@
           "points": 15,
           "eligibility": "Ravenwing model",
           "effect_summary": "The bearer's unit can re-roll Charge rolls.",
-          "wahapedia_export_row_id": "000011220003",
-          "status": "implemented_local_checks_pending"
+          "wahapedia_export_row_id": "000010155003",
+          "status": "implemented_bounded_local_checks_pending_network",
+          "implementation_scope": "Locally admitted only for Chaplain on Bike and Captain on Bike, the intersection of the current local catalog with the Data Export enhancement relation table. Outrider Squad is rejected. Local Charge reroll checks pass; network evidence and full Dark Angels legality remain uncertified."
         },
         {
           "id": "deathwing-assault",

@@ -8,6 +8,7 @@ const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Scouts = preload("res://scripts/edition_11/scout_moves.gd")
 const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -36,7 +37,10 @@ func make_state() -> Dictionary:
 	return state
 
 func choose(state: Dictionary, category: int, value: String) -> String:
-	return Transport.configure_impulsor(state, 100, category, value)
+	for option: Dictionary in UnitActions.choices(state, 1):
+		if option.get("action", "") == "impulsor-loadout" and int(option.get("target", -1)) == category and str(option.get("value", "")) == value:
+			return str(PublicUnitCommand.submit(state, 1, option).get("error", ""))
+	return "Impulsor loadout choice is not offered: %d/%s" % [category, value]
 
 func weapon_ids(state: Dictionary) -> Array[String]:
 	var ids: Array[String] = []
@@ -51,7 +55,7 @@ func run() -> void:
 	var orbital := options.filter(func(option: Dictionary) -> bool: return option.target == 0 and option.value == "orbital-comms-array")
 	check(not orbital.is_empty(), "Impulsor setup exposes Orbital Comms Array")
 	if not orbital.is_empty():
-		var result := UnitActions.apply(state, 1, orbital[0], Vector2.ZERO, Callable())
+		var result := PublicUnitCommand.submit(state, 1, orbital[0], Vector2.ZERO, Callable())
 		check(result.get("error", "").is_empty(), "Orbital Comms Array can be selected through the shared preparation action")
 	check(state.training_points[1] == 80 and UnitAbilities.scout_distance(state, 1) == 6, "Orbital Comms Array adds 10 local points and grants Scouts 6")
 	check(Transport.datasheet_has_ability(state, 100, "Orbital Comms Array"), "The local Impulsor profile records the optional Orbital Comms ability")
@@ -84,7 +88,7 @@ func run() -> void:
 	var orbital_again := UnitActions.choices(state, 1).filter(func(option: Dictionary) -> bool: return option.action == "impulsor-loadout" and option.target == 0 and option.value == "orbital-comms-array")
 	if not orbital_again.is_empty():
 		state.training_points[1] = 1000
-		var rejected := UnitActions.apply(state, 1, orbital_again[0], Vector2.ZERO, Callable())
+		var rejected := PublicUnitCommand.submit(state, 1, orbital_again[0], Vector2.ZERO, Callable())
 		check(not rejected.get("error", "").is_empty() and state.units[100].impulsor_system == "bellicatus-missile-array", "Orbital Comms surcharge is rejected if it exceeds the army points limit")
 	print("Impulsor option rules: %d failures" % failures)
 	quit(1 if failures else 0)

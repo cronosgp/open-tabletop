@@ -48,6 +48,19 @@ func _initialize() -> void:
 	for option: Dictionary in allocation_decision.get("legal_options", []):
 		projected_models.append(int(option.model))
 	check(not allocation_decision.is_empty() and allocation_decision.priority_player_id == 2 and projected_models == [200, 201, 202], "Damage allocation exposes current defenders and priority through the shared decision projection")
+	var allocation_decision_id: String = allocation_decision.decision_id
+	state = bytes_to_var(var_to_bytes(state))
+	allocation_decision = Combat.Allocation.pending_decision(state)
+	check(allocation_decision.get("decision_id", "") == allocation_decision_id and allocation_decision.get("priority_player_id", -1) == 2 and allocation_decision.get("legal_options", []).size() == 3 and Combat.actor(state) == 2, "Serialized damage-allocation decision retains its identity, legal models and defender priority")
+	var interrupted_allocation: Dictionary = state.duplicate(true)
+	interrupted_allocation.pending_deadly_demise = {"queue": [100], "queue_cursor": 0, "packets": [], "packet_cursor": 0}
+	var interrupted_decision := Combat.Allocation.pending_decision(interrupted_allocation)
+	var interrupted_option: Dictionary = interrupted_decision.legal_options[0]
+	var interrupted_before := var_to_str(interrupted_allocation)
+	var interrupted_result := MatchCommands.execute(interrupted_allocation, Combat.actor(interrupted_allocation), {"kind": MatchCommands.ALLOCATE_DAMAGE, "model": int(interrupted_option.model), "revision": interrupted_allocation.revision, "decision_id": str(interrupted_decision.decision_id), "option_id": str(interrupted_option.id)}, six)
+	check("destruction effects" in interrupted_result.error and interrupted_before == var_to_str(interrupted_allocation), "Damage allocation cannot bypass a pending destruction chain with a missing decision projection")
+	var unrelated_unit_choice := MatchCommands.execute(interrupted_allocation, Combat.actor(interrupted_allocation), {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": {"action": "pass"}, "revision": interrupted_allocation.revision}, six)
+	check("destruction effects" in unrelated_unit_choice.error and interrupted_before == var_to_str(interrupted_allocation), "The unit-choice dispatcher also blocks when destruction work has no projected choice")
 	var before := var_to_str(state)
 	var rolled := calls
 	check(not Combat.advance_phase(state, 2, state.revision).is_empty() and before == var_to_str(state), "Defender cannot advance phase while allocating")

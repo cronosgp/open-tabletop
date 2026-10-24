@@ -1,6 +1,6 @@
 # Histórico persistente de partidas
 
-A aba **Histórico** permite consultar eventos, fases, mudanças de posição/ferimentos, resultados de ataques e a ordem dos D6. **Anteriores**, **Próximos** e **Mais recentes** navegam por páginas de até 20 registros. Selecionar um registro mostra seus detalhes. Consultar nunca executa comandos, muda o estado de jogo ou consome o gerador de dados.
+O botão **Log** do HUD abre uma tela sobreposta para consultar eventos, fases, mudanças de posição/ferimentos, atribuições por modelo, pools de ataque e a ordem dos D6. **Previous**, **Next** e **Latest** navegam por páginas de até 20 registros. Selecionar um registro mostra timestamp, revisão, jogador ativo, evento, valores finais por etapa e detalhes que já existem no patch do estado. A apresentação recompõe esses dados sem alterar o formato do registro. Fechar o painel retorna à mesma partida. Consultar nunca executa comandos, muda o estado de jogo ou consome o gerador de dados.
 
 O recurso cobre a cena principal de partida, incluindo o treino de alocação. O laboratório de ataques em cena separada não participa desse histórico. O painel resumido de combate continua disponível em Play. O histórico independente preserva os registros que saem das últimas 30 mensagens desse resumo. A sequência dos D6 informa a fase e o jogador ativo; esse jogador não é necessariamente quem tomou a decisão defensiva. Quando o estado possui resultado de ataque consolidado, também aparecem os grupos de acertos, ferimentos, defesas, dano e prevenção disponíveis nesse resultado.
 

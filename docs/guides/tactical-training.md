@@ -1,0 +1,91 @@
+# Tactical training
+
+## Screen brief
+
+The player should explore real unit abilities and stratagem decisions in a free local match. **Start tactical training** opens two distinct current-catalog Marine forces; **Swap training sides** reverses their owners. The title screen shows catalog-derived point totals and the asymmetric training boundary before launch. The in-match guide marks the current phase window and lists four optional experiments: `[COMMAND]` leader ability, `[COMMAND / REACTION]` Gladius/Core stratagem, `[SHOOTING]` standard versus supercharged plasma with its Hazardous decision, and `[CHARGE / FIGHT]` Assault Intercessor charge with the Bladeguard stance choice. The guide keeps a `PROGRESS: n / 4 observed` checklist: it is updated from resolved abilities, stratagem uses, plasma/Hazardous attacks and Bladeguard stance records, and survives save/resume as presentation metadata. When the current actor has a legal leader ability, CP stratagem or Bladeguard stance, Help and the open Command panel add a `READY NOW` cue derived from the live choice list; it stays silent when none of these opportunities is legal. Existing Command controls remain authoritative; Help adds phase tips and current-choice explanations. There is no required tutorial action sequence or bonus CP.
+
+Use the existing Godot containers and theme, with readable wrapping at 1280×800 and 1024×768. Text and owner labels carry meaning independently of color. Board actions, reaction ownership, unavailable reasons and phase-close gates retain their existing validators.
+
+## Configuration
+
+New tactical sessions enable defender-selected recipients through the existing allocation rules. Select an eligible miniature or model card, then confirm; choosing a card alone does not apply damage. Older saves retain their original automatic/manual allocation option.
+
+Optional dice reactions offer **Keep result · 0 CP** before the replacement-die controls. A re-roll is a separate choice with its stated cost. The combat tray presents already recorded results, lets you inspect stages and folds completed attacks to a stable summary. **Replay recorded dice**, **Skip animation**, **Normal/Fast/Reduced motion** and **Show dice** change local presentation only. Reduced motion also suppresses board/camera animation; sound cues can be muted independently in Settings. Movement rejection appears beside the miniature and in Command, using the authoritative reason.
+
+Help starts with the current instruction. Optional experiments and rule terms expand separately. The [experience progress report](../project/tactical-training-experience-progress.md) records verification limits and the pending human acceptance session.
+
+| Force | Fixed default formation | Purpose |
+|---|---|---|
+| Fire and Manoeuvre | Captain, 5 Intercessors, 5 Hellblasters | Leader preparation, shooting profiles and plasma risk |
+| Close Assault | Chaplain, 5 Assault Intercessors, 3 Bladeguard Veterans | Protected approach, melee and Bladeguard choices |
+
+Both use Gladius, current unit abilities and admitted Core/Gladius stratagems. Declare each Character as Warlord and attach the Captain to Intercessors and the Chaplain to Assault Intercessors during preparation. Keep default equipment. No preset enhancements, transports or reserves are included. The existing setup controls still permit optional supported changes; such changes leave the fixed reference configuration.
+
+The custom training field remains 43 × 43 inches with the existing five-round objective mission and 1,000-point ceiling. Current runtime totals are 290 and 235 points; the UI calculates them from the local catalog. These unequal forces are an exploratory scenario, not a competitive balance or army-legality claim. Normal CP generation, costs, legal windows and host-owned dice apply. A particular reaction opportunity is not guaranteed in every free-play match.
+
+Preset identities are `preset:marine-tactical-v1:fire` and `preset:marine-tactical-v1:assault`. Their canonical formations, options and content digest enter the existing prepared-match manifest. The former `reference:core-v2:Space Marines` mirror stays selectable and retains its regression identity; existing saves are not rewritten.
+
+## Dependencies and limits
+
+This is separate from the project-owned clean-checkout movement demo. It uses the consolidated local current-reference catalog and built-in placeholder visuals; it performs no data or model downloads. Missing or blocked profiles stop admission without a historical fallback. Existing local source reconciliation is reused; this increment does not certify source facts or refresh the external rules revision.
+
+The new configuration requires its own integrated lifecycle evidence. A pass for the former mirror does not establish tactical-training network behavior. Five-round play, rule interactions, two-player comprehension, separate-machine LAN and platform builds must be recorded separately before broader support claims.
+
+## Current acceptance checkpoint — 24 October 2026
+
+- Implemented: separate presets, title-screen composition/totals, an explicit pre-launch practice summary, side swapping, Gladius/Core options, current abilities, versioned scenario identity, phase tips, a state-aware current-window cue, a live legal-opportunity cue and an optional four-item experiment list in Help. The list points to leader abilities, CP stratagems, plasma/Hazardous and Bladeguard stance decisions without forcing a sequence; `PROGRESS: n / 4 observed` marks those categories only after the corresponding authoritative state transition is recorded, and save/resume preserves the checklist metadata. `READY NOW` appears only when the current actor's legal choice projection contains a leader ability, CP stratagem or Bladeguard stance. If a saved match belongs to another rules/data pack, the title gives an actionable recovery message and retains the technical cause in the tooltip. The first valid primary action receives keyboard/gamepad focus on the title and in-match menu. The mirror and its saved-list default remain available.
+- Local lifecycle: the scenario-specific regression exercises both Warlord/Leader declarations, opponent rejection, coherent deployment previews for attached Characters, Normal Move, a real ranged attack, paid Adaptive Strategy, pending-decision save/load, exact continuation/RNG recovery, mandatory End-of-Turn coherency casualty decisions and the five-round result. The guided UI regression also checks that the phase guide names the casualty choice when a unit is incoherent.
+- Visual evidence: actual Godot/OpenGL title and fresh army-preparation captures were inspected at 1280×800 and 1024×768 under `.tools/tactical-title-*.png` and `.tools/tactical-preparation-*.png`; the title now advertises the four practice opportunities before launch, summarizes an incompatible saved match with an actionable fallback and visibly outlines the focused primary action. The guided Help screen's optional experiment list was also inspected at both sizes under `.tools/tactical-experiments-1280.png` and `.tools/tactical-experiments-1024.png`; it now includes a compact current-window cue and the complete four-item list fits both captures. The live opportunity cue is visible in `.tools/tactical-opportunity-1280.png` and `.tools/tactical-opportunity-1024.png`, where a real CP stratagem is offered. The same cue is repeated in the open Command panel in `.tools/tactical-command-cue-1280.png` and `.tools/tactical-command-cue-1024.png`, so the player can discover it without opening Help. The Bladeguard checkpoint now shows `READY NOW — Bladeguard stance is a legal choice` in `.tools/tactical-bladeguard-1280.png` and `.tools/tactical-bladeguard-1024.png`; the stance effect and confirmation remain visible at both sizes. Further `.tools/tactical-stratagem-*.png` captures reproduce public-command combat-regression checkpoints with controlled test dice; the harness selects options for visual review. These are actual rendered UI states, not human-played sessions or input-coverage evidence. Fire Overwatch's full selected unit and runtime CP cost now wrap above the picker, whose long label can be ellipsized. The earlier capture harness run retained shutdown renderer/ObjectDB diagnostics; the later selected tactical/UI/full-demo gates are clean after the ownership fix.
+- Integrated combat: a separate public-command regression starts from the same admitted formations, declares leaders, deploys each model legally and makes Normal Moves before the shooting/charge checkpoints. It now confirms that the real Captain ability and accepted Bladeguard stance update the corresponding checklist categories. Standard and supercharged plasma branch from the same serialized shooting state with controlled test-only dice; the supercharged branch resolves failed Hazardous tests and allocation. The standard branch continues through the Bladeguard charge, contact placement, both engaged units' melee attacks and Fight completion. The live offensive stance rejects foreign ownership, stale revision and obsolete options, blocks phase close, and preserves its decision/frame through serialization before attack dice.
+- Tactical-profile loopback: the current mirror and tactical variants passed **6/6 processes** at `.tools/verification/20261024T075949863687Z/results.json`, including authenticated recovery during deployment and a pending Fire Overwatch decision, synchronized ranged combat, five rounds, negative guest-command admission, matching canonical final-state hashes and explicit preservation of the tactical experiment tracker at admission, rejoin, save and completion checkpoints. Tactical charge/melee/plasma interactions still have local evidence only. The client checkpoint wait accepts the resolved attack when Shooting and the attack arrive in one frame; this corrects the test's phase-observation race without changing gameplay admission.
+- Still required: two-player comprehension observation, separate-machine LAN, remote CI and native platform builds. LAN was explicitly deferred by the user on 23 October after SSH banner timeouts; no separate-machine match was started. The demo PCK build is recorded separately below.
+
+Use the [human playtest record](../verification/tactical-training-playtest.md) for the comprehension gate. Its preparation is not evidence that a session has happened.
+
+Diagnostic history remains retained in the earlier entries below. The passing rerun uses complete-state checkpoint acknowledgements, canonical hashes and an acknowledged deployment/Overwatch recovery barrier. The client phase wait now treats the authoritative resolved attack as an equivalent checkpoint when snapshots arrive back-to-back. Earlier runs had shutdown-only renderer cleanup diagnostics; the current tactical/UI/full-demo paths are clean, while separate-machine LAN and human playtest evidence are still required.
+
+The implementation preserves the normal coherency confirmation gate. Accepting a deployment preview can now suggest a valid neighbouring position for a newly attached Character left at its standalone formation position; invalid placement still blocks confirmation.
+
+## Verification commands and outcomes
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_tactical_training --only test_guided_turn_ui --only test_local_armies_models --only test_prepared_match --only test_match_result_ui --only test_chaplain --only test_bladeguard --only test_detachment_stratagems --timeout 180
+```
+
+Passed 10/10 processes at `.tools/verification/20261023T151107106060Z/results.json`. This includes import and the runner's fast Python checks. `network: false`; the selected historical rule regressions require the legacy starter, so `legacy_starter_staged: true`. Five processes recorded headless cleanup diagnostics. This cross-check predates the final explicit tactical scenario identity and expanded pending-recovery/paid-stratagem assertions.
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_tactical_training --timeout 180
+```
+
+The final scenario-specific check passed 3/3 processes at `.tools/verification/20261023T151324626021Z/results.json`, including explicit scenario identity, paid Adaptive Strategy and pending-decision recovery. `network: false`, `legacy_starter_staged: false`; the Godot suite records shutdown cleanup diagnostics. Neither run establishes general rules accuracy or network support.
+
+Local snapshot integrity was rechecked against every manifest SHA-256: `20261021T130623Z`, 23 files, zero mismatches. No external source refresh or new rules certification was performed. `git diff --check` passed for the changed feature paths; Git also reported line-ending conversion notices.
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_tactical_combat_flow --only test_tactical_training --timeout 180
+```
+
+Passed 4/4 processes at `.tools/verification/20261023T154340821727Z/results.json`, including both scenario suites and the fast import/Python checks. This final local run also checks the Captain's actual doctrine effect and the Bladeguard stance modifier in the resolved attack pool. `network: false`, `legacy_starter_staged: false`. Controlled dice belong only to the combat regression; the playable training scenario still uses normal authoritative dice. This is local configuration/workflow evidence, not general rules certification.
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_tactical_training --only test_tactical_combat_flow --timeout 180
+```
+
+The latest current-tree workflow-equivalent rerun passed **4/4 processes** at `.tools/verification/20261024T060418114518Z/results.json` with `--timeout 300`; `network: false`, `legacy_starter_staged: false`. The latest targeted layout/UI/tactical rerun passed **5/5** at `.tools/verification/20261024T060650663369Z/results.json`, including separate Leader, CP, combined and Bladeguard opportunity assertions, the no-false-positive preparation assertion and the live legal-opportunity assertion. These include the phase-labelled experiment list, the state-aware current-window cue, `READY NOW` only for a legal leader/CP/Bladeguard choice, the repeated Command-panel cue, the coherency continuation and the integrated tactical combat regression. This remains local evidence until the corrected revision runs remotely.
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_guided_turn_ui --only test_tactical_training --timeout 180
+```
+
+The UI/coherency cross-check passed 4/4 processes at `.tools/verification/20261024T015715766564Z/results.json`. It uses the legacy starter only for the existing guided-screen regression; the tactical training itself remains current-catalog and `legacy_starter_staged: true` for that targeted profile.
+
+The project-owned demo build passed import, clean-tree tactical smoke, PCK export, exported startup and tactical pack smoke through `python tools/build_demo.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --target pack --timeout 300` at `.tools/verification/build-20261024T080456779917Z/results.json`. The pack smoke starts `marine-tactical-training-v1` from the exported artifact with the 290/235 current-reference forces, checks the title/guide surface and confirms no false opportunity cue during preparation; it does not stage or distribute the historical starter snapshot. This remains packaged local evidence, not a native executable or human playtest. Native Windows export templates were unavailable locally; no templates or third-party game content were downloaded. The Windows/Linux CI workflow includes the local tactical suites, but no remote CI run is claimed here.
+
+The complete local demo gate then passed **13/13 processes** with loopback at `.tools/verification/20261024T080319927934Z/results.json`; the earlier isolated network replay also passed **4/4** at `.tools/verification/20261024T044319660501Z/results.json`. The current targeted layout/tactical focus gate passed **5/5** at `.tools/verification/20261024T064117338648Z/results.json`. These reports cover the local current-catalog baseline and loopback roles, not separate-machine LAN, human comprehension or native platform release. The first same-turn complete-demo attempt at `.tools/verification/20261024T043832292929Z/results.json` failed only its concurrent host/client pair; the isolated retry and complete rerun above passed, so the transient failure remains recorded rather than promoted. The latest selected logs contain no cleanup diagnostics after the tactical settings ownership, state-aware current-window, live opportunity cue, Command-panel cue, title-summary, save-fallback and focus fixes. The verifier's early-error timing assertion was made relative to its configured timeout after a busy-worker false negative; gameplay admission and network timing were unchanged.
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_network_checkpoint --only test_tactical_training --timeout 180
+```
+
+Passed 4/4 processes at `.tools/verification/20261023T161020147309Z/results.json`. This checks the local tactical lifecycle after the wrapping-choice-label change and the comparator's handling of dictionary ordering, scalar/key types, positions and ordered arrays. `network: false`, `legacy_starter_staged: false`; the tactical suite records headless cleanup diagnostics. This comparator check cannot establish a network pass.

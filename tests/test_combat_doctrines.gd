@@ -3,6 +3,8 @@ const P = preload("res://scripts/edition_11/prepared_training.gd")
 const C = P.Combat
 const D = C.Doctrines
 const Save = preload("res://scripts/match_save.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 var failures := 0
 var calls := 0
 func six() -> int:
@@ -28,6 +30,22 @@ func fixture(gladius: bool = true, equipped: bool = false) -> Dictionary:
 	return state
 func choose(state: Dictionary, doctrine: String) -> String:
 	return C.select_combat_doctrine(state, 1, doctrine, state.revision)
+func submit_choice(state: Dictionary, player: int, action: String, target: int = -1, model: int = -1, value: String = "", point: Vector2 = Vector2.ZERO, roller: Callable = Callable()) -> Dictionary:
+	var decision := C.UnitActions.pending_decision(state)
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No matching UnitActions decision for Player %d." % player}
+	var option: Dictionary = {}
+	for candidate: Dictionary in decision.get("legal_options", []):
+		if str(candidate.get("action", "")) == action and int(candidate.get("target", -1)) == target and int(candidate.get("model", -1)) == model and str(candidate.get("value", "")) == value:
+			option = candidate
+			break
+	if option.is_empty(): return {"error": "Decision does not offer %s/%s for target %d/model %d." % [action, value, target, model]}
+	var choice: Dictionary = {}
+	for candidate: Dictionary in C.UnitActions.choices(state, player):
+		if str(candidate.get("action", "")) == action and int(candidate.get("target", -1)) == target and int(candidate.get("model", -1)) == model and str(candidate.get("value", "")) == value:
+			choice = candidate
+			break
+	if choice.is_empty(): return {"error": "UnitActions no longer offers %s/%s." % [action, value]}
+	return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "point": point, "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(option.get("id", "")), "choice": choice}}, roller)
 func next_command(state: Dictionary) -> void:
 	state.turn += 2
 	state.active = 1
@@ -89,8 +107,40 @@ func run() -> void:
 	var wind_choice := {"action": "detachment-stratagem", "model": -1, "target": 1, "value": C.DetachmentStratagems.WIND_SWIFT}
 	var wind_result := C.DetachmentStratagems.apply(wind_state, 1, wind_choice)
 	check(wind_result.error.is_empty() and wind_state.cp[1] == 0 and wind_state.unit_abilities.window.kind == "tactical-fluidity-placement" and wind_state.unit_abilities.window.get("wind_swift", false) and is_equal_approx(wind_state.unit_abilities.window.distance_by_model.get(100, 0.0), 14.0), "Wind-Swift remains available after the unit fought and previews its Movement characteristic with the Stormlance bonus")
-	var wind_completion := C.UnitActions.apply(wind_state, 1, {"action": "fluidity-confirm", "model": -1, "target": 1, "value": ""}, Vector2.ZERO, Callable())
-	check(wind_completion.error.is_empty() and wind_state.squads[1].move_type == "normal" and wind_state.squads[1].moved and wind_state.unit_abilities.window.kind == "end", "Wind-Swift confirms a coherent Normal Move and resumes the end-Fight decision window")
+	var wind_completion := submit_choice(wind_state, 1, "fluidity-confirm", 1)
+	check(str(wind_completion.get("error", "")).is_empty() and wind_state.squads[1].move_type == "normal" and wind_state.squads[1].moved and wind_state.unit_abilities.window.kind == "end", "Wind-Swift confirms a coherent Normal Move through the normalized command and resumes the end-Fight decision window")
+	var wind_flow := sudden_state.duplicate(true)
+	wind_flow.phase = "fight"
+	wind_flow.active = 2
+	wind_flow.turn = 4
+	wind_flow.round = 2
+	wind_flow.board_size = Vector2(60, 44)
+	wind_flow.fight_actor = 2
+	wind_flow.fight_step = "complete"
+	wind_flow.squads[1].fight_eligible = true
+	wind_flow.squads[1].fought = true
+	wind_flow.cp[1] = 1
+	wind_flow.pending_move = {}
+	wind_flow.pending_charge = {}
+	wind_flow.pending_contact = {}
+	wind_flow.resolution_frames = []
+	wind_flow.unit_abilities.window = {}
+	wind_flow.unit_abilities.end_done = ""
+	wind_flow.unit_abilities.phase_key = C.UnitActions.key(wind_flow)
+	var wind_close_error := C.advance_phase(wind_flow, 2, wind_flow.revision)
+	var wind_decision := C.UnitActions.pending_decision(wind_flow)
+	check(wind_close_error.is_empty() and wind_decision.get("priority_player_id", -1) == 1 and ResolutionFrames.current(wind_flow).get("kind", "") == "phase-close", "The opponent receives Wind-Swift through the actual Fight-end decision window: " + wind_close_error)
+	var wind_option := submit_choice(wind_flow, 1, "detachment-stratagem", 1, -1, C.DetachmentStratagems.WIND_SWIFT)
+	check(str(wind_option.get("error", "")).is_empty() and wind_flow.cp[1] == 0 and wind_flow.unit_abilities.window.kind == "tactical-fluidity-placement", "The public choice spends CP and opens the Wind-Swift placement stage: " + str(wind_option.get("error", "")))
+	var wind_frame_id := str(C.UnitActions.pending_decision(wind_flow).get("resume_frame_id", ""))
+	var restored_wind_flow: Dictionary = bytes_to_var(var_to_bytes(wind_flow))
+	var close_wind_while_placing := C.advance_phase(restored_wind_flow, 2, restored_wind_flow.revision)
+	var wind_model: int = C.living(restored_wind_flow, 1)[0]
+	var staged_wind := submit_choice(restored_wind_flow, 1, "fluidity-place", 1, wind_model, "", restored_wind_flow.units[wind_model].position)
+	var confirmed_wind := submit_choice(restored_wind_flow, 1, "fluidity-confirm", 1)
+	check(not wind_frame_id.is_empty() and C.UnitActions.pending_decision(restored_wind_flow).get("resume_frame_id", "") == wind_frame_id and "unit ability choices" in close_wind_while_placing and str(staged_wind.get("error", "")).is_empty() and str(confirmed_wind.get("error", "")).is_empty() and restored_wind_flow.unit_abilities.window.get("kind", "") == "end" and ResolutionFrames.current(restored_wind_flow).get("kind", "") == "phase-close", "Wind-Swift placement survives save/resume, blocks premature close and returns to the same end window")
+	var wind_pass := submit_choice(restored_wind_flow, 1, "pass")
+	check(str(wind_pass.get("error", "")).is_empty() and restored_wind_flow.phase == "end_turn" and ResolutionFrames.current(restored_wind_flow).is_empty(), "Passing after Wind-Swift resumes and completes Fight phase close: " + str(wind_pass.get("error", "")))
 	var fall_state := sudden_state.duplicate(true)
 	fall_state.phase = "fight"
 	fall_state.active = 2
@@ -107,9 +157,9 @@ func run() -> void:
 	var fall_move_error: String = str(fall_result.get("error", ""))
 	if fall_move_error.is_empty() and fall_state.unit_abilities.window.mode == "fallback":
 		for model: int in fall_state.unit_abilities.window.positions:
-			fall_move_error = C.UnitActions.apply(fall_state, 1, {"action": "fluidity-place", "model": model, "target": 1, "value": ""}, fall_state.units[model].position + Vector2(4, 0), Callable()).get("error", "")
+			fall_move_error = str(submit_choice(fall_state, 1, "fluidity-place", 1, model, "", fall_state.units[model].position + Vector2(4, 0)).get("error", ""))
 			if not fall_move_error.is_empty(): break
-		if fall_move_error.is_empty(): fall_move_error = C.UnitActions.apply(fall_state, 1, {"action": "fluidity-confirm", "model": -1, "target": 1, "value": ""}, Vector2.ZERO, Callable()).get("error", "")
+		if fall_move_error.is_empty(): fall_move_error = str(submit_choice(fall_state, 1, "fluidity-confirm", 1).get("error", ""))
 	check(fall_move_error.is_empty() and fall_state.squads[1].fell_back and fall_state.squads[1].move_type == "fall_back", "Wind-Swift completes a Fall Back from engagement and resumes the Fight end window: " + str(fall_move_error))
 	var hurtling_state := sudden_state.duplicate(true)
 	hurtling_state.phase = "shooting"
@@ -122,6 +172,7 @@ func run() -> void:
 	reaction_state.cp[1] = 1
 	reaction_state.pending_move = {}
 	reaction_state.pending_contact = {}
+	reaction_state.resolution_frames = []
 	reaction_state.terrain.areas = []
 	reaction_state.squads[1].moved = false
 	reaction_state.units[100].moved = false
@@ -142,22 +193,42 @@ func run() -> void:
 		hurtling_declaration_error = str(declared.get("error", ""))
 		hurtling_reaction_opened = declared.error.is_empty() and reaction_state.unit_abilities.window.get("kind", "") == "stormlance-hurtling" and reaction_state.cp[1] == 1
 	check(hurtling_reaction_opened, "Hurtling Targets opens a defender decision before ranged attack resolution: " + hurtling_declaration_error + " / " + str(reaction_state.unit_abilities.window))
-	var hurtling_choice := {}
-	for option: Dictionary in C.unit_choices(reaction_state, 1):
+	var hurtling_decision := C.UnitActions.pending_decision(reaction_state)
+	var hurtling_frame := ResolutionFrames.current(reaction_state)
+	var before_hurtling_close := var_to_str(reaction_state)
+	var hurtling_close_error := C.advance_phase(reaction_state, 2, reaction_state.revision)
+	var hurtling_restore: Dictionary = bytes_to_var(var_to_bytes(reaction_state))
+	var restored_hurtling_decision := C.UnitActions.pending_decision(hurtling_restore)
+	check(hurtling_decision.get("priority_player_id", -1) == 1 and hurtling_frame.get("kind", "") == "attack" and hurtling_frame.get("status", "") == "suspended" and str(hurtling_decision.get("resume_frame_id", "")) == str(hurtling_frame.get("frame_id", "")) and not hurtling_close_error.is_empty() and var_to_str(reaction_state) == before_hurtling_close and restored_hurtling_decision.get("decision_id", "") == hurtling_decision.get("decision_id", "") and str(ResolutionFrames.current(hurtling_restore).get("frame_id", "")) == str(hurtling_frame.get("frame_id", "")), "Hurtling Targets is a defender-owned decision that blocks Shooting close and retains its suspended attack frame through save/restore")
+	var hurtling_choice: Dictionary = {}
+	for option: Dictionary in C.unit_choices(hurtling_restore, 1):
 		if option.action == "hurtling-use": hurtling_choice = option
-	var hurtling_use_error := "No Hurtling choice was offered."
-	if not hurtling_choice.is_empty(): hurtling_use_error = C.unit_action(reaction_state, 1, hurtling_choice, Vector2.ZERO, reaction_state.revision, func() -> int: return 6)
-	var resumed_plan := C.AttackPlan.prepare(reaction_state, 2, false, attack_entries, true)
+	var hurtling_result := submit_choice(hurtling_restore, 1, "hurtling-use", 1, -1, "", Vector2.ZERO, func() -> int: return 6) if not hurtling_choice.is_empty() else {"error": "No Hurtling choice was offered."}
+	var hurtling_use_error := str(hurtling_result.get("error", ""))
+	var resumed_plan := C.AttackPlan.prepare(hurtling_restore, 2, false, attack_entries, true)
 	var hurtling_modifier := 0
 	if resumed_plan.get("error", "").is_empty() and not resumed_plan.get("batches", []).is_empty(): hurtling_modifier = int(resumed_plan.batches[0].context.get("hit_modifier", 0))
-	check(hurtling_use_error.is_empty() and reaction_state.cp[1] == 0 and hurtling_modifier == -1, "Choosing Hurtling consumes CP before dice and applies ranged -1 to Hit: " + hurtling_use_error + " / " + str(resumed_plan.get("error", "")))
+	check(hurtling_use_error.is_empty() and hurtling_restore.cp[1] == 0 and hurtling_modifier == -1 and hurtling_restore.squads[2].shot and ResolutionFrames.current(hurtling_restore).is_empty(), "Normalized Hurtling Targets spends CP, resumes and completes the same attack, and applies ranged -1 to Hit: " + hurtling_use_error + " / " + str(resumed_plan.get("error", "")))
+	var legacy_hurtling: Dictionary = reaction_state.duplicate(true)
+	legacy_hurtling.unit_abilities.window.kind = "mounted-shooting-reaction"
+	var legacy_decision := C.UnitActions.pending_decision(legacy_hurtling)
+	var legacy_restore: Dictionary = bytes_to_var(var_to_bytes(legacy_hurtling))
+	var legacy_restored_decision := C.UnitActions.pending_decision(legacy_restore)
+	var legacy_pass := submit_choice(legacy_restore, 1, "mounted-reaction-pass", 1, -1, "", Vector2.ZERO, func() -> int: return 6)
+	check(legacy_hurtling.unit_abilities.window.kind == "mounted-shooting-reaction" and legacy_decision.get("priority_player_id", -1) == 1 and legacy_restored_decision.get("decision_id", "") == legacy_decision.get("decision_id", "") and str(legacy_pass.get("error", "")).is_empty() and legacy_restore.unit_abilities.window.is_empty() and legacy_restore.squads[2].shot and ResolutionFrames.current(legacy_restore).is_empty(), "Legacy mounted-shooting-reaction save restores its decision, then a public pass completes the same attack")
+	calls = 0
 	var state := fixture()
 	check(D.needs_choice(state) and state.cp == {1: 0, 2: 0} and calls == 0, "Start-of-Command doctrine choice precedes core CP and dice")
+	var doctrine_frame := C.ResolutionFrames.current(state)
+	check(doctrine_frame.get("kind", "") == "phase-start" and doctrine_frame.get("action_id", "") == "phase-start:%d:command:%d" % [state.turn, state.active] and doctrine_frame.get("status", "") == "suspended", "Command doctrine choice suspends its persisted phase-start frame")
+	var restored: Dictionary = bytes_to_var(var_to_bytes(state))
+	check(C.ResolutionFrames.current(restored) == doctrine_frame and D.needs_choice(restored), "Pending doctrine frame and choice survive state serialization")
+	check("Combat Doctrine" in C.PhaseCloseGate.close_request_error(state, 1, state.revision), "Pending doctrine selection blocks phase close")
 	var before := var_to_bytes(state)
 	check(not C.advance_phase(state, 1, state.revision, six).is_empty() and not C.begin_movement(state, 1, 100, "advance", state.revision, six).is_empty(), "Mandatory start choice blocks ordinary commands")
 	check(not C.select_combat_doctrine(state, 2, "assault", state.revision).is_empty() and not C.select_combat_doctrine(state, 1, "assault", -1).is_empty() and not choose(state, "invented").is_empty(), "Wrong player, stale revision and unknown doctrine rejected")
 	check(before == var_to_bytes(state) and calls == 0, "Rejected choices do not mutate state or dice")
-	check(choose(state, "none").is_empty() and D.active_for(state, 1).is_empty() and D.available(state, 1).size() == 3 and state.cp == {1: 1, 2: 1}, "Declining preserves all uses and proceeds to core CP once")
+	check(choose(state, "none").is_empty() and D.active_for(state, 1).is_empty() and D.available(state, 1).size() == 3 and state.cp == {1: 1, 2: 1} and C.ResolutionFrames.current(state).is_empty(), "Declining preserves all uses, grants core CP once and completes the phase-start frame")
 	check(not choose(state, "assault").is_empty() and state.cp == {1: 1, 2: 1}, "Cannot change decision or gain CP twice")
 	next_command(state)
 	check(choose(state, "assault").is_empty() and D.active_for(state, 1) == "assault" and D.active_for(state, 2).is_empty(), "Doctrine applies to admitted Marine army only")
@@ -204,16 +275,30 @@ func run() -> void:
 	state.units[100].keywords = ["ADEPTUS ASTARTES", "INFANTRY"]
 	check(not D.rapid_fire_active(state, 1, rapid_fire_profile, 18.0), "Codex Fire-patterns is limited to Tacticus units")
 	state = fixture(false)
+	C.UnitAbilities.enable(state)
+	C.Stratagems.enable(state)
 	state.combat_doctrines.detachment = "tacticus-attack-force"
 	state.units[100].keywords = ["ADEPTUS ASTARTES", "INFANTRY", "TACTICUS"]
 	state.phase = "movement"
 	state.active = 1
+	state.unit_abilities.window = {}
+	state.resolution_frames = []
+	state.unit_abilities.phase_key = C.UnitActions.key(state)
 	state.squads[1].moved = false
 	var wrath_cp: int = state.cp[1]
 	var wrath_open := C.begin_movement(state, 1, 100, "advance", state.revision, func() -> int: return 2)
 	var wrath_window: Dictionary = state.stratagems.pending
-	var wrath_reroll := C.resolve_roll_reaction(state, 1, 1, "wrath-of-the-chapter", state.revision, func() -> int: return 6)
-	check(wrath_open.is_empty() and wrath_window.get("kind", "") == "after_advance_roll" and wrath_window.get("wrath_chapter", false) and wrath_reroll.is_empty() and state.cp[1] == wrath_cp and state.pending_move.bonus == 6, "Wrath of the Chapter offers a free post-roll Advance re-roll to Tacticus and applies its new result")
+	var wrath_decision := C.Stratagems.pending_decision(state)
+	var wrath_option: Dictionary = {}
+	for option: Dictionary in wrath_decision.get("legal_options", []):
+		if int(option.get("target", -1)) == 1 and str(option.get("value", "")) == "wrath-of-the-chapter": wrath_option = option
+	var wrath_choice := {"action": "stratagem-reaction", "model": -1, "target": 1, "value": "wrath-of-the-chapter", "die": -1}
+	var wrath_envelope := {"_decision_type": MatchCommandService.STRATAGEM_DECISION_ENVELOPE, "decision_id": str(wrath_decision.get("decision_id", "")), "option_id": str(wrath_option.get("id", "")), "choice": wrath_choice}
+	var before_wrong_wrath_owner := var_to_bytes(state)
+	var wrong_wrath_owner := MatchCommandService.execute(state, 2, {"kind": MatchCommandService.COMMAND_REACTION, "choice": wrath_envelope, "revision": state.revision}, func() -> int: return 6)
+	check(not str(wrong_wrath_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_wrath_owner, "The opponent cannot submit or mutate Wrath of the Chapter's Advance reaction")
+	var wrath_result := MatchCommandService.execute(state, 1, {"kind": MatchCommandService.COMMAND_REACTION, "choice": wrath_envelope, "revision": state.revision}, func() -> int: return 6)
+	check(wrath_open.is_empty() and wrath_window.get("kind", "") == "after_advance_roll" and wrath_window.get("wrath_chapter", false) and str(wrath_result.get("error", "")).is_empty() and state.cp[1] == wrath_cp and state.pending_move.bonus == 6, "Wrath of the Chapter offers a free post-roll Advance re-roll to Tacticus and applies its new result through the public command")
 	state = fixture(false)
 	state.combat_doctrines.detachment = "gravis-linebreaker-force"
 	state.units[100].keywords = ["ADEPTUS ASTARTES", "INFANTRY", "GRAVIS"]

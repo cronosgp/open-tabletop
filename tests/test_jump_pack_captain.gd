@@ -5,6 +5,7 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -85,10 +86,10 @@ func _initialize() -> void:
 	check(not state.has("error") and state.units[100].squad == 3, "Captain attaches to the admitted Jump Pack bodyguard")
 	check(Abilities.advance_modifier(state, 3) == 1 and Abilities.charge_modifier(state, 3) == 1, "Angel's Wrath reaches the attached unit")
 	var offered := find_choice(state, "jump-pack-captain-loadout", "thunder-hammer-shield")
-	check(not offered.is_empty() and Combat.unit_action(state, 1, offered, Vector2.ZERO, state.revision).is_empty(), "Thunder Hammer and Relic Shield are offered as one replacement set")
+	check(not offered.is_empty() and PublicUnitCommand.error(state, 1, offered).is_empty(), "Thunder Hammer and Relic Shield are offered as one replacement set")
 	check(state.units[100].max_wounds == 6 and state.units[100].wounds == 6 and Abilities.has(state, 3, "relic-shield"), "Relic Shield grants +1 W to its selected bearer")
 	offered = find_choice(state, "jump-pack-captain-loadout", "default")
-	check(not offered.is_empty() and Combat.unit_action(state, 1, offered, Vector2.ZERO, state.revision).is_empty(), "Default pistol/chainsword combination can be restored")
+	check(not offered.is_empty() and PublicUnitCommand.error(state, 1, offered).is_empty(), "Default pistol/chainsword combination can be restored through the public unit-choice command")
 	check(state.units[100].max_wounds == 5 and not Abilities.has(state, 3, "relic-shield"), "Restoring defaults removes the shield wound and effect")
 	state.phase = "movement"
 	state.squads[3].moved = false

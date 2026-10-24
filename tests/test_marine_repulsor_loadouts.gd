@@ -3,6 +3,7 @@ const F = preload("res://tests/all_units_fixture.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const Equipment = preload("res://scripts/edition_11/equipment.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -31,7 +32,7 @@ func choices(state: Dictionary, player: int = 1) -> Array[Dictionary]:
 	return result
 
 func apply(state: Dictionary, action: Dictionary) -> Dictionary:
-	return UnitActions.apply(state, 1, action, Vector2.ZERO, Callable())
+	return PublicUnitCommand.submit(state, 1, action, Vector2.ZERO, Callable())
 
 func contains_weapon(state: Dictionary, model: int, weapon_id: String) -> bool:
 	for weapon: Dictionary in state.units[model].ranged_weapons:

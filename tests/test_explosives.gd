@@ -2,6 +2,8 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const R = C.CoreReactions
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -37,8 +39,18 @@ func throw_choice(s: Dictionary) -> Dictionary:
 	for item: Dictionary in C.unit_choices(s, 1):
 		if item.action == "explosives" and s.units[item.model].squad == squad(s, "intercessor-squad") and item.target == squad(s, "necron-warriors"): return item
 	return {}
-func use(s: Dictionary, item: Dictionary, player: int, roller: Callable) -> String:
-	return C.unit_action(s, player, item, Vector2.ZERO, s.revision, roller)
+func use(s: Dictionary, item: Dictionary, player: int, roller: Callable, revision: int = -2147483648) -> String:
+	var decision := PendingDecisions.current(s, ["unit-actions"])
+	var payload: Dictionary = item
+	if not decision.is_empty():
+		var projected: Dictionary = {}
+		for option: Dictionary in decision.get("legal_options", []):
+			if str(option.get("action", "")) == str(item.get("action", "")) and int(option.get("model", -1)) == int(item.get("model", -1)) and int(option.get("target", -1)) == int(item.get("target", -1)) and str(option.get("value", "")) == str(item.get("value", "")):
+				projected = option
+				break
+		if projected.is_empty(): return "The current decision does not project the submitted Explosives choice."
+		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": item}
+	return str(MatchCommands.execute(s, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(s.revision) if revision == -2147483648 else revision, "choice": payload}, roller).get("error", ""))
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s := fixture()
@@ -105,17 +117,23 @@ func run() -> void:
 	item = throw_choice(s)
 	var before := s.duplicate(true)
 	check(not use(s, item, 1, func() -> int: return 7).is_empty() and s == before, "Invalid dice reject atomically without CP or state changes")
-	check(not C.unit_action(s, 1, item, Vector2.ZERO, s.revision - 1, func() -> int: return 6).is_empty() and s == before, "Stale revision rejects without mutation")
+	check(not use(s, item, 1, func() -> int: return 6, s.revision - 1).is_empty() and s == before, "Stale revision rejects without mutation through the match command")
 	var dice := [1, 2, 3, 4, 5, 6]
 	check(use(s, item, 1, func() -> int: return dice.pop_front()).is_empty(), "Host resolves six Explosives dice")
 	check(dice.is_empty() and s.last_explosives.mortal_wounds == 3 and s.cp[1] == 2 and not s.squads[source].shot, "4+ causes mortals, costs 1 CP, retains normal shooting")
 	check(C.actor(s) == 2 and C.unit_choices(s, 1).is_empty(), "Defender owns mandatory mortal allocation")
+	var allocation_decision := PendingDecisions.current(s, ["unit-actions"])
+	check(allocation_decision.get("priority_player_id", -1) == 2 and allocation_decision.get("legal_options", []).size() == C.unit_choices(s, 2).size(), "Explosives allocation is exposed as the defender's normalized decision")
 	check(not C.advance_phase(s, 1, s.revision).is_empty(), "Cannot advance while mortals are pending")
 	# Round-trip the same serialization mechanism used by saved match state.
 	s = bytes_to_var(var_to_bytes(s))
+	var restored_allocation_decision := PendingDecisions.current(s, ["unit-actions"])
+	check(restored_allocation_decision.get("decision_id", "") == allocation_decision.get("decision_id", ""), "Explosives allocation decision identity survives save/restore")
 	var allocations := C.unit_choices(s, 2)
 	var recipient: int = allocations[0].model
 	s.units[recipient].feel_no_pain = [{"target": 5, "against": "mortal"}]
+	var before_wrong_owner := var_to_bytes(s)
+	check(not use(s, allocations[0], 1, func() -> int: return 6).is_empty() and var_to_bytes(s) == before_wrong_owner, "The attacker cannot submit or mutate the defender's allocation")
 	check(use(s, allocations[0], 2, func() -> int: return 6).is_empty() and s.units[recipient].wounds == s.units[recipient].max_wounds, "Feel No Pain prevents a mortal without an armour save")
 	while C.actor(s) == 2:
 		var available := C.unit_choices(s, 2)

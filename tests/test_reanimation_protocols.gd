@@ -145,7 +145,17 @@ func run() -> void:
 	state = fixture(true)
 	for id in range(201, 210): state.units[id].wounds = 0
 	check(C.advance_phase(state, 2, state.revision).is_empty() and not C.Stratagems.pending(state).is_empty() and R.pending(state).is_empty(), "Battle-shock decision precedes Reanimation")
-	check(C.resolve_command_reaction(state, 2, 2, "", state.revision, dice.roll).is_empty() and not R.pending(state).is_empty(), "Completed Battle-shock opens Reanimation")
+	var command_morale_decision := C.Stratagems.pending_decision(state)
+	var accept_morale_option: Dictionary = {}
+	for option: Dictionary in command_morale_decision.get("legal_options", []):
+		if int(option.get("target", -1)) == 2 and str(option.get("value", "")) == "": accept_morale_option = option
+	var accept_morale_choice := {"action": "stratagem-reaction", "model": -1, "target": 2, "value": "", "die": -1}
+	var accept_morale_envelope := {"_decision_type": MatchCommands.STRATAGEM_DECISION_ENVELOPE, "decision_id": str(command_morale_decision.get("decision_id", "")), "option_id": str(accept_morale_option.get("id", "")), "choice": accept_morale_choice}
+	var before_wrong_morale_owner := var_to_bytes(state)
+	var wrong_morale_owner := MatchCommands.execute(state, 1, {"kind": MatchCommands.COMMAND_REACTION, "choice": accept_morale_envelope, "revision": state.revision}, dice.roll)
+	check(not str(wrong_morale_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_morale_owner, "The opponent cannot accept the Necron Command Battle-shock roll or mutate the pending decision")
+	var morale_result := MatchCommands.execute(state, 2, {"kind": MatchCommands.COMMAND_REACTION, "choice": accept_morale_envelope, "revision": state.revision}, dice.roll)
+	check(str(morale_result.get("error", "")).is_empty() and not R.pending(state).is_empty(), "Public Command reaction applies Battle-shock and resumes into Reanimation")
 	var morale_calls := dice.calls
 	decide(state, "roll", 2, -1, Vector2.ZERO, dice.roll)
 	decide(state, "suggest")

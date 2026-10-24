@@ -1,6 +1,7 @@
 extends RefCounted
 ## Explicit June-2026 profile, not certification of the later October Codex.
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
+const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const ID := "oath-of-moment-june-2026-v1"
 const SOURCE := "https://assets.warhammer-community.com/eng_08-06_warhammer40000_faction_pack_space-marines-nd2ezs5yzn-wxe2nf2ckk.pdf"
 const EXCLUDED_CHAPTERS := ["BLOOD ANGELS", "DARK ANGELS", "DEATHWATCH", "SPACE WOLVES"]
@@ -39,6 +40,14 @@ static func start_command(state: Dictionary) -> void:
 
 static func needs_choice(state: Dictionary) -> bool:
 	return enabled(state) and state.get("test_winner", 0) == 0 and state.phase == "command" and state.active in state.oath_of_moment.owners and state.oath_of_moment.selected_turn.get(state.active, -1) != state.turn and not targets(state, state.active).is_empty()
+
+static func pending_decision(state: Dictionary) -> Dictionary:
+	if not needs_choice(state): return {}
+	var owner := int(state.active)
+	var options: Array[Dictionary] = []
+	for target: int in targets(state, owner):
+		options.append({"label": "Oath of Moment: %s" % state.squads[target].name, "action": "oath-target", "target": target})
+	return PendingDecision.create(state, "oath-of-moment", "command-phase:oath-target", owner, options, false)
 
 static func choice_error(state: Dictionary, player: int, target: int, revision: int) -> String:
 	if not needs_choice(state): return "No Oath of Moment target selection is pending."

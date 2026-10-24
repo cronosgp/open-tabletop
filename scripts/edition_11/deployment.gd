@@ -85,9 +85,30 @@ static func preset(state: Dictionary, player: int, revision: int) -> String:
 	if not error.is_empty(): return error
 	var candidate := state.duplicate(true)
 	for id: int in Geometry.alive(candidate, current(candidate)): candidate.deployment.placed[id] = true
+	# Setup attachment merges squads but deliberately does not move their models.
+	# Offer a legal neighbouring preview for an attached Character left at its
+	# standalone formation position; never weaken the confirmation gate.
+	if not Geometry.coherent(candidate, current(candidate)):
+		for id: int in Geometry.alive(candidate, current(candidate)):
+			if str(candidate.units[id].get("attachment_role", "")) not in ["leader", "support"]: continue
+			var placed := false
+			for anchor: int in Geometry.alive(candidate, current(candidate)):
+				if anchor == id or str(candidate.units[anchor].get("attachment_role", "")) != "bodyguard": continue
+				var separation := float(candidate.units[id].radius) + float(candidate.units[anchor].radius) + 0.15
+				for step in range(16):
+					var point: Vector2 = candidate.units[anchor].position + Vector2.from_angle(TAU * step / 16.0) * separation
+					if not position_error(candidate, id, point).is_empty(): continue
+					var previous: Vector2 = candidate.units[id].position
+					candidate.units[id].position = point
+					if Geometry.coherent(candidate, current(candidate)):
+						placed = true
+						break
+					candidate.units[id].position = previous
+				if placed: break
 	for id: int in Geometry.alive(candidate, current(candidate)):
 		error = position_error(candidate, id, candidate.units[id].position)
 		if not error.is_empty(): return error
+	for id: int in Geometry.alive(candidate, current(candidate)): state.units[id].position = candidate.units[id].position
 	state.deployment.placed = candidate.deployment.placed
 	_event(state, "Player %d accepted the current unit's preview positions." % player)
 	return ""

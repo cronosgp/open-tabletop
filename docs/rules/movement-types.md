@@ -2,11 +2,11 @@
 
 In Movement, select a living friendly model, choose a movement type from the dropdown, and press **Begin selected movement**. Right-clicking before choosing a type still starts a Normal Move. Place models individually and confirm the squad. Models left without a selection when advancing to Shooting are recorded as stationary.
 
-Implemented against [11e Core Rules](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/), §§03.01, 06.02–06.03, 09.04–09.07, 10.04–10.05, 11.02 and 24.04:
+Implemented against the [Warhammer 40,000 11th-edition Core Rules](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/) (Wahapedia page lists the Core Rules update as June 2026), §§03.01, 06.02–06.03, 09.04–09.07, 10.04–10.05, 11.02 and 24.04:
 
 - **Advance:** host rolls one D6, adding that result to each model's movement allowance. The squad must start and finish unengaged. Only its Assault weapons may shoot afterwards; charging and starting actions are unavailable until the turn ends.
 - **Fall Back — Ordered Retreat:** requires an engaged squad that is not battle-shocked. Models use their normal movement allowance and cannot cross enemy bases.
-- **Fall Back — Desperate Escape:** available to engaged squads, including battle-shocked squads. The host rolls one hazard per living model before placement. For these infantry squads, each 1–2 inflicts one mortal wound. The owner allocates wounds individually, choosing an already wounded model first. Surviving models can cross enemy bases but cannot finish overlapping them.
+- **Fall Back — Desperate Escape:** available to engaged squads, including battle-shocked squads. The host rolls one hazard per living model before placement. For these infantry squads, each 1–2 inflicts one mortal wound. The owner allocates each wound under the Mortal Wounds sequence: a wounded non-Character first, otherwise any non-Character, then a wounded Character, then any Character. The shared decision and the rules validator use this same eligibility order. Surviving models can cross enemy bases but cannot finish overlapping them.
 - Both Fall Back modes must finish coherent and unengaged. A completed Fall Back prevents shooting, charging and starting actions until the turn ends. A steady squad completing Desperate Escape also makes a battle-shock roll.
 
 The sidebar shows the selected type, Advance bonus, remaining escape damage, and per-model budgets. The movement guide includes the rolled bonus. Hazard wounds must be allocated before placement or confirmation; destroyed models disappear immediately. Models destroyed by escape damage are retained as casualties if placement is reset.

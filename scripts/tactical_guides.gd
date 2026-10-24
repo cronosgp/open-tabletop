@@ -15,6 +15,7 @@ var hover_mesh := ImmediateMesh.new()
 var material := StandardMaterial3D.new()
 var caption := "Select a miniature to see its ranges."
 var hover_caption := ""
+var hover_error := ""
 var current_range := 0.0
 var hover_valid := false
 var targets: Dictionary = {}
@@ -190,6 +191,7 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 	hover_mesh.clear_surfaces()
 	hover_valid = false
 	hover_caption = ""
+	hover_error = ""
 	if combat and Combat.UnitActions.actor(state) > 0: return
 	if combat and not Combat.Reanimation.pending(state).is_empty(): return
 	if combat and Combat.Awakened.needs_setup(state): return
@@ -203,6 +205,7 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 		var error := Combat.Deployment.command_error(state, player, state.revision)
 		if error.is_empty(): error = Combat.Deployment.position_error(state, selected, destination)
 		hover_valid = error.is_empty()
+		hover_error = error
 		hover_caption = "Valid deployment position" if hover_valid else error
 		var half := Rules.half_board(state)
 		if not destination.is_finite() or absf(destination.x) >= half.x + float(unit.radius) - 0.001 or absf(destination.y) >= half.y + float(unit.radius) - 0.001: return
@@ -218,6 +221,7 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 		var error: String = Combat._command_error(state, player, state.revision)
 		if error.is_empty(): error = Combat.ContactActions.validate_segment(state, selected, destination)
 		hover_valid = error.is_empty()
+		hover_error = error
 		hover_caption = "%.2f inches: %s" % [unit.position.distance_to(destination), "valid contact segment; confirm the squad to check final conditions" if hover_valid else error]
 		var tint := ORANGE if hover_valid else RED
 		hover_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, material)
@@ -251,6 +255,7 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 	if unit.owner != player: return
 	var error: String = Combat.validate_move(state, player, selected, destination, state.revision) if combat else Rules.validate_move(state, player, selected, destination)
 	hover_valid = error.is_empty()
+	hover_error = error
 	var tint := GREEN if hover_valid else RED
 	hover_caption = "%.2f inches: %s" % [unit.position.distance_to(destination), "valid movement segment" if hover_valid else error]
 	if combat and hover_valid:

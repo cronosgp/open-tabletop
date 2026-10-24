@@ -15,6 +15,7 @@ var rematch_note: Label
 var details: Label
 var notice: Label
 var folder_button: Button
+var armies_button: Button
 var result_path := ""
 
 func _ready() -> void:
@@ -47,7 +48,8 @@ func _ready() -> void:
 	column.add_child(actions)
 	_button(actions, "Copy result", func(): copy_requested.emit())
 	_button(actions, "Save result", func(): save_requested.emit())
-	_button(actions, "Review armies", func(): armies_requested.emit())
+	armies_button = _button(actions, "Review armies", func(): armies_requested.emit())
+	armies_button.visible = false
 	_button(actions, "Main menu", func(): menu_requested.emit())
 	var toggle := CheckButton.new()
 	toggle.text = "Result details"
@@ -96,3 +98,6 @@ func show_saved(path: String) -> void:
 	result_path = path
 	folder_button.visible = not path.is_empty()
 	folder_button.tooltip_text = path
+
+func set_workshop_available(available: bool) -> void:
+	if armies_button != null: armies_button.visible = available

@@ -5,6 +5,9 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Catalog = preload("res://scripts/implemented_army_catalog.gd")
 const RosterValidation = preload("res://scripts/edition_11/roster_validation.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -35,6 +38,19 @@ func option(state: Dictionary, player: int, action: String, target: int = -999, 
 	for item: Dictionary in C.unit_choices(state, player):
 		if item.action == action and (target == -999 or item.target == target) and (value.is_empty() or item.value == value): return item
 	return {}
+
+func submit_choice(state: Dictionary, player: int, action_id: String, target: int = -1) -> Dictionary:
+	var decision := C.UnitActions.pending_decision(state)
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No matching UnitActions decision for Player %d." % player}
+	var option_projection: Dictionary = {}
+	for candidate: Dictionary in decision.get("legal_options", []):
+		if str(candidate.get("action", "")) == action_id and int(candidate.get("target", -1)) == target:
+			option_projection = candidate
+			break
+	if option_projection.is_empty(): return {"error": "The pending decision does not offer %s for target %d." % [action_id, target]}
+	var choice := option(state, player, action_id, target)
+	if choice.is_empty(): return {"error": "UnitActions no longer offers %s for target %d." % [action_id, target]}
+	return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(option_projection.get("id", "")), "choice": choice}})
 
 func _initialize() -> void:
 	call_deferred("run")
@@ -78,7 +94,7 @@ func run() -> void:
 	var plasma_choice := option(state, 1, "inceptor-loadout", found.squad, "plasma")
 	check(not plasma_choice.is_empty(), "Setup presents the source all-model Plasma replacement")
 	if not plasma_choice.is_empty():
-		check(C.unit_action(state, 1, plasma_choice, Vector2.ZERO, state.revision).is_empty(), "The source Plasma replacement is accepted")
+		check(PublicUnitCommand.error(state, 1, plasma_choice).is_empty(), "The source Plasma replacement is accepted through the public command")
 		for model: int in found.models:
 			if model == plasma_choice.model: check(state.units[model].ranged_weapons[0].id == "plasma-exterminators" and state.units[model].ranged_weapons[0].profiles.supercharge.keywords.hazardous, "Selected model uses Plasma Exterminators and preserves Hazardous")
 			else: check(state.units[model].ranged_weapons[0].id == "assault-bolters", "Other models retain their Assault Bolters, allowing the source's individual replacement choice")
@@ -93,22 +109,39 @@ func run() -> void:
 	check(C.UnitAbilities.hit_bonus(state, found.squad, found.enemy, false) == 0, "Meteoric Descent does not remain after a non-Ingress move")
 	state.phase = "fight"
 	state.active = 2
+	state.fight_actor = 2
+	state.fight_step = "complete"
 	state.unit_abilities.window = {}
 	state.unit_abilities.end_done = ""
+	state.unit_abilities.phase_key = C.UnitActions.key(state)
+	state.resolution_frames = []
 	for model: int in found.models: state.units[model].position = Vector2(-12, float((model % 3) - 1))
 	for model: int in found.enemy_models: state.units[model].position = Vector2(14, float((model % 5) - 2))
 	state.units[found.enemy_models[0]].position = state.units[found.models[0]].position + Vector2(0.1, 0.0)
 	check(C.UnitActions.parabolic_jetleap_squads(state, 1).is_empty(), "Engaged Inceptors cannot use Parabolic Jetleap")
 	state.units[found.enemy_models[0]].position = Vector2(14, -2)
 	state.unit_abilities.end_done = ""
-	check(C.UnitActions.open_end(state) and state.unit_abilities.window.kind == "end" and 1 in state.unit_abilities.window.owners, "Opponent Fight end opens the Inceptor owner's Parabolic Jetleap choice")
-	var jetleap := option(state, 1, "parabolic-jetleap", found.squad)
-	check(not jetleap.is_empty(), "Unengaged Inceptors can choose Parabolic Jetleap")
-	if not jetleap.is_empty():
-		check(C.unit_action(state, 1, jetleap, Vector2.ZERO, state.revision).is_empty() and state.unit_abilities.reserves.has(found.squad), "Parabolic Jetleap places the squad in Strategic Reserves")
+	var close_error := C.advance_phase(state, 2, state.revision)
+	var end_decision := C.UnitActions.pending_decision(state)
+	check(close_error.is_empty() and end_decision.get("timing", "") == "end-phase:fight" and ResolutionFrames.current(state).get("kind", "") == "phase-close", "Opponent Fight close suspends its phase-close frame for the Inceptor owner's normalized Parabolic Jetleap decision: " + close_error)
+	var attempts := 0
+	while attempts < 2 and not end_decision.is_empty() and int(end_decision.get("priority_player_id", -1)) != 1:
+		var priority_player := int(end_decision.get("priority_player_id", -1))
+		var declined := submit_choice(state, priority_player, "pass")
+		if not str(declined.get("error", "")).is_empty(): break
+		end_decision = C.UnitActions.pending_decision(state)
+		attempts += 1
+	var jetleap_error := "No Parabolic Jetleap decision for Player 1."
+	if int(end_decision.get("priority_player_id", -1)) == 1:
+		var jetleap := submit_choice(state, 1, "parabolic-jetleap", found.squad)
+		jetleap_error = str(jetleap.get("error", ""))
+	check(jetleap_error.is_empty() and state.unit_abilities.reserves.has(found.squad) and ResolutionFrames.current(state).get("kind", "") == "phase-close", "Public Parabolic Jetleap choice places the squad in Strategic Reserves and retains phase close: " + jetleap_error)
+	if state.unit_abilities.reserves.has(found.squad):
 		for model: int in found.models: check(not state.units[model].on_battlefield, "Every Inceptor leaves the battlefield together")
-		var pass_end := option(state, 1, "pass")
-		if not pass_end.is_empty(): C.unit_action(state, 1, pass_end, Vector2.ZERO, state.revision)
+		var restored: Dictionary = bytes_to_var(var_to_bytes(state))
+		var pass_end := submit_choice(restored, 1, "pass")
+		check(str(pass_end.get("error", "")).is_empty() and (ResolutionFrames.current(restored).is_empty() or str(ResolutionFrames.current(restored).get("action_id", "")) != "phase-close:%d:fight" % int(state.turn)), "Passing after save/restore resumes Fight close: " + str(pass_end.get("error", "")))
+		state = restored
 		state.phase = "movement"
 		state.active = 1
 		state.round = 2

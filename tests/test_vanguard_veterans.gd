@@ -6,6 +6,8 @@ const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const Commands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -24,6 +26,17 @@ func find_choice(state: Dictionary, action: String, model: int, value: String) -
 	for option: Dictionary in UnitActions.choices(state, 1):
 		if option.action == action and option.model == model and option.value == value: return option
 	return {}
+
+func submit_preparation_choice(state: Dictionary, player: int, selected: Dictionary, decision_id: String = "", option_id: String = "") -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty(): return {"error": "No current Vanguard Veteran preparation decision is open."}
+	var projected: Dictionary = {}
+	for candidate: Dictionary in decision.get("legal_options", []):
+		if str(candidate.get("action", "")) == str(selected.get("action", "")) and int(candidate.get("model", -1)) == int(selected.get("model", -1)) and int(candidate.get("target", -1)) == int(selected.get("target", -1)) and str(candidate.get("value", "")) == str(selected.get("value", "")):
+			projected = candidate
+			break
+	if projected.is_empty(): return {"error": "The current Vanguard Veteran preparation decision does not offer this choice."}
+	return Commands.execute(state, player, {"kind": Commands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": Commands.UNIT_CHOICE_ENVELOPE, "decision_id": decision_id if not decision_id.is_empty() else str(decision.get("decision_id", "")), "option_id": option_id if not option_id.is_empty() else str(projected.get("id", "")), "choice": selected}})
 
 func _initialize() -> void:
 	var profile := Profiles.profile("vanguard-veteran-squad-with-jump-packs")
@@ -48,19 +61,24 @@ func _initialize() -> void:
 	state.awakened_dynasty.pending = []
 	check(Abilities.every_model_has(state, 3, "deep-strike") and Abilities.has(state, 3, "vanguard-assault"), "Deep Strike and Vanguard Assault are active on the assembled unit")
 	var shield := find_choice(state, "vanguard-veteran-pistol", 301, "combat-shield")
-	check(not shield.is_empty() and C.unit_action(state, 1, shield, Vector2.ZERO, state.revision).is_empty(), "A model can replace its Heavy Bolt Pistol with a Combat Shield")
+	var prep_decision := PendingDecisions.current(state, ["unit-actions"])
+	var before_choice := var_to_bytes(state)
+	var wrong_owner := submit_preparation_choice(state, 2, shield)
+	var stale_option := submit_preparation_choice(state, 1, shield, str(prep_decision.get("decision_id", "")), "stale-option")
+	check(not wrong_owner.get("error", "").is_empty() and not stale_option.get("error", "").is_empty() and before_choice == var_to_bytes(state), "Wrong-owner and stale Vanguard Veteran choices are rejected unchanged")
+	check(not shield.is_empty() and submit_preparation_choice(state, 1, shield).get("error", "").is_empty(), "A model can replace its Heavy Bolt Pistol with a Combat Shield through the public command")
 	check(Groups.profile(state, 301).invulnerable_target == 5 and Groups.profile(state, 302).invulnerable_target == 0, "Combat Shield grants an individual 5+ invulnerable save only to its bearer")
 	var plasma := find_choice(state, "vanguard-veteran-pistol", 301, "plasma-pistol")
-	check(not plasma.is_empty() and C.unit_action(state, 1, plasma, Vector2.ZERO, state.revision).is_empty(), "An equipped Combat Shield can be replaced by a Plasma Pistol")
+	check(not plasma.is_empty() and submit_preparation_choice(state, 1, plasma).get("error", "").is_empty(), "An equipped Combat Shield can be replaced by a Plasma Pistol through the public command")
 	check(state.units[301].ranged_weapons[0].profiles.supercharge.keywords.hazardous and state.units[301].ranged_weapons[0].profiles.standard.attacks == 1, "Both extracted Plasma Pistol modes are available")
 	for model: int in [302, 303]:
 		plasma = find_choice(state, "vanguard-veteran-pistol", model, "plasma-pistol")
-		if not plasma.is_empty(): C.unit_action(state, 1, plasma, Vector2.ZERO, state.revision)
+		if not plasma.is_empty(): check(submit_preparation_choice(state, 1, plasma).get("error", "").is_empty(), "An ordinary-model Plasma Pistol selection uses the public command")
 	check(find_choice(state, "vanguard-veteran-pistol", 304, "plasma-pistol").is_empty(), "Two ordinary Plasma Pistols is the five-model cap")
 	var sergeant_plasma := find_choice(state, "vanguard-veteran-pistol", 300, "plasma-pistol")
-	check(not sergeant_plasma.is_empty() and C.unit_action(state, 1, sergeant_plasma, Vector2.ZERO, state.revision).is_empty(), "The Sergeant's independent Plasma Pistol option does not consume the ordinary-model limit")
+	check(not sergeant_plasma.is_empty() and submit_preparation_choice(state, 1, sergeant_plasma).get("error", "").is_empty(), "The Sergeant's independent Plasma Pistol option does not consume the ordinary-model limit")
 	var hammer := find_choice(state, "vanguard-veteran-melee", 300, "thunder-hammer")
-	check(not hammer.is_empty() and C.unit_action(state, 1, hammer, Vector2.ZERO, state.revision).is_empty() and state.units[300].melee_weapons[0].profiles.standard.keywords.get("devastating-wounds", false), "Sergeant may replace the Relic Blade with a Devastating Wounds Thunder Hammer")
+	check(not hammer.is_empty() and submit_preparation_choice(state, 1, hammer).get("error", "").is_empty() and state.units[300].melee_weapons[0].profiles.standard.keywords.get("devastating-wounds", false), "Sergeant may replace the Relic Blade with a Devastating Wounds Thunder Hammer through the public command")
 	state.squads[3].charged = false
 	check(Abilities.melee_bonus(state, 3) == 0, "Vanguard Assault is inactive before the unit charges")
 	state.squads[3].charged = true

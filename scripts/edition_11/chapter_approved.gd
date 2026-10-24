@@ -5,22 +5,34 @@ const G = preload("res://scripts/edition_11/contact_movement.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
 const ScoutMoves = preload("res://scripts/edition_11/scout_moves.gd")
+const Objectives = preload("res://scripts/edition_11/objectives.gd")
+const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const ID := "ca-2026-27-dominance-hammer-fixed-v1"
+const DEFAULT_TERRAIN_LAYOUT := "ca-2026-27-take-and-hold-mirror-a-v1"
 const SIZE := Vector2(60, 44)
+const PRIMARY_MISSIONS := {
+	"battlefield-dominance": {"name": "Battlefield Dominance", "force_disposition": "Take and Hold"},
+	"meatgrinder": {"name": "Meatgrinder", "force_disposition": "Purge the Foe"},
+	"reconnaissance-sweep": {"name": "Reconnaissance Sweep", "force_disposition": "Reconnaissance"},
+	"secure-asset": {"name": "Secure Asset", "force_disposition": "Priority Assets"}
+}
 
 static func enabled(s: Dictionary) -> bool:
 	return s.get("mission", {}).get("id", "") == ID
 
-static func enable(s: Dictionary) -> void:
+static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOUT, primary_id: String = "battlefield-dominance") -> void:
+	if not T.is_event_layout(terrain_layout): terrain_layout = DEFAULT_TERRAIN_LAYOUT
+	if not PRIMARY_MISSIONS.has(primary_id): primary_id = "battlefield-dominance"
+	var primary: Dictionary = PRIMARY_MISSIONS[primary_id]
 	s.board_size = SIZE
 	s.test_battlefield = ID
 	s.battle_size = "Incursion - CA 2026-27 (reference lists)"
 	s.first_player = 1
-	s.mission = {"id": ID, "name": "Battlefield Dominance", "deployment": "Hammer and Anvil", "force_disposition": "Take and Hold", "secondary_mode": "fixed", "secondary_cards": ["engage-on-all-fronts", "assassination"], "rounds": 5, "stage": "terrain", "roll_winner": 0, "attacker": 0, "defender": 0, "battle_ready": {}, "objectives": [], "actions": [], "scores": {1: 0, 2: 0}, "primary": {1: 0, 2: 0}, "secondary": {1: 0, 2: 0}, "cards": {1: {"engage-on-all-fronts": 0, "assassination": 0}, 2: {"engage-on-all-fronts": 0, "assassination": 0}}, "round_points": {}, "scored": [], "dead_characters": [], "log": []}
-	terrain(s, false)
+	s.mission = {"id": ID, "primary_id": primary_id, "name": primary.name, "deployment": "Hammer and Anvil", "force_disposition": primary.force_disposition, "terrain_layout": terrain_layout, "secondary_mode": "fixed", "secondary_cards": ["engage-on-all-fronts", "assassination"], "rounds": 5, "stage": "terrain", "roll_winner": 0, "attacker": 0, "defender": 0, "battle_ready": {}, "objectives": [], "actions": ["secure-asset"] if primary_id == "secure-asset" else [], "scores": {1: 0, 2: 0}, "primary": {1: 0, 2: 0}, "secondary": {1: 0, 2: 0}, "cards": {1: {"engage-on-all-fronts": 0, "assassination": 0}, 2: {"engage-on-all-fronts": 0, "assassination": 0}}, "round_points": {}, "scored": [], "dead_characters": [], "log": [], "turn_start_alive": {1: [], 2: []}, "turn_start_central": {1: [], 2: []}, "last_turn_losses": {1: 0, 2: 0}, "asset_secured_turn": {1: -1, 2: -1}}
+	terrain(s, false, terrain_layout)
 	Registry.admit(s, "ca-dominance-hammer-fixed", ID)
 
-static func terrain(s: Dictionary, two: bool) -> void:
+static func terrain(s: Dictionary, two: bool, terrain_layout: String = DEFAULT_TERRAIN_LAYOUT) -> void:
 	var areas: Array = []
 	var objectives: Array = []
 	var points := [{"name": "Attacker home", "point": Vector2(-16, -12), "role": "attacker"}, {"name": "Defender home", "point": Vector2(16, 12), "role": "defender"}, {"name": "North expansion", "point": Vector2(-6, 14), "role": "expansion"}, {"name": "South expansion", "point": Vector2(6, -14), "role": "expansion"}]
@@ -30,7 +42,10 @@ static func terrain(s: Dictionary, two: bool) -> void:
 		# Agreed custom ground-level terrain covering each official objective point.
 		areas.append({"name": point.name, "category": "light", "bounds": bounds, "features": [{"bounds": Rect2(bounds.position + Vector2(0, 0.8), Vector2(6, 0.2)), "height": 1.0, "blocks_end": true}]})
 		objectives.append({"name": point.name, "kind": "terrain", "bounds": bounds, "role": point.role, "controller": 0, "secured": 0, "levels": {1: 0, 2: 0}})
-	s.terrain = {"id": ID + "-custom-terrain", "areas": areas}
+	var selected_layout := T.layout(terrain_layout)
+	if not selected_layout.has("error"):
+		for area: Dictionary in selected_layout.areas: areas.append(area)
+	s.terrain = {"id": terrain_layout, "source": "wahapedia-11e-event-companion-2026-27-take-and-hold-mirror", "areas": areas}
 	s.mission.objectives = objectives
 
 static func actor(s: Dictionary) -> int:
@@ -57,8 +72,59 @@ static func choices(s: Dictionary, player: int) -> Array:
 		"battle-ready": return [choice("Battle Ready: no painting bonus", "mission-ready", 0), choice("Declare army Battle Ready (+10 VP at battle end)", "mission-ready", 1)]
 	return []
 
+static func pending_decision(s: Dictionary) -> Dictionary:
+	var owner := actor(s)
+	if owner <= 0: return {}
+	var options := choices(s, owner)
+	if options.is_empty(): return {}
+	return PendingDecision.create(s, "mission-preparation", "mission-preparation:%s" % str(s.get("mission", {}).get("stage", "")), owner, options, false)
+
 static func roll(roller: Callable) -> int:
 	return int(roller.call()) if roller.is_valid() else randi_range(1, 6)
+
+static func primary_id(s: Dictionary) -> String:
+	return str(s.get("mission", {}).get("primary_id", "battlefield-dominance"))
+
+static func _ensure_tracking(m: Dictionary) -> void:
+	# Older saves for this mission predate the optional-primary trackers.
+	if not m.get("turn_start_alive", null) is Dictionary: m.turn_start_alive = {1: [], 2: []}
+	if not m.get("turn_start_central", null) is Dictionary: m.turn_start_central = {1: [], 2: []}
+	if not m.get("last_turn_losses", null) is Dictionary: m.last_turn_losses = {1: 0, 2: 0}
+	if not m.get("asset_secured_turn", null) is Dictionary: m.asset_secured_turn = {1: -1, 2: -1}
+	for player in [1, 2]:
+		if not m.turn_start_alive.has(player): m.turn_start_alive[player] = []
+		if not m.turn_start_central.has(player): m.turn_start_central[player] = []
+		if not m.last_turn_losses.has(player): m.last_turn_losses[player] = 0
+		if not m.asset_secured_turn.has(player): m.asset_secured_turn[player] = -1
+
+static func start_turn(s: Dictionary) -> void:
+	if not enabled(s): return
+	var m: Dictionary = s.mission
+	_ensure_tracking(m)
+	for player in [1, 2]:
+		m.turn_start_alive[player] = []
+		m.turn_start_central[player] = []
+		for squad: int in s.squads:
+			if int(s.squads[squad].owner) != player or G.alive(s, squad).is_empty(): continue
+			m.turn_start_alive[player].append(squad)
+			if _within_central(s, squad): m.turn_start_central[player].append(squad)
+
+static func _within_central(s: Dictionary, squad: int) -> bool:
+	for objective: Dictionary in s.mission.objectives:
+		if objective.get("role", "") != "central": continue
+		for model: int in G.alive(s, squad):
+			if Objectives.in_range(s.units[model], objective): return true
+	return false
+
+static func _turn_losses(s: Dictionary) -> Dictionary:
+	var result := {1: 0, 2: 0}
+	var lost_central := {1: [], 2: []}
+	for player in [1, 2]:
+		for squad: int in s.mission.turn_start_alive.get(player, []):
+			if G.alive(s, squad).is_empty():
+				result[player] += 1
+				if squad in s.mission.turn_start_central.get(player, []): lost_central[player].append(squad)
+	return {"units": result, "central": lost_central}
 
 static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Callable) -> String:
 	var m: Dictionary = s.mission
@@ -66,7 +132,7 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		"mission-terrain":
 			var die := roll(roller)
 			if die < 1 or die > 6: return "Invalid mission die."
-			terrain(s, die == 6)
+			terrain(s, die == 6, str(m.get("terrain_layout", DEFAULT_TERRAIN_LAYOUT)))
 			m.terrain_die = die
 			m.stage = "roles-roll"
 		"mission-roles", "mission-first":
@@ -137,7 +203,8 @@ static func award(s: Dictionary, player: int, source: String, requested: int, ti
 	var m: Dictionary = s.mission
 	var key := "%d:%d:%s" % [s.round, player, source]
 	var amount := mini(requested, 45 - int(m[source][player]))
-	amount = mini(amount, 15 - int(m.round_points.get(key, 0)))
+	# Event Companion FAQ: end-of-battle VP is outside the per-round scoring cap.
+	if timing != "end battle": amount = mini(amount, 15 - int(m.round_points.get(key, 0)))
 	if not card.is_empty(): amount = mini(amount, 20 - int(m.cards[player][card]))
 	amount = maxi(0, amount)
 	m[source][player] += amount
@@ -162,17 +229,90 @@ static func primary_control(s: Dictionary) -> int:
 		if objective.controller == s.active: result += 3 + (2 if home and objective.role != role else 0)
 	return result
 
-static func quarters(s: Dictionary, player: int) -> int:
+static func controlled_non_home(s: Dictionary, player: int) -> int:
+	var result := 0
+	var home_role := "attacker" if player == s.mission.attacker else "defender"
+	for objective: Dictionary in s.mission.objectives:
+		if objective.controller == player and objective.role != home_role: result += 1
+	return result
+
+static func _primary_checkpoint(s: Dictionary) -> bool:
+	return s.round >= 2 and ((s.phase == "command" and s.round < 5) or (s.phase == "end_turn" and s.round == 5))
+
+static func _score_primary(s: Dictionary, losses: Dictionary) -> void:
+	var m: Dictionary = s.mission
+	var p := primary_id(s)
+	var player: int = s.active
+	var opponent := 3 - player
+	var non_home := controlled_non_home(s, player)
+	match p:
+		"battlefield-dominance":
+			if _primary_checkpoint(s): award(s, player, "primary", primary_control(s), s.phase)
+			if s.phase == "end_turn" and s.round <= 2 and controlled(s, player) > controlled(s, opponent): award(s, player, "primary", 2, "end turn")
+		"meatgrinder":
+			if _primary_checkpoint(s) and non_home > 0: award(s, player, "primary", 4, s.phase)
+			if s.phase == "end_turn":
+				if int(losses.units[opponent]) > 0: award(s, player, "primary", 3, "end turn")
+				if s.round >= 2 and int(losses.units[opponent]) > int(m.last_turn_losses.get(player, 0)): award(s, player, "primary", 5, "end turn")
+				if s.round >= 2 and _controls_home(s, player, opponent): award(s, player, "primary", 5, "end turn")
+		"reconnaissance-sweep":
+			if _primary_checkpoint(s) and non_home > 0: award(s, player, "primary", 3, s.phase)
+			if s.phase == "end_turn":
+				var quarters_present := quarters(s, player, false)
+				award(s, player, "primary", 6 if quarters_present >= 4 else 3 if quarters_present >= 3 else 0, "end turn")
+				award(s, player, "primary", int(losses.units[opponent]), "end turn")
+		"secure-asset":
+			if _primary_checkpoint(s):
+				if non_home > 0: award(s, player, "primary", 4, s.phase)
+				if controlled(s, player) >= 3: award(s, player, "primary", 4, s.phase)
+			if s.phase == "end_turn":
+				if int(m.asset_secured_turn.get(player, -1)) == int(s.turn): award(s, player, "primary", 4, "end turn")
+			var central_losses: Array = losses.central.get(opponent, [])
+			if s.phase == "end_turn" and not central_losses.is_empty(): award(s, player, "primary", 2, "end turn")
+
+static func _controls_home(s: Dictionary, player: int, owner: int) -> bool:
+	var role := "attacker" if owner == s.mission.attacker else "defender"
+	for objective: Dictionary in s.mission.objectives:
+		if objective.role == role and objective.controller == player: return true
+	return false
+
+static func _unit_wholly_in_territory(s: Dictionary, squad: int, owner: int) -> bool:
+	var alive := G.alive(s, squad)
+	if alive.is_empty(): return false
+	var zone: Rect2 = s.get("deployment", {}).get("zones", {}).get(owner, Rect2())
+	var center := zone.get_center()
+	var horizontal_split := absf(center.x) >= absf(center.y)
+	var owner_on_negative_side := center.x < 0.0 if horizontal_split else center.y < 0.0
+	if is_zero_approx(center.x) and is_zero_approx(center.y): return false
+	for model: int in alive:
+		var unit: Dictionary = s.units[model]
+		if not unit.get("on_battlefield", true): return false
+		var coordinate: float = unit.position.x if horizontal_split else unit.position.y
+		var radius: float = float(unit.get("radius", 0.0))
+		if owner_on_negative_side and coordinate + radius > 0.001: return false
+		if not owner_on_negative_side and coordinate - radius < -0.001: return false
+	return true
+
+static func no_enemy_wholly_in_territory(s: Dictionary, player: int) -> bool:
+	var zones: Dictionary = s.get("deployment", {}).get("zones", {})
+	if not zones.has(player) or not zones[player] is Rect2 or zones[player].size == Vector2.ZERO: return false
+	for squad: int in s.squads:
+		if int(s.squads[squad].owner) != player and _unit_wholly_in_territory(s, squad, player): return false
+	return true
+
+static func quarters(s: Dictionary, player: int, exclude_aircraft_and_shocked: bool = true) -> int:
 	var found: Array[int] = []
 	for squad: int in s.squads:
-		if s.squads[squad].owner != player or s.squads[squad].battle_shocked: continue
+		if s.squads[squad].owner != player or (exclude_aircraft_and_shocked and s.squads[squad].battle_shocked): continue
 		var ids := G.alive(s, squad)
 		if ids.is_empty(): continue
 		var quarter := -1
 		var valid := true
 		for model: int in ids:
 			var u: Dictionary = s.units[model]
-			if "AIRCRAFT" in u.get("keywords", []) or u.position.length() - float(u.radius) <= 6.001: valid = false; break
+			if not u.get("on_battlefield", true): valid = false; break
+			if exclude_aircraft_and_shocked and "AIRCRAFT" in u.get("keywords", []): valid = false; break
+			if u.position.length() - float(u.radius) <= 6.001: valid = false; break
 			var q: int = (0 if u.position.x < 0 else 1) + (0 if u.position.y < 0 else 2)
 			if absf(u.position.x) < float(u.radius) - 0.001 or absf(u.position.y) < float(u.radius) - 0.001 or (quarter >= 0 and q != quarter): valid = false; break
 			quarter = q
@@ -182,13 +322,13 @@ static func quarters(s: Dictionary, player: int) -> int:
 static func score(s: Dictionary) -> bool:
 	if not enabled(s) or s.phase not in ["command", "end_turn"]: return false
 	var m: Dictionary = s.mission
+	_ensure_tracking(m)
 	var key := "%d:%s" % [s.turn, s.phase]
 	if key in m.scored: return false
 	m.scored.append(key)
-	if s.round >= 2 and ((s.phase == "command" and s.round < 5) or (s.phase == "end_turn" and s.round == 5)):
-		award(s, s.active, "primary", primary_control(s), s.phase)
+	var losses := _turn_losses(s) if s.phase == "end_turn" else {"units": {1: 0, 2: 0}, "central": {1: [], 2: []}}
+	_score_primary(s, losses)
 	if s.phase != "end_turn": return false
-	if s.round <= 2 and controlled(s, s.active) > controlled(s, 3 - s.active): award(s, s.active, "primary", 2, "end turn")
 	var count := quarters(s, s.active)
 	award(s, s.active, "secondary", 4 if count == 4 else 2 if count == 3 else 0, "end turn", "engage-on-all-fronts")
 	for model: int in s.units:
@@ -196,9 +336,12 @@ static func score(s: Dictionary) -> bool:
 		if unit.wounds > 0 or not Groups.character(unit) or model in m.dead_characters: continue
 		m.dead_characters.append(model)
 		award(s, 3 - unit.owner, "secondary", 3 + (1 if unit.max_wounds >= 4 else 0), "end turn", "assassination")
+	m.last_turn_losses = losses.units.duplicate(true)
 	if s.round == 5 and s.active != s.first_player:
 		for player in [1, 2]:
 			if m.battle_ready[player]: m.scores[player] += 10
+			if primary_id(s) == "reconnaissance-sweep" and no_enemy_wholly_in_territory(s, player):
+				award(s, player, "primary", 10, "end battle")
 		s.test_winner = 1 if m.scores[1] > m.scores[2] else 2 if m.scores[2] > m.scores[1] else -1
 		m.stage = "complete"
 		return true
@@ -206,7 +349,7 @@ static func score(s: Dictionary) -> bool:
 
 static func summary(s: Dictionary) -> String:
 	var m: Dictionary = s.mission
-	return "CA 2026-27 - Battlefield Dominance / Hammer and Anvil\nVP %d / %d | Primary %d/%d | Fixed secondaries %d/%d\nEngage on All Fronts + Assassination | Round %d/5\n%s" % [m.scores[1], m.scores[2], m.primary[1], m.primary[2], m.secondary[1], m.secondary[2], s.round, m.log[-1] if not m.log.is_empty() else "Resolve mission preparation choices."]
+	return "CA 2026-27 - %s / Hammer and Anvil\nVP %d / %d | Primary %d/%d | Fixed secondaries %d/%d\nEngage on All Fronts + Assassination | Round %d/5\n%s" % [str(m.get("name", "Battlefield Dominance")), m.scores[1], m.scores[2], m.primary[1], m.primary[2], m.secondary[1], m.secondary[2], s.round, m.log[-1] if not m.log.is_empty() else "Resolve mission preparation choices."]
 
 static func secret_formations(s: Dictionary) -> bool:
 	return enabled(s) and s.phase == "deployment" and s.mission.stage == "formations" and s.unit_abilities.get("setup_players", []).size() < 2

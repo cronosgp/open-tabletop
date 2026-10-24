@@ -1,6 +1,7 @@
 extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Prevention = preload("res://scripts/edition_11/unit_prevention.gd")
@@ -16,6 +17,9 @@ func six() -> int: return 6
 func four() -> int: return 4
 func one() -> int: return 1
 func queued_die() -> int: return dice_queue.pop_front() if not dice_queue.is_empty() else 6
+
+func submit_choice(state: Dictionary, player: int, choice: Dictionary, roller: Callable) -> Dictionary:
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": choice, "revision": int(state.revision)}, roller)
 
 func selections() -> Dictionary:
 	var result := F.selections()
@@ -93,7 +97,12 @@ func _initialize() -> void:
 	for option: Dictionary in C.unit_choices(state, 1):
 		if option.action == "librarius-power" and option.value == "might-of-heroes": might = option
 	check(not might.is_empty(), "Might of Heroes is available in the Fight phase")
-	if not might.is_empty(): check(C.unit_action(state, 1, might, Vector2.ZERO, state.revision, six).is_empty(), "Might of Heroes resolves its psychic roll")
+	if not might.is_empty():
+		var before_wrong_might_owner := var_to_bytes(state)
+		var wrong_might_owner := submit_choice(state, 2, might, six)
+		check(not str(wrong_might_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_might_owner, "The opponent cannot submit or mutate Might of Heroes")
+		var might_result := submit_choice(state, 1, might, six)
+		check(str(might_result.get("error", "")).is_empty(), "Might of Heroes resolves through the common match command")
 	var fist: Dictionary = Profiles.profile("terminator-squad").melee[0].profiles.standard.duplicate(true)
 	check(C.UnitAbilities.weapon(state, C.living(state, terminators)[0], enemy, fist, true).strength == 10, "Might of Heroes adds +2 Strength to attached melee weapons")
 	check(C.UnitActions.librarius_choices(state, 1).is_empty(), "Librarius level 1 prevents using the second level-1 power in the same battle round")
@@ -110,7 +119,9 @@ func _initialize() -> void:
 	var shock_choice: Dictionary = {}
 	for option: Dictionary in C.unit_choices(shocked, 1):
 		if option.action == "librarius-power" and option.value == "might-of-heroes": shock_choice = option
-	if not shock_choice.is_empty(): check(C.unit_action(shocked, 1, shock_choice, Vector2.ZERO, shocked.revision, one).is_empty() and shocked.squads[found[1]].battle_shocked, "A psychic roll of 1 Battle-shocks the Librarian's unit")
+	if not shock_choice.is_empty():
+		var shock_result := submit_choice(shocked, 1, shock_choice, one)
+		check(str(shock_result.get("error", "")).is_empty() and shocked.squads[found[1]].battle_shocked, "A psychic roll of 1 Battle-shocks the Librarian's unit through the common match command")
 	var shooting := make_state()
 	found = find_squads(shooting)
 	shooting.phase = "deployment"
@@ -126,7 +137,9 @@ func _initialize() -> void:
 	var thunder: Dictionary = {}
 	for option: Dictionary in C.unit_choices(shooting, 1):
 		if option.action == "librarius-power" and option.value == "thunderous-force": thunder = option
-	if not thunder.is_empty(): check(C.unit_action(shooting, 1, thunder, Vector2.ZERO, shooting.revision, six).is_empty(), "Thunderous Force resolves its psychic roll")
+	if not thunder.is_empty():
+		var thunder_result := submit_choice(shooting, 1, thunder, six)
+		check(str(thunder_result.get("error", "")).is_empty(), "Thunderous Force resolves its psychic roll through the common match command")
 	var storm_bolter: Dictionary = Profiles.profile("terminator-squad").ranged[0].profiles.standard.duplicate(true)
 	check(C.UnitAbilities.weapon(shooting, C.living(shooting, found[1])[0], found[2], storm_bolter, false).range_inches == 30.0, "Thunderous Force adds 6 inches to ranged weapon range")
 	check(found[2] in C.AttackPlan.legal_targets(shooting, C.living(shooting, found[1])[0], false), "Thunderous Force permits the attached Terminators to target beyond the base 24-inch range")

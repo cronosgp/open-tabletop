@@ -19,6 +19,8 @@ The host validates ownership, phase, action restrictions, Fight priority/reactio
 
 Target selection freezes visibility, range, Rapid Fire and per-model cover before casualties. Identical ranged attacks still split into separate pools when cover or Rapid Fire differs. Damage does not redirect declared attacks to other units, and front-model casualties do not invalidate attacks already declared against the same unit. Each pool identifies its target in the event log. Results include the declared rows and target order in the synchronized snapshot.
 
+Weapon BS/WS characteristics are resolved independently from modifiers to Hit rolls. Source modules can record unit-level or model-level characteristic modifiers; positive values improve the target number (3+ to 2+), negative values worsen it, and the result is capped at 2+–6+ under the current Core Rules. Might of the Machine Spirit and Master of the Forge can ignore the direct characteristic modifiers through this path without erasing separate Hit-roll modifiers. The ordinary Techmarine Blessings of the Omnissiah ignores Hit/Wound-roll modifiers only; it does not ignore direct BS/WS characteristic modifiers.
+
 In automatic-assist mode, resolution applies damage and consumes shooting/Fight eligibility once for the entire unit. If any pool fails, including an invalid dice provider after an earlier pool, all match-state damage, activation and history changes are discarded. In [defender-choice mode](defender-allocation.md), damage instead commits per accepted choice while activation and queue progression wait for all choices. The random provider may already have consumed values; dice are host-owned. Mandatory reactions resume only after the complete plan resolves.
 
 ## Limits and verification

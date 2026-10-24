@@ -106,7 +106,10 @@ static func pending_decision(state: Dictionary) -> Dictionary:
 		if confirm_error(state).is_empty():
 			options.append(_decision_option("Confirm Reanimation for %s" % str(state.squads[squad].name), squad, -1, "confirm"))
 	if options.is_empty(): return {}
-	return PendingDecision.create(state, "reanimation", "command-phase:reanimation", owner, options, false)
+	var timing := "command-phase:reanimation"
+	if str(window.get("kind", "")) == "orb": timing = "end-phase:%s:reanimation" % str(state.get("phase", ""))
+	elif str(window.get("kind", "")) == "undying": timing = "post-destruction:%s:reanimation" % str(state.get("phase", ""))
+	return PendingDecision.create(state, "reanimation", timing, owner, options, false)
 
 static func _decision_option(label: String, squad: int, model: int, value: String, details: Dictionary = {}) -> Dictionary:
 	var option := {"label": label, "action": "reanimation", "model": model, "target": squad, "value": value}

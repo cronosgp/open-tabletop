@@ -5,6 +5,7 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -25,7 +26,7 @@ func find_choice(state: Dictionary, player: int, action: String, model: int, val
 func apply_choice(state: Dictionary, player: int, action: String, model: int, value: String) -> String:
 	var option := find_choice(state, player, action, model, value)
 	if option.is_empty(): return "Choice not offered: %s=%s" % [action, value]
-	var result: Dictionary = C.UnitActions.apply(state, player, option, Vector2.ZERO, func() -> int: return 6)
+	var result: Dictionary = PublicUnitCommand.submit(state, player, option, Vector2.ZERO, func() -> int: return 6)
 	return str(result.get("error", ""))
 
 func _initialize() -> void: call_deferred("run")

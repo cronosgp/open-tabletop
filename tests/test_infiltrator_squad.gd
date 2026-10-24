@@ -3,13 +3,26 @@ extends SceneTree
 const F = preload("res://tests/marine_phobos_fixture.gd")
 const C = F.C
 const D = preload("res://scripts/edition_11/detection_rules.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 func check(ok: bool,message: String) -> void:
  if not ok:push_error(message);failures+=1
 func six() -> int:return 6
+func submit_choice(s: Dictionary, player: int, selected: Dictionary, point: Vector2 = Vector2.ZERO, roller: Callable = Callable(), revision: int = -2147483648) -> Dictionary:
+ var decision := PendingDecisions.current(s, ["unit-actions"])
+ var payload := selected
+ if not decision.is_empty():
+  if int(decision.get("priority_player_id", -1)) != player: return {"error": "The current UnitActions decision belongs to another player."}
+  var projected: Dictionary = {}
+  for option: Dictionary in decision.get("legal_options", []):
+   if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+  if projected.is_empty(): return {"error": "The selected choice is not in the current projection."}
+  payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+ return MatchCommands.execute(s, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": payload, "point": point, "revision": int(s.revision) if revision == -2147483648 else revision}, roller if roller.is_valid() else six)
 func choose(s: Dictionary,action: String,model: int = -1,point: Vector2 = Vector2.ZERO,value: String = "") -> String:
  for option: Dictionary in C.unit_choices(s,1):
-  if option.action==action and (model==-1 or option.model==model) and (value.is_empty() or option.value==value):return C.unit_action(s,1,option,point,s.revision,six)
+  if option.action==action and (model==-1 or option.model==model) and (value.is_empty() or option.value==value):return str(submit_choice(s,1,option,point,six).get("error", ""))
  return "Choice unavailable: "+action
 func _initialize() -> void:call_deferred("run")
 func run() -> void:
@@ -73,7 +86,9 @@ func run() -> void:
  s.unit_abilities.phase_key=C.UnitActions.key(s)
  var option: Dictionary=C.UnitActions.omni_choices(s,1)[0]
  var before := var_to_str(s)
- check(not C.unit_action(s,2,option,Vector2.ZERO,s.revision).is_empty() and var_to_str(s)==before,"Opponent applied detected mark")
- check(not C.unit_action(s,1,option,Vector2.ZERO,s.revision-1).is_empty() and var_to_str(s)==before,"Stale Omni choice changed state")
+ var wrong_owner := submit_choice(s,2,option)
+ var stale_choice := submit_choice(s,1,option,Vector2.ZERO,six,s.revision-1)
+ check(not str(wrong_owner.get("error", "")).is_empty() and var_to_str(s)==before,"Opponent applied detected mark")
+ check(not str(stale_choice.get("error", "")).is_empty() and var_to_str(s)==before,"Stale Omni choice changed state")
  print("Infiltrator Squad checks: %d failures" % failures)
  quit(0 if failures==0 else 1)

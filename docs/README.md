@@ -4,6 +4,8 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 
 ## Guides and gameplay
 
+- [Tactical training](guides/tactical-training.md) — distinct Marine forces, optional abilities and stratagems, and configuration boundaries.
+
 - [3D combat exercise](guides/3d-combat.md)
 - [Army builder](guides/army-builder.md)
 - [Gameplay UI and player flows](guides/gameplay-ui.md)
@@ -35,6 +37,7 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Faction catalog](data/faction-catalog.md) · [ForceOrg import](data/forceorg-import.md) · [Model import validation](data/model-import-validation.md)
 - [Wahapedia importer](wahapedia-import.md) · [Space Marines catalog and source reconciliation](space-marines-catalog.md) · [Consolidated Space Marines profile records](space-marines-profile-records.md) · [Datasheet implementation architecture](datasheet-implementation-architecture.md)
 - [Design-first UI prompting skill](skills/design-first-ui-prompting/SKILL.md) · [progress screenshots](skills/workflow-progress-screenshots/SKILL.md) · [score-to-target workflow](skills/workflow-score-to-target/SKILL.md)
+- [Game development and design skills](skills/game-development-design.md) — selected Godot and cross-engine skills, use guidance and source attribution.
 
 ## Architecture
 
@@ -45,6 +48,10 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 
 ## Project status and direction
 
+- [Current assessment and tactical consolidation plan](project/current-assessment.md) — roadmap position, strengths, weaknesses and evidence gates.
+- [Tactical training UX audit](project/tactical-training-ux-audit.md) — prioritized feedback on guided layout, decisions, dice readability, movement feedback and combat feel.
+- [Tactical training experience correction plan](project/tactical-training-experience-plan.md) — implementation order, screen hierarchy, player agency, combat pacing, symbols and next-playtest gates based on human feedback.
+- [Tactical training experience correction progress](project/tactical-training-experience-progress.md) — implementation findings, local evidence and remaining human/integration gates.
 - [Current support matrix](project/support-matrix.md) — what is supported and what is not.
 - [Roadmap](project/roadmap.md) — forward plan and completion criteria.
 - [Backlog](project/backlog.md)
@@ -53,8 +60,11 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 
 ## Verification
 
+- [Tactical training playtest procedure and record](verification/tactical-training-playtest.md) — human comprehension gate; no session claimed.
+
 - [Verification guide](verification/verification.md)
 - [Latest recorded verification results](verification/verification-results.md)
+- [A2 pending-workflow audit](verification/a2-pending-workflow-audit.md) — normalized decision-source inventory and its remaining workflow-level boundary.
 
 ## Documentation conventions
 
