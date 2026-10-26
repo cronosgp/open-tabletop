@@ -51,7 +51,7 @@ static func _mission_details(mission: Dictionary, match_events: Array = []) -> D
 	if not mission.has("scores") and not mission.has("objectives") and not mission.has("primary") and not mission.has("secondary"):
 		return {}
 	var result: Dictionary = {}
-	for key: String in ["name", "primary_id", "primary_ids", "primary_names", "force_dispositions", "force_disposition_names", "primary_selection_mode", "secondary_pair_id", "deployment", "rounds", "points_per_objective"]:
+	for key: String in ["name", "primary_id", "primary_ids", "primary_names", "primary_overrides", "primary_selection_modes", "force_dispositions", "force_disposition_names", "primary_selection_mode", "secondary_pair_id", "deployment", "rounds", "points_per_objective"]:
 		if mission.has(key): result[key] = mission[key]
 	for category: String in ["primary", "secondary"]:
 		var totals: Dictionary = mission.get(category, {})
@@ -99,7 +99,12 @@ static func _mission_lines(mission: Dictionary) -> Array[String]:
 		var force_disposition_names: Dictionary = mission.get("force_disposition_names", {})
 		if not force_disposition_names.is_empty():
 			lines.append("Force Dispositions: P1 %s · P2 %s" % [str(force_disposition_names.get(1, force_disposition_names.get("1", "Unknown"))), str(force_disposition_names.get(2, force_disposition_names.get("2", "Unknown")))])
-			lines.append("Primary cards were selected directly and may override the disposition matchup.")
+			var selection_modes: Dictionary = mission.get("primary_selection_modes", {})
+			var p1_mode := str(selection_modes.get(1, selection_modes.get("1", "direct-selection-override")))
+			var p2_mode := str(selection_modes.get(2, selection_modes.get("2", "direct-selection-override")))
+			var p1_label := "matchup default" if p1_mode == "force-disposition-default" else "direct override"
+			var p2_label := "matchup default" if p2_mode == "force-disposition-default" else "direct override"
+			lines.append("Primary selection: P1 %s · P2 %s" % [p1_label, p2_label])
 		lines.append("Primary VP: P1 %d · P2 %d" % [int(primary.get("P1", 0)), int(primary.get("P2", 0))])
 	if mission.has("secondary"):
 		var secondary: Dictionary = mission.secondary

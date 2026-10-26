@@ -42,6 +42,13 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			if not Combat.Mission.PRIMARY_MISSIONS.has(selected_primary): return {"error": "Select a supported 11th-edition primary mission for Player %d." % owner}
 			primary_missions[owner] = selected_primary
 		primary_mission = str(primary_missions[1])
+	var primary_overrides := {1: true, 2: true}
+	if options.has("primary_overrides"):
+		if not options.primary_overrides is Dictionary: return {"error": "Primary override modes must be selected for Player 1 and Player 2."}
+		for raw_owner: Variant in options.primary_overrides:
+			var owner := int(raw_owner)
+			if owner not in [1, 2] or typeof(options.primary_overrides[raw_owner]) != TYPE_BOOL: return {"error": "Each primary override mode must be a Boolean for Player 1 or Player 2."}
+			primary_overrides[owner] = bool(options.primary_overrides[raw_owner])
 	var secondary_pair := str(options.get("secondary_pair", Combat.Mission.DEFAULT_SECONDARY_PAIR))
 	var force_dispositions: Dictionary = {}
 	if options.has("force_dispositions"):
@@ -69,7 +76,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		if options.get("official_mission", false) and selected_detachment != "gladius": return {"error": "This Space Marine detachment is not reconciled for the selected CA mission."}
 	if options.get("combat_doctrines", false) and options.get("oath_of_moment", false): return {"error": "11e Combat Doctrines replaces the historical Oath of Moment profile; these options cannot be combined."}
 	for key: Variant in options:
-		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "secondary_pair", "force_dispositions", "training_scenario_id"]: continue
+		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "primary_overrides", "secondary_pair", "force_dispositions", "training_scenario_id"]: continue
 		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts", "oath_of_moment", "reanimation_protocols", "combat_doctrines", "awakened_dynasty", "unit_abilities", "official_mission", "checked_rosters"]: return {"error": "Unsupported match option: " + str(key)}
 		if not options[key] is bool: return {"error": "Match options must be boolean: " + str(key)}
 	if options.get("unit_abilities", false) and (options.get("hail_of_bolts", false) or options.get("objective_secured", false) or options.get("oath_of_moment", false)): return {"error": "Current datasheets cannot combine with historical Hail of Bolts, Objective Secured or Oath profiles."}
@@ -250,12 +257,13 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			return {"error": "Bring It Down requires each opposing roster to include at least one model with 10 or more Wounds."}
 		if secondary_pair == "engage-grievous-blow" and not defer_secondary_target_check and (not Combat.Mission.has_grievous_blow_roster_target(state, 1) or not Combat.Mission.has_grievous_blow_roster_target(state, 2)):
 			return {"error": "A Grievous Blow requires each opposing roster to include at least one unit with a starting strength of 13 or more models."}
-		Combat.Mission.enable(state, terrain_layout, primary_mission, secondary_pair, primary_missions, force_dispositions)
+		Combat.Mission.enable(state, terrain_layout, primary_mission, secondary_pair, primary_missions, force_dispositions, primary_overrides)
 		if not reports.is_empty():
 			state.saved_army_setup.options.official_mission = true
 			state.saved_army_setup.options.terrain_layout = terrain_layout
 			state.saved_army_setup.options.primary_mission = primary_mission
 			state.saved_army_setup.options.primary_missions = primary_missions.duplicate(true)
+			state.saved_army_setup.options.primary_overrides = state.mission.primary_overrides.duplicate(true)
 			if not force_dispositions.is_empty(): state.saved_army_setup.options.force_dispositions = force_dispositions.duplicate(true)
 			state.saved_army_setup.options.secondary_pair = secondary_pair
 	if options.get("checked_rosters", false):

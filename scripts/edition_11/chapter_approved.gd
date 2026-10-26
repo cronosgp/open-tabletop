@@ -11,6 +11,10 @@ const ID := "ca-2026-27-dominance-hammer-fixed-v1"
 const DEFAULT_TERRAIN_LAYOUT := "ca-2026-27-take-and-hold-mirror-a-v1"
 const DEFAULT_SECONDARY_PAIR := "engage-assassination"
 const FORCE_DISPOSITIONS := {"take-and-hold": "Take and Hold", "priority-assets": "Priority Assets"}
+const FORCE_DISPOSITION_PRIMARY_DEFAULTS := {
+	"take-and-hold": {"take-and-hold": "battlefield-dominance", "priority-assets": "inescapable-dominion"},
+	"priority-assets": {"take-and-hold": "secure-asset", "priority-assets": "sabotage"}
+}
 const SECONDARY_PAIRS := {
 	"engage-assassination": {"label": "Engage on All Fronts + Assassination", "cards": ["engage-on-all-fronts", "assassination"]},
 	"engage-bring-it-down": {"label": "Engage on All Fronts + Bring It Down", "cards": ["engage-on-all-fronts", "bring-it-down"]},
@@ -52,13 +56,18 @@ const PRIMARY_MISSIONS := {
 	"outmanoeuvre": {"name": "Outmanoeuvre"},
 	"immovable-object": {"name": "Immovable Object"},
 	"delaying-action": {"name": "Delaying Action"},
-	"inescapable-dominion": {"name": "Inescapable Dominion"}
+	"inescapable-dominion": {"name": "Inescapable Dominion"},
+	"sabotage": {"name": "Sabotage"}
 }
 
 static func enabled(s: Dictionary) -> bool:
 	return s.get("mission", {}).get("id", "") == ID
 
-static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOUT, primary_id: String = "battlefield-dominance", secondary_pair_id: String = DEFAULT_SECONDARY_PAIR, primary_ids: Dictionary = {}, force_disposition_ids: Dictionary = {}) -> void:
+static func default_primary_mission(force_disposition: String, opponent_force_disposition: String) -> String:
+	var row: Dictionary = FORCE_DISPOSITION_PRIMARY_DEFAULTS.get(force_disposition, {})
+	return str(row.get(opponent_force_disposition, ""))
+
+static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOUT, primary_id: String = "battlefield-dominance", secondary_pair_id: String = DEFAULT_SECONDARY_PAIR, primary_ids: Dictionary = {}, force_disposition_ids: Dictionary = {}, primary_overrides: Dictionary = {}) -> void:
 	if not T.is_event_layout(terrain_layout): terrain_layout = DEFAULT_TERRAIN_LAYOUT
 	if not PRIMARY_MISSIONS.has(primary_id): primary_id = "battlefield-dominance"
 	if not SECONDARY_PAIRS.has(secondary_pair_id): secondary_pair_id = DEFAULT_SECONDARY_PAIR
@@ -67,7 +76,6 @@ static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOU
 		var owner := int(raw_owner)
 		var selected_id := str(primary_ids[raw_owner])
 		if owner in [1, 2] and PRIMARY_MISSIONS.has(selected_id): selected_primaries[owner] = selected_id
-	primary_id = str(selected_primaries[1])
 	var selected_force_dispositions: Dictionary = {}
 	var selected_force_disposition_names: Dictionary = {}
 	for owner in [1, 2]:
@@ -75,17 +83,41 @@ static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOU
 		if FORCE_DISPOSITIONS.has(force_disposition_id):
 			selected_force_dispositions[owner] = force_disposition_id
 			selected_force_disposition_names[owner] = str(FORCE_DISPOSITIONS[force_disposition_id])
+	var derived_primaries := {1: "", 2: ""}
+	if selected_force_dispositions.size() == 2:
+		for owner in [1, 2]:
+			var opponent_disposition := str(selected_force_dispositions[3 - owner])
+			derived_primaries[owner] = default_primary_mission(str(selected_force_dispositions[owner]), opponent_disposition)
+	var effective_primary_overrides := {1: true, 2: true}
+	for owner in [1, 2]:
+		var raw_override: Variant = primary_overrides.get(owner, primary_overrides.get(str(owner), true))
+		if typeof(raw_override) == TYPE_BOOL: effective_primary_overrides[owner] = raw_override
+		if derived_primaries[owner] != "" and not effective_primary_overrides[owner]:
+			selected_primaries[owner] = derived_primaries[owner]
+		else:
+			effective_primary_overrides[owner] = true
+	var selection_modes := {}
+	for owner in [1, 2]:
+		selection_modes[owner] = "force-disposition-default" if derived_primaries[owner] != "" and not effective_primary_overrides[owner] else "direct-selection-override" if not selected_force_dispositions.is_empty() else "direct-selection"
+	primary_id = str(selected_primaries[1])
 	var p1: Dictionary = PRIMARY_MISSIONS[selected_primaries[1]]
 	var p2: Dictionary = PRIMARY_MISSIONS[selected_primaries[2]]
 	var secondary_cards: Array = SECONDARY_PAIRS[secondary_pair_id].cards.duplicate()
-	var player_actions := {1: ["secure-asset"] if selected_primaries[1] == "secure-asset" else [], 2: ["secure-asset"] if selected_primaries[2] == "secure-asset" else []}
+	var player_actions := {1: [], 2: []}
+	for owner in [1, 2]:
+		if selected_primaries[owner] == "secure-asset": player_actions[owner].append("secure-asset")
+		if selected_primaries[owner] == "sabotage": player_actions[owner].append("sabotage")
 	var actions: Array[String] = []
-	if not player_actions[1].is_empty() or not player_actions[2].is_empty(): actions.append("secure-asset")
+	for owner in [1, 2]:
+		for action_id: String in player_actions[owner]:
+			if action_id not in actions: actions.append(action_id)
 	s.board_size = SIZE
 	s.test_battlefield = ID
 	s.battle_size = "Incursion - CA 2026-27 (reference lists)"
 	s.first_player = 1
-	s.mission = {"id": ID, "primary_id": primary_id, "primary_ids": selected_primaries, "primary_names": {1: p1.name, 2: p2.name}, "secondary_pair_id": secondary_pair_id, "name": "P1: %s / P2: %s" % [p1.name, p2.name] if selected_primaries[1] != selected_primaries[2] else str(p1.name), "deployment": "Hammer and Anvil", "force_dispositions": selected_force_dispositions, "force_disposition_names": selected_force_disposition_names, "primary_selection_mode": "direct-selection-override" if not selected_force_dispositions.is_empty() else "direct-selection", "terrain_layout": terrain_layout, "secondary_mode": "fixed", "secondary_cards": secondary_cards, "rounds": 5, "stage": "terrain", "roll_winner": 0, "attacker": 0, "defender": 0, "battle_ready": {}, "objectives": [], "tempting_targets": {}, "actions": actions, "actions_by_player": player_actions, "scores": {1: 0, 2: 0}, "primary": {1: 0, 2: 0}, "secondary": {1: 0, 2: 0}, "cards": {1: {secondary_cards[0]: 0, secondary_cards[1]: 0}, 2: {secondary_cards[0]: 0, secondary_cards[1]: 0}}, "round_points": {}, "scored": [], "dead_characters": [], "log": [], "turn_start_alive": {1: [], 2: []}, "turn_start_objective_units": {1: [], 2: []}, "turn_start_central": {1: [], 2: []}, "turn_start_models": {1: [], 2: []}, "last_turn_losses": {1: 0, 2: 0}, "asset_secured_turn": {1: -1, 2: -1}}
+	var default_mode_count := int(selection_modes[1] == "force-disposition-default") + int(selection_modes[2] == "force-disposition-default")
+	var primary_selection_mode := "force-disposition-default" if default_mode_count == 2 else "direct-selection-override" if default_mode_count == 0 and not selected_force_dispositions.is_empty() else "mixed-force-disposition-default-and-override" if not selected_force_dispositions.is_empty() else "direct-selection"
+	s.mission = {"id": ID, "primary_id": primary_id, "primary_ids": selected_primaries, "primary_names": {1: p1.name, 2: p2.name}, "primary_overrides": effective_primary_overrides, "primary_selection_modes": selection_modes, "secondary_pair_id": secondary_pair_id, "name": "P1: %s / P2: %s" % [p1.name, p2.name] if selected_primaries[1] != selected_primaries[2] else str(p1.name), "deployment": "Hammer and Anvil", "force_dispositions": selected_force_dispositions, "force_disposition_names": selected_force_disposition_names, "primary_selection_mode": primary_selection_mode, "terrain_layout": terrain_layout, "secondary_mode": "fixed", "secondary_cards": secondary_cards, "rounds": 5, "stage": "terrain", "roll_winner": 0, "attacker": 0, "defender": 0, "battle_ready": {}, "objectives": [], "tempting_targets": {}, "actions": actions, "actions_by_player": player_actions, "scores": {1: 0, 2: 0}, "primary": {1: 0, 2: 0}, "secondary": {1: 0, 2: 0}, "cards": {1: {secondary_cards[0]: 0, secondary_cards[1]: 0}, 2: {secondary_cards[0]: 0, secondary_cards[1]: 0}}, "round_points": {}, "scored": [], "dead_characters": [], "log": [], "turn_start_alive": {1: [], 2: []}, "turn_start_objective_units": {1: [], 2: []}, "turn_start_central": {1: [], 2: []}, "turn_start_models": {1: [], 2: []}, "last_turn_losses": {1: 0, 2: 0}, "asset_secured_turn": {1: -1, 2: -1}, "sabotage_started_objectives": {1: {"turn": -1, "objectives": []}, 2: {"turn": -1, "objectives": []}}, "sabotage_committed_units": {1: [], 2: []}}
 	s.mission.battle_start_strength = {}
 	s.mission.battle_strength_recorded = false
 	terrain(s, false, terrain_layout)
@@ -205,6 +237,8 @@ static func _ensure_tracking(m: Dictionary) -> void:
 	if not m.get("turn_start_models", null) is Dictionary: m.turn_start_models = {1: [], 2: []}
 	if not m.get("last_turn_losses", null) is Dictionary: m.last_turn_losses = {1: 0, 2: 0}
 	if not m.get("asset_secured_turn", null) is Dictionary: m.asset_secured_turn = {1: -1, 2: -1}
+	if not m.get("sabotage_started_objectives", null) is Dictionary: m.sabotage_started_objectives = {}
+	if not m.get("sabotage_committed_units", null) is Dictionary: m.sabotage_committed_units = {1: [], 2: []}
 	for player in [1, 2]:
 		if not m.turn_start_alive.has(player): m.turn_start_alive[player] = []
 		if not m.turn_start_objective_units.has(player): m.turn_start_objective_units[player] = []
@@ -212,6 +246,8 @@ static func _ensure_tracking(m: Dictionary) -> void:
 		if not m.turn_start_models.has(player): m.turn_start_models[player] = []
 		if not m.last_turn_losses.has(player): m.last_turn_losses[player] = 0
 		if not m.asset_secured_turn.has(player): m.asset_secured_turn[player] = -1
+		if not m.sabotage_started_objectives.get(player, null) is Dictionary: m.sabotage_started_objectives[player] = {"turn": -1, "objectives": []}
+		if not m.sabotage_committed_units.get(player, null) is Array: m.sabotage_committed_units[player] = []
 
 static func start_turn(s: Dictionary) -> void:
 	if not enabled(s): return
@@ -447,6 +483,15 @@ static func _score_primary(s: Dictionary, losses: Dictionary) -> void:
 			if _primary_checkpoint(s):
 				if controlled(s, player) >= 2: award(s, player, "primary", 5, s.phase)
 				if controlled(s, player) > controlled(s, opponent): award(s, player, "primary", 4, s.phase)
+		"sabotage":
+			if _primary_checkpoint(s) and non_home > 0: award(s, player, "primary", 4, s.phase)
+			if s.phase == "end_turn":
+				for record: Dictionary in m.sabotage_committed_units.get(player, []):
+					if int(record.get("turn", -1)) != int(s.turn): continue
+					var squad := int(record.get("squad", -1))
+					if not s.squads.has(squad): continue
+					award(s, player, "primary", 3, "end turn")
+					if _unit_within_enemy_territory_objective(s, squad, player): award(s, player, "primary", 2, "end turn")
 		"reconnaissance-sweep":
 			if _primary_checkpoint(s) and non_home > 0: award(s, player, "primary", 3, s.phase)
 			if s.phase == "end_turn":
@@ -467,6 +512,29 @@ static func _controls_home(s: Dictionary, player: int, owner: int) -> bool:
 	for objective: Dictionary in s.mission.objectives:
 		if objective.role == role and objective.controller == player: return true
 	return false
+
+static func _unit_within_enemy_territory_objective(s: Dictionary, squad: int, player: int) -> bool:
+	var opponent := 3 - player
+	for objective: Dictionary in s.mission.objectives:
+		if not _objective_in_territory(s, objective, opponent): continue
+		for model: int in G.alive(s, squad):
+			if Objectives.in_range(s.units[model], objective): return true
+	return false
+
+static func _objective_in_territory(s: Dictionary, objective: Dictionary, owner: int) -> bool:
+	var zones: Dictionary = s.get("deployment", {}).get("zones", {})
+	var zone: Variant = zones.get(owner, zones.get(str(owner), null))
+	if not zone is Rect2 or zone.size == Vector2.ZERO: return false
+	var center: Vector2 = zone.get_center()
+	var horizontal_split := absf(center.x) >= absf(center.y)
+	var point: Vector2 = objective.get("position", Vector2.ZERO)
+	if objective.get("bounds", null) is Rect2:
+		var bounds: Rect2 = objective.bounds
+		point = bounds.get_center()
+	var coordinate: float = point.x if horizontal_split else point.y
+	var center_coordinate: float = center.x if horizontal_split else center.y
+	if is_zero_approx(center_coordinate) or is_zero_approx(coordinate): return false
+	return signf(coordinate) == signf(center_coordinate)
 
 static func _unit_wholly_in_territory(s: Dictionary, squad: int, owner: int) -> bool:
 	var alive := G.alive(s, squad)
@@ -737,13 +805,18 @@ static func summary(s: Dictionary) -> String:
 	var pair_id := secondary_pair_id(s)
 	var pair_label := str(SECONDARY_PAIRS[pair_id].label)
 	var names: Dictionary = m.get("primary_names", {1: str(m.get("name", "Battlefield Dominance")), 2: str(m.get("name", "Battlefield Dominance"))})
+	var selection_modes: Dictionary = m.get("primary_selection_modes", {})
+	var p1_mode := str(selection_modes.get(1, "direct-selection"))
+	var p2_mode := str(selection_modes.get(2, "direct-selection"))
+	var p1_selection := "matchup default" if p1_mode == "force-disposition-default" else "direct override" if p1_mode == "direct-selection-override" else "direct selection"
+	var p2_selection := "matchup default" if p2_mode == "force-disposition-default" else "direct override" if p2_mode == "direct-selection-override" else "direct selection"
 	var target_summary := ""
 	if pair_id == "engage-tempting-target":
 		var targets: Dictionary = m.get("tempting_targets", {})
 		var p1_target := str(targets.get(1, targets.get("1", "")))
 		var p2_target := str(targets.get(2, targets.get("2", "")))
 		target_summary = "\nTempting Targets — P1: %s · P2: %s" % [p1_target if not p1_target.is_empty() else "awaiting opponent", p2_target if not p2_target.is_empty() else "awaiting opponent"]
-	return "CA 2026-27 - %s / Hammer and Anvil\nPrimary: P1 %s (%d VP) · P2 %s (%d VP)\nTotal: %d / %d VP | Fixed secondaries %d / %d VP\n%s%s | Round %d/5\n%s" % [str(m.get("name", "Battlefield Dominance")), str(names.get(1, names.get("1", "Primary"))), m.primary[1], str(names.get(2, names.get("2", "Primary"))), m.primary[2], m.scores[1], m.scores[2], m.secondary[1], m.secondary[2], pair_label, target_summary, s.round, m.log[-1] if not m.log.is_empty() else "Resolve mission preparation choices."]
+	return "CA 2026-27 - %s / Hammer and Anvil\nPrimary: P1 %s (%d VP) · P2 %s (%d VP)\nSelection: P1 %s · P2 %s\nTotal: %d / %d VP | Fixed secondaries %d / %d VP\n%s%s | Round %d/5\n%s" % [str(m.get("name", "Battlefield Dominance")), str(names.get(1, names.get("1", "Primary"))), m.primary[1], str(names.get(2, names.get("2", "Primary"))), m.primary[2], p1_selection, p2_selection, m.scores[1], m.scores[2], m.secondary[1], m.secondary[2], pair_label, target_summary, s.round, m.log[-1] if not m.log.is_empty() else "Resolve mission preparation choices."]
 
 static func secret_formations(s: Dictionary) -> bool:
 	return enabled(s) and s.phase == "deployment" and s.mission.stage == "formations" and s.unit_abilities.get("setup_players", []).size() < 2

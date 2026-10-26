@@ -1,6 +1,6 @@
 # Actions and Secure Ground training
 
-Core eligibility and lifecycle follow [11e §16.01](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/#Performing-Actions). Actual actions need their own start window, eligible units, use limit, completion window and effect. This increment supplies one explicitly custom action to exercise that lifecycle; it does not implement an official mission action catalogue.
+Core eligibility and lifecycle follow [11e §16.01](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/#Performing-Actions). Actual actions need their own start window, eligible units, use limit, completion window and effect. This document describes the custom training action **Secure Ground**; the selected Chapter Approved profile also implements **Secure Asset** and **Sabotage** within their respective mission gates. See the [mission-specific action and scoring boundaries](chapter-approved-mission.md).
 
 A unit cannot start an action if absent/destroyed, Aircraft/Fortification, battle-shocked, OC 0, engaged (unless Titanic), after Advance/Fall Back, or after starting another action this turn. Starting an action prevents declaring charges for the rest of the turn and prevents shooting except for Titanic units. Those restrictions survive interruption or early completion. Melee remains permitted. Starter model types remain infantry; the keyword gates do not imply full support for Titanic, Aircraft or Fortification rules.
 
@@ -28,4 +28,4 @@ Control is determined at the end of Fight before the End of Turn action completi
 
 Ten local rules/UI suites and five two-process host/client suites passed on Windows. Progress and completed-action panels were rendered and visually inspected. Linux and separate-machine LAN remain unverified.
 
-This supports the bundled same-turn action. Cross-turn completion schedules, other action effects, official mission actions and special abilities that override eligibility remain future work. [Multiple-unit fight/reaction queues](multiple-units.md) are available in the optional two-unit training mode. The battlefield builder remains low priority in the future backlog.
+This supports the bundled same-turn action and the two selected mission actions documented separately. Cross-turn completion schedules, the broader official mission-action catalogue and remaining special abilities that override eligibility remain future work. [Multiple-unit fight/reaction queues](multiple-units.md) are available in the optional two-unit training mode. The battlefield builder remains low priority in the future backlog.

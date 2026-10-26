@@ -79,10 +79,14 @@ static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, ef
 		state.match_manifest.official_mission = Mission.ID
 		state.match_manifest.primary_mission = Mission.primary_id(state, 1)
 		state.match_manifest.primary_missions = Mission.primary_assignments(state)
+		var primary_overrides: Dictionary = state.mission.get("primary_overrides", {1: true, 2: true})
+		var primary_selection_modes: Dictionary = state.mission.get("primary_selection_modes", {})
+		state.match_manifest.primary_overrides = primary_overrides.duplicate(true)
+		state.match_manifest.primary_selection_modes = primary_selection_modes.duplicate(true)
+		state.match_manifest.primary_selection_mode = str(state.mission.get("primary_selection_mode", "direct-selection"))
 		var force_dispositions := Mission.force_disposition_assignments(state)
 		if not force_dispositions.is_empty():
 			state.match_manifest.force_dispositions = force_dispositions
-			state.match_manifest.primary_selection_mode = str(state.mission.get("primary_selection_mode", "direct-selection-override"))
 		state.match_manifest.secondary_pair = str(options.get("secondary_pair", Mission.DEFAULT_SECONDARY_PAIR))
 		state.match_manifest.terrain_layout = str(options.get("terrain_layout", Mission.DEFAULT_TERRAIN_LAYOUT))
 		state.match_manifest.first_player = "post-deployment-roll-off"

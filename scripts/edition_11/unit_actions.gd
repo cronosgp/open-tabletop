@@ -531,14 +531,15 @@ static func choices(state: Dictionary, player: int) -> Array:
 					result.append(choice("Embark %s in %s" % [state.squads[squad].name, state.squads[state.units[transport_model].squad].name], "transport-embark", passenger_models[0], transport_model))
 	if state.phase == "shooting" and state.active == player:
 		result.append_array(auspex_triangulation_choices(state, player))
-		if Actions.has_mission_action(state, player, Actions.SECURE_ASSET):
-			var home_role := "attacker" if player == state.get("mission", {}).get("attacker", 0) else "defender"
+		if Actions.has_mission_action(state, player, Actions.SECURE_ASSET) or Actions.has_mission_action(state, player, Actions.SABOTAGE):
+			var mission_action := Actions.SABOTAGE if Actions.has_mission_action(state, player, Actions.SABOTAGE) else Actions.SECURE_ASSET
+			var action_name := "Sabotage" if mission_action == Actions.SABOTAGE else "Secure Asset"
 			for squad: int in state.squads:
 				if int(state.squads[squad].owner) != player or G.alive(state, squad).is_empty(): continue
-				for objective_index in Actions.targets(state, squad):
-					if state.mission.objectives[objective_index].get("role", "") == home_role: continue
+				for objective_index in Actions.action_targets(state, squad):
 					if not Actions.start_error(state, squad, objective_index).is_empty(): continue
-					result.append(choice("Secure Asset: %s secures %s" % [state.squads[squad].name, state.mission.objectives[objective_index].name], "mission-secure-asset", G.alive(state, squad)[0], objective_index))
+					var action_id := "mission-sabotage" if mission_action == Actions.SABOTAGE else "mission-secure-asset"
+					result.append(choice("%s: %s targets %s" % [action_name, state.squads[squad].name, state.mission.objectives[objective_index].name], action_id, G.alive(state, squad)[0], objective_index))
 		for model: int in state.units:
 			var vulkan: Dictionary = state.units[model]
 			if vulkan.owner != player or vulkan.wounds <= 0 or not vulkan.get("on_battlefield", true) or A.identity(vulkan) != "vulkan-hestan": continue
@@ -1447,6 +1448,14 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		if not asset_error.is_empty(): return {"error": asset_error}
 		Actions.start(state, int(asset_model.squad), int(selected.get("target", -1)))
 		return {"message": "%s started Secure Asset on %s; complete it at end of turn while controlling the objective." % [state.squads[int(asset_model.squad)].name, state.mission.objectives[int(selected.target)].name]}
+	if str(selected.get("action", "")) == "mission-sabotage":
+		var sabotage_model: Dictionary = state.units.get(int(selected.get("model", -1)), {})
+		if not Actions.has_mission_action(state, player, Actions.SABOTAGE) or sabotage_model.is_empty() or int(sabotage_model.get("owner", -1)) != player:
+			return {"error": "Sabotage requires the selected current mission and one of your units."}
+		var sabotage_error := Actions.start_error(state, int(sabotage_model.squad), int(selected.get("target", -1)))
+		if not sabotage_error.is_empty(): return {"error": sabotage_error}
+		Actions.start(state, int(sabotage_model.squad), int(selected.get("target", -1)))
+		return {"message": "%s started Sabotage at %s; complete it at end of turn while controlling that objective." % [state.squads[int(sabotage_model.squad)].name, state.mission.objectives[int(selected.target)].name]}
 	var a: Dictionary = state.unit_abilities
 	var model: int = selected.model
 	var target: int = selected.target
