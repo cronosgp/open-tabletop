@@ -30,9 +30,11 @@ The 20-point `Augury Servo-host` can be assigned to one of 23 current-catalog be
 
 If the charging unit is within range of an eligible `Tempered in Battle` aura, its controller may keep the result or re-roll both Leadership dice; the Dread Crusaders modifier remains -1. A successful roll does not clear Battle-shock already present on the charging unit. Focused checks remain pending.
 
+`Devout Push` (1 CP) is offered when a friendly Adeptus Astartes Infantry unit is selected for a pile-in or consolidation in the Fight phase. Roll D3+3 and use that distance for each model’s placement through the shared contact movement flow. CP discounts and the once-per-phase gate apply. If placement is canceled, positions are restored while the CP and roll remain spent; resuming placement does not charge CP again. Focused checks remain pending.
+
 ## Unsupported scope
 
-`Heresy Begets Retribution` and `Devout Push` are not implemented. The detachment's 2 DP Force Disposition is not enforced. This option is for local practice and does not certify army legality. Focused checks, playtesting and network validation remain pending.
+`Heresy Begets Retribution` is not implemented. The detachment's 2 DP Force Disposition is not enforced. This option is for local practice and does not certify army legality. Focused checks, playtesting and network validation remain pending.
 
 ## Source and implementation record
 
@@ -44,6 +46,7 @@ If the charging unit is within range of an eligible `Tempered in Battle` aura, i
 - `Stratagems.csv`, row `000011173003` (`For the Emperor's Honour!`): SHA-256 `9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621`.
 - `Stratagems.csv`, row `000011173005` (`Spoor of the Unholy`): SHA-256 `9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621`.
 - `Stratagems.csv`, row `000011173002` (`Dread Crusaders`): SHA-256 `9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621`.
+- `Stratagems.csv`, row `000011173007` (`Devout Push`): SHA-256 `9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621`.
 - `Enhancements.csv`, row `000011172002` (`Augury Servo-host`): SHA-256 `7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f`.
 - `Enhancements.csv`, row `000011172003` (`Consecrating Aura`): SHA-256 `7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f`.
 - `Enhancements.csv`, row `000011172004` (`Incendiary Animus`): SHA-256 `7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f`.
@@ -57,6 +60,7 @@ If the charging unit is within range of an eligible `Tempered in Battle` aura, i
 - `For the Emperor's Honour!` uses `scripts/edition_11/detachment_stratagems.gd`, `scripts/edition_11/combat_scenario.gd`, `scripts/edition_11/attack_plan.gd` and `scripts/edition_11/unit_actions.gd`; enabled capability: `vow-sworn-for-the-emperors-honour`.
 - `Spoor of the Unholy` uses `scripts/edition_11/detachment_stratagems.gd`, `scripts/edition_11/combat_scenario.gd`, `scripts/edition_11/attack_plan.gd` and `scripts/edition_11/unit_actions.gd`; enabled capability: `vow-sworn-spoor-of-the-unholy`.
 - `Dread Crusaders` uses `scripts/edition_11/detachment_stratagems.gd`, `scripts/edition_11/combat_scenario.gd` and `scripts/edition_11/unit_actions.gd`; enabled capability: `vow-sworn-dread-crusaders`.
+- `Devout Push` uses `scripts/edition_11/detachment_stratagems.gd`, `scripts/edition_11/combat_scenario.gd`, `scripts/edition_11/match_command_service.gd` and `scripts/main.gd`; enabled capability: `vow-sworn-devout-push`.
 - Enhancement runtime implementation: `scripts/edition_11/stormlance_enhancements.gd`, `scripts/edition_11/defender_groups.gd`, `scripts/edition_11/attack_plan.gd`, `scripts/edition_11/unit_abilities.gd`, `scripts/edition_11/scout_moves.gd` and `scripts/edition_11/unit_actions.gd`; enabled capabilities: `augury-servo-host`, `consecrating-aura`, `incendiary-animus` and `zealous-vanguard`.
 
 The export supplies local detachment and ability facts; the live 11th-edition faction page remains the selected rules reference. No export data is copied into this document beyond row identity and provenance.

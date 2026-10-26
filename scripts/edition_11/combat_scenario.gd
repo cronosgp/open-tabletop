@@ -1227,8 +1227,10 @@ static func select_charge_target(state: Dictionary, player: int, target: int, re
 	state.merge(working, true)
 	return {"error": "", "message": message}
 
-static func begin_contact_move(state: Dictionary, player: int, model: int, kind: String, revision: int, chosen_targets: Array[int] = [], objective_index: int = -1, roller: Callable = Callable(), use_tactical_focus: bool = false) -> String:
+static func begin_contact_move(state: Dictionary, player: int, model: int, kind: String, revision: int, chosen_targets: Array[int] = [], objective_index: int = -1, roller: Callable = Callable(), use_tactical_focus: bool = false, use_devout_push: bool = false) -> String:
 	if use_tactical_focus and kind != "consolidate": return "Tactical Focus can only be used with a consolidation move."
+	if use_tactical_focus and use_devout_push: return "Choose only one contact-movement stratagem for this move."
+	if use_devout_push and kind not in ["pile_in", "consolidate"]: return "Devout Push can only be used with a pile-in or consolidation move."
 	var continuation_action_id := _pending_charge_action_id(state) if kind == "charge" else ""
 	var error := _command_error(state, player, revision, continuation_action_id)
 	if not error.is_empty(): return error
@@ -1236,10 +1238,13 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 	if not state.units.has(model) or state.units[model].wounds <= 0 or not state.units[model].get("on_battlefield", true) or state.units[model].owner != player: return "Select a living model in your squad."
 	var squad: int = state.units[model].squad
 	if kind == "consolidate" and not use_tactical_focus and not DetachmentStratagems.tactical_focus_roll(state, player, squad).is_empty(): return "Tactical Focus has already been spent for this consolidation; resume its saved roll."
+	var saved_devout_push_roll := DetachmentStratagems.devout_push_roll(state, player, squad)
+	if kind in ["pile_in", "consolidate"] and not saved_devout_push_roll.is_empty() and not use_devout_push: return "Devout Push has already been spent for this contact move; resume its saved roll."
 	var targets: Array[int] = []
 	var maximum := 3.0
 	var uses_singular_will := false
 	var uses_tactical_focus := false
+	var uses_devout_push := false
 	if kind == "charge":
 		if state.phase != "charge" or state.pending_charge.is_empty() or state.pending_charge.squad != squad: return "Roll this squad's charge first."
 		if state.get("unit_abilities", {}).get("window", {}).get("kind", "") == TransportRules.COMBAT_EMBARKATION_WINDOW: return "Resolve Repulsor Combat Embarkation before beginning charge placement."
@@ -1256,6 +1261,7 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 		match kind:
 			"pile_in":
 				if state.fight_step != "pile_in" or squad not in FightQueue.choices(state, player): return "This squad has no pile-in window."
+				uses_devout_push = use_devout_push
 			"overrun":
 				if state.fight_step not in ["attacks", "consolidation_reaction"] or squad not in FightQueue.choices(state, player) or state.squads[squad].overrun_used: return "This squad has no additional overrun pile-in."
 				if _engaged(state, squad) and state.squads[squad].was_engaged: return "This squad is eligible for a normal fight, not an overrun."
@@ -1263,6 +1269,7 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 				if state.fight_step != "consolidate" or squad not in FightQueue.choices(state, player): return "This squad has no consolidation window."
 				uses_singular_will = MarineEnhancements.singular_will_active(state, squad)
 				uses_tactical_focus = use_tactical_focus
+				uses_devout_push = use_devout_push
 				kind = "consolidate_ongoing" if _engaged(state, squad) else "consolidate_engaging"
 			_: return "Unsupported contact movement type."
 		var engagement_targets := ContactActions.enemies(state, squad, 2.0)
@@ -1301,6 +1308,25 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 			tactical_focus_roll["turn"] = int(state.get("turn", 0))
 			tactical_focus_roll["phase_key"] = DetachmentStratagems.phase_key(state)
 		maximum = maxf(maximum, float(tactical_focus_roll.get("value", 3)))
+	var devout_push_key := ""
+	var devout_push_roll: Dictionary = {}
+	var devout_push_roll_reused := false
+	if uses_devout_push:
+		devout_push_key = DetachmentStratagems.devout_push_roll_key(state, player, squad)
+		devout_push_roll = saved_devout_push_roll
+		devout_push_roll_reused = not devout_push_roll.is_empty()
+		if devout_push_roll.is_empty():
+			var push_error := DetachmentStratagems.error(state, player, squad, DetachmentStratagems.VOW_DEVOUT_PUSH)
+			if not push_error.is_empty(): return push_error
+			var push_result := RandomStat.roll("D3+3", roller)
+			if not str(push_result.get("error", "")).is_empty(): return str(push_result.error)
+			devout_push_roll = push_result.duplicate(true)
+			devout_push_roll["squad"] = squad
+			devout_push_roll["player"] = player
+			devout_push_roll["round"] = int(state.get("round", 0))
+			devout_push_roll["turn"] = int(state.get("turn", 0))
+			devout_push_roll["phase_key"] = DetachmentStratagems.phase_key(state)
+		maximum = maxf(maximum, float(devout_push_roll.get("value", 3)))
 	var singular_will_key := ""
 	var singular_will_roll: Dictionary = {}
 	if uses_singular_will:
@@ -1323,7 +1349,7 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 			var rolls: Array = singular_will_roll.get("rolls", [])
 			if str(singular_will_roll.get("expression", "")) != "D3+3" or int(singular_will_roll.get("squad", -1)) != squad or int(singular_will_roll.get("player", -1)) != player or int(singular_will_roll.get("round", -1)) != int(state.get("round", 0)) or int(singular_will_roll.get("turn", -1)) != int(state.get("turn", 0)) or rolls.size() != 1 or not rolls[0] is int or int(rolls[0]) < 1 or int(rolls[0]) > 6 or int(singular_will_roll.get("value", -1)) != ceili(float(int(rolls[0])) / 2.0) + 3:
 				return "The saved Singular Will roll is invalid; synchronize before consolidating."
-		maximum = float(singular_will_roll.get("value", 3))
+		maximum = maxf(maximum, float(singular_will_roll.get("value", 3)))
 		if not singular_will_rolls.has(singular_will_key):
 			singular_will_rolls[singular_will_key] = singular_will_roll.duplicate(true)
 			state.singular_will_rolls = singular_will_rolls.duplicate(true)
@@ -1338,6 +1364,10 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 		move.tactical_focus_roll_key = tactical_focus_key
 		move.tactical_focus_roll = tactical_focus_roll.duplicate(true)
 		move.tactical_focus_roll_reused = tactical_focus_roll_reused
+	if uses_devout_push:
+		move.devout_push_roll_key = devout_push_key
+		move.devout_push_roll = devout_push_roll.duplicate(true)
+		move.devout_push_roll_reused = devout_push_roll_reused
 	if kind == "charge":
 		move.resolution_action_id = _charge_action_id(state, squad)
 		var suspend_error := _suspend_charge_frame(state, squad, "charge-placement")
@@ -1362,6 +1392,18 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 			var focus_rolls: Dictionary = focus_rolls_value
 			focus_rolls[tactical_focus_key] = tactical_focus_roll.duplicate(true)
 			state.tactical_focus_rolls = focus_rolls.duplicate(true)
+		if uses_devout_push and not devout_push_roll_reused:
+			var push_rolls_value: Variant = state.get("devout_push_rolls", {})
+			if not push_rolls_value is Dictionary:
+				ResolutionFrames.complete(state, str(frame.frame_id))
+				return "Saved Devout Push roll history is invalid; synchronize before moving."
+			var push_use := DetachmentStratagems.apply(state, player, {"stratagem": DetachmentStratagems.VOW_DEVOUT_PUSH, "target": squad, "model": -1, "value": DetachmentStratagems.VOW_DEVOUT_PUSH})
+			if not str(push_use.get("error", "")).is_empty():
+				ResolutionFrames.complete(state, str(frame.frame_id))
+				return str(push_use.error)
+			var push_rolls: Dictionary = push_rolls_value
+			push_rolls[devout_push_key] = devout_push_roll.duplicate(true)
+			state.devout_push_rolls = push_rolls.duplicate(true)
 		move.resolution_action_id = action_id
 	if kind == "consolidate_objective": move.objective = objective_index
 	state.pending_contact = move
@@ -1371,6 +1413,10 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 	elif uses_tactical_focus:
 		state.last_command_roll = {"kind": "tactical-focus", "source": "Tactical Focus", "squad": squad, "expression": "D3+3", "original_rolls": tactical_focus_roll.rolls.duplicate(), "rolls": tactical_focus_roll.rolls.duplicate(), "value": int(maximum), "rerolled": false}
 		_event(state, "%s: Tactical Focus D3 roll %d + 3 = %d inches per model for consolidation." % [state.squads[squad].name, int(tactical_focus_roll.rolls[0]), int(maximum)])
+	elif uses_devout_push:
+		state.last_command_roll = {"kind": "devout-push", "source": "Devout Push", "squad": squad, "expression": "D3+3", "original_rolls": devout_push_roll.rolls.duplicate(), "rolls": devout_push_roll.rolls.duplicate(), "value": int(devout_push_roll.get("value", 3)), "rerolled": false}
+		var retained_text := " (paid roll resumed; no additional CP charged)" if devout_push_roll_reused else ""
+		_event(state, "%s: Devout Push D3 roll %d + 3 = %d inches per model%s." % [state.squads[squad].name, int(devout_push_roll.rolls[0]), int(devout_push_roll.get("value", 3)), retained_text])
 	else:
 		_event(state, "%s: begin %s; %.0f inches per model." % [state.squads[squad].name, kind.replace("_", " "), maximum])
 	return ""
@@ -1422,9 +1468,11 @@ static func finish_contact_move_result(state: Dictionary, player: int, revision:
 			var complete_error := _complete_contact_frame(state, cancelled_move)
 			if not complete_error.is_empty(): return _movement_validation_result("movement_continuation_unavailable", complete_error, "Reopen the contact move before continuing.")
 		var tactical_focus_retained := not cancelled_move.get("tactical_focus_roll", {}).is_empty()
+		var devout_push_retained := not cancelled_move.get("devout_push_roll", {}).is_empty()
 		var cancellation_message := "Contact placement cancelled; positions restored."
 		if tactical_focus_retained: cancellation_message += " Tactical Focus remains paid and its roll is retained."
-		elif str(cancelled_move.get("kind", "")) == "charge": cancellation_message += " Charge dice are retained."
+		if devout_push_retained: cancellation_message += " Devout Push remains paid and its roll is retained."
+		if str(cancelled_move.get("kind", "")) == "charge": cancellation_message += " Charge dice are retained."
 		_event(state, cancellation_message)
 		return _movement_validation_result("valid")
 	var validation := ContactActions.final_validation(state)
@@ -1490,6 +1538,9 @@ static func finish_contact_move_result(state: Dictionary, player: int, revision:
 	if move.has("tactical_focus_roll_key"):
 		var cached_focus_rolls: Dictionary = state.get("tactical_focus_rolls", {})
 		cached_focus_rolls.erase(str(move.tactical_focus_roll_key))
+	if move.has("devout_push_roll_key"):
+		var cached_push_rolls: Dictionary = state.get("devout_push_rolls", {})
+		cached_push_rolls.erase(str(move.devout_push_roll_key))
 	return _movement_validation_result("valid")
 
 static func charge(state: Dictionary, player: int, target: int, revision: int) -> Dictionary:

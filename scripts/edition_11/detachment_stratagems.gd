@@ -14,7 +14,7 @@ const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
-const ID := "gladius-awakened-stratagems-11e-v10"
+const ID := "gladius-awakened-stratagems-11e-v11"
 const ADAPTIVE := "gladius-adaptive-strategy"
 const STORM := "gladius-storm-of-devastation"
 const ARMOUR := "gladius-armour-of-contempt"
@@ -70,6 +70,7 @@ const VOW_PIOUS_ENMITY := "vow-sworn-pious-enmity"
 const VOW_FOR_THE_EMPERORS_HONOUR := "vow-sworn-for-the-emperors-honour"
 const VOW_SPOOR_OF_THE_UNHOLY := "vow-sworn-spoor-of-the-unholy"
 const VOW_DREAD_CRUSADERS := "vow-sworn-dread-crusaders"
+const VOW_DEVOUT_PUSH := "vow-sworn-devout-push"
 const MEDUSA_POWER_OF_MACHINE_SPIRIT := "medusa-power-of-the-machine-spirit"
 const MEDUSA_ARMOURED_WRATH := "medusa-armoured-wrath"
 const VENGEFUL_ANIMUS_WINDOW := "deadly-demise-vengeful-animus"
@@ -342,10 +343,12 @@ static func enable_vow_sworn(s: Dictionary) -> void:
 	if not s.detachment_stratagems.has("pious_enmity"): s.detachment_stratagems.pious_enmity = {}
 	if not s.detachment_stratagems.has("for_emperors_honour"): s.detachment_stratagems.for_emperors_honour = {}
 	if not s.detachment_stratagems.has("spoor_of_unholy"): s.detachment_stratagems.spoor_of_unholy = {}
+	if not s.has("devout_push_rolls"): s.devout_push_rolls = {}
 	Registry.admit(s, VOW_PIOUS_ENMITY, ID)
 	Registry.admit(s, VOW_FOR_THE_EMPERORS_HONOUR, ID)
 	Registry.admit(s, VOW_SPOOR_OF_THE_UNHOLY, ID)
 	Registry.admit(s, VOW_DREAD_CRUSADERS, ID)
+	Registry.admit(s, VOW_DEVOUT_PUSH, ID)
 
 static func enable_blade_of_ultramar(s: Dictionary) -> void:
 	if not enabled(s): enable(s)
@@ -1203,6 +1206,25 @@ static func tactical_focus_roll(s: Dictionary, player: int, squad: int) -> Dicti
 		if int(use.get("player", -1)) == player and int(use.get("squad", -1)) == squad and str(use.get("stratagem", "")) == TACTICAL_FOCUS and str(use.get("phase_key", "")) == phase_key(s): return roll.duplicate(true)
 	return {}
 
+static func devout_push_roll_key(s: Dictionary, player: int, squad: int) -> String:
+	return "%d:%d:%d:%d" % [int(s.get("round", 0)), int(s.get("turn", 0)), player, squad]
+
+static func devout_push_roll(s: Dictionary, player: int, squad: int) -> Dictionary:
+	var value: Variant = s.get("devout_push_rolls", {})
+	if not value is Dictionary: return {}
+	var roll_value: Variant = value.get(devout_push_roll_key(s, player, squad), {})
+	if not roll_value is Dictionary: return {}
+	var roll: Dictionary = roll_value
+	var rolls_value: Variant = roll.get("rolls", [])
+	if not rolls_value is Array or rolls_value.size() != 1 or not rolls_value[0] is int: return {}
+	var die := int(rolls_value[0])
+	if str(roll.get("expression", "")) != "D3+3" or die < 1 or die > 6: return {}
+	if int(roll.get("value", -1)) != ceili(float(die) / 2.0) + 3: return {}
+	if int(roll.get("round", -1)) != int(s.get("round", 0)) or int(roll.get("turn", -1)) != int(s.get("turn", 0)) or int(roll.get("player", -1)) != player or int(roll.get("squad", -1)) != squad or str(roll.get("phase_key", "")) != phase_key(s): return {}
+	for use: Dictionary in s.get("stratagems", {}).get("uses", []):
+		if int(use.get("player", -1)) == player and int(use.get("squad", -1)) == squad and str(use.get("stratagem", "")) == VOW_DEVOUT_PUSH and str(use.get("phase_key", "")) == phase_key(s): return roll.duplicate(true)
+	return {}
+
 static func error(s: Dictionary, player: int, squad: int, rule: String, model: int = -1, objective: int = -1, enemy_squad: int = -1, enemy_target: int = -1, require_end_window: bool = true) -> String:
 	if not enabled(s) or not s.has("stratagems") or not A.enabled(s): return "Detachment stratagems are disabled."
 	var source_rule := rule
@@ -1524,6 +1546,10 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		var pending_charge: Dictionary = s.get("pending_charge", {})
 		if pending_charge.is_empty() or int(pending_charge.get("squad", -1)) != enemy_squad or not s.squads.has(enemy_squad) or int(s.squads[enemy_squad].get("owner", -1)) != int(s.active): return "The charging unit that selected this target is no longer resolving its Charge."
 		if squad not in pending_charge.get("targets", []): return "Dread Crusaders can target only a unit currently selected as a charge target."
+	elif rule == VOW_DEVOUT_PUSH:
+		if not Registry.supported(rule) or not Registry.enabled(s, rule) or not A.enabled(s) or not vow_sworn_enabled(s, player): return "Devout Push requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
+		if not marine_infantry_unit(s, squad): return "Devout Push requires a friendly Adeptus Astartes Infantry unit."
+		if s.phase != "fight" or int(s.get("fight_actor", -1)) != player or s.get("fight_step", "") not in ["pile_in", "consolidate"] or squad not in Queue.choices(s, player): return "Devout Push is used when your eligible Infantry unit is selected for a pile-in or consolidation move."
 	elif rule == MEDUSA_UNBOWED_CONVICTION:
 		if not Registry.supported(rule): return "Unbowed Conviction is blocked pending local validation."
 		if not UnitAbilities.enabled(s) or not medusa_wrath_enabled(s, player): return "Unbowed Conviction requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
@@ -1667,11 +1693,13 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 	else: return "Unknown detachment stratagem."
 	if rule != STORM_OF_VENGEANCE:
 		var resuming_tactical_focus := rule == TACTICAL_FOCUS and not tactical_focus_roll(s, player, squad).is_empty()
+		var resuming_devout_push := rule == VOW_DEVOUT_PUSH and not devout_push_roll(s, player, squad).is_empty()
 		var stratagem_cost := 2 if rule in [HAIL_OF_VENGEANCE, TERMINATOR_TACTICAL_DREADNOUGHT_FORTITUDE] else 1
-		if not resuming_tactical_focus and s.cp.get(player, 0) < maxi(0, stratagem_cost - A.discount(s, player, squad)): return "This stratagem costs %d CP; arm an eligible discount first." % stratagem_cost
+		if not resuming_tactical_focus and not resuming_devout_push and s.cp.get(player, 0) < maxi(0, stratagem_cost - A.discount(s, player, squad)): return "This stratagem costs %d CP; arm an eligible discount first." % stratagem_cost
 		for use: Dictionary in s.stratagems.uses:
 			if use.player == player and use.phase_key == phase_key(s):
 				if resuming_tactical_focus and int(use.get("squad", -1)) == squad and str(use.get("stratagem", "")) == TACTICAL_FOCUS: continue
+				if resuming_devout_push and int(use.get("squad", -1)) == squad and str(use.get("stratagem", "")) == VOW_DEVOUT_PUSH: continue
 				if use.stratagem == rule or (rule == RELENTLESS_ASSAULT and use.stratagem in [RELENTLESS_ASSAULT, FIRESTORM_RELENTLESS_ASSAULT]) or (rule == ARMOUR and use.stratagem in [ASSAULT_ARMOUR, TACTICAL_ARMOUR, DEVASTATOR_ARMOUR, ULTRAMARINES_ARMOUR]) or (rule == MIGHT and use.stratagem in [MIGHT, ULTRAMARINES_COURAGE]) or (rule == STORM and use.stratagem in [STORM, ULTRAMARINES_EXEMPLARY_VIGILANCE]) or (rule == ADAPTIVE and use.stratagem in [ADAPTIVE, ULTRAMARIAN_ADAPTIVITY]) or (rule == HUNTERS_INSTINCTS and use.stratagem in [HUNTERS_INSTINCTS, ULTRAMARIAN_PRACTICAL_TACTICS]) or (rule == WORTHY and use.stratagem in [DUTY_IN_DEATH, INNER_CIRCLE_DUTY_UNTO_DEATH]): return "This stratagem has already been used this phase."
 				if use.squad == squad: return "This unit already received a stratagem this phase."
 	return ""
@@ -2177,6 +2205,7 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	var failure := error(s, player, selected.target, source_rule, selected.model, objective, enemy_squad, suppression_target)
 	if not failure.is_empty(): return {"error": failure}
 	if rule == TACTICAL_FOCUS and not tactical_focus_roll(s, player, int(selected.target)).is_empty(): return {"error": "Tactical Focus has already been spent; resume its saved consolidation move."}
+	if rule == VOW_DEVOUT_PUSH and not devout_push_roll(s, player, int(selected.target)).is_empty(): return {"error": "Devout Push has already been paid; resume its saved contact placement."}
 	var dread_result: Dictionary = {}
 	var dread_was_battle_shocked := false
 	if rule == VOW_DREAD_CRUSADERS:
@@ -2310,6 +2339,7 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		s.detachment_stratagems.phobos_strike[selected.target] = {"phase_key": phase_key(s)}
 	elif rule == TERMINATOR_TACTICAL_DREADNOUGHT_FORTITUDE: pass
 	elif rule == TACTICAL_FOCUS: pass
+	elif rule == VOW_DEVOUT_PUSH: pass
 	elif rule == GAUNTLET_DUTY_IS_NEVER_DONE: pass
 	elif rule == GAUNTLET_AGGRESSIVE_DISEMBARKATION: pass
 	elif rule == RELENTLESS_ASSAULT:

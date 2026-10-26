@@ -409,6 +409,7 @@ var escape_wound_button: Button
 var abandon_move_button: Button
 var begin_contact_button: Button
 var tactical_focus_button: Button
+var devout_push_button: Button
 var consolidation_objective: OptionButton
 var contact_enemy: OptionButton
 var contact_elevation_choice: OptionButton
@@ -1731,6 +1732,8 @@ func _build_ui() -> void:
 	begin_contact_button = _button(column, "Begin contact movement", _request_begin_contact)
 	tactical_focus_button = _button(column, "Tactical Focus (1 CP) and begin consolidation", _request_tactical_focus_contact)
 	tactical_focus_button.visible = false
+	devout_push_button = _button(column, "Devout Push (1 CP) and begin pile-in", _request_devout_push_contact)
+	devout_push_button.visible = false
 	consolidation_objective = OptionButton.new()
 	column.add_child(consolidation_objective)
 	contact_enemy = OptionButton.new()
@@ -3045,7 +3048,7 @@ func _build_action_groups(column: VBoxContainer) -> void:
 		"reaction": {"title": "Decision window", "controls": [reaction_help, reaction_roll, reaction_use_row, reaction_use, reaction_sudden_row, reaction_sudden, reaction_dice_hint, reaction_dice, reaction_squad]},
 		"deployment": {"title": "Deploy", "controls": [deployment_help, deployment_preset_button, deployment_confirm_button]},
 		"movement": {"title": "Move", "controls": [movement_choice, movement_elevation_choice, sudden_onslaught_choice, take_to_skies_choice, movement_choices, begin_move_button, escape_wound_button, finish_move_button, cancel_move_button, abandon_move_button, coherency_button]},
-		"contact": {"title": "Charge / fight", "controls": [charge_targets, charge_button, take_to_skies_charge_choice, begin_contact_button, tactical_focus_button, consolidation_objective, contact_enemy, contact_elevation_choice, confirm_contact_button, cancel_contact_button]},
+		"contact": {"title": "Charge / fight", "controls": [charge_targets, charge_button, take_to_skies_charge_choice, begin_contact_button, tactical_focus_button, devout_push_button, consolidation_objective, contact_enemy, contact_elevation_choice, confirm_contact_button, cancel_contact_button]},
 		"attack": {"title": "Attacks", "controls": [shooting_complete, lethal_choice, plan_begin, plan_steps, plan_assignment_status, plan_hail, indirect_choice, plan_weapon, plan_target, plan_amount, plan_add, plan_clear, plan_summary, plan_confirm, plan_cancel]},
 		"defense": {"title": "Allocate", "controls": [defense_steps, defense_picker, recipient_scroll, allocate_button, precision_skip]},
 		"objectives": {"title": "Objective", "controls": [action_objective, action_button]},
@@ -5684,6 +5687,7 @@ func _refresh() -> void:
 	action_objective.disabled = not can_act
 	var pending_contact: bool = combat_enabled and not state.pending_contact.is_empty()
 	tactical_focus_button.visible = false
+	devout_push_button.visible = false
 	var previous_enemy := contact_enemy.get_selected_id()
 	contact_enemy.clear()
 	contact_enemy.visible = false
@@ -5739,13 +5743,25 @@ func _refresh() -> void:
 	if combat_enabled and state.phase == "fight" and state.fight_step == "consolidate" and state.units.has(selected):
 		var saved_focus_roll := Combat.DetachmentStratagems.tactical_focus_roll(state, _local_player(), int(state.units[selected].squad))
 		if not saved_focus_roll.is_empty(): begin_contact_button.disabled = true
+	if combat_enabled and not pending_contact and state.phase == "fight" and state.fight_step in ["pile_in", "consolidate"] and state.units.has(selected):
+		var devout_squad := int(state.units[selected].squad)
+		var devout_error := Combat.DetachmentStratagems.error(state, _local_player(), devout_squad, Combat.DetachmentStratagems.VOW_DEVOUT_PUSH)
+		if devout_error.is_empty():
+			var saved_devout_roll := Combat.DetachmentStratagems.devout_push_roll(state, _local_player(), devout_squad)
+			devout_push_button.visible = true
+			devout_push_button.text = "Resume Devout Push (roll retained)" if not saved_devout_roll.is_empty() else ("Devout Push (1 CP) and begin pile-in" if state.fight_step == "pile_in" else "Devout Push (1 CP) and begin consolidation")
+			devout_push_button.tooltip_text = "Devout Push costs 1 CP, reduced by an eligible discount. Roll D3+3 inches, then place and confirm this unit’s pile-in or consolidation. Canceling placement restores positions and retains the paid roll; resuming does not charge CP again."
+			devout_push_button.disabled = not can_act or state.units[selected].owner != _local_player() or state.units[selected].wounds <= 0
+			if not saved_devout_roll.is_empty():
+				begin_contact_button.disabled = true
+				begin_contact_button.tooltip_text += "\n\nDevout Push is already paid for this contact move. Resume the saved roll to finish placement."
 	if combat_enabled and state.phase == "fight" and state.fight_step in ["attacks", "consolidation_reaction"] and begin_contact_button.disabled and not pending_contact:
 		begin_contact_button.visible = false
 		contact_enemy.visible = false
 	confirm_contact_button.visible = pending_contact
 	cancel_contact_button.visible = pending_contact
 	confirm_contact_button.tooltip_text = "Confirm this charge/pile-in/consolidation preview. Legal placement and coherency are checked before applying the move."
-	cancel_contact_button.tooltip_text = "Discard the current placement preview and restore model positions. If Tactical Focus was used, its paid roll remains available to resume."
+	cancel_contact_button.tooltip_text = "Discard the placement preview and restore model positions. Paid Tactical Focus or Devout Push rolls remain available to resume; Charge dice are retained too."
 	cancel_contact_button.text = "Cancel contact placement (retain charge roll)" if pending_contact and state.pending_contact.kind == "charge" else "Cancel contact placement"
 	confirm_contact_button.disabled = not can_act
 	cancel_contact_button.disabled = not can_act
@@ -5884,7 +5900,7 @@ func _refresh() -> void:
 	allocate_button.disabled = not allocating or not can_act or not (Combat.Hazard.choice_error(state, _local_player(), selected) if hazard_pending else Combat.Allocation.choice_error(state, _local_player(), selected)).is_empty()
 	if precision_pending and selected < 0: allocate_button.disabled = true
 	if allocating:
-		for control in [end_button, charge_button, begin_contact_button, tactical_focus_button, begin_move_button, action_button, plan_begin, plan_confirm, coherency_button, escape_wound_button, abandon_move_button, finish_move_button, cancel_move_button, confirm_contact_button, cancel_contact_button]: control.disabled = true
+		for control in [end_button, charge_button, begin_contact_button, tactical_focus_button, devout_push_button, begin_move_button, action_button, plan_begin, plan_confirm, coherency_button, escape_wound_button, abandon_move_button, finish_move_button, cancel_move_button, confirm_contact_button, cancel_contact_button]: control.disabled = true
 	_refresh_defense_steps(allocating, hazard_pending, eligible_recipient_models)
 	_refresh_action_groups()
 	_refresh_unit_choices()
@@ -6622,6 +6638,7 @@ func _refresh_attack_plan() -> void:
 	end_button.disabled = true
 	begin_contact_button.disabled = true
 	tactical_focus_button.disabled = true
+	devout_push_button.disabled = true
 	action_button.disabled = true
 	var previous_target := plan_target.get_selected_id()
 	var previous_weapon := _plan_weapon_choice()
@@ -8194,27 +8211,30 @@ func _apply_charge(player: int, target: int, revision: int) -> void:
 	_present_match_command(player, result)
 
 func _request_begin_contact() -> void:
-	_request_begin_contact_with_tactical_focus(false)
+	_request_begin_contact_with_stratagems(false, false)
 
 func _request_tactical_focus_contact() -> void:
-	_request_begin_contact_with_tactical_focus(true)
+	_request_begin_contact_with_stratagems(true, false)
 
-func _request_begin_contact_with_tactical_focus(use_tactical_focus: bool) -> void:
+func _request_devout_push_contact() -> void:
+	_request_begin_contact_with_stratagems(false, true)
+
+func _request_begin_contact_with_stratagems(use_tactical_focus: bool, use_devout_push: bool) -> void:
 	if not combat_enabled: return
 	var kind: String = "charge" if state.phase == "charge" else "pile_in" if state.fight_step == "pile_in" else "consolidate" if state.fight_step == "consolidate" else "overrun"
 	var objective := consolidation_objective.get_selected_id() if consolidation_objective.visible else -1
 	var targets: Array[int] = []
 	if contact_enemy.visible: targets.append(contact_enemy.get_selected_id())
-	if mode == "client": request_begin_contact.rpc_id(1, selected, kind, state.revision, objective, targets, use_tactical_focus)
-	else: _apply_begin_contact(_local_player(), selected, kind, state.revision, objective, targets, use_tactical_focus)
+	if mode == "client": request_begin_contact.rpc_id(1, selected, kind, state.revision, objective, targets, use_tactical_focus, use_devout_push)
+	else: _apply_begin_contact(_local_player(), selected, kind, state.revision, objective, targets, use_tactical_focus, use_devout_push)
 
 @rpc("any_peer", "call_remote", "reliable")
-func request_begin_contact(model: int, kind: String, revision: int, objective: int = -1, targets: Array[int] = [], use_tactical_focus: bool = false) -> void:
-	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_begin_contact(2, model, kind, revision, objective, targets, use_tactical_focus)
+func request_begin_contact(model: int, kind: String, revision: int, objective: int = -1, targets: Array[int] = [], use_tactical_focus: bool = false, use_devout_push: bool = false) -> void:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_begin_contact(2, model, kind, revision, objective, targets, use_tactical_focus, use_devout_push)
 
-func _apply_begin_contact(player: int, model: int, kind: String, revision: int, objective: int = -1, targets: Array[int] = [], use_tactical_focus: bool = false) -> void:
+func _apply_begin_contact(player: int, model: int, kind: String, revision: int, objective: int = -1, targets: Array[int] = [], use_tactical_focus: bool = false, use_devout_push: bool = false) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.BEGIN_CONTACT, "model": model, "move_kind": kind, "revision": revision, "targets": targets, "objective": objective, "use_tactical_focus": use_tactical_focus}, _d6)
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.BEGIN_CONTACT, "model": model, "move_kind": kind, "revision": revision, "targets": targets, "objective": objective, "use_tactical_focus": use_tactical_focus, "use_devout_push": use_devout_push}, _d6)
 	_present_match_command(player, result)
 
 @rpc("any_peer", "call_remote", "reliable")
