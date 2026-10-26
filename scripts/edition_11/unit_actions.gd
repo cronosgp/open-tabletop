@@ -1076,6 +1076,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 			result.append(choice("Cold and Calculating %d: Lethal Hits against Monsters/Vehicles" % squad, "cold-select", G.alive(state, squad)[0], squad, "lethal"))
 			result.append(choice("Cold and Calculating %d: Sustained Hits 1 against other targets" % squad, "cold-select", G.alive(state, squad)[0], squad, "sustained"))
 		result.append_array(signum_array_choices(state, player))
+		result.append_array(augury_servo_host_choices(state, player))
 		result.append_array(optics_choices(state, player))
 		result.append_array(omni_choices(state, player))
 		result.append_array(Incursors.haywire_choices(state, player))
@@ -1153,6 +1154,34 @@ static func catechism_fire_choices(state: Dictionary, player: int) -> Array:
 				if not state.units[observer].get("on_battlefield", true): continue
 				if T.targeting(state, observer, target).visible: visible = true
 			if visible: result.append(choice("Catechism of Fire %d: select %s" % [model, state.squads[target].name], "catechism-fire", model, target))
+	return result
+
+static func augury_servo_host_target_eligible(state: Dictionary, source_squad: int, target: int) -> bool:
+	if not A.enabled(state) or not state.squads.has(source_squad) or not state.squads.has(target): return false
+	if int(state.squads[source_squad].get("owner", -1)) == int(state.squads[target].get("owner", -2)) or G.alive(state, target).is_empty(): return false
+	var distance := INF
+	var visible := false
+	var unsupported_geometry := false
+	for observer: int in G.alive(state, source_squad):
+		for target_model: int in G.alive(state, target):
+			distance = minf(distance, G.edge(state.units[observer], state.units[target_model]))
+			var sight: Dictionary = T.pair(state, observer, target_model)
+			visible = visible or bool(sight.get("visible", false))
+			unsupported_geometry = unsupported_geometry or bool(sight.get("unsupported_geometry", false))
+	return visible and not unsupported_geometry and distance <= 18.001
+
+static func augury_servo_host_choices(state: Dictionary, player: int) -> Array:
+	var result: Array = []
+	if not A.enabled(state) or state.phase != "shooting" or state.active != player: return result
+	for squad: int in state.squads:
+		if int(state.squads[squad].get("owner", -1)) != player or not StormlanceEnhancements.augury_servo_host_active(state, squad): continue
+		var use_key := "augury-servo-host:%d" % squad
+		if state.unit_abilities.used.get(use_key, "") == key(state): continue
+		var source_models := G.alive(state, squad)
+		if source_models.is_empty(): continue
+		for target: int in state.squads:
+			if not augury_servo_host_target_eligible(state, squad, target): continue
+			result.append(choice("Augury Servo-host: %s cannot benefit from cover this phase" % state.squads[target].name, "augury-servo-host", source_models[0], target))
 	return result
 
 static func signum_array_choices(state: Dictionary, player: int) -> Array:
@@ -1492,6 +1521,17 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if not a.has("rampart_active"): a.rampart_active = {}
 			a.rampart_active[model] = {"phase_key": key(state)}
 			a.used[use_key] = true
+		"augury-servo-host":
+			var source: Dictionary = state.units.get(model, {})
+			if source.is_empty() or source.owner != player or source.wounds <= 0 or not source.get("on_battlefield", true) or not A.enabled(state) or not state.squads.has(int(source.get("squad", -1))) or not StormlanceEnhancements.augury_servo_host_active(state, int(source.squad)):
+				return {"error": "Augury Servo-host belongs to a living bearer in its enhanced unit."}
+			if state.phase != "shooting" or state.active != player or not state.squads.has(target) or not augury_servo_host_target_eligible(state, int(source.squad), target):
+				return {"error": "Augury Servo-host requires a visible enemy within 18 inches of its unit during your Shooting phase."}
+			var use_key := "augury-servo-host:%d" % int(source.squad)
+			if a.used.get(use_key, "") == key(state): return {"error": "Augury Servo-host has already selected a target for this unit this phase."}
+			if not a.has("signum_targets"): a.signum_targets = {}
+			a.signum_targets[target] = {"owner": player, "phase_key": key(state), "source": model, "ability": "augury-servo-host"}
+			a.used[use_key] = key(state)
 		"signum-array":
 			var source: Dictionary = state.units.get(model, {})
 			if source.is_empty() or source.owner != player or source.wounds <= 0 or not source.get("on_battlefield", true) or A.identity(source) != "tor-garadon":

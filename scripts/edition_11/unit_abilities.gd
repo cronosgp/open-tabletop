@@ -378,9 +378,12 @@ static func aggressive_reconnaissance_active(state: Dictionary, squad: int, targ
 			if Geometry.distance_to_target(state, state.units[model], other) <= 6.001: return false
 	return true
 
-static func signum_array_active(state: Dictionary, owner: int, target: int) -> bool:
+static func cover_denial_mark_active(state: Dictionary, owner: int, target: int) -> bool:
 	var mark: Dictionary = state.get("unit_abilities", {}).get("signum_targets", {}).get(target, {})
 	return mark.get("phase_key", "") == "%d:%s" % [state.turn, state.phase] and int(mark.get("owner", -1)) == owner and state.phase == "shooting"
+
+static func signum_array_active(state: Dictionary, owner: int, target: int) -> bool:
+	return cover_denial_mark_active(state, owner, target)
 
 static func rampart_active(state: Dictionary, model: int) -> bool:
 	if not enabled(state) or model not in state.get("units", {}) or identity(state.units[model]) != "darnath-lysander": return false

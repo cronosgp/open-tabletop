@@ -48,6 +48,7 @@ static func enable(state: Dictionary, detachment: Variant = "gladius") -> void:
 		if selected_detachment == "ironstorm-spearhead": Capabilities.admit(state, "ironstorm-auto-targeters", ID)
 		if selected_detachment == "vow-sworn-crusaders":
 			Capabilities.admit(state, "templar-vows", TemplarVows.ID)
+			Capabilities.admit(state, "augury-servo-host", ID)
 			Capabilities.admit(state, "consecrating-aura", ID)
 			Capabilities.admit(state, "incendiary-animus", ID)
 			Capabilities.admit(state, "zealous-vanguard", ID)

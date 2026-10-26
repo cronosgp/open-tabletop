@@ -384,7 +384,7 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			var indirect_attack: bool = indirect_shooting and weapon.keywords.get("indirect-fire", false)
 			if indirect_attack:
 				indirect_assignments += 1
-				context.benefit_of_cover = not profile.keywords.get("ignores-cover", false)
+				context.benefit_of_cover = not profile.keywords.get("ignores-cover", false) and not UnitAbilities.cover_denial_mark_active(state, state.squads[squad].owner, row.target)
 				context.hit_reroll = "none"
 				context.indirect_fire = true
 				context.indirect_hit_cap = 3 if _stationary(state, squad) and _visible_to_friendly(state, squad, row.target) else 5
@@ -393,7 +393,7 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			var policy := DetachmentStratagems.hit_policy(state, squad, sight.distance, float(weapon.range_inches))
 			if not policy.is_empty() and not context.get("snap_shooting", false) and not indirect_attack: context.hit_reroll = policy
 			if Incursors.scanned(state, state.squads[squad].owner, row.target) and not context.get("snap_shooting", false) and not indirect_attack: context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
-			if not indirect_attack: context.benefit_of_cover = sight.cover and not profile.keywords.get("ignores-cover", false) and not UnitAbilities.signum_array_active(state, state.squads[squad].owner, row.target)
+			if not indirect_attack: context.benefit_of_cover = sight.cover and not profile.keywords.get("ignores-cover", false) and not UnitAbilities.cover_denial_mark_active(state, state.squads[squad].owner, row.target)
 			if Doctrines.rapid_fire_active(state, squad, profile, sight.distance): bonus += int(profile.keywords["rapid-fire"])
 			if int(profile.keywords.get("melta", 0)) > 0 and sight.distance <= float(profile.range_inches) / 2.0: profile.damage = Attacks.RandomStat.add_bonus(profile.damage, int(profile.keywords.melta))
 			if profile.keywords.get("blast", false): bonus += (1 if profile.keywords.blast is bool else int(profile.keywords.blast)) * floori(float(raw_context.target_model_count) / 5.0)
