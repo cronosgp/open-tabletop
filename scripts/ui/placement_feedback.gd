@@ -9,7 +9,9 @@ var recovery := "Choose another destination."
 var pinned := false
 var destination_marker := false
 var text_label := Label.new()
-var marker_label := Label.new()
+var content := HBoxContainer.new()
+var card_symbol = preload("res://scripts/ui/combat_symbol.gd").new()
+var marker = preload("res://scripts/ui/combat_symbol.gd").new()
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -28,21 +30,23 @@ func _ready() -> void:
 	text_label.add_theme_font_size_override("font_size", 16)
 	text_label.add_theme_color_override("font_color", Color("ffe7df"))
 	text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(text_label)
-	marker_label.text = "×"
-	marker_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	marker_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	marker_label.custom_minimum_size = Vector2(36, 36)
-	marker_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	marker_label.z_index = 10
-	marker_label.tooltip_text = "Rejected placement destination"
-	marker_label.add_theme_font_size_override("font_size", 30)
-	marker_label.add_theme_color_override("font_color", Color("ff766d"))
-	marker_label.add_theme_color_override("font_outline_color", Color("241b20"))
-	marker_label.add_theme_constant_override("outline_size", 4)
+	text_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 8)
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_symbol.kind = "Blocked footprint"
+	card_symbol.ink = Color("ff766d")
+	card_symbol.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	content.add_child(card_symbol)
+	content.add_child(text_label)
+	add_child(content)
+	marker.kind = "Blocked footprint"
+	marker.ink = Color("ff766d")
+	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	marker.z_index = 10
+	marker.tooltip_text = "Rejected placement destination"
 	var overlay := get_parent()
-	if overlay != null: overlay.add_child(marker_label)
-	marker_label.visible = false
+	if overlay != null: overlay.add_child(marker)
+	marker.visible = false
 	visible = false
 
 func show_reason(id: int, target: Vector2, reason: String, retain: bool = false, mark_destination: bool = true, target_elevation: float = 0.0, error_code: String = "", recovery_text: String = "") -> void:
@@ -69,11 +73,11 @@ func clear() -> void:
 	destination_elevation = 0.0
 	pinned = false
 	destination_marker = false
-	marker_label.visible = false
+	marker.visible = false
 
 func place(camera: Camera3D, world: Vector3, base_world: Vector3, base_radius: float, bounds: Rect2) -> void:
 	if not visible:
-		marker_label.visible = false
+		marker.visible = false
 		return
 	var behind_camera := camera.is_position_behind(world)
 	var point := camera.unproject_position(world) if not behind_camera else bounds.get_center()
@@ -106,7 +110,8 @@ func place(camera: Camera3D, world: Vector3, base_world: Vector3, base_radius: f
 	custom_minimum_size.x = minf(284.0, safe_size.x)
 	var panel_style := get_theme_stylebox("panel")
 	var horizontal_chrome := panel_style.get_minimum_size().x if panel_style != null else 0.0
-	var available_text_width := safe_size.x - horizontal_chrome
+	var symbol_width := card_symbol.get_combined_minimum_size().x + 8.0
+	var available_text_width := safe_size.x - horizontal_chrome - symbol_width
 	if available_text_width <= 1.0:
 		visible = false
 		_place_destination_marker(camera, bounds)
@@ -282,7 +287,7 @@ func _details_from_reason(reason: String) -> Dictionary:
 	return {}
 
 func _place_destination_marker(camera: Camera3D, bounds: Rect2) -> void:
-	marker_label.visible = false
+	marker.visible = false
 	if not destination_marker or not destination.is_finite() or bounds.size.x < 36.0 or bounds.size.y < 36.0: return
 	var target_world := Vector3(destination.x, destination_elevation + 0.12, destination.y)
 	var behind_camera := camera.is_position_behind(target_world)
@@ -301,10 +306,10 @@ func _place_destination_marker(camera: Camera3D, bounds: Rect2) -> void:
 		var distance_x := half_bounds.x / absf(ray.x) if absf(ray.x) > 0.001 else INF
 		var distance_y := half_bounds.y / absf(ray.y) if absf(ray.y) > 0.001 else INF
 		point = safe_bounds.get_center() + ray * minf(distance_x, distance_y)
-	var marker_size := marker_label.custom_minimum_size
+	var marker_size := marker.custom_minimum_size
 	var max_position := safe_bounds.end - marker_size
-	marker_label.position = Vector2(clampf(point.x - marker_size.x * 0.5, safe_bounds.position.x, max_position.x), clampf(point.y - marker_size.y * 0.5, safe_bounds.position.y, max_position.y))
-	marker_label.visible = true
+	marker.position = Vector2(clampf(point.x - marker_size.x * 0.5, safe_bounds.position.x, max_position.x), clampf(point.y - marker_size.y * 0.5, safe_bounds.position.y, max_position.y))
+	marker.visible = true
 
 func _direction_name(direction: Vector2) -> String:
 	if direction.length_squared() < 0.01: return "nearby"

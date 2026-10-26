@@ -86,7 +86,10 @@ func show_page(page: Dictionary) -> void:
 	next.disabled = first + items.size() >= total
 	list.clear()
 	for entry: Dictionary in items:
-		list.add_item("Round %d · Player %d · %s · %d dice" % [entry.round, entry.active, str(entry.phase).replace("_", " ").capitalize(), entry.dice.size()])
+		var phase_name := str(entry.get("phase", "Match")).replace("_", " ").capitalize()
+		var preview := _entry_preview(entry)
+		var row := list.add_item("R%d · P%d · %s · %s" % [int(entry.get("round", 0)), int(entry.get("active", 0)), phase_name, preview])
+		list.set_item_tooltip(row, _entry_tooltip(entry))
 	if items.is_empty():
 		current_selection = -1
 		for card: Node in event_cards.get_children(): card.free()
@@ -100,6 +103,7 @@ func _select(index: int) -> void:
 	if index < 0 or index >= items.size(): return
 	current_selection = index
 	var entry: Dictionary = items[index]
+	var messages: Array = entry.get("messages", [])
 	for card: Node in event_cards.get_children(): card.free()
 	var attack_record: Dictionary = entry.get("attack_summary", entry.get("patch", {}).get("last_attack", {}))
 	if not attack_record.is_empty():
@@ -108,17 +112,16 @@ func _select(index: int) -> void:
 		var hazard: Dictionary = attack_record.get("hazardous", {})
 		if int(hazard.get("total", 0)) > 0: _event_card("Hazardous · attacking unit", "%d mortal wounds generated before prevention" % int(hazard.total))
 	else:
-		var messages: Array = entry.get("messages", [])
 		var event_context := "Round %s · %s · Player %s active" % [str(entry.get("round", "—")), str(entry.get("phase", "Match")).replace("_", " ").capitalize(), str(entry.get("active", "—"))]
-		if messages.is_empty():
-			_event_card(event_context, "Match state recorded.")
-		else:
-			for message_index in range(messages.size()):
-				_event_card("%s · Event %d" % [event_context, message_index + 1], str(messages[message_index]))
+		_event_card(event_context, "Shared context for the events below." if not messages.is_empty() else "Match state recorded.")
+		for message: Variant in messages:
+			var text := str(message).strip_edges()
+			if text.is_empty(): continue
+			var heading := _event_heading(text)
+			_event_card(heading, "" if heading == text else text)
 	var lines: Array[String] = ["RECORD #%d  •  %s UTC" % [entry.sequence, entry.utc], "Round %s  ·  Player %s active  ·  %s  ·  revision %s" % [str(entry.get("round", "—")), str(entry.get("active", "—")), str(entry.get("phase", "—")).replace("_", " ").capitalize(), str(entry.get("revision", "—"))]]
 	if entry.kind == "start": lines.append("Match history begins here.")
 	elif entry.kind == "checkpoint": lines.append("History checkpoint. %d earlier records were compacted to keep the journal bounded." % int(entry.get("compacted_entries", 0)))
-	var messages: Array = entry.get("messages", [])
 	if not messages.is_empty():
 		lines.append("\nEVENTS")
 		for message in messages: lines.append("• " + str(message))
@@ -141,6 +144,40 @@ func _select(index: int) -> void:
 	detail.text = "\n".join(lines)
 	if technical.button_pressed and not checkpoint_note.is_empty(): detail.text += "\n\n" + checkpoint_note
 
+func _entry_preview(entry: Dictionary) -> String:
+	var messages: Array = entry.get("messages", [])
+	for message: Variant in messages:
+		var text := str(message).strip_edges()
+		if text.is_empty(): continue
+		return _event_heading(text)
+	var attack_record: Dictionary = entry.get("attack_summary", entry.get("patch", {}).get("last_attack", {}))
+	if not attack_record.is_empty():
+		var pools: Array = attack_record.get("pools", [])
+		if not pools.is_empty():
+			var pool: Dictionary = pools[0]
+			return "%s → %s" % [str(pool.get("weapon_name", "Weapon")), str(pool.get("target_name", "Target"))]
+		return "Attack recorded"
+	var kind := str(entry.get("kind", "")).capitalize()
+	return kind if not kind.is_empty() else "Recorded state"
+
+func _entry_tooltip(entry: Dictionary) -> String:
+	var messages: Array = entry.get("messages", [])
+	var lines: Array[String] = []
+	for message: Variant in messages:
+		var text := str(message).strip_edges()
+		if not text.is_empty(): lines.append(text)
+	if lines.is_empty(): lines.append(_entry_preview(entry))
+	var dice_count := entry.get("dice", []).size()
+	if dice_count > 0: lines.append("%d recorded dice. Open the technical record for the D6 order." % dice_count)
+	return "\n".join(lines)
+
+func _event_heading(message: String) -> String:
+	var trimmed := message.strip_edges()
+	var sentence := trimmed.find(". ")
+	if sentence > 12 and sentence <= 88: return trimmed.substr(0, sentence + 1)
+	if trimmed.length() <= 88: return trimmed
+	return trimmed.substr(0, 85) + "…"
+
 func _event_card(title: String, body: String) -> void:
 	var panel := PanelContainer.new()
 	var style := StyleBoxFlat.new()
@@ -160,7 +197,7 @@ func _event_card(title: String, body: String) -> void:
 		label.add_theme_font_size_override("font_size", 17 if text == title else 16)
 		label.add_theme_color_override("font_color", Color("edcf8b") if text == title else Color("d9e2e6"))
 		label.text = text
-		column.add_child(label)
+		if not text.is_empty(): column.add_child(label)
 
 func _append_attack_details(lines: Array[String], attack: Dictionary, squads: Dictionary) -> void:
 	lines.append("\nATTACK RESOLUTION")

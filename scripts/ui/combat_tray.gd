@@ -9,6 +9,9 @@ var stage_label := Label.new()
 var stage_icon = preload("res://scripts/ui/combat_symbol.gd").new()
 var dice := HFlowContainer.new()
 var summary := Label.new()
+var outcome_icon = preload("res://scripts/ui/combat_symbol.gd").new()
+var outcome_destroyed := 0
+var stage_strip := HFlowContainer.new()
 var die_detail := Label.new()
 var skip := Button.new()
 var replay := Button.new()
@@ -32,23 +35,24 @@ var focused_die_button: Button
 var expanded := true
 var collapse_when_settled := false
 var sound := AudioStreamPlayer.new()
+var confirm_sound := AudioStreamPlayer.new()
+var impact_sound := AudioStreamPlayer.new()
 var sound_enabled := true
 
 func _ready() -> void:
+	var sfx_bus := _sfx_bus()
 	add_child(sound)
+	sound.bus = sfx_bus
 	sound.volume_db = -20
-	# Original short UI cue; no samples, third-party content or gameplay RNG.
-	var wave := AudioStreamWAV.new()
-	wave.format = AudioStreamWAV.FORMAT_16_BITS
-	wave.mix_rate = 22050
-	var samples := PackedByteArray()
-	samples.resize(1764 * 2)
-	for index in 1764:
-		var time := float(index) / wave.mix_rate
-		var amplitude := sin(TAU * (340.0 * time - 900.0 * time * time)) * exp(-time * 65.0)
-		samples.encode_s16(index * 2, int(amplitude * 18000))
-	wave.data = samples
-	sound.stream = wave
+	sound.stream = _tone(340.0, 0.08, 65.0, 18000.0)
+	add_child(confirm_sound)
+	confirm_sound.bus = sfx_bus
+	confirm_sound.volume_db = -16
+	confirm_sound.stream = _tone(880.0, 0.045, 48.0, 12000.0)
+	add_child(impact_sound)
+	impact_sound.bus = sfx_bus
+	impact_sound.volume_db = -10
+	impact_sound.stream = _tone(128.0, 0.2, 10.0, 16000.0)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color("101a22", 0.98)
 	style.border_color = Color("d9aa4f")
@@ -142,7 +146,19 @@ func _ready() -> void:
 	summary.add_theme_font_size_override("font_size", 15)
 	summary.max_lines_visible = 4
 	summary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	column.add_child(summary)
+	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage_strip.add_theme_constant_override("h_separation", 12)
+	stage_strip.add_theme_constant_override("v_separation", 4)
+	stage_strip.visible = false
+	column.add_child(stage_strip)
+	var summary_row := HBoxContainer.new()
+	summary_row.add_theme_constant_override("separation", 8)
+	outcome_icon.kind = "Destroyed"
+	outcome_icon.visible = false
+	outcome_icon.tooltip_text = "Models destroyed in this recorded result."
+	summary_row.add_child(outcome_icon)
+	summary_row.add_child(summary)
+	column.add_child(summary_row)
 	var controls := HFlowContainer.new()
 	column.add_child(controls)
 	for option: String in ["Normal", "Fast", "Reduced motion"]: speed.add_item(option)
@@ -157,6 +173,12 @@ func _ready() -> void:
 	replay.tooltip_text = "Show the already recorded dice and result again. This does not reroll or change the match."
 	replay.pressed.connect(func(): play())
 	controls.add_child(replay)
+	var replay_note := Label.new()
+	replay_note.text = "Replay shows the saved faces. It does not roll again."
+	replay_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	replay_note.add_theme_font_size_override("font_size", 12)
+	replay_note.add_theme_color_override("font_color", Color("9fb2c1"))
+	column.add_child(replay_note)
 	visible = false
 
 func reset() -> void:
@@ -164,6 +186,9 @@ func reset() -> void:
 	signature = ""
 	observed = false
 	visible = false
+	outcome_destroyed = 0
+	outcome_icon.visible = false
+	_refresh_stage_strip(false)
 	stages.disabled = false
 	groups.clear()
 
@@ -180,6 +205,9 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 	if next_key.is_empty():
 		observed = true
 		signature = ""
+		outcome_destroyed = 0
+		outcome_icon.visible = false
+		_refresh_stage_strip(false)
 		if sequence != null: sequence.kill()
 		stages.disabled = false
 		groups.clear()
@@ -187,6 +215,7 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 	if next_key == signature:
 		if not enabled and sequence != null and sequence.is_running(): finish()
 		return
+	outcome_destroyed = 0
 	var animate := observed and not signature.is_empty()
 	var followed_decision := signature.begins_with("roll:") or signature.begins_with("allocation:")
 	# The first action after an empty baseline is animated; restored state is stable.
@@ -198,7 +227,7 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 	if next_key.is_empty(): return
 	if pending_roll:
 		var names := {"after_hit_roll": "Hits", "after_wound_roll": "Wounds", "after_save_roll": "Saves", "after_damage_roll": "Damage", "after_attack_count_roll": "Attack count", "after_hazardous_roll": "Hazardous", "after_transport_hazard_roll": "Transport Hazard", "after_escape_roll": "Escape hazards", "after_advance_roll": "Advance", "after_charge_roll": "Charge"}
-		heading.text = "Player %d decides" % int(window.get("player", 0))
+		heading.text = "Optional · keep or re-roll"
 		context_label.text = "Recorded roll · optional re-roll in Command"
 		var squad := int(window.get("squad", -1))
 		if state.get("squads", {}).has(squad): context_label.text = str(state.squads[squad].name)
@@ -234,7 +263,12 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 		if window.kind == "after_save_roll": final_text = "Saves await confirmation. Keep result · 0 CP, or re-roll."
 	elif not allocation.is_empty():
 		animate = false
-		heading.text = "Attack in progress"
+		var allocation_phase := str(allocation.get("phase", ""))
+		var allocation_optional := allocation_phase == "precision"
+		if allocation_optional: heading.text = "Optional · Precision"
+		elif allocation_phase == "order": heading.text = "Required · choose the next group"
+		elif allocation_phase == "damage": heading.text = "Required · choose a recipient"
+		else: heading.text = "Required · resolve the decision"
 		context_label.text = str(state.squads.get(allocation.get("target", -1), {}).get("name", "Defending unit"))
 		if allocation.has("weapon"): context_label.text = str(allocation.weapon.get("name", "Weapon")) + " → " + context_label.text
 		var result: Dictionary = allocation.get("result", {})
@@ -250,7 +284,7 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 				if allocation.get("phase", "") != "damage": final_text = "Save failed · confirm the damage decision in Command."
 				final_text += "\n%d damage applied so far; this attack's damage is still pending." % int(result.get("damage_applied", 0))
 	else:
-		heading.text = "Attack resolved"
+		heading.text = "Recorded result"
 		var weapons: Array[String] = []
 		var damage := 0
 		var destroyed := 0
@@ -284,6 +318,7 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 			var source_label := "Attacker" if attackers.size() == 1 else "Attackers"
 			var source_text := "%s: %s" % [source_label, ", ".join(attackers)]
 			context_label.text = source_text if context_label.text.is_empty() else source_text + "\n" + context_label.text
+		outcome_destroyed = destroyed
 		final_text = "%d damage applied · %d models destroyed" % [damage, destroyed]
 		if saves_recorded and passed + failed > 0:
 			var save_text := "Saves: %d passed · %d failed" % [passed, failed]
@@ -336,7 +371,7 @@ func _add_pool(pool: Dictionary) -> void:
 				detail.prevented = int(prevention.get("prevented", 0))
 				detail.discarded = int(allocation.get("discarded", 0))
 			damage_details.append(detail)
-	if not damage_values.is_empty(): groups.append({"name": "Damage", "rolls": damage_dice, "die_details": damage_details, "note": "Before prevention: " + ", ".join(damage_values)})
+	if not damage_values.is_empty(): groups.append({"name": "Damage", "rolls": damage_dice, "die_details": damage_details, "applied": int(pool.get("damage_applied", 0)), "note": "Before prevention: " + ", ".join(damage_values)})
 	for prevention: Dictionary in pool.get("prevention_rolls", []):
 		_add_prevention_group(prevention)
 	var retention: Array = pool.get("casualty_retention_rolls", [])
@@ -362,6 +397,8 @@ func play(start_index: int = 0, collapse_after: bool = false) -> void:
 	var multiplier := 0.35 if speed.selected == 1 else 1.0
 	summary.text = "Recorded dice · presentation only"
 	summary.tooltip_text = summary.text
+	outcome_icon.visible = false
+	_refresh_stage_strip(false)
 	skip.visible = true
 	replay.visible = false
 	stages.disabled = true
@@ -375,12 +412,116 @@ func play(start_index: int = 0, collapse_after: bool = false) -> void:
 		sequence.tween_callback(_show_group.bind(index, false, true))
 		sequence.tween_interval(0.65 * multiplier)
 		sequence.tween_callback(_show_group.bind(index, true, true))
-		sequence.tween_interval(0.45 * multiplier)
-	sequence.tween_callback(_settle)
+		var hold := 0.45 * multiplier
+		if _failed_save_group(groups[index]): hold += 0.4 * multiplier
+		sequence.tween_interval(hold)
+	sequence.tween_callback(_finish_sequence)
+
+func _failed_save_group(group: Dictionary) -> bool:
+	if str(group.get("name", "")) != "Saves": return false
+	for outcome: Variant in group.get("outcomes", []):
+		if outcome is Dictionary and outcome.has("success") and not bool(outcome.get("success", false)): return true
+	return false
 
 func finish() -> void:
 	if sequence != null: sequence.kill()
 	_settle()
+
+func _finish_sequence() -> void:
+	_settle()
+	play_confirm()
+
+func play_confirm() -> void:
+	if not _cues_allowed() or confirm_sound.stream == null: return
+	confirm_sound.play()
+
+func play_impact() -> void:
+	if not _cues_allowed() or impact_sound.stream == null: return
+	impact_sound.play()
+
+func _cues_allowed() -> bool:
+	return sound_enabled and speed.selected != 2
+
+func _sfx_bus() -> String:
+	var index := AudioServer.get_bus_index("SFX")
+	if index < 0:
+		index = AudioServer.bus_count
+		AudioServer.add_bus()
+		AudioServer.set_bus_name(index, "SFX")
+	return "SFX"
+
+func _tone(frequency: float, seconds: float, decay: float, level: float) -> AudioStreamWAV:
+	var wave := AudioStreamWAV.new()
+	wave.format = AudioStreamWAV.FORMAT_16_BITS
+	wave.mix_rate = 22050
+	var count := maxi(1, int(float(wave.mix_rate) * seconds))
+	var samples := PackedByteArray()
+	samples.resize(count * 2)
+	for index in count:
+		var time := float(index) / float(wave.mix_rate)
+		var amplitude := sin(TAU * frequency * time) * exp(-time * decay)
+		samples.encode_s16(index * 2, int(clampf(amplitude, -1.0, 1.0) * level))
+	wave.data = samples
+	return wave
+
+func _refresh_stage_strip(show_results: bool) -> void:
+	for child in stage_strip.get_children(): child.free()
+	if not show_results:
+		stage_strip.visible = false
+		return
+	var shown := 0
+	for group: Dictionary in groups:
+		var stage_name := str(group.get("name", ""))
+		if stage_name not in ["Hits", "Wounds", "Saves", "Damage"]: continue
+		var entry := HBoxContainer.new()
+		entry.add_theme_constant_override("separation", 4)
+		entry.mouse_filter = Control.MOUSE_FILTER_STOP
+		entry.tooltip_text = _stage_strip_text(group)
+		var icon = preload("res://scripts/ui/combat_symbol.gd").new()
+		icon.kind = stage_name
+		entry.add_child(icon)
+		var caption := Label.new()
+		caption.text = _stage_strip_text(group)
+		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		caption.custom_minimum_size.x = 72
+		caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		caption.add_theme_font_size_override("font_size", 13)
+		if _failed_save_group(group): caption.add_theme_color_override("font_color", Color("ffb0a6"))
+		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		entry.add_child(caption)
+		stage_strip.add_child(entry)
+		shown += 1
+	stage_strip.visible = shown > 0
+
+func _stage_strip_text(group: Dictionary) -> String:
+	var stage_name := str(group.get("name", ""))
+	var note := str(group.get("note", ""))
+	var outcomes: Array = group.get("outcomes", [])
+	var successful := 0
+	var classified := 0
+	for outcome: Variant in outcomes:
+		if not outcome is Dictionary or not outcome.has("success"): continue
+		classified += 1
+		if bool(outcome.get("success", false)): successful += 1
+	if stage_name == "Hits" and classified > 0:
+		return "Hits · %d/%d successful" % [successful, classified] if note.is_empty() else "Hits · %s · %d/%d successful" % [note, successful, classified]
+	if stage_name == "Wounds" and classified > 0:
+		var wounds_total := int(group.get("pool", {}).get("wounds", 0))
+		var wound_counts := "%d/%d successful · %d wounds" % [successful, classified, wounds_total]
+		return "Wounds · %s" % wound_counts if note.is_empty() else "Wounds · %s · %s" % [note, wound_counts]
+	if stage_name == "Saves" and classified > 0:
+		var failed := classified - successful
+		var save_counts := "%d failed · %d passed" % [failed, successful] if failed > 0 else "%d passed" % successful
+		return "Saves · %s" % save_counts if note.is_empty() else "Saves · %s · %s" % [save_counts, note]
+	if stage_name == "Damage":
+		var applied_text := "Damage · %d applied" % int(group.get("applied", 0))
+		return applied_text if note.is_empty() else "%s · %s" % [applied_text, note]
+	return stage_name if note.is_empty() else "%s · %s" % [stage_name, note]
+
+func _apply_outcome_mark() -> void:
+	outcome_icon.visible = outcome_destroyed > 0
+	if outcome_destroyed == 1: outcome_icon.tooltip_text = "1 model destroyed in this recorded result."
+	elif outcome_destroyed > 1: outcome_icon.tooltip_text = "%d models destroyed in this recorded result." % outcome_destroyed
 
 func _settle() -> void:
 	stages.disabled = false
@@ -388,6 +529,8 @@ func _settle() -> void:
 	_show_group(groups.size() - 1, true)
 	summary.text = final_text
 	summary.tooltip_text = final_text
+	_apply_outcome_mark()
+	_refresh_stage_strip(true)
 	skip.visible = false
 	replay.visible = true
 	if collapse_when_settled: _set_expanded(false)
@@ -484,8 +627,34 @@ func _show_group(index: int, reveal: bool, animate_faces: bool = false) -> void:
 				var critical: bool = outcome.get("critical", false)
 				if passed: successful += 1
 				classified += 1
+				var failed_save := group.name == "Saves" and not passed
 				face_text.text += "★" if critical else ("✓" if passed else "×")
-				face_text.add_theme_color_override("font_color", Color("f2df83") if critical else (Color("96dfb3") if passed else Color("f2a59b")))
+				face_text.add_theme_color_override("font_color", Color("f2df83") if critical else (Color("96dfb3") if passed else Color("ffb0a6")))
+				if failed_save:
+					die_style.bg_color = Color("4a2428")
+					die_style.border_color = Color("ff766d")
+					die_style.set_border_width_all(3)
+					hover_style.bg_color = die_style.bg_color
+					hover_style.border_color = Color("ffd0c8")
+					hover_style.set_border_width_all(3)
+					focus_style.bg_color = die_style.bg_color
+					var failed_caption := Label.new()
+					failed_caption.text = "Failed"
+					failed_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+					failed_caption.add_theme_font_size_override("font_size", 12)
+					failed_caption.add_theme_color_override("font_color", Color("ffb0a6"))
+					failed_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+					contents.add_child(failed_caption)
+					face.custom_minimum_size = Vector2(52, 68)
+				elif not passed and group.name in ["Hits", "Wounds"]:
+					var miss_caption := Label.new()
+					miss_caption.text = "Miss" if group.name == "Hits" else "Failed"
+					miss_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+					miss_caption.add_theme_font_size_override("font_size", 12)
+					miss_caption.add_theme_color_override("font_color", Color("ffb0a6"))
+					miss_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+					contents.add_child(miss_caption)
+					face.custom_minimum_size = Vector2(52, 68)
 				if group.name == "Saves":
 					var save_text := "Save roll %d %s" % [value, "passed" if passed else "failed"]
 					if outcome.has("armour_target"):
