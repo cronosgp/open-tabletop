@@ -16,6 +16,7 @@ const ObjectiveSecured = preload("res://scripts/edition_11/objective_secured.gd"
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const OathOfMoment = preload("res://scripts/edition_11/oath_of_moment.gd")
 const VowedTarget = preload("res://scripts/edition_11/vowed_target.gd")
+const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const PhaseProgression = preload("res://scripts/edition_11/phase_progression.gd")
 const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
@@ -168,6 +169,7 @@ static func _resolve_current_end_control(state: Dictionary) -> void:
 	if state.unit_abilities.get("control_done", "") == phase_key: return
 	Objectives.resolve_control(state, Callable(Morale, "objective_control"))
 	if state.phase == "movement":
+		TemplarVows.secure_controlled_objectives(state, int(state.active))
 		for index in range(state.get("mission", {}).get("objectives", []).size()):
 			var objective: Dictionary = state.mission.objectives[index]
 			if objective.controller != state.active: continue

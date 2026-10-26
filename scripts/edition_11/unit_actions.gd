@@ -7,6 +7,7 @@ const RollWindows = preload("res://scripts/edition_11/attack_roll_window.gd")
 const DamageAllocation = preload("res://scripts/edition_11/damage_allocation.gd")
 const Hazard = preload("res://scripts/edition_11/hazardous.gd")
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
+const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
 const Bladeguard = preload("res://scripts/edition_11/bladeguard.gd")
 const Healing = preload("res://scripts/edition_11/unit_healing.gd")
@@ -817,7 +818,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 	var battle := battle_actor(state)
 	if battle > 0:
 		if battle != player: return result
-		result.append(choice("Finish start-of-battle Teleport Homer declarations", "battle-done"))
+		result.append(choice("Finish start-of-battle declarations", "battle-done"))
+		result.append_array(TemplarVows.choices(state, player))
 		for squad: int in state.squads:
 			if state.squads[squad].owner != player or not A.has(state, squad, "forward-assault-warsuit") or A.forward_assault_mark(state, squad) >= 0: continue
 			var source_models := A.sources(state, squad, "forward-assault-warsuit")
@@ -1362,6 +1364,10 @@ static func point_error(state: Dictionary, point: Vector2, radius: float) -> Str
 	return ""
 
 static func apply(state: Dictionary, player: int, selected: Dictionary, point: Vector2, roller: Callable) -> Dictionary:
+	if str(selected.get("action", "")) in ["templar-vow-select", "templar-vow-pass"]:
+		var vow_error := TemplarVows.pass_choice(state, player) if str(selected.get("action", "")) == "templar-vow-pass" else TemplarVows.apply_choice(state, player, selected)
+		var vow_message := "Templar Vows: Uphold the Honour of the Emperor is active for the battle." if str(selected.get("action", "")) == "templar-vow-select" else "Templar Vow selection was skipped."
+		return {"error": vow_error, "message": vow_message if vow_error.is_empty() else ""}
 	if str(selected.get("action", "")) == "combined-deployment-assail":
 		return DetachmentStratagems.resolve_gauntlet_combined(state, player, int(selected.get("target", -1)))
 	if str(selected.get("action", "")) == "combined-deployment-pass":
@@ -2343,6 +2349,9 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				state.phase = "mission_first_turn" if state.get("mission", {}).get("id", "") == "ca-2026-27-dominance-hammer-fixed-v1" else "pre_battle"
 				if state.phase == "pre_battle": ScoutMoves.begin(state)
 		"battle-done":
+			if TemplarVows.needs_choice(state, player):
+				var vow_pass_error := TemplarVows.pass_choice(state, player)
+				if not vow_pass_error.is_empty(): return {"error": vow_pass_error}
 			if not a.has("battle_players"): a.battle_players = []
 			a.battle_players.append(player)
 		"warlord":
@@ -2666,6 +2675,7 @@ static func battle_actor(state: Dictionary) -> int:
 	if not A.enabled(state) or state.phase != "start_turn" or state.turn != 1: return -1
 	for owner in [state.get("first_player", 1), 3 - int(state.get("first_player", 1))]:
 		if owner in state.unit_abilities.get("battle_players", []): continue
+		if TemplarVows.needs_choice(state, int(owner)): return int(owner)
 		for unit: Dictionary in state.units.values():
 			if unit.owner != owner or unit.wounds <= 0: continue
 			if A.identity(unit) in ["terminator-squad", "terminator-assault-squad"]: return owner

@@ -80,6 +80,8 @@ static func resolve_and_apply(state: Dictionary, detachment_assignments: Diction
 			required_chapter = "DARK ANGELS"
 		elif detachment == "fist-of-the-god-emperor":
 			required_chapter = "BLACK TEMPLARS"
+		elif detachment == "vow-sworn-crusaders":
+			required_chapter = "BLACK TEMPLARS"
 		elif detachment == "spearpoint-task-force":
 			required_chapter = "WHITE SCARS"
 		elif detachment == "medusa-wrath":
@@ -89,7 +91,7 @@ static func resolve_and_apply(state: Dictionary, detachment_assignments: Diction
 		if chapter.is_empty() and not required_chapter.is_empty():
 			chapter = required_chapter
 		elif not required_chapter.is_empty() and chapter != required_chapter:
-			var detachment_names := {"blade-of-ultramar": "Blade of Ultramar", "medusa-wrath": "Medusa's Wrath", "wrath-of-the-rock": "Wrath of the Rock", "darkflight-pursuit": "Darkflight Pursuit", "inner-circle-task-force": "Inner Circle Task Force", "fist-of-the-god-emperor": "Fist of the God-Emperor", "spearpoint-task-force": "Spearpoint Task Force"}
+			var detachment_names := {"blade-of-ultramar": "Blade of Ultramar", "medusa-wrath": "Medusa's Wrath", "wrath-of-the-rock": "Wrath of the Rock", "darkflight-pursuit": "Darkflight Pursuit", "inner-circle-task-force": "Inner Circle Task Force", "fist-of-the-god-emperor": "Fist of the God-Emperor", "vow-sworn-crusaders": "Vow-sworn Crusaders", "spearpoint-task-force": "Spearpoint Task Force"}
 			var detachment_name := str(detachment_names.get(detachment, "Space Marine detachment"))
 			return {"error": "%s requires %s Chapter context for Player %d." % [detachment_name, CurrentMarineProfiles.chapter_name(required_chapter), owner]}
 		if not chapter.is_empty() and not has_current_adeptus_astartes:

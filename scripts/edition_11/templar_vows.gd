@@ -1,0 +1,78 @@
+extends RefCounted
+## Bounded Black Templars Vow-sworn Crusaders support.
+const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
+const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Contact = preload("res://scripts/edition_11/contact_movement.gd")
+const Morale = preload("res://scripts/edition_11/morale.gd")
+const Objectives = preload("res://scripts/edition_11/objectives.gd")
+const ID := "templar-vows-uphold-11e-v1"
+const DOCTRINES_ID := "combat-doctrines-11e-gladius-v1"
+const UPHOLD := "uphold-honour"
+
+static func enabled_for(state: Dictionary, owner: int) -> bool:
+	if owner not in [1, 2]: return false
+	var doctrine_state: Dictionary = state.get("combat_doctrines", {})
+	if doctrine_state.get("implementation", "") != DOCTRINES_ID: return false
+	var assignments: Dictionary = doctrine_state.get("detachments", {})
+	var detachment := str(assignments.get(owner, assignments.get(str(owner), doctrine_state.get("detachment", "none"))))
+	if detachment != "vow-sworn-crusaders": return false
+	if not AbilityCatalog.enabled(state): return false
+	var chapters: Dictionary = state.get("marine_chapters", {})
+	return str(chapters.get(owner, chapters.get(str(owner), ""))) == "BLACK TEMPLARS"
+
+static func needs_choice(state: Dictionary, owner: int) -> bool:
+	if not enabled_for(state, owner) or state.get("phase", "") != "start_turn" or int(state.get("turn", -1)) != 1 or int(state.get("round", -1)) != 1: return false
+	var doctrine_state: Dictionary = state.get("combat_doctrines", {})
+	var selected: Dictionary = doctrine_state.get("templar_vows", {})
+	var passed: Dictionary = doctrine_state.get("templar_vow_passed", {})
+	return not selected.has(owner) and not selected.has(str(owner)) and not bool(passed.get(owner, passed.get(str(owner), false)))
+
+static func choices(state: Dictionary, owner: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if not needs_choice(state, owner): return result
+	result.append({"label": "Uphold the Honour of the Emperor — secure objectives and retain action eligibility after Advancing", "action": "templar-vow-select", "value": UPHOLD})
+	result.append({"label": "Skip Templar Vow selection", "action": "templar-vow-pass"})
+	return result
+
+static func apply_choice(state: Dictionary, owner: int, selected: Dictionary) -> String:
+	if not needs_choice(state, owner): return "No Templar Vow selection is pending."
+	if str(selected.get("value", "")) != UPHOLD: return "Only Uphold the Honour of the Emperor is available in this partial implementation."
+	state.combat_doctrines.templar_vows[owner] = UPHOLD
+	return ""
+
+static func pass_choice(state: Dictionary, owner: int) -> String:
+	if not needs_choice(state, owner): return "No Templar Vow selection is pending."
+	state.combat_doctrines.templar_vow_passed[owner] = true
+	return ""
+
+static func selected_vow(state: Dictionary, owner: int) -> String:
+	if not enabled_for(state, owner): return ""
+	var selected: Dictionary = state.get("combat_doctrines", {}).get("templar_vows", {})
+	return str(selected.get(owner, selected.get(str(owner), "")))
+
+static func infantry_unit(state: Dictionary, squad: int) -> bool:
+	if not state.get("squads", {}).has(squad): return false
+	var alive := Contact.alive(state, squad)
+	if alive.is_empty(): return false
+	for model: int in alive:
+		var unit: Dictionary = state.units[model]
+		var profile := MarineProfiles.profile(AbilityCatalog.identity(unit))
+		var keywords: Array = profile.get("keywords", [])
+		if profile.is_empty() or "ADEPTUS ASTARTES" not in keywords or "INFANTRY" not in keywords: return false
+	return true
+
+static func advance_action_allowed(state: Dictionary, squad: int) -> bool:
+	if not state.get("squads", {}).has(squad) or not infantry_unit(state, squad): return false
+	var owner := int(state.squads[squad].get("owner", -1))
+	return selected_vow(state, owner) == UPHOLD
+
+static func secure_controlled_objectives(state: Dictionary, owner: int) -> void:
+	if selected_vow(state, owner) != UPHOLD: return
+	var objectives: Array = state.get("mission", {}).get("objectives", [])
+	for index in range(objectives.size()):
+		var objective: Dictionary = objectives[index]
+		if int(objective.get("controller", 0)) != owner: continue
+		for squad: int in Objectives.controlling_squads(state, objective, Callable(Morale, "objective_control")):
+			if int(state.squads[squad].get("owner", -1)) == owner and infantry_unit(state, squad):
+				Objectives.secure(state, index, owner)
+				break

@@ -2222,7 +2222,7 @@
       "chapter": "Black Templars",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/xciydqwa/space-marines-detachments-space-wolves-black-templars-and-deathwatch/"
       ],
@@ -2231,7 +2231,10 @@
         "name": "Templar Vows",
         "summary": "At the start of the first battle round, choose one Vow for friendly Adeptus Astartes units until battle end: attacks against Psykers gain Precision and Lance; attacks against units with higher Toughness than the attacker's Strength gain +1 to Wound; or Infantry securing an objective secures it and can Advance without losing action-start eligibility.",
         "restrictions": "Army may include Black Templars units but no Adeptus Astartes units from other Chapters.",
-        "status": "reference_checked_official_preview_partial"
+        "status": "implemented_local_partial_checks_pending",
+        "capability_id": "templar-vows-uphold",
+        "implemented_scope": "Only Uphold the Honour of the Emperor is offered. A current-reference Adeptus Astartes Infantry unit that is controlling an objective secures it at the end of the owner’s Movement phase; those units may start otherwise eligible actions after Advancing. Requires current unit abilities and Black Templars Chapter context.",
+        "unsupported_scope": "The other two Templar Vows, all Vow-sworn Crusaders enhancements and stratagems, the 2 DP Force Disposition, full army legality and network validation are unsupported or pending."
       },
       "enhancements": [
         {
@@ -2324,12 +2327,30 @@
         }
       ],
       "known_interactions_to_review": [
-        "The Vow choice timing, duration and army-wide scope against Combat Doctrines.",
-        "Vow attack conditions, including attacker Strength versus target Toughness and Precision/Lance interactions.",
-        "Secured objectives and action eligibility are distinct effects and need separate core-rule handlers.",
-        "Surge move distance, targeting and placement must follow core movement constraints.",
-        "Precision allocation, hit-modifier caps, Battle-shock timing and Pile-in/Consolidation limits."
-      ]
+        "Focused checks must cover Uphold timing, objective-control changes, secured-objective behavior and attached current-reference Infantry units.",
+        "The other two Vows, their attack and Surge effects, all Vow-sworn Crusaders enhancements and stratagems, and their interactions remain unsupported.",
+        "The Black Templars Chapter gate is enforced for this detachment, but broader roster legality and the detachment 2 DP Force Disposition are not certified or enforced."
+      ],
+      "status": "implemented_local_partial_checks_pending",
+      "local_data_export_provenance": {
+        "snapshot_id": "20261021T130623Z",
+        "edition": "11e",
+        "faction_context": "space-marines",
+        "specification_revision": "20260817b",
+        "retrieved_at_utc": "2026-10-21T19:46:58Z",
+        "files": [
+          {
+            "filename": "Detachments.csv",
+            "row_id": "000001230",
+            "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+          },
+          {
+            "filename": "Detachment_abilities.csv",
+            "row_id": "000011171",
+            "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+          }
+        ]
+      }
     },
     {
       "id": "space-marines/blood-angels/angelic-inheritors",

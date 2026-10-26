@@ -53,6 +53,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 	if marine_detachment not in Combat.Doctrines.DETACHMENTS: return {"error": "Unsupported Space Marine detachment: " + marine_detachment}
 	if not options.get("combat_doctrines", false) and marine_detachments.values().any(func(value: Variant) -> bool: return str(value) != "none"): return {"error": "Select Space Marine detachments only with 11e Combat Doctrines enabled."}
 	for selected_detachment: Variant in marine_detachments.values():
+		if selected_detachment == "vow-sworn-crusaders" and not options.get("unit_abilities", false): return {"error": "Vow-sworn Crusaders requires current unit abilities enabled for its bounded Templar Vows implementation and Black Templars Chapter context."}
 		if selected_detachment == "spearpoint-task-force" and not options.get("unit_abilities", false): return {"error": "Spearpoint Task Force requires current unit abilities enabled for Suboden Khan's end-of-Fight-phase move."}
 		if selected_detachment == "darkflight-pursuit" and not options.get("unit_abilities", false): return {"error": "Darkflight Pursuit requires current unit abilities enabled for its Dark Angels Chapter context and conditional Ravenwing keywords."}
 		if selected_detachment == "inner-circle-task-force" and not options.get("unit_abilities", false): return {"error": "Inner Circle Task Force requires current unit abilities enabled for its Dark Angels Chapter context and conditional Deathwing keywords."}
@@ -189,7 +190,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		if not loadout_error.is_empty(): return {"error": loadout_error}
 		Combat.UnitAbilities.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.unit_abilities = true
-		var needs_chapter_context := options.has("marine_chapters") or ChapterRules.has_current_reference_marines(state) or marine_detachments.values().any(func(value: Variant) -> bool: return str(value) in ["wrath-of-the-rock", "spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar"])
+		var needs_chapter_context := options.has("marine_chapters") or ChapterRules.has_current_reference_marines(state) or marine_detachments.values().any(func(value: Variant) -> bool: return str(value) in ["wrath-of-the-rock", "spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "vow-sworn-crusaders"])
 		if needs_chapter_context:
 			var chapter_result := ChapterRules.resolve_and_apply(state, marine_detachments, marine_chapter_selections)
 			if not str(chapter_result.get("error", "")).is_empty(): return {"error": str(chapter_result.error)}

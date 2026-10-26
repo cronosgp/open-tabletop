@@ -7,6 +7,7 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
+const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const SECURE := "training-secure"
 const SECURE_ASSET := "secure-asset"
 
@@ -38,7 +39,9 @@ static func eligibility_error(state: Dictionary, squad: int) -> String:
 	if int(for_the_emperor.get("turn", -1)) == int(state.get("turn", -2)) and int(for_the_emperor.get("owner", -1)) == int(unit.get("owner", -2)): objective_control += 1
 	if objective_control <= 0: return "The unit needs positive OC to start an action."
 	if engaged(state, squad) and not UnitAbilities.has(state, squad, "tactical-mainstay") and not keyword(state, squad, ["titanic"]): return "Engaged units cannot start actions."
-	if (unit.advanced or unit.fell_back) and not UnitAbilities.has(state, squad, "flexible-asset") and not MarineEnhancements.oathbound_exemplar_active(state, squad): return "Units that Advanced or Fell Back cannot start actions this turn."
+	var action_movement_exception := UnitAbilities.has(state, squad, "flexible-asset") or MarineEnhancements.oathbound_exemplar_active(state, squad)
+	if unit.fell_back and not action_movement_exception: return "Units that Fell Back cannot start actions this turn."
+	if unit.advanced and not action_movement_exception and not TemplarVows.advance_action_allowed(state, squad): return "Units that Advanced cannot start actions this turn."
 	if unit.get("started_action_turn", -1) == state.turn: return "This unit already started an action this turn."
 	if str(unit.get("overwatch_block", "")) == "%d:%s" % [state.turn, state.phase]: return "A unit that fired Overwatch cannot start an action until this phase ends."
 	if str(unit.get("indirect_shooting_block", "")) == "%d:%s" % [state.turn, state.phase]: return "A unit that used Indirect Shooting cannot start an action until this phase ends."
