@@ -1978,6 +1978,25 @@ static func _continue_attack_declaration(state: Dictionary, declaration: Diction
 				_event(state, message)
 				return {"error": "", "message": message, "pools": []}
 		index = 13
+	if index <= 13 and UnitAbilities.enabled(state) and not declaration.get("spoor_of_the_unholy_checked", false) and DetachmentStratagems.enabled(state):
+		var spoor_squad := int(declaration.squad)
+		var spoor_owner := int(declaration.player)
+		var spoor_rule := DetachmentStratagems.VOW_SPOOR_OF_THE_UNHOLY if DetachmentStratagems.vow_sworn_enabled(state, spoor_owner) else ""
+		declaration.spoor_of_the_unholy_checked = true
+		if not spoor_rule.is_empty():
+			var spoor_prior_window: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
+			state.unit_abilities.window = {"kind": DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW, "owners": [spoor_owner], "squad": spoor_squad, "declaration": declaration.duplicate(true)}
+			var can_use_spoor := DetachmentStratagems.error(state, spoor_owner, spoor_squad, spoor_rule).is_empty()
+			state.unit_abilities.window = spoor_prior_window
+			if can_use_spoor:
+				declaration.reaction_index = 14
+				var frame_error := _suspend_attack_declaration(state, declaration, "attack-vow-sworn-spoor-of-the-unholy")
+				if not frame_error.is_empty(): return {"error": frame_error}
+				state.unit_abilities.window = {"kind": DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW, "owners": [spoor_owner], "squad": spoor_squad, "declaration": declaration.duplicate(true)}
+				var message := "Selected Adeptus Astartes unit may use Spoor of the Unholy before its attack."
+				_event(state, message)
+				return {"error": "", "message": message, "pools": []}
+		index = 14
 	var final_prepared := AttackPlan.prepare(state, int(declaration.squad), bool(declaration.melee), declaration.entries, bool(declaration.use_lethal), int(declaration.hail_target), bool(declaration.get("indirect_shooting", false)))
 	if not final_prepared.error.is_empty(): return final_prepared
 	if not bool(declaration.melee) and DetachmentStratagems.medusa_power_snap_shooting(state, int(declaration.squad)):

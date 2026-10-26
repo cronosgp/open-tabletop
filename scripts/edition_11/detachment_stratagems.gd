@@ -68,12 +68,14 @@ const MEDUSA_UNBOWED_CONVICTION := "medusa-unbowed-conviction"
 const MEDUSA_ANCIENT_FURY := "medusa-ancient-fury"
 const VOW_PIOUS_ENMITY := "vow-sworn-pious-enmity"
 const VOW_FOR_THE_EMPERORS_HONOUR := "vow-sworn-for-the-emperors-honour"
+const VOW_SPOOR_OF_THE_UNHOLY := "vow-sworn-spoor-of-the-unholy"
 const MEDUSA_POWER_OF_MACHINE_SPIRIT := "medusa-power-of-the-machine-spirit"
 const MEDUSA_ARMOURED_WRATH := "medusa-armoured-wrath"
 const VENGEFUL_ANIMUS_WINDOW := "deadly-demise-vengeful-animus"
 const METHODICAL_BRUTALITY_WINDOW := "medusa-methodical-brutality"
 const PIOUS_ENMITY_WINDOW := "vow-sworn-pious-enmity"
 const FOR_THE_EMPERORS_HONOUR_WINDOW := "vow-sworn-for-the-emperors-honour"
+const SPOOR_OF_THE_UNHOLY_WINDOW := "vow-sworn-spoor-of-the-unholy"
 const RELENTLESS_ASSAULT_WINDOW := "tacticus-relentless-assault"
 const POINT_BLANK_BRUTALITY_WINDOW := "tacticus-point-blank-brutality"
 const HAIL_OF_VENGEANCE := "devastator-brethren-hail-of-vengeance"
@@ -337,8 +339,10 @@ static func enable_vow_sworn(s: Dictionary) -> void:
 	if "vow-sworn-crusaders" not in s.detachment_stratagems.get("modes", []): s.detachment_stratagems.modes.append("vow-sworn-crusaders")
 	if not s.detachment_stratagems.has("pious_enmity"): s.detachment_stratagems.pious_enmity = {}
 	if not s.detachment_stratagems.has("for_emperors_honour"): s.detachment_stratagems.for_emperors_honour = {}
+	if not s.detachment_stratagems.has("spoor_of_unholy"): s.detachment_stratagems.spoor_of_unholy = {}
 	Registry.admit(s, VOW_PIOUS_ENMITY, ID)
 	Registry.admit(s, VOW_FOR_THE_EMPERORS_HONOUR, ID)
+	Registry.admit(s, VOW_SPOOR_OF_THE_UNHOLY, ID)
 
 static func enable_blade_of_ultramar(s: Dictionary) -> void:
 	if not enabled(s): enable(s)
@@ -623,6 +627,11 @@ static func for_emperors_honour_active(s: Dictionary, squad: int) -> bool:
 	var record: Dictionary = s.get("detachment_stratagems", {}).get("for_emperors_honour", {}).get(squad, {})
 	return str(record.get("phase_key", "")) == phase_key(s)
 
+static func spoor_of_the_unholy_active(s: Dictionary, squad: int) -> bool:
+	if not Registry.enabled(s, VOW_SPOOR_OF_THE_UNHOLY) or not s.squads.has(squad): return false
+	var record: Dictionary = s.get("detachment_stratagems", {}).get("spoor_of_unholy", {}).get(squad, {})
+	return str(record.get("phase_key", "")) == phase_key(s)
+
 static func unbowed_conviction_active(s: Dictionary, squad: int) -> bool:
 	if not Registry.enabled(s, MEDUSA_UNBOWED_CONVICTION) or not s.squads.has(squad): return false
 	var record: Dictionary = s.get("detachment_stratagems", {}).get("unbowed_conviction", {}).get(squad, {})
@@ -660,6 +669,15 @@ static func for_emperors_honour_choices(s: Dictionary, player: int) -> Array[Dic
 	if window.get("kind", "") != FOR_THE_EMPERORS_HONOUR_WINDOW or window.get("owners", []) != [player] or not s.squads.has(squad): return result
 	if not error(s, player, squad, VOW_FOR_THE_EMPERORS_HONOUR).is_empty(): return result
 	result.append({"label": "For the Emperor's Honour!: %s gains Precision on melee attacks (1 CP)" % str(s.squads[squad].get("name", "Astartes Infantry unit")), "action": "detachment-stratagem", "model": -1, "target": squad, "value": VOW_FOR_THE_EMPERORS_HONOUR})
+	return result
+
+static func spoor_of_the_unholy_choices(s: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+	var squad := int(window.get("squad", -1))
+	if window.get("kind", "") != SPOOR_OF_THE_UNHOLY_WINDOW or window.get("owners", []) != [player] or not s.squads.has(squad): return result
+	if not error(s, player, squad, VOW_SPOOR_OF_THE_UNHOLY).is_empty(): return result
+	result.append({"label": "Spoor of the Unholy: %s ignores BS/WS and Hit modifiers this phase (1 CP)" % str(s.squads[squad].get("name", "Adeptus Astartes unit")), "action": "detachment-stratagem", "model": -1, "target": squad, "value": VOW_SPOOR_OF_THE_UNHOLY})
 	return result
 
 static func relentless_assault_choices(s: Dictionary, player: int) -> Array[Dictionary]:
@@ -1429,6 +1447,17 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		var selected_to_fight := s.phase == "fight" and int(s.get("fight_actor", -1)) == player and s.get("fight_step", "") == "attacks" and (int(s.get("fight_selected", -1)) == squad or squad in Queue.choices(s, player)) and not bool(s.squads[squad].get("fought", false))
 		if not selected_to_fight or window.get("kind", "") != FOR_THE_EMPERORS_HONOUR_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad or int(declaration.get("player", -1)) != player or not bool(declaration.get("melee", false)):
 			return "For the Emperor's Honour! is used when your Adeptus Astartes Infantry unit is selected to fight."
+	elif rule == VOW_SPOOR_OF_THE_UNHOLY:
+		if not Registry.supported(rule) or not UnitAbilities.enabled(s) or not vow_sworn_enabled(s, player): return "Spoor of the Unholy requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
+		if not marine_unit(s, squad): return "Spoor of the Unholy requires a friendly Adeptus Astartes unit."
+		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var declaration: Dictionary = window.get("declaration", {})
+		var selected_to_attack := false
+		if s.phase == "shooting": selected_to_attack = int(s.get("active", -1)) == player and not bool(s.squads[squad].get("shot", false))
+		elif s.phase == "fight": selected_to_attack = int(s.get("fight_actor", -1)) == player and s.get("fight_step", "") == "attacks" and (int(s.get("fight_selected", -1)) == squad or squad in Queue.choices(s, player)) and not bool(s.squads[squad].get("fought", false))
+		var expected_melee := s.phase == "fight"
+		if not selected_to_attack or window.get("kind", "") != SPOOR_OF_THE_UNHOLY_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad or int(declaration.get("player", -1)) != player or bool(declaration.get("melee", false)) != expected_melee:
+			return "Spoor of the Unholy is used when your Adeptus Astartes unit is selected to attack in your Shooting phase or the Fight phase."
 	elif rule == MEDUSA_UNBOWED_CONVICTION:
 		if not Registry.supported(rule): return "Unbowed Conviction is blocked pending local validation."
 		if not UnitAbilities.enabled(s) or not medusa_wrath_enabled(s, player): return "Unbowed Conviction requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
@@ -2258,6 +2287,10 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		if not s.detachment_stratagems.has("for_emperors_honour"): s.detachment_stratagems.for_emperors_honour = {}
 		s.detachment_stratagems.for_emperors_honour[selected.target] = {"phase_key": phase_key(s)}
 		return {"error": "", "message": "For the Emperor's Honour!: %s gains Precision on melee attacks for this Fight phase." % str(s.squads[int(selected.target)].get("name", "The selected unit"))}
+	elif rule == VOW_SPOOR_OF_THE_UNHOLY:
+		if not s.detachment_stratagems.has("spoor_of_unholy"): s.detachment_stratagems.spoor_of_unholy = {}
+		s.detachment_stratagems.spoor_of_unholy[selected.target] = {"phase_key": phase_key(s)}
+		return {"error": "", "message": "Spoor of the Unholy: %s ignores BS/WS and Hit modifiers for this phase." % str(s.squads[int(selected.target)].get("name", "The selected unit"))}
 	elif rule == MEDUSA_UNBOWED_CONVICTION:
 		if not s.detachment_stratagems.has("unbowed_conviction"): s.detachment_stratagems.unbowed_conviction = {}
 		s.detachment_stratagems.unbowed_conviction[selected.target] = {"owner": player, "expires_turn": int(s.turn) + 2}

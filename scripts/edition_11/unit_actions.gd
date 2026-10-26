@@ -77,7 +77,7 @@ static func supported_window_kind(kind: String) -> bool:
 		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, "forward-assault-mark",
 		CoreReactions.EXPLOSIVES, CoreReactions.CRUSHING_MORTAL, Hammer.MORTAL_WINDOW, CoreReactions.GRAVIS_ARMOURED_IMPACT_MORTAL, CoreReactions.WRATH_OF_THE_LION_MORTAL, CoreReactions.PHOBOS_MORTIS_SNARES_MORTAL, Hammer.ID,
 		DetachmentStratagems.PHOBOS_SHADOW_MORTIS_TRIGGER_WINDOW, DetachmentStratagems.PHOBOS_SHADOW_MORTIS_DAMAGE_WINDOW,
-		DetachmentStratagems.HEADHUNTER_WINDOW, DetachmentStratagems.GRAVIS_ANNIHILATING_WINDOW, DetachmentStratagems.TERMINATOR_MERCILESS_WINDOW, DetachmentStratagems.PHOBOS_STRIKE_WINDOW, DetachmentStratagems.METHODICAL_BRUTALITY_WINDOW, DetachmentStratagems.PIOUS_ENMITY_WINDOW, DetachmentStratagems.FOR_THE_EMPERORS_HONOUR_WINDOW, DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW, DetachmentStratagems.POINT_BLANK_BRUTALITY_WINDOW, DetachmentStratagems.UNSTOPPABLE_WINDOW,
+		DetachmentStratagems.HEADHUNTER_WINDOW, DetachmentStratagems.GRAVIS_ANNIHILATING_WINDOW, DetachmentStratagems.TERMINATOR_MERCILESS_WINDOW, DetachmentStratagems.PHOBOS_STRIKE_WINDOW, DetachmentStratagems.METHODICAL_BRUTALITY_WINDOW, DetachmentStratagems.PIOUS_ENMITY_WINDOW, DetachmentStratagems.FOR_THE_EMPERORS_HONOUR_WINDOW, DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW, DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW, DetachmentStratagems.POINT_BLANK_BRUTALITY_WINDOW, DetachmentStratagems.UNSTOPPABLE_WINDOW,
 		DetachmentStratagems.ARMOUR_WINDOW, DetachmentStratagems.TERMINATOR_FORTITUDE_WINDOW, DetachmentStratagems.WORTHY_WINDOW, DetachmentStratagems.DARKFLIGHT_WINDOW,
 		"mounted-shooting-reaction", "stormlance-hurtling", DetachmentStratagems.SHOOTING_REACTION_WINDOW, "blessings-of-the-omnissiah", TargetAuguryWeb.WINDOW, AdeptOfTheOmnissiah.WINDOW,
 		"healing", "healing-order", TransportRules.EMERGENCY_WINDOW, TransportRules.DISEMBARK_WINDOW, TransportRules.COMBAT_EMBARKATION_WINDOW,
@@ -863,6 +863,10 @@ static func choices(state: Dictionary, player: int) -> Array:
 		if window.kind == DetachmentStratagems.FOR_THE_EMPERORS_HONOUR_WINDOW:
 			result.append_array(DetachmentStratagems.for_emperors_honour_choices(state, player))
 			result.append(choice("Decline For the Emperor's Honour!", "for-emperors-honour-pass", -1, int(window.squad)))
+			return result
+		if window.kind == DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW:
+			result.append_array(DetachmentStratagems.spoor_of_the_unholy_choices(state, player))
+			result.append(choice("Decline Spoor of the Unholy", "spoor-of-the-unholy-pass", -1, int(window.squad)))
 			return result
 		if window.kind == DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW:
 			result.append_array(DetachmentStratagems.relentless_assault_choices(state, player))
@@ -2135,6 +2139,10 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				var honour_declaration: Dictionary = reaction_window.get("declaration", {}).duplicate(true)
 				a.window = {}
 				return {"error": "", "resume_declaration": honour_declaration, "message": str(spent.get("message", "For the Emperor's Honour! resolved."))}
+			if reaction_window.get("kind", "") == DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW:
+				var spoor_declaration: Dictionary = reaction_window.get("declaration", {}).duplicate(true)
+				a.window = {}
+				return {"error": "", "resume_declaration": spoor_declaration, "message": str(spent.get("message", "Spoor of the Unholy resolved."))}
 			if reaction_window.get("kind", "") == DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW:
 				var relentless_declaration: Dictionary = reaction_window.get("declaration", {}).duplicate(true)
 				a.window = {}
@@ -2288,6 +2296,12 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var honour_declaration: Dictionary = honour_window.get("declaration", {}).duplicate(true)
 			a.window = {}
 			return {"error": "", "resume_declaration": honour_declaration}
+		"spoor-of-the-unholy-pass":
+			var spoor_window: Dictionary = a.get("window", {})
+			if spoor_window.get("kind", "") != DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW or spoor_window.get("owners", []) != [player] or int(spoor_window.get("squad", -1)) != target: return {"error": "No matching Spoor of the Unholy decision is pending."}
+			var spoor_declaration: Dictionary = spoor_window.get("declaration", {}).duplicate(true)
+			a.window = {}
+			return {"error": "", "resume_declaration": spoor_declaration}
 		"relentless-assault-pass":
 			var relentless_window: Dictionary = a.get("window", {})
 			if relentless_window.get("kind", "") != DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW or relentless_window.get("owners", []) != [player] or int(relentless_window.get("squad", -1)) != target: return {"error": "No matching Relentless Assault decision is pending."}

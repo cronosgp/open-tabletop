@@ -24,9 +24,11 @@ The 20-point `Augury Servo-host` can be assigned to one of 23 current-catalog be
 
 `For the Emperor's Honour!` (1 CP) is offered when a friendly Adeptus Astartes Infantry unit is selected to fight in either player's Fight phase. If used, that unit's melee attacks gain Precision for the phase. The choice resumes the saved attack declaration before attack preparation. Focused checks remain pending.
 
+`Spoor of the Unholy` (1 CP) is offered when a friendly Adeptus Astartes unit is selected to attack in its Shooting phase or either player's Fight phase. If used, that unit ignores BS/WS and Hit roll modifiers for the attack phase. The choice resumes the saved attack declaration before attack preparation. Focused checks remain pending.
+
 ## Unsupported scope
 
-`Dread Crusaders`, `Heresy Begets Retribution`, `Spoor of the Unholy` and `Devout Push` are not implemented. The detachment's 2 DP Force Disposition is not enforced. This option is for local practice and does not certify army legality. Focused checks, playtesting and network validation remain pending.
+`Dread Crusaders`, `Heresy Begets Retribution` and `Devout Push` are not implemented. The detachment's 2 DP Force Disposition is not enforced. This option is for local practice and does not certify army legality. Focused checks, playtesting and network validation remain pending.
 
 ## Source and implementation record
 
@@ -36,6 +38,7 @@ The 20-point `Augury Servo-host` can be assigned to one of 23 current-catalog be
 - `Detachment_abilities.csv`, row `000011171` (`Templar Vows`): SHA-256 `92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe`.
 - `Stratagems.csv`, row `000011173006` (`Pious Enmity`): SHA-256 `9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621`.
 - `Stratagems.csv`, row `000011173003` (`For the Emperor's Honour!`): SHA-256 `9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621`.
+- `Stratagems.csv`, row `000011173005` (`Spoor of the Unholy`): SHA-256 `9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621`.
 - `Enhancements.csv`, row `000011172002` (`Augury Servo-host`): SHA-256 `7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f`.
 - `Enhancements.csv`, row `000011172003` (`Consecrating Aura`): SHA-256 `7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f`.
 - `Enhancements.csv`, row `000011172004` (`Incendiary Animus`): SHA-256 `7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f`.
@@ -47,6 +50,7 @@ The 20-point `Augury Servo-host` can be assigned to one of 23 current-catalog be
 - Runtime implementation: `scripts/edition_11/templar_vows.gd`; enabled capability: `templar-vows`.
 - `Pious Enmity` uses `scripts/edition_11/detachment_stratagems.gd`, `scripts/edition_11/combat_scenario.gd`, `scripts/edition_11/attack_plan.gd` and `scripts/edition_11/unit_actions.gd`; enabled capability: `vow-sworn-pious-enmity`.
 - `For the Emperor's Honour!` uses `scripts/edition_11/detachment_stratagems.gd`, `scripts/edition_11/combat_scenario.gd`, `scripts/edition_11/attack_plan.gd` and `scripts/edition_11/unit_actions.gd`; enabled capability: `vow-sworn-for-the-emperors-honour`.
+- `Spoor of the Unholy` uses `scripts/edition_11/detachment_stratagems.gd`, `scripts/edition_11/combat_scenario.gd`, `scripts/edition_11/attack_plan.gd` and `scripts/edition_11/unit_actions.gd`; enabled capability: `vow-sworn-spoor-of-the-unholy`.
 - Enhancement runtime implementation: `scripts/edition_11/stormlance_enhancements.gd`, `scripts/edition_11/defender_groups.gd`, `scripts/edition_11/attack_plan.gd`, `scripts/edition_11/unit_abilities.gd`, `scripts/edition_11/scout_moves.gd` and `scripts/edition_11/unit_actions.gd`; enabled capabilities: `augury-servo-host`, `consecrating-aura`, `incendiary-animus` and `zealous-vanguard`.
 
 The export supplies local detachment and ability facts; the live 11th-edition faction page remains the selected rules reference. No export data is copied into this document beyond row identity and provenance.

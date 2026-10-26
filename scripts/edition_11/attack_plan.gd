@@ -405,6 +405,7 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			if weapon.keywords.get("heavy", false) and not walking_fortress and not engaged_shooter and not state.squads[squad].set_up_this_turn and state.squads[squad].moved_distance <= 3.0: context.hit_modifier += 1
 			context.hit_modifier = clampi(context.hit_modifier, -1, 1)
 		context.hit_modifier = clampi(context.hit_modifier, -1, 1)
+		if DetachmentStratagems.spoor_of_the_unholy_active(state, squad): context.hit_modifier = 0
 		if DetachmentStratagems.unbowed_conviction_active(state, squad) or UnitAbilities.Techmarine.modifier_ignore_active(state, model):
 			context.hit_modifier = 0
 			context.wound_modifier = 0
@@ -441,7 +442,7 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if UnitAbilities.enabled(state): context.use_lethal_hits = true
 		if not lethal and not UnitAbilities.enabled(state): profile.keywords.erase("lethal-hits")
 		var skill_characteristic := "WS" if melee else "BS"
-		var ignore_skill_modifiers := DetachmentStratagems.might_ignore_active(state, squad) or DetachmentStratagems.unbowed_conviction_active(state, squad) or UnitAbilities.Techmarine.characteristic_modifier_ignore_active(state, model)
+		var ignore_skill_modifiers := DetachmentStratagems.might_ignore_active(state, squad) or DetachmentStratagems.unbowed_conviction_active(state, squad) or DetachmentStratagems.spoor_of_the_unholy_active(state, squad) or UnitAbilities.Techmarine.characteristic_modifier_ignore_active(state, model)
 		var skill_modifier := WeaponCharacteristics.modifier(state, squad, model, skill_characteristic)
 		var plunging_fire := not melee and Terrain.plunging_fire_applies(state, model, row.target, sight)
 		if plunging_fire:
@@ -565,7 +566,7 @@ static func _prepare_legacy(state: Dictionary, squad: int, melee: bool, entries:
 			cover = sight.cover
 			rapid_fire_active = Doctrines.rapid_fire_active(state, squad, weapon, sight.distance)
 		var skill_characteristic := "WS" if melee else "BS"
-		var ignore_skill_modifiers := DetachmentStratagems.might_ignore_active(state, squad) or DetachmentStratagems.unbowed_conviction_active(state, squad) or UnitAbilities.Techmarine.characteristic_modifier_ignore_active(state, model)
+		var ignore_skill_modifiers := DetachmentStratagems.might_ignore_active(state, squad) or DetachmentStratagems.unbowed_conviction_active(state, squad) or DetachmentStratagems.spoor_of_the_unholy_active(state, squad) or UnitAbilities.Techmarine.characteristic_modifier_ignore_active(state, model)
 		var skill_modifier := WeaponCharacteristics.modifier(state, squad, model, skill_characteristic)
 		var plunging_fire := not melee and Terrain.plunging_fire_applies(state, model, target, sight)
 		if plunging_fire: skill_modifier += 1
