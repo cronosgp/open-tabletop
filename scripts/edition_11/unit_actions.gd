@@ -77,7 +77,7 @@ static func supported_window_kind(kind: String) -> bool:
 		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, "forward-assault-mark",
 		CoreReactions.EXPLOSIVES, CoreReactions.CRUSHING_MORTAL, Hammer.MORTAL_WINDOW, CoreReactions.GRAVIS_ARMOURED_IMPACT_MORTAL, CoreReactions.WRATH_OF_THE_LION_MORTAL, CoreReactions.PHOBOS_MORTIS_SNARES_MORTAL, Hammer.ID,
 		DetachmentStratagems.PHOBOS_SHADOW_MORTIS_TRIGGER_WINDOW, DetachmentStratagems.PHOBOS_SHADOW_MORTIS_DAMAGE_WINDOW,
-		DetachmentStratagems.HEADHUNTER_WINDOW, DetachmentStratagems.GRAVIS_ANNIHILATING_WINDOW, DetachmentStratagems.TERMINATOR_MERCILESS_WINDOW, DetachmentStratagems.PHOBOS_STRIKE_WINDOW, DetachmentStratagems.METHODICAL_BRUTALITY_WINDOW, DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW, DetachmentStratagems.POINT_BLANK_BRUTALITY_WINDOW, DetachmentStratagems.UNSTOPPABLE_WINDOW,
+		DetachmentStratagems.HEADHUNTER_WINDOW, DetachmentStratagems.GRAVIS_ANNIHILATING_WINDOW, DetachmentStratagems.TERMINATOR_MERCILESS_WINDOW, DetachmentStratagems.PHOBOS_STRIKE_WINDOW, DetachmentStratagems.METHODICAL_BRUTALITY_WINDOW, DetachmentStratagems.PIOUS_ENMITY_WINDOW, DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW, DetachmentStratagems.POINT_BLANK_BRUTALITY_WINDOW, DetachmentStratagems.UNSTOPPABLE_WINDOW,
 		DetachmentStratagems.ARMOUR_WINDOW, DetachmentStratagems.TERMINATOR_FORTITUDE_WINDOW, DetachmentStratagems.WORTHY_WINDOW, DetachmentStratagems.DARKFLIGHT_WINDOW,
 		"mounted-shooting-reaction", "stormlance-hurtling", DetachmentStratagems.SHOOTING_REACTION_WINDOW, "blessings-of-the-omnissiah", TargetAuguryWeb.WINDOW, AdeptOfTheOmnissiah.WINDOW,
 		"healing", "healing-order", TransportRules.EMERGENCY_WINDOW, TransportRules.DISEMBARK_WINDOW, TransportRules.COMBAT_EMBARKATION_WINDOW,
@@ -855,6 +855,10 @@ static func choices(state: Dictionary, player: int) -> Array:
 		if window.kind == DetachmentStratagems.METHODICAL_BRUTALITY_WINDOW:
 			result.append_array(DetachmentStratagems.methodical_brutality_choices(state, player))
 			result.append(choice("Decline Methodical Brutality", "methodical-brutality-pass", -1, int(window.squad)))
+			return result
+		if window.kind == DetachmentStratagems.PIOUS_ENMITY_WINDOW:
+			result.append_array(DetachmentStratagems.pious_enmity_choices(state, player))
+			result.append(choice("Decline Pious Enmity", "pious-enmity-pass", -1, int(window.squad)))
 			return result
 		if window.kind == DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW:
 			result.append_array(DetachmentStratagems.relentless_assault_choices(state, player))
@@ -2119,6 +2123,10 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				var methodical_declaration: Dictionary = reaction_window.get("declaration", {}).duplicate(true)
 				a.window = {}
 				return {"error": "", "resume_declaration": methodical_declaration}
+			if reaction_window.get("kind", "") == DetachmentStratagems.PIOUS_ENMITY_WINDOW:
+				var pious_declaration: Dictionary = reaction_window.get("declaration", {}).duplicate(true)
+				a.window = {}
+				return {"error": "", "resume_declaration": pious_declaration, "message": str(spent.get("message", "Pious Enmity resolved."))}
 			if reaction_window.get("kind", "") == DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW:
 				var relentless_declaration: Dictionary = reaction_window.get("declaration", {}).duplicate(true)
 				a.window = {}
@@ -2260,6 +2268,12 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var methodical_declaration: Dictionary = methodical_window.get("declaration", {}).duplicate(true)
 			a.window = {}
 			return {"error": "", "resume_declaration": methodical_declaration}
+		"pious-enmity-pass":
+			var pious_window: Dictionary = a.get("window", {})
+			if pious_window.get("kind", "") != DetachmentStratagems.PIOUS_ENMITY_WINDOW or pious_window.get("owners", []) != [player] or int(pious_window.get("squad", -1)) != target: return {"error": "No matching Pious Enmity decision is pending."}
+			var pious_declaration: Dictionary = pious_window.get("declaration", {}).duplicate(true)
+			a.window = {}
+			return {"error": "", "resume_declaration": pious_declaration}
 		"relentless-assault-pass":
 			var relentless_window: Dictionary = a.get("window", {})
 			if relentless_window.get("kind", "") != DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW or relentless_window.get("owners", []) != [player] or int(relentless_window.get("squad", -1)) != target: return {"error": "No matching Relentless Assault decision is pending."}

@@ -1940,6 +1940,25 @@ static func _continue_attack_declaration(state: Dictionary, declaration: Diction
 				_event(state, message)
 				return {"error": "", "message": message, "pools": []}
 		index = 11
+	if index <= 11 and UnitAbilities.enabled(state) and bool(declaration.get("melee", false)) and not declaration.get("pious_enmity_checked", false) and DetachmentStratagems.enabled(state):
+		var attacker_squad := int(declaration.squad)
+		var owner := int(declaration.player)
+		var pious_rule := DetachmentStratagems.VOW_PIOUS_ENMITY if DetachmentStratagems.vow_sworn_enabled(state, owner) else ""
+		declaration.pious_enmity_checked = true
+		if not pious_rule.is_empty():
+			var prior_window: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
+			state.unit_abilities.window = {"kind": DetachmentStratagems.PIOUS_ENMITY_WINDOW, "owners": [owner], "squad": attacker_squad, "declaration": declaration.duplicate(true)}
+			var can_use_pious := DetachmentStratagems.error(state, owner, attacker_squad, pious_rule).is_empty()
+			state.unit_abilities.window = prior_window
+			if can_use_pious:
+				declaration.reaction_index = 12
+				var frame_error := _suspend_attack_declaration(state, declaration, "attack-vow-sworn-pious-enmity")
+				if not frame_error.is_empty(): return {"error": frame_error}
+				state.unit_abilities.window = {"kind": DetachmentStratagems.PIOUS_ENMITY_WINDOW, "owners": [owner], "squad": attacker_squad, "declaration": declaration.duplicate(true)}
+				var message := "Selected Chaplain/Judiciar unit may use Pious Enmity before its melee attack."
+				_event(state, message)
+				return {"error": "", "message": message, "pools": []}
+		index = 12
 	var final_prepared := AttackPlan.prepare(state, int(declaration.squad), bool(declaration.melee), declaration.entries, bool(declaration.use_lethal), int(declaration.hail_target), bool(declaration.get("indirect_shooting", false)))
 	if not final_prepared.error.is_empty(): return final_prepared
 	if not bool(declaration.melee) and DetachmentStratagems.medusa_power_snap_shooting(state, int(declaration.squad)):

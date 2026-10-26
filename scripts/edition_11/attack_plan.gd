@@ -412,6 +412,14 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "ones")
 		if melee and UnitAbilities.has(state, squad, "unto-the-anvil"):
 			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "failed" if Doctrines.has_doctrine(state, squad, "assault") else "ones")
+		if melee and DetachmentStratagems.pious_enmity_active(state, squad):
+			var pious_record := DetachmentStratagems.pious_enmity_record(state, squad)
+			var pious_mode := str(pious_record.get("mode", ""))
+			var pious_target := UnitAbilities.has_target_keyword(state, row.target, "MONSTER") or UnitAbilities.has_target_keyword(state, row.target, "VEHICLE")
+			if pious_mode == "hit-ones" or (pious_mode == "monster-vehicle-ones" and pious_target):
+				context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
+			if pious_mode == "monster-vehicle-ones" and pious_target:
+				context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "ones")
 		if not melee and UnitAbilities.has(state, squad, "total-obliteration"): context.free_damage_reroll = true
 		if UnitAbilities.primarch_aura_active(state, squad):
 			if not context.get("snap_shooting", false) and not context.get("indirect_fire", false): context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")

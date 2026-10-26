@@ -6,6 +6,7 @@ const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd
 const G = preload("res://scripts/edition_11/contact_movement.gd")
 const Marines = preload("res://scripts/edition_11/oath_of_moment.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
+const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const ChapterRules = preload("res://scripts/edition_11/chapter_rules.gd")
 const Morale = preload("res://scripts/edition_11/morale.gd")
@@ -65,10 +66,12 @@ const MEDUSA_VENGEFUL_ANIMUS := "medusa-vengeful-animus"
 const MEDUSA_METHODICAL_BRUTALITY := "medusa-methodical-brutality"
 const MEDUSA_UNBOWED_CONVICTION := "medusa-unbowed-conviction"
 const MEDUSA_ANCIENT_FURY := "medusa-ancient-fury"
+const VOW_PIOUS_ENMITY := "vow-sworn-pious-enmity"
 const MEDUSA_POWER_OF_MACHINE_SPIRIT := "medusa-power-of-the-machine-spirit"
 const MEDUSA_ARMOURED_WRATH := "medusa-armoured-wrath"
 const VENGEFUL_ANIMUS_WINDOW := "deadly-demise-vengeful-animus"
 const METHODICAL_BRUTALITY_WINDOW := "medusa-methodical-brutality"
+const PIOUS_ENMITY_WINDOW := "vow-sworn-pious-enmity"
 const RELENTLESS_ASSAULT_WINDOW := "tacticus-relentless-assault"
 const POINT_BLANK_BRUTALITY_WINDOW := "tacticus-point-blank-brutality"
 const HAIL_OF_VENGEANCE := "devastator-brethren-hail-of-vengeance"
@@ -326,6 +329,12 @@ static func enable_medusa_wrath(s: Dictionary) -> void:
 	Registry.admit(s, MEDUSA_ANCIENT_FURY, ID)
 	Registry.admit(s, MEDUSA_POWER_OF_MACHINE_SPIRIT, ID)
 	Registry.admit(s, MEDUSA_ARMOURED_WRATH, ID)
+
+static func enable_vow_sworn(s: Dictionary) -> void:
+	if not enabled(s): enable(s)
+	if "vow-sworn-crusaders" not in s.detachment_stratagems.get("modes", []): s.detachment_stratagems.modes.append("vow-sworn-crusaders")
+	if not s.detachment_stratagems.has("pious_enmity"): s.detachment_stratagems.pious_enmity = {}
+	Registry.admit(s, VOW_PIOUS_ENMITY, ID)
 
 static func enable_blade_of_ultramar(s: Dictionary) -> void:
 	if not enabled(s): enable(s)
@@ -594,6 +603,17 @@ static func methodical_brutality_active(s: Dictionary, squad: int) -> bool:
 static func methodical_brutality_wound_bonus(s: Dictionary, squad: int) -> int:
 	return 1 if methodical_brutality_active(s, squad) and "VEHICLE" in unit_keywords(s, squad) else 0
 
+static func vow_sworn_enabled(s: Dictionary, player: int) -> bool:
+	return enabled(s) and "vow-sworn-crusaders" in s.detachment_stratagems.get("modes", []) and Registry.enabled(s, VOW_PIOUS_ENMITY) and TemplarVows.enabled_for(s, player)
+
+static func pious_enmity_record(s: Dictionary, squad: int) -> Dictionary:
+	if not Registry.enabled(s, VOW_PIOUS_ENMITY) or not s.squads.has(squad): return {}
+	var record: Dictionary = s.get("detachment_stratagems", {}).get("pious_enmity", {}).get(squad, {})
+	return record.duplicate(true) if str(record.get("phase_key", "")) == phase_key(s) else {}
+
+static func pious_enmity_active(s: Dictionary, squad: int) -> bool:
+	return not pious_enmity_record(s, squad).is_empty()
+
 static func unbowed_conviction_active(s: Dictionary, squad: int) -> bool:
 	if not Registry.enabled(s, MEDUSA_UNBOWED_CONVICTION) or not s.squads.has(squad): return false
 	var record: Dictionary = s.get("detachment_stratagems", {}).get("unbowed_conviction", {}).get(squad, {})
@@ -611,6 +631,17 @@ static func methodical_brutality_choices(s: Dictionary, player: int) -> Array:
 	if window.get("kind", "") != METHODICAL_BRUTALITY_WINDOW or window.get("owners", []) != [player] or not s.squads.has(squad): return result
 	if error(s, player, squad, MEDUSA_METHODICAL_BRUTALITY).is_empty():
 		result.append({"label": "Medusa's Wrath Methodical Brutality: %s gains Sustained Hits 1%s (1 CP)" % [str(s.squads[squad].get("name", "Astartes unit")), "; Vehicle: +1 to Wound" if "VEHICLE" in unit_keywords(s, squad) else ""], "action": "detachment-stratagem", "model": -1, "target": squad, "value": MEDUSA_METHODICAL_BRUTALITY})
+	return result
+
+static func pious_enmity_choices(s: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+	var squad := int(window.get("squad", -1))
+	if window.get("kind", "") != PIOUS_ENMITY_WINDOW or window.get("owners", []) != [player] or not s.squads.has(squad): return result
+	if not error(s, player, squad, VOW_PIOUS_ENMITY).is_empty(): return result
+	var name := str(s.squads[squad].get("name", "Chaplain/Judiciar unit"))
+	result.append({"label": "Pious Enmity: re-roll melee Hit rolls of 1 for %s (1 CP)" % name, "action": "detachment-stratagem", "model": -1, "target": squad, "value": VOW_PIOUS_ENMITY, "mode": "hit-ones"})
+	result.append({"label": "Pious Enmity: against Monsters/Vehicles, re-roll melee Hit and Wound rolls of 1 for %s (1 CP)" % name, "action": "detachment-stratagem", "model": -1, "target": squad, "value": VOW_PIOUS_ENMITY, "mode": "monster-vehicle-ones"})
 	return result
 
 static func relentless_assault_choices(s: Dictionary, player: int) -> Array[Dictionary]:
@@ -865,6 +896,13 @@ static func _unit_keywords(s: Dictionary, squad: int, include_destroyed: bool) -
 
 static func marine_unit(s: Dictionary, squad: int) -> bool:
 	return s.squads.has(squad) and "ADEPTUS ASTARTES" in unit_keywords(s, squad)
+
+static func chaplain_or_judiciar_unit(s: Dictionary, squad: int) -> bool:
+	if not s.squads.has(squad): return false
+	if "CHAPLAIN" in unit_keywords(s, squad) or "JUDICIAR" in unit_keywords(s, squad): return true
+	for model: int in living(s, squad):
+		if AbilityCatalog.identity(s.units[model]) in ["chaplain", "chaplain-on-bike", "chaplain-with-jump-pack", "chaplain-in-terminator-armour", "judiciar"]: return true
+	return false
 
 static func vengeful_animus_triggered(s: Dictionary, player: int, squad: int, model: int = -1) -> bool:
 	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
@@ -1353,6 +1391,14 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		selected_to_attack = selected_to_attack or (s.phase == "fight" and int(s.fight_actor) == player and s.fight_step == "attacks" and (int(s.fight_selected) == squad or squad in Queue.choices(s, player)) and not bool(s.squads[squad].get("fought", false)))
 		if not selected_to_attack or window.get("kind", "") != METHODICAL_BRUTALITY_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad or int(declaration.get("player", -1)) != player or bool(declaration.get("melee", false)) != (s.phase == "fight"):
 			return "Methodical Brutality is used when your Adeptus Astartes unit is selected to attack."
+	elif rule == VOW_PIOUS_ENMITY:
+		if not Registry.supported(rule) or not A.enabled(s) or not vow_sworn_enabled(s, player): return "Pious Enmity requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
+		if not chaplain_or_judiciar_unit(s, squad): return "Pious Enmity requires a friendly Chaplain or Judiciar unit."
+		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var declaration: Dictionary = window.get("declaration", {})
+		var selected_to_fight := s.phase == "fight" and int(s.get("fight_actor", -1)) == player and s.get("fight_step", "") == "attacks" and (int(s.get("fight_selected", -1)) == squad or squad in Queue.choices(s, player)) and not bool(s.squads[squad].get("fought", false))
+		if not selected_to_fight or window.get("kind", "") != PIOUS_ENMITY_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad or int(declaration.get("player", -1)) != player or not bool(declaration.get("melee", false)):
+			return "Pious Enmity is used when your Chaplain or Judiciar unit is selected to fight."
 	elif rule == MEDUSA_UNBOWED_CONVICTION:
 		if not Registry.supported(rule): return "Unbowed Conviction is blocked pending local validation."
 		if not UnitAbilities.enabled(s) or not medusa_wrath_enabled(s, player): return "Unbowed Conviction requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
@@ -1999,6 +2045,7 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	var rule := rule_of(source_rule)
 	var details_value: Variant = selected.get("details", {})
 	if typeof(details_value) != TYPE_DICTIONARY: return {"error": "Invalid detachment stratagem choice details."}
+	if rule == VOW_PIOUS_ENMITY and str(selected.get("mode", "")) not in ["hit-ones", "monster-vehicle-ones"]: return {"error": "Choose one of the available Pious Enmity effects."}
 	var objective := int(details_value.get("objective", -1)) if rule in [IN_SACRIFICE, GRAVIS_SIEGE_STAND_UNYIELDING, GAUNTLET_STORM_AND_SECURE] else -1
 	var enemy_squad := int(details_value.get("enemy_squad", -1)) if rule in [GRAVIS_LINEBREAKER_ARMOURED_IMPACT, INNER_CIRCLE_WRATH_OF_THE_LION] else -1
 	var suppression_target := int(selected.get("enemy_target", details_value.get("enemy_target", -1))) if rule == GRAVIS_SIEGE_SUPPRESSION_VOLLEYS else -1
@@ -2172,6 +2219,11 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	elif rule == MEDUSA_METHODICAL_BRUTALITY:
 		if not s.detachment_stratagems.has("methodical_brutality"): s.detachment_stratagems.methodical_brutality = {}
 		s.detachment_stratagems.methodical_brutality[selected.target] = {"phase_key": phase_key(s)}
+	elif rule == VOW_PIOUS_ENMITY:
+		if not s.detachment_stratagems.has("pious_enmity"): s.detachment_stratagems.pious_enmity = {}
+		s.detachment_stratagems.pious_enmity[selected.target] = {"phase_key": phase_key(s), "mode": str(selected.get("mode", ""))}
+		var mode_text := "melee Hit rolls of 1" if selected.mode == "hit-ones" else "melee Hit and Wound rolls of 1 against MONSTER/VEHICLE units"
+		return {"error": "", "message": "Pious Enmity: %s can re-roll %s for this Fight phase." % [str(s.squads[int(selected.target)].get("name", "The selected unit")), mode_text]}
 	elif rule == MEDUSA_UNBOWED_CONVICTION:
 		if not s.detachment_stratagems.has("unbowed_conviction"): s.detachment_stratagems.unbowed_conviction = {}
 		s.detachment_stratagems.unbowed_conviction[selected.target] = {"owner": player, "expires_turn": int(s.turn) + 2}

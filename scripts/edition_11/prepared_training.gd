@@ -215,6 +215,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			if selected_detachment == "wrath-of-the-rock": Combat.DetachmentStratagems.enable_wrath_of_the_rock(state)
 			if selected_detachment == "inner-circle-task-force": Combat.DetachmentStratagems.enable_inner_circle(state)
 			if selected_detachment == "medusa-wrath": Combat.DetachmentStratagems.enable_medusa_wrath(state)
+			if selected_detachment == "vow-sworn-crusaders": Combat.DetachmentStratagems.enable_vow_sworn(state)
 			if selected_detachment == "blade-of-ultramar": Combat.DetachmentStratagems.enable_blade_of_ultramar(state)
 			if selected_detachment == "darkflight-pursuit": Combat.DetachmentStratagems.enable_darkflight(state)
 			if selected_detachment == "terminator-storm-force": Combat.DetachmentStratagems.enable_terminator_storm(state)
