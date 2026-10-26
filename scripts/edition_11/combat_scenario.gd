@@ -1190,6 +1190,7 @@ static func charge_target_error(state: Dictionary, player: int, target: int, rev
 	if state.phase != "charge" or state.pending_charge.is_empty(): return "Roll the charge before choosing its target."
 	if state.get("unit_abilities", {}).get("window", {}).get("kind", "") == TransportRules.COMBAT_EMBARKATION_WINDOW: return "Resolve Repulsor Combat Embarkation before changing charge targets."
 	if not state.pending_contact.is_empty(): return "Cancel charge placement before changing targets."
+	if not UnitActions.pending(state).is_empty(): return "Resolve the pending reaction before changing charge targets."
 	if not state.units.has(target) or state.units[target].wounds <= 0 or not state.units[target].get("on_battlefield", true) or state.units[target].owner == player:
 		return "Choose a living enemy target after the charge roll."
 	var squad: int = state.pending_charge.squad
@@ -1203,15 +1204,27 @@ static func charge_target_error(state: Dictionary, player: int, target: int, rev
 static func select_charge_target(state: Dictionary, player: int, target: int, revision: int) -> Dictionary:
 	var error := charge_target_error(state, player, target, revision)
 	if not error.is_empty(): return {"error": error}
-	var enemy: int = state.units[target].squad
-	if _begin_charge_frame(state, int(state.pending_charge.squad), "charge-target-selection").is_empty(): return {"error": "Could not resume the charge resolution frame."}
-	if not state.pending_charge.has("targets"): state.pending_charge.targets = []
-	if enemy in state.pending_charge.targets: state.pending_charge.targets.erase(enemy)
-	else: state.pending_charge.targets.append(enemy)
+	var working: Dictionary = state.duplicate(true)
+	var enemy: int = working.units[target].squad
+	var charging_squad := int(working.pending_charge.squad)
+	if _begin_charge_frame(working, charging_squad, "charge-target-selection").is_empty(): return {"error": "Could not resume the charge resolution frame."}
+	if not working.pending_charge.has("targets"): working.pending_charge.targets = []
+	var was_selected := enemy in working.pending_charge.targets
+	if was_selected: working.pending_charge.targets.erase(enemy)
+	else: working.pending_charge.targets.append(enemy)
 	var names: Array[String] = []
-	for target_squad: int in state.pending_charge.targets: names.append(state.squads[target_squad].name)
+	for target_squad: int in working.pending_charge.targets: names.append(working.squads[target_squad].name)
 	var message := "Charge targets: %s. Begin placement when ready." % (", ".join(names) if not names.is_empty() else "none")
-	_event(state, message)
+	if not was_selected:
+		var charge_frame := ResolutionFrames.current(working)
+		if charge_frame.is_empty() or str(charge_frame.get("kind", "")) != "unit-action" or str(charge_frame.get("status", "")) != "resolving" or str(charge_frame.get("action_id", "")) != _charge_action_id(working, charging_squad): return {"error": "Dread Crusaders could not locate its pending Charge continuation."}
+		if DetachmentStratagems.open_dread_crusaders_reaction(working, charging_squad, enemy, str(charge_frame.frame_id)):
+			var suspend_error := ResolutionFrames.suspend(working, str(charge_frame.frame_id), "charge-target-selection")
+			if not suspend_error.is_empty(): return {"error": suspend_error}
+			message += " The defending player has a Dread Crusaders reaction."
+	_event(working, message)
+	state.clear()
+	state.merge(working, true)
 	return {"error": "", "message": message}
 
 static func begin_contact_move(state: Dictionary, player: int, model: int, kind: String, revision: int, chosen_targets: Array[int] = [], objective_index: int = -1, roller: Callable = Callable(), use_tactical_focus: bool = false) -> String:
@@ -2652,6 +2665,14 @@ static func unit_action(state: Dictionary, player: int, selected: Dictionary, po
 		state.clear()
 		state.merge(working, true)
 		return ""
+	if result.get("resume_charge", false):
+		var pending_charge: Dictionary = working.get("pending_charge", {})
+		var charge_squad := int(pending_charge.get("squad", -1))
+		var charge_frame_id := str(result.get("charge_frame_id", ""))
+		var charge_frame := ResolutionFrames.current(working)
+		if charge_squad < 0 or charge_frame_id.is_empty() or str(charge_frame.get("frame_id", "")) != charge_frame_id or str(charge_frame.get("kind", "")) != "unit-action" or str(charge_frame.get("status", "")) != "suspended" or str(charge_frame.get("action_id", "")) != _charge_action_id(working, charge_squad):
+			return "The saved Charge continuation for this reaction is missing."
+		if _begin_charge_frame(working, charge_squad, "charge-target-selection").is_empty(): return "Could not resume the saved Charge target selection."
 	if result.get("resume_attack", false):
 		var attack_action_id := _attack_resolution_action_id(working)
 		var attack_frame_error := _resume_attack_resolution_frame(working, "attack-unit-ability")

@@ -77,7 +77,7 @@ static func supported_window_kind(kind: String) -> bool:
 		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, "forward-assault-mark",
 		CoreReactions.EXPLOSIVES, CoreReactions.CRUSHING_MORTAL, Hammer.MORTAL_WINDOW, CoreReactions.GRAVIS_ARMOURED_IMPACT_MORTAL, CoreReactions.WRATH_OF_THE_LION_MORTAL, CoreReactions.PHOBOS_MORTIS_SNARES_MORTAL, Hammer.ID,
 		DetachmentStratagems.PHOBOS_SHADOW_MORTIS_TRIGGER_WINDOW, DetachmentStratagems.PHOBOS_SHADOW_MORTIS_DAMAGE_WINDOW,
-		DetachmentStratagems.HEADHUNTER_WINDOW, DetachmentStratagems.GRAVIS_ANNIHILATING_WINDOW, DetachmentStratagems.TERMINATOR_MERCILESS_WINDOW, DetachmentStratagems.PHOBOS_STRIKE_WINDOW, DetachmentStratagems.METHODICAL_BRUTALITY_WINDOW, DetachmentStratagems.PIOUS_ENMITY_WINDOW, DetachmentStratagems.FOR_THE_EMPERORS_HONOUR_WINDOW, DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW, DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW, DetachmentStratagems.POINT_BLANK_BRUTALITY_WINDOW, DetachmentStratagems.UNSTOPPABLE_WINDOW,
+		DetachmentStratagems.HEADHUNTER_WINDOW, DetachmentStratagems.GRAVIS_ANNIHILATING_WINDOW, DetachmentStratagems.TERMINATOR_MERCILESS_WINDOW, DetachmentStratagems.PHOBOS_STRIKE_WINDOW, DetachmentStratagems.METHODICAL_BRUTALITY_WINDOW, DetachmentStratagems.PIOUS_ENMITY_WINDOW, DetachmentStratagems.FOR_THE_EMPERORS_HONOUR_WINDOW, DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW, DetachmentStratagems.DREAD_CRUSADERS_WINDOW, DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW, DetachmentStratagems.POINT_BLANK_BRUTALITY_WINDOW, DetachmentStratagems.UNSTOPPABLE_WINDOW,
 		DetachmentStratagems.ARMOUR_WINDOW, DetachmentStratagems.TERMINATOR_FORTITUDE_WINDOW, DetachmentStratagems.WORTHY_WINDOW, DetachmentStratagems.DARKFLIGHT_WINDOW,
 		"mounted-shooting-reaction", "stormlance-hurtling", DetachmentStratagems.SHOOTING_REACTION_WINDOW, "blessings-of-the-omnissiah", TargetAuguryWeb.WINDOW, AdeptOfTheOmnissiah.WINDOW,
 		"healing", "healing-order", TransportRules.EMERGENCY_WINDOW, TransportRules.DISEMBARK_WINDOW, TransportRules.COMBAT_EMBARKATION_WINDOW,
@@ -867,6 +867,10 @@ static func choices(state: Dictionary, player: int) -> Array:
 		if window.kind == DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW:
 			result.append_array(DetachmentStratagems.spoor_of_the_unholy_choices(state, player))
 			result.append(choice("Decline Spoor of the Unholy", "spoor-of-the-unholy-pass", -1, int(window.squad)))
+			return result
+		if window.kind == DetachmentStratagems.DREAD_CRUSADERS_WINDOW:
+			result.append_array(DetachmentStratagems.dread_crusaders_choices(state, player))
+			if window.get("current_result", {}).is_empty(): result.append(choice("Decline Dread Crusaders", "dread-crusaders-pass", -1, int(window.squad)))
 			return result
 		if window.kind == DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW:
 			result.append_array(DetachmentStratagems.relentless_assault_choices(state, player))
@@ -2102,6 +2106,13 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				TransportRules.resolve_gauntlet_duty_embark(state, target, model)
 				spent["message"] = "Duty is Never Done: %s embarks within %s." % [str(state.squads[target].get("name", "The selected Infantry unit")), str(state.squads[int(state.units[model].get("squad", -1))].get("name", "the selected Transport"))]
 				return spent
+			if reaction_window.get("kind", "") == DetachmentStratagems.DREAD_CRUSADERS_WINDOW:
+				if selected_detachment_rule != DetachmentStratagems.VOW_DREAD_CRUSADERS: return {"error": "Choose Dread Crusaders or decline its current reaction."}
+				if spent.get("pending_reroll", false): return spent
+				var charge_frame_id := str(reaction_window.get("resolution_frame_id", ""))
+				if charge_frame_id.is_empty(): return {"error": "Dread Crusaders has no saved Charge continuation."}
+				a.window = {}
+				return {"error": "", "resume_charge": true, "charge_frame_id": charge_frame_id, "message": str(spent.get("message", "Dread Crusaders resolved."))}
 			if reaction_window.get("kind", "") == DetachmentStratagems.VENGEFUL_ANIMUS_WINDOW:
 				a.window = {}
 				var vengeful_demise := DeadlyDemise.pump(state, roller)
@@ -2302,6 +2313,17 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var spoor_declaration: Dictionary = spoor_window.get("declaration", {}).duplicate(true)
 			a.window = {}
 			return {"error": "", "resume_declaration": spoor_declaration}
+		"dread-crusaders-pass":
+			var dread_window: Dictionary = a.get("window", {})
+			var pending_charge: Dictionary = state.get("pending_charge", {})
+			var charge_frame_id := str(dread_window.get("resolution_frame_id", ""))
+			if dread_window.get("kind", "") != DetachmentStratagems.DREAD_CRUSADERS_WINDOW or dread_window.get("owners", []) != [player] or int(dread_window.get("squad", -1)) != target: return {"error": "No matching Dread Crusaders decision is pending."}
+			if not dread_window.get("current_result", {}).is_empty(): return {"error": "The charging unit must resolve its Dread Crusaders Leadership result."}
+			if charge_frame_id.is_empty() or pending_charge.is_empty() or int(pending_charge.get("squad", -1)) != int(dread_window.get("attacker_squad", -2)) or target not in pending_charge.get("targets", []): return {"error": "The saved Dread Crusaders Charge continuation is no longer available."}
+			a.window = {}
+			return {"error": "", "resume_charge": true, "charge_frame_id": charge_frame_id, "message": "Dread Crusaders declined; the charging player can continue selecting targets."}
+		"dread-crusaders-roll-decision":
+			return DetachmentStratagems.resolve_dread_crusaders_roll_decision(state, player, selected, roller)
 		"relentless-assault-pass":
 			var relentless_window: Dictionary = a.get("window", {})
 			if relentless_window.get("kind", "") != DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW or relentless_window.get("owners", []) != [player] or int(relentless_window.get("squad", -1)) != target: return {"error": "No matching Relentless Assault decision is pending."}
