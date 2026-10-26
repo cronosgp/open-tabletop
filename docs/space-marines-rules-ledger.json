@@ -1870,7 +1870,10 @@
     "official_version_checked": "MFM 1.6, 2026-10-17",
     "official_source_record": "docs/roster-validation.md",
     "reference_disposition_source": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
-    "limitation": "Official MFM 1.6 confirms detachment-point costs; the disposition mapping and detailed detachment rules still need a precise official Codex/update locator per record."
+    "reference_necrons_disposition_source": "https://wahapedia.ru/wh40k11ed/factions/necrons/",
+    "reference_observed_app_version": "2.8.1",
+    "reference_observed_date": "2026-10-26",
+    "limitation": "MFM 1.6 remains the captured detachment-point source. The project-selected Wahapedia 11e faction pages confirm the current Gladius and Awakened Dynasty Force Disposition choices; prepared setup exposes only this checked roster profile. Other disposition combinations, full army legality and network validation are not certified."
   },
   "chapter_detachment_source_crosschecks": {
     "reference_source": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",

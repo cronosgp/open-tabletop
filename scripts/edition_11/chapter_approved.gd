@@ -10,6 +10,7 @@ const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const ID := "ca-2026-27-dominance-hammer-fixed-v1"
 const DEFAULT_TERRAIN_LAYOUT := "ca-2026-27-take-and-hold-mirror-a-v1"
 const DEFAULT_SECONDARY_PAIR := "engage-assassination"
+const FORCE_DISPOSITIONS := {"take-and-hold": "Take and Hold", "priority-assets": "Priority Assets"}
 const SECONDARY_PAIRS := {
 	"engage-assassination": {"label": "Engage on All Fronts + Assassination", "cards": ["engage-on-all-fronts", "assassination"]},
 	"engage-bring-it-down": {"label": "Engage on All Fronts + Bring It Down", "cards": ["engage-on-all-fronts", "bring-it-down"]},
@@ -43,20 +44,20 @@ const SECONDARY_CARD_NAMES := {
 }
 const SIZE := Vector2(60, 44)
 const PRIMARY_MISSIONS := {
-	"battlefield-dominance": {"name": "Battlefield Dominance", "force_disposition": "Take and Hold"},
-	"meatgrinder": {"name": "Meatgrinder", "force_disposition": "Purge the Foe"},
-	"reconnaissance-sweep": {"name": "Reconnaissance Sweep", "force_disposition": "Reconnaissance"},
-	"secure-asset": {"name": "Secure Asset", "force_disposition": "Priority Assets"},
-	"destroyers-wrath": {"name": "Destroyer's Wrath", "force_disposition": "Purge the Foe"},
-	"outmanoeuvre": {"name": "Outmanoeuvre", "force_disposition": "Disruption"},
-	"immovable-object": {"name": "Immovable Object", "force_disposition": "Take and Hold"},
-	"delaying-action": {"name": "Delaying Action", "force_disposition": "Disruption"}
+	"battlefield-dominance": {"name": "Battlefield Dominance"},
+	"meatgrinder": {"name": "Meatgrinder"},
+	"reconnaissance-sweep": {"name": "Reconnaissance Sweep"},
+	"secure-asset": {"name": "Secure Asset"},
+	"destroyers-wrath": {"name": "Destroyer's Wrath"},
+	"outmanoeuvre": {"name": "Outmanoeuvre"},
+	"immovable-object": {"name": "Immovable Object"},
+	"delaying-action": {"name": "Delaying Action"}
 }
 
 static func enabled(s: Dictionary) -> bool:
 	return s.get("mission", {}).get("id", "") == ID
 
-static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOUT, primary_id: String = "battlefield-dominance", secondary_pair_id: String = DEFAULT_SECONDARY_PAIR, primary_ids: Dictionary = {}) -> void:
+static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOUT, primary_id: String = "battlefield-dominance", secondary_pair_id: String = DEFAULT_SECONDARY_PAIR, primary_ids: Dictionary = {}, force_disposition_ids: Dictionary = {}) -> void:
 	if not T.is_event_layout(terrain_layout): terrain_layout = DEFAULT_TERRAIN_LAYOUT
 	if not PRIMARY_MISSIONS.has(primary_id): primary_id = "battlefield-dominance"
 	if not SECONDARY_PAIRS.has(secondary_pair_id): secondary_pair_id = DEFAULT_SECONDARY_PAIR
@@ -66,6 +67,13 @@ static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOU
 		var selected_id := str(primary_ids[raw_owner])
 		if owner in [1, 2] and PRIMARY_MISSIONS.has(selected_id): selected_primaries[owner] = selected_id
 	primary_id = str(selected_primaries[1])
+	var selected_force_dispositions: Dictionary = {}
+	var selected_force_disposition_names: Dictionary = {}
+	for owner in [1, 2]:
+		var force_disposition_id := str(force_disposition_ids.get(owner, force_disposition_ids.get(str(owner), "")))
+		if FORCE_DISPOSITIONS.has(force_disposition_id):
+			selected_force_dispositions[owner] = force_disposition_id
+			selected_force_disposition_names[owner] = str(FORCE_DISPOSITIONS[force_disposition_id])
 	var p1: Dictionary = PRIMARY_MISSIONS[selected_primaries[1]]
 	var p2: Dictionary = PRIMARY_MISSIONS[selected_primaries[2]]
 	var secondary_cards: Array = SECONDARY_PAIRS[secondary_pair_id].cards.duplicate()
@@ -76,7 +84,7 @@ static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOU
 	s.test_battlefield = ID
 	s.battle_size = "Incursion - CA 2026-27 (reference lists)"
 	s.first_player = 1
-	s.mission = {"id": ID, "primary_id": primary_id, "primary_ids": selected_primaries, "primary_names": {1: p1.name, 2: p2.name}, "secondary_pair_id": secondary_pair_id, "name": "P1: %s / P2: %s" % [p1.name, p2.name] if selected_primaries[1] != selected_primaries[2] else str(p1.name), "deployment": "Hammer and Anvil", "force_disposition": p1.force_disposition, "force_dispositions": {1: p1.force_disposition, 2: p2.force_disposition}, "terrain_layout": terrain_layout, "secondary_mode": "fixed", "secondary_cards": secondary_cards, "rounds": 5, "stage": "terrain", "roll_winner": 0, "attacker": 0, "defender": 0, "battle_ready": {}, "objectives": [], "tempting_targets": {}, "actions": actions, "actions_by_player": player_actions, "scores": {1: 0, 2: 0}, "primary": {1: 0, 2: 0}, "secondary": {1: 0, 2: 0}, "cards": {1: {secondary_cards[0]: 0, secondary_cards[1]: 0}, 2: {secondary_cards[0]: 0, secondary_cards[1]: 0}}, "round_points": {}, "scored": [], "dead_characters": [], "log": [], "turn_start_alive": {1: [], 2: []}, "turn_start_objective_units": {1: [], 2: []}, "turn_start_central": {1: [], 2: []}, "turn_start_models": {1: [], 2: []}, "last_turn_losses": {1: 0, 2: 0}, "asset_secured_turn": {1: -1, 2: -1}}
+	s.mission = {"id": ID, "primary_id": primary_id, "primary_ids": selected_primaries, "primary_names": {1: p1.name, 2: p2.name}, "secondary_pair_id": secondary_pair_id, "name": "P1: %s / P2: %s" % [p1.name, p2.name] if selected_primaries[1] != selected_primaries[2] else str(p1.name), "deployment": "Hammer and Anvil", "force_dispositions": selected_force_dispositions, "force_disposition_names": selected_force_disposition_names, "primary_selection_mode": "direct-selection-override" if not selected_force_dispositions.is_empty() else "direct-selection", "terrain_layout": terrain_layout, "secondary_mode": "fixed", "secondary_cards": secondary_cards, "rounds": 5, "stage": "terrain", "roll_winner": 0, "attacker": 0, "defender": 0, "battle_ready": {}, "objectives": [], "tempting_targets": {}, "actions": actions, "actions_by_player": player_actions, "scores": {1: 0, 2: 0}, "primary": {1: 0, 2: 0}, "secondary": {1: 0, 2: 0}, "cards": {1: {secondary_cards[0]: 0, secondary_cards[1]: 0}, 2: {secondary_cards[0]: 0, secondary_cards[1]: 0}}, "round_points": {}, "scored": [], "dead_characters": [], "log": [], "turn_start_alive": {1: [], 2: []}, "turn_start_objective_units": {1: [], 2: []}, "turn_start_central": {1: [], 2: []}, "turn_start_models": {1: [], 2: []}, "last_turn_losses": {1: 0, 2: 0}, "asset_secured_turn": {1: -1, 2: -1}}
 	s.mission.battle_start_strength = {}
 	s.mission.battle_strength_recorded = false
 	terrain(s, false, terrain_layout)
@@ -178,6 +186,15 @@ static func primary_id(s: Dictionary, player: int = 1) -> String:
 
 static func primary_assignments(s: Dictionary) -> Dictionary:
 	return {1: primary_id(s, 1), 2: primary_id(s, 2)}
+
+static func force_disposition_assignments(s: Dictionary) -> Dictionary:
+	var mission: Dictionary = s.get("mission", {})
+	# Older saves used this field for the disposition associated with a primary
+	# card, not the disposition selected from the player's roster.
+	if not mission.has("primary_selection_mode"):
+		return {}
+	var force_dispositions: Dictionary = mission.get("force_dispositions", {})
+	return force_dispositions.duplicate(true)
 
 static func _ensure_tracking(m: Dictionary) -> void:
 	# Older saves for this mission predate the optional-primary trackers.

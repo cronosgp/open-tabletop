@@ -43,6 +43,12 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			primary_missions[owner] = selected_primary
 		primary_mission = str(primary_missions[1])
 	var secondary_pair := str(options.get("secondary_pair", Combat.Mission.DEFAULT_SECONDARY_PAIR))
+	var force_dispositions: Dictionary = {}
+	if options.has("force_dispositions"):
+		if not options.force_dispositions is Dictionary: return {"error": "Force Dispositions must be selected for Player 1 and Player 2."}
+		force_dispositions = options.force_dispositions.duplicate(true)
+	if not force_dispositions.is_empty() and (not options.get("official_mission", false) or not options.get("checked_rosters", false)):
+		return {"error": "Force Disposition choices require the checked Chapter Approved roster profile."}
 	var terrain_profile := Combat.Terrain.layout(terrain_layout)
 	if terrain_profile.has("error"): return {"error": str(terrain_profile.error)}
 	if options.get("official_mission", false) and not Combat.Terrain.is_event_layout(terrain_layout): return {"error": "Select a supported 11th-edition Event Companion terrain layout."}
@@ -63,7 +69,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		if options.get("official_mission", false) and selected_detachment != "gladius": return {"error": "This Space Marine detachment is not reconciled for the selected CA mission."}
 	if options.get("combat_doctrines", false) and options.get("oath_of_moment", false): return {"error": "11e Combat Doctrines replaces the historical Oath of Moment profile; these options cannot be combined."}
 	for key: Variant in options:
-		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "secondary_pair", "training_scenario_id"]: continue
+		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "secondary_pair", "force_dispositions", "training_scenario_id"]: continue
 		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts", "oath_of_moment", "reanimation_protocols", "combat_doctrines", "awakened_dynasty", "unit_abilities", "official_mission", "checked_rosters"]: return {"error": "Unsupported match option: " + str(key)}
 		if not options[key] is bool: return {"error": "Match options must be boolean: " + str(key)}
 	if options.get("unit_abilities", false) and (options.get("hail_of_bolts", false) or options.get("objective_secured", false) or options.get("oath_of_moment", false)): return {"error": "Current datasheets cannot combine with historical Hail of Bolts, Objective Secured or Oath profiles."}
@@ -116,6 +122,14 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			return {"error": "Players must choose the same category and points limit."}
 	if options.get("official_mission", false) and not reports.is_empty():
 		if reports[1].selection.faction != "Space Marines" or reports[2].selection.faction != "Necrons" or reports[1].selection.points_limit != 1000 or reports[1].selection.category != "incursion": return {"error": "This selected CA mission admits Space Marines P1 vs Necrons P2 with a 1000-point Incursion limit; prices and army legality remain reference data."}
+	if not force_dispositions.is_empty():
+		if force_dispositions.size() != 2: return {"error": "Select one available Force Disposition for each checked roster."}
+		for owner in [1, 2]:
+			var faction := str(reports.get(owner, {}).get("selection", {}).get("faction", ""))
+			var detachment: Dictionary = Combat.RosterValidation.DETACHMENTS.get(faction, {})
+			var available: Array = detachment.get("force_dispositions", [])
+			var selected_force_disposition := str(force_dispositions.get(owner, force_dispositions.get(str(owner), "")))
+			if selected_force_disposition not in available: return {"error": "Player %d's Force Disposition is not available from the selected checked-roster detachment." % owner}
 	var use_current_templates := current_marine_templates or _current_marine_setup(selections)
 	var state := Battlefield.apply(Combat.initial_state(terrain_layout, Combat.Objectives.TRAINING, 2, manual, varied, use_current_templates))
 	if state.has("error"): return state
@@ -236,12 +250,13 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			return {"error": "Bring It Down requires each opposing roster to include at least one model with 10 or more Wounds."}
 		if secondary_pair == "engage-grievous-blow" and not defer_secondary_target_check and (not Combat.Mission.has_grievous_blow_roster_target(state, 1) or not Combat.Mission.has_grievous_blow_roster_target(state, 2)):
 			return {"error": "A Grievous Blow requires each opposing roster to include at least one unit with a starting strength of 13 or more models."}
-		Combat.Mission.enable(state, terrain_layout, primary_mission, secondary_pair, primary_missions)
+		Combat.Mission.enable(state, terrain_layout, primary_mission, secondary_pair, primary_missions, force_dispositions)
 		if not reports.is_empty():
 			state.saved_army_setup.options.official_mission = true
 			state.saved_army_setup.options.terrain_layout = terrain_layout
 			state.saved_army_setup.options.primary_mission = primary_mission
 			state.saved_army_setup.options.primary_missions = primary_missions.duplicate(true)
+			if not force_dispositions.is_empty(): state.saved_army_setup.options.force_dispositions = force_dispositions.duplicate(true)
 			state.saved_army_setup.options.secondary_pair = secondary_pair
 	if options.get("checked_rosters", false):
 		Combat.RosterValidation.enable(state, reports)

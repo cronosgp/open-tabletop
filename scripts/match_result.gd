@@ -51,7 +51,7 @@ static func _mission_details(mission: Dictionary, match_events: Array = []) -> D
 	if not mission.has("scores") and not mission.has("objectives") and not mission.has("primary") and not mission.has("secondary"):
 		return {}
 	var result: Dictionary = {}
-	for key: String in ["name", "primary_id", "primary_ids", "primary_names", "secondary_pair_id", "deployment", "rounds", "points_per_objective"]:
+	for key: String in ["name", "primary_id", "primary_ids", "primary_names", "force_dispositions", "force_disposition_names", "primary_selection_mode", "secondary_pair_id", "deployment", "rounds", "points_per_objective"]:
 		if mission.has(key): result[key] = mission[key]
 	for category: String in ["primary", "secondary"]:
 		var totals: Dictionary = mission.get(category, {})
@@ -96,6 +96,10 @@ static func _mission_lines(mission: Dictionary) -> Array[String]:
 		var primary_names: Dictionary = mission.get("primary_names", {})
 		if not primary_names.is_empty():
 			lines.append("Primary missions: P1 %s · P2 %s" % [str(primary_names.get(1, primary_names.get("1", "Primary"))), str(primary_names.get(2, primary_names.get("2", "Primary")))])
+		var force_disposition_names: Dictionary = mission.get("force_disposition_names", {})
+		if not force_disposition_names.is_empty():
+			lines.append("Force Dispositions: P1 %s · P2 %s" % [str(force_disposition_names.get(1, force_disposition_names.get("1", "Unknown"))), str(force_disposition_names.get(2, force_disposition_names.get("2", "Unknown")))])
+			lines.append("Primary cards were selected directly and may override the disposition matchup.")
 		lines.append("Primary VP: P1 %d · P2 %d" % [int(primary.get("P1", 0)), int(primary.get("P2", 0))])
 	if mission.has("secondary"):
 		var secondary: Dictionary = mission.secondary
