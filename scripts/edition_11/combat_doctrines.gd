@@ -50,6 +50,7 @@ static func enable(state: Dictionary, detachment: Variant = "gladius") -> void:
 			Capabilities.admit(state, "templar-vows", TemplarVows.ID)
 			Capabilities.admit(state, "consecrating-aura", ID)
 			Capabilities.admit(state, "incendiary-animus", ID)
+			Capabilities.admit(state, "zealous-vanguard", ID)
 		if selected_detachment == "phobos-shock-force":
 			Capabilities.admit(state, "vanguard-ambushers", ID)
 			Capabilities.admit(state, "phobos-shock-seal-of-shrouding", ID)

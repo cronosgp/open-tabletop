@@ -41,6 +41,7 @@ static func scout_distance(state: Dictionary, squad: int) -> int:
 	if int(state.get("unit_abilities", {}).get("cerebrex_targets", {}).get(squad, -1)) == squad and not Geometry.alive(state, squad).is_empty(): return 6
 	if MarineEnhancements.active(state, squad, MarineEnhancements.SPEARPOINT_WAR_LEADER): return 6
 	if MarineEnhancements.active(state, squad, MarineEnhancements.RELENTLESS_ADVANCE): return 5
+	if MarineEnhancements.zealous_vanguard_active(state, squad): return 6
 	var alive: Array[int] = []
 	for model: int in state.units:
 		if state.units[model].squad == squad and state.units[model].wounds > 0: alive.append(model)

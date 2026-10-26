@@ -808,7 +808,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 			for unit: Dictionary in state.units.values():
 				if unit.squad == squad and is_support_identity(state, unit) and unit.get("attachment_role", "") != "support": unassigned_support = true
 			if unassigned_support: continue
-			var reserve_eligible := TransportRules.is_drop_pod(state, squad) or A.every_model_has(state, squad, "deep-strike") or A.every_model_has(state, squad, "scouts-6") or A.every_model_has(state, squad, "scouts-8")
+			var reserve_eligible := TransportRules.is_drop_pod(state, squad) or A.every_model_has(state, squad, "deep-strike") or A.scout_distance(state, squad) > 0
 			if reserve_eligible:
 				if not state.unit_abilities.reserves.has(squad): result.append(choice("Place %s in strategic reserves" % state.squads[squad].name, "reserve", -1, squad))
 

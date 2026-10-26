@@ -2233,8 +2233,8 @@
         "restrictions": "Army may include Black Templars units but no Adeptus Astartes units from other Chapters.",
         "status": "implemented_local_partial_checks_pending",
         "capability_id": "templar-vows",
-        "implemented_scope": "All three Templar Vows are offered at the start of battle round 1. Abhor the Witch adds Precision and Lance to current-reference Adeptus Astartes melee attacks against PSYKER targets. Accept Any Challenge adds +1 to Wound when target Toughness exceeds attack Strength. Uphold secures objectives controlled by current-reference Adeptus Astartes Infantry and permits those units to start otherwise eligible actions after Advancing. Consecrating Aura (20 points) is selectable for 23 export-linked current-catalog bearer profiles and grants a 5+ invulnerable save to the bearer's unit, preserving better existing saves. Incendiary Animus (25 points) is selectable for five export-linked Chaplain or Judiciar profiles and grants +1 Strength to the bearer's unit's melee attacks. Requires current unit abilities and Black Templars Chapter context.",
-        "unsupported_scope": "The other two Vow-sworn Crusaders enhancements, all six detachment stratagems, the 2 DP Force Disposition, full army legality and network validation are unsupported or pending."
+        "implemented_scope": "All three Templar Vows are offered at the start of battle round 1. Abhor the Witch adds Precision and Lance to current-reference Adeptus Astartes melee attacks against PSYKER targets. Accept Any Challenge adds +1 to Wound when target Toughness exceeds attack Strength. Uphold secures objectives controlled by current-reference Adeptus Astartes Infantry and permits those units to start otherwise eligible actions after Advancing. Consecrating Aura (20 points) is selectable for 23 export-linked current-catalog bearer profiles and grants a 5+ invulnerable save to the bearer's unit, preserving better existing saves. Incendiary Animus (25 points) is selectable for five export-linked Chaplain or Judiciar profiles and grants +1 Strength to the bearer's unit's melee attacks. Zealous Vanguard (25 points) is selectable for 23 export-linked current-catalog bearer profiles and grants Scouts 6 to the enhanced unit through the shared pre-battle move and Strategic Reserves set-up flow. Requires current unit abilities and Black Templars Chapter context.",
+        "unsupported_scope": "Augury Servo-host, all six detachment stratagems, the 2 DP Force Disposition, full army legality and network validation are unsupported or pending."
       },
       "enhancements": [
         {
@@ -2269,7 +2269,8 @@
           "points": 25,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "The bearer's unit gains Scouts 6 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "capability_id": "zealous-vanguard",
+          "status": "implemented_local_checks_pending"
         }
       ],
       "stratagems": [
@@ -2330,9 +2331,10 @@
       ],
       "known_interactions_to_review": [
         "Focused checks must cover start-of-round selection, Precision allocation, Abhor's Lance Charge condition, Accept Any Challenge against Strength/Toughness boundaries, modifier caps and Uphold objective/action effects.",
+        "Zealous Vanguard is implemented for 23 export-linked current-catalog bearers; focused local checks must confirm its Scouts 6 pre-battle move and Strategic Reserves set-up paths.",
         "Consecrating Aura is implemented for export-linked current-catalog bearers; focused local checks must confirm its unit-wide 5+ invulnerable save and preservation of better existing saves.",
         "Incendiary Animus is implemented for five current-catalog Chaplain or Judiciar profiles; focused local checks must confirm its +1 Strength applies to every melee attack from the enhanced unit.",
-        "The other two Vow-sworn Crusaders enhancements and all six stratagems remain unsupported.",
+        "Augury Servo-host and all six Vow-sworn Crusaders stratagems remain unsupported.",
         "The Black Templars Chapter gate is enforced for this detachment, but broader roster legality and the detachment 2 DP Force Disposition are not certified or enforced."
       ],
       "status": "implemented_local_partial_checks_pending",
@@ -2356,12 +2358,17 @@
           {
             "filename": "Enhancements.csv",
             "row_id": "000011172003",
-            "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839db0ffc7889026f"
+            "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
           },
           {
             "filename": "Enhancements.csv",
             "row_id": "000011172004",
-            "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839db0ffc7889026f"
+            "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+          },
+          {
+            "filename": "Enhancements.csv",
+            "row_id": "000011172005",
+            "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
           },
           {
             "filename": "Datasheets_enhancements.csv",
@@ -2373,6 +2380,12 @@
             "filename": "Datasheets_enhancements.csv",
             "relation_key": "enhancement_id=000011172004",
             "matching_rows": 6,
+            "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+          },
+          {
+            "filename": "Datasheets_enhancements.csv",
+            "relation_key": "enhancement_id=000011172005",
+            "matching_rows": 37,
             "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
           },
           {

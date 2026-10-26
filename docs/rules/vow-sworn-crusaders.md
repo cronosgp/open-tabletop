@@ -16,9 +16,11 @@ The 20-point `Consecrating Aura` can be assigned to one of 23 export-linked bear
 
 The 25-point `Incendiary Animus` can be assigned to one of five export-linked Chaplain or Judiciar profiles in the current construction catalog. The bearer’s unit gets +1 Strength on its melee attacks. Both enhancements require the Vow-sworn Crusaders detachment, current unit abilities and Black Templars Chapter context.
 
+The 25-point `Zealous Vanguard` can be assigned to one of 23 current-catalog bearer profiles linked by the local export. Its unit gains Scouts 6 through the shared pre-battle Scout move or Strategic Reserves set-up flow. It requires Vow-sworn Crusaders, current unit abilities and Black Templars Chapter context. Focused checks are pending.
+
 ## Unsupported scope
 
-The other two Vow-sworn Crusaders enhancements and all six detachment stratagems are not implemented. The detachment's 2 DP Force Disposition is not enforced. This option is for local practice and does not certify army legality. Focused checks, playtesting and network validation remain pending.
+`Augury Servo-host` and all six Vow-sworn Crusaders stratagems are not implemented. The detachment's 2 DP Force Disposition is not enforced. This option is for local practice and does not certify army legality. Focused checks, playtesting and network validation remain pending.
 
 ## Source and implementation record
 
@@ -28,9 +30,11 @@ The other two Vow-sworn Crusaders enhancements and all six detachment stratagems
 - `Detachment_abilities.csv`, row `000011171` (`Templar Vows`): SHA-256 `92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe`.
 - `Enhancements.csv`, row `000011172003` (`Consecrating Aura`): SHA-256 `7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f`.
 - `Enhancements.csv`, row `000011172004` (`Incendiary Animus`): SHA-256 `7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f`.
+- `Enhancements.csv`, row `000011172005` (`Zealous Vanguard`): SHA-256 `7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f`.
 - `Datasheets_enhancements.csv`, relation `enhancement_id=000011172003` (37 source datasheets): SHA-256 `97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f`.
 - `Datasheets_enhancements.csv`, relation `enhancement_id=000011172004` (6 source datasheets): SHA-256 `97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f`.
+- `Datasheets_enhancements.csv`, relation `enhancement_id=000011172005` (37 source datasheets): SHA-256 `97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f`.
 - Runtime implementation: `scripts/edition_11/templar_vows.gd`; enabled capability: `templar-vows`.
-- Enhancement runtime implementation: `scripts/edition_11/stormlance_enhancements.gd`, `scripts/edition_11/defender_groups.gd` and `scripts/edition_11/attack_plan.gd`; enabled capabilities: `consecrating-aura` and `incendiary-animus`.
+- Enhancement runtime implementation: `scripts/edition_11/stormlance_enhancements.gd`, `scripts/edition_11/defender_groups.gd`, `scripts/edition_11/attack_plan.gd`, `scripts/edition_11/unit_abilities.gd`, `scripts/edition_11/scout_moves.gd` and `scripts/edition_11/unit_actions.gd`; enabled capabilities: `consecrating-aura`, `incendiary-animus` and `zealous-vanguard`.
 
 The export supplies local detachment and ability facts; the live 11th-edition faction page remains the selected rules reference. No export data is copied into this document beyond row identity and provenance.
