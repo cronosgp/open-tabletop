@@ -145,7 +145,7 @@ static func templar_vow_state_error(state: Dictionary) -> String:
 		for raw_owner: Variant in decisions:
 			if str(raw_owner) not in ["1", "2"]: return "Cannot continue while Templar Vows decision state is invalid."
 			var decision: Variant = decisions[raw_owner]
-			if field == "templar_vows" and str(decision) not in ["", "uphold-honour"]: return "Cannot continue while Templar Vows decision state is invalid."
+			if field == "templar_vows" and str(decision) not in ["", "uphold-honour", "abhor-the-witch", "accept-any-challenge"]: return "Cannot continue while Templar Vows decision state is invalid."
 			if field == "templar_vow_passed" and not decision is bool: return "Cannot continue while Templar Vows decision state is invalid."
 	return ""
 

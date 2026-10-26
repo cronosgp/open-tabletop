@@ -8,6 +8,7 @@ const Awakened = preload("res://scripts/edition_11/awakened_dynasty.gd")
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const Oath = preload("res://scripts/edition_11/oath_of_moment.gd")
 const VowedTarget = preload("res://scripts/edition_11/vowed_target.gd")
+const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
 ## Owned weapons/profiles; target assignments freeze before dice/casualties.
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
@@ -358,6 +359,9 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		var tactical_foresight_modifier := DetachmentStratagems.tactical_foresight_wound_modifier(state, squad, row.target, int(profile.strength), int(target_defense.toughness))
 		if tactical_foresight_modifier != 0: context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + tactical_foresight_modifier, -1, 1)
 		if DetachmentStratagems.evasive_active(state, row.target): context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) - 1, -1, 1)
+		if TemplarVows.abhor_active(state, squad, row.target, melee):
+			profile.keywords["precision"] = true
+			profile.keywords["lance"] = true
 		if DetachmentStratagems.lance_wound(state, squad, profile): context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + 1, -1, 1)
 		if not melee and UnitAbilities.aggressive_reconnaissance_active(state, squad, row.target): context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + 1, -1, 1)
 		if not melee and UnitAbilities.has(state, squad, "thunderstrike") and (UnitAbilities.has_target_keyword(state, row.target, "MONSTER") or UnitAbilities.has_target_keyword(state, row.target, "VEHICLE")):
@@ -365,6 +369,7 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		var methodical_wound_bonus := DetachmentStratagems.methodical_brutality_wound_bonus(state, squad)
 		if methodical_wound_bonus > 0: context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + methodical_wound_bonus, -1, 1)
 		if VowedTarget.bonus(state, squad, row.target): context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + 1, -1, 1)
+		if TemplarVows.challenge_active(state, squad, melee) and int(profile.strength) < int(target_defense.toughness): context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + 1, -1, 1)
 		if not melee:
 			var hail_bonus := Hail.bonus(state, squad, row.target, hail_target, model, choice)
 			bonus += hail_bonus

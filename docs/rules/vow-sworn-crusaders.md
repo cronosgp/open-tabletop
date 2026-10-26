@@ -2,16 +2,17 @@
 
 Vow-sworn Crusaders is a **partial local implementation** for the 11th-edition Space Marines rules. It requires Black Templars Chapter context and the current unit-abilities option.
 
-At the start of the first battle round, the Black Templars player may select the supported `Uphold the Honour of the Emperor` Vow or skip selection. The other two Templar Vows are not offered.
+At the start of the first battle round, the Black Templars player may select one of the three Templar Vows or skip selection:
 
-When selected, the supported Vow has two local effects:
+- `Abhor the Witch, Destroy the Witch`: current-reference Adeptus Astartes melee attacks against a PSYKER unit gain Precision and Lance. Lance adds its normal +1 to Wound roll only when the attacking unit made a Charge move this turn.
+- `Accept Any Challenge, No Matter the Odds`: current-reference Adeptus Astartes melee attacks gain +1 to Wound when the target's Toughness is greater than that attack profile's Strength, subject to the shared wound-modifier cap.
+- `Uphold the Honour of the Emperor`: at the end of the player's Movement phase, an objective controlled by a current-reference Adeptus Astartes Infantry unit is secured. Those Infantry units can start otherwise eligible actions after Advancing; Falling Back still prevents action starts unless another supported rule permits them.
 
-- At the end of the player's Movement phase, an objective is secured if a controlling current-reference Adeptus Astartes Infantry unit is controlling it.
-- A current-reference Adeptus Astartes Infantry unit can start an otherwise eligible action after Advancing. Falling Back still prevents action starts unless another supported rule permits them. All other action gates remain active.
+All other action gates remain active. These effects require current unit abilities and Black Templars Chapter context.
 
 ## Unsupported scope
 
-The game does not implement the other two Templar Vows, Vow-sworn Crusaders enhancements or stratagems, or the detachment's 2 DP Force Disposition. This option is for local practice and does not certify army legality. Focused checks, playtesting and network validation remain pending.
+The game does not implement Vow-sworn Crusaders enhancements or stratagems, or enforce the detachment's 2 DP Force Disposition. This option is for local practice and does not certify army legality. Focused checks, playtesting and network validation remain pending.
 
 ## Source and implementation record
 
@@ -19,6 +20,6 @@ The game does not implement the other two Templar Vows, Vow-sworn Crusaders enha
 - Local Data Export: snapshot `20261021T130623Z`, revision `20260817b`, retrieved 21 October 2026 at `2026-10-21T19:46:58Z`.
 - `Detachments.csv`, row `000001230`: SHA-256 `e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585`.
 - `Detachment_abilities.csv`, row `000011171` (`Templar Vows`): SHA-256 `92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe`.
-- Runtime implementation: `scripts/edition_11/templar_vows.gd`; enabled capability: `templar-vows-uphold`.
+- Runtime implementation: `scripts/edition_11/templar_vows.gd`; enabled capability: `templar-vows`.
 
 The export supplies local detachment and ability facts; the live 11th-edition faction page remains the selected rules reference. No export data is copied into this document beyond row identity and provenance.

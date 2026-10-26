@@ -5,9 +5,12 @@ const MarineProfiles = preload("res://scripts/edition_11/current_reference_marin
 const Contact = preload("res://scripts/edition_11/contact_movement.gd")
 const Morale = preload("res://scripts/edition_11/morale.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
-const ID := "templar-vows-uphold-11e-v1"
+const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
+const ID := "templar-vows-11e-v2"
 const DOCTRINES_ID := "combat-doctrines-11e-gladius-v1"
 const UPHOLD := "uphold-honour"
+const ABHOR := "abhor-the-witch"
+const CHALLENGE := "accept-any-challenge"
 
 static func enabled_for(state: Dictionary, owner: int) -> bool:
 	if owner not in [1, 2]: return false
@@ -31,13 +34,23 @@ static func choices(state: Dictionary, owner: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	if not needs_choice(state, owner): return result
 	result.append({"label": "Uphold the Honour of the Emperor — secure objectives and retain action eligibility after Advancing", "action": "templar-vow-select", "value": UPHOLD})
+	result.append({"label": "Abhor the Witch, Destroy the Witch — melee attacks against Psykers gain Precision and Lance", "action": "templar-vow-select", "value": ABHOR})
+	result.append({"label": "Accept Any Challenge, No Matter the Odds — +1 to wound with melee attacks against tougher targets", "action": "templar-vow-select", "value": CHALLENGE})
 	result.append({"label": "Skip Templar Vow selection", "action": "templar-vow-pass"})
 	return result
 
 static func apply_choice(state: Dictionary, owner: int, selected: Dictionary) -> String:
 	if not needs_choice(state, owner): return "No Templar Vow selection is pending."
-	if str(selected.get("value", "")) != UPHOLD: return "Only Uphold the Honour of the Emperor is available in this partial implementation."
-	state.combat_doctrines.templar_vows[owner] = UPHOLD
+	var vow := str(selected.get("value", ""))
+	if vow not in [UPHOLD, ABHOR, CHALLENGE]: return "Select one of the available Templar Vows."
+	state.combat_doctrines.templar_vows[owner] = vow
+	return ""
+
+static func display_name(vow: String) -> String:
+	match vow:
+		UPHOLD: return "Uphold the Honour of the Emperor"
+		ABHOR: return "Abhor the Witch, Destroy the Witch"
+		CHALLENGE: return "Accept Any Challenge, No Matter the Odds"
 	return ""
 
 static func pass_choice(state: Dictionary, owner: int) -> String:
@@ -61,10 +74,31 @@ static func infantry_unit(state: Dictionary, squad: int) -> bool:
 		if profile.is_empty() or "ADEPTUS ASTARTES" not in keywords or "INFANTRY" not in keywords: return false
 	return true
 
+static func current_astartes_unit(state: Dictionary, squad: int) -> bool:
+	if not state.get("squads", {}).has(squad): return false
+	var alive := Contact.alive(state, squad)
+	if alive.is_empty(): return false
+	for model: int in alive:
+		var unit: Dictionary = state.units[model]
+		var profile := MarineProfiles.profile(AbilityCatalog.identity(unit))
+		if profile.is_empty() or "ADEPTUS ASTARTES" not in profile.get("keywords", []): return false
+	return true
+
 static func advance_action_allowed(state: Dictionary, squad: int) -> bool:
 	if not state.get("squads", {}).has(squad) or not infantry_unit(state, squad): return false
 	var owner := int(state.squads[squad].get("owner", -1))
 	return selected_vow(state, owner) == UPHOLD
+
+static func abhor_active(state: Dictionary, squad: int, target: int, melee: bool) -> bool:
+	if not melee or not state.get("squads", {}).has(squad) or not state.get("squads", {}).has(target): return false
+	var owner := int(state.squads[squad].get("owner", -1))
+	if selected_vow(state, owner) != ABHOR or not current_astartes_unit(state, squad): return false
+	return "PSYKER" in Traits.target_keywords(state, target)
+
+static func challenge_active(state: Dictionary, squad: int, melee: bool) -> bool:
+	if not melee or not state.get("squads", {}).has(squad): return false
+	var owner := int(state.squads[squad].get("owner", -1))
+	return selected_vow(state, owner) == CHALLENGE and current_astartes_unit(state, squad)
 
 static func secure_controlled_objectives(state: Dictionary, owner: int) -> void:
 	if selected_vow(state, owner) != UPHOLD: return

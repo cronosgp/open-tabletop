@@ -1366,7 +1366,7 @@ static func point_error(state: Dictionary, point: Vector2, radius: float) -> Str
 static func apply(state: Dictionary, player: int, selected: Dictionary, point: Vector2, roller: Callable) -> Dictionary:
 	if str(selected.get("action", "")) in ["templar-vow-select", "templar-vow-pass"]:
 		var vow_error := TemplarVows.pass_choice(state, player) if str(selected.get("action", "")) == "templar-vow-pass" else TemplarVows.apply_choice(state, player, selected)
-		var vow_message := "Templar Vows: Uphold the Honour of the Emperor is active for the battle." if str(selected.get("action", "")) == "templar-vow-select" else "Templar Vow selection was skipped."
+		var vow_message := "Templar Vows: %s is active for the battle." % TemplarVows.display_name(str(selected.get("value", ""))) if str(selected.get("action", "")) == "templar-vow-select" else "Templar Vow selection was skipped."
 		return {"error": vow_error, "message": vow_message if vow_error.is_empty() else ""}
 	if str(selected.get("action", "")) == "combined-deployment-assail":
 		return DetachmentStratagems.resolve_gauntlet_combined(state, player, int(selected.get("target", -1)))
