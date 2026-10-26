@@ -5,7 +5,9 @@ signal training_sides_changed(swapped: bool)
 signal resume_requested
 signal new_match_requested
 signal section_requested(tab_index: int)
+signal help_requested
 signal settings_requested
+signal saved_results_requested
 signal history_requested
 signal save_requested
 
@@ -16,6 +18,7 @@ var guided_button: Button
 var training_swap_choice: CheckBox
 var training_summary: Label
 var new_match_button: Button
+var title_settings_button: Button
 var title_identity: Control
 var title_sections: Control
 var match_section: VBoxContainer
@@ -74,7 +77,7 @@ func _build() -> void:
 	var identity := VBoxContainer.new()
 	title_identity = identity
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	identity.size_flags_stretch_ratio = 1.2
+	identity.size_flags_stretch_ratio = 1.0
 	identity.add_theme_constant_override("separation", 16)
 	body.add_child(identity)
 	var eyebrow := Label.new()
@@ -118,7 +121,7 @@ func _build() -> void:
 	identity.add_child(match_status)
 	var actions := VBoxContainer.new()
 	actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	actions.size_flags_stretch_ratio = 0.9
+	actions.size_flags_stretch_ratio = 1.15
 	actions.add_theme_constant_override("separation", 10)
 	body.add_child(actions)
 	var section := Label.new()
@@ -137,7 +140,7 @@ func _build() -> void:
 	guided_button.pressed.connect(func(): start_guided_requested.emit())
 	training_summary = Label.new()
 	training_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	training_summary.add_theme_font_size_override("font_size", 13)
+	training_summary.add_theme_font_size_override("font_size", 15)
 	training_summary.add_theme_color_override("font_color", MUTED)
 	actions.add_child(training_summary)
 	training_swap_choice = CheckBox.new()
@@ -147,6 +150,8 @@ func _build() -> void:
 	training_swap_choice.toggled.connect(func(swapped: bool): training_sides_changed.emit(swapped))
 	new_match_button = _button(actions, "New match", "Choose a local exercise, saved armies or LAN setup.", false)
 	new_match_button.pressed.connect(func(): new_match_requested.emit())
+	title_settings_button = _button(actions, "Settings", "Adjust local display and presentation options before starting.", false)
+	title_settings_button.pressed.connect(func(): settings_requested.emit())
 	match_section = VBoxContainer.new()
 	match_section.add_theme_constant_override("separation", 10)
 	match_section.visible = false
@@ -160,7 +165,7 @@ func _build() -> void:
 	history_button.pressed.connect(func(): history_requested.emit())
 	var settings_button := _button(match_section, "Settings", "Adjust local display and presentation options.", false)
 	settings_button.pressed.connect(func(): settings_requested.emit())
-	var save_button := _button(match_section, "Save match", "Save this match on this computer.", false)
+	var save_button := _button(match_section, "Save match to slot", "Choose one of five local slots for this match.", false)
 	save_button.pressed.connect(func(): save_requested.emit())
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -171,9 +176,11 @@ func _build() -> void:
 	nav_title.add_theme_font_size_override("font_size", 13)
 	nav_title.add_theme_color_override("font_color", GOLD)
 	actions.add_child(nav_title)
-	var nav := HBoxContainer.new()
+	var nav := HFlowContainer.new()
 	title_sections = nav
-	nav.add_theme_constant_override("separation", 6)
+	nav.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nav.add_theme_constant_override("h_separation", 6)
+	nav.add_theme_constant_override("v_separation", 6)
 	actions.add_child(nav)
 	for entry: Dictionary in [
 		{"label": "Armies", "tab": 3},
@@ -183,6 +190,10 @@ func _build() -> void:
 		var button := _button(nav, str(entry.label), "Open " + str(entry.label) + ".", false, true)
 		var tab_index := int(entry.tab)
 		button.pressed.connect(func(): section_requested.emit(tab_index))
+	var results_button := _button(nav, "Results", "Review match-result summaries saved on this computer.", false, true)
+	results_button.pressed.connect(func(): saved_results_requested.emit())
+	var guide_button := _button(nav, "Guide", "Read controls and match flow before starting.", false, true)
+	guide_button.pressed.connect(func(): help_requested.emit())
 	var footer := Label.new()
 	footer_label = footer
 	footer.text = "Saved games and imported model files remain on this computer."
@@ -191,11 +202,18 @@ func _build() -> void:
 	footer.add_theme_color_override("font_color", Color("84919a"))
 	actions.add_child(footer)
 
-func set_resume_state(available: bool, explanation: String = "", live_match: bool = false) -> void:
+func set_resume_state(available: bool, explanation: String = "", live_match: bool = false, save_count: int = 1) -> void:
 	resume_button.visible = available
-	resume_note.visible = not available
-	resume_button.text = "Return to current match" if live_match else "Continue saved match"
-	resume_button.tooltip_text = explanation if not explanation.is_empty() else "Resume the last compatible local save."
+	var backup_recovery := available and explanation.contains("previous backup")
+	resume_note.visible = not available or backup_recovery
+	resume_note.add_theme_color_override("font_color", Color("e5a394") if backup_recovery else MUTED)
+	if live_match:
+		resume_button.text = "Return to current match"
+	elif save_count > 1:
+		resume_button.text = "Saved matches (%d)" % save_count
+	else:
+		resume_button.text = "Continue saved match"
+	resume_button.tooltip_text = explanation if not explanation.is_empty() else "Resume or inspect a local saved match."
 	resume_note.text = _resume_note_text(explanation)
 	resume_note.tooltip_text = explanation if not explanation.is_empty() else "No compatible saved match found."
 	_set_emphasis(resume_button, available)
@@ -218,6 +236,8 @@ func focus_primary_action() -> void:
 func _resume_note_text(explanation: String) -> String:
 	if explanation == "The saved match requires a different rules version or local data pack.":
 		return "Previous save unavailable for this rules/data pack. Start a new match or tactical training."
+	if explanation.contains("previous backup"):
+		return "Primary save unreadable. Continue will use its previous backup."
 	return explanation if not explanation.is_empty() else "No compatible saved match found."
 
 func show_status(message: String) -> void:
@@ -239,6 +259,7 @@ func set_in_match_mode(active: bool) -> void:
 	if training_swap_choice != null: training_swap_choice.visible = not active
 	if training_summary != null: training_summary.visible = not active
 	if new_match_button != null: new_match_button.visible = not active
+	if title_settings_button != null: title_settings_button.visible = not active
 	if title_label != null:
 		title_label.text = "MATCH\nMENU" if active else "OPEN\nTABLETOP"
 		title_label.add_theme_font_size_override("font_size", 42 if active else 54)

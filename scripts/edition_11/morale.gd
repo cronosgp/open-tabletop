@@ -5,6 +5,7 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
+const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
 
 static func living(state: Dictionary, squad: int) -> Array[int]:
 	var ids: Array[int] = []
@@ -35,8 +36,13 @@ static func objective_control(state: Dictionary, id: int) -> int:
 	if not state.units.has(id) or state.units[id].wounds <= 0 or not state.units[id].get("on_battlefield", true): return 0
 	var squad: Dictionary = state.squads[state.units[id].squad]
 	if squad.battle_shocked: return 0
-	var value := int(state.units[id].get("objective_control", squad.stats.objective_control)) + Ancient.honour(state, state.units[id].squad)
+	var value := int(state.units[id].get("objective_control", squad.stats.objective_control)) + Ancient.honour(state, state.units[id].squad) + AncientFury.objective_control_bonus(state, int(state.units[id].squad))
+	var lion_will: Dictionary = state.get("detachment_stratagems", {}).get("lion_will", {}).get(state.units[id].squad, {})
+	if int(lion_will.get("turn", -1)) == int(state.get("turn", -2)) and int(lion_will.get("owner", -1)) == int(state.units[id].get("owner", -2)): value += 1
+	var for_the_emperor: Dictionary = state.get("detachment_stratagems", {}).get("for_the_emperor", {}).get(state.units[id].squad, {})
+	if int(for_the_emperor.get("turn", -1)) == int(state.get("turn", -2)) and int(for_the_emperor.get("owner", -1)) == int(state.units[id].get("owner", -2)): value += 1
 	if MarineEnhancements.standard_bearer(state, id): value += 1
+	if MarineEnhancements.active(state, int(state.units[id].squad), MarineEnhancements.IMMOVABLE_CONQUERORS): value += 1
 	if UnitAbilities.seeker_of_the_unfound_active(state, id): value += 9
 	if terror_troops_applies(state, id): value -= 1
 	if lord_of_pyroclasts_applies(state, id): value -= 1
@@ -55,7 +61,7 @@ static func lord_of_pyroclasts_applies(state: Dictionary, target: int) -> bool:
 static func _unit_engaged_with(state: Dictionary, left: int, right: int) -> bool:
 	for model: int in Geometry.alive(state, left):
 		for target: int in Geometry.alive(state, right):
-			if Geometry.edge(state.units[model], state.units[target]) <= 2.001: return true
+			if Geometry.within_engagement(state.units[model], state.units[target]): return true
 	return false
 
 static func terror_troops_applies(state: Dictionary, target: int) -> bool:
@@ -93,6 +99,7 @@ static func leadership(state: Dictionary, squad: int) -> Dictionary:
 		if not (leadership is int or leadership is float) or not is_finite(leadership) or leadership != floor(leadership) or leadership < 2 or leadership > 12: return {"error": "Unresolved model Leadership characteristic."}
 		if UnitAbilities.seeker_of_the_unfound_active(state, model): leadership = mini(int(leadership), 5)
 		if MarineEnhancements.standard_bearer(state, model): leadership = maxi(2, int(leadership) - 1)
+		leadership = mini(12, int(leadership) + AncientFury.leadership_bonus(state, squad))
 		target = leadership if target == null else mini(int(target), int(leadership))
 	if not (target is int or target is float) or not is_finite(target) or target != floor(target) or target < 2 or target > 12:
 		return {"error": "Battle-shock requires a resolved Leadership characteristic."}

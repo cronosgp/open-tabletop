@@ -24,7 +24,7 @@ func select_edition(value: String) -> String:
 		if not spec.get("current_reference", false):
 			excluded[identity] = "Historical profile; current reconciliation is outside this catalog."
 			continue
-		if spec.get("validation_status", "") in ["tests_written_not_run", "local_checks_pending"]:
+		if spec.get("validation_status", "") in ["tests_written_not_run", "local_checks_pending", "implemented_local_checks_pending"]:
 			excluded[identity] = "Local validation pending."
 			continue
 		var profile := Current.profile(identity)

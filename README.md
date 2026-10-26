@@ -11,7 +11,7 @@ An open-source Godot prototype for playing Warhammer 40,000 with user-supplied v
 1. Install **Godot 4.7.2 stable, standard edition (no .NET)**.
 2. Import `project.godot` in Godot and press **F5**.
 
-The original movement demonstration starts without Python, external data, model downloads, or network access. In the local demo, select a miniature's base with the left mouse button and request a move with the right button. Scroll to zoom, middle-drag to orbit, and use WASD to pan. **Host LAN** and **Join** support direct LAN/loopback connections; this is not internet matchmaking.
+The original movement demonstration starts without Python, external data, model downloads, or network access. In the local demo, select a miniature's base with the left mouse button and request a move with the right button. Scroll to zoom, middle-drag to orbit, and use W/A/S/D by default to pan; remap camera pan, Focus and Datasheet keys in Settings. **Host LAN** and **Join** support direct LAN/loopback connections; this is not internet matchmaking.
 
 The project-owned tactical training profile also starts offline from the current-reference Marine catalog embedded in the runtime; it does not require the historical starter snapshot or a download. Other combat exercises remain separate, and their exact data requirements and rule boundaries are listed in the [support matrix](docs/project/support-matrix.md) and the [documentation index](docs/README.md). An exercise or selectable profile does not by itself certify a legal army or a complete official match.
 

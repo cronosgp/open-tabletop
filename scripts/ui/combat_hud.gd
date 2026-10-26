@@ -5,6 +5,9 @@ signal focus_requested
 signal help_requested
 signal history_requested
 signal command_panel_requested
+signal side_requested
+signal army_requested
+signal mission_requested
 signal layout_changed
 
 const STEP_ORDER: Array[String] = ["command", "movement", "shooting", "charge", "fight"]
@@ -21,6 +24,9 @@ var decision_label: Label
 var objective_label: Label
 var connection_label: Label
 var focus_button: Button
+var side_button: Button
+var army_button: Button
+var mission_button: Button
 var menu_button: Button
 var guide_progress_label: Label
 var command_panel_button: Button
@@ -90,6 +96,13 @@ func _build() -> void:
 	objective_label.add_theme_font_size_override("font_size", 14)
 	objective_label.add_theme_color_override("font_color", Color("c4ced1"))
 	steps.add_child(objective_label)
+	mission_button = Button.new()
+	mission_button.text = "Mission"
+	mission_button.visible = false
+	mission_button.custom_minimum_size = Vector2(70, 28)
+	mission_button.tooltip_text = "Read the mission score, objectives and latest resolved control values."
+	mission_button.pressed.connect(func(): mission_requested.emit())
+	steps.add_child(mission_button)
 	connection_label = Label.new()
 	connection_label.custom_minimum_size.x = 88
 	connection_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -100,10 +113,23 @@ func _build() -> void:
 	focus_button = Button.new()
 	focus_button.text = "Focus"
 	focus_button.custom_minimum_size = Vector2(64, 28)
-	focus_button.tooltip_text = "Center the camera on the selected unit (F). Camera only."
+	focus_button.tooltip_text = "Center the camera on the selected unit. Camera only."
 	focus_button.disabled = true
 	focus_button.pressed.connect(func(): focus_requested.emit())
 	steps.add_child(focus_button)
+	side_button = Button.new()
+	side_button.text = "P1 side"
+	side_button.custom_minimum_size = Vector2(72, 28)
+	side_button.tooltip_text = "Return the camera to this player's side of the table. Orbit still works. Camera only."
+	side_button.pressed.connect(func(): side_requested.emit())
+	steps.add_child(side_button)
+	army_button = Button.new()
+	army_button.text = "Army"
+	army_button.visible = false
+	army_button.custom_minimum_size = Vector2(64, 28)
+	army_button.tooltip_text = "Show the army list and the selected model card."
+	army_button.pressed.connect(func(): army_requested.emit())
+	steps.add_child(army_button)
 	command_panel_button = Button.new()
 	command_panel_button.text = "Actions"
 	command_panel_button.custom_minimum_size = Vector2(64, 28)
@@ -138,7 +164,7 @@ func _build() -> void:
 	toolbar = HBoxContainer.new()
 	toolbar.add_theme_constant_override("separation", 8)
 	column.add_child(toolbar)
-	toolbar_controls = [connection_label, focus_button, command_panel_button, help_button, history_button, guide_progress_label, menu_button]
+	toolbar_controls = [connection_label, objective_label, focus_button, side_button, army_button, mission_button, command_panel_button, help_button, history_button, guide_progress_label, menu_button]
 	header_panel.minimum_size_changed.connect(func():
 		header_panel.offset_bottom = header_panel.offset_top + header_panel.get_combined_minimum_size().y
 		layout_changed.emit()
@@ -203,6 +229,22 @@ func set_complete(round_number: int) -> void:
 
 func set_focus_available(available: bool) -> void:
 	focus_button.disabled = not available
+
+func set_focus_binding_label(key_label: String) -> void:
+	focus_button.tooltip_text = "Center the camera on the selected unit (%s). Camera only." % key_label
+
+func set_army_open(open: bool) -> void:
+	army_button.visible = not open
+	army_button.text = "Army"
+	army_button.tooltip_text = "Show the army list and the selected model card."
+
+func set_mission_available(available: bool) -> void:
+	mission_button.visible = available
+
+func set_side_player(player: int) -> void:
+	var seat := player if player in [1, 2] else 1
+	side_button.text = "P%d side" % seat
+	side_button.tooltip_text = "Return the camera to player %d's side of the table. The P1 and P2 marks stay on those edges. Orbit still works. Camera only." % seat
 
 func set_command_panel_open(open: bool) -> void:
 	command_panel_button.text = "Hide" if open else "Actions"

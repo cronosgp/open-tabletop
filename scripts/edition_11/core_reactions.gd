@@ -1,6 +1,6 @@
 extends RefCounted
 const UnitPrevention = preload("res://scripts/edition_11/unit_prevention.gd")
-## Core e11 reaction stratagems required by the checked Gladius vs Awakened infantry match.
+## Core e11 reaction stratagems and their shared decision flows.
 const A = preload("res://scripts/edition_11/unit_abilities.gd")
 const G = preload("res://scripts/edition_11/contact_movement.gd")
 const Queue = preload("res://scripts/edition_11/fight_queue.gd")
@@ -24,14 +24,17 @@ const COUNTER := "counteroffensive"
 const EPIC := "epic-challenge"
 const CRUSHING := "crushing-impact"
 const CRUSHING_MORTAL := "crushing-impact-mortal"
+const GRAVIS_ARMOURED_IMPACT_MORTAL := "gravis-armoured-impact-mortal"
+const WRATH_OF_THE_LION_MORTAL := "inner-circle-wrath-of-the-lion-mortal"
 const TIGURIUS_MORTAL := "tigurius-telepathic-assault-mortal"
+const PHOBOS_MORTIS_SNARES_MORTAL := "phobos-shadow-mortis-mortal"
 const BRUTALIS_CHARGE := "brutalis-charge"
 
 static func enable(s: Dictionary) -> void:
 	if s.has("core_reactions"): return
 	s.core_reactions = {"implementation": ID, "overwatch": {}, "heroic": {}, "chargers": [], "charge_closed": false, "epic": {}}
 	s.pack_hash = (str(s.pack_hash) + ID).sha256_text()
-	s.scope = "Core infantry stratagems: Smokescreen, Explosives, Fire Overwatch, Heroic Intervention, Counteroffensive and Epic Challenge. " + str(s.get("scope", ""))
+	s.scope = "Core stratagems: Smokescreen, Explosives, Fire Overwatch, Heroic Intervention, Counteroffensive, Epic Challenge and Crushing Impact/Tank Shock. " + str(s.get("scope", ""))
 	for ability in [OVERWATCH, HEROIC, COUNTER, EPIC, EXPLOSIVES, SMOKE, CRUSHING]: Registry.admit(s, ability, ID)
 
 static func enabled(s: Dictionary) -> bool:
@@ -173,6 +176,12 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 	elif rule == COUNTER:
 		if s.phase != "fight" or s.active == player: return "Counteroffensive is used in your opponent's Fight phase."
 		if window.get("kind", "") != "counter": return "Counteroffensive is used just after an enemy unit has fought."
+		if window.get("owners", []) != [player] or str(window.get("phase_key", "")) != phase_key(s): return "Counteroffensive requires the current owner of the post-fight window."
+		var resume_step := str(window.get("resume_step", "attacks"))
+		if resume_step != "attacks" or str(s.get("fight_step", "")) != resume_step: return "Counteroffensive is available only after an attack in the opponent's Fight step."
+		var fighter := int(window.get("fighter", -1))
+		if not s.squads.has(fighter) or int(s.squads[fighter].get("owner", -1)) == player or not bool(s.squads[fighter].get("fought", false)): return "Counteroffensive requires an enemy unit that has just fought."
+		if int(s.get("fight_actor", -1)) != int(s.squads[fighter].get("owner", -2)): return "Counteroffensive requires the unit that just fought to own the current Fight action."
 		if s.squads[squad].fought: return "Counteroffensive requires a unit that has not yet been selected to fight."
 		if not Queue.eligible(s, squad): return "Counteroffensive requires a unit eligible to fight."
 	elif rule == EPIC:
@@ -186,10 +195,11 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		if not character: return "Epic Challenge requires a Character model."
 	elif rule == CRUSHING:
 		var charge_window: Dictionary = s.get("unit_abilities", {}).get("window", {})
-		if s.phase != "charge" or s.active != player: return "Tank Shock is used just after your Vehicle ends a Charge move."
-		if charge_window.get("kind", "") != CRUSHING or int(charge_window.get("squad", -1)) != squad or charge_window.get("owners", []).is_empty() or int(charge_window.owners[0]) != player: return "Tank Shock requires the immediate post-charge window."
-		if model not in living(s, squad) or not Terrain.has_keyword(s.units[model], ["vehicle"]): return "Choose a living VEHICLE model in the charging unit."
-		if target != -1 and not crushing_target(s, model, target): return "Tank Shock targets an enemy unit engaged by the selected VEHICLE model."
+		if s.phase != "charge" or s.active != player: return "Crushing Impact is used just after your MONSTER/VEHICLE unit ends a Charge move."
+		if charge_window.get("kind", "") != CRUSHING or int(charge_window.get("squad", -1)) != squad or charge_window.get("owners", []).is_empty() or int(charge_window.owners[0]) != player: return "Crushing Impact requires the immediate post-charge window."
+		if not crushing_unit(s, squad): return "Choose a charging unit with the MONSTER or VEHICLE keyword."
+		if model not in living(s, squad): return "Choose a living model in the charging unit."
+		if target != -1 and not crushing_target(s, model, target): return "Choose an enemy unit engaged with the selected model."
 	else: return "Unknown core reaction."
 	for use: Dictionary in s.stratagems.uses:
 		if use.player != player: continue
@@ -216,8 +226,10 @@ static func charge_completed(s: Dictionary, player: int, squad: int) -> bool:
 	# that same window as part of normal stratagem validation.
 	s.unit_abilities.window = {"kind": CRUSHING, "owners": [player], "squad": squad}
 	var eligible := false
+	if not crushing_unit(s, squad):
+		s.unit_abilities.window = {}
+		return false
 	for model: int in living(s, squad):
-		if not Terrain.has_keyword(s.units[model], ["vehicle"]): continue
 		for enemy: int in s.squads:
 			if crushing_target(s, model, enemy) and error(s, player, squad, CRUSHING, model, false, enemy).is_empty(): eligible = true
 	if not eligible:
@@ -225,28 +237,32 @@ static func charge_completed(s: Dictionary, player: int, squad: int) -> bool:
 		return false
 	return true
 
+static func crushing_unit(s: Dictionary, squad: int) -> bool:
+	return keyword(s, squad, "monster") or keyword(s, squad, "vehicle")
+
 static func crushing_target(s: Dictionary, model: int, target: int) -> bool:
 	if not s.units.has(model) or not s.squads.has(target) or living(s, target).is_empty(): return false
-	if s.units[model].owner == s.squads[target].owner or not Terrain.has_keyword(s.units[model], ["vehicle"]): return false
+	var squad := int(s.units[model].get("squad", -1))
+	if not s.squads.has(squad) or s.units[model].owner == s.squads[target].owner or not crushing_unit(s, squad): return false
+	if model not in living(s, squad): return false
 	for enemy: int in living(s, target):
-		if G.edge(s.units[model], s.units[enemy]) <= 2.001: return true
+		if G.within_engagement(s.units[model], s.units[enemy]): return true
 	return false
 
 static func crushing_choices(s: Dictionary, player: int) -> Array:
 	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
 	if window.get("kind", "") != CRUSHING or window.get("owners", []).is_empty() or int(window.owners[0]) != player: return []
 	var squad := int(window.squad)
-	var result: Array = [{"label": "Skip Tank Shock", "action": "crushing-impact-pass", "model": -1, "target": squad, "value": "pass"}]
+	var result: Array = [{"label": "Skip Crushing Impact", "action": "crushing-impact-pass", "model": -1, "target": squad, "value": "pass"}]
 	for model: int in living(s, squad):
-		if not Terrain.has_keyword(s.units[model], ["vehicle"]): continue
 		for target: int in s.squads:
 			if not crushing_target(s, model, target) or not error(s, player, squad, CRUSHING, model, false, target).is_empty(): continue
 			var price := cost_of(s, player, squad, CRUSHING)
-			result.append({"label": "Tank Shock: %s → %s with model %d (%d CP)" % [s.squads[squad].name, s.squads[target].name, model, price], "action": "core-stratagem", "model": model, "target": target, "source_squad": squad, "value": CRUSHING})
+			result.append({"label": "Crushing Impact: %s → %s with model %d (%d CP)" % [s.squads[squad].name, s.squads[target].name, model, price], "action": "core-stratagem", "model": model, "target": target, "source_squad": squad, "value": CRUSHING})
 	return result
 
 static func skip_crushing(s: Dictionary, player: int, selected: Dictionary) -> String:
-	if selected not in crushing_choices(s, player) or selected.action != "crushing-impact-pass": return "Choose a Tank Shock target or decline the stratagem."
+	if selected not in crushing_choices(s, player) or selected.action != "crushing-impact-pass": return "Choose a Crushing Impact target or decline the stratagem."
 	s.unit_abilities.window = {}
 	return ""
 
@@ -308,14 +324,65 @@ static func throw_explosives(s: Dictionary, player: int, selected: Dictionary, r
 static func explosives_allocations(s: Dictionary, player: int) -> Array:
 	return mortal_allocations(s, player, EXPLOSIVES)
 
+static func _set_crushing_mortal_stage(s: Dictionary, record: Dictionary, stage: String) -> bool:
+	var self_stage := stage == "self"
+	var target_squad := int(record.get("squad", -1)) if self_stage else int(record.get("target", -1))
+	var wounds := int(record.get("self_mortal_wounds", 0)) if self_stage else int(record.get("target_mortal_wounds", 0))
+	var discarded_key := "self_discarded" if self_stage else "target_discarded"
+	if wounds <= 0 or living(s, target_squad).is_empty():
+		record[discarded_key] = int(record.get(discarded_key, 0)) + maxi(0, wounds)
+		record.remaining = 0
+		s.unit_abilities.window = {}
+		return false
+	record.stage = stage
+	record.remaining = wounds
+	s.unit_abilities.window = {"kind": CRUSHING_MORTAL, "owners": [s.squads[target_squad].owner], "target": target_squad, "stage": stage}
+	return true
+
+static func _advance_crushing_mortal_stage(s: Dictionary, record: Dictionary, current_stage: String) -> void:
+	var discarded_key := "self_discarded" if current_stage == "self" else "target_discarded"
+	record[discarded_key] = int(record.get(discarded_key, 0)) + maxi(0, int(record.get("remaining", 0)))
+	record.remaining = 0
+	if current_stage == "self" and _set_crushing_mortal_stage(s, record, "target"):
+		record.discarded = int(record.get("self_discarded", 0)) + int(record.get("target_discarded", 0))
+		s.last_crushing_impact = record
+		return
+	record.stage = "complete"
+	record.discarded = int(record.get("self_discarded", 0)) + int(record.get("target_discarded", 0))
+	s.unit_abilities.window = {}
+	s.last_crushing_impact = record
+
+static func _begin_crushing_mortal_resolution(s: Dictionary, record: Dictionary) -> void:
+	if _set_crushing_mortal_stage(s, record, "self"):
+		s.last_crushing_impact = record
+		return
+	if _set_crushing_mortal_stage(s, record, "target"):
+		s.last_crushing_impact = record
+		return
+	record.stage = "complete"
+	record.discarded = int(record.get("self_discarded", 0)) + int(record.get("target_discarded", 0))
+	s.last_crushing_impact = record
+
 static func mortal_allocations(s: Dictionary, player: int, kind: String) -> Array:
 	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
 	if window.get("kind", "") != kind or window.get("owners", []).is_empty() or window.owners[0] != player: return []
 	var record := _mortal_record(s, kind)
 	if record.is_empty() or int(record.get("remaining", 0)) <= 0: return []
+	if kind == CRUSHING_MORTAL:
+		var stage := str(window.get("stage", "target"))
+		if record.has("self_mortal_wounds"):
+			var expected_target := int(record.get("squad", -1)) if stage == "self" else int(record.get("target", -1))
+			if stage not in ["self", "target"] or str(record.get("stage", "")) != stage or int(window.get("target", -1)) != expected_target: return []
+			if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
+		else:
+			if stage != "target" or int(window.get("target", -1)) != int(record.get("target", -1)): return []
+			if not s.squads.has(int(record.get("target", -1))) or int(s.squads[int(record.target)].get("owner", -1)) != player: return []
 	var result: Array = []
+	var packet_name := _mortal_name(kind)
+	if kind == CRUSHING_MORTAL:
+		packet_name = "Crushing Impact: charging unit" if str(window.get("stage", "target")) == "self" else "Crushing Impact: target unit"
 	for model: int in Groups.current_models(s, {"target": window.target}, true):
-		result.append({"label": "%s: allocate mortal wound to model %d (%d remaining)" % [_mortal_name(kind), model, record.remaining], "action": "mortal-allocate", "model": model, "target": window.target, "value": kind})
+		result.append({"label": "%s: allocate mortal wound to model %d (%d remaining)" % [packet_name, model, record.remaining], "action": "mortal-allocate", "model": model, "target": window.target, "value": kind})
 	return result
 
 static func allocate_explosives(s: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
@@ -330,23 +397,43 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 	unit.wounds -= prevention.lost
 	if unit.wounds == 0: Detachments.record_destroyed(s, selected.model)
 	var record := _mortal_record(s, kind)
-	record.allocations.append({"model": selected.model, "prevention": prevention})
+	var allocation := {"model": selected.model, "prevention": prevention}
+	var window: Dictionary = s.unit_abilities.window
+	var stage := str(window.get("stage", "target")) if kind == CRUSHING_MORTAL else ""
+	if kind == CRUSHING_MORTAL:
+		allocation.stage = stage
+		var stage_allocations_key := "self_allocations" if stage == "self" else "target_allocations"
+		var stage_allocations: Array = record.get(stage_allocations_key, []).duplicate(true)
+		stage_allocations.append(allocation.duplicate(true))
+		record[stage_allocations_key] = stage_allocations
+	record.allocations.append(allocation)
 	record.remaining -= 1
 	if record.remaining == 0 or living(s, selected.target).is_empty():
-		record.discarded = record.remaining
-		record.remaining = 0
-		s.unit_abilities.window = {}
+		if kind == CRUSHING_MORTAL:
+			# Advance before Deadly Demise snapshots its resume window so it returns to the next packet.
+			_advance_crushing_mortal_stage(s, record, stage)
+		else:
+			record.discarded = record.remaining
+			record.remaining = 0
+			record.stage = "complete"
+			s.unit_abilities.window = window.get("resume_window", {}) if kind == PHOBOS_MORTIS_SNARES_MORTAL else {}
 	if kind == EXPLOSIVES: s.last_explosives = record
 	elif kind == "incursor-haywire-mortal": s.last_incursor_haywire_mine = record
 	elif kind == CRUSHING_MORTAL: s.last_crushing_impact = record
+	elif kind == GRAVIS_ARMOURED_IMPACT_MORTAL: s.last_gravis_armoured_impact = record
+	elif kind == WRATH_OF_THE_LION_MORTAL: s.last_wrath_of_the_lion = record
 	elif kind == TIGURIUS_MORTAL: s.last_tigurius_telepathic_assault = record
+	elif kind == PHOBOS_MORTIS_SNARES_MORTAL: s.last_mortis_snares = record
 	else: s.last_hammer_of_wrath = record
 	if had_wounds > 0 and unit.wounds <= 0:
 		var demise := DeadlyDemise.begin(s, [int(selected.model)], roller)
 		if not demise.error.is_empty(): return demise
 		if not demise.get("complete", true): return demise
 	if s.get("pending_attack", {}).is_empty() and s.get("unit_abilities", {}).get("window", {}).is_empty(): A.open_destroyed_mark_replacements(s)
-	if kind == CRUSHING_MORTAL and s.get("unit_abilities", {}).get("window", {}).is_empty(): reopen_heroic_choices(s)
+	if kind in [CRUSHING_MORTAL, GRAVIS_ARMOURED_IMPACT_MORTAL] and s.get("unit_abilities", {}).get("window", {}).is_empty(): reopen_heroic_choices(s)
+	if kind in ["hammer-of-wrath-mortal", GRAVIS_ARMOURED_IMPACT_MORTAL, WRATH_OF_THE_LION_MORTAL] and s.phase == "charge" and s.get("unit_abilities", {}).get("window", {}).is_empty():
+		var charged_squad := int(record.get("squad", -1))
+		if s.squads.has(charged_squad): charge_completed(s, int(s.squads[charged_squad].get("owner", -1)), charged_squad)
 	return {"error": ""}
 
 static func _mortal_record(s: Dictionary, kind: String) -> Dictionary:
@@ -354,15 +441,21 @@ static func _mortal_record(s: Dictionary, kind: String) -> Dictionary:
 		EXPLOSIVES: return s.get("last_explosives", {})
 		"incursor-haywire-mortal": return s.get("last_incursor_haywire_mine", {})
 		"hammer-of-wrath-mortal": return s.get("last_hammer_of_wrath", {})
+		GRAVIS_ARMOURED_IMPACT_MORTAL: return s.get("last_gravis_armoured_impact", {})
+		WRATH_OF_THE_LION_MORTAL: return s.get("last_wrath_of_the_lion", {})
 		CRUSHING_MORTAL: return s.get("last_crushing_impact", {})
 		TIGURIUS_MORTAL: return s.get("last_tigurius_telepathic_assault", {})
+		PHOBOS_MORTIS_SNARES_MORTAL: return s.get("last_mortis_snares", {})
 	return {}
 
 static func _mortal_name(kind: String) -> String:
 	if kind == EXPLOSIVES: return "Explosives"
 	if kind == "incursor-haywire-mortal": return "Haywire Mine"
-	if kind == CRUSHING_MORTAL: return "Tank Shock"
+	if kind == CRUSHING_MORTAL: return "Crushing Impact / Tank Shock"
+	if kind == GRAVIS_ARMOURED_IMPACT_MORTAL: return "Armoured Impact"
+	if kind == WRATH_OF_THE_LION_MORTAL: return "Wrath of the Lion"
 	if kind == TIGURIUS_MORTAL: return "Telepathic Assault"
+	if kind == PHOBOS_MORTIS_SNARES_MORTAL: return "Mortis Snares"
 	return "Hammer of Wrath"
 
 static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Callable = Callable()) -> Dictionary:
@@ -406,43 +499,54 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 static func apply_crushing(s: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
 	var model := int(selected.get("model", -1))
 	var squad := int(selected.get("source_squad", s.units.get(model, {}).get("squad", -1)))
-	if selected not in crushing_choices(s, player): return {"error": "Choose a current Tank Shock target for the charging Vehicle."}
+	if selected not in crushing_choices(s, player): return {"error": "Choose a current Crushing Impact target for the charging MONSTER/VEHICLE unit."}
 	var failure := error(s, player, squad, CRUSHING, model, false, int(selected.target))
 	if not failure.is_empty(): return {"error": failure}
-	if not roller.is_valid(): return {"error": "Tank Shock requires the host's D6 provider."}
+	if not roller.is_valid(): return {"error": "Crushing Impact requires the host's D6 provider."}
 	var profile := DefenderGroups.profile(s, model)
-	if not profile.get("error", "").is_empty(): return {"error": "The selected Vehicle model has no valid Toughness profile."}
+	if not profile.get("error", "").is_empty(): return {"error": "The selected model has no valid Toughness profile."}
 	var toughness := int(profile.toughness)
 	var rolls: Array[int] = []
-	var mortal_wounds := 0
+	var self_mortal_wounds := 0
+	var target_mortal_wounds := 0
 	for _die in range(toughness):
 		var die: Variant = roller.call()
-		if not die is int or die < 1 or die > 6: return {"error": "Tank Shock dice must be integers from 1 to 6."}
+		if not die is int or die < 1 or die > 6: return {"error": "Crushing Impact dice must be integers from 1 to 6."}
 		rolls.append(die)
-		if die >= 5: mortal_wounds = mini(6, mortal_wounds + 1)
+		if die == 1: self_mortal_wounds += 1
+		if die >= 5: target_mortal_wounds = mini(6, target_mortal_wounds + 1)
 	var cost := cost_of(s, player, squad, CRUSHING)
 	s.cp[player] -= cost
 	if cost > 0: A.consume_discount(s, player, squad)
 	s.stratagems.uses.append({"player": player, "squad": squad, "stratagem": CRUSHING, "phase_key": phase_key(s), "turn": s.turn, "brutalis_charge": A.has(s, squad, BRUTALIS_CHARGE)})
-	s.last_crushing_impact = {"model": model, "squad": squad, "target": int(selected.target), "toughness": toughness, "rolls": rolls, "mortal_wounds": mortal_wounds, "remaining": mortal_wounds, "allocations": [], "discarded": 0, "cp_cost": cost}
-	if mortal_wounds > 0: s.unit_abilities.window = {"kind": CRUSHING_MORTAL, "owners": [s.squads[int(selected.target)].owner], "target": int(selected.target)}
-	else:
-		s.unit_abilities.window = {}
-		reopen_heroic_choices(s)
-	return {"error": ""}
+	s.last_crushing_impact = {"model": model, "squad": squad, "target": int(selected.target), "toughness": toughness,
+		"rolls": rolls, "self_mortal_wounds": self_mortal_wounds, "target_mortal_wounds": target_mortal_wounds,
+		"mortal_wounds": target_mortal_wounds, "remaining": 0, "stage": "pending", "self_allocations": [],
+		"target_allocations": [], "self_discarded": 0, "target_discarded": 0, "allocations": [], "discarded": 0, "cp_cost": cost}
+	_begin_crushing_mortal_resolution(s, s.last_crushing_impact)
+	if s.last_crushing_impact.get("stage", "") == "complete": reopen_heroic_choices(s)
+	var self_text := "%d self mortal wound%s" % [self_mortal_wounds, "" if self_mortal_wounds == 1 else "s"]
+	var target_text := "%d mortal wound%s against %s" % [target_mortal_wounds, "" if target_mortal_wounds == 1 else "s", str(s.squads[int(selected.target)].name)]
+	return {"error": "", "message": "Crushing Impact rolled %s: %s; %s." % [str(rolls), self_text, target_text]}
 
-static func offer_counter(s: Dictionary, fighter: int) -> bool:
-	if not enabled(s) or s.phase != "fight" or s.fight_step != "attacks": return false
-	if not s.squads.has(fighter) or s.squads[fighter].owner != s.active: return false
-	var player: int = 3 - int(s.active)
+static func offer_fight_reaction(s: Dictionary, fighter: int) -> bool:
+	if not enabled(s) or s.phase != "fight" or s.fight_step not in ["attacks", "consolidation_reaction"]: return false
+	if not s.squads.has(fighter) or not bool(s.squads[fighter].get("fought", false)): return false
+	var player: int = 3 - int(s.squads[fighter].owner)
+	var resume_step := str(s.fight_step)
 	var any := false
-	s.unit_abilities.window = {"kind": "counter", "owners": [player], "resume_cursor": player, "fighter": fighter}
+	s.unit_abilities.window = {"kind": "counter", "owners": [player], "resume_cursor": player, "resume_step": resume_step, "fighter": fighter, "phase_key": phase_key(s)}
+	any = not Detachments.transhuman_swiftness_choices(s, player).is_empty()
 	for squad: int in s.squads:
 		if error(s, player, squad, COUNTER).is_empty(): any = true
 	if not any:
 		s.unit_abilities.window = {}
 		return false
 	return true
+
+static func offer_counter(s: Dictionary, fighter: int) -> bool:
+	# Keep the existing entry point for callers that specifically exercise Counteroffensive.
+	return offer_fight_reaction(s, fighter)
 
 static func charge_error(s: Dictionary, player: int, squad: int) -> String:
 	if not enabled(s): return ""

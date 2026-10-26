@@ -62,6 +62,25 @@ func run() -> void:
 	file.close()
 	assert(not Journal.new().restore(checkpoint, state).is_empty())
 	assert(not Journal.new().restore({"version": 1, "id": "../bad"}, state).is_empty())
+	var compacted_state := Prepared.initial_state()
+	var compacted_journal = Journal.new()
+	compacted_journal.reset(compacted_state)
+	assert(compacted_journal.capture(compacted_state).is_empty())
+	for step in range(24):
+		compacted_state.revision += 1
+		compacted_state.units[100].position.x += 0.01
+		compacted_state.events.append({"revision": compacted_state.revision, "message": "Compaction event %d" % step})
+		assert(compacted_journal.capture(compacted_state).is_empty())
+	var original_journal_id := compacted_journal.id
+	var original_checkpoint: Dictionary = compacted_journal.checkpoint()
+	assert(compacted_journal._compact(5).is_empty())
+	assert(compacted_journal.id != original_journal_id and compacted_journal.entries.size() == 6, "Compaction retains the latest five records behind a checkpoint")
+	assert(compacted_journal.entries[0].kind == "checkpoint" and compacted_journal.page().compacted_entries == 20, "Compaction records how many earlier history records were summarized")
+	assert(FileAccess.file_exists(compacted_journal.storage_directory.path_join(original_journal_id + ".journal")), "Compaction leaves the old journal intact until saves no longer reference it")
+	assert(Journal.new().restore(original_checkpoint, compacted_state).is_empty(), "A save that references the previous journal remains resumable after compaction")
+	var compacted_resume = Journal.new()
+	assert(compacted_resume.restore(compacted_journal.checkpoint(), compacted_state).is_empty(), "The compacted checkpoint restores the exact current state")
+	assert(compacted_resume.entries.size() == 6 and compacted_resume.retired_ids.has(original_journal_id), "Compacted history and retired journal cleanup references survive reload")
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	game._start_allocation_practice()

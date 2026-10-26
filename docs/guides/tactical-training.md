@@ -8,7 +8,7 @@ Use the existing Godot containers and theme, with readable wrapping at 1280×800
 
 ## Configuration
 
-New tactical sessions enable defender-selected recipients through the existing allocation rules. Select an eligible miniature or model card, then confirm; choosing a card alone does not apply damage. Older saves retain their original automatic/manual allocation option.
+New tactical sessions enable defender-selected recipients through the existing allocation rules. A green outer base marker identifies each currently eligible miniature. Select an eligible miniature or model card, then confirm; choosing a card alone does not apply damage. Cards show current wounds and call out weapon profiles carried by only one living model in that unit, helping identify special equipment. Older saves retain their original automatic/manual allocation option.
 
 Optional dice reactions offer **Keep result · 0 CP** before the replacement-die controls. A re-roll is a separate choice with its stated cost. The combat tray presents already recorded results, lets you inspect stages and folds completed attacks to a stable summary. **Replay recorded dice**, **Skip animation**, **Normal/Fast/Reduced motion** and **Show dice** change local presentation only. Reduced motion also suppresses board/camera animation; sound cues can be muted independently in Settings. Movement rejection appears beside the miniature and in Command, using the authoritative reason.
 
@@ -28,6 +28,14 @@ Preset identities are `preset:marine-tactical-v1:fire` and `preset:marine-tactic
 ## Dependencies and limits
 
 This is separate from the project-owned clean-checkout movement demo. It uses the consolidated local current-reference catalog and built-in placeholder visuals; it performs no data or model downloads. Missing or blocked profiles stop admission without a historical fallback. Existing local source reconciliation is reused; this increment does not certify source facts or refresh the external rules revision.
+
+### Optional ability reference in exported builds
+
+The match-profile inspector shows **Source rules** and **Implemented scope** as separate sections. The first is optional, read-only text from the Wahapedia 11e export; the second is the project's implementation boundary. This reference cannot make a choice legal or enable an unsupported ability.
+
+To install the text for a packaged game, copy a snapshot that has already been verified against the official [Wahapedia 11e Data Export](https://wahapedia.ru/wh40k11ed/the-rules/data-export/) into the game's Godot user-data folder at `rules/wahapedia/11e/space-marines/<snapshot-id>/`. Keep `manifest.json`, its snapshot directory name and every manifest-listed export file unchanged. For this project, Godot's Windows folder is normally `%APPDATA%\Godot\app_userdata\Open Tabletop — Prototype\`; append the `rules/...` path shown above. A local checkout may also have snapshots in `.tools/wahapedia/11e/space-marines/<snapshot-id>/`; the reader checks their file hashes and cross-file identities before displaying text. A relation with a missing datasheet identity is skipped only with a visible incomplete-export warning, and displayed entries may omit abilities. After copying or updating a snapshot, select **Reload local reference** in the inspector to read it immediately, including when another source is already displayed. If the operating system cannot open the folder, the inspector can copy the user-data path for manual navigation. The exported PCK intentionally contains no source CSVs and the game does not download them.
+
+The inspector reports when the optional source is missing, invalid or has no matching identity. It does not silently fall back from an invalid user installation. The project-authored implemented scope stays visible when the source text is unavailable. Neither installing nor reading the export changes match state, CP, dice, RNG, or the selected model.
 
 The new configuration requires its own integrated lifecycle evidence. A pass for the former mirror does not establish tactical-training network behavior. Five-round play, rule interactions, two-player comprehension, separate-machine LAN and platform builds must be recorded separately before broader support claims.
 

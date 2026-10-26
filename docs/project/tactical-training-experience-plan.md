@@ -10,7 +10,7 @@ The player reported an overflowing opening guide, a confusing information-heavy 
 
 Code inspection provides two useful leads in `scripts/main.gd`:
 
-- `_start_guided_first_session()` explicitly sets `defender_choice` to false. The guided entry disables the choice the player expected. Follow the setting into match creation and admission before changing the default; the domain allocation implementation already exists.
+- Earlier inspection found `_start_guided_first_session()` disabling `defender_choice`. The current candidate now sets it to true and passes it through the existing prepared-match path; the progress report records that saved-match options are preserved. Keep the guided/resumed behavior and human acceptance gates open until they can be observed again.
 - The reaction panel includes `Keep result · 0 CP` and `Command Re-roll · 1 CP`. This proves a UI path exists, not that passing works visibly in every reported state. Reproduce the affected windows and inspect availability, focus, clipping, ownership and continuation before attributing the problem to rules logic.
 
 The objective is for either player to understand **what is happening, who decides, which choices are legal, and what changed on the battlefield**, with enough anticipation to enjoy the result. The board remains the primary surface. Rules accuracy and player agency take precedence over cinematic effects.

@@ -16,7 +16,7 @@ static func begin_fight(state: Dictionary) -> bool:
 			if state.squads[target_squad].owner == state.squads[source_squad].owner or Geometry.alive(state, target_squad).is_empty(): continue
 			var engaged := false
 			for source: int in sources:
-				if Geometry.distance_to_target(state, state.units[source], target_squad) <= 2.0 + Geometry.EPSILON:
+				if Geometry.distance_to_target_at_height(state, state.units[source], target_squad) <= 2.0 + Geometry.EPSILON:
 					engaged = true
 					break
 			if engaged and target_squad not in targets: targets.append(target_squad)

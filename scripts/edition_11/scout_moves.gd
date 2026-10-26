@@ -1,7 +1,8 @@
 extends RefCounted
-## Pre-battle Scout moves and Scout set-up for admitted local e11 profiles.
+## Pre-battle redeployment and Scout moves for admitted local e11 profiles.
 const G = preload("res://scripts/edition_11/contact_movement.gd")
 const A = preload("res://scripts/edition_11/unit_abilities.gd")
+const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
 const EPS := 0.001
@@ -10,16 +11,28 @@ static func begin(s: Dictionary) -> void:
 	if not A.enabled(s):
 		s.phase = "start_turn"
 		return
-	var strategium_owners: Array[int] = []
+	var redeploy_sources: Array[Dictionary] = []
 	for owner in [int(s.get("first_player", 1)), 3 - int(s.get("first_player", 1))]:
 		for squad: int in s.squads:
 			if int(s.squads[squad].owner) == owner and A.has(s, squad, "strategium-command") and not G.alive(s, squad).is_empty():
-				strategium_owners.append(owner)
+				redeploy_sources.append({"owner": owner, "source": "strategium-command"})
 				break
-	if not strategium_owners.is_empty():
+		for squad: int in s.squads:
+			if int(s.squads[squad].owner) == owner and MarineEnhancements.active(s, squad, MarineEnhancements.CYBER_FAMILIAR):
+				redeploy_sources.append({"owner": owner, "source": "cyber-familiar"})
+				break
+	if not redeploy_sources.is_empty():
 		s.unit_abilities.strategium_used = {}
 		s.unit_abilities.strategium_count = {}
-		s.unit_abilities.window = {"kind": "strategium-command", "owners": [strategium_owners[0]], "queue": strategium_owners.slice(1)}
+		s.unit_abilities.cyber_familiar_used = {}
+		s.unit_abilities.cyber_familiar_count = {}
+		var current: Dictionary = redeploy_sources.pop_front()
+		var queue: Array[int] = []
+		var queue_sources: Array[String] = []
+		for queued: Dictionary in redeploy_sources:
+			queue.append(int(queued.owner))
+			queue_sources.append(str(queued.source))
+		s.unit_abilities.window = {"kind": "strategium-command", "owners": [int(current.owner)], "source": str(current.source), "queue": queue, "queue_sources": queue_sources}
 		return
 	_begin_scouts(s)
 
@@ -156,54 +169,65 @@ static func _next(s: Dictionary) -> void:
 
 static func _strategium_choices(s: Dictionary, player: int, w: Dictionary) -> Array:
 	if w.get("owners", []) != [player]: return []
+	var source := str(w.get("source", "strategium-command"))
+	var source_label := _redeploy_label(source)
+	var used := _redeploy_used(s, source, player)
+	var count := _redeploy_count(s, source, player)
 	if w.get("selected", false):
 		var selected_squad := int(w.get("squad", -1))
 		if w.get("mode", "") == "place":
 			var result: Array = []
-			for model: int in _living_models(s, selected_squad): result.append({"label": "Strategium Command: preview model %d" % model, "action": "strategium-place", "model": model, "target": selected_squad, "value": ""})
+			for model: int in _living_models(s, selected_squad): result.append({"label": "%s: preview model %d" % [source_label, model], "action": "strategium-place", "model": model, "target": selected_squad, "value": ""})
 			result.append({"label": "Confirm redeployment of %s" % s.squads[selected_squad].name, "action": "strategium-confirm", "model": -1, "target": selected_squad, "value": ""})
 			result.append({"label": "Cancel this redeployment" , "action": "strategium-cancel", "model": -1, "target": selected_squad, "value": ""})
 			return result
-		return [
-			{"label": "Redeploy %s in your deployment zone" % s.squads[selected_squad].name, "action": "strategium-redeploy", "model": -1, "target": selected_squad, "value": ""},
-			{"label": "Place %s in Strategic Reserves (ignore the normal limit)" % s.squads[selected_squad].name, "action": "strategium-reserve", "model": -1, "target": selected_squad, "value": ""},
-			{"label": "Cancel unit selection", "action": "strategium-cancel", "model": -1, "target": selected_squad, "value": ""}
+		var selected_choices: Array = [
+			{"label": "%s: redeploy %s using normal set-up rules" % [source_label, s.squads[selected_squad].name], "action": "strategium-redeploy", "model": -1, "target": selected_squad, "value": ""}
 		]
+		if int(s.squads[selected_squad].get("training_cost", 0)) > 0:
+			selected_choices.append({"label": "%s: place %s in Strategic Reserves (ignore the normal limit)" % [source_label, s.squads[selected_squad].name], "action": "strategium-reserve", "model": -1, "target": selected_squad, "value": ""})
+		selected_choices.append({"label": "Cancel unit selection", "action": "strategium-cancel", "model": -1, "target": selected_squad, "value": ""})
+		return selected_choices
 	var choices: Array = []
-	var used: Array = s.unit_abilities.get("strategium_used", {}).get(player, [])
-	if int(s.unit_abilities.get("strategium_count", {}).get(player, 0)) < 3:
+	if count < 3:
 		for target: int in s.squads:
-			if target in used or int(s.squads[target].owner) != player or not _strategium_target(s, target): continue
-			choices.append({"label": "Strategium Command: select %s" % s.squads[target].name, "action": "strategium-select", "model": -1, "target": target, "value": ""})
-	choices.append({"label": "Finish Strategium Command", "action": "strategium-finish", "model": -1, "target": -1, "value": ""})
+			if target in used or int(s.squads[target].owner) != player or not _redeploy_target(s, target, source): continue
+			choices.append({"label": "%s: select %s" % [source_label, s.squads[target].name], "action": "strategium-select", "model": -1, "target": target, "value": ""})
+	choices.append({"label": "Finish %s" % source_label, "action": "strategium-finish", "model": -1, "target": -1, "value": ""})
 	return choices
 
 static func _apply_strategium(s: Dictionary, action: String, model: int, squad: int, point: Vector2, w: Dictionary) -> String:
-	if w.get("owners", []).is_empty(): return "Strategium Command has no active player."
+	if w.get("owners", []).is_empty(): return "%s has no active player." % _redeploy_label(str(w.get("source", "strategium-command")))
 	var owner := int(w.owners[0])
+	var source := str(w.get("source", "strategium-command"))
+	var source_label := _redeploy_label(source)
 	if action == "strategium-finish":
-		var queue: Array = w.get("queue", [])
+		var queue: Array = w.get("queue", []).duplicate(true)
+		var queue_sources: Array = w.get("queue_sources", []).duplicate(true)
 		if queue.is_empty():
 			s.unit_abilities.window = {}
 			_begin_scouts(s)
 		else:
 			var next_owner := int(queue.pop_front())
+			var next_source := str(queue_sources.pop_front()) if not queue_sources.is_empty() else "strategium-command"
 			w.queue = queue
+			w.queue_sources = queue_sources
 			w.owners = [next_owner]
+			w.source = next_source
 			w.erase("selected")
 			w.erase("squad")
 			w.erase("mode")
 		return ""
 	if action == "strategium-select":
-		if w.get("selected", false) or not _strategium_target(s, squad) or int(s.squads[squad].owner) != owner: return "Select a deployed friendly Adeptus Astartes unit."
-		var used: Array = s.unit_abilities.get("strategium_used", {}).get(owner, [])
-		if squad in used or int(s.unit_abilities.get("strategium_count", {}).get(owner, 0)) >= 3: return "Strategium Command can select up to three different units."
+		if w.get("selected", false) or not _redeploy_target(s, squad, source) or int(s.squads[squad].owner) != owner: return "Select an eligible deployed friendly unit for %s." % source_label
+		var used := _redeploy_used(s, source, owner)
+		if squad in used or _redeploy_count(s, source, owner) >= 3: return "%s can select up to three different units." % source_label
 		w.selected = true
 		w.squad = squad
 		w.mode = "choice"
 		w.before = _strategium_snapshot(s, squad)
 		return ""
-	if not w.get("selected", false) or int(w.get("squad", -1)) != squad: return "No matching Strategium Command unit is selected."
+	if not w.get("selected", false) or int(w.get("squad", -1)) != squad: return "No matching %s unit is selected." % source_label
 	if action == "strategium-cancel":
 		if w.get("mode", "") == "place":
 			_restore_strategium_snapshot(s, squad, w.get("before", {}))
@@ -216,16 +240,16 @@ static func _apply_strategium(s: Dictionary, action: String, model: int, squad: 
 			w.erase("mode")
 		return ""
 	if action == "strategium-reserve":
-		if not _strategium_target(s, squad) or int(s.squads[squad].owner) != owner: return "This unit is no longer eligible for Strategium Command."
+		if not _redeploy_target(s, squad, source) or int(s.squads[squad].owner) != owner: return "This unit is no longer eligible for %s." % source_label
 		var cost := int(s.squads[squad].get("training_cost", 0))
 		if cost <= 0: return "The selected unit has no local reserve points cost."
 		_detach_strategium_unit(s, squad)
-		s.unit_abilities.reserves[squad] = {"cost": cost, "source": "strategium-command", "bypass_limit": true}
+		s.unit_abilities.reserves[squad] = {"cost": cost, "source": source, "bypass_limit": true}
 		for id: int in _living_models(s, squad): s.units[id].on_battlefield = false
-		_finish_strategium_unit(s, owner, squad)
+		_finish_strategium_unit(s, owner, squad, source)
 		return ""
 	if action == "strategium-redeploy":
-		if not _strategium_target(s, squad) or int(s.squads[squad].owner) != owner: return "This unit is no longer eligible for Strategium Command."
+		if not _redeploy_target(s, squad, source) or int(s.squads[squad].owner) != owner: return "This unit is no longer eligible for %s." % source_label
 		s.unit_abilities.reserves.erase(squad)
 		_detach_strategium_unit(s, squad)
 		for id: int in _living_models(s, squad): s.units[id].on_battlefield = true
@@ -247,19 +271,21 @@ static func _apply_strategium(s: Dictionary, action: String, model: int, squad: 
 			var err := strategium_position_error(s, id, w.positions[id])
 			if not err.is_empty(): return err
 		for id: int in w.positions: s.units[id].position = w.positions[id]
-		_finish_strategium_unit(s, owner, squad)
+		_finish_strategium_unit(s, owner, squad, source)
 		return ""
-	return "Unknown Strategium Command action."
+	return "Unknown %s action." % source_label
 
-static func _finish_strategium_unit(s: Dictionary, owner: int, squad: int) -> void:
-	var used: Dictionary = s.unit_abilities.get("strategium_used", {}).duplicate(true)
+static func _finish_strategium_unit(s: Dictionary, owner: int, squad: int, source: String = "strategium-command") -> void:
+	var used_key := _redeploy_used_key(source)
+	var count_key := _redeploy_count_key(source)
+	var used: Dictionary = s.unit_abilities.get(used_key, {}).duplicate(true)
 	var list: Array = used.get(owner, [])
 	list.append(squad)
 	used[owner] = list
-	s.unit_abilities.strategium_used = used
-	var count: Dictionary = s.unit_abilities.get("strategium_count", {}).duplicate(true)
+	s.unit_abilities[used_key] = used
+	var count: Dictionary = s.unit_abilities.get(count_key, {}).duplicate(true)
 	count[owner] = int(count.get(owner, 0)) + 1
-	s.unit_abilities.strategium_count = count
+	s.unit_abilities[count_key] = count
 	var w: Dictionary = s.unit_abilities.window
 	w.erase("selected")
 	w.erase("squad")
@@ -267,15 +293,43 @@ static func _finish_strategium_unit(s: Dictionary, owner: int, squad: int) -> vo
 	w.erase("positions")
 	w.erase("origins")
 	if int(count[owner]) >= 3:
-		var queue: Array = w.get("queue", [])
+		var queue: Array = w.get("queue", []).duplicate(true)
+		var queue_sources: Array = w.get("queue_sources", []).duplicate(true)
 		if queue.is_empty(): s.unit_abilities.window = {}; _begin_scouts(s)
-		else: w.owners = [int(queue.pop_front())]; w.queue = queue
+		else:
+			var next_owner := int(queue.pop_front())
+			var next_source := str(queue_sources.pop_front()) if not queue_sources.is_empty() else "strategium-command"
+			w.owners = [next_owner]
+			w.source = next_source
+			w.queue = queue
+			w.queue_sources = queue_sources
 
-static func _strategium_target(s: Dictionary, squad: int) -> bool:
+static func _redeploy_target(s: Dictionary, squad: int, source: String) -> bool:
 	if not s.squads.has(squad) or G.alive(s, squad).is_empty() or s.get("unit_abilities", {}).get("reserves", {}).has(squad) or TransportRules.squad_embarked(s, squad): return false
+	var has_astartes := false
+	var has_infantry := false
 	for model: int in G.alive(s, squad):
-		if "ADEPTUS ASTARTES" in s.units[model].get("keywords", []) and s.units[model].get("on_battlefield", true): return true
-	return false
+		var unit: Dictionary = s.units[model]
+		if not unit.get("on_battlefield", true): return false
+		var keywords: Array = unit.get("keywords", [])
+		if "ADEPTUS ASTARTES" in keywords: has_astartes = true
+		if "INFANTRY" in keywords: has_infantry = true
+	return has_astartes and (source != "cyber-familiar" or has_infantry)
+
+static func _redeploy_label(source: String) -> String:
+	return "Cyber-familiar" if source == "cyber-familiar" else "Strategium Command"
+
+static func _redeploy_used_key(source: String) -> String:
+	return "cyber_familiar_used" if source == "cyber-familiar" else "strategium_used"
+
+static func _redeploy_count_key(source: String) -> String:
+	return "cyber_familiar_count" if source == "cyber-familiar" else "strategium_count"
+
+static func _redeploy_used(s: Dictionary, source: String, player: int) -> Array:
+	return s.get("unit_abilities", {}).get(_redeploy_used_key(source), {}).get(player, [])
+
+static func _redeploy_count(s: Dictionary, source: String, player: int) -> int:
+	return int(s.get("unit_abilities", {}).get(_redeploy_count_key(source), {}).get(player, 0))
 
 static func _strategium_snapshot(s: Dictionary, squad: int) -> Dictionary:
 	var models := {}

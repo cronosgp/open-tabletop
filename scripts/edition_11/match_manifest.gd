@@ -17,6 +17,7 @@ const Awakened = preload("res://scripts/edition_11/awakened_dynasty.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
 const RosterValidation = preload("res://scripts/edition_11/roster_validation.gd")
+const ChapterRules = preload("res://scripts/edition_11/chapter_rules.gd")
 
 static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, effective: Dictionary, scenario_id: String) -> void:
 	var rosters: Array[Dictionary] = []
@@ -55,6 +56,10 @@ static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, ef
 		if detachments.get(1, detachments.get("1", "")) == detachments.get(2, detachments.get("2", "")):
 			var common := str(detachments.get(1, detachments.get("1", "gladius")))
 			if common != "gladius": state.match_manifest.marine_detachment = common
+	if state.has("marine_chapters"):
+		state.match_manifest.marine_chapter_rules = ChapterRules.ID
+		state.match_manifest.marine_chapters = state.marine_chapters.duplicate(true)
+		state.match_manifest.marine_chapter_selections = state.get("marine_chapter_selections", {1: "", 2: ""}).duplicate(true)
 	if options.get("awakened_dynasty", false): state.match_manifest.awakened_dynasty = Awakened.ID
 	if options.get("unit_abilities", false): state.match_manifest.unit_abilities = UnitAbilities.ID
 	if DetachmentStratagems.enabled(state): state.match_manifest.detachment_stratagems = DetachmentStratagems.ID
@@ -72,7 +77,9 @@ static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, ef
 		state.match_manifest.mission = Mission.ID
 		state.match_manifest.battlefield = Mission.ID
 		state.match_manifest.official_mission = Mission.ID
-		state.match_manifest.primary_mission = str(options.get("primary_mission", "battlefield-dominance"))
+		state.match_manifest.primary_mission = Mission.primary_id(state, 1)
+		state.match_manifest.primary_missions = Mission.primary_assignments(state)
+		state.match_manifest.secondary_pair = str(options.get("secondary_pair", Mission.DEFAULT_SECONDARY_PAIR))
 		state.match_manifest.terrain_layout = str(options.get("terrain_layout", Mission.DEFAULT_TERRAIN_LAYOUT))
 		state.match_manifest.first_player = "post-deployment-roll-off"
 	if options.get("checked_rosters", false):

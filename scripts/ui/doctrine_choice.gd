@@ -2,6 +2,7 @@ extends VBoxContainer
 ## Browses existing legal choices only; confirmation stays in the command service.
 signal choice_selected(choice: Dictionary)
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
+const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
 const EFFECTS := {"devastator": "Shoot after Advance.", "tactical": "Shoot and declare a charge after Fall Back.", "assault": "Declare a charge after Advance."}
 var action_picker: OptionButton
 var unit_picker: OptionButton
@@ -36,7 +37,8 @@ func _picker(description: String) -> OptionButton:
 static func category(choice: Dictionary) -> String:
 	if str(choice.get("value", "")) in EFFECTS:
 		if choice.get("action", "") == "acumen": return "acumen"
-		if choice.get("action", "") == "detachment-stratagem": return "adaptive"
+		if choice.get("action", "") == "detachment-stratagem":
+			return "tactical-mastery" if str(choice.get("stratagem", "")) == DetachmentStratagems.TACTICAL_MASTERY else "adaptive"
 	return "other"
 
 func sync(state: Dictionary, choices: Array, selected: Dictionary, waiting: bool) -> Dictionary:
@@ -62,12 +64,12 @@ func sync(state: Dictionary, choices: Array, selected: Dictionary, waiting: bool
 func _rebuild() -> void:
 	var group := category(_chosen)
 	action_picker.clear()
-	for key: String in ["acumen", "adaptive", "other"]:
+	for key: String in ["acumen", "adaptive", "tactical-mastery", "other"]:
 		var offered := false
 		for choice: Dictionary in _choices:
 			if category(choice) == key: offered = true
 		if not offered: continue
-		action_picker.add_item({"acumen": "Captain ability · 0 CP", "adaptive": "Adaptive Strategy · stratagem", "other": "Other abilities"}[key])
+		action_picker.add_item({"acumen": "Captain ability · 0 CP", "adaptive": "Adaptive Strategy · stratagem", "tactical-mastery": "Tactical Mastery · stratagem", "other": "Other abilities"}[key])
 		var index := action_picker.item_count - 1
 		action_picker.set_item_metadata(index, key)
 		if key == group: action_picker.select(index)
@@ -94,15 +96,15 @@ func _rebuild() -> void:
 	explanation.visible = group != "other"
 	if group == "other": return
 	var cp := "0"
-	if group == "adaptive":
+	if group in ["adaptive", "tactical-mastery"]:
 		var pattern := RegEx.new()
 		pattern.compile("([0-9]+) CP")
 		var cost := pattern.search(str(_chosen.label))
 		cp = cost.get_string(1) if cost != null else "?"
-	var title := "Strategic Acumen" if group == "acumen" else "Adaptive Strategy"
+	var title := "Strategic Acumen" if group == "acumen" else ("Tactical Mastery" if group == "tactical-mastery" else "Adaptive Strategy")
 	confirmation_text = "Use %s · %s CP" % [title, cp]
 	var value := str(_chosen.value)
-	explanation.text = "%s · %s CP\n%s\nUntil your next Command phase; replaces this unit's doctrine." % [title, cp, EFFECTS[value]]
+	explanation.text = "%s · %s CP\n%s\nUntil the start of your next Command phase, this doctrine is active for the unit." % [title, cp, EFFECTS[value]]
 	if Doctrines.active_for(_state, int(_chosen.target)) == value:
 		explanation.text += "\nAlready active for this unit: no additional effect."
 	elif not Doctrines.active_for(_state, int(_chosen.target)).is_empty():

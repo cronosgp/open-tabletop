@@ -4,6 +4,7 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
+const AdeptOfTheOmnissiah = preload("res://scripts/edition_11/adept_of_the_omnissiah.gd")
 const GRANTS := {
 	"chaplain-in-terminator-armour": [{"target": 4, "against": "mortal"}],
 	"librarian-in-terminator-armour": [{"target": 4, "against": "psychic"}],
@@ -35,9 +36,19 @@ static func rules(state: Dictionary, model: int) -> Variant:
  if Capabilities.enabled(state, "ironstorm-layered-ceramite") and layered.get("phase_key", "") == phase_key:
   var layered_fnp := {"target": 5, "against": "mortal"}
   if layered_fnp not in result: result.append(layered_fnp)
- if MarineEnhancements.artificer_armour_bearer(state, model) or MarineEnhancements.standard_bearer(state, model):
+ var spirits: Dictionary = state.get("detachment_stratagems", {}).get("spirits_of_iron", {}).get(squad, {})
+ if Capabilities.enabled(state, "medusa-spirits-of-iron") and spirits.get("phase_key", "") == phase_key:
+  var spirits_fnp := {"target": 5, "against": "mortal"}
+  if spirits_fnp not in result: result.append(spirits_fnp)
+ if MarineEnhancements.artificer_armour_bearer(state, model) or MarineEnhancements.armour_of_antoninus_bearer(state, model) or MarineEnhancements.standard_bearer(state, model):
   var enhancement_fnp := {"target": 5, "against": "any"}
   if enhancement_fnp not in result: result.append(enhancement_fnp)
+ if MarineEnhancements.flesh_is_weak_bearer(state, model):
+  var flesh_is_weak_fnp := {"target": 5, "against": "any"}
+  if flesh_is_weak_fnp not in result: result.append(flesh_is_weak_fnp)
+ if AdeptOfTheOmnissiah.active_for_damage(state, squad):
+  var adept_fnp := {"target": 5, "against": "any"}
+  if adept_fnp not in result: result.append(adept_fnp)
  if state.get("unit_abilities", {}).get("implementation", "") != Detection.ABILITY_IMPLEMENTATION_ID: return result
  if _seeker_active(state, model):
   var seeker_fnp := {"target": 4, "against": "any"}
@@ -67,4 +78,4 @@ static func _seeker_active(state: Dictionary, model: int) -> bool:
  if objective.get("kind", "") == "terrain":
   var bounds: Rect2 = objective.bounds
   return unit.position.distance_to(unit.position.clamp(bounds.position, bounds.end)) <= float(unit.radius) + 0.001
- return maxf(0.0, unit.position.distance_to(objective.position) - float(unit.radius) - 20.0 / 25.4) <= 3.001 and float(unit.get("elevation", 0.0)) <= 5.0
+ return maxf(0.0, unit.position.distance_to(objective.position) - float(unit.radius) - 20.0 / 25.4) <= 3.001 and absf(float(unit.get("elevation", 0.0)) - float(objective.get("elevation", 0.0))) <= 5.0

@@ -7,6 +7,7 @@ const Mission = preload("res://scripts/edition_11/chapter_approved.gd")
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const OathOfMoment = preload("res://scripts/edition_11/oath_of_moment.gd")
+const VowedTarget = preload("res://scripts/edition_11/vowed_target.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
 const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
 const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
@@ -48,7 +49,7 @@ static func _command_preconditions(state: Dictionary, player: int, expected_revi
 	if not stratagem_error.is_empty(): return stratagem_error
 	var reanimation_error := reanimation_state_error(state)
 	if not reanimation_error.is_empty(): return reanimation_error
-	for source: String in ["mission-preparation", "combat-doctrines", "oath-of-moment", "awakened-attachment"]:
+	for source: String in ["mission-preparation", "combat-doctrines", "oath-of-moment", "vowed-target", "awakened-attachment"]:
 		var decision_error := decision_container_error(state, source)
 		if not decision_error.is_empty(): return decision_error
 	if Awakened.needs_setup(state): return "Finish Overlord attachment declarations before deployment."
@@ -57,7 +58,7 @@ static func _command_preconditions(state: Dictionary, player: int, expected_revi
 	if typeof(abilities_value) != TYPE_DICTIONARY: return "Cannot continue while unit ability state is invalid."
 	var transport_window: Variant = abilities_value.get("transport_window", {})
 	if typeof(transport_window) != TYPE_DICTIONARY: return "Cannot continue while transport resolution state is invalid."
-	if not transport_window.is_empty(): return "Finish the pending transport hazard or model placement choice first."
+	if not transport_window.is_empty(): return "Finish the pending transport decision before continuing."
 	var ability_state_error := unit_action_state_error(state)
 	if not ability_state_error.is_empty(): return ability_state_error
 	var unit_action_actor := UnitActions.actor(state)
@@ -66,11 +67,12 @@ static func _command_preconditions(state: Dictionary, player: int, expected_revi
 		if resolved_decision_source != "unit-actions" or unit_action_actor != player or str(unit_action_decision.get("source", "")) != "unit-actions" or int(unit_action_decision.get("priority_player_id", -1)) != player:
 			return "Resolve or decline the pending unit ability choices first."
 	if Mission.actor(state) > 0: return "Resolve the mission preparation choice first."
-	var decision := PendingDecisions.current(state, ["awakened-attachment", "mission-preparation", "unit-actions", "combat-doctrines", "oath-of-moment", "reanimation", "stratagems", "damage-allocation", "coherency", "escape-wounds"])
+	var decision := PendingDecisions.current(state, ["awakened-attachment", "mission-preparation", "unit-actions", "combat-doctrines", "oath-of-moment", "vowed-target", "reanimation", "stratagems", "damage-allocation", "coherency", "escape-wounds"])
 	if not decision.is_empty() and str(decision.get("source", "")) != resolved_decision_source: return _decision_error(str(decision.get("source", "")))
 	if Doctrines.needs_choice(state): return "Choose a Combat Doctrine or no doctrine before continuing Command."
 	if not Reanimation.pending(state).is_empty(): return "Finish Reanimation Protocols before continuing."
 	if OathOfMoment.needs_choice(state): return "Select the Oath of Moment target before continuing the Command phase."
+	if VowedTarget.needs_choice(state): return "Select or skip the Vowed objective before continuing the Command phase."
 	if state.get("phase", "") in ["deployment", "army_selection"]: return "Finish army selection and deployment before playing the first turn."
 	if not Stratagems.pending(state).is_empty(): return "Resolve the pending decision before continuing."
 	if not pending_hazard.is_empty(): return "Finish Hazardous mortal-wound allocation first."
@@ -88,7 +90,7 @@ static func close_request_error(state: Dictionary, player: int, expected_revisio
 	if typeof(transport_window_value) != TYPE_DICTIONARY: return "Cannot advance while transport resolution state is invalid."
 	var transport_window: Dictionary = transport_window_value
 	if not UnitAbilities.Detection.selection(state).is_empty(): return "Finish the selected Eliminator shooting or cancel its selection first."
-	if not transport_window.is_empty(): return "Finish transport hazard allocation or model placement before advancing."
+	if not transport_window.is_empty(): return "Finish the pending transport decision before advancing."
 	var error := _command_preconditions(state, player, expected_revision)
 	if not error.is_empty(): return error
 	if DetachmentStratagems.vengeful_actor(state) > 0: return "Resolve the pending reactive shooting window before continuing."
@@ -177,6 +179,7 @@ static func _decision_error(source: String) -> String:
 	match source:
 		"combat-doctrines": return "Choose a Combat Doctrine or no doctrine before continuing Command."
 		"oath-of-moment": return "Select the Oath of Moment target before continuing the Command phase."
+		"vowed-target": return "Select or skip the Vowed objective before continuing the Command phase."
 		"reanimation": return "Finish Reanimation Protocols before continuing."
 		"stratagems": return "Resolve the pending decision before continuing."
 		"damage-allocation": return "The defender must finish damage allocation first."

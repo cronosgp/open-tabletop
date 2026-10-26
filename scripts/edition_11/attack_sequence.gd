@@ -117,7 +117,7 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 		if maximum > 1000: return "Attack pool exceeds prototype limit."
 	if not context.get("unresolved_effects", []) is Array or not context.get("unresolved_effects", []).is_empty():
 		return "Unresolved effects must be implemented before resolving this attack."
-	if context.get("wound_reroll", "none") not in ["none", "ones", "failed"]: return "Unsupported wound re-roll mode."
+	if context.get("wound_reroll", "none") not in ["none", "ones", "failed", "ones_twos", "ones_twos_or_failed"]: return "Unsupported wound re-roll mode."
 	if context.get("hit_reroll", "none") not in ["none", "failed", "ones"]: return "Unsupported hit re-roll mode."
 	if not context.get("indirect_fire", false) is bool: return "Indirect Fire context must be a boolean."
 	if context.get("indirect_fire", false):
@@ -158,14 +158,16 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 	if not generated.error.is_empty(): return generated
 	var count: int = generated.count
 	dice.history.append_array(generated.rolls)
-	var hit_modifier: int = int(context.get("hit_modifier", 0))
+	var hit_modifier: int = 0 if context.get("snap_shooting", false) else int(context.get("hit_modifier", 0))
 	var covered: bool = context.get("benefit_of_cover", false) and not keywords.get("ignores-cover", false)
 	var effective_skill := mini(6, int(weapon.skill) + (1 if covered else 0))
-	if keywords.get("heavy", false) and context.heavy_eligible:
+	if not context.get("snap_shooting", false) and keywords.get("heavy", false) and context.heavy_eligible:
 		hit_modifier = clampi(hit_modifier + 1, -1, 1)
 	var hit_rolls: Array[int] = []
 	var wound_rolls: Array[int] = []
 	var save_rolls: Array[int] = []
+	var hit_outcomes: Array[Dictionary] = []
+	var wound_outcomes: Array[Dictionary] = []
 	var normal_hits := 0
 	var automatic_wounds := 0
 	var effective_hits: Array[int] = []
@@ -176,16 +178,23 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 		var replacements := reroll_hit_pool(effective_hits, effective_skill, hit_modifier, context, dice)
 		for replacement: Dictionary in replacements: hit_rolls.append(replacement.replacement)
 	for roll: int in effective_hits:
-		if context.get("indirect_fire", false) and roll <= int(context.get("indirect_hit_cap", 5)): continue
+		if context.get("indirect_fire", false) and roll <= int(context.get("indirect_hit_cap", 5)):
+			hit_outcomes.append({"roll": roll, "success": false, "critical": false})
+			continue
 		if context.get("snap_shooting", false):
-			if roll < int(context.get("snap_hit_threshold", 6)): continue
+			var snap_hit: bool = roll >= int(context.get("snap_hit_threshold", 6))
+			hit_outcomes.append({"roll": roll, "success": snap_hit, "critical": false})
+			if not snap_hit: continue
 			normal_hits += 1
 			continue
-		if not successful_roll(roll, effective_skill, hit_modifier): continue
-		if roll == 6 and keywords.get("lethal-hits", false) and context.get("use_lethal_hits", true):
+		var hit: bool = successful_roll(roll, effective_skill, hit_modifier)
+		var critical_hit: bool = hit and roll == 6
+		hit_outcomes.append({"roll": roll, "success": hit, "critical": critical_hit})
+		if not hit: continue
+		if critical_hit and keywords.get("lethal-hits", false) and context.get("use_lethal_hits", true):
 			automatic_wounds += 1
 		else: normal_hits += 1
-		if roll == 6: normal_hits += int(keywords.get("sustained-hits", 0))
+		if critical_hit: normal_hits += int(keywords.get("sustained-hits", 0))
 	if normal_hits + automatic_wounds > 10000:
 		return {"error": "Hit pool exceeds prototype limit."}
 	var wounds := automatic_wounds
@@ -202,8 +211,11 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 		wound_rolls.append(effective[index])
 	for roll: int in effective:
 		var anti_critical_hit := anti_critical(roll, weapon, context)
-		if successful_roll(roll, target, wound_modifier) or anti_critical_hit: wounds += 1
-		if roll == 6 or anti_critical_hit: critical_wounds += 1
+		var wound: bool = successful_roll(roll, target, wound_modifier) or anti_critical_hit
+		var critical_wound: bool = roll == 6 or anti_critical_hit
+		wound_outcomes.append({"roll": roll, "success": wound, "critical": critical_wound})
+		if wound: wounds += 1
+		if critical_wound: critical_wounds += 1
 	var devastating := critical_wounds if keywords.get("devastating-wounds", false) else 0
 	if not context.get("defer_saves", false):
 		for wound in range(wounds - devastating): save_rolls.append(dice.d6())
@@ -211,8 +223,10 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 	if not dice.error.is_empty(): return {"error": dice.error}
 	return {"error": "", "implementation": IMPLEMENTATION, "attacks": count,
 		"benefit_of_cover": covered, "effective_skill": effective_skill,
+		"plunging_fire": bool(context.get("plunging_fire", false)),
 		"hit_modifier": hit_modifier, "wound_modifier": wound_modifier, "wound_target": target,
 		"snap_shooting": context.get("snap_shooting", false),
+		"snap_hit_threshold": int(context.get("snap_hit_threshold", 6)),
 		"attack_generation": generated.records, "damage_rolls": [], "hits": normal_hits + automatic_wounds, "wounds": wounds,
 		"critical_wounds": critical_wounds, "devastating_wounds": devastating, "devastating_attacks_resolved": 0,
 		"save_count": wounds - devastating,
@@ -220,7 +234,7 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 		"prevented_wounds": 0, "prevention_rolls": [],
 		"hit_rolls": hit_rolls, "wound_rolls": wound_rolls,
 		"final_hit_rolls": effective_hits.duplicate(), "final_wound_rolls": effective.duplicate(),
-		"save_rolls": save_rolls, "dice_history": dice.history}
+		"hit_outcomes": hit_outcomes, "wound_outcomes": wound_outcomes, "save_rolls": save_rolls, "save_outcomes": [], "dice_history": dice.history}
 
 static func allocation_steps(result: Dictionary, weapon: Dictionary, defender: Dictionary) -> Array[Dictionary]:
 	var steps: Array[Dictionary] = []
@@ -260,6 +274,10 @@ static func resolve(weapon: Dictionary, defender: Dictionary, context: Dictionar
 	var result := roll_pool(weapon, defender, context, roller)
 	if not result.error.is_empty(): return result
 	var steps := allocation_steps(result, weapon, defender)
+	var invulnerable := int(defender.get("invulnerable_target", 0))
+	for value: int in result.save_rolls:
+		var saved: bool = value != 1 and ((invulnerable > 0 and value >= invulnerable) or value + int(weapon.ap) >= int(defender.save_target))
+		result.save_outcomes.append({"roll": value, "success": saved})
 	# Record the already-resolved saves for presentation, including zero-damage attacks.
 	result.saves_passed = result.save_rolls.size() - steps.filter(func(step: Dictionary) -> bool: return step.kind == "normal").size()
 	var remaining: Array = defender.remaining_wounds.duplicate()
@@ -303,10 +321,11 @@ static func resolve(weapon: Dictionary, defender: Dictionary, context: Dictionar
 	return result
 
 static func reroll_wound(value: int, target: int, modifier: int, weapon: Dictionary, context: Dictionary) -> bool:
-	# Training policy: preserve successful rolls; never fish for critical wounds.
+	# Generic rerolls preserve successful rolls; explicit natural-face effects may reroll a successful 2.
 	var failed := not successful_roll(value, target, modifier) and not anti_critical(value, weapon, context)
 	var mode: String = context.get("wound_reroll", "none")
-	return (mode == "ones" and value == 1) or (failed and (mode == "failed" or (weapon.get("keywords", {}).get("twin-linked", false) and context.get("use_twin_linked", true))))
+	var natural_face := (mode in ["ones", "ones_twos", "ones_twos_or_failed"] and value == 1) or (mode == "ones_twos" and value == 2 and failed)
+	return natural_face or (failed and (mode in ["failed", "ones_twos_or_failed"] or (weapon.get("keywords", {}).get("twin-linked", false) and context.get("use_twin_linked", true))))
 
 static func reroll_hit_pool(values: Array, skill: int, modifier: int, context: Dictionary, dice: Dice) -> Array:
 	var changes: Array = []

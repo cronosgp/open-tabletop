@@ -19,8 +19,11 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 
 - [Actions](rules/actions.md) · [Advanced defense](rules/advanced-defense.md) · [Attack plans](rules/attack-plans.md)
 - [Awakened Dynasty](rules/awakened-dynasty.md) · [Chapter Approved mission](rules/chapter-approved-mission.md) · [Close combat](rules/close-combat.md)
-- [Combat Doctrines](rules/combat-doctrines.md) · [Contact reachability](rules/contact-reachability.md) · [Core stratagems](rules/core-stratagems.md)
+- [Combat Doctrines](rules/combat-doctrines.md) · [Contact reachability](rules/contact-reachability.md) · [Core stratagems](rules/core-stratagems.md) · [Crushing Impact / Tank Shock](rules/crushing-impact.md)
+- [Shooting at engaged Monsters and Vehicles](rules/shooting-at-engaged-monsters-vehicles.md) — Core Rules §17.03 target eligibility and Hit modifier boundaries.
+- [Current Space Marine Chapter admission](rules/current-space-marine-admission.md) — bounded single-Chapter gate for current-reference roster construction.
 - [Current unit abilities](rules/current-unit-abilities.md) · [Defender allocation](rules/defender-allocation.md) · [Detachment stratagems](rules/detachment-stratagems.md)
+- [Fist of the God-Emperor](rules/fist-of-the-god-emperor.md) — partial Black Templars support for Oathbound Exemplar and its action eligibility exception.
 - [Devastating Wounds](rules/devastating-wounds.md) · [Equipment](rules/equipment.md) · [Escape re-rolls](rules/escape-rerolls.md)
 - [Hail of Bolts (historical)](rules/hail-of-bolts.md) · [Hazardous](rules/hazardous.md) · [Implacable Eradication](rules/implacable-eradication.md)
 - [Movement types](rules/movement-types.md) · [Multiple units](rules/multiple-units.md) · [Oath of Moment (historical)](rules/oath-of-moment.md)
@@ -36,6 +39,7 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [11e starter lab](data/11e-starter.md) — isolated exercise and its legacy sample inputs.
 - [Faction catalog](data/faction-catalog.md) · [ForceOrg import](data/forceorg-import.md) · [Model import validation](data/model-import-validation.md)
 - [Wahapedia importer](wahapedia-import.md) · [Space Marines catalog and source reconciliation](space-marines-catalog.md) · [Consolidated Space Marines profile records](space-marines-profile-records.md) · [Datasheet implementation architecture](datasheet-implementation-architecture.md)
+- [Space Marine enhancement implementations](stormlance-enhancements.md) — source-linked local enhancement choices and effect boundaries.
 - [Design-first UI prompting skill](skills/design-first-ui-prompting/SKILL.md) · [progress screenshots](skills/workflow-progress-screenshots/SKILL.md) · [score-to-target workflow](skills/workflow-score-to-target/SKILL.md)
 - [Game development and design skills](skills/game-development-design.md) — selected Godot and cross-engine skills, use guidance and source attribution.
 
@@ -52,6 +56,7 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Tactical training UX audit](project/tactical-training-ux-audit.md) — prioritized feedback on guided layout, decisions, dice readability, movement feedback and combat feel.
 - [Tactical training experience correction plan](project/tactical-training-experience-plan.md) — implementation order, screen hierarchy, player agency, combat pacing, symbols and next-playtest gates based on human feedback.
 - [Tactical training experience correction progress](project/tactical-training-experience-progress.md) — implementation findings, local evidence and remaining human/integration gates.
+- [Selection responsiveness and datasheet review](project/selection-datasheet-review.md) — measured selection delay, projection reuse, compact model card and structured datasheet inspector.
 - [Current support matrix](project/support-matrix.md) — what is supported and what is not.
 - [Roadmap](project/roadmap.md) — forward plan and completion criteria.
 - [Backlog](project/backlog.md)

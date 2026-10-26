@@ -70,6 +70,9 @@ func show_page(page: Dictionary) -> void:
 	first = page.start
 	total = page.total
 	summary.text = "Records %d–%d of %d" % [first + 1 if total > 0 else 0, first + items.size(), total]
+	var compacted_entries := int(page.get("compacted_entries", 0))
+	if compacted_entries > 0:
+		summary.text += "\nEarlier history was compacted after %d records." % compacted_entries
 	summary.tooltip_text = ""
 	var checkpoint: Dictionary = page.get("checkpoint", {})
 	checkpoint_note = ""
@@ -106,9 +109,15 @@ func _select(index: int) -> void:
 		if int(hazard.get("total", 0)) > 0: _event_card("Hazardous · attacking unit", "%d mortal wounds generated before prevention" % int(hazard.total))
 	else:
 		var messages: Array = entry.get("messages", [])
-		_event_card("%s · Player %d" % [str(entry.get("phase", "Match")).replace("_", " ").capitalize(), int(entry.get("active", 1))], "\n".join(messages) if not messages.is_empty() else "Match state recorded.")
+		var event_context := "Round %s · %s · Player %s active" % [str(entry.get("round", "—")), str(entry.get("phase", "Match")).replace("_", " ").capitalize(), str(entry.get("active", "—"))]
+		if messages.is_empty():
+			_event_card(event_context, "Match state recorded.")
+		else:
+			for message_index in range(messages.size()):
+				_event_card("%s · Event %d" % [event_context, message_index + 1], str(messages[message_index]))
 	var lines: Array[String] = ["RECORD #%d  •  %s UTC" % [entry.sequence, entry.utc], "Round %s  ·  Player %s active  ·  %s  ·  revision %s" % [str(entry.get("round", "—")), str(entry.get("active", "—")), str(entry.get("phase", "—")).replace("_", " ").capitalize(), str(entry.get("revision", "—"))]]
 	if entry.kind == "start": lines.append("Match history begins here.")
+	elif entry.kind == "checkpoint": lines.append("History checkpoint. %d earlier records were compacted to keep the journal bounded." % int(entry.get("compacted_entries", 0)))
 	var messages: Array = entry.get("messages", [])
 	if not messages.is_empty():
 		lines.append("\nEVENTS")
@@ -184,10 +193,32 @@ func _append_attack_details(lines: Array[String], attack: Dictionary, squads: Di
 			lines.append("  Damage %s: D6 %s → %s" % [str(damage.get("expression", "")), str(damage.get("rolls", [])), str(damage.get("value", "—"))])
 		for prevention: Dictionary in pool.get("prevention_rolls", []):
 			if prevention.get("rolls", []).is_empty(): continue
-			lines.append("  Prevention: D6 %s · %s wounds prevented" % [str(prevention.rolls), str(prevention.get("prevented", 0))])
+			lines.append("  " + _prevention_summary(prevention))
 	var hazardous: Dictionary = attack.get("hazardous", {})
 	if not hazardous.is_empty() and not hazardous.get("rolls", []).is_empty():
 		lines.append("Hazardous: D6 %s → %s wounds" % [str(hazardous.rolls), str(hazardous.get("total", 0))])
+	for prevention: Dictionary in hazardous.get("prevention", []):
+		if not prevention.get("rolls", []).is_empty(): lines.append("  " + _prevention_summary(prevention))
+
+func _prevention_summary(prevention: Dictionary) -> String:
+	var rolls: Array = prevention.get("rolls", [])
+	var outcomes: Array = prevention.get("roll_outcomes", [])
+	var faces: Array[String] = []
+	var classified := 0
+	for index in range(rolls.size()):
+		var value := int(rolls[index])
+		var face := str(value)
+		if index < outcomes.size() and outcomes[index] is Dictionary:
+			var outcome: Dictionary = outcomes[index]
+			if int(outcome.get("roll", -1)) == value:
+				face += "✓" if outcome.get("success", false) else "×"
+				classified += 1
+		faces.append(face)
+	var note := "Feel No Pain %d+: D6 %s · %d wounds prevented" % [int(prevention.get("target", 0)), ", ".join(faces), int(prevention.get("prevented", 0))]
+	var missing_outcomes := rolls.size() - classified
+	if missing_outcomes == 1: note += " · 1 per-die outcome unavailable"
+	elif missing_outcomes > 1: note += " · %d per-die outcomes unavailable" % missing_outcomes
+	return note
 
 func _squad_name(squads: Dictionary, squad_id: int) -> String:
 	var squad: Dictionary = squads.get(squad_id, squads.get(str(squad_id), {}))

@@ -5,6 +5,7 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
+const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
 
 static func character(model: Dictionary) -> bool:
 	for keyword: Variant in model.get("keywords", []):
@@ -20,7 +21,10 @@ static func profile(state: Dictionary, model: int, melee: bool = false) -> Dicti
 	for key: Variant in overrides:
 		if key not in ["toughness", "save_target", "invulnerable_target", "melee_invulnerable_target"]: return {"error": "Unsupported model defense characteristic."}
 	var result := {"error": "", "wounds_per_model": unit.max_wounds, "toughness": overrides.get("toughness", stats.toughness), "save_target": overrides.get("save_target", stats.save_target), "invulnerable_target": overrides.get("invulnerable_target", stats.get("invulnerable_target", 0)), "melee_invulnerable_target": overrides.get("melee_invulnerable_target", stats.get("melee_invulnerable_target", 0))}
-	if MarineEnhancements.artificer_armour_bearer(state, model): result.save_target = mini(2, int(result.save_target))
+	var toughness_bonus := AncientFury.toughness_bonus(state, int(unit.squad))
+	if toughness_bonus > 0 and (result.toughness is int or result.toughness is float): result.toughness += toughness_bonus
+	if MarineEnhancements.flesh_is_weak_bearer(state, model) and (result.toughness is int or result.toughness is float): result.toughness += 1
+	if MarineEnhancements.artificer_armour_bearer(state, model) or MarineEnhancements.armour_of_antoninus_bearer(state, model): result.save_target = mini(2, int(result.save_target))
 	if MarineEnhancements.redoubtable_machine_spirit_active(state, int(unit.squad)):
 		result.invulnerable_target = 5 if int(result.invulnerable_target) == 0 else mini(5, int(result.invulnerable_target))
 	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) == "vanguard-veteran-squad-with-jump-packs" and unit.get("combat_shield", false): result.invulnerable_target = 5

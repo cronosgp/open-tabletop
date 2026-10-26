@@ -1,4 +1,5 @@
 extends PanelContainer
+const MatchResult = preload("res://scripts/match_result.gd")
 
 signal rematch_requested
 signal copy_requested
@@ -88,7 +89,7 @@ func show_result(record: Dictionary, can_rematch: bool, reason: String) -> void:
 	rematch_button.text = "Restart this lab" if record.scenario == "Synthetic rules lab" else "Rematch · same armies"
 	rematch_note.text = reason
 	rematch_note.visible = not reason.is_empty()
-	details.text = record.scope + "\nPack: " + record.pack_hash + "\nHistory: " + record.history_id
+	details.text = MatchResult.details_text(record)
 
 func show_notice(message: String) -> void:
 	notice.text = message

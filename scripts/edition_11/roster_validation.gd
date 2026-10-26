@@ -6,7 +6,7 @@ const CurrentMarines = preload("res://scripts/edition_11/current_reference_marin
 const A = preload("res://scripts/edition_11/army_capabilities.gd")
 const R = preload("res://scripts/army_roster.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
-const ID := "incursion-fixed-rosters-mfm1.6-2026-10-19-v33-lieutenant-source-migration"
+const ID := "incursion-fixed-rosters-mfm1.6-2026-10-25-v34-land-speeder-vengeance"
 const CURRENT_SOURCE_STATUS := "wahapedia_e11_coverage_partial"
 const CHECKED_MAX_SQUADS := 12
 const SOURCES := {"Space Marines": {"url": "https://mfm.warhammer-community.com/en/space-marines", "version": "1.6", "sha256": "af280e710928f49d6c22775ae48fa9a5fe78de7560cf2c6712eb6d48a885c5e5"}, "Necrons": {"url": "https://mfm.warhammer-community.com/en/necrons", "version": "1.6", "sha256": "8ff758aedca89d8ea98c3912048b572b8d6ae2a5f66477a811973b91e505ee94"}}
@@ -46,7 +46,7 @@ static func _build_points() -> Dictionary:
 		if result.has(slug):
 			push_error("Duplicate current and captured point authority: " + slug)
 			return {}
-		var record := {"cost": int(profile.points), "models": int(profile.models), "sizes": profile.points_by_models.duplicate(true), "battleline": "BATTLELINE" in profile.keywords, "source": "wahapedia-e11-2026-10-19"}
+		var record := {"cost": int(profile.points), "models": int(profile.models), "sizes": profile.points_by_models.duplicate(true), "battleline": "BATTLELINE" in profile.keywords, "source": str(profile.get("points_source", "wahapedia-e11-2026-10-19"))}
 		if profile.has("third_plus_points_by_models"): record.third_plus_sizes = profile.third_plus_points_by_models.duplicate(true)
 		if profile.has("wargear_costs"): record.wargear_costs = profile.wargear_costs.duplicate(true)
 		if profile.has("max_supported_copies"): record.max_supported_copies = int(profile.max_supported_copies)

@@ -10,7 +10,7 @@
   "ledger_id": "space-marines-e11-source-ledger",
   "schema_version": 1,
   "edition": "11th",
-  "observed_at": "2026-10-19",
+  "observed_at": "2026-10-26",
   "purpose": "Source and implementation audit only. This file is not loaded by the game and does not certify complete army legality.",
   "rules_reference": {
     "publisher": "Wahapedia",
@@ -20,7 +20,7 @@
     "canonical_source_policy": "Definitive project rules authority by user decision on 18 October 2026. GW confirmation is optional. Resolve page/export conflicts within the selected Wahapedia e11 snapshot before admission.",
     "freshness_check_2026_10_17": "Live faction page reports App 2.8.1 / October 2026, matching the current official app-store version number. This is a freshness signal, not proof of per-rule accuracy.",
     "direct_page_observation_2026_10_17": {
-      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/iron-hands",
       "observed_page_date": "2026-10-17",
       "reported_book_version": "2.8.1",
       "reported_update": "October 2026",
@@ -30,9 +30,9 @@
     "limitation": "Wahapedia /wh40k11ed/ is the selected third-party rules authority for this project. This ledger records a local extraction and bounded runtime scope; extraction provenance and executable tests do not establish complete faction or army legality."
   },
   "implementation": {
-    "id": "space-marines-e11-runtime-2026-10-v85-wardens",
-    "scope": "All 85 shared-book Marine identities are represented in runtime and selectable through the consolidated local catalog. Wardens of Ultramar has individual model characteristics, source-listed weapons, Support, Combat Doctrines, Raise the Banner and Strategium Command; focused local checks passed. Network validation remains deferred and full faction/army legality remains uncertified.",
-    "source_status": "wahapedia_e11_local_export_2026_10_16",
+    "id": "space-marines-e11-runtime-2026-10-v98-gauntlet-drop-pod-aggressive-disembarkation",
+    "scope": "All 85 shared-book Marine identities are represented in runtime and selectable through the consolidated local catalog; the Dark Angels App Land Speeder Vengeance has a distinct source-linked runtime profile whose pending local checks keep it out of new construction choices. Wardens of Ultramar has individual model characteristics, source-listed weapons, Support, Combat Doctrines, Raise the Banner and Strategium Command; focused local checks passed. Land Speeder Vengeance has its source profile, weapon option, Storm of Vengeance reaction and Nightforged Battery re-roll decisions implemented with local checks pending; it remains excluded from new construction choices until those checks pass. Gauntlet Task Force implements Storm and Secure at Movement-phase end through the shared secure-objective path and Duty is Never Done at Fight-phase end through transport capacity and whole-unit range checks. Aggressive Disembarkation offers a 1 CP relaxed-placement option for supported Movement-phase disembark choices and before Emergency Disembark Hazard rolls. Emergency placement relaxes only the wholly-within range and retains as-close-as-possible placement, engagement fallback, Battle-shock, the no-Charge restriction and the active-player placement handoff. Before each mandatory Drop Pod Assault Rapid Disembark, the stratagem offers the same choice after arrival, including after Rapid Ingress during the opponent's Movement phase; the more-than-8-inch enemy restriction remains. Other out-of-phase selection contexts are not implemented. Phobos Shadow Force now exposes Shadow Masters (preserve Hidden eligibility after shooting or make a D6-inch Normal Move that blocks Charge until turn end), Strike from the Shadows (1 CP; hidden PHOBOS attacks gain +1 Strength and Lethal Hits), Tactical Withdrawal (1 CP; an unengaged PHOBOS or SCOUT SQUAD unit enters Strategic Reserves at the end of the opponent's Fight phase), and Mortis Snares (1 CP at Movement-phase end; arm each objective controlled by an eligible unit, then roll when an enemy move ends within range; on 2+, apply D6 mortal wounds through the shared allocation path). Shadow Masters currently covers the owner's Shooting phase; out-of-phase shooting remains pending. Venator Omni-auspex for Phobos Shadow Force is selectable for four export-linked PHOBOS bearers and uses the shared hidden-target Wound rerolls; Execute and Redeploy is selectable for four export-linked PHOBOS bearers and offers an unengaged Normal Move up to 6 inches after shooting, blocking Charge until turn end; it honors the one-Normal-Move-per-phase limit. All components listed on the current Phobos Shadow Force page now have bounded local paths. Shadow Masters remains limited to the owner's Shooting phase; focused local checks remain pending. Network validation remains deferred and full faction/army legality remains uncertified.",
+    "source_status": "wahapedia_e11_local_export_checked_2026_10_21_plus_space_marines_page_app_2.8.1_observed_2026_10_26",
     "runtime_identity_source": "scripts/edition_11/unit_abilities.gd",
     "capability_registry": "scripts/edition_11/capabilities.gd"
   },
@@ -47,10 +47,13 @@
     "reference_checked_official_preview_partial": "Current e11 reference checked; the official preview confirms only part or the broad direction of the rule.",
     "reference_checked_duration_and_official_locator_pending": "Current e11 reference checked; duration interpretation and official full Codex/update locator remain pending.",
     "wahapedia_e11_local_export_checked_2026_10_16": "Current Wahapedia e11 local export was checked; implementation and validation state are tracked separately.",
+    "wahapedia_e11_local_export_checked_2026_10_21": "Verified Wahapedia e11 Data Export snapshot 20261021T130623Z was checked; revision, retrieval identity, filenames and hashes are recorded on the implementation entry.",
     "wahapedia_e11_local_export_checked_2026_10_16_implementation_incomplete": "Identity, detachment points and disposition were checked in the current Wahapedia e11 local export; some rules remain unimplemented.",
     "wahapedia_e11_page_extract_2026_10_17_implementation_incomplete": "The Wahapedia e11 faction-page extraction (App 2.8.1, observed 2026-10-17) supplies rule text absent from the structured export; runtime coverage is partial and local checks are pending.",
+    "wahapedia_e11_faction_page_app_2_8_1_observed_2026_10_25": "The Wahapedia e11 faction page was checked at App 2.8.1 on 2026-10-25; the stratagem's bounded local runtime path exists and focused local checks remain pending.",
     "implementation_pending": "Mechanics are inventoried from the current Wahapedia e11 local export and await runtime implementation.",
-    "implemented_local_checks_pending": "A local runtime path exists; focused local execution and interaction checks are still pending."
+    "implemented_local_checks_pending": "A local runtime path exists; focused local execution and interaction checks are still pending.",
+    "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z": "The Space Marines e11 App 2.8.1 faction page was checked on 2026-10-26 and reconciled with local Wahapedia Data Export snapshot 20261021T130623Z; the snapshot revision, retrieval time, files and hashes are recorded on the scoped rule entry."
   },
   "datasheets": [
     {
@@ -548,8 +551,8 @@
         {
           "id": "crushing-impact",
           "name": "Tank Shock / Crushing Impact",
-          "status": "tests_passed_local_targeted",
-          "implementation_scope": "immediate post-charge roll, six-mortal cap and ordinary allocation"
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Current 11e MONSTER/VEHICLE post-charge use; Toughness D6 pool; 1s inflict mortal wounds on the charging unit before the target packet; 5+ target mortal wounds capped at six; shared allocation, prevention and Deadly Demise continuations. The expanded current scope is source-checked, while focused checks and playtesting remain pending."
         }
       ]
     },
@@ -1053,6 +1056,85 @@
       "limitations": [
         "No Leader targets are listed for Titus in the local export.",
         "Focused local checks do not establish full faction/army legality."
+      ]
+    },
+    {
+      "id": "space-marines/land-speeder-vengeance",
+      "name": "Land Speeder Vengeance",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Land-Speeder-Vengeance",
+      "source_book_id": "000000023",
+      "source_book_name": "Dark Angels App",
+      "source_datasheet_id": "000000242",
+      "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+      "source_snapshot_id": "20261021T130623Z",
+      "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_snapshot_export_revision": "20260817b",
+      "source_status": "wahapedia_e11_local_export_2026_10_21",
+      "source_snapshot_files": [
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        }
+      ],
+      "rules": [
+        {
+          "id": "deep-strike",
+          "name": "Deep Strike",
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Vengeance is included in the shared reserves and ingress ability path."
+        },
+        {
+          "id": "deadly-demise-d3",
+          "name": "Deadly Demise D3",
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Vengeance is included in the shared D3 mortal-wound destruction path."
+        },
+        {
+          "id": "combat-doctrines",
+          "name": "Combat Doctrines",
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Vengeance is linked to the shared Adeptus Astartes Combat Doctrines ability."
+        },
+        {
+          "id": "storm-of-vengeance",
+          "name": "Storm of Vengeance",
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Once per turn per Vengeance unit in the opponent's Shooting phase, after an enemy shooting activation destroys a friendly Dark Angels unit within 6 inches, the defender may use the normal shooting flow against that enemy unit only. Multiple eligible Vengeance units are offered sequentially. Focused local checks and playtesting remain pending."
+        }
+      ],
+      "profile_scope": "One model; M14, T9, Sv3+, 5+ invulnerable save, W11, Ld6+, OC3, 60 mm flying base; fixed Plasma Storm Battery and Armoured Hull, with the source-listed Heavy Bolter to Assault Cannon replacement available in the pre-battle loadout choices. Points: 150 for the first/second unit and 160 for the third unit.",
+      "limitations": [
+        "Source is the Dark Angels App, distinct from the 85 shared Codex identities.",
+        "Storm of Vengeance, the new source identity and all interactions require focused local checks and human playtesting.",
+        "Nightforged Battery has bounded runtime re-roll decisions, but focused local checks and human playtesting remain pending; it is not exposed as a new construction choice until the Vengeance profile passes those checks."
       ]
     }
   ],
@@ -1645,7 +1727,7 @@
       "force_dispositions": [
         "priority-assets"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "partially_implemented_local_checks_pending"
     },
     {
       "id": "space-marines/dark-angels/darkflight-pursuit",
@@ -1656,7 +1738,7 @@
       "force_dispositions": [
         "reconnaissance"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "implemented_local_checks_pending"
     },
     {
       "id": "space-marines/deathwatch/black-spear-task-force",
@@ -1690,7 +1772,7 @@
       "force_dispositions": [
         "purge-the-foe"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "partial_methodical_brutality_spirits_of_iron_vengeful_animus_unbowed_conviction_ancient_fury_implemented_local_checks_pending_the_flesh_is_weak_implemented_local_checks_pending; other detachment effects unimplemented"
     },
     {
       "id": "space-marines/imperial-fists/ceramite-sentinels",
@@ -1863,7 +1945,7 @@
           "000008353005"
         ]
       },
-      "source_status": "wahapedia_e11_local_export_checked_2026_10_16",
+      "source_status": "wahapedia_e11_space_marines_faction_page_v2_8_1_observed_2026_10_25",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/ifgezlgu/space-marines-rules-first-look/",
         "https://www.warhammer-community.com/en-gb/articles/zcobdkzh/your-first-look-at-15-new-space-marine-detachments/"
@@ -1881,9 +1963,9 @@
           "points": 25,
           "eligibility": "Ancient model",
           "effect_summary": "The bearer gains +1 OC, +1 Leadership and Feel No Pain 5+. Once per battle per army, when its unit is selected to fight, the unit can gain +1 melee attack until the phase ends.",
-      "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
-      "runtime_capability": "standard-of-the-emperor-ascendant",
-      "wahapedia_export_row_id": "000008353002"
+          "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
+          "runtime_capability": "standard-of-the-emperor-ascendant",
+          "wahapedia_export_row_id": "000008353002"
         },
         {
           "id": "laurels-of-triumph",
@@ -1891,9 +1973,9 @@
           "points": 20,
           "eligibility": "ADEPTUS ASTARTES model",
           "effect_summary": "The bearer's melee attacks gain +1 Strength and AP; while Assault Doctrine is active for the unit, they instead gain +2 Strength and AP.",
-      "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
-      "runtime_capability": "laurels-of-triumph",
-      "wahapedia_export_row_id": "000008353003"
+          "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
+          "runtime_capability": "laurels-of-triumph",
+          "wahapedia_export_row_id": "000008353003"
         },
         {
           "id": "adept-of-the-codex",
@@ -1901,9 +1983,9 @@
           "points": 20,
           "eligibility": "CAPTAIN model",
           "effect_summary": "Tactical Doctrine is active for this unit in addition to any other Combat Doctrine.",
-      "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
-      "runtime_capability": "adept-of-the-codex",
-      "wahapedia_export_row_id": "000008353004"
+          "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
+          "runtime_capability": "adept-of-the-codex",
+          "wahapedia_export_row_id": "000008353004"
         },
         {
           "id": "artificer-armour",
@@ -1911,9 +1993,9 @@
           "points": 15,
           "eligibility": "ADEPTUS ASTARTES model",
           "effect_summary": "The bearer gains a 2+ Save and Feel No Pain 5+.",
-      "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
-      "runtime_capability": "artificer-armour",
-      "wahapedia_export_row_id": "000008353005"
+          "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
+          "runtime_capability": "artificer-armour",
+          "wahapedia_export_row_id": "000008353005"
         }
       ],
       "stratagems": [
@@ -1924,9 +2006,9 @@
           "timing": "Opponent Shooting phase or Fight phase, when an enemy unit targets a friendly ADEPTUS ASTARTES unit.",
           "target": "That friendly ADEPTUS ASTARTES unit.",
           "effect_summary": "When an enemy unit targets the friendly unit, attacks that target it have -1 AP until that same enemy unit has attacked.",
-      "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
-      "runtime_capability": "gladius-armour-of-contempt",
-      "wahapedia_export_row_id": "000008352002"
+          "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
+          "runtime_capability": "gladius-armour-of-contempt",
+          "wahapedia_export_row_id": "000008352002"
         },
         {
           "id": "gladius-a-worthy-death",
@@ -1975,7 +2057,7 @@
           "status": "reference_checked_official_full_rule_locator_pending"
         }
       ],
-  "implementation_scope": "All four Gladius enhancements have local catalog, assignment, points and match paths for eligible profiles; model-only effects apply to the assigned unit's first model in the current roster format. Adept of the Codex preserves Tactical Doctrine alongside another doctrine after attachment. Artificer Armour and Laurels of Triumph apply their bonuses to the bearer; the Standard supports Ancient, Bladeguard Ancient and Ancient in Terminator Armour profiles and implements its once-per-battle unit melee Attack increase. Focused checks pass in tests/test_gladius_enhancements.gd. Gladius Armour of Contempt passes its local trigger, cost, attacker-binding and AP checks in tests/test_detachment_stratagems.gd. Network validation is deferred; full army legality remains uncertified.",
+      "implementation_scope": "All four Gladius enhancements have local catalog, assignment, points and match paths for eligible profiles; model-only effects apply to the assigned unit's first model in the current roster format. Adept of the Codex preserves Tactical Doctrine alongside another doctrine after attachment. Artificer Armour and Laurels of Triumph apply their bonuses to the bearer; the Standard supports Ancient, Bladeguard Ancient and Ancient in Terminator Armour profiles and implements its once-per-battle unit melee Attack increase. Focused checks pass in tests/test_gladius_enhancements.gd. Gladius Armour of Contempt passes its local trigger, cost, attacker-binding and AP checks in tests/test_detachment_stratagems.gd. Network validation is deferred; full army legality remains uncertified.",
       "known_interactions_to_review": [
         "Combat Doctrine selection limits, additional uses, and per-unit doctrine overrides.",
         "Armour of Contempt duration and attacker binding: do not transfer wording from an erratum printed under a different detachment without an official applicability link.",
@@ -1990,7 +2072,7 @@
       "chapter": "Black Templars",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/xciydqwa/space-marines-detachments-space-wolves-black-templars-and-deathwatch/"
       ],
@@ -2016,7 +2098,22 @@
           "points": 10,
           "eligibility": "Adeptus Astartes Infantry unit",
           "effect_summary": "Advancing or Falling Back does not prevent the unit from being eligible to start an action.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
+          "runtime_capability": "oathbound-exemplar",
+          "wahapedia_export_row_id": "000011176003",
+          "local_export": {
+            "snapshot_id": "20261021T130623Z",
+            "retrieved_at_utc": "2026-10-21T19:46:58Z",
+            "revision": "20260817b",
+            "files": [
+              {"filename": "Enhancements.csv", "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"},
+              {"filename": "Datasheets_enhancements.csv", "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"},
+              {"filename": "Datasheets.csv", "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"},
+              {"filename": "Datasheets_keywords.csv", "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"}
+            ]
+          },
+          "implementation_scope": "10 points. Datasheets_enhancements.csv row 000011176003 links this enhancement to source datasheets; the current-catalog picker keeps only profiles whose exact local export ID is linked and whose unit has INFANTRY. Requires Fist of the God-Emperor with Black Templars Chapter context. It removes only the Advance/Fall Back move restriction from starting an otherwise eligible action; all other action gates remain active. Focused local checks, Godot review, playtesting and network validation are pending; full army legality is uncertified."
         }
       ],
       "stratagems": [
@@ -2421,7 +2518,7 @@
       "chapter": "Blood Angels",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_full_rule_locator_pending",
+      "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
       "detachment_rule": {
         "id": "sanguinius-fury",
         "name": "Sanguinius' Fury",
@@ -2488,7 +2585,7 @@
       "chapter": "Dark Angels",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_25",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/voakmnny/space-marines-detachments-blood-angels-and-dark-angels/"
       ],
@@ -2497,7 +2594,7 @@
         "name": "Black-winged Vigilance",
         "summary": "Ravenwing Fly units' ranged attacks gain Ignores Cover; Outrider Squads gain Battleline.",
         "restrictions": "Army may include Dark Angels units but no Adeptus Astartes units from other Chapters.",
-        "status": "reference_checked_official_preview_partial"
+        "status": "implemented_local_checks_pending"
       },
       "enhancements": [
         {
@@ -2506,7 +2603,62 @@
           "points": 15,
           "eligibility": "Ravenwing Fly or Ravenwing Mounted unit",
           "effect_summary": "The unit can make an Ingress move in your first Movement phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "thundercowl-turbines",
+          "wahapedia_export_row_id": "000011095002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_datasheet_ids": [
+            "000000084",
+            "000000094",
+            "000000114",
+            "000000124",
+            "000000137",
+            "000000139",
+            "000000238",
+            "000000239",
+            "000000240",
+            "000000241",
+            "000000242",
+            "000001190",
+            "000001191",
+            "000001610",
+            "000002702",
+            "000002711",
+            "000002712",
+            "000002748",
+            "000004247"
+          ],
+          "catalog_eligible_datasheet_ids": [
+            "000000094",
+            "000000114",
+            "000000124",
+            "000001610",
+            "000002702",
+            "000002711",
+            "000002712",
+            "000004247"
+          ],
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "implementation_scope": "15-point Darkflight Pursuit enhancement. The Data Export relation lists 19 datasheets; only eight intersect the consolidated current-reference catalog: Chaplain on Bike, Captain on Bike, Storm Speeder Hammerstrike, Storm Speeder Hailstrike, Storm Speeder Thunderstrike, Land Speeder, Outrider Squad and Invader ATVs. Requires a living active bearer with RAVENWING and FLY or MOUNTED under the prepared Dark Angels Chapter context. The unit can ingress in its owner's first Movement phase in battle round 1, using shared reserve placement, coherency, edge/enemy-distance and deployment-zone checks. It does not enable opponent-phase Rapid Ingress. Focused checks, network validation and full Dark Angels army legality remain pending."
         },
         {
           "id": "nightforged-battery",
@@ -2514,7 +2666,32 @@
           "points": 10,
           "eligibility": "Land Speeder Vengeance unit",
           "effect_summary": "The unit can re-roll weapon Attack characteristic rolls and Hazard rolls.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "nightforged-battery",
+          "wahapedia_export_row_id": "000011095003",
+          "source_datasheet_ids": [
+            "000000242"
+          ],
+          "catalog_eligible_datasheet_ids": [],
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_25",
+          "implementation_scope": "10-point Darkflight Pursuit enhancement, source-restricted to Land Speeder Vengeance datasheet 000000242. Its owner may re-roll the weapon's random Attack characteristic result and Hazard rolls before allocation; each Hazard die can be selected once, and eligible Command Re-roll remains available for a different die. The optional decisions use the existing attack-generation checkpoint and Hazard allocation continuation. Focused local checks and human playtesting remain pending, so the Vengeance profile is still excluded from new construction choices; network validation and full Dark Angels army legality remain uncertified."
         }
       ],
       "stratagems": [
@@ -2525,7 +2702,20 @@
           "timing": "Your Shooting phase, after a friendly Ravenwing Fly unit has shot.",
           "target": "That Ravenwing Fly unit.",
           "effect_summary": "Visible enemy units within 6 inches gain +3 inches Detection range.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "darkflight-skyborne-surveillance",
+          "wahapedia_export_row_id": "000011096002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_25",
+          "implementation_scope": "1 CP in your Shooting phase immediately after a friendly Ravenwing FLY unit has shot. Eligible visible enemy units within 6 inches of any model in the target unit gain +3 detection range through the end of that Shooting phase, using the default duration for phase-triggered effects without a stated duration. Requires Darkflight Pursuit and Dark Angels Chapter context. Focused local checks, human playtesting, network validation and full army legality remain pending."
         },
         {
           "id": "darkflight-we-are-vengeance",
@@ -2534,7 +2724,20 @@
           "timing": "Opponent Shooting phase, after an enemy that targeted a friendly unengaged Ravenwing Fly unit has shot.",
           "target": "That Ravenwing Fly unit.",
           "effect_summary": "The unit can make a Normal move up to D3+3 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "darkflight-we-are-vengeance",
+          "wahapedia_export_row_id": "000011096003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_25",
+          "implementation_scope": "1 CP reaction during the opponent's Shooting phase, offered after an enemy shooting activation targeted a friendly unengaged Ravenwing FLY unit. The defender chooses one eligible surviving target and previews/confirms a Normal Move up to D3+3 inches. Requires Darkflight Pursuit and Dark Angels Chapter context. Focused checks, human playtesting, network validation and full army legality remain pending."
         },
         {
           "id": "darkflight-wings-of-shadow",
@@ -2543,13 +2746,27 @@
           "timing": "Opponent Shooting phase, when an enemy unit targets a friendly Ravenwing Fly or Mounted unit.",
           "target": "That Ravenwing Fly or Mounted unit.",
           "effect_summary": "The unit gains Stealth.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "darkflight-wings-of-shadow",
+          "wahapedia_export_row_id": "000011096004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_25",
+          "implementation_scope": "1 CP defensive reaction in the opponent's Shooting phase when an enemy unit declares ranged attacks against a friendly Ravenwing FLY or MOUNTED unit. The defender chooses before dice; the unit gains Stealth through the current Shooting phase and uses the shared cover/Ignores Cover resolution. Darkflight Pursuit and Dark Angels Chapter context are required. Focused checks, human playtesting, network validation and full army legality remain pending."
         }
       ],
       "known_interactions_to_review": [
         "Ingress eligibility and reserve placement for Fly and Mounted units.",
         "Weapon Attack characteristic re-roll and Hazard-roll definitions.",
-        "Whether detection range can be modified below zero and how the modifier interacts with Stealth."
+        "Whether detection range can be modified below zero and how the modifier interacts with Stealth.",
+        "Wings of Shadow phase duration, defender command ownership, and the shared Stealth/Ignore Cover attack path."
       ]
     },
     {
@@ -2557,13 +2774,13 @@
       "chapter": "Dark Angels",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_full_rule_locator_pending",
+      "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
       "detachment_rule": {
         "id": "vowed-target",
         "name": "Vowed Target",
-        "summary": "In Command, choose an objective as the vowed objective until your next Command phase; Deathwing Infantry attacks against enemies within range of it gain +1 to Wound.",
+        "summary": "In your Command phase, you can select one objective as your vowed objective until your next Command phase. Friendly DEATHWING INFANTRY attacks targeting an enemy unit within range of that objective gain +1 to Wound rolls.",
         "restrictions": "Army may include Dark Angels units but no Adeptus Astartes units from other Chapters.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "implemented_local_checks_pending"
       },
       "enhancements": [
         {
@@ -2571,8 +2788,39 @@
           "name": "Singular Will",
           "points": 20,
           "eligibility": "Deathwing model",
-          "effect_summary": "When selected to Consolidate, the unit can move up to D3+3 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "effect_summary": "When this unit is selected to make a Consolidation move, it can move up to D3+3 inches.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "singular-will",
+          "wahapedia_export_row_id": "000008774002",
+          "catalog_eligible_datasheet_ids": [
+            "000000079",
+            "000000115",
+            "000000135",
+            "000001165",
+            "000002677"
+          ],
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            }
+          ],
+          "implementation_scope": "The current Wahapedia Space Marines page, App 2.8.1 observed 2026-10-26, states that a DEATHWING model's unit can move up to D3+3 inches when selected to make a Consolidation move. The verified 20261021T130623Z export maps this 20-point enhancement to five DEATHWING datasheet IDs, all present in the current Marine catalog. The Army Workshop exposes these source-linked identities under Inner Circle Task Force. The local Fight flow rolls D3+3 when the player begins the optional Consolidation placement, applies the result to each model through shared movement validation, records the roll, and reuses it if placement is cancelled. Focused checks for source eligibility, roll persistence, movement limits and Fight continuation remain pending; network validation and full Dark Angels army legality are uncertified."
         },
         {
           "id": "champion-of-the-deathwing",
@@ -2580,7 +2828,38 @@
           "points": 20,
           "eligibility": "Deathwing model",
           "effect_summary": "The bearer's unit gains Sustained Hits 1 against enemies within range of the vowed objective.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "champion-of-the-deathwing",
+          "wahapedia_export_row_id": "000008774003",
+          "catalog_eligible_datasheet_ids": [
+            "000000079",
+            "000000115",
+            "000000135",
+            "000001165",
+            "000002677"
+          ],
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            }
+          ],
+          "implementation_scope": "The current Wahapedia Space Marines page (App 2.8.1, observed 2026-10-26) states that a DEATHWING bearer gives its unit Sustained Hits 1 against enemy units within range of the owner's Vowed objective. The verified 20261021T130623Z export maps this 20-point enhancement to five DEATHWING datasheet IDs, all five of which have current-reference local catalog profiles: Librarian, Chaplain, Captain and Ancient in Terminator Armour, plus Bladeguard Ancient. The local Army Workshop exposes only those source-linked identities under Inner Circle Task Force. In matches, every attack from the bearer's unit gains Sustained Hits 1 against an enemy within range of its owner's active Vowed objective, using the shared objective geometry and attack profile. Current Dark Angels Chapter context grants conditional DEATHWING keywords where needed. Focused checks for identity admission, bearer loss, objective range and existing Sustained Hits interactions remain pending; network validation and full Dark Angels army legality are uncertified."
         }
       ],
       "stratagems": [
@@ -2591,7 +2870,19 @@
           "timing": "Fight phase, when an enemy unit targets a friendly Deathwing unit.",
           "target": "That Deathwing unit.",
           "effect_summary": "Before it has fought, each destroyed model may remain on the battlefield on a D6 4+; add 1 to the roll if it is engaged with an enemy within range of the vowed objective. Remove the model after the unit fights or at phase end.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "inner-circle-duty-unto-death",
+          "wahapedia_export_row_id": "000008775002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "The current Wahapedia Space Marines page (App 2.8.1, observed 2026-10-26) and verified local export row 000008775002 define this 1 CP Fight-phase reaction for a targeted friendly Deathwing unit that has not fought. Each model destroyed rolls one D6 and remains on the battlefield on 4+, until the unit fights or the phase ends. Add 1 when the unit is engaged with an enemy unit that has a living model within range of its owner's active Vowed objective. The local flow uses the existing suspended attack declaration and temporary retention/removal lifecycle; it checks the specific engaged enemy model against the selected objective's mission range and records each retention roll, modifier and outcome in the combat tray and event history. Focused local checks and human playtesting remain pending; network validation and full Dark Angels army legality are uncertified."
         },
         {
           "id": "inner-relic-teleportarium",
@@ -2600,24 +2891,49 @@
           "timing": "Your Movement phase, when a friendly Deathwing unit with Deep Strike is selected to make an Ingress move.",
           "target": "That Deathwing unit.",
           "effect_summary": "It can set up more than 6 inches horizontally from enemies instead of more than 8 inches, and cannot declare a Charge this turn.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "inner-circle-relic-teleportarium",
+          "wahapedia_export_row_id": "000008775003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "The current Wahapedia Space Marines page (App 2.8.1, observed 2026-10-26) and verified local export row 000008775003 define this 1 CP Movement-phase stratagem for a friendly DEATHWING unit with Deep Strike in Strategic Reserves when selected to make an ingress move. The local action uses the normal ingress timing gate; it does not grant a first-round ingress exception. Placement allows more than 6 inches horizontally from every enemy instead of more than 8 while preserving the shared battlefield-edge, opponent deployment-zone and coherency checks. The unit cannot declare a Charge this turn through the shared charge gate. CP is charged when selected and is not refunded if placement is canceled. Focused local checks and human playtesting remain pending; network validation and full Dark Angels army legality are uncertified."
         },
         {
-          "id": "inner-wrath-of-the-lion",
+          "id": "inner-circle-wrath-of-the-lion",
           "name": "Wrath of the Lion",
           "cp": 1,
           "timing": "Charge phase, when a friendly Deathwing unit ends a Charge move.",
           "target": "That Deathwing unit and one enemy unit it is engaged with.",
           "effect_summary": "Roll one D6 per friendly model engaged with that enemy; each 3+ inflicts one mortal wound, to a maximum of six.",
-          "status": "reference_checked_official_full_rule_locator_pending",
-          "restriction": "Terminator unique."
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "inner-circle-wrath-of-the-lion",
+          "wahapedia_export_row_id": "000008775004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "After a friendly DEATHWING unit ends a Charge move, it can spend 1 CP to choose one engaged enemy unit, roll one D6 for each friendly model in Engagement Range of that enemy unit, and inflict one mortal wound for each 3+, maximum six. The local path uses the post-charge decision, current Dark Angels Chapter context, current DEATHWING unit keyword, once-per-phase stratagem gate, and shared defender allocation/prevention. After the post-charge ability resolves or is skipped, the same charge continuation can offer Tank Shock if the unit remains eligible. Focused checks, network validation and full Dark Angels army legality remain pending. The detachment's UNIQUE: TERMINATOR metadata is not an additional target restriction for this stratagem."
         }
       ],
       "known_interactions_to_review": [
-        "Vowed objective selection and duration; Deathwing Infantry and enemy range checks.",
+        "Focused checks for objective selection and expiration, enemy-unit objective range, Deathwing Infantry eligibility, and stacking with the core Wound modifier cap.",
+        "Current Dark Angels Chapter context and attached-unit keyword composition.",
+        "Focused checks for Singular Will's D3+3 roll, cancellation persistence and per-model contact movement limit.",
         "Temporary model retention, fight order and casualty removal timing.",
-        "Ingress horizontal-distance exception and the explicit charge prohibition.",
-        "Mortal-wound cap and Terminator-only restriction."
+        "Focused checks for Relic Teleportarium: reserve eligibility, 6-inch spacing, charge block, cost on selection and cancellation behavior.",
+        "Focused checks for Wrath of the Lion's mortal-wound cap and current DEATHWING target eligibility."
       ]
     },
     {
@@ -2625,7 +2941,7 @@
       "chapter": "Dark Angels",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "wahapedia_e11_local_export_checked_2026_10_16",
+      "source_status": "wahapedia_e11_faction_page_app_2_8_1_observed_2026_10_25",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/voakmnny/space-marines-detachments-blood-angels-and-dark-angels/"
       ],
@@ -2666,15 +2982,96 @@
           "points": 15,
           "eligibility": "Deathwing model with Deep Strike",
           "effect_summary": "The unit can make an Ingress move in your first Movement phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "deathwing-assault",
+          "wahapedia_export_row_id": "000010155004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            },
+            {
+              "filename": "Datasheets_abilities.csv",
+              "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+            },
+            {
+              "filename": "Abilities.csv",
+              "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+            }
+          ],
+          "implementation_scope": "15-point Wrath of the Rock enhancement. The export relation lists five datasheets; the four current catalog profiles with the local Deep Strike ability are Librarian in Terminator Armour, Chaplain in Terminator Armour, Captain in Terminator Armour and Ancient in Terminator Armour. The shared base profile omits DEATHWING; prepared-match Chapter resolution grants it to this identity in Dark Angels context. Its exact export identity is source-bound for this enhancement. Bladeguard Ancient is excluded because its local ability records do not include Deep Strike, as required by the current rule. The enhanced unit may ingress from Strategic Reserves during its own Movement phase in battle round 1. The runtime keeps this exception out of the opponent's Rapid Ingress window. Each model must be wholly within 6 inches of a battlefield edge, more than 8 inches horizontally from every enemy and outside the opponent's deployment zone before battle round 3. All six relevant source files above match their manifest hashes; the snapshot's separate orphan ability relation remains unresolved. Focused local checks and full Dark Angels army legality remain pending."
         },
         {
           "id": "ancient-weapons",
           "name": "Ancient Weapons",
           "points": 20,
           "eligibility": "Adeptus Astartes model",
+          "catalog_eligible_datasheet_ids": [
+            "000000060",
+            "000000073",
+            "000000076",
+            "000000079",
+            "000000083",
+            "000000094",
+            "000000112",
+            "000000115",
+            "000000119",
+            "000000135",
+            "000000140",
+            "000001165",
+            "000001172",
+            "000001174",
+            "000001346",
+            "000002266",
+            "000002530",
+            "000002677",
+            "000002701",
+            "000002702",
+            "000002707",
+            "000002773",
+            "000002775"
+          ],
           "effect_summary": "The bearer's melee attacks gain +2 Strength and +1 AP.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "ancient-weapons",
+          "wahapedia_export_row_id": "000010155005",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            }
+          ],
+          "implementation_scope": "20-point Wrath of the Rock enhancement. The 37 export relation identities resolve without orphans; 23 intersect the current local runtime catalog: 000000060, 000000073, 000000076, 000000079, 000000083, 000000094, 000000112, 000000115, 000000119, 000000135, 000000140, 000001165, 000001172, 000001174, 000001346, 000002266, 000002530, 000002677, 000002701, 000002702, 000002707, 000002773 and 000002775. Source IDs were added for Ancient (000002775), Bladeguard Ancient (000001165), Apothecary Biologis (000000060), Captain in Gravis Armour (000001172), Chaplain (000000115), Captain (000000135), Ancient in Terminator Armour (000002677), Lieutenant in Phobos Armour (000002530), Apothecary (000002773), Judiciar (000002707) and Chaplain (000001174). This follow-up also source-links Infiltrator Squad (000000128), Bladeguard Veteran Squad (000000071), Sternguard Veteran Squad (000002255), Eliminator Squad (000001668), Infernus Squad (000000126) and Hellblaster Squad (000002098) for their exact configured enhancement relations. The Ancient in Terminator Armour and Bladeguard Ancient shared base profiles omit source-listed DEATHWING; prepared-match Chapter resolution grants it to both identities in Dark Angels context. The bearer model's melee weapon profiles gain +2 Strength and +1 AP in attack planning. The four eligibility/source files above match their manifest hashes; focused local rule checks are pending. This does not certify the separate ability-relation table or full Dark Angels army legality."
         }
       ],
       "stratagems": [
@@ -2685,7 +3082,8 @@
           "timing": "Any phase, when a friendly Deathwing or Ravenwing unit within range of an objective is destroyed.",
           "target": "That destroyed unit.",
           "effect_summary": "Secure one objective with no enemy non-Aircraft units in range, or one the unit controlled at the end of the previous phase.",
-          "status": "reference_checked_official_preview_partial"
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Available only in Wrath of the Rock matches. When the last model in an eligible friendly Deathwing/Ravenwing unit is destroyed within range of any objective, its controller receives a normalized any-phase decision after current destruction and reaction work finishes. The 1 CP stratagem secures one marker with no enemy non-Aircraft unit in range, or a marker that the destroyed unit controlled at the end of the previous phase; the selected marker may differ from the marker near the destruction. Local checks and human playtest remain pending; network validation and full army legality are uncertified."
         },
         {
           "id": "wrath-lions-will",
@@ -2694,7 +3092,8 @@
           "timing": "Your Command phase.",
           "target": "One friendly Adeptus Astartes unit within range of an objective.",
           "effect_summary": "The unit gains +1 Objective Control until turn end.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Offers the 1 CP choice in the Wrath of the Rock Command phase when a friendly Adeptus Astartes unit is within range of an objective. Each model in the unit receives +1 OC through the current turn's objective-control calculation. Focused local checks remain pending."
         },
         {
           "id": "wrath-inescapable-justice",
@@ -2702,8 +3101,9 @@
           "cp": 1,
           "timing": "Fight phase, when a friendly Adeptus Astartes unit is selected to fight.",
           "target": "That unit.",
-          "effect_summary": "Its melee attacks gain Precision.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "effect_summary": "Its melee attacks gain Precision for the phase.",
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Offers the 1 CP choice for an eligible friendly Adeptus Astartes unit in the Fight phase and routes Precision through the shared melee attack profile and allocation paths. Focused local checks remain pending."
         },
         {
           "id": "wrath-tactical-mastery",
@@ -2712,7 +3112,8 @@
           "timing": "Your Command phase.",
           "target": "One friendly Deathwing or Ravenwing unit.",
           "effect_summary": "Choose one Combat Doctrine; it is active for the unit until your next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Offers the three doctrine choices in the Wrath of the Rock Command phase and applies the selection through the existing unit doctrine override until its owner's next Command phase. Eligibility includes explicit Deathwing/Ravenwing keywords and the current local profile grants for Terminator, Dreadnought, named Deathwing datasheets, Mounted and Vehicle Fly units. Focused local checks remain pending."
         },
         {
           "id": "wrath-knights-of-iron",
@@ -2721,7 +3122,8 @@
           "timing": "Movement or Charge phase, when a friendly Ravenwing unit is selected to move or declares a Charge.",
           "target": "That Ravenwing unit.",
           "effect_summary": "The unit gains Mobile.",
-          "status": "reference_checked_official_preview_partial"
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Local Movement and Charge selection windows offer the 1 CP choice for explicit Ravenwing profiles and Dark Angels Adeptus Astartes Mounted or Vehicle Fly conditional grants. Mobile uses the shared phase-limited terrain path; focused local checks remain pending."
         },
         {
           "id": "wrath-relics-of-the-dark-age",
@@ -2730,8 +3132,8 @@
           "timing": "Your Shooting phase, when a friendly Adeptus Astartes Infantry or Mounted unit is selected to shoot.",
           "target": "That unit.",
           "effect_summary": "Its ranged attacks gain +2 Strength.",
-          "status": "reference_checked_official_full_rule_locator_pending",
-          "restriction": "Terminator unique."
+          "status": "implemented_local_checks_pending",
+          "implementation_scope": "Offers the 1 CP choice for an eligible friendly Adeptus Astartes Infantry or Mounted unit in the Shooting phase and adds +2 Strength to its ranged attack profiles through the shared weapon calculation path. Focused local checks remain pending."
         }
       ],
       "known_interactions_to_review": [
@@ -3179,9 +3581,9 @@
     {
       "id": "space-marines/iron-hands/medusas-wrath",
       "chapter": "Iron Hands",
-      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+      "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/iron-hands",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_full_rule_locator_pending",
+      "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/dhwqtqkc/space-marines-detachments-salamanders-raven-guard-and-more/"
       ],
@@ -3190,7 +3592,8 @@
         "name": "Armoured Wrath",
         "summary": "When an Adeptus Astartes unit shoots or fights, it can reroll one Hit, Wound, or Damage roll. If within 6 inches of Iron Father Feirros, it can reroll one of each instead.",
         "restrictions": "Iron Hands army; exact chapter-mixing rule needs official locator.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "implemented_local_checks_pending",
+        "implementation_scope": "For a friendly Adeptus Astartes unit's selected Shooting or Fight attack, the local attack-resolution frame offers one optional re-roll from Hit, Wound or Damage. When any living friendly Iron Father Feirros model is within 6 inches of the selected unit, one optional re-roll of each type is available instead. The selected use is persisted across all attack batches for that activation. Requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
       },
       "enhancements": [
         {
@@ -3199,23 +3602,80 @@
           "points": 30,
           "eligibility": "Techmarine model",
           "effect_summary": "At the start or end of the bearer unit's Move, a nearby friendly Astartes Vehicle gains Lethal Hits until the next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "source_row_id": "000011180002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "implementation_scope": "30 points; source row 000011180002 links to Techmarine datasheet 000000140 and Iron Priest datasheet 000000306, but only Techmarine resolves to a current consolidated Marine profile. The bearer can select one friendly Adeptus Astartes Vehicle model within 3 inches of any model in its unit at the start or end of that unit's Movement-phase move. The selected model's ranged and melee attacks gain Lethal Hits until the start of the owner's next Command phase. The choice uses the persisted UnitActions movement window, the 3-inch model-base geometry and per-model attack-profile traits. Requires Medusa's Wrath and Iron Hands Chapter context. Focused local checks, visual review and human playtesting remain pending; network validation and full army legality are uncertified."
         },
         {
           "id": "adept-of-the-omnissiah",
           "name": "Adept of the Omnissiah",
           "points": 25,
           "eligibility": "Techmarine model",
-          "effect_summary": "Once per battle round per army, when a nearby friendly Astartes Vehicle is targeted, it gains Feel No Pain 5+ until that enemy finishes attacking.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "effect_summary": "Once per battle round per army, when an enemy targets a friendly Astartes Vehicle within 6 inches of the bearer unit, it can gain Feel No Pain 5+ until that enemy finishes attacking.",
+          "status": "implemented_local_checks_pending",
+          "source_row_id": "000011180003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839db1b0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "implementation_scope": "25 points; source row 000011180003 links to Techmarine datasheet 000000140 and Iron Priest datasheet 000000306, but only Techmarine resolves to the current consolidated Marine catalog. Once per battle round per army, when an enemy attack declaration targets one of the owner's Adeptus Astartes Vehicle units within 6 inches of any model in the living bearer unit, the defender can select an eligible Vehicle to gain Feel No Pain 5+ against that attacker's damage until the attack resolution completes. The persisted reaction is available in Shooting and Fight attack declarations; the effect is bound to the triggering attacker and target, and damage resolution uses the shared prevention path. Requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context. Focused checks and human playtesting remain pending; network validation and full army legality are uncertified."
         },
         {
           "id": "master-of-the-machine-war",
           "name": "Master of the Machine War",
           "points": 25,
           "eligibility": "Adeptus Astartes model",
-          "effect_summary": "In the Movement phase, select a visible friendly Vehicle within 6 inches; its unit gains Devastator or Tactical Doctrine until the next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "effect_summary": "In the Movement phase, select a visible friendly Adeptus Astartes Vehicle within 6 inches; its unit gains Devastator or Tactical Doctrine until the start of the next Command phase.",
+          "status": "implemented_local_checks_pending",
+          "source_row_id": "000011180004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "implementation_scope": "25 points; source row 000011180004 links to 37 datasheets, 23 of which resolve to current consolidated Marine profiles. In the owner's Movement phase, the living bearer can select one visible friendly Adeptus Astartes Vehicle unit within 6 inches and choose Devastator or Tactical Doctrine. The chosen doctrine is added to that Vehicle unit until the start of the owner's next Command phase and the selection is recorded by the shared once-per-battle doctrine ledger. The choice uses the terrain visibility/range query, the shared Doctrine selection limits and per-unit active-doctrine path. Requires Medusa's Wrath and Iron Hands Chapter context. Focused local checks and playtesting remain pending; network validation and full army legality are uncertified."
         },
         {
           "id": "the-flesh-is-weak",
@@ -3223,7 +3683,26 @@
           "points": 15,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "Bearer gains +1 Toughness and Feel No Pain 5+.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "source_row_id": "000011180005",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "implementation_scope": "15 points; source row 000011180005 is linked to 37 datasheets, 23 of which resolve to the current consolidated Marine catalog. The living bearer model gains +1 Toughness and Feel No Pain 5+ against any wound through the per-model defender and prevention paths. When attached to a Bodyguard unit, the existing unit Toughness calculation continues to use surviving Bodyguard models. Requires Medusa's Wrath and Iron Hands Chapter context. Focused local checks and playtesting remain pending; network validation and full army legality are uncertified."
         }
       ],
       "stratagems": [
@@ -3234,7 +3713,18 @@
           "timing": "Shooting or Fight phase, when a friendly Astartes unit is selected to attack.",
           "target": "That unit.",
           "effect_summary": "Attacks gain Sustained Hits 1; Vehicle units also gain +1 to Wound rolls.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "source_row_id": "000011181002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "1 CP when a friendly Adeptus Astartes unit is selected to attack in its owner's Shooting phase or the Fight phase. The optional decision opens before attack preparation; on use, the unit's attacks gain Sustained Hits 1 and a Vehicle unit also gains +1 to Wound rolls for that phase. Requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "medusa-spirits-of-iron",
@@ -3243,9 +3733,18 @@
           "timing": "Any phase, when a friendly Astartes unit suffers a mortal wound.",
           "target": "That unit.",
           "effect_summary": "Feel No Pain 5+ against mortal wounds.",
-          "status": "implemented_local_pending_validation",
-          "source_row_id": "000008479002",
-          "implementation_scope": "A reaction choice is exposed before local mortal-wound allocation for Devastating Wounds, Hazardous, Deadly Demise, Explosives, Tank Shock, Hammer of Wrath, Haywire Mine, Telepathic Assault, Desperate Escape and transport disembark Hazard. The phase-scoped Feel No Pain 5+ is added to the common prevention resolver. Focused local validation remains pending; network validation is deferred and full army legality is uncertified."
+          "status": "implemented_local_checks_pending",
+          "source_row_id": "000011181003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "A 1 CP response is available for a friendly Adeptus Astartes unit in locally modeled mortal-wound windows: Devastating Wounds, Hazardous, Deadly Demise, Explosives, Crushing Impact, Gravis Armoured Impact, Wrath of the Lion, Hammer of Wrath, Telepathic Assault, Haywire Mine, Desperate Escape and transport disembark Hazard. The phase-scoped Feel No Pain 5+ is added to the common prevention resolver. Requires Medusa's Wrath and Iron Hands Chapter context. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "medusa-vengeful-animus",
@@ -3254,7 +3753,18 @@
           "timing": "Any phase, when a friendly Astartes Vehicle is destroyed, before Deadly Demise rolls.",
           "target": "That Vehicle.",
           "effect_summary": "Deadly Demise rolls are treated as unmodified 6s.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "source_row_id": "000011181004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "1 CP after a friendly Adeptus Astartes Vehicle unit is destroyed and before its Deadly Demise D6 roll. The owner can spend CP or continue normally. When chosen, every queued Deadly Demise roll for that destroyed unit is resolved as an unmodified 6 without consuming a die. Requires Medusa's Wrath and Iron Hands Chapter context. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "medusa-ancient-fury",
@@ -3263,7 +3773,18 @@
           "timing": "Your Command phase.",
           "target": "One friendly Astartes Dreadnought.",
           "effect_summary": "Until next Command phase: +1 inch Move, Toughness, Leadership, OC and Hit rolls.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "source_row_id": "000011181005",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "1 CP in your Command phase for a friendly Adeptus Astartes Dreadnought unit. Until the start of the owner's next Command phase, the unit gains +1 inch Move, +1 Toughness, +1 Leadership, +1 OC per model and +1 to Hit rolls. The effect uses shared Movement, defender profile, Leadership, objective-control and attack-modifier paths. Requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "medusa-unbowed-conviction",
@@ -3272,16 +3793,40 @@
           "timing": "Your Command phase.",
           "target": "One friendly Astartes unit below Starting Strength.",
           "effect_summary": "Until next Command phase, ignore modifiers to BS/WS, Hit rolls and Wound rolls.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "source_row_id": "000011181006",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "1 CP in your Command phase for a friendly Adeptus Astartes unit below Starting Strength. The local check compares living model count with the unit's stored starting model count; damage to a surviving model alone does not qualify. Until the start of the owner's next Command phase, attack resolution ignores modifiers to BS/WS characteristics and Hit/Wound rolls through the shared attack and weapon-characteristic paths. Requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "medusa-power-of-the-machine-spirit",
           "name": "Power of the Machine Spirit",
           "cp": 1,
-          "timing": "Opponent Shooting phase, after an enemy that targeted a friendly unengaged Vehicle has shot.",
-          "target": "That Vehicle.",
-          "effect_summary": "Shoot back at that enemy using Snap Shots, or normal shooting if at half-strength or below.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "timing": "Opponent Shooting phase, after an enemy unit shoots at one or more friendly unengaged Adeptus Astartes Vehicles.",
+          "target": "One of those friendly Vehicles that survived the shooting activation.",
+          "effect_summary": "That Vehicle shoots only the enemy unit that just shot, using Snap shooting unless it is at half-strength or below, when it uses normal shooting.",
+          "status": "implemented_local_checks_pending",
+          "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/iron-hands",
+          "source_app_revision": "2.8.1 observed 2026-10-26",
+          "source_row_id": "000011181007",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7a57b621"
+            }
+          ],
+          "implementation_scope": "1 CP after an enemy unit finishes shooting one or more friendly unengaged Adeptus Astartes Vehicles. Eligibility uses the target-engagement snapshot stored in the prepared attack plan before damage. The defender can select one surviving Vehicle; its response target is locked to the triggering enemy unit. Above half-strength it uses Snap shooting: unmodified 6s hit, those hits are not critical, and hit rolls cannot be re-rolled. At half-strength or below it uses normal shooting. Requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         }
       ],
       "known_interactions_to_review": [
@@ -3635,7 +4180,32 @@
       "chapter": "Ultramarines",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_full_rule_locator_pending",
+      "source_snapshot_id": "20261021T130623Z",
+      "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_snapshot_export_revision": "20260817b",
+      "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
+      "source_snapshot_files": [
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Enhancements.csv",
+          "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+        },
+        {
+          "filename": "Datasheets_enhancements.csv",
+          "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+        }
+      ],
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/dhwqtqkc/space-marines-detachments-salamanders-raven-guard-and-more/"
       ],
@@ -3644,7 +4214,9 @@
         "name": "Mastered Doctrines",
         "summary": "If the army includes Marneus Calgar, each of Assault, Devastator and Tactical Doctrine can be selected one additional time per battle.",
         "restrictions": "Ultramarines chapter detachment; exact current chapter-mixing locator pending.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "implemented_local_checks_pending",
+        "runtime_capability": "mastered-doctrines",
+        "implementation_scope": "The extra use is tracked independently per doctrine and is available only while Marneus Calgar is included in the player's army. Blade of Ultramar requires Ultramarines Chapter context. All four enhancements, Armour of Contempt, Courage and Honour!, Exemplary Vigilance, Ultramarian Adaptivity, and Practical Tactics now have local runtime paths; one stratagem is unavailable. Focused local checks, current official rule locators, network validation and full army legality are pending."
       },
       "enhancements": [
         {
@@ -3653,31 +4225,39 @@
           "points": 20,
           "eligibility": "Captain model",
           "effect_summary": "Tactical Doctrine is active for this unit in addition to any other Combat Doctrine.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "student-of-the-codex",
+          "implementation_scope": "The verified local export maps this enhancement to 11 datasheets; six have current runtime profiles in the consolidated catalog: Captain (000000073), Captain with Jump Pack (000000083), Captain in Terminator Armour (000000135), Captain in Gravis Armour (000001172), Captain in Phobos Armour (000002701) and Captain on Bike (000002702). The enhanced unit gains Tactical Doctrine alongside its other doctrine while Blade of Ultramar is selected. Focused local checks, network validation and full army legality remain pending."
         },
         {
           "id": "armour-of-antoninus",
           "name": "Armour of Antoninus",
           "points": 15,
-          "eligibility": "Adeptus Astartes model",
+          "eligibility": "Non-Epic-Hero Adeptus Astartes Character model",
           "effect_summary": "Bearer has 2+ Save and Feel No Pain 5+.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "armour-of-antoninus",
+          "implementation_scope": "Reconciled with Space Marines App 2.8.1 and verified local export snapshot 20261021T130623Z, enhancement row 000010633003. The export links 37 datasheets; 23 resolve to current-catalog profiles that meet the Character and non-Epic-Hero restrictions. Available only in Blade of Ultramar with Ultramarines Chapter context. The bearer receives Save 2+ and Feel No Pain 5+ through existing per-model defense paths. Focused local checks, network validation and full army legality remain pending."
         },
         {
           "id": "oath-of-macragge",
           "name": "Oath of Macragge",
           "points": 20,
-          "eligibility": "Adeptus Astartes model",
+          "eligibility": "Non-Epic-Hero Adeptus Astartes Character model",
           "effect_summary": "Melee attacks gain +1 Strength and AP, or +2 Strength and AP while Assault Doctrine is active.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "oath-of-macragge",
+          "implementation_scope": "Reconciled with Space Marines App 2.8.1 and verified local export snapshot 20261021T130623Z, enhancement row 000010633004. The export links the same 37 datasheets as Armour of Antoninus; 23 resolve to current-catalog profiles that meet the Character and non-Epic-Hero restrictions. Available only in Blade of Ultramar with Ultramarines Chapter context. The bearer's melee attacks gain +1 Strength and AP, or +2 Strength and AP while Assault Doctrine is active, through the existing per-model weapon-modification path. Focused local checks, network validation and full army legality remain pending."
         },
         {
           "id": "veteran-of-behemoth",
           "name": "Veteran of Behemoth",
           "points": 20,
-          "eligibility": "Adeptus Astartes model",
+          "eligibility": "Non-Epic-Hero Adeptus Astartes Character model",
           "effect_summary": "Unit's ranged attacks gain Sustained Hits 1.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "veteran-of-behemoth",
+          "implementation_scope": "Reconciled with Space Marines App 2.8.1 and verified local export snapshot 20261021T130623Z, enhancement row 000010633005. The export links the same 37 datasheets as Armour of Antoninus and Oath of Macragge; 23 resolve to current-catalog profiles meeting the Character and non-Epic-Hero restrictions. Available only in Blade of Ultramar with Ultramarines Chapter context. The bearer's unit gains Sustained Hits 1 on ranged attacks through the shared attack-profile path; stronger existing Sustained Hits values are preserved. Focused local checks, network validation and full army legality remain pending."
         }
       ],
       "stratagems": [
@@ -3687,17 +4267,21 @@
           "cp": 1,
           "timing": "Opponent Shooting or Fight phase, when enemy targets a friendly Astartes unit.",
           "target": "That unit.",
-          "effect_summary": "Attacks targeting it have -1 AP until the attacking unit finishes its attacks; exact current erratum applicability needs official locator.",
-          "status": "reference_checked_duration_and_official_locator_pending"
+          "effect_summary": "Attacks targeting it have -1 AP until the attacking unit has attacked.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "ultramarines-armour-of-contempt",
+          "implementation_scope": "Wahapedia 11e Space Marines App 2.8.1 and verified local export snapshot 20261021T130623Z, Stratagems row 000010634002. The shared persisted attack-declaration response offers this 1 CP choice against an enemy unit targeting a friendly Adeptus Astartes unit in the opponent's Shooting or Fight phase, and binds -1 AP to attacks from that triggering enemy unit through its current attack sequence. Available only in Blade of Ultramar with Ultramarines Chapter context. Focused local checks, exact current erratum applicability, network validation and full army legality remain pending."
         },
         {
           "id": "ultramarines-exemplary-vigilance",
           "name": "Exemplary Vigilance",
           "cp": 1,
-          "timing": "Your Shooting phase, when a friendly Astartes unit is selected to shoot.",
+          "timing": "Your Shooting phase, when a friendly Adeptus Astartes unit is selected to shoot.",
           "target": "That unit.",
           "effect_summary": "Ranged attacks gain Ignores Cover.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "ultramarines-exemplary-vigilance",
+          "implementation_scope": "Wahapedia 11e Space Marines App 2.8.1 and verified local export snapshot 20261021T130623Z, Stratagems row 000010634003. The shared ranged Storm profile path adds Ignores Cover to the selected friendly Adeptus Astartes unit’s ranged attacks for the Shooting phase. Available only in Blade of Ultramar with Ultramarines Chapter context. Focused local checks, the current official full-rule locator, network validation and full army legality remain pending."
         },
         {
           "id": "ultramarines-adaptivity",
@@ -3706,7 +4290,9 @@
           "timing": "Your Command phase.",
           "target": "One friendly Astartes unit.",
           "effect_summary": "Select one Combat Doctrine active for that unit until next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "ultramarines-adaptivity",
+          "implementation_scope": "Wahapedia 11e Space Marines App 2.8.1 and verified local export snapshot 20261021T130623Z, Stratagems row 000010634004. The existing per-unit doctrine override path activates the selected Combat Doctrine for a friendly Adeptus Astartes unit and clears it at the start of that owner’s next Command phase. Available only in Blade of Ultramar with Ultramarines Chapter context. Focused local checks, the current official full-rule locator, network validation and full army legality remain pending."
         },
         {
           "id": "ultramarines-courage-and-honour",
@@ -3715,7 +4301,9 @@
           "timing": "Fight phase, when a friendly Astartes unit is selected to fight.",
           "target": "That unit.",
           "effect_summary": "Melee attacks gain Lance.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "ultramarines-courage-and-honour",
+          "implementation_scope": "Wahapedia 11e Space Marines App 2.8.1 and verified local export snapshot 20261021T130623Z, Stratagems row 000010634005. The existing Gladius Might of Angels profile path adds Lance to the selected friendly Adeptus Astartes unit's melee attacks for the Fight phase; the Core Lance rule supplies +1 to Wound only if the unit charged. Available only in Blade of Ultramar with Ultramarines Chapter context. Focused local checks, the current official full-rule locator, network validation and full army legality remain pending."
         },
         {
           "id": "ultramarines-practical-tactics",
@@ -3724,7 +4312,9 @@
           "timing": "Opponent Movement phase, when enemy ends a move within 8 inches.",
           "target": "One friendly unengaged Astartes Infantry/Mounted unit.",
           "effect_summary": "Normal move up to D3+3 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "ultramarines-practical-tactics",
+          "implementation_scope": "Wahapedia 11e Space Marines App 2.8.1 and verified local export snapshot 20261021T130623Z, Stratagems row 000010634006. The post-move reaction offers 1 CP after an enemy unit ends a move within 8 inches of an unengaged friendly Adeptus Astartes Infantry or Mounted unit; the target makes a D3+3-inch Normal Move through the shared per-model preview and confirmation path. Available only in Blade of Ultramar with Ultramarines Chapter context. Focused local checks, the current official full-rule locator, network validation and full army legality remain pending."
         },
         {
           "id": "ultramarines-tactical-foresight",
@@ -3733,7 +4323,9 @@
           "timing": "Opponent Shooting or Fight phase, when an enemy targets a friendly Astartes unit.",
           "target": "That unit.",
           "effect_summary": "Attacks with Strength greater than its Toughness have -1 to Wound.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "ultramarines-tactical-foresight",
+          "implementation_scope": "Wahapedia 11e Space Marines App 2.8.1 and verified local export snapshot 20261021T130623Z, Stratagems row 000010634007. The persisted defensive attack-declaration response offers Tactical Foresight for a friendly Adeptus Astartes unit targeted in the opponent's Shooting or Fight phase. If used, the shared attack planner applies -1 to Wound only when the triggering enemy's weapon Strength exceeds the target's Toughness, for that enemy's current attack sequence. Available only in Blade of Ultramar with Ultramarines Chapter context. Focused local checks, the current official full-rule locator, network validation and full army legality remain pending."
         }
       ],
       "known_interactions_to_review": [
@@ -4108,24 +4700,106 @@
         "status": "wahapedia_e11_local_export_checked_local_targeted_validation_passed",
         "runtime_capability": "death-blow",
         "wahapedia_export_row_id": "000011199",
-        "implementation_scope": "Available in prepared-match selection; adds 1 to Charge rolls for friendly Adeptus Astartes units with a living Terminator model. Focused local checks cover eligible, ineligible and enemy units. Enhancements and stratagems are not implemented; network validation is deferred and full army legality is uncertified."
+        "implementation_scope": "Available in prepared-match selection; adds 1 to Charge rolls for friendly Adeptus Astartes units with a living Terminator model. Focused local checks cover eligible, ineligible and enemy units. Champion of the First Company, Corporeum Reliquary, Merciless Veterans, Tactical Dreadnought Fortitude and Gunship Extraction are implemented for their bounded local scope; focused checks remain pending. Network validation is deferred and full army legality is uncertified."
       },
       "enhancements": [
         {
           "id": "champion-of-the-first-company",
           "name": "Champion of the First Company",
           "points": 20,
-          "eligibility": "Adeptus Astartes Terminator model",
-          "effect_summary": "Unit's melee attacks gain Lethal Hits.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "eligibility": "Adeptus Astartes Terminator model; all four export-mapped bearer profiles are present in the current catalog and linked by source datasheet ID",
+          "source_datasheet_ids": [
+            "000000079",
+            "000000115",
+            "000000135",
+            "000002677"
+          ],
+          "catalog_eligible_datasheet_ids": [
+            "000000079",
+            "000000115",
+            "000000135",
+            "000002677"
+          ],
+          "effect_summary": "While the living bearer remains in the unit, all of that unit's melee attacks gain Lethal Hits.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "champion-of-first-company",
+          "wahapedia_export_row_id": "000011200002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "20 points; construction admission uses only the consolidated local catalog and source-matches all four bearer identities to export datasheets 000000079, 000000115, 000000135 and 000002677. The Ancient in Terminator Armour profile retains its documented DEATHWING keyword omission; the source-mapped Adeptus Astartes Terminator eligibility for this enhancement remains explicit. While the living bearer remains in the unit, all unit melee attacks gain Lethal Hits through the shared attack-profile path. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is not certified."
         },
         {
           "id": "corporeum-reliquary",
           "name": "Corporeum Reliquary",
           "points": 25,
-          "eligibility": "Adeptus Astartes Terminator model",
-          "effect_summary": "In the first Movement phase, the unit can make an ingress move.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "eligibility": "Adeptus Astartes Terminator model; all four export-mapped bearer profiles are present in the current catalog and linked by source datasheet ID",
+          "source_datasheet_ids": [
+            "000000079",
+            "000000115",
+            "000000135",
+            "000002677"
+          ],
+          "catalog_eligible_datasheet_ids": [
+            "000000079",
+            "000000115",
+            "000000135",
+            "000002677"
+          ],
+          "effect_summary": "In the owner's first Movement phase of battle round 1, the unit can make an ingress move.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "corporeum-reliquary",
+          "wahapedia_export_row_id": "000011200003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "25 points; construction admission uses only the consolidated local catalog and source-matches all four bearer identities to export datasheets 000000079, 000000115, 000000135 and 000002677. The Ancient in Terminator Armour profile retains its documented DEATHWING keyword omission; the source-mapped Adeptus Astartes Terminator eligibility for this enhancement remains explicit. During battle round 1, the living bearer lets its unit ingress in its own first Movement phase through the shared reserve placement and deployment-zone restrictions. This does not grant opponent-turn Rapid Ingress. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is not certified."
         }
       ],
       "stratagems": [
@@ -4136,16 +4810,66 @@
           "timing": "Opponent Shooting or Fight phase, when enemy targets friendly Terminators.",
           "target": "That Terminator unit.",
           "effect_summary": "Attacks have -1 Damage until the attacking unit has attacked.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "terminator-tactical-dreadnought-fortitude",
+          "wahapedia_export_row_id": "000011201002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "2 CP in the opponent's Shooting or Fight phase when an enemy unit targets a friendly Adeptus Astartes Terminator unit. The target receives a use/pass decision before attack dice are rolled. If used, the target is recorded on that exact attack declaration; all attacks in the declared enemy activation that target it have Damage reduced by 1, minimum 1, through shared damage allocation. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is not certified."
         },
         {
           "id": "terminator-merciless-veterans",
           "name": "Merciless Veterans",
           "cp": 1,
-          "timing": "Your Shooting phase, when friendly Terminators are selected to shoot.",
+          "timing": "Your Shooting phase, when a friendly Adeptus Astartes Terminator unit is selected to shoot.",
           "target": "That unit.",
-          "effect_summary": "Ranged attacks gain both Lethal Hits and Sustained Hits 1.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "effect_summary": "Its ranged attacks gain Lethal Hits and Sustained Hits 1 for the phase.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "terminator-merciless-veterans",
+          "wahapedia_export_row_id": "000011201003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "1 CP when a friendly Adeptus Astartes Terminator unit is selected to shoot in your Shooting phase. Its ranged attacks gain Lethal Hits and Sustained Hits 1 for that phase through the shared attack-profile path. The attack declaration suspends for the choice and resumes after use or decline. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is not certified."
         },
         {
           "id": "terminator-gunship-extraction",
@@ -4154,7 +4878,32 @@
           "timing": "End of opponent Fight phase.",
           "target": "One friendly unengaged Terminator unit.",
           "effect_summary": "Place the unit in Strategic Reserves.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "terminator-gunship-extraction",
+          "wahapedia_export_row_id": "000011201004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "1 CP at the end of the opponent's Fight phase. One friendly, unengaged Adeptus Astartes Terminator unit on the battlefield can be placed in Strategic Reserves through the shared reserve state. The local unit profile must have positive admitted reserve points. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is not certified."
         }
       ],
       "known_interactions_to_review": [
@@ -4168,7 +4917,7 @@
       "id": "space-marines/tacticus-attack-force",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "wahapedia_e11_local_export_checked_2026_10_16",
+      "source_status": "wahapedia_e11_local_export_checked_2026_10_21",
       "detachment_rule": {
         "id": "wrath-of-the-chapter",
         "name": "Wrath of the Chapter",
@@ -4176,7 +4925,7 @@
         "status": "implemented_local_checks_pending",
         "runtime_capability": "wrath-of-the-chapter",
         "wahapedia_export_row_id": "000011191",
-        "implementation_scope": "Available in prepared-match selection; Tacticus units receive an optional Advance re-roll after the initial roll and before movement, without CP. Once chosen, the replacement roll is mandatory. Focused local checks cover the window, result and CP. Enhancements and stratagems are not implemented; network validation is deferred and full army legality is uncertified."
+        "implementation_scope": "Available in prepared-match selection; Tacticus units receive an optional Advance re-roll after the initial roll and before movement, without CP. Once chosen, the replacement roll is mandatory. Spearpoint War Leader (15 points) has a local path for 11 source-matched current-catalog Tacticus bearers and grants Scouts 6 through shared pre-battle movement and reserve set-up. Tactical Focus (1 CP) has a local Fight-phase consolidation path; its D3+3 roll is retained if placement is cancelled. Transhuman Swiftness (1 CP) is offered after an enemy unit has fought, including after a unit required to fight by the forced consolidation-reaction queue resolves its attacks; the selected Tacticus unit joins that queue and it resumes after the unit fights. A selection that resolves without attacks does not open the post-fight window. Relentless Assault (1 CP) opens at a friendly Tacticus unit's attack declaration and applies Sustained Hits 1 or Lethal Hits per target keyword until the phase ends. Martial Paragon (10 points) is available to 11 source-matched current-catalog Tacticus bearers and offers one Hit and one Wound re-roll across that unit's full attack declaration. Focused checks and playtesting remain pending, network validation is deferred and full army legality is uncertified."
       },
       "enhancements": [
         {
@@ -4185,7 +4934,71 @@
           "points": 10,
           "eligibility": "Tacticus model",
           "effect_summary": "Unit can reroll one Hit roll and one Wound roll when attacking.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "martial-paragon",
+          "source_status": "wahapedia_e11_local_export_checked_2026_10_21",
+          "reference_checked_at": "2026-10-26",
+          "observed_app_version": "2.8.1",
+          "wahapedia_export_row_id": "000011192002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_datasheet_ids": [
+            "000000073",
+            "000000083",
+            "000000112",
+            "000000140",
+            "000000158",
+            "000001165",
+            "000001174",
+            "000001346",
+            "000002266",
+            "000002707",
+            "000002773",
+            "000002775",
+            "000002793",
+            "000002795",
+            "000002796",
+            "000003831",
+            "000003832",
+            "000003833",
+            "000004129",
+            "000004130",
+            "000004135",
+            "000004136"
+          ],
+          "catalog_eligible_datasheet_ids": [
+            "000000073",
+            "000000083",
+            "000000112",
+            "000000140",
+            "000001165",
+            "000001174",
+            "000001346",
+            "000002266",
+            "000002707",
+            "000002773",
+            "000002775"
+          ],
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            }
+          ],
+          "implementation_scope": "10-point model-only Tacticus Attack Force enhancement. The verified local relation maps Martial Paragon to 22 datasheets; 11 source identities intersect the consolidated current catalog: Captain, Captain With Jump Pack, Chaplain With Jump Pack, Techmarine, Bladeguard Ancient, Chaplain, Lieutenant, Librarian, Judiciar, Apothecary and Ancient. Once per attack declaration, the bearer unit can re-roll one Hit roll and one Wound roll total, shared across its target batches. Re-roll choices use the serialized attack-roll checkpoint and resume that same attack. The current Wahapedia Space Marines App 2.8.1 page was checked on 2026-10-26; focused local checks and playtesting remain pending, network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "spearpoint-war-leader",
@@ -4193,7 +5006,44 @@
           "points": 15,
           "eligibility": "Tacticus model",
           "effect_summary": "Unit gains Scouts 6 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "spearpoint-war-leader",
+          "wahapedia_export_row_id": "000011192003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "catalog_eligible_datasheet_ids": [
+            "000000073",
+            "000000083",
+            "000000112",
+            "000000140",
+            "000001165",
+            "000001174",
+            "000001346",
+            "000002266",
+            "000002707",
+            "000002773",
+            "000002775"
+          ],
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            }
+          ],
+          "implementation_scope": "15 points. The verified local export maps this model-only enhancement to 23 datasheets; 11 identities intersect the consolidated current catalog: Captain, Captain With Jump Pack, Chaplain With Jump Pack, Techmarine, Bladeguard Ancient, Chaplain, Lieutenant, Librarian, Judiciar, Apothecary and Ancient. The bearer unit gains Scouts 6 through the existing shared pre-battle Scout movement and reserve set-up flow. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         }
       ],
       "stratagems": [
@@ -4203,8 +5053,20 @@
           "cp": 1,
           "timing": "Shooting or Fight phase, when friendly Tacticus unit is selected to attack.",
           "target": "That unit.",
-          "effect_summary": "Attacks gain Sustained Hits 1 against non-Monster/Vehicle targets, or Lethal Hits against Monster/Vehicle targets.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "effect_summary": "Attacks gain Sustained Hits 1 against targets without MONSTER or VEHICLE, or Lethal Hits against targets with either keyword.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "tacticus-attack-relentless-assault",
+          "wahapedia_export_row_id": "000011193002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "In your Shooting phase or the Fight phase, when a friendly Tacticus unit is selected to attack, its controller can spend 1 CP. A use/pass response suspends and resumes that attack declaration; through the end of the phase, the shared attack profile path grants Sustained Hits 1 for targets without MONSTER or VEHICLE and Lethal Hits for targets with either keyword. Uses the shared CP discount and once-per-phase/unit limits. Focused local checks and playtesting remain pending; network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "tacticus-transhuman-swiftness",
@@ -4213,7 +5075,19 @@
           "timing": "Fight phase, after an enemy unit has fought.",
           "target": "One eligible friendly Tacticus unit within objective range.",
           "effect_summary": "Gains Fights First and must be the next unit selected to fight.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "tacticus-transhuman-swiftness",
+          "wahapedia_export_row_id": "000011193003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "In the Fight phase, after an enemy unit has fought, offer the reaction to the opposing player. One eligible Tacticus unit within objective range may spend 1 CP, gain Fights First and become the mandatory next unit selected to fight. If the enemy unit was required to fight by the forced consolidation-reaction queue, the selected unit is inserted and the outstanding queue resumes after it fights. A selection that resolves without attacks does not open this post-fight window. Uses the shared reaction window, objective geometry, stratagem phase/unit limits and CP discount path. Focused local checks and playtesting remain pending; network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "tacticus-tactical-focus",
@@ -4222,13 +5096,29 @@
           "timing": "Fight phase, when friendly Tacticus unit consolidates.",
           "target": "That unit.",
           "effect_summary": "Consolidation move can be up to D3+3 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "tacticus-tactical-focus",
+          "wahapedia_export_row_id": "000011193004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "In either player's Fight phase, when a friendly Tacticus unit is selected to consolidate, the player can spend 1 CP and roll D3+3 inches. The dedicated contact action uses the shared placement and confirmation flow; cancelling restores positions but retains the paid roll for resumption without another CP charge. Focused local checks and playtesting remain pending; network validation is deferred and full army legality is uncertified."
         }
       ],
       "known_interactions_to_review": [
         "Advance rerolls.",
         "One reroll per attack sequence and timing.",
-        "Scouts eligibility and deployment.",
+        "Spearpoint War Leader source eligibility, attached-unit keywords, Scouts movement and reserve set-up.",
+        "Tactical Focus CP payment, D3+3 roll retention and consolidation resumption after placement cancellation.",
+        "Transhuman Swiftness timing after a forced consolidation-reaction fight, objective range, mandatory next selection, and resumption of the saved queue.",
+        "Relentless Assault attack-declaration timing, response resumption and per-target MONSTER/VEHICLE keyword selection.",
+        "Martial Paragon eligibility and one Hit/one Wound re-roll limit across an attack declaration split among targets or weapon profiles.",
         "Fights First ordering and mandatory next activation."
       ]
     },
@@ -4236,7 +5126,7 @@
       "id": "space-marines/tacticus-firestorm-force",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "wahapedia_e11_local_export_checked_2026_10_16",
+      "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
       "detachment_rule": {
         "id": "codex-fire-patterns",
         "name": "Codex Fire-patterns",
@@ -4244,7 +5134,7 @@
         "status": "wahapedia_e11_local_export_checked_local_targeted_validation_passed",
         "runtime_capability": "codex-fire-patterns",
         "wahapedia_export_row_id": "000011227",
-        "implementation_scope": "Available in prepared-match selection; adds Rapid Fire attacks at any target distance up to the weapon's maximum range for friendly Adeptus Astartes units with a living Tacticus model. Focused local checks cover maximum-range boundaries and Tacticus eligibility. Enhancements and stratagems are not implemented; network validation is deferred and full army legality is uncertified."
+        "implementation_scope": "Available in prepared-match selection; adds Rapid Fire attacks at any target distance up to the weapon's maximum range for friendly Adeptus Astartes units with a living Tacticus model. Focused local checks cover maximum-range boundaries and Tacticus eligibility. Cyber-familiar has a local pre-battle redeployment path for three deployed Astartes Infantry units, including the Strategic Reserves limit exception. Tempered in Battle has a 10-point Firestorm bearer record for 11 current-catalog Tacticus identities and reuses the existing 6-inch Leadership reroll aura. For the Emperor! has a local Command-phase path that adds +1 OC to each living model in an eligible Tacticus unit until end of turn. Relentless Assault uses the shared persisted attack-declaration response and per-target weapon-profile path for its Sustained Hits 1 or Lethal Hits effect. Point-Blank Brutality uses a persisted pre-resolution use/pass decision and grants Close-Quarters plus Ignores Cover to non-Blast ranged attacks when used. Network validation is deferred and full army legality is uncertified."
       },
       "enhancements": [
         {
@@ -4252,16 +5142,142 @@
           "name": "Cyber-familiar",
           "points": 15,
           "eligibility": "Tacticus model",
-          "effect_summary": "After deployment, redeploy up to three Astartes Infantry units; they may be set up in Strategic Reserves.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "effect_summary": "After both armies have deployed, redeploy up to three Adeptus Astartes Infantry units; any of them may be placed in Strategic Reserves regardless of the normal limit.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "cyber-familiar",
+          "wahapedia_export_row_id": "000011228002",
+          "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
+          "local_export": {
+            "snapshot_id": "20261021T130623Z",
+            "retrieved_at_utc": "2026-10-21T19:46:58Z",
+            "specification_revision": "20260817b",
+            "files": [
+              {
+                "filename": "Enhancements.csv",
+                "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+              },
+              {
+                "filename": "Datasheets_enhancements.csv",
+                "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+              },
+              {
+                "filename": "Datasheets.csv",
+                "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+              },
+              {
+                "filename": "Datasheets_keywords.csv",
+                "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+              }
+            ]
+          },
+          "export_eligible_datasheet_ids": [
+            "000000073",
+            "000000083",
+            "000000112",
+            "000000140",
+            "000000158",
+            "000001165",
+            "000001174",
+            "000001346",
+            "000002266",
+            "000002707",
+            "000002773",
+            "000002775",
+            "000002793",
+            "000002795",
+            "000002796",
+            "000003831",
+            "000003832",
+            "000003833",
+            "000004129",
+            "000004130",
+            "000004135",
+            "000004136"
+          ],
+          "current_catalog_eligible_datasheet_ids": [
+            "000000073",
+            "000000083",
+            "000000112",
+            "000000140",
+            "000001165",
+            "000001174",
+            "000001346",
+            "000002266",
+            "000002707",
+            "000002773",
+            "000002775"
+          ],
+          "implementation_scope": "After both armies deploy and before Scout moves, the bearer owner may redeploy up to three already deployed Adeptus Astartes Infantry units. Each unit can be previewed and confirmed within normal deployment restrictions or placed in Strategic Reserves with the bypass-limit marker. Embarked units are not selectable; reserve placement requires an admitted local points cost. Focused checks and playtesting are pending; network validation and full army legality are uncertified."
         },
         {
           "id": "tempered-in-battle-aura",
           "name": "Tempered in Battle (Aura)",
           "points": 10,
-          "eligibility": "Tacticus model",
-          "effect_summary": "Friendly Astartes units within 6 inches can reroll Leadership rolls.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "eligibility": "Tacticus model; 11 source-matched current-catalog bearers.",
+          "effect_summary": "Friendly Adeptus Astartes units within 6 inches can re-roll Leadership rolls.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "tacticus-firestorm-tempered-in-battle",
+          "wahapedia_export_row_id": "000011228003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            }
+          ],
+          "export_eligible_datasheet_ids": [
+            "000000073",
+            "000000083",
+            "000000112",
+            "000000140",
+            "000000158",
+            "000001165",
+            "000001174",
+            "000001346",
+            "000002266",
+            "000002707",
+            "000002773",
+            "000002775",
+            "000002793",
+            "000002795",
+            "000002796",
+            "000003831",
+            "000003832",
+            "000003833",
+            "000004129",
+            "000004130",
+            "000004135",
+            "000004136"
+          ],
+          "current_catalog_eligible_datasheet_ids": [
+            "000000073",
+            "000000083",
+            "000000112",
+            "000000140",
+            "000001165",
+            "000001174",
+            "000001346",
+            "000002266",
+            "000002707",
+            "000002773",
+            "000002775"
+          ],
+          "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
+          "implementation_scope": "When a friendly living TACTICUS bearer is within 6 inches of a friendly Adeptus Astartes unit, that unit can optionally re-roll both dice for Leadership tests supported by the shared Tempered in Battle decision flow: Command Battle-shock, Desperate Escape, Fearsome Assault and Adamantine Terror. The verified export relation maps the enhancement to 11 current-catalog Tacticus bearers. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         }
       ],
       "stratagems": [
@@ -4272,7 +5288,20 @@
           "timing": "Command phase.",
           "target": "Friendly Tacticus unit within objective range.",
           "effect_summary": "+1 OC until end of turn.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "tacticus-firestorm-for-the-emperor",
+          "wahapedia_export_row_id": "000011229002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
+          "implementation_scope": "In your Command phase, offer one friendly Tacticus unit within objective range. Spending 1 CP adds +1 OC to each living model in the unit through end of turn; the shared model objective-control path applies it to marker control and OC-dependent action checks. Uses the shared CP discount and once-per-phase/unit stratagem limits. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "tacticus-firestorm-relentless-assault",
@@ -4281,7 +5310,20 @@
           "timing": "Shooting or Fight phase, when friendly Tacticus unit is selected to attack.",
           "target": "That unit.",
           "effect_summary": "Attacks gain Sustained Hits 1 against non-Monster/Vehicle targets, or Lethal Hits against Monster/Vehicle targets.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "tacticus-firestorm-relentless-assault",
+          "wahapedia_export_row_id": "000011229003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
+          "implementation_scope": "In your Shooting phase or the Fight phase, when a friendly Tacticus unit is selected to attack, spend 1 CP. The persisted attack-declaration response lets the player use or decline the stratagem before resolving attacks. Until end of phase, attacks gain Sustained Hits 1 against targets without MONSTER or VEHICLE, or Lethal Hits against targets with either keyword through the shared per-target weapon-profile path. Uses the shared CP discount and once-per-phase/unit limits while retaining the Firestorm source identity. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "tacticus-point-blank-brutality",
@@ -4290,12 +5332,29 @@
           "timing": "Your Shooting phase, when engaged Tacticus unit is selected to shoot.",
           "target": "That unit.",
           "effect_summary": "Non-Blast ranged attacks gain Close-Quarters and Ignores Cover.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "tacticus-firestorm-point-blank-brutality",
+          "wahapedia_export_row_id": "000011229004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
+          "implementation_scope": "In your Shooting phase, when an engaged friendly TACTICUS unit is selected to shoot, offer a persisted use/pass response before final weapon validation and resolution. Spending 1 CP gives that unit's ranged attacks excluding Blast Close-Quarters and Ignores Cover through the shared weapon-profile path. Uses the shared CP discount and once-per-phase/unit stratagem limits. Focused local checks and human playtesting remain pending; network validation is deferred and full army legality is uncertified."
         }
       ],
       "known_interactions_to_review": [
         "Rapid Fire range and weapon characteristic semantics.",
-        "Redeployment and Strategic Reserves limits.",
+        "Cyber-familiar redeployment limits, currently embarked units, reserve points bypass and subsequent Scout set-up order.",
+        "Tempered in Battle Firestorm bearer source eligibility, the TACTICUS-only bearer restriction, 6-inch aura range and shared Leadership reroll timing.",
+        "For the Emperor! interaction with shared objective control, OC-dependent action checks and the once-per-phase/unit stratagem limits.",
+        "Firestorm Relentless Assault source identity, attack declaration resumption, target-keyword selection and shared stratagem use limits.",
+        "Point-Blank Brutality timing before final close-quarters weapon validation, pass behavior for a declaration that relies on the stratagem, and Blast exclusion.",
         "Leadership reroll interaction with modifiers.",
         "Close-Quarters and Blast attack restrictions."
       ]
@@ -4304,12 +5363,21 @@
       "id": "space-marines/phobos-shadow-force",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_full_rule_locator_pending",
+      "source_status": "wahapedia_e11_space_marines_page_v2_8_1_observed_2026_10_26_plus_local_export_20261021T130623Z",
       "detachment_rule": {
         "id": "shadow-masters",
         "name": "Shadow Masters",
         "summary": "After a friendly Phobos or Scout unit shoots, its attacks do not prevent it being hidden, or it can make a Normal move up to D6 inches and cannot declare a Charge that turn.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "implemented_local_checks_pending",
+        "runtime_capability": "phobos-shadow-masters",
+        "implementation_scope": "After a friendly PHOBOS or SCOUT SQUAD unit shoots in the owner's Shooting phase, the owner chooses either to preserve Hidden eligibility for the current turn or to make a Normal Move up to D6 inches. The move uses shared per-model placement, terrain and coherency checks, and records that the unit cannot declare a Charge until turn end. Out-of-phase shooting triggers and the Hidden exception's turn boundary remain pending review.",
+        "pending": [
+          "focused local checks",
+          "human playtesting",
+          "out-of-phase shooting trigger review",
+          "network validation",
+          "full army legality"
+        ]
       },
       "enhancements": [
         {
@@ -4318,7 +5386,37 @@
           "points": 15,
           "eligibility": "Phobos model",
           "effect_summary": "Attacks targeting a hidden unit reroll Wound rolls of 1, or 1 and 2 while Assault Doctrine is active.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "phobos-shadow-venator-omni-auspex",
+          "implementation_scope": "Selectable in Phobos Shadow Force for four current-catalog bearer identities linked by the verified local export: Lieutenant with Combi-weapon (000000076), Librarian in Phobos Armour (000000119), Lieutenant in Phobos Armour (000002530) and Captain in Phobos Armour (000002701). Attacks by the enhanced unit against a target squad whose living battlefield models all pass the local Hidden check re-roll natural Wound 1s; when Assault Doctrine is active for the attacker, natural 1s and 2s are eligible and successful natural 2s are offered as optional free re-roll choices through the persisted Wound checkpoint. This has a distinct enhancement source ID and capability from the identical Phobos Shock Force entry. Focused checks and playtesting remain pending; network validation and full army legality are uncertified.",
+          "source_mapping": {
+            "snapshot_id": "20261021T130623Z",
+            "retrieved_at_utc": "2026-10-21T19:46:58Z",
+            "specification_revision": "20260817b",
+            "enhancement_id": "000011188002",
+            "source_datasheet_ids": [
+              "000000076",
+              "000000119",
+              "000002530",
+              "000002701"
+            ],
+            "files": [
+              {
+                "filename": "Datasheets_enhancements.csv",
+                "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+              },
+              {
+                "filename": "Enhancements.csv",
+                "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+              }
+            ]
+          },
+          "current_page_observation": {
+            "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_date": "2026-10-26"
+          },
+          "pending": ["focused local checks", "human playtesting", "network validation", "full army legality"]
         },
         {
           "id": "execute-and-redeploy",
@@ -4326,7 +5424,37 @@
           "points": 25,
           "eligibility": "Phobos model",
           "effect_summary": "After the unit shoots while unengaged, it can Normal move up to 6 inches and cannot declare a Charge that turn.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "phobos-shadow-execute-and-redeploy",
+          "implementation_scope": "Selectable in Phobos Shadow Force for four current-catalog bearer identities linked by the verified local export: Lieutenant with Combi-weapon (000000076), Librarian in Phobos Armour (000000119), Lieutenant in Phobos Armour (000002530) and Captain in Phobos Armour (000002701). After the enhanced unit shoots in its own Shooting phase, if it is unengaged, the owner can make a Normal Move up to 6 inches; if it moves, it cannot declare a Charge until turn end. Shadow Masters resolves first; if that choice made a Normal Move, this option can only be passed, following Core Rules §09.05.01. Otherwise it uses persisted shared placement with terrain, base-overlap, coherency, and unengaged checks. Focused checks and playtesting remain pending; network validation and full army legality are uncertified.",
+          "source_mapping": {
+            "snapshot_id": "20261021T130623Z",
+            "retrieved_at_utc": "2026-10-21T19:46:58Z",
+            "specification_revision": "20260817b",
+            "enhancement_id": "000011188003",
+            "source_datasheet_ids": [
+              "000000076",
+              "000000119",
+              "000002530",
+              "000002701"
+            ],
+            "files": [
+              {
+                "filename": "Datasheets_enhancements.csv",
+                "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+              },
+              {
+                "filename": "Enhancements.csv",
+                "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+              }
+            ]
+          },
+          "current_page_observation": {
+            "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_date": "2026-10-26"
+          },
+          "pending": ["focused local checks", "human playtesting", "network validation", "full army legality"]
         }
       ],
       "stratagems": [
@@ -4337,7 +5465,22 @@
           "timing": "Shooting or Fight phase, when a hidden Phobos unit is selected to attack.",
           "target": "That unit.",
           "effect_summary": "Attacks gain +1 Strength and Lethal Hits.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "phobos-shadow-strike-from-the-shadows",
+          "source_row_id": "000011189002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {"filename": "Stratagems.csv", "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"}
+          ],
+          "implementation_scope": "In your Shooting or Fight phase, a friendly hidden PHOBOS unit may spend 1 CP when selected to attack. The persisted attack declaration offers use or pass; on use, the unit's attacks gain +1 Strength and Lethal Hits through the shared weapon-profile path. Hidden requires every living model to pass the local model-level Hidden check. This source entry is implemented only for Phobos Shadow Force and has a distinct capability from the identical Phobos Shock Force entry. Focused checks and playtesting are pending; network validation and full army legality are uncertified.",
+          "current_page_observation": {
+            "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_date": "2026-10-26"
+          },
+          "pending": ["focused local checks", "human playtesting", "network validation", "full army legality"]
         },
         {
           "id": "phobos-mortis-snares",
@@ -4345,24 +5488,64 @@
           "cp": 1,
           "timing": "End of your Movement phase.",
           "target": "One friendly unengaged Phobos/Scout unit controlling an objective.",
-          "effect_summary": "Snare that objective; the first enemy unit to end a move within range suffers D6 mortal wounds on 2+, then the snare ends.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "effect_summary": "Each objective controlled by the selected unit is snared. When an enemy unit ends a move within range of a snared objective, roll D6; on 2+, that enemy unit suffers D6 mortal wounds, then the objective is no longer snared.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "phobos-shadow-mortis-snares",
+          "source_row_id": "000011189003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "source_page_observation": {
+            "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-26"
+          },
+          "implementation_scope": "At the end of your Movement phase, spend 1 CP for one eligible unengaged friendly PHOBOS or SCOUT SQUAD unit. The local implementation arms each objective currently controlled by that unit. When an enemy unit ends a move within range of a snared objective, the snare is consumed; its owner makes the D6 trigger roll, and on 2+ a separate D6 sets the mortal-wound packet against the moving unit. Trigger, damage and defender allocation are separate persisted decisions; mortal wounds use shared prevention, Feel No Pain and Deadly Demise handling. Movement setup from reserves does not trigger the effect. The source does not name a roller, so this runtime assigns those dice to the snare owner. Focused checks, playtesting, network validation and full army legality remain pending.",
+          "pending": [
+            "focused local checks",
+            "human playtesting",
+            "network validation",
+            "full army legality"
+          ]
         },
         {
           "id": "phobos-tactical-withdrawal",
           "name": "Tactical Withdrawal",
           "cp": 1,
           "timing": "End of opponent Fight phase.",
-          "target": "One friendly unengaged Phobos/Scout unit.",
+          "target": "One friendly unengaged PHOBOS or SCOUT SQUAD unit.",
           "effect_summary": "Place the unit in Strategic Reserves.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "runtime_capability": "phobos-shadow-tactical-withdrawal",
+          "source_row_id": "000011189004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {"filename": "Stratagems.csv", "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"}
+          ],
+          "source_page_observation": {
+            "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-26"
+          },
+          "implementation_scope": "At the end of the opponent's Fight phase, the selected friendly unengaged PHOBOS or SCOUT SQUAD unit spends 1 CP and is placed in Strategic Reserves. The local action requires every living model to be on the battlefield and a positive admitted reserve cost; it marks the unit in the existing reserves state, removes its living models from the battlefield and deployment order, and leaves later arrival to the shared ingress rules. CP discounts and shared once-per-phase/unit limits apply. Both Phobos Shadow Force enhancements now have distinct source-linked capability and runtime paths. Focused checks, playtesting, network validation and full army legality remain pending.",
+          "status": "implemented_local_checks_pending",
+          "pending": ["focused local checks", "human playtesting", "network validation", "full army legality"]
         }
       ],
       "known_interactions_to_review": [
-        "Hidden state and attacks after firing.",
-        "Movement after shooting and charge eligibility.",
-        "Objective snare trigger ordering and one-use consumption.",
-        "Reroll scope against hidden targets."
+        "Shadow Masters Hidden exception lifetime and later same-turn Hidden checks.",
+        "Shadow Masters out-of-phase shooting trigger coverage.",
+        "Execute and Redeploy's sequencing with Shadow Masters and the Core Rules one-Normal-Move-per-phase limit.",
+        "Mortis Snares ordering around nested movement reactions and mortal-wound allocation.",
+        "Reroll scope against hidden targets.",
+        "Tactical Withdrawal reserve entry and later ingress restrictions."
       ]
     },
     {
@@ -4385,7 +5568,36 @@
           "points": 15,
           "eligibility": "Phobos model",
           "effect_summary": "Enemy units cannot target this unit with Snap Shooting attacks.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "phobos-shock-seal-of-shrouding",
+          "implementation_scope": "Selectable for four current-catalog bearer identities linked by the verified 20261021T130623Z local export: Lieutenant with Combi-weapon (000000076), Librarian in Phobos Armour (000000119), Lieutenant in Phobos Armour (000002530) and Captain in Phobos Armour (000002701). During the current Snap Shooting/Fire Overwatch path, the enhanced unit is omitted from legal target projection and a stale attack declaration against it is rejected before attack dice. Focused checks and playtesting remain pending; network validation and full army legality are uncertified.",
+          "source_mapping": {
+            "snapshot_id": "20261021T130623Z",
+            "retrieved_at_utc": "2026-10-21T19:46:58Z",
+            "specification_revision": "20260817b",
+            "enhancement_id": "000011196002",
+            "source_datasheet_ids": [
+              "000000076",
+              "000000119",
+              "000002530",
+              "000002701"
+            ],
+            "files": [
+              {
+                "filename": "Datasheets_enhancements.csv",
+                "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+              },
+              {
+                "filename": "Enhancements.csv",
+                "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839db1ffc7889026f"
+              }
+            ]
+          },
+          "current_page_observation": {
+            "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_date": "2026-10-26"
+          }
         },
         {
           "id": "venator-omni-auspex-shock-force",
@@ -4393,7 +5605,36 @@
           "points": 15,
           "eligibility": "Phobos model",
           "effect_summary": "Attacks targeting a hidden unit reroll Wound rolls of 1, or 1 and 2 while Assault Doctrine is active.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "phobos-shock-venator-omni-auspex",
+          "implementation_scope": "Selectable for four current-catalog bearer identities linked by the verified 20261021T130623Z local export: Lieutenant with Combi-weapon (000000076), Librarian in Phobos Armour (000000119), Lieutenant in Phobos Armour (000002530) and Captain in Phobos Armour (000002701). Attacks by the enhanced unit against a target squad whose living battlefield models all pass the local Hidden check re-roll natural Wound 1s; when Assault Doctrine is active for the attacker, failed natural 2s are also re-rolled and successful natural 2s are offered as optional free re-roll choices through the persisted Wound checkpoint. Focused checks and playtesting remain pending; network validation and full army legality are uncertified.",
+          "source_mapping": {
+            "snapshot_id": "20261021T130623Z",
+            "retrieved_at_utc": "2026-10-21T19:46:58Z",
+            "specification_revision": "20260817b",
+            "enhancement_id": "000011196003",
+            "source_datasheet_ids": [
+              "000000076",
+              "000000119",
+              "000002530",
+              "000002701"
+            ],
+            "files": [
+              {
+                "filename": "Datasheets_enhancements.csv",
+                "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+              },
+              {
+                "filename": "Enhancements.csv",
+                "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+              }
+            ]
+          },
+          "current_page_observation": {
+            "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_date": "2026-10-26"
+          }
         }
       ],
       "stratagems": [
@@ -4413,7 +5654,14 @@
           "timing": "Opponent Movement phase, when enemy ends a move within 8 inches.",
           "target": "One friendly unengaged Phobos unit.",
           "effect_summary": "Normal move up to D6 inches, or up to 6 with Tactical Doctrine.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "phobos-shock-transhuman-reactions",
+          "implementation_scope": "After an enemy unit ends a move within 8 inches of a friendly unengaged PHOBOS unit in the opponent's Movement phase, the persisted movement reaction offers the eligible unit. Using it spends 1 CP and resolves a D6 through the host die, or uses a fixed 6 inches when Tactical Doctrine is active for the unit. The shared movement preview and confirmation enforce distance, coherency, battlefield bounds, non-overlap and ending unengaged. No Charge restriction is added. Focused checks and playtesting are pending; network validation and full army legality are uncertified.",
+          "current_page_observation": {
+            "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_date": "2026-10-26"
+          }
         },
         {
           "id": "phobos-umbral-evasion",
@@ -4422,21 +5670,33 @@
           "timing": "Opponent Shooting phase, when enemy targets friendly Phobos.",
           "target": "That Phobos unit.",
           "effect_summary": "Ranged attacks targeting it have -1 to Hit.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "phobos-shock-umbral-evasion",
+          "implementation_scope": "During the opponent's Shooting phase, when an enemy ranged attack declaration targets a friendly PHOBOS unit, the persisted defensive reaction offers every eligible PHOBOS target from that declaration before attack dice. Using it spends 1 CP and gives ranged attacks targeting the chosen PHOBOS unit -1 to Hit through the end of the phase via the shared attack modifier path. Focused checks and playtesting are pending; network validation and full army legality are uncertified.",
+          "current_page_observation": {
+            "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_date": "2026-10-26"
+          }
         }
       ],
       "known_interactions_to_review": [
         "Hidden state timing at Movement phase end.",
         "Snap Shooting targeting exclusions.",
         "Reactive movement and engagement restrictions.",
-        "Hit modifier caps and attack resolution."
+        "Hit modifier caps and attack resolution.",
+        "Strike from the Shadows use/pass and attack-profile scope in Shooting and Fight.",
+        "Transhuman Reactions movement-reaction timing and Tactical Doctrine fixed distance.",
+        "Umbral Evasion attack declaration, ranged-only scope and hit modifier interaction.",
+        "Venator source eligibility, hidden target unit boundary and Assault Doctrine natural-2 handling.",
+        "Seal of Shrouding eligibility and Snap Shooting/Fire Overwatch target rejection."
       ]
     },
     {
       "id": "space-marines/gravis-linebreaker-force",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "wahapedia_e11_local_export_checked_2026_10_16",
+      "source_status": "wahapedia_e11_local_export_checked_2026_10_21",
       "detachment_rule": {
         "id": "walking-fortress",
         "name": "Walking Fortress",
@@ -4444,24 +5704,90 @@
         "status": "wahapedia_e11_local_export_checked_local_targeted_validation_passed",
         "runtime_capability": "walking-fortress",
         "wahapedia_export_row_id": "000011207",
-        "implementation_scope": "Available in prepared-match selection; records a completed Normal move for the current turn and removes Heavy while adding +1 to Hit for ranged attacks by friendly Adeptus Astartes Gravis units. Focused local checks cover the move condition, Gravis eligibility and attack context. Enhancements and stratagems are not implemented; network validation is deferred and full army legality is uncertified."
+        "implementation_scope": "Available in prepared-match selection; records a completed Normal move for the current turn and removes Heavy while adding +1 to Hit for ranged attacks by friendly Adeptus Astartes Gravis units. Focused local checks cover the move condition, Gravis eligibility and attack context. Annihilating Force is available at the selected unit's attack declaration, Purgation Push is available after an unengaged Gravis shooting activation and uses the shared objective-bound Normal Move flow, and Armoured Impact is available after a Gravis charge. Indefatigable Fortitude and Relentless Advance are available for export-eligible Apothecary Biologis and Captain in Gravis Armour bearers. Focused checks for Gravis Linebreaker effects remain pending; network validation and full army legality are not implemented or certified."
       },
       "enhancements": [
         {
           "id": "indefatigable-fortitude",
           "name": "Indefatigable Fortitude",
           "points": 20,
-          "eligibility": "Gravis model",
+          "eligibility": "Gravis model; local export maps Apothecary Biologis and Captain in Gravis Armour",
+          "catalog_eligible_datasheet_ids": [
+            "000000060",
+            "000001172"
+          ],
           "effect_summary": "Attacks with Strength greater than the unit's Toughness have -1 to Wound against it.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "indefatigable-fortitude",
+          "wahapedia_export_row_id": "000011208002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "20 points; selected from the consolidated local catalog only for Apothecary Biologis or Captain in Gravis Armour, as mapped by the verified export. In Gravis Linebreaker Force, incoming attacks with Strength greater than the unit's Toughness receive -1 to Wound through the shared capped defensive modifier. Focused local checks remain pending."
         },
         {
           "id": "relentless-advance",
           "name": "Relentless Advance",
           "points": 20,
-          "eligibility": "Gravis model",
+          "eligibility": "Gravis model; local export maps Apothecary Biologis and Captain in Gravis Armour",
+          "catalog_eligible_datasheet_ids": [
+            "000000060",
+            "000001172"
+          ],
           "effect_summary": "Bearer's unit gains Scouts 5 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "relentless-advance",
+          "wahapedia_export_row_id": "000011208003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "20 points; selected from the consolidated local catalog only for Apothecary Biologis or Captain in Gravis Armour, as mapped by the verified export. In Gravis Linebreaker Force, the bearer's unit gains Scouts 5 through the existing pre-battle Scout move and set-up flow. Focused local checks remain pending."
         }
       ],
       "stratagems": [
@@ -4472,7 +5798,27 @@
           "timing": "Shooting or Fight phase, when friendly Gravis is selected to attack.",
           "target": "That unit.",
           "effect_summary": "Attacks gain Lethal Hits.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "gravis-linebreaker-annihilating-force",
+          "wahapedia_export_row_id": "000011209002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "implementation_scope": "1 CP after a friendly GRAVIS unit is selected to attack in its Shooting or Fight phase. The pending attack declaration opens an owner-only choice to use Annihilating Force; if used, the unit's attacks gain Lethal Hits for the phase. Focused local checks remain pending."
         },
         {
           "id": "gravis-linebreaker-purgation-push",
@@ -4481,7 +5827,32 @@
           "timing": "Your Shooting phase, after friendly Gravis has shot.",
           "target": "That unit.",
           "effect_summary": "If unengaged, Normal move up to 5 inches ending within objective range; cannot Charge or embark this turn.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "gravis-linebreaker-purgation-push",
+          "wahapedia_export_row_id": "000011209003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "1 CP in your Shooting phase after a friendly unengaged GRAVIS unit shoots; the player can make a Normal Move up to 5 inches and must end within range of an objective. On confirmation, the unit cannot declare a Charge or embark in a Transport until the end of the turn. The shared movement placement path checks movement distance, terrain, base overlap, coherency, engagement and objective range. Focused local checks remain pending."
         },
         {
           "id": "gravis-linebreaker-armoured-impact",
@@ -4490,7 +5861,32 @@
           "timing": "Charge phase, when friendly Gravis ends a Charge move.",
           "target": "That unit; select one enemy unit it engages.",
           "effect_summary": "Roll one D6 per friendly model engaged with that enemy; each 3+ inflicts one mortal wound.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "gravis-linebreaker-armoured-impact",
+          "wahapedia_export_row_id": "000011209004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "1 CP after a friendly GRAVIS unit ends a Charge move. The owner selects one engaged enemy unit; each friendly model engaged with it rolls a D6, and each 3+ inflicts one mortal wound. Mortal-wound allocation and prevention use the shared reaction path. Focused local checks remain pending."
         }
       ],
       "known_interactions_to_review": [
@@ -4504,12 +5900,28 @@
       "id": "space-marines/gravis-siege-force",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_full_rule_locator_pending",
+      "source_status": "wahapedia_e11_local_export_checked_2026_10_21",
       "detachment_rule": {
         "id": "indomitable-defence",
         "name": "Indomitable Defence",
         "summary": "While a friendly Gravis unit is within objective range, attacks with Strength greater than its Toughness have -1 to Wound against it.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "implemented_local_checks_pending",
+        "runtime_capability": "indomitable-defence",
+        "wahapedia_export_row_id": "000011215",
+        "source_snapshot_id": "20261021T130623Z",
+        "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+        "source_snapshot_export_revision": "20260817b",
+        "source_snapshot_files": [
+          {
+            "filename": "Detachment_abilities.csv",
+            "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+          },
+          {
+            "filename": "Datasheets.csv",
+            "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+          }
+        ],
+        "implementation_scope": "Available through prepared-match detachment selection. A friendly Gravis unit receives -1 to incoming Wound rolls when it is within objective range and the attacking Strength exceeds its Toughness. Eligibility reads the current local model keywords and objective geometry, and the effect uses the shared capped defensive Wound modifier. Immovable Conquerors is available for seven export-matched current-catalog Gravis identities; Annihilating Force is available at the selected unit's attack declaration; Stand Unyielding is available in the end-of-Movement window for a Gravis unit controlling an objective; and Suppression Volleys is available after a Gravis shooting activation hits a living enemy and applies a -1 Battle-shock roll. Narthecis Gauntlet is available for an export-matched Apothecary Biologis in Gravis Siege Force and uses the shared healing path; focused local checks remain pending. Remaining Gravis enhancement options and full army legality are not implemented or certified."
       },
       "enhancements": [
         {
@@ -4517,16 +5929,81 @@
           "name": "Immovable Conquerors",
           "points": 15,
           "eligibility": "Gravis unit (Upgrade)",
+          "catalog_eligible_datasheet_ids": [
+            "000000060",
+            "000000125",
+            "000001172",
+            "000001177",
+            "000002099",
+            "000004231",
+            "000004249"
+          ],
           "effect_summary": "Unit gains +1 OC.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "immovable-conquerors",
+          "wahapedia_export_row_id": "000011216002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "implementation_scope": "15 points; selectable on the seven export-matched current-catalog Gravis identities: Apothecary Biologis, Inceptor Squad, Captain in Gravis Armour, Heavy Intercessor Squad, Aggressor Squad and both Eradicator Squad loadout profiles. The export relation does not list Iron Father Feirros or Tor Garadon. In a Gravis Siege Force match, models in the enhanced unit contribute +1 OC through the shared objective-control calculation. Narthecis Gauntlet is available for an export-matched Apothecary Biologis and heals D3+1 wounds in the Command phase through shared healing allocation. Focused local checks remain pending; remaining Gravis enhancement options and full army legality are not implemented or certified."
         },
         {
           "id": "narthecis-gauntlet",
           "name": "Narthecis Gauntlet",
           "points": 20,
-          "eligibility": "Apothecary Biologis model",
-          "effect_summary": "In your Command phase, the unit heals D3+1 wounds.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "eligibility": "Apothecary Biologis model only; local export mapping datasheet 000000060",
+          "catalog_eligible_datasheet_ids": [
+            "000000060"
+          ],
+          "effect_summary": "In your Command phase, this unit heals D3+1 wounds.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "narthecis-gauntlet",
+          "wahapedia_export_row_id": "000011216003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Enhancements.csv",
+              "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+            },
+            {
+              "filename": "Datasheets_enhancements.csv",
+              "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "Available through the Gravis Siege Force local army enhancement picker only for the export-mapped Apothecary Biologis bearer. In your Command phase, roll D3+1 and resolve the unit's healing budget through the shared wound allocation and eligible non-Character return flow. Focused local checks remain pending; full army legality is not certified."
         }
       ],
       "stratagems": [
@@ -4537,7 +6014,27 @@
           "timing": "Shooting or Fight phase, when friendly Gravis is selected to attack.",
           "target": "That unit.",
           "effect_summary": "Attacks gain Lethal Hits.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "gravis-siege-annihilating-force",
+          "wahapedia_export_row_id": "000011217002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "implementation_scope": "1 CP after a friendly GRAVIS unit is selected to attack in its Shooting or Fight phase. The pending attack declaration opens an owner-only choice to use Annihilating Force; if used, the unit's attacks gain Lethal Hits for the phase. Focused local checks remain pending."
         },
         {
           "id": "gravis-siege-stand-unyielding",
@@ -4546,7 +6043,32 @@
           "timing": "End of your Movement phase.",
           "target": "One friendly Gravis unit controlling an objective.",
           "effect_summary": "Select one controlled objective; it becomes Secured.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "gravis-siege-stand-unyielding",
+          "wahapedia_export_row_id": "000011217003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "1 CP in the active player's end-of-Movement decision window. A friendly GRAVIS unit that contributes positive OC to an objective its army controls may select one such objective and secure it through the shared objective effect. Focused local checks remain pending."
         },
         {
           "id": "gravis-siege-suppression-volleys",
@@ -4555,7 +6077,32 @@
           "timing": "Your Shooting phase, after friendly Gravis shoots.",
           "target": "One enemy unit hit by those attacks.",
           "effect_summary": "Target takes a Battle-shock roll at -1.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "gravis-siege-suppression-volleys",
+          "wahapedia_export_row_id": "000011217004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            },
+            {
+              "filename": "Datasheets_keywords.csv",
+              "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+            },
+            {
+              "filename": "Datasheets.csv",
+              "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+            }
+          ],
+          "current_page_observation": {
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-25",
+            "rule_text_matches_export": true
+          },
+          "implementation_scope": "1 CP in your Shooting phase after a friendly GRAVIS unit has shot; choose one living enemy unit hit by those attacks and make its Battle-shock roll at -1. The tested unit's controller can use Tempered in Battle when available. Focused local checks remain pending."
         }
       ],
       "known_interactions_to_review": [
@@ -4761,12 +6308,17 @@
       "id": "space-marines/gauntlet-task-force",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_full_rule_locator_pending",
+      "source_status": "wahapedia_e11_local_export_checked_2026_10_21; page_observed_2026_10_26",
+      "current_page_observation": {
+        "app_version": "2.8.1",
+        "observed_at": "2026-10-26"
+      },
       "detachment_rule": {
         "id": "combined-deployment",
         "name": "Combined Deployment",
         "summary": "When a friendly Astartes Transport has shot in your Shooting phase, select an enemy unit hit by those attacks; until turn end, Astartes units that disembarked this turn gain Sustained Hits 1 against it.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "implemented_local_checks_pending",
+        "implementation_scope": "The active player may select one recorded hit enemy unit or pass after a friendly Astartes Transport's shooting activation. The Assailed mark lasts for the player's turn; target-specific attack profiles grant Sustained Hits 1 to friendly Astartes units that disembarked this turn. Focused local checks and human playtesting remain pending."
       },
       "enhancements": [
         {
@@ -4775,7 +6327,18 @@
           "points": 20,
           "eligibility": "Adeptus Astartes Infantry model",
           "effect_summary": "If the unit disembarked this turn, it can reroll Charge rolls and cannot be targeted by Snap Shooting attacks.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "runtime_capability": "linebreaker-onslaught",
+          "local_export_snapshot": "20261021T130623Z",
+          "source_enhancement_id": "000011184002",
+          "current_catalog_matched_datasheets": 21,
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {"filename": "Enhancements.csv", "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"},
+            {"filename": "Datasheets_enhancements.csv", "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"}
+          ],
+          "implementation_scope": "The 21 source-linked current-catalog Infantry profiles expose this 20-point enhancement. Its condition checks disembarked_this_turn; Charge uses the persisted both-dice reroll window, and target protection covers the current Fire Overwatch and Power of the Machine Spirit Snap Shooting paths. Focused local checks and human playtesting remain pending.",
+          "status": "implemented_local_checks_pending"
         },
         {
           "id": "damocles-class-uplink",
@@ -4783,7 +6346,19 @@
           "points": 15,
           "eligibility": "Captain model",
           "effect_summary": "While embarked in a Transport during your Movement phase, select friendly Astartes Infantry within 6 inches of that Transport and activate one Combat Doctrine for it.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "runtime_capability": "damocles-class-uplink",
+          "source_enhancement_id": "000011184003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_datasheet_ids": ["000000073", "000000083", "000000135", "000001172", "000002701", "000002702", "000002796", "000003831", "000003832", "000003833", "000003871"],
+          "current_catalog_datasheet_ids": ["000000073", "000000083", "000000135", "000001172", "000002701", "000002702"],
+          "source_snapshot_files": [
+            {"filename": "Enhancements.csv", "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"},
+            {"filename": "Datasheets_enhancements.csv", "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"}
+          ],
+          "implementation_scope": "The local export relation contains 11 Captain datasheets; six are current-catalog profiles: Captain (000000073), Captain with Jump Pack (000000083), Captain in Terminator Armour (000000135), Captain in Gravis Armour (000001172), Captain in Phobos Armour (000002701) and Captain on Bike (000002702). During the bearer's active Movement phase while its unit is embarked within a living Transport, assign one unused Combat Doctrine to a friendly Astartes Infantry unit with the Combat Doctrines ability within 6 inches of that Transport. The assignment lasts until the owner's next Command phase and consumes the shared doctrine selection; the action can be used once that Movement phase. Focused local checks and human playtesting remain pending.",
+          "status": "implemented_local_checks_pending"
         }
       ],
       "stratagems": [
@@ -4793,17 +6368,46 @@
           "cp": 1,
           "timing": "Any phase, when an embarked friendly Astartes unit is selected to move.",
           "target": "That unit.",
-          "effect_summary": "During that move, models can be set up within the Transport's set-up distance, without requiring the unit to be wholly within it.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "effect_summary": "During that move, each model can be set up within the Transport's set-up distance instead of wholly within that distance.",
+          "runtime_capability": "gauntlet-aggressive-disembarkation",
+          "source_row_id": "000011185002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {"filename": "Stratagems.csv", "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"}
+          ],
+          "source_page_observation": {
+            "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-26"
+          },
+          "implementation_scope": "The stratagem is offered with currently supported Movement-phase disembark choices for an embarked friendly ADEPTUS ASTARTES unit. Each model may be set up within, rather than wholly within, the selected mode's set-up distance: 3 inches for Rapid, Tactical, Assault and Shock, or 6 inches for Combat. Tactical-mode eligibility also accounts for the relaxed placement range. Mode, Engagement Range, coherency, Hazard, ingress and post-move restrictions remain enforced. Other stratagem gates retain CP discounts, once-per-phase use and one use per target unit. Emergency Disembark now offers the stratagem before Hazard rolls and permits setup within 6 inches instead of wholly within, while preserving as-close-as-possible placement, engagement fallback, Battle-shock and the no-Charge restriction. The existing active-player placement handoff remains. Before each mandatory Drop Pod Assault Rapid Disembark, the stratagem offers the same choice after arrival, including after Rapid Ingress during the opponent's Movement phase; the more-than-8-inch enemy restriction remains. Other out-of-phase selection contexts are not implemented.",
+          "status": "implemented_local_checks_pending",
+          "pending": ["other out-of-phase selection contexts", "focused local checks", "human playtesting", "network validation", "full army legality"]
         },
         {
           "id": "gauntlet-duty-is-never-done",
           "name": "Duty is Never Done",
           "cp": 1,
           "timing": "End of Fight phase.",
-          "target": "One unengaged friendly Astartes Infantry unit eligible to embark, within 6 inches of a friendly Transport.",
-          "effect_summary": "The unit embarks within that Transport.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "target": "One friendly ADEPTUS ASTARTES INFANTRY unit that was eligible to fight this phase and is currently unengaged; every living model is within 6 inches of a friendly Transport it is eligible to embark within.",
+          "effect_summary": "After the 1 CP stratagem is applied, all living passenger models embark in the selected Transport through the shared transport state path.",
+          "status": "implemented_local_checks_pending",
+          "runtime_capability": "gauntlet-duty-is-never-done",
+          "source_row_id": "000011185003",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {"filename": "Stratagems.csv", "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"}
+          ],
+          "source_page_observation": {
+            "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-26"
+          },
+          "pending": ["focused local checks", "human playtesting", "network validation", "full army legality"]
         },
         {
           "id": "gauntlet-storm-and-secure",
@@ -4812,7 +6416,21 @@
           "timing": "End of your Movement phase.",
           "target": "Friendly Astartes Transport carrying Astartes Battleline.",
           "effect_summary": "Select an objective the Transport controls; it becomes Secured.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "runtime_capability": "gauntlet-storm-and-secure",
+          "source_row_id": "000011185004",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {"filename": "Stratagems.csv", "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"}
+          ],
+          "source_page_observation": {
+            "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+            "app_version": "2.8.1",
+            "observed_at": "2026-10-26"
+          },
+          "implementation_scope": "At the end of your Movement phase, a friendly Astartes Transport carrying a friendly Astartes Battleline unit can select an objective it controls and secure it through the shared objective path. The shared stratagem gate enforces CP, one use per phase and one stratagem per target unit. Focused local checks, human playtesting, network validation and full army legality remain pending.",
+          "status": "implemented_local_checks_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -4827,7 +6445,7 @@
       "id": "space-marines/ironstorm-spearhead",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "wahapedia_e11_local_export_2026_10_16",
+      "source_status": "wahapedia_e11_local_export_checked_2026_10_21",
       "detachment_rule": {
         "id": "ironstorm-auto-targeters",
         "name": "Ironstorm Auto-targeters",
@@ -4845,7 +6463,13 @@
           "effect_summary": "Unit gains a 5+ invulnerable save and heals 1 wound at the end of your Command phase.",
           "status": "implemented_local_targeted",
           "source_row_id": "000008478002",
-          "source_datasheet_ids": ["000000086", "000001667", "000001825", "000002705", "000004247"],
+          "source_datasheet_ids": [
+            "000000086",
+            "000001667",
+            "000001825",
+            "000002705",
+            "000004247"
+          ],
           "implementation_scope": "Exact local relation filtered by Wahapedia datasheet role and keywords. In prepared Ironstorm matches, the unit gains a 5+ invulnerable save and restores one lost wound once at the end of its Command phase. Focused local checks cover roster points/eligibility, the defensive save and one-wound limit. Network validation is deferred; full army legality is uncertified."
         },
         {
@@ -4856,7 +6480,13 @@
           "effect_summary": "Unit's ranged attacks gain Heavy.",
           "status": "implemented_local_targeted",
           "source_row_id": "000008478003",
-          "source_datasheet_ids": ["000000086", "000001667", "000001825", "000002705", "000004247"],
+          "source_datasheet_ids": [
+            "000000086",
+            "000001667",
+            "000001825",
+            "000002705",
+            "000004247"
+          ],
           "implementation_scope": "Exact local relation filtered by Wahapedia datasheet role and keywords. In prepared Ironstorm matches, the assigned unit's ranged attacks gain Heavy. Focused local checks cover roster points/eligibility and ranged/melee boundaries. Network validation is deferred; full army legality is uncertified."
         }
       ],
@@ -4868,7 +6498,18 @@
           "timing": "Any phase, when friendly Astartes Vehicle suffers a mortal wound.",
           "target": "That Vehicle.",
           "effect_summary": "Feel No Pain 5+ against mortal wounds.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "focused_local_checks_passed; network validation deferred; full legality uncertified",
+          "source_row_id": "000008479002",
+          "source_snapshot_id": "20261021T130623Z",
+          "source_snapshot_retrieved_at_utc": "2026-10-21T19:46:58Z",
+          "source_snapshot_export_revision": "20260817b",
+          "source_snapshot_files": [
+            {
+              "filename": "Stratagems.csv",
+              "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+            }
+          ],
+          "implementation_scope": "1 CP, any phase when a friendly Adeptus Astartes Vehicle suffers a mortal wound. The defender can use the reaction before allocation to grant Feel No Pain 5+ against mortal wounds through the current phase. Focused local checks cover nine locally applicable mortal-wound sources and the shared prevention flow; Emergency Disembark has no legal Vehicle target in the admitted Marine transport profiles because their passengers must be Infantry. Network validation is deferred and full army legality is uncertified."
         },
         {
           "id": "ironstorm-might-of-the-machine-spirit",

@@ -133,6 +133,6 @@ static func summary() -> String:
 		if not admitted.error.is_empty(): return str(admitted.error)
 		var formation: Array[String] = []
 		for entry: Dictionary in report.list.entries:
-			formation.append(str(entry.name) if int(entry.models) == 1 else "%s (%d models)" % [str(entry.name), int(entry.models)])
+			formation.append("%s (%d)" % [str(entry.name), int(entry.models)])
 		lines.append("%s • %d pts\n%s" % [report.list.name, admitted.total, ", ".join(formation)])
-	return "\n".join(lines) + "\nGladius • local free play with tips • no downloads\nPractice: abilities • CP stratagems • plasma/Hazardous • Bladeguard stances\nAsymmetric training; army legality and competitive balance are not certified."
+	return "\n".join(lines) + "\nLocal Gladius free play with tips • no downloads\nPractice: abilities • CP stratagems • plasma/Hazardous • Bladeguard stances\nAsymmetric forces; legality and competitive balance are not certified."

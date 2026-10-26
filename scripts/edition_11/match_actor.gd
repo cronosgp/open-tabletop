@@ -17,7 +17,7 @@ const EscapeWounds = preload("res://scripts/edition_11/escape_wound_decision.gd"
 
 ## Reject malformed pending containers before any actor or HUD projection reads them.
 static func pending_state_error(state: Dictionary) -> String:
-	for source: String in ["mission-preparation", "combat-doctrines", "oath-of-moment", "awakened-attachment"]:
+	for source: String in ["mission-preparation", "combat-doctrines", "oath-of-moment", "vowed-target", "awakened-attachment"]:
 		var decision_error := decision_container_error(state, source)
 		if not decision_error.is_empty(): return decision_error
 	var unit_action_error := unit_action_state_error(state)
@@ -43,8 +43,22 @@ static func pending_state_error(state: Dictionary) -> String:
 		if typeof(core_reactions.get(field, {})) != TYPE_DICTIONARY: return "Cannot continue while reaction decision state is invalid."
 	var detachment: Variant = state.get("detachment_stratagems", {})
 	if typeof(detachment) != TYPE_DICTIONARY: return "Cannot continue while detachment reaction state is invalid."
-	for field: String in ["vengeful", "hail_of_vengeance", "hail_of_vengeance_pending", "after"]:
+	for field: String in ["vengeful", "hail_of_vengeance", "hail_of_vengeance_pending", "after", "gravis_suppression_pending", "medusa_power_pending", "medusa_power_reactive"]:
 		if typeof(detachment.get(field, {})) != TYPE_DICTIONARY: return "Cannot continue while detachment reaction state is invalid."
+	var wrath_destroyed_value: Variant = detachment.get("wrath_destroyed", [])
+	if typeof(wrath_destroyed_value) != TYPE_ARRAY: return "Cannot continue while Wrath of the Rock destruction state is invalid."
+	for record_value: Variant in wrath_destroyed_value:
+		if not record_value is Dictionary: return "Cannot continue while Wrath of the Rock destruction state is invalid."
+		var record: Dictionary = record_value
+		for field: String in ["model", "squad", "owner"]:
+			if not record.get(field, null) is int: return "Cannot continue while Wrath of the Rock destruction state is invalid."
+		if int(record.get("model", -1)) < 0 or int(record.get("squad", -1)) < 0 or int(record.get("owner", -1)) not in [1, 2]: return "Cannot continue while Wrath of the Rock destruction state is invalid."
+		if not record.get("phase_key", null) is String or str(record.get("phase_key", "")).is_empty(): return "Cannot continue while Wrath of the Rock destruction state is invalid."
+		for field: String in ["objectives_in_range", "previously_controlled"]:
+			var indices: Variant = record.get(field, null)
+			if typeof(indices) != TYPE_ARRAY: return "Cannot continue while Wrath of the Rock destruction state is invalid."
+			for objective_index: Variant in indices:
+				if not objective_index is int or int(objective_index) < 0: return "Cannot continue while Wrath of the Rock destruction state is invalid."
 	if typeof(detachment.get("adamantine_pending", {})) != TYPE_DICTIONARY: return "Cannot continue while detachment reaction state is invalid."
 	var command_battle_shock: Variant = state.get("command_battle_shock", {})
 	if typeof(command_battle_shock) != TYPE_DICTIONARY: return "Cannot continue while Command Battle-shock decision state is invalid."
@@ -110,6 +124,7 @@ static func decision_container_error(state: Dictionary, source: String) -> Strin
 		"mission-preparation": "mission",
 		"combat-doctrines": "combat_doctrines",
 		"oath-of-moment": "oath_of_moment",
+		"vowed-target": "vowed_target",
 		"awakened-attachment": "awakened_dynasty"
 	}
 	if not field_by_source.has(source): return ""
@@ -138,10 +153,12 @@ static func player(state: Dictionary) -> int:
 	if not unit_decision.is_empty(): return int(unit_decision.priority_player_id)
 	var oath_decision := PendingDecisions.current(state, ["oath-of-moment"])
 	if not oath_decision.is_empty(): return int(oath_decision.priority_player_id)
+	var vowed_decision := PendingDecisions.current(state, ["vowed-target"])
+	if not vowed_decision.is_empty(): return int(vowed_decision.priority_player_id)
 	var ability_actor := UnitActions.actor(state)
 	if ability_actor > 0: return ability_actor
 	if state.get("phase", "") == "deployment": return Deployment.actor(state)
-	var detachment_actor := DetachmentStratagems.vengeful_actor(state)
+	var detachment_actor := DetachmentStratagems.shooting_reaction_actor(state)
 	if detachment_actor > 0: return detachment_actor
 	var stratagem_decision := PendingDecisions.current(state, ["stratagems"])
 	if not stratagem_decision.is_empty(): return int(stratagem_decision.priority_player_id)

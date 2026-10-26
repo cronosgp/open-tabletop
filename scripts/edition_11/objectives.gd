@@ -16,7 +16,7 @@ static func setup(terrain: Dictionary, mission_id: String) -> Dictionary:
 static func in_range(model: Dictionary, objective: Dictionary) -> bool:
 	if model.wounds <= 0 or not model.get("on_battlefield", true): return false
 	if objective.kind == "terrain": return Terrain.within(model, objective.bounds)
-	return maxf(0.0, model.position.distance_to(objective.position) - float(model.radius) - MARKER_RADIUS) <= 3.0 + Terrain.EPSILON and float(model.get("elevation", 0.0)) <= 5.0 + Terrain.EPSILON
+	return maxf(0.0, model.position.distance_to(objective.position) - float(model.radius) - MARKER_RADIUS) <= 3.0 + Terrain.EPSILON and absf(float(model.get("elevation", 0.0)) - float(objective.get("elevation", 0.0))) <= 5.0 + Terrain.EPSILON
 
 static func distance(model: Dictionary, objective: Dictionary) -> float:
 	if objective.kind == "terrain":
@@ -28,7 +28,9 @@ static func consolidation_candidates(state: Dictionary, squad: int) -> Array[int
 	var objectives: Array = state.get("mission", {}).get("objectives", [])
 	for index in range(objectives.size()):
 		for id: int in state.units:
-			if state.units[id].squad == squad and state.units[id].wounds > 0 and distance(state.units[id], objectives[index]) <= 3.0 + Terrain.EPSILON:
+			var objective: Dictionary = objectives[index]
+			var vertical_distance := absf(float(state.units[id].get("elevation", 0.0)) - float(objective.get("elevation", 0.0)))
+			if state.units[id].squad == squad and state.units[id].wounds > 0 and state.units[id].get("on_battlefield", true) and vertical_distance <= 5.0 + Terrain.EPSILON and distance(state.units[id], objective) <= 3.0 + Terrain.EPSILON:
 				result.append(index)
 				break
 	return result
@@ -49,6 +51,10 @@ static func resolve_control(state: Dictionary, control_value: Callable) -> void:
 		else:
 			objective.secured = 0
 			objective.controller = 1 if totals[1] > totals[2] else 2 if totals[2] > totals[1] else 0
+		# Keep the squads that contributed to this phase's final control result.
+		# Triggered rules can refer to a unit's control in the previous phase after
+		# the unit itself has been destroyed.
+		objective.last_controlled_squads = controlling_squads(state, objective, control_value)
 
 static func controlling_squads(state: Dictionary, objective: Dictionary, control_value: Callable) -> Array[int]:
 	var result: Array[int] = []
@@ -58,11 +64,27 @@ static func controlling_squads(state: Dictionary, objective: Dictionary, control
 			result.append(model.squad)
 	return result
 
+static func record_previous_phase_control(state: Dictionary) -> void:
+	# Called only after a phase's end decisions finish, so any-phase reactions in
+	# the next phase can still inspect the previous phase's actual control state.
+	for objective: Dictionary in state.get("mission", {}).get("objectives", []):
+		var controlled_value: Variant = objective.get("last_controlled_squads", [])
+		objective.previous_phase_controlled_squads = controlled_value.duplicate() if controlled_value is Array else []
+
 static func secure(state: Dictionary, index: int, player: int) -> String:
 	# Internal effect for future verified ability/mission handlers, never a player command.
 	var objectives: Array = state.get("mission", {}).get("objectives", [])
 	if player not in [1, 2] or index < 0 or index >= objectives.size(): return "Invalid objective effect."
 	if objectives[index].controller != player: return "Only a controlled objective can be secured."
+	objectives[index].secured = player
+	return ""
+
+static func secure_by_stratagem(state: Dictionary, index: int, player: int) -> String:
+	# In Sacrifice, Victory can secure a marker using its own destruction trigger,
+	# including a marker the destroyed squad controlled in the prior phase.
+	var objectives: Array = state.get("mission", {}).get("objectives", [])
+	if player not in [1, 2] or index < 0 or index >= objectives.size(): return "Invalid objective effect."
+	objectives[index].controller = player
 	objectives[index].secured = player
 	return ""
 

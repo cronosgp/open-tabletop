@@ -126,11 +126,12 @@ class VerificationTests(unittest.TestCase):
     def test_runtime_layout_exercises_declare_their_legacy_data_dependency(self):
         self.assertTrue(verification.needs_legacy_starter("test_gameplay_layout"))
         self.assertTrue(verification.needs_legacy_starter("test_unit_choice_help_ui"))
+        self.assertTrue(verification.needs_legacy_starter("test_selection_card"))
         self.assertTrue(verification.requires_legacy_starter("targeted", ["test_gameplay_layout"]))
 
     def test_current_catalog_match_suites_do_not_stage_legacy_snapshot(self):
         suites = ["test_local_match_vertical_slice", "test_current_reference_match_network",
-                  "test_tactical_training", "test_tactical_combat_flow", "test_roll_choice_ui", "test_doctrine_choice_ui", "test_save_outcome_ui"]
+                  "test_tactical_training", "test_tactical_combat_flow", "test_roll_choice_ui", "test_doctrine_choice_ui", "test_save_outcome_ui", "test_selection_response"]
         for suite in suites:
             self.assertFalse(verification.needs_legacy_starter(suite))
         self.assertFalse(verification.requires_legacy_starter("targeted", suites))

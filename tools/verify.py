@@ -45,6 +45,7 @@ CURRENT_CATALOG_MATCH_SUITES = {
     "test_roll_choice_ui",
     "test_doctrine_choice_ui",
     "test_save_outcome_ui",
+    "test_selection_response",
 }
 
 # The builder regression injects its own synthetic catalog and only opens the
@@ -92,7 +93,7 @@ def needs_legacy_starter(suite):
         return False
     # These UI tests start practice matches through main.tscn at runtime, so
     # their data dependency is not visible to the static preload walker.
-    if suite in {"test_action_guidance", "test_gameplay_layout", "test_unit_choice_help_ui"}:
+    if suite in {"test_action_guidance", "test_gameplay_layout", "test_unit_choice_help_ui", "test_selection_card"}:
         return True
     if suite in CURRENT_CATALOG_MATCH_SUITES:
         return False

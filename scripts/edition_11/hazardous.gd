@@ -17,10 +17,14 @@ static func roll(state: Dictionary, squad: int, count: int, roller: Callable, mo
 
 static func from_rolls(state: Dictionary, squad: int, rolls: Array, modifiers: Array = []) -> Dictionary:
 	if not modifiers.is_empty() and modifiers.size() != rolls.size(): return {"error": "Each hazard die requires its own modifier."}
-	var alive := Geometry.alive(state, squad)
-	var heavy := not alive.is_empty()
-	for id: int in alive:
+	var living_count := 0
+	var heavy := true
+	# Hazard checks apply to the whole unit, including passengers not currently on the battlefield.
+	for id: int in state.units:
+		if int(state.units[id].get("squad", -1)) != squad or int(state.units[id].get("wounds", 0)) <= 0: continue
+		living_count += 1
 		if not has_keyword(state.units[id], "MONSTER") and not has_keyword(state.units[id], "VEHICLE"): heavy = false
+	heavy = heavy and living_count > 0
 	var failures := 0
 	var effective: Array[int] = []
 	for index in range(rolls.size()):

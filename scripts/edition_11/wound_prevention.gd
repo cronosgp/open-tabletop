@@ -24,6 +24,7 @@ static func resolve(damage: int, wounds: int, rules: Variant, kind: String, roll
 	var lost := 0
 	var prevented := 0
 	var rolls: Array[int] = []
+	var roll_outcomes: Array[Dictionary] = []
 	for point in range(damage):
 		if lost == wounds: break
 		if target > 0:
@@ -31,8 +32,10 @@ static func resolve(damage: int, wounds: int, rules: Variant, kind: String, roll
 			var die: Variant = roller.call()
 			if not die is int or die < 1 or die > 6: return {"error": "Feel No Pain dice must be integers from 1 to 6."}
 			rolls.append(die)
-			if die >= target:
+			var passed: bool = int(die) >= target
+			roll_outcomes.append({"roll": die, "success": passed})
+			if passed:
 				prevented += 1
 				continue
 		lost += 1
-	return {"error": "", "target": target, "rolls": rolls, "lost": lost, "prevented": prevented, "discarded": damage - lost - prevented}
+	return {"error": "", "target": target, "rolls": rolls, "roll_outcomes": roll_outcomes, "lost": lost, "prevented": prevented, "discarded": damage - lost - prevented}

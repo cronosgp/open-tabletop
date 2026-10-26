@@ -1,6 +1,6 @@
 # Faction catalog admission
 
-Army construction exposes only profiles published by the consolidated local runtime catalog. Its current Marine boundary is all 85 shared-book Space Marine identities from the selected Wahapedia 11e export. Publication in that catalog does not imply complete rules coverage, full faction legality, or match certification. See [current support](../project/support-matrix.md).
+Army construction exposes only profiles published by the consolidated local runtime catalog. Its published Marine boundary is all 85 shared-book Space Marine identities from the selected Wahapedia 11e export. The Land Speeder Vengeance from the Dark Angels App has a runtime profile but remains excluded from new construction choices until focused local checks pass. Publication in that catalog does not imply complete rules coverage, full faction legality, or match certification. See [current support](../project/support-matrix.md).
 
 ## Admission controls
 

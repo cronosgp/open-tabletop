@@ -1,5 +1,7 @@
 # Janelas de decisão e estratagemas do núcleo
 
+Current Crushing Impact / Tank Shock scope and pending checks are recorded in [Crushing Impact / Tank Shock](crushing-impact.md).
+
 Atualização de 16/10: [Command Re-roll em Desperate Escape](escape-rerolls.md) também está disponível, por opção separada. As referências abaixo a essa janela como pendente descrevem o escopo dos incrementos anteriores.
 
 A primeira regra habilitada é **Insane Bravery**, opcional nas partidas preparadas e nos treinos com listas salvas. Na aba Match setup, marque **Próxima partida preparada: Insane Bravery** antes de preparar o cenário ou ativar o modo LAN de listas. Na LAN, ambos precisam escolher a mesma opção. Os exercícios anteriores continuam com seu fluxo padrão; marcar a opção durante uma partida não altera a configuração já aceita.
@@ -12,7 +14,7 @@ A implementação foi conferida no [PDF oficial de Core Rules da 11ª edição](
 
 O estratagema só pode ser usado imediatamente antes do teste da unidade, na Battle-shock step da própria Command; custa 1 CP e cada jogador pode usá-lo uma vez na batalha. Uma unidade já em Battle-shock não pode ser alvo de um estratagema próprio; ela continua podendo fazer o teste normal e recuperar-se se tiver sucesso. Não é possível esperar uma falha e usar Insane Bravery retroativamente.
 
-As restrições gerais por jogador/fase e por unidade alvo constam do registro de usos: o mesmo estratagema não pode ser repetido na mesma fase, e uma unidade não pode receber outro estratagema naquela fase, salvo exceção implementada. Insane Bravery mantém seu limite mais restritivo por batalha. Command Re-roll está disponível para avanço/carga, acertos/ferimentos, defesas, dano aleatório, Hazardous de armas e número aleatório de ataques, mediante opções adicionais. Não há reduções de custo, exceções de facção ou demais estratagemas habilitados.
+As restrições gerais por jogador/fase e por unidade alvo constam do registro de usos: o mesmo estratagema não pode ser repetido na mesma fase, e uma unidade não pode receber outro estratagema naquela fase, salvo exceção implementada. Insane Bravery mantém seu limite mais restritivo por batalha. Command Re-roll está disponível para avanço/carga, acertos/ferimentos, defesas, dano aleatório, Hazardous de armas e de desembarque, Desperate Escape e número aleatório de ataques, mediante opções adicionais. Não há reduções de custo, exceções de facção ou demais estratagemas habilitados.
 
 ## Command Re-roll: avanço e carga
 
@@ -80,6 +82,16 @@ As listas iniciais continuam com A fixo. Para experimentar pela interface, marqu
 
 Pedidos de outro jogador/unidade, revisão obsoleta, índice indevido, dado já re-rolado e provedor inválido não confirmam CP ou estado. Battle-shock, CP insuficiente e limite consumido fazem a sequência seguir automaticamente. Checkpoint, fontes, dados originais/substituição e RNG sobrevivem ao save e ao reinício autenticado do host; o journal mantém a ordem dos dados. Desperate Escape permanece pendente.
 
+## Command Re-roll: transport Hazard pools
+
+When the optional core-stratagem and Hazard re-roll settings are enabled, the owner of the embarked unit may accept the Combat Disembark or Emergency Disembark Hazard pool, or spend 1 CP to re-roll one die. The choice opens after the pool is rolled and before any mortal wounds are allocated. A replacement die is mandatory; the full pool and the all-MONSTER/VEHICLE multiplier are recalculated from the resulting dice. The passenger owner resolves any mortal wounds. After an Emergency Disembark reaction, model placement returns to the active player.
+
+Separately, an eligible Gauntlet Task Force passenger can use Aggressive Disembarkation before Emergency Disembark rolls Hazard. It relaxes the 6-inch setup limit from wholly within to within, while every model must still be set up as close as possible. This optional choice happens before the Hazard pool and does not replace the later Command Re-roll decision.
+
+The pending reaction stores the passenger, original pool, eligible die indices and phase key. The host validates ownership, revision, pool, CP and the shared per-player/per-phase Command Re-roll limit before committing a replacement. Focused local checks and playtesting for this transport reaction are pending. Rapid, Tactical, Assault and Shock Disembark do not open this Hazard window.
+
+Rules basis: [Wahapedia 11th-edition Core Rules §§06.02–06.03, 15.02 and 18.04–18.05](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/).
+
 ## Implementação e continuidade
 
 `stratagems.gd` declara a capacidade `core-stratagem-windows-v1`, o registro de regras suportadas, as condições da janela, custo e limites. A capacidade adicional `command-reroll-movement-v1` identifica o re-roll de avanço/carga e integra o manifesto/hash quando habilitada. O cenário de combate é responsável pela resolução transacional: nenhuma validação rejeitada muda CP ou estado; um provedor de dados inválido não confirma o resultado. Pedidos de outro jogador, alvo indevido, revisão obsoleta, estratagema desconhecido e repetição são recusados. Outros comandos ficam bloqueados enquanto a janela está pendente.
@@ -88,5 +100,5 @@ A opção integra o hash e o manifesto da partida. Nos treinos com listas salvas
 
 As decisões aparecem no topo de Play, com o motivo de indisponibilidade e o CP disponível. Após uma decisão, o aviso mostra o resultado e o CP restante. O histórico continua disponível para consulta.
 
-O marco 3 já cobre Insane Bravery e Command Re-roll em avanço/carga, acertos/ferimentos, defesas, dano aleatório, Hazardous de armas e número de ataques, com infraestrutura de decisão antes de testes e após rolagens. As habilidades de unidade/facção provisórias presentes no catálogo não foram ativadas. Legalidade integral das listas, demais janelas/regras, missões oficiais e interações de habilidades ainda exigem implementação e validação próprias.
+The current local scope covers Insane Bravery and Command Re-roll for Advance/Charge, hit/wound, save, random damage, weapon and transport Hazard pools, Desperate Escape, and random attack counts. The provisional unit/faction abilities in the catalog are not enabled by this support statement. Full roster legality, other rules windows, official missions and ability interactions still require their own implementation and validation.
 

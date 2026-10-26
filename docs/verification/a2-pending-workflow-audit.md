@@ -2,6 +2,8 @@
 
 Updated 23 October 2026. This checkpoint inventories the normalized decision sources registered by `scripts/edition_11/pending_decision_registry.gd` and their public command paths. It is an audit of decision-source families, not a certification of every selectable option or every individual rules interaction.
 
+**Follow-up on 26 October 2026:** Emergency Disembark has an optional `aggressive-choice` stage for Gauntlet Task Force Aggressive Disembarkation before Hazard is rolled. The same choice now appears before every mandatory Drop Pod Assault Rapid Disembark after arrival in either player's Movement phase, including after Rapid Ingress in the opponent's Movement phase. Each passenger returns to the existing multi-passenger continuation, and the Drop Pod's more-than-8-inch enemy restriction remains. The 23 October verification artifacts do not cover either new choice stage; focused checks and playtesting remain pending.
+
 ## Decision-source inventory
 
 | Decision source | Public command path | Focused regression |

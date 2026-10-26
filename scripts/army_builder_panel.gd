@@ -3,6 +3,7 @@ const Roster = preload("res://scripts/army_roster.gd")
 const Profiles = preload("res://scripts/army_profiles.gd")
 const Catalog = preload("res://scripts/implemented_army_catalog.gd")
 const Training = preload("res://scripts/edition_11/training_roster.gd")
+const CurrentMarines = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 signal library_changed
 signal import_requested
 var preview_entry: Dictionary = {}
@@ -46,6 +47,7 @@ var save_button: Button
 var query: LineEdit
 var role_picker: OptionButton
 var unit_picker: ItemList
+var chapter_status: Label
 var choice_picker: OptionButton
 var copies: SpinBox
 var add_button: Button
@@ -249,6 +251,10 @@ func _ready() -> void:
 	editor.add_child(notes)
 	notes.text_changed.connect(_changed)
 	label("CHOOSE UNITS")
+	chapter_status = label("")
+	chapter_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	chapter_status.add_theme_font_size_override("font_size", 12)
+	chapter_status.tooltip_text = "This preview uses current profiles in the consolidated local catalog. Final match admission remains authoritative and does not certify general army legality."
 	query = LineEdit.new()
 	query.placeholder_text = "Search units by name"
 	editor.add_child(query)
@@ -928,13 +934,55 @@ func _filter_units() -> void:
 	selected_unit = {}
 	_refresh_addition_summary()
 	add_button.disabled = true
+	var chapter_state := _draft_chapter_state()
+	_refresh_chapter_status(chapter_state)
 	for unit: Dictionary in source.catalog.get("units", []):
 		if unit.edition != draft.edition or not Roster.faction_allowed(draft.faction, unit.faction, allies.button_pressed): continue
+		if draft.faction == "Space Marines":
+			var unit_chapters := CurrentMarines.chapter_keywords(str(unit.get("source_id", "")))
+			if unit_chapters.size() > 1: continue
+			if not unit_chapters.is_empty() and not chapter_state.chapters.is_empty():
+				if chapter_state.chapters.size() > 1 or unit_chapters[0] != chapter_state.chapters[0]: continue
 		if not query.text.strip_edges().is_empty() and query.text.strip_edges().to_lower() not in unit.name.to_lower(): continue
 		var roles := {1: ["Character", "Personagem"], 2: ["Battleline", "Linha de batalha"], 3: ["Dedicated transport", "Transporte dedicado"], 4: ["Other units"]}
 		if role_picker.selected > 0 and unit.role not in roles[role_picker.selected]: continue
 		unit_picker.add_item(unit.name + (" • " + unit.faction if unit.faction != draft.faction else ""))
 		unit_picker.set_item_metadata(unit_picker.item_count - 1, unit)
+
+func _draft_chapter_state() -> Dictionary:
+	var chapters: Array[String] = []
+	var outside_catalog := false
+	if draft.get("edition", "") != "11e" or draft.get("faction", "") != "Space Marines":
+		return {"applies": false, "chapters": chapters, "outside_catalog": false}
+	for entry: Dictionary in draft.get("entries", []):
+		var unit: Dictionary = source.lookup(str(entry.get("unit_id", "")))
+		if unit.is_empty():
+			outside_catalog = true
+			continue
+		for chapter: String in CurrentMarines.chapter_keywords(str(unit.get("source_id", ""))):
+			if chapter not in chapters: chapters.append(chapter)
+	chapters.sort()
+	return {"applies": true, "chapters": chapters, "outside_catalog": outside_catalog}
+
+func _refresh_chapter_status(chapter_state: Dictionary) -> void:
+	if chapter_status == null: return
+	chapter_status.visible = bool(chapter_state.get("applies", false))
+	if not chapter_status.visible: return
+	var chapters: Array = chapter_state.get("chapters", [])
+	if chapters.size() > 1:
+		var names: Array[String] = []
+		for chapter: String in chapters: names.append(CurrentMarines.chapter_name(chapter))
+		chapter_status.text = "Chapter conflict · %s. Remove entries until one Chapter remains; other Chapter-specific choices are hidden." % " and ".join(names)
+		chapter_status.add_theme_color_override("font_color", Color("f0b46a"))
+	elif chapters.size() == 1:
+		chapter_status.text = "Chapter · %s. Other Chapter-specific choices are hidden; generic Adeptus Astartes units remain available." % CurrentMarines.chapter_name(str(chapters[0]))
+		chapter_status.add_theme_color_override("font_color", Color("c4ced1"))
+	else:
+		chapter_status.text = "Chapter · None selected. Current profiles from any Chapter remain available."
+		chapter_status.add_theme_color_override("font_color", Color("c4ced1"))
+	if bool(chapter_state.get("outside_catalog", false)):
+		chapter_status.text += " Some draft entries are outside the current local catalog; this preview is partial."
+		chapter_status.add_theme_color_override("font_color", Color("f0b46a"))
 
 func _select_unit(index: int) -> void:
 	selected_unit = unit_picker.get_item_metadata(index)
@@ -958,6 +1006,19 @@ func _add() -> void:
 		return
 	var current := Training.Capabilities.current_catalog_choice(allowed)
 	if not current.is_empty(): allowed = current
+	if draft.faction == "Space Marines":
+		var current_chapters: Array = _draft_chapter_state().chapters
+		var added_chapters := CurrentMarines.chapter_keywords(str(allowed.get("source_id", "")))
+		if added_chapters.size() > 1:
+			notice.text = "This current profile has conflicting Chapter keywords and cannot be added."
+			return
+		if not added_chapters.is_empty() and not current_chapters.is_empty():
+			if current_chapters.size() > 1:
+				notice.text = "Resolve the existing Chapter conflict before adding another Chapter-specific unit."
+				return
+			if added_chapters[0] != current_chapters[0]:
+				notice.text = "This list is set to %s. Remove its Chapter-specific units before adding %s." % [CurrentMarines.chapter_name(str(current_chapters[0])), CurrentMarines.chapter_name(added_chapters[0])]
+				return
 	var wanted: int = selected_unit.options[choice_picker.selected].models
 	var option_index := -1
 	for index in allowed.options.size():

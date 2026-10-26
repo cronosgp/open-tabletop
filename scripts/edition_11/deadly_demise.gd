@@ -15,11 +15,12 @@ static func begin(state: Dictionary, destroyed_models: Array[int], roller: Calla
 	var transport_queue := TransportRules.passengers_of_destroyed(state, destroyed_models)
 	for model: int in destroyed_models:
 		if not state.units.has(model) or state.units[model].wounds > 0: continue
-		if "deadly-demise-d3" not in UnitAbilities.RULES.get(UnitAbilities.identity(state.units[model]), []): continue
+		if UnitAbilities.deadly_demise_value(state, model) == null: continue
 		if model not in queue: queue.append(model)
 	if queue.is_empty() and transport_queue.is_empty(): return {"error": "", "complete": true}
 	state.pending_deadly_demise = {"queue": queue, "queue_cursor": 0, "packets": [], "packet_cursor": 0,
 		"events": [], "allocations": [], "transport_queue": transport_queue, "transport_cursor": 0,
+		"vengeful_animus_squads": {}, "vengeful_animus_declined": {},
 		"resume_window": state.get("unit_abilities", {}).get("window", {}).duplicate(true)}
 	return pump(state, roller)
 
@@ -62,16 +63,29 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 		pending.packet_cursor = 0
 		while pending.queue_cursor < pending.queue.size():
 			var source: int = int(pending.queue[pending.queue_cursor])
+			if not state.units.has(source) or state.units[source].wounds > 0:
+				pending.queue_cursor += 1
+				continue
+			var source_squad := int(state.units[source].get("squad", -1))
+			var squad_key := str(source_squad)
+			if not pending.get("vengeful_animus_squads", {}).has(squad_key) and not pending.get("vengeful_animus_declined", {}).has(squad_key):
+				var source_owner := int(state.units[source].get("owner", -1))
+				state.unit_abilities.window = {"kind": DetachmentStratagems.VENGEFUL_ANIMUS_WINDOW, "owners": [source_owner], "squad": source_squad, "source_model": source}
+				if DetachmentStratagems.error(state, source_owner, source_squad, DetachmentStratagems.MEDUSA_VENGEFUL_ANIMUS).is_empty():
+					return {"error": "", "complete": false, "message": "Player %d: Vengeful Animus may be used before rolling Deadly Demise for %s." % [source_owner, str(state.squads[source_squad].get("name", "the destroyed Vehicle"))]}
+				state.unit_abilities.window = pending.get("resume_window", {}).duplicate(true)
+			var forced := bool(pending.get("vengeful_animus_squads", {}).get(squad_key, false))
 			pending.queue_cursor += 1
-			if not state.units.has(source) or state.units[source].wounds > 0: continue
-			var die: Variant = roller.call() if roller.is_valid() else null
+			var die: Variant = 6 if forced else (roller.call() if roller.is_valid() else null)
 			if not die is int or die < 1 or die > 6: return {"error": "Deadly Demise requires a D6 result from 1 to 6."}
-			var event := {"source_model": source, "die": die, "triggered": die == 6, "targets": []}
+			var deadly_demise_value: Variant = UnitAbilities.deadly_demise_value(state, source)
+			if deadly_demise_value == null: return {"error": "The destroyed model has no admitted Deadly Demise profile."}
+			var event := {"source_model": source, "die": die, "expression": deadly_demise_value, "triggered": die == 6, "forced_by_vengeful_animus": forced, "targets": []}
 			pending.events.append(event)
 			if die != 6: continue
 			for squad: int in state.squads:
 				if Geometry.alive(state, squad).is_empty() or Geometry.distance_to_target(state, state.units[source], squad) > 6.001: continue
-				var rolled := RandomStat.roll("D3", roller)
+				var rolled := RandomStat.roll(deadly_demise_value, roller)
 				if not rolled.error.is_empty(): return rolled
 				var packet := {"source_model": source, "target": squad, "owner": state.squads[squad].owner,
 					"roll": rolled, "remaining": int(rolled.value), "allocations": [], "discarded": 0}
@@ -116,7 +130,7 @@ static func allocate(state: Dictionary, player: int, selected: Dictionary, rolle
 	packet.remaining -= 1
 	if state.units[model].wounds <= 0:
 		DetachmentStratagems.record_destroyed(state, model)
-		if "deadly-demise-d3" in UnitAbilities.RULES.get(UnitAbilities.identity(state.units[model]), []) and model not in pending.queue:
+		if UnitAbilities.deadly_demise_value(state, model) != null and model not in pending.queue:
 			pending.queue.append(model)
 	pending.packets[pending.packet_cursor] = packet
 	pending.allocations.append({"source_model": packet.source_model, "target_squad": packet.target, "model": model, "prevention": prevention})

@@ -15,6 +15,7 @@ const Morale = preload("res://scripts/edition_11/morale.gd")
 const ObjectiveSecured = preload("res://scripts/edition_11/objective_secured.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const OathOfMoment = preload("res://scripts/edition_11/oath_of_moment.gd")
+const VowedTarget = preload("res://scripts/edition_11/vowed_target.gd")
 const PhaseProgression = preload("res://scripts/edition_11/phase_progression.gd")
 const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
@@ -103,8 +104,10 @@ static func advance_after_admission(state: Dictionary, roller: Callable, hooks: 
 				if state.squads[squad].owner == state.active and not state.squads[squad].moved:
 					state.squads[squad].move_type = "stationary"
 					state.squads[squad].moved = true
+	Objectives.record_previous_phase_control(state)
 	var error := PhaseProgression.advance(state)
 	if not error.is_empty(): return error
+	DetachmentStratagems.clear_expired_in_sacrifice(state)
 	if state.phase == "charge" and state.has("core_reactions"):
 		state.core_reactions.chargers = []
 		state.core_reactions.charge_closed = false
@@ -113,6 +116,7 @@ static func advance_after_admission(state: Dictionary, roller: Callable, hooks: 
 		UnitAbilities.start_command(state)
 		Doctrines.start_command(state)
 		OathOfMoment.start_command(state)
+		VowedTarget.start_command(state)
 		Reanimation.start_command(state)
 		if Doctrines.needs_choice(state):
 			state.combat_doctrines.cp_pending_turn = state.turn

@@ -5,7 +5,7 @@ const Roster = preload("res://scripts/army_roster.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const CurrentMarines = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
-const ID := "mixed-core-profiles-v30-vulkan-hestan"
+const ID := "mixed-core-profiles-v31-land-speeder-vengeance"
 const DIRECTORY := "res://data/imported/starter-11e-v1"
 const MAX_SQUADS := 6
 const SPECS := {
@@ -28,6 +28,7 @@ const SPECS := {
 	"gladiator-valiant": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted", "max_supported_copies": 3},
 	"gladiator-lancer": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted", "max_supported_copies": 3},
 	"land-speeder": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted", "max_supported_copies": 3},
+	"land-speeder-vengeance": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "max_supported_copies": 3},
 	"invader-atvs": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted", "max_supported_copies": 3},
 	"storm-speeder-hammerstrike": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted", "max_supported_copies": 3},
 	"storm-speeder-hailstrike": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted", "max_supported_copies": 3},
@@ -127,7 +128,7 @@ static func current_catalog_choice(unit: Dictionary) -> Dictionary:
 	var source := identity.get_slice(":", 3)
 	if identity != "40kdc:11e:adeptus-astartes:" + source: return {}
 	if not SPECS.get(source, {}).get("current_reference", false): return {}
-	if SPECS[source].get("validation_status", "") in ["tests_written_not_run", "local_checks_pending"]: return {}
+	if SPECS[source].get("validation_status", "") in ["tests_written_not_run", "local_checks_pending", "implemented_local_checks_pending"]: return {}
 	var profile := CurrentMarines.profile(source)
 	var result := unit.duplicate(true)
 	result.id = identity
@@ -148,7 +149,7 @@ static func resolve(faction: String, identity: String) -> Dictionary:
 		var canonical := "40kdc:11e:%s:%s" % [spec.folder, source]
 		if identity != canonical: continue
 		if spec.get("current_reference", false):
-			if spec.get("validation_status", "") in ["tests_written_not_run", "local_checks_pending"]: return {"error": "Local validation pending for current profile: " + source}
+			if spec.get("validation_status", "") in ["tests_written_not_run", "local_checks_pending", "implemented_local_checks_pending"]: return {"error": "Local validation pending for current profile: " + source}
 			var current := CurrentMarines.profile(source)
 			if current.is_empty(): return {"error": "Missing current Marine profile: " + source}
 			var unit := {"id": canonical, "name": current.name, "stats": current.stats.duplicate(true), "keywords": current.keywords.duplicate(), "base": {"shape": "circle", "radius_inches": current.base_radius_inches}}
@@ -198,6 +199,7 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS) -> Dictionary:
 	var pricing: Dictionary = {}
 	var priced_counts: Dictionary = {}
 	var enhancement_counts: Dictionary = {}
+	var selected_chapter := ""
 	for entry: Variant in selection.entries:
 		if not entry is Dictionary or entry.size() not in [3, 4] or not entry.get("definition_id") is String or not Roster.integer(entry.get("models"), 1, 20) or not Roster.integer(entry.get("copies"), 1, unit_cap): return {"error": "Invalid mixed army entry."}
 		for key: Variant in entry:
@@ -210,6 +212,14 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS) -> Dictionary:
 		if resolved.is_empty(): resolved = resolve(selection.faction, identity)
 		if not resolved.error.is_empty(): return resolved
 		definitions[identity] = resolved
+		if selection.faction == "Space Marines" and resolved.spec.get("current_reference", false):
+			var profile_chapters := CurrentMarines.chapter_keywords(identity.get_slice(":", 3))
+			if profile_chapters.size() > 1: return {"error": "Current Marine profile has multiple Chapter faction keywords: " + resolved.unit.name}
+			if not profile_chapters.is_empty():
+				var chapter: String = profile_chapters[0]
+				if not selected_chapter.is_empty() and selected_chapter != chapter:
+					return {"error": "A Space Marines army cannot include units from more than one Chapter (%s and %s)." % [CurrentMarines.chapter_name(selected_chapter), CurrentMarines.chapter_name(chapter)]}
+				selected_chapter = chapter
 		var variant: Dictionary = resolved.duplicate(true)
 		var marine_profile: Dictionary = {}
 		if resolved.spec.get("current_reference", false):

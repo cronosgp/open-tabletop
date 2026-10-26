@@ -21,6 +21,33 @@ window/size/viewport_height=800
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[input]
+
+inspect_selected_datasheet={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":73,"unicode":105)]
+}
+focus_selected_unit={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":70,"unicode":102)]
+}
+camera_pan_up={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":87,"unicode":119)]
+}
+camera_pan_down={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":83,"unicode":115)]
+}
+camera_pan_left={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":65,"unicode":97)]
+}
+camera_pan_right={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":68,"unicode":100)]
+}
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

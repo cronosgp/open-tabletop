@@ -15,6 +15,11 @@ static func build(config: Dictionary, finished: Dictionary) -> Dictionary:
 		var options := {}
 		for key: String in OPTIONS: options[key] = config.get(key, false)
 		options.primary_mission = config.get("official_primary_mission", "battlefield-dominance")
+		var legacy_primary := str(options.primary_mission)
+		var configured_primaries: Variant = config.get("official_primary_missions", {1: legacy_primary, 2: legacy_primary})
+		options.primary_missions = configured_primaries.duplicate(true) if configured_primaries is Dictionary else {1: legacy_primary, 2: legacy_primary}
+		options.secondary_pair = config.get("official_secondary_pair", Combat.Mission.DEFAULT_SECONDARY_PAIR)
+		options.terrain_layout = config.get("official_terrain_layout", Combat.Mission.DEFAULT_TERRAIN_LAYOUT) if options.get("official_mission", false) else config.get("terrain_layout", Combat.Mission.DEFAULT_TERRAIN_LAYOUT)
 		candidate = Prepared.initial_state(options)
 	elif config.get("allocation_practice", false):
 		candidate = Battlefield.apply(Lab.initial_state(config.get("damage_rerolls", false), config.get("count_rerolls", false)))

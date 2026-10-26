@@ -5,6 +5,7 @@ const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const Prevention = preload("res://scripts/edition_11/wound_prevention.gd")
 const UnitPrevention = preload("res://scripts/edition_11/unit_prevention.gd")
 const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
+const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Hazardous = preload("res://scripts/edition_11/hazardous.gd")
 const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
@@ -329,9 +330,36 @@ static func _set_embarked(state: Dictionary, passenger_squad: int, transport_mod
 	state.squads[passenger_squad].embarked_in = transport_model
 	state.squads[passenger_squad].embarked_this_turn = int(state.turn) if state.phase == "movement" else -1
 
+static func gauntlet_duty_error(state: Dictionary, player: int, passenger_squad: int, transport_model: int, require_end_window: bool = true) -> String:
+	var stratagem_error := DetachmentStratagems.error(state, player, passenger_squad, DetachmentStratagems.GAUNTLET_DUTY_IS_NEVER_DONE, transport_model, -1, -1, -1, require_end_window)
+	if not stratagem_error.is_empty(): return stratagem_error
+	var transport_error := eligibility_error(state, transport_model, passenger_squad, false)
+	if not transport_error.is_empty(): return transport_error
+	var transport_squad := int(state.units[transport_model].get("squad", -1))
+	for model: int in models(state, passenger_squad):
+		if not state.units[model].get("on_battlefield", true): return "Every model in the passenger unit must be on the battlefield."
+		if Geometry.distance_to_target(state, state.units[model], transport_squad) > 6.001: return "Every passenger model must be within 6 inches of the Transport."
+	return ""
+
+static func gauntlet_duty_candidates(state: Dictionary, player: int, require_end_window: bool = true) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for passenger_squad: int in state.squads:
+		if not state.squads.has(passenger_squad) or int(state.squads[passenger_squad].get("owner", -1)) != player: continue
+		for transport_model: int in state.units:
+			if int(state.units[transport_model].get("owner", -1)) != player: continue
+			if not gauntlet_duty_error(state, player, passenger_squad, transport_model, require_end_window).is_empty(): continue
+			var cost := DetachmentStratagems.gauntlet_duty_cost(state, player, passenger_squad)
+			result.append({"label": "Duty is Never Done: embark %s in %s (%d CP)" % [str(state.squads[passenger_squad].get("name", "Infantry unit")), str(state.squads[int(state.units[transport_model].squad)].get("name", "Transport")), cost], "action": "detachment-stratagem", "model": transport_model, "target": passenger_squad, "value": DetachmentStratagems.GAUNTLET_DUTY_IS_NEVER_DONE})
+	return result
+
+static func resolve_gauntlet_duty_embark(state: Dictionary, passenger_squad: int, transport_model: int) -> void:
+	## Call only after gauntlet_duty_error succeeds and the stratagem has been applied.
+	_set_embarked(state, passenger_squad, transport_model)
+
 static func embark_error(state: Dictionary, player: int, transport_model: int, passenger_squad: int) -> String:
 	if state.phase != "movement" or int(state.active) != player: return "Embark after a move in your Movement phase."
 	if not state.squads.has(passenger_squad) or int(state.squads[passenger_squad].owner) != player: return "Choose your own passenger unit."
+	if int(state.squads[passenger_squad].get("cannot_embark_until_turn", -1)) == int(state.turn): return "This unit cannot embark in a Transport until the end of the turn."
 	if not state.squads[passenger_squad].get("moved", false) or state.squads[passenger_squad].get("move_type", "") not in ["normal", "advance", "ordered_retreat", "desperate_escape"]: return "A passenger unit can embark only after making a Normal, Advance or Fall Back move."
 	if state.squads[passenger_squad].get("set_up_this_turn", false): return "A unit set up on the battlefield this turn cannot embark."
 	return eligibility_error(state, transport_model, passenger_squad, true)
@@ -346,6 +374,7 @@ static func start_embark_choices(state: Dictionary, player: int) -> Array[Dictio
 	var choices: Array[Dictionary] = []
 	for squad: int in state.squads:
 		if int(state.squads[squad].owner) != player or models(state, squad).is_empty(): continue
+		if int(state.squads[squad].get("cannot_embark_until_turn", -1)) == int(state.turn): continue
 		for model: int in state.units:
 			if int(state.units[model].owner) != player or not is_transport(state, model) or int(state.units[model].wounds) <= 0 or not state.units[model].get("on_battlefield", true): continue
 			if not eligibility_error(state, model, squad).is_empty(): continue
@@ -384,6 +413,18 @@ static func _mark_drop_pod_disembark_window(window: Dictionary, transport_model:
 	window.resolution_frame_id = frame_id
 	window.parent_frame_id = parent_frame_id
 
+static func _offer_drop_pod_aggressive_choice(state: Dictionary, transport_model: int, player: int) -> bool:
+	var window: Dictionary = state.get("unit_abilities", {}).get("transport_window", {})
+	if window.get("kind", "") != "disembark" or not window.get("mandatory_drop_pod", false) or not window.get("drop_pod_assault", false): return false
+	var passenger_squad := int(window.get("passenger_squad", -1))
+	var previous_stage := str(window.get("stage", "placement"))
+	window.stage = "aggressive-choice"
+	if not gauntlet_aggressive_disembarkation_error(state, player, transport_model, passenger_squad, str(window.get("mode", ""))).is_empty():
+		window.stage = previous_stage
+		return false
+	_set_window_actor(state, player, DISEMBARK_WINDOW)
+	return true
+
 static func _finish_drop_pod_passenger(state: Dictionary, window: Dictionary, roller: Callable) -> String:
 	var transport_model := int(window.get("drop_pod_transport", -1))
 	var frame_id := str(window.get("resolution_frame_id", ""))
@@ -417,6 +458,7 @@ static func _finish_drop_pod_passenger(state: Dictionary, window: Dictionary, ro
 	var error := begin_disembark(state, player, transport_model, next_squad, "rapid", roller, true)
 	if not error.is_empty(): return error
 	_mark_drop_pod_disembark_window(state.unit_abilities.transport_window, transport_model, player, remaining, frame_id, parent_frame_id)
+	_offer_drop_pod_aggressive_choice(state, transport_model, player)
 	return ""
 
 static func begin_drop_pod_arrival(state: Dictionary, player: int, transport_model: int, roller: Callable) -> String:
@@ -445,6 +487,7 @@ static func begin_drop_pod_arrival(state: Dictionary, player: int, transport_mod
 		state.unit_abilities.window = {}
 		return suspend_error
 	_mark_drop_pod_disembark_window(state.unit_abilities.transport_window, transport_model, player, passenger_squads, frame_id, parent_frame_id)
+	_offer_drop_pod_aggressive_choice(state, transport_model, player)
 	return ""
 
 static func passengers_of_destroyed(state: Dictionary, destroyed_models: Array[int]) -> Array[Dictionary]:
@@ -458,6 +501,20 @@ static func passengers_of_destroyed(state: Dictionary, destroyed_models: Array[i
 static func _set_window_actor(state: Dictionary, player: int, kind: String = EMERGENCY_WINDOW) -> void:
 	state.unit_abilities.window = {"kind": kind, "owners": [player]}
 
+static func _offer_transport_hazard_reroll(state: Dictionary, window: Dictionary, player: int) -> bool:
+	var rolls: Array = window.get("hazard_rolls", [])
+	if rolls.is_empty() or not state.get("stratagems", {}).get("hazard_rerolls", false) or not Stratagems.pending(state).is_empty(): return false
+	if not Stratagems.eligibility_error(state, player, int(window.passenger_squad), "command-re-roll").is_empty(): return false
+	var eligible: Array[int] = []
+	for index in range(rolls.size()): eligible.append(index)
+	state.stratagems.pending = {"kind": "after_transport_hazard_roll", "player": player,
+		"squad": int(window.passenger_squad), "phase_key": Stratagems.phase_key(state),
+		"rolls": rolls.duplicate(), "eligible": eligible}
+	state.unit_abilities.transport_window.stage = "hazard-reroll"
+	state.unit_abilities.transport_window.player = player
+	_set_window_actor(state, player, EMERGENCY_WINDOW if window.get("kind", "") == "emergency" else DISEMBARK_WINDOW)
+	return true
+
 static func _emergency_finish(state: Dictionary, window: Dictionary) -> void:
 	var passenger_squad := int(window.passenger_squad)
 	for model: int in state.units:
@@ -469,37 +526,62 @@ static func _emergency_finish(state: Dictionary, window: Dictionary) -> void:
 	state.unit_abilities.transport_window = {}
 	state.unit_abilities.window = {}
 
-static func begin_emergency(state: Dictionary, transport_model: int, passenger_squad: int, roller: Callable) -> String:
-	if not is_transport(state, transport_model) or passenger_squad not in _passengers(state, transport_model): return "The passenger unit is not embarked in this destroyed transport."
-	var passenger_models := models(state, passenger_squad)
+static func _roll_emergency_hazard(state: Dictionary, window: Dictionary, roller: Callable) -> String:
+	var passenger_squad := int(window.passenger_squad)
+	var passenger_models: Array[int] = window.get("models", [])
 	var rolls: Array[int] = []
 	for _model: int in passenger_models:
 		if not roller.is_valid(): return "Emergency Disembark requires one Hazard D6 per passenger model."
 		var die: Variant = roller.call()
 		if not die is int or die < 1 or die > 6: return "Hazard dice must be integers from 1 to 6."
 		rolls.append(die)
-	var failures := 0
-	for die: int in rolls:
-		if die <= 2: failures += 1
+	var hazard := Hazardous.from_rolls(state, passenger_squad, rolls)
+	if not hazard.error.is_empty(): return hazard.error
+	var hazard_total := int(hazard.total)
 	var owner := int(state.squads[passenger_squad].owner)
-	var current_player := int(state.active)
-	var window := {"kind": "emergency", "transport": transport_model, "passenger_squad": passenger_squad,
-		"models": passenger_models, "placements": {}, "mode": "emergency", "stage": "hazard" if failures > 0 else "placement",
-		"hazard_rolls": rolls, "hazard_remaining": failures, "hazard_allocations": [], "player": owner,
-		"active_player": current_player, "destroyed_turn": int(state.turn)}
+	var current_player := int(window.get("active_player", state.active))
+	window.hazard_rolls = rolls
+	window.hazard_total = hazard_total
+	window.hazard_remaining = hazard_total
+	window.hazard_allocations = []
+	window.stage = "hazard" if hazard_total > 0 else "placement"
+	window.player = owner if hazard_total > 0 else current_player
 	state.unit_abilities.transport_window = window
-	_set_window_actor(state, owner if failures > 0 else current_player)
+	_set_window_actor(state, int(window.player))
+	if not passenger_models.is_empty(): _offer_transport_hazard_reroll(state, window, owner)
 	if passenger_models.is_empty(): _emergency_finish(state, window)
 	return ""
 
-static func _move_modes(state: Dictionary, transport_model: int, passenger_squad: int) -> Array[String]:
+static func begin_emergency(state: Dictionary, transport_model: int, passenger_squad: int, roller: Callable) -> String:
+	if not is_transport(state, transport_model) or passenger_squad not in _passengers(state, transport_model): return "The passenger unit is not embarked in this destroyed transport."
+	var passenger_models := models(state, passenger_squad)
+	var owner := int(state.squads[passenger_squad].owner)
+	var current_player := int(state.active)
+	var window := {"kind": "emergency", "transport": transport_model, "passenger_squad": passenger_squad,
+		"models": passenger_models, "placements": {}, "mode": "emergency", "stage": "aggressive-choice",
+		"hazard_rolls": [], "hazard_total": 0, "hazard_remaining": 0, "hazard_allocations": [], "player": owner,
+		"active_player": current_player, "destroyed_turn": int(state.turn)}
+	var working: Dictionary = state.duplicate(true)
+	working.unit_abilities.transport_window = window
+	_set_window_actor(working, owner)
+	if not passenger_models.is_empty() and gauntlet_aggressive_disembarkation_error(working, owner, transport_model, passenger_squad, "emergency").is_empty():
+		state.clear()
+		state.merge(working, true)
+		return ""
+	var roll_error := _roll_emergency_hazard(working, working.unit_abilities.transport_window, roller)
+	if not roll_error.is_empty(): return roll_error
+	state.clear()
+	state.merge(working, true)
+	return ""
+
+static func _move_modes(state: Dictionary, transport_model: int, passenger_squad: int, aggressive_disembarkation: bool = false) -> Array[String]:
 	var result: Array[String] = []
 	var transport_squad := int(state.units[transport_model].squad)
 	var move_type := str(state.squads[transport_squad].get("move_type", "unselected"))
 	var embarked_turn := int(state.squads[passenger_squad].get("embarked_this_turn", -1))
 	if embarked_turn == int(state.turn): return result
 	if move_type in ["stationary", "unselected"]:
-		result.append("tactical" if _tactical_setup_possible(state, transport_model, passenger_squad) else "combat")
+		result.append("tactical" if _tactical_setup_possible(state, transport_model, passenger_squad, aggressive_disembarkation) else "combat")
 	elif move_type in ["normal", "ingress"]:
 		result.append("rapid")
 		if move_type == "normal" and _has_ability(state, transport_model, "Assault Ramp"): result.append("assault")
@@ -516,10 +598,43 @@ static func disembark_choices(state: Dictionary, player: int) -> Array[Dictionar
 		var move_type := str(state.squads[transport_squad].get("move_type", "unselected"))
 		if move_type in ["ordered_retreat", "desperate_escape", "failed_fall_back"]: continue
 		for passenger_squad: int in _passengers(state, transport_model):
-			for mode: String in _move_modes(state, transport_model, passenger_squad):
+			var modes := _move_modes(state, transport_model, passenger_squad)
+			for mode: String in modes:
 				var label := "Disembark %s from %s (%s)" % [state.squads[passenger_squad].name, state.squads[transport_squad].name, mode]
 				result.append({"label": label, "action": "transport-disembark-start", "model": transport_model, "target": passenger_squad, "value": mode})
+			if not DetachmentStratagems.error(state, player, passenger_squad, DetachmentStratagems.GAUNTLET_AGGRESSIVE_DISEMBARKATION, transport_model).is_empty(): continue
+			var aggressive_modes := _move_modes(state, transport_model, passenger_squad, true)
+			for mode: String in aggressive_modes:
+				if not gauntlet_aggressive_disembarkation_error(state, player, transport_model, passenger_squad, mode).is_empty(): continue
+				var cost := DetachmentStratagems.gauntlet_aggressive_disembarkation_cost(state, player, passenger_squad)
+				var aggressive_label := "Aggressive Disembarkation: %s from %s (%s, %d CP)" % [state.squads[passenger_squad].name, state.squads[transport_squad].name, mode, cost]
+				result.append({"label": aggressive_label, "action": "transport-disembark-start-aggressive", "model": transport_model, "target": passenger_squad, "value": mode})
 	return result
+
+static func gauntlet_aggressive_disembarkation_error(state: Dictionary, player: int, transport_model: int, passenger_squad: int, mode: String) -> String:
+	var stratagem_error := DetachmentStratagems.error(state, player, passenger_squad, DetachmentStratagems.GAUNTLET_AGGRESSIVE_DISEMBARKATION, transport_model)
+	if not stratagem_error.is_empty(): return stratagem_error
+	var emergency := mode == "emergency"
+	var window: Dictionary = state.get("unit_abilities", {}).get("transport_window", {})
+	var drop_pod_context := not emergency and window.get("kind", "") == "disembark" and window.get("stage", "") == "aggressive-choice" and bool(window.get("mandatory_drop_pod", false)) and bool(window.get("drop_pod_assault", false))
+	if emergency:
+		if window.get("kind", "") != "emergency" or window.get("stage", "") != "aggressive-choice" or int(window.get("player", -1)) != player or int(window.get("transport", -1)) != transport_model or int(window.get("passenger_squad", -1)) != passenger_squad: return "Aggressive Disembarkation requires the current Emergency Disembark move selection."
+	elif drop_pod_context:
+		if int(window.get("player", -1)) != player or int(window.get("drop_pod_player", -1)) != player or int(window.get("transport", -1)) != transport_model or int(window.get("drop_pod_transport", -1)) != transport_model or int(window.get("passenger_squad", -1)) != passenger_squad: return "Aggressive Disembarkation requires the current Drop Pod passenger move."
+		if mode != "rapid" or str(window.get("mode", "")) != "rapid": return "Drop Pod Assault passengers must use Rapid Disembark."
+	else:
+		if state.phase != "movement" or int(state.active) != player: return "Aggressive Disembarkation currently uses the supported Movement-phase disembark flow."
+		if not state.get("pending_move", {}).is_empty() or not state.get("pending_contact", {}).is_empty(): return "Finish the current model movement before disembarking."
+	if not is_transport(state, transport_model) or int(state.units[transport_model].get("owner", -1)) != player or not state.units[transport_model].get("on_battlefield", true): return "Select your Transport on the battlefield."
+	if drop_pod_context and identity(state.units[transport_model]) != "drop-pod": return "Drop Pod Assault requires a Drop Pod transport."
+	var transport_wounds := int(state.units[transport_model].get("wounds", 0))
+	if emergency and transport_wounds > 0: return "Emergency Disembark requires the Transport that was just destroyed."
+	if not emergency and transport_wounds <= 0: return "Select your living Transport on the battlefield."
+	if passenger_squad not in _passengers(state, transport_model): return "The selected unit is not embarked within this Transport."
+	for model: int in models(state, passenger_squad):
+		if "ADEPTUS ASTARTES" not in state.units[model].get("keywords", []): return "Aggressive Disembarkation requires a friendly ADEPTUS ASTARTES unit."
+	if not emergency and mode not in _move_modes(state, transport_model, passenger_squad, true): return "That disembark mode is not available for Aggressive Disembarkation."
+	return ""
 
 static func _tactical_candidates(state: Dictionary, transport_model: int, model: int) -> Array[Vector2]:
 	var result: Array[Vector2] = []
@@ -556,21 +671,28 @@ static func _tactical_setup_search(state: Dictionary, window: Dictionary, model_
 		window.placements = placements
 	return false
 
-static func _tactical_setup_possible(state: Dictionary, transport_model: int, passenger_squad: int) -> bool:
+static func _tactical_setup_possible(state: Dictionary, transport_model: int, passenger_squad: int, aggressive_disembarkation: bool = false) -> bool:
 	var model_ids := models(state, passenger_squad)
 	if model_ids.is_empty(): return false
 	var candidates: Array = []
 	for model: int in model_ids: candidates.append(_tactical_candidates(state, transport_model, model))
-	var window := {"transport": transport_model, "passenger_squad": passenger_squad, "mode": "tactical", "placements": {}}
+	var window := {"transport": transport_model, "passenger_squad": passenger_squad, "mode": "tactical", "placements": {}, "aggressive_disembarkation": aggressive_disembarkation}
 	return _tactical_setup_search(state, window, model_ids, candidates, 0, {}, [12000])
 
 static func _position_error(state: Dictionary, window: Dictionary, model: int, position: Vector2) -> String:
 	if not position.is_finite(): return "Choose a valid model position."
 	var transport_model := int(window.transport)
 	var mode := str(window.mode)
+	var placement_elevation := float(state.units[transport_model].get("elevation", 0.0)) if state.units.has(transport_model) else 0.0
 	var distance_limit := 6.0 if mode in ["combat", "emergency"] else 3.0
 	if not state.units.has(transport_model) or not state.units[transport_model].get("on_battlefield", true): return "The transport must remain on the battlefield during disembarkation."
-	if Geometry.edge({"position": position, "radius": state.units[model].radius}, state.units[transport_model]) > distance_limit + 0.001: return "Set each model wholly within %.0f inches of the transport." % distance_limit
+	var placed_base := {"position": position, "radius": float(state.units[model].radius)}
+	var distance_to_transport := Geometry.edge(placed_base, state.units[transport_model])
+	if bool(window.get("aggressive_disembarkation", false)):
+		if distance_to_transport > distance_limit + 0.001: return "Set each model within %.0f inches of the transport." % distance_limit
+	else:
+		var farthest_base_edge := maxf(0.0, position.distance_to(state.units[transport_model].position) + float(state.units[model].radius) - float(state.units[transport_model].radius))
+		if farthest_base_edge > distance_limit + 0.001: return "Set each model wholly within %.0f inches of the transport." % distance_limit
 	if window.get("drop_pod_assault", false):
 		for enemy: int in state.units:
 			var enemy_model: Dictionary = state.units[enemy]
@@ -579,17 +701,19 @@ static func _position_error(state: Dictionary, window: Dictionary, model: int, p
 	if absf(position.x) + float(state.units[model].radius) > state.board_size.x / 2.0 + 0.001 or absf(position.y) + float(state.units[model].radius) > state.board_size.y / 2.0 + 0.001: return "The whole model must fit on the battlefield."
 	var positioned_model: Dictionary = state.units[model].duplicate(true)
 	positioned_model.position = position
+	positioned_model.elevation = placement_elevation
 	for area: Dictionary in Terrain.areas(state):
 		for feature: Dictionary in area.get("features", []):
 			if feature.get("blocks_end", false) and Terrain.within(positioned_model, feature.bounds): return "A disembarking model cannot be placed inside a terrain wall or barricade."
 	for other: int in state.units:
 		if other == model or int(state.units[other].wounds) <= 0 or not state.units[other].get("on_battlefield", true): continue
 		if other == transport_model: continue
-		if position.distance_to(state.units[other].position) < float(state.units[model].radius) + float(state.units[other].radius) - 0.001: return "Disembarking bases cannot overlap."
+		if absf(placement_elevation - float(state.units[other].get("elevation", 0.0))) <= 0.001 and position.distance_to(state.units[other].position) < float(state.units[model].radius) + float(state.units[other].radius) - 0.001: return "Disembarking bases cannot overlap."
 		if int(state.units[other].owner) == int(state.units[model].owner): continue
 		var placed: Dictionary = state.units[model].duplicate(true)
 		placed.position = position
-		if Geometry.edge(placed, state.units[other]) <= 2.001:
+		placed.elevation = placement_elevation
+		if Geometry.within_engagement(placed, state.units[other]):
 			var emergency_engaged_allowed: bool = mode == "emergency" and bool(window.get("allow_engaged", false))
 			if mode != "combat" and not emergency_engaged_allowed or (mode == "combat" and not _transport_engaged_squads(state, transport_model).has(int(state.units[other].squad))):
 				return "A disembarking unit must be set up unengaged; Combat Disembark only permits enemies engaged with the transport."
@@ -605,7 +729,7 @@ static func _transport_engaged_squads(state: Dictionary, transport_model: int) -
 	for enemy: int in state.units:
 		var unit: Dictionary = state.units[enemy]
 		if int(unit.get("wounds", 0)) <= 0 or not unit.get("on_battlefield", true) or int(unit.get("owner", -1)) == int(transport.get("owner", -1)): continue
-		if Geometry.edge(transport, unit) <= 2.001 and int(unit.squad) not in result: result.append(int(unit.squad))
+		if Geometry.within_engagement(transport, unit) and int(unit.squad) not in result: result.append(int(unit.squad))
 	return result
 
 static func _nearest_emergency_edge(state: Dictionary, window: Dictionary, model: int) -> float:
@@ -672,6 +796,24 @@ static func choices(state: Dictionary, player: int) -> Array[Dictionary]:
 	if window.is_empty(): return disembark_choices(state, player)
 	if int(window.player) != player: return []
 	var result: Array[Dictionary] = []
+	if window.get("stage", "") == "hazard-reroll": return result
+	if window.get("stage", "") == "aggressive-choice":
+		var emergency := window.get("kind", "") == "emergency"
+		var drop_pod := window.get("kind", "") == "disembark" and bool(window.get("mandatory_drop_pod", false)) and bool(window.get("drop_pod_assault", false))
+		if not emergency and not drop_pod: return result
+		var transport_model := int(window.get("transport", -1))
+		var passenger_squad := int(window.get("passenger_squad", -1))
+		var mode := str(window.get("mode", ""))
+		if gauntlet_aggressive_disembarkation_error(state, player, transport_model, passenger_squad, mode).is_empty():
+			var cost := DetachmentStratagems.gauntlet_aggressive_disembarkation_cost(state, player, passenger_squad)
+			var setup_distance := 6 if emergency else 3
+			var action_prefix := "transport-emergency-aggressive" if emergency else "transport-disembark-aggressive"
+			var normal_move_name := "Emergency Disembark" if emergency else "Drop Pod Assault Rapid Disembark"
+			var normal_move_details := "; roll Hazard, then set up wholly within 6 inches and as close as possible" if emergency else ": set up each model wholly within 3 inches of the Drop Pod and more than 8 inches from every enemy unit"
+			var aggressive_restriction := " and more than 8 inches from every enemy unit" if drop_pod else ""
+			result.append({"label": "Aggressive Disembarkation (%d CP): set up within %d inches%s%s" % [cost, setup_distance, ", still as close as possible" if emergency else "", aggressive_restriction], "action": action_prefix + "-use", "model": transport_model, "target": passenger_squad, "value": ""})
+		result.append({"label": "%s normally%s" % [normal_move_name, normal_move_details], "action": action_prefix + "-pass", "model": transport_model, "target": passenger_squad, "value": ""})
+		return result
 	if window.get("stage", "") == "hazard":
 		for model: int in _emergency_mortal_candidates(state, window):
 			var label := "Emergency Disembark" if window.get("kind", "") == "emergency" else "Disembark"
@@ -680,32 +822,36 @@ static func choices(state: Dictionary, player: int) -> Array[Dictionary]:
 	for model: int in window.models:
 		if window.placements.has(model): continue
 		var distance := 6 if window.mode in ["combat", "emergency"] else 3
+		var setup_range_phrase := "within" if window.get("aggressive_disembarkation", false) else "wholly within"
 		if window.get("kind", "") == "emergency" and is_inf(_nearest_emergency_edge(state, window, model)):
 			if not is_inf(_nearest_emergency_engaged_edge(state, window, model)):
 				result.append({"label": "Emergency Disembark: place model %d engaged (no unengaged position is possible)" % model, "action": "transport-disembark-place", "model": model, "target": int(window.passenger_squad), "value": "engaged"})
 			else:
 				result.append({"label": "Emergency Disembark: model %d cannot be set up and is destroyed" % model, "action": "transport-emergency-unplaceable", "model": model, "target": int(window.passenger_squad), "value": ""})
 		else:
-			result.append({"label": "Disembark: place model %d within %d inches" % [model, distance], "action": "transport-disembark-place", "model": model, "target": int(window.passenger_squad), "value": ""})
+			var move_name := "Emergency Disembark" if window.get("kind", "") == "emergency" else "Disembark"
+			result.append({"label": "%s: place model %d %s %d inches" % [move_name, model, setup_range_phrase, distance], "action": "transport-disembark-place", "model": model, "target": int(window.passenger_squad), "value": ""})
 	if not result.is_empty(): return result
 	result.append({"label": "Confirm disembarkation" if confirm_error(state).is_empty() else "Finish disembarkation positions", "action": "transport-disembark-confirm", "model": -1, "target": int(window.passenger_squad), "value": ""})
 	result.append({"label": "Reset disembarkation positions", "action": "transport-disembark-reset", "model": -1, "target": int(window.passenger_squad), "value": ""})
 	return result
 
-static func begin_disembark(state: Dictionary, player: int, transport_model: int, passenger_squad: int, mode: String, roller: Callable = Callable(), drop_pod_assault: bool = false) -> String:
+static func begin_disembark(state: Dictionary, player: int, transport_model: int, passenger_squad: int, mode: String, roller: Callable = Callable(), drop_pod_assault: bool = false, aggressive_disembarkation: bool = false) -> String:
 	var forced_drop_pod := drop_pod_assault and is_transport(state, transport_model) and identity(state.units[transport_model]) == "drop-pod" and int(state.units[transport_model].owner) == player
 	if not forced_drop_pod and (state.phase != "movement" or int(state.active) != player): return "Disembark only in your Movement phase."
 	if not state.get("pending_move", {}).is_empty() or not state.get("pending_contact", {}).is_empty(): return "Finish the current model movement before disembarking."
 	if not is_transport(state, transport_model) or int(state.units[transport_model].owner) != player or not state.units[transport_model].get("on_battlefield", true): return "Select your living transport on the battlefield."
 	if passenger_squad not in _passengers(state, transport_model): return "The selected unit is not embarked within this transport."
-	if mode not in _move_modes(state, transport_model, passenger_squad): return "That disembark mode is not available for the transport's movement this phase."
+	if mode not in _move_modes(state, transport_model, passenger_squad, aggressive_disembarkation): return "That disembark mode is not available for the transport's movement this phase."
 	var transport_squad := int(state.units[transport_model].squad)
 	var move_type := str(state.squads[transport_squad].get("move_type", "unselected"))
 	if move_type in ["ordered_retreat", "desperate_escape", "failed_fall_back"]: return "A transport that Fell Back cannot make this disembark move."
 	if move_type == "advance" and mode != "shock": return "A transport that Advanced can disembark only with a source-listed Shock Disembark ability."
 	var passenger_models := models(state, passenger_squad)
-	var hazard := Hazardous.roll(state, passenger_squad, passenger_models.size(), roller)
+	var hazard: Dictionary = {"error": "", "rolls": [], "failures": 0, "total": 0}
+	if mode == "combat": hazard = Hazardous.roll(state, passenger_squad, passenger_models.size(), roller)
 	if not hazard.error.is_empty(): return hazard.error
+	var hazard_total := int(hazard.total)
 	var resolution_frame_id := ""
 	if not forced_drop_pod:
 		var action_id := "transport-disembark:%d:%d:%d:%d" % [int(state.get("turn", 0)), transport_model, passenger_squad, int(state.get("revision", -1))]
@@ -716,11 +862,12 @@ static func begin_disembark(state: Dictionary, player: int, transport_model: int
 		if not suspend_error.is_empty():
 			ResolutionFrames.complete(state, resolution_frame_id)
 			return suspend_error
-	state.unit_abilities.transport_window = {"kind": "disembark", "player": player, "transport": transport_model, "passenger_squad": passenger_squad, "mode": mode, "models": passenger_models, "placements": {}, "origins": {}, "prior_flags": {}, "hazard_rolls": hazard.rolls, "hazard_remaining": hazard.failures, "hazard_allocations": [], "stage": "placement"}
+	state.unit_abilities.transport_window = {"kind": "disembark", "player": player, "transport": transport_model, "passenger_squad": passenger_squad, "mode": mode, "models": passenger_models, "placements": {}, "origins": {}, "prior_flags": {}, "hazard_rolls": hazard.rolls, "hazard_total": hazard_total, "hazard_remaining": hazard_total, "hazard_allocations": [], "stage": "placement", "aggressive_disembarkation": aggressive_disembarkation}
 	if not resolution_frame_id.is_empty(): state.unit_abilities.transport_window.resolution_frame_id = resolution_frame_id
 	_set_window_actor(state, player, DISEMBARK_WINDOW)
-	if hazard.failures > 0:
+	if hazard_total > 0:
 		state.unit_abilities.transport_window.stage = "hazard"
+	if mode == "combat": _offer_transport_hazard_reroll(state, state.unit_abilities.transport_window, player)
 	for model: int in passenger_models:
 		state.unit_abilities.transport_window.origins[model] = state.units[model].position
 		state.unit_abilities.transport_window.prior_flags[model] = state.units[model].get("on_battlefield", false)
@@ -729,10 +876,57 @@ static func begin_disembark(state: Dictionary, player: int, transport_model: int
 static func confirm_error(state: Dictionary) -> String:
 	var window: Dictionary = state.get("unit_abilities", {}).get("transport_window", {})
 	if window.is_empty(): return "No pending transport placement."
-	if window.get("kind", "") == "emergency" and window.get("stage", "") != "placement": return "Allocate Emergency Disembark Hazard mortal wounds before placing the unit."
+	if window.get("stage", "") != "placement":
+		var label := "Emergency Disembark" if window.get("kind", "") == "emergency" else "Combat Disembark"
+		return "Resolve %s Hazard decisions before placing the unit." % label
 	for model: int in window.models:
 		if not window.placements.has(model): return "Place every model in the disembarking unit."
 	if not _coherent_preview(state, window): return "Disembarked models must be in unit coherency."
+	return ""
+
+static func resolve_hazard_reaction(state: Dictionary, player: int, squad: int, stratagem: String, revision: int, die: int, roller: Callable) -> String:
+	var reaction := Stratagems.pending(state)
+	if reaction.get("kind", "") != "after_transport_hazard_roll": return "There is no pending transport Hazard decision."
+	var error := Stratagems.choice_error(state, player, squad, revision)
+	if not error.is_empty(): return error
+	if stratagem not in ["", "command-re-roll"]: return "Invalid stratagem for this transport Hazard decision."
+	if not stratagem.is_empty():
+		error = Stratagems.use_error(state, player, squad, stratagem, revision)
+		if not error.is_empty(): return error
+		if die not in reaction.get("eligible", []): return "Select one die from this transport Hazard pool."
+	var working: Dictionary = state.duplicate(true)
+	var pending: Dictionary = Stratagems.pending(working)
+	var window: Dictionary = working.get("unit_abilities", {}).get("transport_window", {})
+	if window.is_empty() or window.get("stage", "") != "hazard-reroll" or int(window.get("passenger_squad", -1)) != squad:
+		return "The transport Hazard continuation is missing."
+	var original: Array = pending.get("rolls", []).duplicate()
+	var final_rolls: Array = original.duplicate()
+	if not stratagem.is_empty():
+		if not roller.is_valid(): return "Missing hazard dice provider."
+		var replacement: Variant = roller.call()
+		if not replacement is int or replacement < 1 or replacement > 6: return "Hazard dice must be integers from 1 to 6."
+		final_rolls[die] = replacement
+	var hazard := Hazardous.from_rolls(working, squad, final_rolls)
+	if not hazard.error.is_empty(): return hazard.error
+	if not stratagem.is_empty():
+		var rerolls: Array = window.get("hazard_rerolls", []).duplicate(true)
+		rerolls.append({"index": die, "original": original[die], "replacement": final_rolls[die], "source": "Command Re-roll"})
+		window.hazard_rerolls = rerolls
+		Stratagems.consume(working, player, squad, stratagem)
+	window.hazard_rolls = hazard.rolls
+	window.hazard_total = int(hazard.total)
+	window.hazard_remaining = int(hazard.total)
+	window.stage = "hazard" if int(hazard.total) > 0 else "placement"
+	var decision_player := int(working.squads[squad].owner)
+	if window.get("kind", "") == "emergency" and int(hazard.total) == 0:
+		decision_player = int(window.get("active_player", working.active))
+	window.player = decision_player
+	_set_window_actor(working, decision_player, EMERGENCY_WINDOW if window.get("kind", "") == "emergency" else DISEMBARK_WINDOW)
+	working.last_command_roll = {"kind": "after_transport_hazard_roll", "squad": squad,
+		"original_rolls": original, "rolls": final_rolls, "rerolled": not stratagem.is_empty(), "die": die, "source": stratagem}
+	working.stratagems.pending = {}
+	state.clear()
+	state.merge(working, true)
 	return ""
 
 static func _emergency_mortal_candidates(state: Dictionary, window: Dictionary) -> Array[int]:
@@ -779,6 +973,33 @@ static func _disembark_hazards_complete(state: Dictionary, window: Dictionary, r
 
 static func apply(state: Dictionary, player: int, selected: Dictionary, point: Vector2, roller: Callable = Callable()) -> String:
 	var action := str(selected.get("action", ""))
+	if action in ["transport-emergency-aggressive-use", "transport-emergency-aggressive-pass", "transport-disembark-aggressive-use", "transport-disembark-aggressive-pass"]:
+		var window: Dictionary = state.get("unit_abilities", {}).get("transport_window", {})
+		var emergency_choice := action.begins_with("transport-emergency-")
+		var drop_pod_choice := action.begins_with("transport-disembark-")
+		var correct_context := window.get("kind", "") == "emergency" if emergency_choice else window.get("kind", "") == "disembark" and bool(window.get("mandatory_drop_pod", false)) and bool(window.get("drop_pod_assault", false))
+		if not correct_context or window.get("stage", "") != "aggressive-choice" or int(window.get("player", -1)) != player or int(selected.get("target", -1)) != int(window.get("passenger_squad", -2)) or int(selected.get("model", -1)) != int(window.get("transport", -2)): return "No matching transport stratagem choice is pending."
+		var working: Dictionary = state.duplicate(true)
+		var working_window: Dictionary = working.unit_abilities.transport_window
+		var use_aggressive := action.ends_with("-use")
+		if use_aggressive:
+			var aggressive_error := gauntlet_aggressive_disembarkation_error(working, player, int(working_window.transport), int(working_window.passenger_squad), str(working_window.mode))
+			if not aggressive_error.is_empty(): return aggressive_error
+			var stratagem_choice := {"action": "detachment-stratagem", "model": int(working_window.transport), "target": int(working_window.passenger_squad), "value": DetachmentStratagems.GAUNTLET_AGGRESSIVE_DISEMBARKATION}
+			var stratagem_result := DetachmentStratagems.apply(working, player, stratagem_choice, roller)
+			if not str(stratagem_result.get("error", "")).is_empty(): return str(stratagem_result.error)
+		elif not action.ends_with("-pass"):
+			return "Unsupported transport stratagem response."
+		working_window.aggressive_disembarkation = use_aggressive
+		if emergency_choice:
+			var hazard_error := _roll_emergency_hazard(working, working_window, roller)
+			if not hazard_error.is_empty(): return hazard_error
+		elif drop_pod_choice:
+			working_window.stage = "placement"
+			_set_window_actor(working, player, DISEMBARK_WINDOW)
+		state.clear()
+		state.merge(working, true)
+		return ""
 	if action == "transport-embark":
 		var model := int(selected.get("model", -1))
 		if not state.units.has(model): return "Select a living passenger model."
@@ -788,6 +1009,21 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		return start_embark(state, player, int(selected.target), int(state.units[int(selected.model)].squad))
 	if action == "transport-disembark-start":
 		return begin_disembark(state, player, int(selected.model), int(selected.target), str(selected.value), roller)
+	if action == "transport-disembark-start-aggressive":
+		var transport_model := int(selected.get("model", -1))
+		var passenger_squad := int(selected.get("target", -1))
+		var mode := str(selected.get("value", ""))
+		var aggressive_error := gauntlet_aggressive_disembarkation_error(state, player, transport_model, passenger_squad, mode)
+		if not aggressive_error.is_empty(): return aggressive_error
+		var working: Dictionary = state.duplicate(true)
+		var stratagem_choice := {"action": "detachment-stratagem", "model": transport_model, "target": passenger_squad, "value": DetachmentStratagems.GAUNTLET_AGGRESSIVE_DISEMBARKATION}
+		var stratagem_result := DetachmentStratagems.apply(working, player, stratagem_choice, roller)
+		if not str(stratagem_result.get("error", "")).is_empty(): return str(stratagem_result.error)
+		var begin_error := begin_disembark(working, player, transport_model, passenger_squad, mode, roller, false, true)
+		if not begin_error.is_empty(): return begin_error
+		state.clear()
+		state.merge(working, true)
+		return ""
 	var window: Dictionary = state.get("unit_abilities", {}).get("transport_window", {})
 	if window.is_empty() or int(window.player) != player: return "No transport decision is active for this player."
 	if action == "transport-disembark-hazard-allocate":
@@ -820,6 +1056,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		return ""
 	match action:
 		"transport-disembark-place":
+			if window.get("stage", "") != "placement": return "Resolve Hazard decisions before placing disembarking models."
 			var model := int(selected.model)
 			if model not in window.models or window.placements.has(model): return "Select a model that still needs a disembark position."
 			var error := _position_error(state, window, model, point)
@@ -855,6 +1092,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var passenger_squad := int(window.passenger_squad)
 			for model: int in window.models:
 				state.units[model].position = window.placements[model]
+				state.units[model].elevation = float(state.units[int(window.transport)].get("elevation", 0.0))
 				state.units[model].on_battlefield = true
 				state.units[model].erase("embarked_transport")
 			if window.get("kind", "") == "emergency":
