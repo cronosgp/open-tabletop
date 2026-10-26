@@ -51,7 +51,8 @@ const PRIMARY_MISSIONS := {
 	"destroyers-wrath": {"name": "Destroyer's Wrath"},
 	"outmanoeuvre": {"name": "Outmanoeuvre"},
 	"immovable-object": {"name": "Immovable Object"},
-	"delaying-action": {"name": "Delaying Action"}
+	"delaying-action": {"name": "Delaying Action"},
+	"inescapable-dominion": {"name": "Inescapable Dominion"}
 }
 
 static func enabled(s: Dictionary) -> bool:
@@ -441,6 +442,11 @@ static func _score_primary(s: Dictionary, losses: Dictionary) -> void:
 				award(s, player, "primary", int(losses.units[opponent]) * 2, "end turn")
 				if s.round >= 2 and controlled_central(s, player) > 0 and controlled_expansion(s, player) > 0: award(s, player, "primary", 3, "end turn")
 			if _primary_checkpoint(s) and controlled_excluding_home_objectives(s, player) > 0: award(s, player, "primary", 4, s.phase)
+		"inescapable-dominion":
+			if s.phase == "end_turn" and controlled(s, player) >= 3: award(s, player, "primary", 4, "end turn")
+			if _primary_checkpoint(s):
+				if controlled(s, player) >= 2: award(s, player, "primary", 5, s.phase)
+				if controlled(s, player) > controlled(s, opponent): award(s, player, "primary", 4, s.phase)
 		"reconnaissance-sweep":
 			if _primary_checkpoint(s) and non_home > 0: award(s, player, "primary", 3, s.phase)
 			if s.phase == "end_turn":
@@ -719,6 +725,8 @@ static func score(s: Dictionary) -> bool:
 				m.log.append("End battle P%d: +10 Battle Ready VP." % player)
 			if primary_id(s, player) == "reconnaissance-sweep" and no_enemy_wholly_in_territory(s, player):
 				award(s, player, "primary", 10, "end battle")
+			if primary_id(s, player) == "inescapable-dominion" and _controls_home(s, player, 3 - player):
+				award(s, player, "primary", 5, "end battle")
 		s.test_winner = 1 if m.scores[1] > m.scores[2] else 2 if m.scores[2] > m.scores[1] else -1
 		m.stage = "complete"
 		return true

@@ -1010,7 +1010,7 @@ func _build_ui() -> void:
 		_refresh_official_layout_controls())
 	official_mission_choice = CheckBox.new()
 	official_mission_choice.text = "Next prepared match: Chapter Approved 2026-27 mission"
-	official_mission_choice.tooltip_text = "11th-edition mission with one supported primary per player, Hammer and Anvil, selected Event Companion terrain and a fixed secondary pair. For the checked Gladius vs Awakened Dynasty rosters, each player can choose Take and Hold or Priority Assets; primary dropdowns remain direct overrides. Choices are visible during setup. Eight current primary cards are implemented; current abilities are required, and reference points do not certify army legality."
+	official_mission_choice.tooltip_text = "11th-edition mission with one supported primary per player, Hammer and Anvil, selected Event Companion terrain and a fixed secondary pair. For the checked Gladius vs Awakened Dynasty rosters, each player can choose Take and Hold or Priority Assets; primary dropdowns remain direct overrides. Choices are visible during setup. Nine current primary cards are implemented; current abilities are required, and reference points do not certify army legality."
 	advanced.add_child(official_mission_choice)
 	official_mission_choice.toggled.connect(func(active: bool):
 		if active: unit_abilities_choice.button_pressed = true
@@ -3947,6 +3947,7 @@ func _refresh_primary_mission_help(player: int = 1) -> void:
 		"outmanoeuvre": help.text = "Round 1 end turn: 4VP per non-home objective. Rounds 2–3 Command: 5VP each. Rounds 4–5 end turn: 6VP each. Enemy home objective at any turn end: +10VP."
 		"immovable-object": help.text = "End turn: +3VP if you control a central objective. From rounds 2–4 at Command, and round 5 at turn end, score 5VP per controlled non-home objective."
 		"delaying-action": help.text = "End turn: +2VP per enemy unit destroyed. From round 2, score +4VP at the checkpoint for any objective other than either home objective, and +3VP at turn end if you control a central and an expansion objective."
+		"inescapable-dominion": help.text = "End turn: +4VP if you control at least three objectives. From round 2 at the checkpoint, score +5VP if you control at least two objectives and +4VP if you control more objectives than your opponent. At battle end, score +5VP if you control the opponent's home objective."
 		"reconnaissance-sweep": help.text = "Score for spreading units across table quarters, destroying enemy units and controlling objectives."
 		"secure-asset": help.text = "Start Secure Asset in the Shooting phase at a controlled non-home objective; hold it through end of turn."
 	if not _selected_official_force_dispositions().is_empty():
