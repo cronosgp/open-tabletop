@@ -40,6 +40,7 @@ const PhobosShadowMasters = preload("res://scripts/edition_11/phobos_shadow_mast
 const PhobosExecuteRedeploy = preload("res://scripts/edition_11/phobos_execute_redeploy.gd")
 const CatoSicarius = preload("res://scripts/edition_11/cato_sicarius.gd")
 const VictrixHonourGuard = preload("res://scripts/edition_11/victrix_honour_guard.gd")
+const HeresyRetribution = preload("res://scripts/edition_11/heresy_retribution.gd")
 const LeaderCatalog = preload("res://scripts/edition_11/leader_catalog.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
@@ -65,6 +66,9 @@ static func _ingress_frame_error(state: Dictionary, window: Dictionary) -> Strin
 static func pending(state: Dictionary) -> Dictionary:
 	return state.get("unit_abilities", {}).get("window", {})
 
+static func window_state_error(state: Dictionary) -> String:
+	return HeresyRetribution.window_error(state) if pending(state).get("kind", "") == HeresyRetribution.WINDOW else ""
+
 ## Exhaustive discriminator set for persisted UnitActions windows handled by this dispatcher.
 ## Keep unknown kinds out of the generic phase-window decline path.
 static func supported_window_kind(kind: String) -> bool:
@@ -74,7 +78,7 @@ static func supported_window_kind(kind: String) -> bool:
 		DeadlyDemise.WINDOW, DetachmentStratagems.VENGEFUL_ANIMUS_WINDOW, DetachmentStratagems.LAYERED_CERAMITE_WINDOW,
 		"evade-and-survive", "evade-placement", CatoSicarius.WINDOW, CatoSicarius.PLACEMENT,
 		TacticalFluidity.WINDOW, TacticalFluidity.PLACEMENT, PurgationRun.WINDOW, PurgationRun.PLACEMENT, PhobosShadowMasters.WINDOW, PhobosExecuteRedeploy.WINDOW,
-		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, "forward-assault-mark",
+		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, HeresyRetribution.WINDOW, "forward-assault-mark",
 		CoreReactions.EXPLOSIVES, CoreReactions.CRUSHING_MORTAL, Hammer.MORTAL_WINDOW, CoreReactions.GRAVIS_ARMOURED_IMPACT_MORTAL, CoreReactions.WRATH_OF_THE_LION_MORTAL, CoreReactions.PHOBOS_MORTIS_SNARES_MORTAL, Hammer.ID,
 		DetachmentStratagems.PHOBOS_SHADOW_MORTIS_TRIGGER_WINDOW, DetachmentStratagems.PHOBOS_SHADOW_MORTIS_DAMAGE_WINDOW,
 		DetachmentStratagems.HEADHUNTER_WINDOW, DetachmentStratagems.GRAVIS_ANNIHILATING_WINDOW, DetachmentStratagems.TERMINATOR_MERCILESS_WINDOW, DetachmentStratagems.PHOBOS_STRIKE_WINDOW, DetachmentStratagems.METHODICAL_BRUTALITY_WINDOW, DetachmentStratagems.PIOUS_ENMITY_WINDOW, DetachmentStratagems.FOR_THE_EMPERORS_HONOUR_WINDOW, DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW, DetachmentStratagems.DREAD_CRUSADERS_WINDOW, DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW, DetachmentStratagems.POINT_BLANK_BRUTALITY_WINDOW, DetachmentStratagems.UNSTOPPABLE_WINDOW,
@@ -469,6 +473,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 		return PurgationRun.choices(state, player)
 	if pending(state).get("kind", "") in [VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT]:
 		return VictrixHonourGuard.choices(state, player)
+	if pending(state).get("kind", "") == HeresyRetribution.WINDOW:
+		return HeresyRetribution.choices(state, player)
 	if pending(state).get("kind", "") == "forward-assault-mark":
 		var source_squad: int = int(pending(state).source_squad)
 		var source_models := A.sources(state, source_squad, "forward-assault-warsuit")
@@ -1600,6 +1606,10 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			return {"error": storm_swift_error}
 		"purgation-use", "purgation-pass", "purgation-place", "purgation-confirm":
 			return PurgationRun.apply(state, player, selected, point, roller)
+		"heresy-retribution-place", "heresy-retribution-reset", "heresy-retribution-confirm":
+			var surge_result := HeresyRetribution.apply(state, player, selected, point)
+			if surge_result.get("completed", false): end_move(state, target)
+			return surge_result
 		"glory-use", "glory-pass", "glory-place", "glory-confirm":
 			return VictrixHonourGuard.apply(state, player, selected, point, roller)
 		Incursors.DIVINATOR_WINDOW: return Incursors.choose(state, player, selected)

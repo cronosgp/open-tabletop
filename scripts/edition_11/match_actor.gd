@@ -107,7 +107,7 @@ static func unit_action_state_error(state: Dictionary) -> String:
 		return "Resolve the invalid pending unit ability choice before continuing."
 	if not UnitActions.supported_window_kind(str(ability_window.get("kind", ""))):
 		return "Resolve the invalid pending unit ability choice before continuing."
-	return ""
+	return UnitActions.window_state_error(state)
 
 static func stratagem_state_error(state: Dictionary) -> String:
 	var stratagems_value: Variant = state.get("stratagems", {})

@@ -4802,7 +4802,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			if Combat.UnitActions.pending(state).get("kind", "") == "ingress":
 				for choice: Dictionary in _available_unit_choices(_local_player()):
 					if choice.action == "ingress-place" and choice.model == selected: ability = choice
-			if ability.action in ["ingress-place", "scout-place", "homer", "heal-revive", "heal-place", "purgation-place", "transport-disembark-place"]:
+			if Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW:
+				for choice: Dictionary in _available_unit_choices(_local_player()):
+					if choice.action == "heresy-retribution-place" and choice.model == selected: ability = choice
+			if ability.action in ["ingress-place", "scout-place", "homer", "heal-revive", "heal-place", "purgation-place", "transport-disembark-place", "heresy-retribution-place"]:
 				unit_action_x.value = target.x
 				unit_action_z.value = target.y
 				if mode == "client": request_unit_action.rpc_id(1, ability, target, state.revision)
@@ -4973,6 +4976,7 @@ func _refresh_decision() -> void:
 		elif Combat.UnitActions.battle_actor(state) > 0: instruction = "Optional: place or skip Terminator Homers, then finish setup."
 		elif Combat.UnitActions.pending(state).get("kind", "") in ["healing", "healing-order"]: instruction = "Unit healing: resolve wounds and confirm returned-model previews."
 		elif Combat.UnitActions.pending(state).get("kind", "") == "ingress": instruction = "Required: preview every arriving model, then confirm the coherent unit or cancel ingress."
+		elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW: instruction = "Heresy Begets Retribution: preview every model's Surge move, follow the selected target's movement rules, then confirm."
 		elif Combat.UnitActions.pending(state).get("kind", "") == "bladeguard": instruction = "Bladeguard: choose a stance or decline. Attack dice wait."
 		elif Combat.UnitActions.pending(state).get("kind", "") == "wound": instruction = "Implacable Eradication: choose free wound rerolls, then keep the remaining dice to continue to saves."
 		else: instruction = "Required: resolve or decline the current unit ability window."
@@ -5427,6 +5431,7 @@ func _refresh() -> void:
 		var previews: Dictionary = Combat.Reanimation.pending(state).get("current", {}).get("placements", {}) if combat_enabled else {}
 		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == "ingress": previews = Combat.UnitActions.pending(state).positions
 		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == "healing": previews = Combat.UnitActions.pending(state).placements
+		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW: previews = Combat.UnitActions.pending(state).positions
 		if combat_enabled and not state.get("unit_abilities", {}).get("transport_window", {}).is_empty(): previews = state.unit_abilities.transport_window.placements
 		var display_position: Vector2 = previews.get(id, unit.position)
 		var elevation := float(unit.get("elevation", 0.0))
@@ -8697,6 +8702,11 @@ func _refresh_unit_actions() -> void:
 			unit_action_help.text = "Relic Teleportarium: set up the Deathwing unit more than 6 inches horizontally from every enemy. It cannot Charge this turn. The CP is spent when selected and is not refunded if placement is canceled. Confirm only after every model fits coherently."
 		else:
 			unit_action_help.text = "Ingress: select each model and place its preview using X/Z or right-click. Confirm only after the whole unit fits coherently, more than 8 inches from enemies. Cancel preserves reserves and resources."
+	elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW:
+		var heresy_window: Dictionary = Combat.UnitActions.pending(state)
+		var heresy_target := int(heresy_window.get("surge_target", -1))
+		unit_action_help.text = "Heresy Begets Retribution: D6 = %d. Preview each model with X/Z or right-click. Every model moves closer; models that can reach Engagement Range must engage the selected closest enemy, and models that cannot must end as close as possible. Keep coherency and avoid engaging any other enemy, then confirm. Reset keeps the spent CP and roll." % [int(heresy_window.get("distance", 0))]
+		if state.squads.has(heresy_target): unit_action_help.text += "\nSurge target: %s." % str(state.squads[heresy_target].get("name", "enemy unit"))
 	elif Combat.UnitActions.pending(state).get("kind", "") in ["evade-and-survive", "evade-placement"]:
 		unit_action_help.text = "Evade and Survive: during the opponent's Movement phase, after an enemy ends a move within 8 inches, an unengaged Lieutenant can make one normal move of D3+3 inches. Preview and confirm; the move must end unengaged."
 	elif Combat.UnitActions.pending(state).get("kind", "") in ["tactical-fluidity", "tactical-fluidity-placement"]:
@@ -8720,7 +8730,7 @@ func _refresh_unit_actions() -> void:
 	if not unit_action_help.tooltip_text.is_empty(): full_help += "\n" + unit_action_help.tooltip_text
 	unit_choice_reference.text = "CURRENT CHOICE\n" + str(unit_action_picker.get_selected_metadata().label) + "\n\n" + full_help
 	unit_action_help.tooltip_text = full_help
-	var tactical: bool = str(Combat.UnitActions.pending(state).get("kind", "")) in ["healing", "healing-order", "ingress", "bladeguard", "wound", "evade-and-survive", "evade-placement", "tactical-fluidity", "tactical-fluidity-placement", Combat.DetachmentStratagems.UNSTOPPABLE_WINDOW, Combat.UnitActions.TargetAuguryWeb.WINDOW] or not optics.is_empty() or not state.get("unit_abilities", {}).get("transport_window", {}).is_empty()
+	var tactical: bool = str(Combat.UnitActions.pending(state).get("kind", "")) in ["healing", "healing-order", "ingress", "bladeguard", "wound", "evade-and-survive", "evade-placement", "tactical-fluidity", "tactical-fluidity-placement", Combat.DetachmentStratagems.UNSTOPPABLE_WINDOW, Combat.UnitActions.TargetAuguryWeb.WINDOW, Combat.UnitActions.HeresyRetribution.WINDOW] or not optics.is_empty() or not state.get("unit_abilities", {}).get("transport_window", {}).is_empty()
 	if not tactical and not battle_start_setup: unit_action_help.text = "Choose an option, then Confirm choice."
 	if guided_first_session and not preparing:
 		# The picker may truncate a long unit/stratagem label, including its CP cost.
@@ -8943,6 +8953,7 @@ func _unit_choice_payload(choice: Dictionary) -> Dictionary:
 		if int(choice.get("model", -1)) != int(option.get("model", -1)): continue
 		if int(choice.get("target", -1)) != int(option.get("target", -1)): continue
 		if str(choice.get("value", "")) != str(option.get("value", "")): continue
+		if int(choice.get("enemy_target", -1)) != int(option.get("enemy_target", -1)): continue
 		option_id = str(option.get("id", ""))
 		break
 	return {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.decision_id), "option_id": option_id, "choice": choice.duplicate(true)}
@@ -8999,7 +9010,7 @@ func _update_unit_placement_controls() -> void:
 		var selected_option: Variant = unit_action_picker.get_selected_metadata()
 		if selected_option is Dictionary:
 			selected_action = str(selected_option.get("action", ""))
-			placement = selected_action in ["homer", "ingress-place", "scout-place", "heal-revive", "heal-place", "evade-place", "fluidity-place"]
+			placement = selected_action in ["homer", "ingress-place", "scout-place", "heal-revive", "heal-place", "evade-place", "fluidity-place", "heresy-retribution-place"]
 	unit_action_x.visible = placement
 	unit_action_z.visible = placement
 	var homer_position := selected_action == "homer"

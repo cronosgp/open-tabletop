@@ -14,7 +14,7 @@ const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
-const ID := "gladius-awakened-stratagems-11e-v11"
+const ID := "gladius-awakened-stratagems-11e-v12"
 const ADAPTIVE := "gladius-adaptive-strategy"
 const STORM := "gladius-storm-of-devastation"
 const ARMOUR := "gladius-armour-of-contempt"
@@ -71,6 +71,7 @@ const VOW_FOR_THE_EMPERORS_HONOUR := "vow-sworn-for-the-emperors-honour"
 const VOW_SPOOR_OF_THE_UNHOLY := "vow-sworn-spoor-of-the-unholy"
 const VOW_DREAD_CRUSADERS := "vow-sworn-dread-crusaders"
 const VOW_DEVOUT_PUSH := "vow-sworn-devout-push"
+const VOW_HERESY_BEGETS_RETRIBUTION := "vow-sworn-heresy-begets-retribution"
 const MEDUSA_POWER_OF_MACHINE_SPIRIT := "medusa-power-of-the-machine-spirit"
 const MEDUSA_ARMOURED_WRATH := "medusa-armoured-wrath"
 const VENGEFUL_ANIMUS_WINDOW := "deadly-demise-vengeful-animus"
@@ -79,6 +80,7 @@ const PIOUS_ENMITY_WINDOW := "vow-sworn-pious-enmity"
 const FOR_THE_EMPERORS_HONOUR_WINDOW := "vow-sworn-for-the-emperors-honour"
 const SPOOR_OF_THE_UNHOLY_WINDOW := "vow-sworn-spoor-of-the-unholy"
 const DREAD_CRUSADERS_WINDOW := "vow-sworn-dread-crusaders"
+const HeresyRetribution = preload("res://scripts/edition_11/heresy_retribution.gd")
 const RELENTLESS_ASSAULT_WINDOW := "tacticus-relentless-assault"
 const POINT_BLANK_BRUTALITY_WINDOW := "tacticus-point-blank-brutality"
 const HAIL_OF_VENGEANCE := "devastator-brethren-hail-of-vengeance"
@@ -349,6 +351,7 @@ static func enable_vow_sworn(s: Dictionary) -> void:
 	Registry.admit(s, VOW_SPOOR_OF_THE_UNHOLY, ID)
 	Registry.admit(s, VOW_DREAD_CRUSADERS, ID)
 	Registry.admit(s, VOW_DEVOUT_PUSH, ID)
+	Registry.admit(s, VOW_HERESY_BEGETS_RETRIBUTION, ID)
 
 static func enable_blade_of_ultramar(s: Dictionary) -> void:
 	if not enabled(s): enable(s)
@@ -1550,6 +1553,21 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		if not Registry.supported(rule) or not Registry.enabled(s, rule) or not A.enabled(s) or not vow_sworn_enabled(s, player): return "Devout Push requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
 		if not marine_infantry_unit(s, squad): return "Devout Push requires a friendly Adeptus Astartes Infantry unit."
 		if s.phase != "fight" or int(s.get("fight_actor", -1)) != player or s.get("fight_step", "") not in ["pile_in", "consolidate"] or squad not in Queue.choices(s, player): return "Devout Push is used when your eligible Infantry unit is selected for a pile-in or consolidation move."
+	elif rule == VOW_HERESY_BEGETS_RETRIBUTION:
+		if not Registry.supported(rule) or not Registry.enabled(s, rule) or not A.enabled(s) or not vow_sworn_enabled(s, player): return "Heresy Begets Retribution requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
+		if not marine_infantry_unit(s, squad): return "Heresy Begets Retribution requires a friendly Adeptus Astartes Infantry unit."
+		if s.phase != "movement" or int(s.get("active", -1)) == player: return "Heresy Begets Retribution is used during your opponent's Movement phase."
+		var reaction_window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var trigger_squad := int(reaction_window.get("squad", -1))
+		if reaction_window.get("kind", "") != MOVEMENT_REACTION_WINDOW or reaction_window.get("owners", []) != [player] or reaction_window.get("phase_key", "") != phase_key(s): return "Heresy Begets Retribution requires the current post-move reaction."
+		if not s.squads.has(trigger_squad) or int(s.squads[trigger_squad].get("owner", -1)) != int(s.active) or living(s, trigger_squad).is_empty(): return "The enemy unit that ended its move is no longer a valid trigger."
+		if bool(s.squads[squad].get("moved", false)): return "Heresy Begets Retribution requires a unit that has not moved this phase."
+		if Queue.engaged(s, squad): return "Heresy Begets Retribution requires an unengaged unit."
+		var within_trigger_range := false
+		for model: int in living(s, squad):
+			if G.distance_to_target(s, s.units[model], trigger_squad) <= 8.001: within_trigger_range = true
+		if not within_trigger_range: return "Heresy Begets Retribution requires the friendly unit to be within 8 inches of the enemy unit that just moved."
+		if enemy_squad not in heresy_closest_enemy_targets(s, squad): return "Choose one of the closest enemy units as the Surge target."
 	elif rule == MEDUSA_UNBOWED_CONVICTION:
 		if not Registry.supported(rule): return "Unbowed Conviction is blocked pending local validation."
 		if not UnitAbilities.enabled(s) or not medusa_wrath_enabled(s, player): return "Unbowed Conviction requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
@@ -2119,6 +2137,9 @@ static func choices(s: Dictionary, player: int) -> Array:
 				result.append({"label": "Gravis Siege Suppression Volleys: test %s at -1 (%d CP)" % [s.squads[enemy].name, maxi(0, 1 - A.discount(s, player, squad))], "action": "detachment-stratagem", "model": -1, "target": squad, "enemy_target": enemy, "value": GRAVIS_SIEGE_SUPPRESSION_VOLLEYS, "details": {"enemy_target": enemy}})
 		if error(s, player, squad, HUNTERS_INSTINCTS).is_empty(): result.append({"label": "Spearpoint Hunter's Instincts: %s (Normal Move up to D3+3 inches; 1 CP)" % s.squads[squad].name, "action": "detachment-stratagem", "model": -1, "target": squad, "value": HUNTERS_INSTINCTS})
 		if error(s, player, squad, ULTRAMARIAN_PRACTICAL_TACTICS).is_empty(): result.append({"label": "Blade of Ultramar Practical Tactics: %s (Normal Move up to D3+3 inches; %d CP)" % [s.squads[squad].name, maxi(0, 1 - A.discount(s, player, squad))], "action": "detachment-stratagem", "model": -1, "target": squad, "value": ULTRAMARIAN_PRACTICAL_TACTICS})
+		for enemy_target: int in heresy_closest_enemy_targets(s, squad):
+			if error(s, player, squad, VOW_HERESY_BEGETS_RETRIBUTION, -1, -1, enemy_target).is_empty():
+				result.append({"label": "Heresy Begets Retribution: %s Surge move toward %s (D6 inches; %d CP)" % [str(s.squads[squad].get("name", "Astartes Infantry")), str(s.squads[enemy_target].get("name", "the closest enemy")), maxi(0, 1 - A.discount(s, player, squad))], "action": "detachment-stratagem", "model": -1, "target": squad, "enemy_target": enemy_target, "details": {"enemy_target": enemy_target}, "stratagem": VOW_HERESY_BEGETS_RETRIBUTION, "value": VOW_HERESY_BEGETS_RETRIBUTION})
 		if error(s, player, squad, PHOBOS_TRANSHUMAN_REACTIONS).is_empty():
 			var reaction_distance := "6 inches (Tactical Doctrine)" if Doctrines.has_doctrine(s, squad, "tactical") else "D6 inches"
 			result.append({"label": "Phobos Shock Force Transhuman Reactions: %s (Normal Move up to %s; %d CP)" % [s.squads[squad].name, reaction_distance, maxi(0, 1 - A.discount(s, player, squad))], "action": "detachment-stratagem", "model": -1, "target": squad, "value": PHOBOS_TRANSHUMAN_REACTIONS})
@@ -2200,7 +2221,7 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	if typeof(details_value) != TYPE_DICTIONARY: return {"error": "Invalid detachment stratagem choice details."}
 	if rule == VOW_PIOUS_ENMITY and str(selected.get("mode", "")) not in ["hit-ones", "monster-vehicle-ones"]: return {"error": "Choose one of the available Pious Enmity effects."}
 	var objective := int(details_value.get("objective", -1)) if rule in [IN_SACRIFICE, GRAVIS_SIEGE_STAND_UNYIELDING, GAUNTLET_STORM_AND_SECURE] else -1
-	var enemy_squad := int(details_value.get("enemy_squad", -1)) if rule in [GRAVIS_LINEBREAKER_ARMOURED_IMPACT, INNER_CIRCLE_WRATH_OF_THE_LION, VOW_DREAD_CRUSADERS] else -1
+	var enemy_squad := int(selected.get("enemy_target", details_value.get("enemy_target", details_value.get("enemy_squad", -1)))) if rule in [GRAVIS_LINEBREAKER_ARMOURED_IMPACT, INNER_CIRCLE_WRATH_OF_THE_LION, VOW_DREAD_CRUSADERS, VOW_HERESY_BEGETS_RETRIBUTION] else -1
 	var suppression_target := int(selected.get("enemy_target", details_value.get("enemy_target", -1))) if rule == GRAVIS_SIEGE_SUPPRESSION_VOLLEYS else -1
 	var failure := error(s, player, selected.target, source_rule, selected.model, objective, enemy_squad, suppression_target)
 	if not failure.is_empty(): return {"error": failure}
@@ -2208,10 +2229,17 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	if rule == VOW_DEVOUT_PUSH and not devout_push_roll(s, player, int(selected.target)).is_empty(): return {"error": "Devout Push has already been paid; resume its saved contact placement."}
 	var dread_result: Dictionary = {}
 	var dread_was_battle_shocked := false
+	var heresy_roll: Dictionary = {}
 	if rule == VOW_DREAD_CRUSADERS:
 		dread_was_battle_shocked = bool(s.squads[enemy_squad].get("battle_shocked", false))
 		dread_result = Morale.roll_battle_shock(s, enemy_squad, roller, -1)
 		if not str(dread_result.get("error", "")).is_empty(): return dread_result
+	elif rule == VOW_HERESY_BEGETS_RETRIBUTION:
+		var heresy_result := RandomStat.roll("D6", roller)
+		if not str(heresy_result.get("error", "")).is_empty(): return heresy_result
+		heresy_roll = heresy_result.duplicate(true)
+		var preflight_error := HeresyRetribution.preflight_error(s, int(selected.target), enemy_squad, float(heresy_roll.get("value", 0)))
+		if not preflight_error.is_empty(): return {"error": preflight_error}
 	if rule == STORM_OF_VENGEANCE:
 		var pending_storm: Dictionary = s.detachment_stratagems.get("storm_of_vengeance_pending", {})
 		var remaining_squads: Array = pending_storm.get("squads", []).duplicate()
@@ -2408,6 +2436,13 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		var outcome := "is Battle-shocked" if s.squads[enemy_squad].battle_shocked else "passes the test"
 		var message := "Dread Crusaders: %s rolls %s at -1 (%d vs Leadership %d) and %s." % [str(s.squads[enemy_squad].get("name", "The charging unit")), str(dread_result.get("rolls", [])), int(dread_result.get("modified_total", 0)), int(dread_result.get("target", 0)), outcome]
 		return {"error": "", "message": message}
+	elif rule == VOW_HERESY_BEGETS_RETRIBUTION:
+		var reaction_window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var trigger_squad := int(reaction_window.get("squad", -1))
+		var surge_result := HeresyRetribution.begin(s, player, int(selected.target), trigger_squad, enemy_squad, heresy_roll)
+		if not str(surge_result.get("error", "")).is_empty(): return surge_result
+		s.last_command_roll = {"kind": "heresy-begets-retribution", "source": "Heresy Begets Retribution", "squad": int(selected.target), "target": enemy_squad, "expression": "D6", "original_rolls": heresy_roll.get("rolls", []).duplicate(), "rolls": heresy_roll.get("rolls", []).duplicate(), "value": int(heresy_roll.get("value", 0)), "rerolled": false}
+		return surge_result
 	elif rule == MEDUSA_UNBOWED_CONVICTION:
 		if not s.detachment_stratagems.has("unbowed_conviction"): s.detachment_stratagems.unbowed_conviction = {}
 		s.detachment_stratagems.unbowed_conviction[selected.target] = {"owner": player, "expires_turn": int(s.turn) + 2}
@@ -2718,23 +2753,41 @@ static func record_move(s: Dictionary, squad: int) -> void:
 static func open_movement_reaction(s: Dictionary, moved_squad: int) -> bool:
 	if not enabled(s) or s.phase != "movement" or not s.squads.has(moved_squad) or int(s.squads[moved_squad].owner) != int(s.active): return false
 	var player := 3 - int(s.active)
-	var has_reaction := false
-	for option: Dictionary in choices(s, player):
-		if str(option.get("value", "")) in [TACTICS, MASTERFUL_TACTICS, HUNTERS_INSTINCTS, PHOBOS_TRANSHUMAN_REACTIONS, ULTRAMARIAN_PRACTICAL_TACTICS]:
-			has_reaction = true
-			break
-	if not has_reaction: return false
 	var previous: Dictionary = s.get("unit_abilities", {}).get("window", {}).duplicate(true)
 	s.unit_abilities.window = {"kind": MOVEMENT_REACTION_WINDOW, "owners": [player], "squad": moved_squad,
 		"phase_key": phase_key(s), "resume_window": previous}
+	var has_reaction := false
+	for option: Dictionary in choices(s, player):
+		if str(option.get("value", "")) in [TACTICS, MASTERFUL_TACTICS, HUNTERS_INSTINCTS, PHOBOS_TRANSHUMAN_REACTIONS, ULTRAMARIAN_PRACTICAL_TACTICS, VOW_HERESY_BEGETS_RETRIBUTION]:
+			has_reaction = true
+			break
+	if not has_reaction:
+		s.unit_abilities.window = previous
+		return false
 	return true
+
+static func heresy_closest_enemy_targets(s: Dictionary, squad: int) -> Array[int]:
+	var result: Array[int] = []
+	if not s.squads.has(squad) or living(s, squad).is_empty(): return result
+	var owner := int(s.squads[squad].get("owner", -1))
+	var closest := INF
+	for enemy_squad: int in s.squads:
+		if int(s.squads[enemy_squad].get("owner", -1)) == owner or living(s, enemy_squad).is_empty(): continue
+		var distance := INF
+		for model: int in living(s, squad): distance = minf(distance, G.distance_to_target(s, s.units[model], enemy_squad))
+		if distance < closest - 0.001:
+			closest = distance
+			result = [enemy_squad]
+		elif absf(distance - closest) <= 0.001:
+			result.append(enemy_squad)
+	return result
 
 static func movement_reaction_choices(s: Dictionary, player: int) -> Array[Dictionary]:
 	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
 	if window.get("kind", "") != MOVEMENT_REACTION_WINDOW or window.get("owners", []) != [player] or window.get("phase_key", "") != phase_key(s): return []
 	var result: Array[Dictionary] = []
 	for option: Dictionary in choices(s, player):
-		if str(option.get("value", "")) in [TACTICS, MASTERFUL_TACTICS, HUNTERS_INSTINCTS, PHOBOS_TRANSHUMAN_REACTIONS, ULTRAMARIAN_PRACTICAL_TACTICS]: result.append(option)
+		if str(option.get("value", "")) in [TACTICS, MASTERFUL_TACTICS, HUNTERS_INSTINCTS, PHOBOS_TRANSHUMAN_REACTIONS, ULTRAMARIAN_PRACTICAL_TACTICS, VOW_HERESY_BEGETS_RETRIBUTION]: result.append(option)
 	result.append({"label": "Pass post-move reaction", "action": "detachment-movement-pass", "model": -1, "target": int(window.get("squad", -1)), "value": ""})
 	return result
 
