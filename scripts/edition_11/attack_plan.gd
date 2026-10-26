@@ -364,6 +364,7 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if TemplarVows.abhor_active(state, squad, row.target, melee):
 			profile.keywords["precision"] = true
 			profile.keywords["lance"] = true
+		if melee and DetachmentStratagems.for_emperors_honour_active(state, squad): profile.keywords["precision"] = true
 		if DetachmentStratagems.lance_wound(state, squad, profile): context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + 1, -1, 1)
 		if not melee and UnitAbilities.aggressive_reconnaissance_active(state, squad, row.target): context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + 1, -1, 1)
 		if not melee and UnitAbilities.has(state, squad, "thunderstrike") and (UnitAbilities.has_target_keyword(state, row.target, "MONSTER") or UnitAbilities.has_target_keyword(state, row.target, "VEHICLE")):

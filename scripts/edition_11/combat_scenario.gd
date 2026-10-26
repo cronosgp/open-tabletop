@@ -1959,6 +1959,25 @@ static func _continue_attack_declaration(state: Dictionary, declaration: Diction
 				_event(state, message)
 				return {"error": "", "message": message, "pools": []}
 		index = 12
+	if index <= 12 and UnitAbilities.enabled(state) and bool(declaration.get("melee", false)) and not declaration.get("for_emperors_honour_checked", false) and DetachmentStratagems.enabled(state):
+		var honour_squad := int(declaration.squad)
+		var honour_owner := int(declaration.player)
+		var honour_rule := DetachmentStratagems.VOW_FOR_THE_EMPERORS_HONOUR if DetachmentStratagems.vow_sworn_enabled(state, honour_owner) else ""
+		declaration.for_emperors_honour_checked = true
+		if not honour_rule.is_empty():
+			var honour_prior_window: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
+			state.unit_abilities.window = {"kind": DetachmentStratagems.FOR_THE_EMPERORS_HONOUR_WINDOW, "owners": [honour_owner], "squad": honour_squad, "declaration": declaration.duplicate(true)}
+			var can_use_honour := DetachmentStratagems.error(state, honour_owner, honour_squad, honour_rule).is_empty()
+			state.unit_abilities.window = honour_prior_window
+			if can_use_honour:
+				declaration.reaction_index = 13
+				var frame_error := _suspend_attack_declaration(state, declaration, "attack-vow-sworn-for-emperors-honour")
+				if not frame_error.is_empty(): return {"error": frame_error}
+				state.unit_abilities.window = {"kind": DetachmentStratagems.FOR_THE_EMPERORS_HONOUR_WINDOW, "owners": [honour_owner], "squad": honour_squad, "declaration": declaration.duplicate(true)}
+				var message := "Selected Adeptus Astartes Infantry unit may use For the Emperor's Honour! before its melee attack."
+				_event(state, message)
+				return {"error": "", "message": message, "pools": []}
+		index = 13
 	var final_prepared := AttackPlan.prepare(state, int(declaration.squad), bool(declaration.melee), declaration.entries, bool(declaration.use_lethal), int(declaration.hail_target), bool(declaration.get("indirect_shooting", false)))
 	if not final_prepared.error.is_empty(): return final_prepared
 	if not bool(declaration.melee) and DetachmentStratagems.medusa_power_snap_shooting(state, int(declaration.squad)):
