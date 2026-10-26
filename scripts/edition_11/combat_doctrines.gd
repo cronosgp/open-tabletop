@@ -46,7 +46,10 @@ static func enable(state: Dictionary, detachment: Variant = "gladius") -> void:
 			Capabilities.admit(state, "gauntlet-combined-deployment", ID)
 			Capabilities.admit(state, "damocles-class-uplink", ID)
 		if selected_detachment == "ironstorm-spearhead": Capabilities.admit(state, "ironstorm-auto-targeters", ID)
-		if selected_detachment == "vow-sworn-crusaders": Capabilities.admit(state, "templar-vows", TemplarVows.ID)
+		if selected_detachment == "vow-sworn-crusaders":
+			Capabilities.admit(state, "templar-vows", TemplarVows.ID)
+			Capabilities.admit(state, "consecrating-aura", ID)
+			Capabilities.admit(state, "incendiary-animus", ID)
 		if selected_detachment == "phobos-shock-force":
 			Capabilities.admit(state, "vanguard-ambushers", ID)
 			Capabilities.admit(state, "phobos-shock-seal-of-shrouding", ID)

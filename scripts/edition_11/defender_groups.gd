@@ -27,6 +27,8 @@ static func profile(state: Dictionary, model: int, melee: bool = false) -> Dicti
 	if MarineEnhancements.artificer_armour_bearer(state, model) or MarineEnhancements.armour_of_antoninus_bearer(state, model): result.save_target = mini(2, int(result.save_target))
 	if MarineEnhancements.redoubtable_machine_spirit_active(state, int(unit.squad)):
 		result.invulnerable_target = 5 if int(result.invulnerable_target) == 0 else mini(5, int(result.invulnerable_target))
+	if MarineEnhancements.consecrating_aura_active(state, int(unit.squad)):
+		result.invulnerable_target = 5 if int(result.invulnerable_target) == 0 else mini(5, int(result.invulnerable_target))
 	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) == "vanguard-veteran-squad-with-jump-packs" and unit.get("combat_shield", false): result.invulnerable_target = 5
 	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) == "impulsor" and unit.get("impulsor_system", "none") == "shield-dome": result.invulnerable_target = 5 if int(result.invulnerable_target) == 0 else mini(5, int(result.invulnerable_target))
 	var force_dome: Dictionary = state.get("unit_abilities", {}).get("force_dome", {}).get(int(unit.squad), {})

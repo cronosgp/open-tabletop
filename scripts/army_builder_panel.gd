@@ -642,6 +642,7 @@ func _refresh_enhancement_picker(item: Dictionary) -> void:
 		var index := enhancement_picker.item_count
 		enhancement_picker.add_item("%s · %d pts · %s" % [enhancement.name, int(enhancement.cost), str(enhancement.detachment).capitalize()])
 		enhancement_picker.set_item_metadata(index, str(enhancement.id))
+		enhancement_picker.set_item_tooltip(index, str(enhancement.get("rule", "")))
 		enhancement_picker.set_item_disabled(index, duplicate)
 	var selected := 0
 	for index in enhancement_picker.item_count:
@@ -668,7 +669,15 @@ func _enhancement_selected(index: int) -> void:
 	_render_draft()
 	entries.select(selected_entry_index)
 	_select_entry(selected_entry_index)
-	notice.text = "Enhancement assigned to one unit. Verify the matching detachment when preparing the match."
+	if identity.is_empty():
+		notice.text = "Enhancement removed from this unit."
+	else:
+		var effect_text := ""
+		for enhancement: Dictionary in source.catalog.get("enhancements", []):
+			if str(enhancement.get("id", "")) == identity:
+				effect_text = str(enhancement.get("rule", ""))
+				break
+		notice.text = "Enhancement assigned to one unit. %s Verify the matching detachment when preparing the match." % effect_text
 
 func _apply_entry_size() -> void:
 	if selected_entry_index < 0 or selected_entry_index >= draft.entries.size():

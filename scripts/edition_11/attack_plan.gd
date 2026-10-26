@@ -49,13 +49,14 @@ static func _enhancement_weapon(state: Dictionary, model: int, profile: Dictiona
 	var paragon := melee and MarineEnhancements.spearpoint_paragon_bearer(state, model)
 	var ancient_weapons := melee and MarineEnhancements.ancient_weapons_bearer(state, model)
 	var champion_first_company := melee and MarineEnhancements.champion_of_first_company_applies_to_unit(state, model)
+	var incendiary_animus := melee and MarineEnhancements.incendiary_animus_active(state, int(state.units[model].squad))
 	var attack_bonus := MarineEnhancements.standard_melee_attack_bonus(state, int(state.units[model].squad))
 	var master_forged: bool = not melee and MarineEnhancements.master_forged_firearms_bearer(state, model) and not bool(profile.get("keywords", {}).get("psychic", false))
 	var honour: bool = not melee and MarineEnhancements.honour_of_vigilance_active(state, int(state.units[model].squad))
 	var hunters_eye: bool = not melee and MarineEnhancements.hunters_eye_active(state, int(state.units[model].squad))
 	var gunnery: bool = not melee and MarineEnhancements.gunnery_honours_active(state, int(state.units[model].squad))
 	var target_augury_web := TargetAuguryWeb.active(state, model)
-	if (melee and not melee_strength_ap_enhancement and not paragon and not ancient_weapons and not champion_first_company and attack_bonus == 0 and not target_augury_web) or (not melee and not master_forged and not honour and not hunters_eye and not gunnery and not target_augury_web): return profile
+	if (melee and not melee_strength_ap_enhancement and not paragon and not ancient_weapons and not champion_first_company and not incendiary_animus and attack_bonus == 0 and not target_augury_web) or (not melee and not master_forged and not honour and not hunters_eye and not gunnery and not target_augury_web): return profile
 	var result := profile.duplicate(true)
 	if melee and melee_strength_ap_enhancement:
 		var bonus := 2 if Doctrines.has_doctrine(state, int(state.units[model].squad), "assault") else 1
@@ -70,6 +71,7 @@ static func _enhancement_weapon(state: Dictionary, model: int, profile: Dictiona
 		result.ap = int(result.ap) - 1
 	if champion_first_company: result.keywords["lethal-hits"] = true
 	if target_augury_web: result.keywords["lethal-hits"] = true
+	if incendiary_animus: result.strength = int(result.strength) + 1
 	if melee and attack_bonus > 0: result.attacks = RandomStat.add_bonus(result.attacks, attack_bonus)
 	if master_forged:
 		result.attacks = RandomStat.add_bonus(result.attacks, 1)
@@ -195,7 +197,7 @@ static func prepare(state: Dictionary, squad: int, melee: bool, entries: Array, 
 	if MarineEnhancements.venator_omni_auspex_active(state, squad): return _prepare_equipped(state, squad, melee, entries, lethal, hail_target, indirect_shooting)
 	if melee:
 		for model: int in Geometry.alive(state, squad):
-			if MarineEnhancements.melee_strength_ap_enhancement_bearer(state, model) or MarineEnhancements.spearpoint_paragon_bearer(state, model) or MarineEnhancements.standard_melee_attack_bonus(state, squad) > 0: return _prepare_equipped(state, squad, melee, entries, lethal, hail_target, indirect_shooting)
+			if MarineEnhancements.melee_strength_ap_enhancement_bearer(state, model) or MarineEnhancements.spearpoint_paragon_bearer(state, model) or MarineEnhancements.incendiary_animus_active(state, squad) or MarineEnhancements.standard_melee_attack_bonus(state, squad) > 0: return _prepare_equipped(state, squad, melee, entries, lethal, hail_target, indirect_shooting)
 	else:
 		if MarineEnhancements.active(state, squad, MarineEnhancements.MASTER_FORGED_FIREARMS) or MarineEnhancements.honour_of_vigilance_active(state, squad) or MarineEnhancements.hunters_eye_active(state, squad) or MarineEnhancements.veteran_of_behemoth_active(state, squad): return _prepare_equipped(state, squad, melee, entries, lethal, hail_target, indirect_shooting)
 	for model: int in Geometry.alive(state, squad):
