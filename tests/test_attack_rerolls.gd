@@ -2,6 +2,8 @@ extends SceneTree
 const P = preload("res://scripts/edition_11/prepared_training.gd")
 const C = P.Combat
 const S = C.Stratagems
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
 var count := 0
 var values: Array = []
 func die() -> int:
@@ -23,8 +25,20 @@ func fixture(manual: bool = false) -> Dictionary:
 	return state
 func begin(state: Dictionary) -> void:
 	assert(C.shoot(state, 1, 100, 200, state.revision, true, die).error.is_empty())
-func react(state: Dictionary, use: bool = false, index: int = 0) -> String:
-	return C.resolve_attack_reaction(state, 1, 1, "command-re-roll" if use else "", state.revision, index, die)
+func react(state: Dictionary, use: bool = false, index: int = 0, player: int = 1) -> String:
+	var decision := S.pending_decision(state)
+	if decision.is_empty(): return "No normalized attack reaction decision is pending."
+	var stratagem := "command-re-roll" if use else ""
+	var selected_die := index if use else -1
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if int(option.get("target", -1)) == 1 and str(option.get("value", "")) == stratagem and int(option.get("details", {}).get("die", -1)) == selected_die:
+			projected = option
+			break
+	if projected.is_empty(): return "The current decision does not offer that reaction choice."
+	var choice := {"action": "stratagem-reaction", "model": -1, "target": 1, "value": stratagem, "die": selected_die}
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.COMMAND_REACTION, "revision": state.revision, "choice": {"_decision_type": MatchCommandService.STRATAGEM_DECISION_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": choice}}, Callable(self, "die"))
+	return str(result.get("error", ""))
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	assert(P.initial_state({"attack_rerolls": true}).has("error"))
@@ -33,8 +47,12 @@ func run() -> void:
 	var state := fixture()
 	values = [6, 6, 1, 6, 1]
 	begin(state)
+	var attack_frame := ResolutionFrames.current(state)
 	assert(count == 2 and S.pending(state).kind == "after_hit_roll" and not state.squads[1].shot)
+	assert(attack_frame.get("kind", "") == "attack" and attack_frame.get("status", "") == "suspended" and str(attack_frame.get("action_id", "")).begins_with("attack:"))
 	var before := var_to_bytes(state)
+	var attack_decision := S.pending_decision(state)
+	var attack_decision_id := str(attack_decision.get("decision_id", ""))
 	assert(not C.allocate_damage(state, 2, 200, state.revision, die).is_empty())
 	assert(not C.advance_phase(state, 1, state.revision, die).is_empty())
 	assert(not C.resolve_attack_reaction(state, 2, 1, "command-re-roll", state.revision, 0, die).is_empty())
@@ -42,10 +60,13 @@ func run() -> void:
 	assert(not C.resolve_attack_reaction(state, 1, 1, "command-re-roll", 0, 0, die).is_empty())
 	assert(not react(state, true, 99).is_empty())
 	assert(var_to_bytes(state) == before and count == 2)
+	var restored: Dictionary = bytes_to_var(var_to_bytes(state))
+	assert(str(S.pending_decision(restored).get("decision_id", "")) == attack_decision_id)
+	state = restored
 	assert(not C.resolve_attack_reaction(state, 1, 1, "command-re-roll", state.revision, 0, func(): return 7).is_empty())
 	assert(var_to_bytes(state) == before)
 	assert(react(state, true).is_empty())
-	assert(state.cp[1] == 3 and S.pending(state).is_empty() and state.pending_attack.is_empty())
+	assert(state.cp[1] == 3 and S.pending(state).is_empty() and state.pending_attack.is_empty() and ResolutionFrames.current(state).is_empty())
 	assert(state.last_attack.pools[0].hit_rolls == [1, 6] and state.last_command_roll.rolls == [1, 6])
 	assert(state.last_attack.pools[0].dice_history == [6, 6, 1, 6, 1] and state.stratagems.uses.size() == 1)
 	before = var_to_bytes(state)
@@ -58,13 +79,14 @@ func run() -> void:
 	var start := count
 	begin(state)
 	assert(react(state).is_empty())
-	assert(count - start == 4 and S.pending(state).kind == "after_wound_roll" and state.cp[1] == 4)
+	assert(count - start == 4 and S.pending(state).kind == "after_wound_roll" and state.cp[1] == 4 and ResolutionFrames.current(state).get("status", "") == "suspended")
 	state = bytes_to_var(var_to_bytes(state))
+	assert(ResolutionFrames.current(state).get("action_id", "").begins_with("attack:"))
 	assert(react(state, true, 1).is_empty())
 	assert(state.cp[1] == 3 and state.pending_attack.current.phase == "damage" and C.actor(state) == 2)
 	assert(state.pending_attack.current.result.wounds == 1)
 	assert(C.allocate_damage(state, 2, 200, state.revision, die).is_empty())
-	assert(state.pending_attack.is_empty() and state.squads[1].shot)
+	assert(state.pending_attack.is_empty() and state.squads[1].shot and ResolutionFrames.current(state).is_empty())
 	# No CP or shocked attacker passes through without a reaction.
 	for shocked in [false, true]:
 		state = fixture()

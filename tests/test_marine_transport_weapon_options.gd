@@ -4,6 +4,7 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const Transport = preload("res://scripts/edition_11/transport_rules.gd")
 const Equipment = preload("res://scripts/edition_11/equipment.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -46,7 +47,7 @@ func run() -> void:
 			var selected := actions.filter(func(choice: Dictionary) -> bool: return str(choice.value).begins_with(weapon_id + ":on"))
 			check(not selected.is_empty(), "%s offers %s from its extracted profile" % [profile.name, weapon_id])
 			if selected.is_empty(): continue
-			var result := UnitActions.apply(state, 1, selected[0], Vector2.ZERO, Callable())
+			var result := PublicUnitCommand.submit(state, 1, selected[0], Vector2.ZERO, Callable())
 			check(result.get("error", "").is_empty() and weapon_id in state.units[model].ranged_weapons.map(func(weapon: Dictionary) -> String: return str(weapon.id)), "%s can equip %s in Army Preparation" % [profile.name, weapon_id])
 			if weapon_id == "hunter-killer-missile":
 				var missile := Equipment.select(state, model, false, weapon_id, "standard")
@@ -54,7 +55,7 @@ func run() -> void:
 		var updated := UnitActions.choices(state, 1).filter(func(choice: Dictionary) -> bool: return choice.action == "transport-weapon-loadout")
 		check(updated.size() == expected.size() and updated.all(func(choice: Dictionary) -> bool: return str(choice.value).ends_with(":off")), "%s exposes reversible removal for each equipped optional weapon" % profile.name)
 		if not updated.is_empty():
-			var removed := UnitActions.apply(state, 1, updated[0], Vector2.ZERO, Callable())
+			var removed := PublicUnitCommand.submit(state, 1, updated[0], Vector2.ZERO, Callable())
 			check(removed.get("error", "").is_empty(), "%s optional weapon can be removed before deployment" % profile.name)
 		check(state.training_points.get(1, 0) == initial_points, "%s optional weapons add no cost absent from its extracted wargear costs" % profile.name)
 	var invalid := make_state("land-raider", 500)

@@ -59,7 +59,12 @@ static func _obstacles(radius: float, state: Dictionary = {}, model: int = -1) -
 	# actual rectangle and circular base. Growing both axes by the whole
 	# radius would overestimate corner obstructions and be unsafe as proof.
 	var features: Array = Board.TERRAIN
-	if model != -1: features = Terrain.movement_obstacles(state, model)
+	if model != -1:
+		# A FLY model may use a supported elevated surface to traverse a dense
+		# feature without Take to the Skies. Keep terrain out of this certificate
+		# relaxation; the live path validator still enforces wall access and the
+		# vertical movement cost for each staged segment.
+		features = [] if Terrain.has_keyword(state.units[model], ["fly"]) else Terrain.movement_obstacles(state, model)
 	for rect: Rect2 in features:
 		for angle in [0.0, PI / 6.0, PI / 4.0, PI / 3.0, PI / 2.0]:
 			var extent := Vector2(cos(angle), sin(angle)) * maxf(0.0, radius - PADDING)

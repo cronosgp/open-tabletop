@@ -15,6 +15,9 @@ var hover_mesh := ImmediateMesh.new()
 var material := StandardMaterial3D.new()
 var caption := "Select a miniature to see its ranges."
 var hover_caption := ""
+var hover_error := ""
+var hover_error_code := ""
+var hover_recovery := ""
 var current_range := 0.0
 var hover_valid := false
 var targets: Dictionary = {}
@@ -40,23 +43,23 @@ func _polygon(mesh: ImmediateMesh, points: PackedVector2Array, color: Color, hei
 			mesh.surface_add_vertex(Vector3(clipped[index].x, height, clipped[index].y))
 			if mesh == static_mesh: static_vertices += 1
 
-func _disk(mesh: ImmediateMesh, center: Vector2, radius: float, color: Color) -> void:
+func _disk(mesh: ImmediateMesh, center: Vector2, radius: float, color: Color, height: float = 0.045) -> void:
 	if radius <= 0.001: return
 	var points := PackedVector2Array()
 	for index in range(96): points.append(center + Vector2.from_angle(index * TAU / 96.0) * radius)
-	_polygon(mesh, points, color)
+	_polygon(mesh, points, color, height)
 
-func _ring(mesh: ImmediateMesh, center: Vector2, radius: float, color: Color, width: float = 0.06) -> void:
+func _ring(mesh: ImmediateMesh, center: Vector2, radius: float, color: Color, width: float = 0.06, height: float = 0.06) -> void:
 	if radius <= 0.001: return
 	for index in range(96):
 		var a := Vector2.from_angle(index * TAU / 96.0)
 		var b := Vector2.from_angle((index + 1) * TAU / 96.0)
-		_polygon(mesh, PackedVector2Array([center + a * radius, center + b * radius, center + b * maxf(0.0, radius - width), center + a * maxf(0.0, radius - width)]), color, 0.06)
+		_polygon(mesh, PackedVector2Array([center + a * radius, center + b * radius, center + b * maxf(0.0, radius - width), center + a * maxf(0.0, radius - width)]), color, height)
 
-func _line(mesh: ImmediateMesh, first: Vector2, second: Vector2, color: Color, width: float = 0.055) -> void:
+func _line(mesh: ImmediateMesh, first: Vector2, second: Vector2, color: Color, width: float = 0.055, height: float = 0.07) -> void:
 	if first.distance_to(second) < 0.001: return
 	var normal := (second - first).normalized().orthogonal() * width / 2.0
-	_polygon(mesh, PackedVector2Array([first + normal, second + normal, second - normal, first - normal]), color, 0.07)
+	_polygon(mesh, PackedVector2Array([first + normal, second + normal, second - normal, first - normal]), color, height)
 
 func _range(center: Vector2, distance: float, color: Color) -> void:
 	var fill := color
@@ -76,6 +79,9 @@ func rebuild(state: Dictionary, selected: int, combat: bool, player: int) -> voi
 	current_range = 0.0
 	targets.clear()
 	hover_caption = ""
+	hover_error = ""
+	hover_error_code = ""
+	hover_recovery = ""
 	caption = "Select a miniature to see its ranges."
 	if combat and Combat.Mission.actor(state) > 0:
 		caption = "Mission preparation: resolve the roll or declaration in Play before continuing."
@@ -134,8 +140,11 @@ func rebuild(state: Dictionary, selected: int, combat: bool, player: int) -> voi
 		if phase == "movement":
 			current_range = Combat.movement_remaining(state, selected)
 			_range(unit.position, current_range, GREEN)
-			var bonus: float = state.pending_move.get("bonus", 0) if state.pending_move.get("squad", -1) == unit.squad else 0.0
-			caption = "Model %d • %.2f / %.2f inches remaining\nGreen: movement limit • links: coherency.\nTerrain and bases are checked at the cursor.\nPlace miniatures, then confirm the squad." % [selected, current_range, float(unit.movement) + bonus]
+			var spent: float = state.pending_move.get("spent", {}).get(selected, 0.0) if state.pending_move.get("squad", -1) == unit.squad else 0.0
+			var maximum := current_range + spent
+			var take_to_skies_penalty: float = state.pending_move.get("take_to_skies_penalty", 0.0) if state.pending_move.get("squad", -1) == unit.squad else 0.0
+			var take_to_skies_note := "\nTake to the Skies: -2 inches." if take_to_skies_penalty > 0.0 else ("\nTake to the Skies: HOVER ignores the 2-inch reduction." if state.pending_move.get("squad", -1) == unit.squad and state.pending_move.get("take_to_skies", false) else "")
+			caption = "Model %d • %.2f / %.2f inches remaining\nGreen: movement limit • links: coherency.\nTerrain and bases are checked at the cursor.%s\nPlace miniatures, then confirm the squad." % [selected, current_range, maximum, take_to_skies_note]
 			if state.pending_move.get("move_type", "") == "desperate_escape": caption += "\nDesperate Escape permits crossing enemy bases; destinations must be free."
 			var coherent := Contact.coherent(state, unit.squad)
 			caption += "\nSquad coherency: " + ("ready" if coherent else "needs repositioning before confirmation")
@@ -185,11 +194,14 @@ func rebuild(state: Dictionary, selected: int, combat: bool, player: int) -> voi
 		if unit.owner != player: caption += "\nInspecting the opponent's miniature."
 	static_mesh.surface_end()
 
-func preview(state: Dictionary, selected: int, combat: bool, player: int, destination: Variant) -> void:
+func preview(state: Dictionary, selected: int, combat: bool, player: int, destination: Variant, destination_elevation: float = -1.0) -> void:
 	_set_board(state)
 	hover_mesh.clear_surfaces()
 	hover_valid = false
 	hover_caption = ""
+	hover_error = ""
+	hover_error_code = ""
+	hover_recovery = ""
 	if combat and Combat.UnitActions.actor(state) > 0: return
 	if combat and not Combat.Reanimation.pending(state).is_empty(): return
 	if combat and Combat.Awakened.needs_setup(state): return
@@ -203,6 +215,10 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 		var error := Combat.Deployment.command_error(state, player, state.revision)
 		if error.is_empty(): error = Combat.Deployment.position_error(state, selected, destination)
 		hover_valid = error.is_empty()
+		hover_error = error
+		hover_error_code = "valid" if hover_valid else "deployment_blocked"
+		hover_recovery = "" if hover_valid else "Choose another deployment position."
+		if not hover_valid and hover_error.is_empty(): hover_error = "Deployment validation did not complete."
 		hover_caption = "Valid deployment position" if hover_valid else error
 		var half := Rules.half_board(state)
 		if not destination.is_finite() or absf(destination.x) >= half.x + float(unit.radius) - 0.001 or absf(destination.y) >= half.y + float(unit.radius) - 0.001: return
@@ -216,13 +232,25 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 	if combat and not state.pending_contact.is_empty():
 		if unit.owner != player: return
 		var error: String = Combat._command_error(state, player, state.revision)
-		if error.is_empty(): error = Combat.ContactActions.validate_segment(state, selected, destination)
-		hover_valid = error.is_empty()
-		hover_caption = "%.2f inches: %s" % [unit.position.distance_to(destination), "valid contact segment; confirm the squad to check final conditions" if hover_valid else error]
+		var contact_validation: Dictionary
+		if not error.is_empty():
+			contact_validation = {"valid": false, "code": "command_blocked", "reason": error, "recovery": "Resolve the current decision before placing a model."}
+		else:
+			contact_validation = Combat.ContactActions.validate_segment_result(state, selected, destination, destination_elevation)
+		hover_valid = bool(contact_validation.get("valid", false))
+		hover_error = str(contact_validation.get("reason", "Contact validation failed."))
+		hover_error_code = str(contact_validation.get("code", "contact_blocked"))
+		hover_recovery = str(contact_validation.get("recovery", "Choose another destination or cancel the move."))
+		if not hover_valid and hover_error.is_empty(): hover_error = "Contact validation did not complete."
+		var contact_current_elevation := float(unit.get("elevation", 0.0))
+		var contact_target_elevation := contact_current_elevation if destination_elevation < 0.0 else destination_elevation
+		var contact_ignores_vertical := Combat.Terrain.ignores_vertical_movement(state, selected)
+		var contact_distance := Combat.Terrain.movement_distance(unit.position, contact_current_elevation, destination, contact_target_elevation, contact_ignores_vertical)
+		hover_caption = "%.2f inches required: %s" % [contact_distance, "valid contact segment; confirm the squad to check final conditions" if hover_valid else hover_error]
 		var tint := ORANGE if hover_valid else RED
 		hover_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, material)
-		_line(hover_mesh, unit.position, destination, tint)
-		_ring(hover_mesh, destination, float(unit.radius), tint)
+		_line(hover_mesh, unit.position, destination, tint, 0.055, (contact_current_elevation + contact_target_elevation) * 0.5 + 0.07)
+		_ring(hover_mesh, destination, float(unit.radius), tint, 0.06, contact_target_elevation + 0.06)
 		hover_mesh.surface_end()
 		return
 	if combat and state.phase != "movement":
@@ -249,13 +277,24 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 		hover_mesh.surface_end()
 		return
 	if unit.owner != player: return
-	var error: String = Combat.validate_move(state, player, selected, destination, state.revision) if combat else Rules.validate_move(state, player, selected, destination)
-	hover_valid = error.is_empty()
+	var movement_current_elevation := float(unit.get("elevation", 0.0))
+	var movement_target_elevation := movement_current_elevation if destination_elevation < 0.0 else destination_elevation
+	var movement_validation: Dictionary = Combat.validate_move_result(state, player, selected, destination, state.revision, movement_target_elevation) if combat else Rules.validate_move_result(state, player, selected, destination)
+	hover_valid = bool(movement_validation.get("valid", false))
+	hover_error = str(movement_validation.get("reason", "Movement validation failed."))
+	hover_error_code = str(movement_validation.get("code", "movement_blocked"))
+	hover_recovery = str(movement_validation.get("recovery", "Choose another destination or cancel the move."))
+	if not hover_valid and hover_error.is_empty(): hover_error = "Movement validation did not complete."
 	var tint := GREEN if hover_valid else RED
-	hover_caption = "%.2f inches: %s" % [unit.position.distance_to(destination), "valid movement segment" if hover_valid else error]
+	var movement_distance: float = unit.position.distance_to(destination)
+	if combat:
+		var movement_ignores_vertical := Combat.Terrain.ignores_vertical_movement(state, selected)
+		movement_distance = Combat.Terrain.movement_distance(unit.position, movement_current_elevation, destination, movement_target_elevation, movement_ignores_vertical)
+	hover_caption = "%.2f inches required: %s" % [movement_distance, "valid movement segment" if hover_valid else hover_error]
 	if combat and hover_valid:
 		var projected: Dictionary = state.duplicate(true)
 		projected.units[selected].position = destination
+		projected.units[selected].elevation = movement_target_elevation
 		if not Contact.coherent(projected, unit.squad):
 			tint = ORANGE
 			hover_caption += " — squad will need repositioning before confirmation"
@@ -263,9 +302,11 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 			tint = ORANGE
 			hover_caption += " — move must finish unengaged"
 	hover_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, material)
-	_line(hover_mesh, unit.position, destination, tint, 0.07)
+	var line_height := (movement_current_elevation + movement_target_elevation) * 0.5 + 0.07 if combat else 0.07
+	var ring_height := movement_target_elevation + 0.06 if combat else 0.06
+	_line(hover_mesh, unit.position, destination, tint, 0.07, line_height)
 	var fill := tint
 	fill.a = 0.28
-	_disk(hover_mesh, destination, float(unit.radius), fill)
-	_ring(hover_mesh, destination, float(unit.radius), tint, 0.08)
+	_disk(hover_mesh, destination, float(unit.radius), fill, ring_height - 0.015)
+	_ring(hover_mesh, destination, float(unit.radius), tint, 0.08, ring_height)
 	hover_mesh.surface_end()

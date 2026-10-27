@@ -3,6 +3,9 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const B = preload("res://scripts/edition_11/bladeguard.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
+const Commands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 var calls := 0
 func check(ok: bool, message: String) -> void:
@@ -51,7 +54,19 @@ func pick(s: Dictionary, player: int, mode: String) -> Dictionary:
   if row.action == "bladeguard" and row.value == mode: return row
  return {}
 func choose(s: Dictionary, player: int, mode: String, roller: Callable = six) -> String:
- return C.unit_action(s, player, pick(s, player, mode), Vector2.ZERO, s.revision, roller)
+ var selected := pick(s, player, mode)
+ if selected.is_empty(): return "No Bladeguard stance choice is offered."
+ return str(submit_normalized(s, player, selected, int(s.get("revision", -1)), roller).get("error", ""))
+func submit_normalized(s: Dictionary, player: int, selected: Dictionary, revision: int = -2147483648, roller: Callable = six, decision_id: String = "", option_id: String = "") -> Dictionary:
+ var decision := PendingDecisions.current(s, ["unit-actions"])
+ if decision.is_empty(): return {"error": "No normalized Bladeguard decision is open."}
+ var projected: Dictionary = {}
+ for option: Dictionary in decision.get("legal_options", []):
+  if option.get("action", "") == selected.get("action", "") and option.get("model", -1) == selected.get("model", -1) and option.get("target", -1) == selected.get("target", -1) and option.get("value", "") == selected.get("value", ""):
+   projected = option
+   break
+ if projected.is_empty(): return {"error": "The current decision does not offer this Bladeguard choice."}
+ return Commands.execute(s, player, {"kind": Commands.SELECT_UNIT_CHOICE, "revision": int(s.get("revision", -1)) if revision == -2147483648 else revision, "choice": {"_decision_type": Commands.UNIT_CHOICE_ENVELOPE, "decision_id": decision_id if not decision_id.is_empty() else str(decision.get("decision_id", "")), "option_id": option_id if not option_id.is_empty() else str(projected.get("id", "")), "choice": selected}}, roller)
 func begin(s: Dictionary) -> Dictionary:
  return C.fight(s, 1, 100, 200, s.revision, six)
 func _initialize() -> void: call_deferred("run")
@@ -72,8 +87,8 @@ func run() -> void:
  check(begin(s).error.is_empty() and calls == start_calls and C.actor(s) == 1 and C.UnitActions.pending(s).kind == "bladeguard", "Attacker stance did not pause before dice")
  var before := var_to_str(s)
  var selected := pick(s, 1, "attack")
- check(not C.unit_action(s, 2, selected, Vector2.ZERO, s.revision, six).is_empty() and var_to_str(s) == before, "Opponent changed attacker stance")
- check(not C.unit_action(s, 1, selected, Vector2.ZERO, s.revision - 1, six).is_empty() and var_to_str(s) == before, "Stale stance changed declaration")
+ check(not submit_normalized(s, 2, selected, s.revision, six).is_empty() and var_to_str(s) == before, "Opponent changed attacker stance")
+ check(not submit_normalized(s, 1, selected, s.revision - 1, six).is_empty() and var_to_str(s) == before, "Stale stance changed declaration")
  check(not C.advance_phase(s, 1, s.revision, six).is_empty() and var_to_str(s) == before, "Phase advanced through frozen declaration")
  check(not begin(s).error.is_empty() and var_to_str(s) == before, "Second attack bypassed declaration window")
  check(choose(s, 1, "attack").is_empty() and C.actor(s) == 2 and calls == start_calls and B.mode(s, 1) == "attack", "Attacker choice did not transfer to defender before dice")
@@ -101,7 +116,14 @@ func run() -> void:
   var option: Dictionary = {}
   for row: Dictionary in C.unit_choices(s, 1):
    if row.action == "bladeguard-pistol" and row.model == 100 and row.value == kind: option = row
-  check(not option.is_empty() and C.unit_action(s, 1, option, Vector2.ZERO, s.revision).is_empty(), "Sergeant pistol choice failed: " + kind)
+  if kind == "volkite":
+   var preparation_decision := PendingDecisions.current(s, ["unit-actions"])
+   var before_pistol := var_to_bytes(s)
+   var wrong_owner_pistol := submit_normalized(s, 2, option)
+   var stale_pistol := submit_normalized(s, 1, option, -2147483648, six, str(preparation_decision.get("decision_id", "")), "stale-option")
+   check(not wrong_owner_pistol.get("error", "").is_empty() and not stale_pistol.get("error", "").is_empty() and before_pistol == var_to_bytes(s), "Wrong-owner and stale Bladeguard pistol options are rejected unchanged")
+  var pistol_result := submit_normalized(s, 1, option)
+  check(not option.is_empty() and pistol_result.get("error", "").is_empty(), "Sergeant pistol choice uses the public preparation command: " + kind)
   check(s.units[100].ranged_weapons[0] == Profiles.bladeguard_pistol(kind) and s.units[101].ranged_weapons[0].id == "heavy-bolt-pistol", "Pistol swap changed trooper or failed to replace Sergeant inventory")
  check(C.UnitActions.attachment_allowed(s, 300, 1), "Captain cannot lead Bladeguard")
  for name: String in ["chaplain", "lieutenant", "judiciar"]:
@@ -141,7 +163,23 @@ func run() -> void:
  s.squads[1].was_engaged = true
  start_calls = calls
  check(C.advance_phase(s, 1, s.revision, six, 1).is_empty() and C.UnitActions.pending(s).get("kind", "") == "bladeguard" and not s.squads[1].fought, "Unengaged selection skipped Bladeguard choice")
- check(choose(s, 1, "defend").is_empty() and s.squads[1].fought and calls == start_calls and B.mode(s, 1) == "defend", "Unengaged choice rolled dice or failed to finish")
+ var empty_fight_frame := ResolutionFrames.current(s)
+ var empty_fight_decision := C.UnitActions.pending_decision(s)
+ check(empty_fight_frame.get("kind", "") == "fight" and empty_fight_frame.get("status", "") == "suspended" and empty_fight_frame.get("resume_point", "") == "empty-fight-bladeguard-choice", "Unengaged Bladeguard choice suspends a Fight continuation")
+ check(empty_fight_decision.get("action_id", "") == empty_fight_frame.get("action_id", "") and empty_fight_decision.get("resume_frame_id", "") == empty_fight_frame.get("frame_id", ""), "Normalized Bladeguard choice carries its Fight continuation identity")
+ s = bytes_to_var(var_to_bytes(s))
+ empty_fight_frame = ResolutionFrames.current(s)
+ empty_fight_decision = C.UnitActions.pending_decision(s)
+ check(empty_fight_decision.get("resume_frame_id", "") == empty_fight_frame.get("frame_id", "") and empty_fight_frame.get("status", "") == "suspended", "Unengaged Fight choice survives save and resume")
+ var suspended_fight_state := var_to_bytes(s)
+ check(not C.advance_phase(s, 1, s.revision).is_empty() and suspended_fight_state == var_to_bytes(s), "Phase close cannot skip an unresolved unengaged Fight choice")
+ var stance_option: Dictionary = {}
+ for option: Dictionary in empty_fight_decision.legal_options:
+  if option.get("value", "") == "defend": stance_option = option; break
+ var stance_choice := pick(s, 1, "defend")
+ var stance_result := Commands.execute(s, 1, {"kind": Commands.SELECT_UNIT_CHOICE, "revision": s.revision, "choice": {"_decision_type": Commands.UNIT_CHOICE_ENVELOPE, "decision_id": empty_fight_decision.decision_id, "option_id": stance_option.id, "choice": stance_choice}}, six)
+ check(stance_result.get("error", "").is_empty() and s.squads[1].fought and calls == start_calls and B.mode(s, 1) == "defend", "Unengaged choice rolled dice or failed to finish")
+ check(ResolutionFrames.current(s).is_empty(), "Unengaged Fight continuation completes after the stance choice")
  # Without an attacking unit still resolving, source loss ends the effect (Core 19.04).
  s = fixture()
  C.UnitActions.attach(s, 300, 1)

@@ -4,6 +4,8 @@ const C = F.C
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const U = preload("res://scripts/edition_11/unit_prevention.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok:
@@ -40,7 +42,7 @@ func fixture(attached: bool = true) -> Dictionary:
  return s
 func choose(s: Dictionary, action: String, value: String) -> String:
  for option: Dictionary in C.unit_choices(s, 1):
-  if option.action == action and option.value == value: return C.unit_action(s, 1, option, Vector2.ZERO, s.revision)
+  if option.action == action and option.value == value: return PublicUnitCommand.error(s, 1, option)
  return "Choice unavailable"
 func one() -> int: return 1
 func bad() -> int: return 7
@@ -68,7 +70,19 @@ func run() -> void:
  check(not C.resolve_roll_reaction(s,2,5,"unstoppable-valour",s.revision,six).is_empty() and var_to_str(s)==before, "Opponent rerolled charge")
  check(not C.resolve_roll_reaction(s,1,5,"unstoppable-valour",s.revision-1,six).is_empty() and var_to_str(s)==before, "Stale charge reroll accepted")
  check(not C.resolve_roll_reaction(s,1,5,"unstoppable-valour",s.revision,bad).is_empty() and var_to_str(s)==before, "Invalid dice changed charge")
- check(C.resolve_roll_reaction(s,1,5,"unstoppable-valour",s.revision,six).is_empty() and s.pending_charge.rolls == [6,6] and s.cp[1]==0 and s.stratagems.uses.is_empty(), "Valour did not replace both dice for zero CP")
+ var valour_decision := C.Stratagems.pending_decision(s)
+ var valour_option: Dictionary = {}
+ for option: Dictionary in valour_decision.get("legal_options", []):
+  if int(option.get("target", -1)) == 5 and str(option.get("value", "")) == "unstoppable-valour": valour_option = option
+ var valour_choice := {"action": "stratagem-reaction", "model": -1, "target": 5, "value": "unstoppable-valour", "die": -1}
+ var valour_envelope := {"_decision_type": MatchCommands.STRATAGEM_DECISION_ENVELOPE, "decision_id": str(valour_decision.get("decision_id", "")), "option_id": str(valour_option.get("id", "")), "choice": valour_choice}
+ var before_wrong_valour_owner := var_to_bytes(s)
+ var wrong_valour_owner := MatchCommands.execute(s, 2, {"kind": MatchCommands.COMMAND_REACTION, "choice": valour_envelope, "revision": s.revision}, six)
+ check(not str(wrong_valour_owner.get("error", "")).is_empty() and var_to_bytes(s) == before_wrong_valour_owner, "The opponent cannot submit or mutate Unstoppable Valour's Charge decision")
+ var stale_valour := MatchCommands.execute(s, 1, {"kind": MatchCommands.COMMAND_REACTION, "choice": valour_envelope, "revision": s.revision - 1}, six)
+ check(not str(stale_valour.get("error", "")).is_empty() and var_to_bytes(s) == before_wrong_valour_owner, "A stale public Unstoppable Valour command leaves Charge unchanged")
+ var valour_result := MatchCommands.execute(s, 1, {"kind": MatchCommands.COMMAND_REACTION, "choice": valour_envelope, "revision": s.revision}, six)
+ check(str(valour_result.get("error", "")).is_empty() and s.pending_charge.rolls == [6,6] and s.cp[1]==0 and s.stratagems.uses.is_empty(), "Valour uses the public command to replace both dice for zero CP")
  check(not C.resolve_roll_reaction(s,1,5,"command-re-roll",s.revision,six).is_empty() and not C.resolve_roll_reaction(s,1,5,"unstoppable-valour",s.revision,six).is_empty(), "Charge dice rerolled twice")
  s = charge_fixture()
  check(C.declare_charge(s,1,500,s.revision,six).error.is_empty() and C.resolve_roll_reaction(s,1,5,"unstoppable-valour",s.revision,one).is_empty() and s.pending_charge.is_empty() and s.last_command_roll.rolls==[1,1], "Lower reroll result not mandatory")
@@ -96,7 +110,13 @@ func run() -> void:
  var acumen: Dictionary = {}
  for option: Dictionary in C.unit_choices(s,1):
   if option.action=="acumen": acumen=option; break
- check(not acumen.is_empty() and C.unit_action(s,1,acumen,Vector2.ZERO,s.revision).is_empty() and s.unit_abilities.doctrines[5].doctrine==acumen.value, "Strategic Acumen unavailable to Terminator Captain")
+ check(not acumen.is_empty(), "Strategic Acumen unavailable to Terminator Captain")
+ if not acumen.is_empty():
+  var before_wrong_acumen_owner := var_to_bytes(s)
+  var wrong_acumen_owner := MatchCommands.execute(s,2,{"kind":MatchCommands.SELECT_UNIT_CHOICE,"choice":acumen,"revision":s.revision})
+  check(not str(wrong_acumen_owner.get("error","")).is_empty() and var_to_bytes(s)==before_wrong_acumen_owner,"The opponent cannot submit or mutate the Terminator Captain's immediate Strategic Acumen choice")
+  var acumen_result := MatchCommands.execute(s,1,{"kind":MatchCommands.SELECT_UNIT_CHOICE,"choice":acumen,"revision":s.revision})
+  check(str(acumen_result.get("error","")).is_empty() and s.unit_abilities.doctrines[5].doctrine==acumen.value, "Strategic Acumen resolves through the public command for the Terminator Captain")
  s = charge_fixture()
  s.cp[1]=2
  s.stratagems.attack_rerolls=true
@@ -104,7 +124,14 @@ func run() -> void:
  before=var_to_str(s)
  check(not C.resolve_roll_reaction(s,1,5,"command-re-roll",s.revision,six).is_empty() and var_to_str(s)==before, "Attack-only reroll option enabled paid charge reroll")
  s.stratagems.movement_rerolls=true
- check(C.resolve_roll_reaction(s,1,5,"command-re-roll",s.revision,six).is_empty() and s.cp[1]==1 and s.stratagems.uses.size()==1, "Paid alternative did not consume CP/use")
+ var reroll_decision := C.Stratagems.pending_decision(s)
+ var reroll_option: Dictionary = {}
+ for option: Dictionary in reroll_decision.get("legal_options", []):
+  if int(option.get("target", -1)) == 5 and str(option.get("value", "")) == "command-re-roll": reroll_option = option
+ var reroll_choice := {"action": "stratagem-reaction", "model": -1, "target": 5, "value": "command-re-roll", "die": -1}
+ var reroll_envelope := {"_decision_type": MatchCommands.STRATAGEM_DECISION_ENVELOPE, "decision_id": str(reroll_decision.get("decision_id", "")), "option_id": str(reroll_option.get("id", "")), "choice": reroll_choice}
+ var paid_reroll := MatchCommands.execute(s, 1, {"kind": MatchCommands.COMMAND_REACTION, "choice": reroll_envelope, "revision": s.revision}, six)
+ check(str(paid_reroll.get("error", "")).is_empty() and s.cp[1]==1 and s.stratagems.uses.size()==1, "Public paid alternative did not consume CP/use")
  s=fixture(false)
  s.units[100].ranged_weapons=P.terminator_captain_weapons(true,false).ranged
  for model: int in C.living(s,2): s.units[model].position=Vector2(0,-2)

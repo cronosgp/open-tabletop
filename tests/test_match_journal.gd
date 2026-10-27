@@ -23,6 +23,16 @@ func run() -> void:
 	assert(journal.entries.size() == 46 and journal.page(0).items.size() == 20)
 	assert(journal.page(0).items[1].messages == ["Test event 0"])
 	assert(not journal.page(0).items[0].has("patch"))
+	# Synthetic presentation fixture: public summaries must not expose raw patches
+	# or modify the hashed journal entries that saves depend on.
+	state.revision += 1
+	state.last_attack = {"pools": [{"weapon_name": "Summary fixture", "target_squad": 2, "hits": 2, "wounds": 2, "damage_applied": 4, "models_destroyed": 2}]}
+	assert(journal.capture(state).is_empty())
+	var entries_before := Journal.digest(journal.entries)
+	var public_entry: Dictionary = journal.page().items[-1]
+	assert(public_entry.attack_summary.pools[0].damage_applied == 4 and public_entry.attack_summary.pools[0].models_destroyed == 2)
+	assert(not public_entry.attack_summary.pools[0].target_name.is_empty() and not public_entry.has("patch"))
+	assert(Journal.digest(journal.entries) == entries_before)
 	var checkpoint: Dictionary = journal.checkpoint()
 	var restored = Journal.new()
 	assert(restored.restore(checkpoint, state).is_empty())
@@ -52,6 +62,25 @@ func run() -> void:
 	file.close()
 	assert(not Journal.new().restore(checkpoint, state).is_empty())
 	assert(not Journal.new().restore({"version": 1, "id": "../bad"}, state).is_empty())
+	var compacted_state := Prepared.initial_state()
+	var compacted_journal = Journal.new()
+	compacted_journal.reset(compacted_state)
+	assert(compacted_journal.capture(compacted_state).is_empty())
+	for step in range(24):
+		compacted_state.revision += 1
+		compacted_state.units[100].position.x += 0.01
+		compacted_state.events.append({"revision": compacted_state.revision, "message": "Compaction event %d" % step})
+		assert(compacted_journal.capture(compacted_state).is_empty())
+	var original_journal_id := compacted_journal.id
+	var original_checkpoint: Dictionary = compacted_journal.checkpoint()
+	assert(compacted_journal._compact(5).is_empty())
+	assert(compacted_journal.id != original_journal_id and compacted_journal.entries.size() == 6, "Compaction retains the latest five records behind a checkpoint")
+	assert(compacted_journal.entries[0].kind == "checkpoint" and compacted_journal.page().compacted_entries == 20, "Compaction records how many earlier history records were summarized")
+	assert(FileAccess.file_exists(compacted_journal.storage_directory.path_join(original_journal_id + ".journal")), "Compaction leaves the old journal intact until saves no longer reference it")
+	assert(Journal.new().restore(original_checkpoint, compacted_state).is_empty(), "A save that references the previous journal remains resumable after compaction")
+	var compacted_resume = Journal.new()
+	assert(compacted_resume.restore(compacted_journal.checkpoint(), compacted_state).is_empty(), "The compacted checkpoint restores the exact current state")
+	assert(compacted_resume.entries.size() == 6 and compacted_resume.retired_ids.has(original_journal_id), "Compacted history and retired journal cleanup references survive reload")
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	game._start_allocation_practice()

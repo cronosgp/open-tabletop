@@ -8,6 +8,7 @@ const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Prevention = preload("res://scripts/edition_11/unit_prevention.gd")
 const WoundPrevention = preload("res://scripts/edition_11/wound_prevention.gd")
 const DefenderGroups = preload("res://scripts/edition_11/defender_groups.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -125,6 +126,39 @@ func _initialize() -> void:
 	var ancient_melee := C.AttackPlan._enhancement_weapon(s, bodyguard_model, melee_profile, true)
 	check(exhortation_error.is_empty() and ancient_melee.attacks == 5 and Enhancements.standard_melee_attack_bonus(s, ancient_squad) == 1, "Ancient Exhortation adds one melee Attack to the attached unit for this phase")
 	check(Enhancements.standard_fight_choices(s, 1).is_empty(), "Ancient Exhortation is once per battle per army")
+	s = prepared(Enhancements.STANDARD_OF_THE_EMPEROR_ASCENDANT, "ancient")
+	ancient_model = model_for(s, "ancient")
+	bodyguard_model = model_for(s, "intercessor-squad")
+	C.UnitActions.attach(s, ancient_model, int(s.units[bodyguard_model].squad))
+	ancient_squad = int(s.units[ancient_model].squad)
+	var enemy_squad := -1
+	for squad_id: int in s.squads:
+		if int(s.squads[squad_id].owner) == 2:
+			enemy_squad = squad_id
+			break
+	var enemy_model := -1
+	for model_id: int in s.units:
+		if int(s.units[model_id].squad) == enemy_squad and int(s.units[model_id].wounds) > 0:
+			enemy_model = model_id
+			break
+	s.phase = "fight"
+	s.fight_step = "attacks"
+	s.fight_actor = 1
+	s.fight_selected = ancient_squad
+	s.squads[ancient_squad].charged = true
+	var ordinary_state: Dictionary = s.duplicate(true)
+	var ordinary_exhortation: Dictionary = Enhancements.standard_fight_choices(ordinary_state, 1)[0]
+	var ordinary_exhortation_result := MatchCommands.execute(ordinary_state, 1, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": ordinary_exhortation, "revision": ordinary_state.revision})
+	check(ordinary_exhortation_result.error.is_empty(), "The current Fight actor can still use an unprojected immediate Fight choice")
+	var pending_attack_state: Dictionary = s.duplicate(true)
+	var pending_attack_id := "attack:%d:%d:%s:%d" % [pending_attack_state.turn, ancient_squad, pending_attack_state.phase, pending_attack_state.revision]
+	pending_attack_state.pending_attack = {"squad": ancient_squad, "player": 1, "resolution_action_id": pending_attack_id, "current": {"phase": "order", "target": enemy_squad, "groups": [{"models": [enemy_model], "character": false}], "order": []}}
+	var suspended_attack := C.ResolutionFrames.begin(pending_attack_state, "attack", pending_attack_id, "attack-defender-allocation")
+	C.ResolutionFrames.suspend(pending_attack_state, str(suspended_attack.frame_id), "attack-defender-allocation")
+	var blocked_exhortation := Enhancements.standard_fight_choices(pending_attack_state, 1)[0]
+	var pending_attack_before := var_to_str(pending_attack_state)
+	var blocked_exhortation_result := MatchCommands.execute(pending_attack_state, 1, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": blocked_exhortation, "revision": pending_attack_state.revision})
+	check("damage allocation" in str(blocked_exhortation_result.error).to_lower() and pending_attack_before == var_to_str(pending_attack_state), "Attacker cannot use an unprojected Fight choice while the defender owns pending damage allocation")
 	s.phase = "shooting"
 	check(Enhancements.standard_melee_attack_bonus(s, ancient_squad) == 0, "Ancient Exhortation expires when the Fight phase ends")
 

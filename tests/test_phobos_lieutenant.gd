@@ -3,12 +3,24 @@ extends SceneTree
 const F = preload("res://tests/marine_phobos_fixture.gd")
 const C = F.C
 const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 func check(ok: bool,message: String) -> void:
  if not ok:push_error(message);failures+=1
+func submit_choice(s: Dictionary, owner: int, choice: Dictionary) -> Dictionary:
+ var decision := C.UnitActions.pending_decision(s)
+ var payload: Dictionary = choice
+ if not decision.is_empty():
+  var projected: Dictionary = {}
+  for option: Dictionary in decision.get("legal_options", []):
+   if str(option.get("action", ""))==str(choice.get("action", "")) and int(option.get("model", -1))==int(choice.get("model", -1)) and int(option.get("target", -1))==int(choice.get("target", -1)) and str(option.get("value", ""))==str(choice.get("value", "")):projected=option;break
+  if projected.is_empty():return {"error":"Choice missing from pending decision."}
+  payload={"_decision_type":MatchCommands.UNIT_CHOICE_ENVELOPE,"decision_id":str(decision.get("decision_id", "")),"option_id":str(projected.get("id", "")),"choice":choice}
+ return MatchCommands.execute(s,owner,{"kind":MatchCommands.SELECT_UNIT_CHOICE,"choice":payload,"revision":int(s.revision)})
 func choose(s: Dictionary,action: String,value: String) -> String:
  for option: Dictionary in C.unit_choices(s,1):
-  if option.action==action and option.value==value:return C.unit_action(s,1,option,Vector2.ZERO,s.revision)
+  if option.action==action and option.value==value:return PublicUnitCommand.error(s,1,option)
  return "Choice unavailable"
 func _initialize() -> void:call_deferred("run")
 func run() -> void:
@@ -40,7 +52,17 @@ func run() -> void:
  var acumen: Dictionary={}
  for option: Dictionary in C.unit_choices(s,1):
   if option.action=="acumen":acumen=option;break
- check(not acumen.is_empty() and C.unit_action(s,1,acumen,Vector2.ZERO,s.revision).is_empty(),"Captain did not open doctrine response")
- check(choose(s,"demi",acumen.value).is_empty() and s.unit_abilities.doctrines[3].doctrine==acumen.value,"Phobos Lieutenant did not copy Captain doctrine")
+ check(not acumen.is_empty(),"Captain did not offer Strategic Acumen")
+ if not acumen.is_empty():
+  var before_wrong_acumen_owner := var_to_bytes(s)
+  var wrong_acumen_owner := submit_choice(s,2,acumen)
+  check(not str(wrong_acumen_owner.get("error", "")).is_empty() and var_to_bytes(s)==before_wrong_acumen_owner,"The opponent cannot submit or mutate the immediate Strategic Acumen choice")
+  var acumen_result := submit_choice(s,1,acumen)
+  check(str(acumen_result.get("error", "")).is_empty(),"Captain opens doctrine response through the public command")
+ var demi: Dictionary={}
+ for option: Dictionary in C.unit_choices(s,1):
+  if option.action=="demi" and option.value==acumen.value:demi=option;break
+ var demi_result := submit_choice(s,1,demi) if not demi.is_empty() else {"error":"Demi-company Commander choice unavailable."}
+ check(str(demi_result.get("error", "")).is_empty() and s.unit_abilities.doctrines[3].doctrine==acumen.value,"Phobos Lieutenant copies the Captain doctrine through the public command")
  print("Phobos Lieutenant checks: %d failures" % failures)
  quit(0 if failures==0 else 1)

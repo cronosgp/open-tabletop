@@ -5,6 +5,7 @@ const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
+const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const ID := "awakened-dynasty-command-protocols-11e-v2"
 const REFERENCE := "https://wahapedia.ru/wh40k11ed/factions/necrons/#Command-Protocols"
 const OVERLORD := "40kdc:11e:necrons:overlord"
@@ -53,6 +54,14 @@ static func candidates(state: Dictionary) -> Array[int]:
 		if state.squads[squad].owner == owner and pure(state, squad, BODYGUARDS) and Geometry.alive(state, squad).size() == state.squads[squad].starting_strength: result.append(squad)
 	result.sort()
 	return result
+
+static func pending_decision(state: Dictionary) -> Dictionary:
+	var owner := setup_actor(state)
+	if owner <= 0: return {}
+	var options: Array[Dictionary] = [{"label": "Leave Overlord standalone", "action": "awakened-attachment", "model": int(state.awakened_dynasty.pending[0]), "target": -1, "value": "standalone"}]
+	for squad: int in candidates(state):
+		options.append({"label": "Attach Overlord to %s" % state.squads[squad].name, "action": "awakened-attachment", "model": int(state.awakened_dynasty.pending[0]), "target": squad, "value": "attach"})
+	return PendingDecision.create(state, "awakened-attachment", "deployment:overlord-attachment", owner, options, false)
 
 static func choice_error(state: Dictionary, player: int, bodyguard: int, revision: int) -> String:
 	if not needs_setup(state): return "No Overlord attachment decision is pending."

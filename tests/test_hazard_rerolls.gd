@@ -2,6 +2,7 @@ extends SceneTree
 const P = preload("res://scripts/edition_11/prepared_training.gd")
 const C = P.Combat
 const S = C.Stratagems
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 var values: Array = []
 var count := 0
 func die() -> int:
@@ -29,6 +30,7 @@ func run() -> void:
 	values = [1, 1, 6]
 	begin(state)
 	assert(count == 2 and S.pending(state).kind == "after_hazardous_roll" and not state.squads[1].shot)
+	assert(ResolutionFrames.current(state).get("kind", "") == "attack" and ResolutionFrames.current(state).get("status", "") == "suspended" and state.pending_hazard.get("resolution_action_id", "") == ResolutionFrames.current(state).get("action_id", ""))
 	assert(state.units[100].wounds == 2 and state.pending_hazard.resolved.hazardous.allocations.is_empty())
 	var before := var_to_bytes(state)
 	assert(not C.allocate_hazard(state, 1, 100, state.revision, die).is_empty())
@@ -40,7 +42,7 @@ func run() -> void:
 	assert(not C.resolve_hazard_reaction(state, 1, 1, "command-re-roll", state.revision, 0, func(): return 7).is_empty())
 	assert(before == var_to_bytes(state))
 	state = bytes_to_var(var_to_bytes(state))
-	assert(react(state, true).is_empty() and state.cp[1] == 3 and state.pending_hazard.is_empty() and state.squads[1].shot)
+	assert(react(state, true).is_empty() and state.cp[1] == 3 and state.pending_hazard.is_empty() and state.squads[1].shot and ResolutionFrames.current(state).is_empty())
 	assert(state.last_attack.hazardous.rolls == [6] and state.last_attack.hazardous.rerolls == [{"index": 0, "original": 1, "replacement": 6}])
 	assert(not react(state, true).is_empty() and count == 3)
 	# All-pass results can become failures; no FNP is rolled until allocation.
@@ -52,7 +54,7 @@ func run() -> void:
 	assert(state.pending_hazard.remaining == 0 and not S.pending(state).is_empty())
 	assert(react(state, true).is_empty() and count - start == 3 and state.pending_hazard.remaining == 1)
 	assert(state.units[100].wounds == 2 and state.pending_hazard.resolved.hazardous.get("prevention", []).is_empty())
-	assert(C.allocate_hazard(state, 1, 100, state.revision, die).is_empty())
+	assert(C.allocate_hazard(state, 1, 100, state.revision, die).is_empty() and ResolutionFrames.current(state).is_empty())
 	assert(count - start == 4 and state.units[100].wounds == 2 and state.last_attack.hazardous.prevention[0].prevented == 1)
 	# Accepting the batch is free and does not reroll the original dice.
 	state = fixture()
@@ -85,8 +87,8 @@ func run() -> void:
 	begin(state)
 	assert(not state.pending_attack.is_empty() and S.pending(state).is_empty())
 	assert(C.allocate_damage(state, 2, 200, state.revision, die).is_empty())
-	assert(state.units[200].wounds == 0 and S.pending(state).kind == "after_hazardous_roll")
-	assert(react(state, true).is_empty() and state.pending_hazard.is_empty() and state.squads[1].shot)
+	assert(state.units[200].wounds == 0 and S.pending(state).kind == "after_hazardous_roll" and ResolutionFrames.current(state).get("kind", "") == "attack")
+	assert(react(state, true).is_empty() and state.pending_hazard.is_empty() and state.squads[1].shot and ResolutionFrames.current(state).is_empty())
 	for reason in ["cp", "shock", "phase"]:
 		state = fixture()
 		if reason == "cp": state.cp[1] = 0

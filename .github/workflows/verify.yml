@@ -28,9 +28,11 @@ jobs:
           if (-not $IsWindows) { chmod +x $engine }
           "GODOT=$engine" >> $env:GITHUB_ENV
       - name: Verify demo and loopback
-        run: python tools/verify.py --profile demo --network
+        run: python tools/verify.py --profile demo --network --timeout 300
+      - name: Verify current-catalog tactical training locally
+        run: python tools/verify.py --profile focused --only test_tactical_training --only test_tactical_combat_flow --timeout 300
       - name: Export and start demo pack
-        run: python tools/build_demo.py
+        run: python tools/build_demo.py --timeout 300
       - name: Retain reports
         if: always()
         uses: actions/upload-artifact@v4

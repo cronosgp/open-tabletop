@@ -17,14 +17,15 @@ func run() -> void:
 	check(game.blockers_button.visible and "Select your living attacker" in game.blockers_reference.text, "Help gathers the current validator reason without hover")
 	var initial := var_to_str(game.state)
 	game.blockers_button.pressed.emit()
-	check(game.match_tabs.current_tab == 6 and var_to_str(game.state) == initial, "Blocker shortcut opens Help without changing rules state")
-	game.match_tabs.current_tab = 1
+	check(game.tactical_overlay.visible and game.tactical_overlay_title.text.begins_with("FIELD GUIDE") and var_to_str(game.state) == initial, "Blocker shortcut opens Help without changing rules state")
+	game._close_tactical_screen()
 	check(not game.action_groups.movement.container.visible and game.action_groups.attack.container.visible, "Shooting hides movement controls as a group")
 	game.selected = 100
 	game._refresh()
 	check(not game.plan_begin.disabled and not game.action_groups.attack.reason.visible, "Valid selection clears stale blocking explanation")
 	check("Select your living attacker" not in game.blockers_reference.text, "Changing selection removes stale blockers from Help")
 	game._begin_attack_plan()
+	await process_frame
 	check(game.action_groups.attack.container.visible and not game.action_groups.phase.container.visible and not game.action_groups.objectives.container.visible, "Editing a plan focuses its controls and retains cancellation")
 	check(game.plan_cancel.is_visible_in_tree() and "Cannot confirm" in game.action_groups.attack.reason.text, "Incomplete plan reports why confirmation is blocked")
 	game._assign_attack()
@@ -56,4 +57,6 @@ func run() -> void:
 	game._refresh()
 	check(game.charge_button.disabled and "Advanced" in game.action_groups.contact.reason.text, "Charge explains Advance restriction")
 	print("Contextual action guidance: %d failures" % failures)
+	game.free()
+	await process_frame
 	quit(0 if failures == 0 else 1)

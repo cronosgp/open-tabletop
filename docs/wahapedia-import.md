@@ -22,6 +22,8 @@ python tools/import_wahapedia.py --input-dir .tools/wahapedia-e11-OLD/raw --outp
 
 Offline processing does not claim a new live freshness check. If a parent snapshot manifest is present, input file hashes are verified and its manifest digest is recorded. The export timestamp uses its documented GMT+3 timezone. String IDs retain leading zeroes; HTML is kept as inert source data.
 
+The importer accepts either the `raw/` directory from one of its own captures or the root of a downloaded snapshot containing the 22 CSVs and `manifest.json`. For a direct source snapshot, it verifies each CSV against the manifest's per-file hash and records the source manifest digest.
+
 ## Export-specific details
 
 Some live descriptions contain unquoted physical newlines. The parser joins continuation fragments only while the record lacks its required field count, preserves newlines and reports each continuation. Missing columns, overlong rows, unexpected trailing columns and incomplete terminal records fail parsing.
@@ -52,3 +54,9 @@ The six runtime profiles have **zero numeric/identity differences** in the imple
 Reproducible local evidence: `.tools/wahapedia-e11-snapshot-v2/manifest.json` for the original live capture, `.tools/wahapedia-e11-20261018-reviewed/manifest.json` for reprocessing, and `.tools/wahapedia-marines-comparison-final.json` for comparison. Committed [audit metadata](wahapedia-import-audit.json) preserves hashes, counts and concise findings without bundling the source prose. The runtime profile exporter completed successfully; all **19 Python tests passed**, including ten new importer/comparison tests. No new graphical or multiplayer validation was needed for these offline tools.
 
 Follow-up delivered: the [shared Marine source slice](wahapedia-marines-slice.md) isolates all 85 shared-book subjects with zero structural errors, generates a joined catalog and resolves the Terminator keyword audit through revision-scoped page context. The 68 global errors remain preserved. Next: weapon-trait/loadout/composition/cost checks and executable effect/interaction validation. Full-match and general army-legality flags remain false.
+
+## Newer export reviewed locally: 21 October 2026
+
+The locally downloaded export reports **21 October 2026, 16:06:23 GMT+3**. Offline processing recognized 1,513 datasheets and 193 Space Marines faction-page candidates. Structural validation again found 68 errors: 60 dangling datasheet references, six dangling detachment references and two datasheets missing faction/source identity. The importer's audit manifest records the raw snapshot manifest digest and all per-file hashes.
+
+A source-bounded slice for the shared Space Marines book (`Source.csv` ID `000000139`) was extracted from this capture. It contains **85 subject sheets** and 41 identity-only Leader endpoints, has zero slice validation errors, and remains `playable: false` and `full_match_certified: false`. The parent export's 68 global errors remain recorded; slicing does not repair or hide them. Raw capture, review output and slice stay local in ignored `.tools/` paths.

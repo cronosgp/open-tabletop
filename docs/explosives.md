@@ -12,4 +12,4 @@ Validation is in `tests/test_explosives.gd`: legal Marine keyword, GRENADES alia
 
 Validation results and hashes are recorded in [the audit](explosives-audit.json): 30 Python checks, startup/import, ten local Godot suites and the existing host/client Reanimation recovery regression passed. That network scenario does not certify Explosives-specific remote play. The GW downloads index was opened, but its rendered content did not expose the core card text; independent GW reconciliation remains unclaimed.
 
-Full-match and army-legality certification remain false. Smokescreen and Crushing Impact remain unsupported.
+Full-match and army-legality certification remain false. Smokescreen remains unsupported. Crushing Impact / Tank Shock now has bounded current 11e support; see [its implementation scope and pending checks](rules/crushing-impact.md).

@@ -16,6 +16,16 @@ const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancem
 const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
 const ID := AbilityCatalog.ID
 const RULES := AbilityCatalog.RULES
+const TRANSPORT_DEADLY_DEMISE := {
+	"land-raider": "D6",
+	"land-raider-crusader": "D6",
+	"land-raider-redeemer": "D6",
+	"drop-pod": 1,
+	"impulsor": "D3",
+	"repulsor": "D6",
+	"repulsor-executioner": "D6",
+	"rhino": "D3",
+}
 static func identity(unit: Dictionary) -> String:
 	return AbilityCatalog.identity(unit)
 static func enabled(state: Dictionary) -> bool:
@@ -29,6 +39,8 @@ static func every_model_has(state: Dictionary, squad: int, name: String) -> bool
 static func scout_distance(state: Dictionary, squad: int) -> int:
 	if not enabled(state): return 0
 	if int(state.get("unit_abilities", {}).get("cerebrex_targets", {}).get(squad, -1)) == squad and not Geometry.alive(state, squad).is_empty(): return 6
+	if MarineEnhancements.active(state, squad, MarineEnhancements.SPEARPOINT_WAR_LEADER): return 6
+	if MarineEnhancements.active(state, squad, MarineEnhancements.RELENTLESS_ADVANCE): return 5
 	var alive: Array[int] = []
 	for model: int in state.units:
 		if state.units[model].squad == squad and state.units[model].wounds > 0: alive.append(model)
@@ -98,8 +110,17 @@ static func advance_destroyed_mark_queue(state: Dictionary, selected_squad: int,
 
 static func has(state: Dictionary, squad: int, name: String) -> bool:
 	return AbilityCatalog.has(state, squad, name)
+
+static func deadly_demise_value(state: Dictionary, model: int) -> Variant:
+	if not enabled(state) or not state.get("units", {}).has(model): return null
+	var unit: Dictionary = state.units[model]
+	var unit_identity := identity(unit)
+	var abilities: Array = RULES.get(unit_identity, [])
+	if "deadly-demise-d3" in abilities: return "D3"
+	if "transport-deadly-demise" in abilities: return TRANSPORT_DEADLY_DEMISE.get(unit_identity)
+	return null
 static func enable(state: Dictionary) -> void:
-	state.unit_abilities = {"implementation": ID, "used": {}, "doctrines": {}, "additional_doctrines": {}, "discounts": {}, "discount_armed": {}, "phase_start": -1, "end_done": "", "window": {}, "reserves": {}, "homers": {}, "force_dome": {}, "veil_of_time_pending": {}, "master_shadows": {}, "thunderhawk_targets": {}, "seeker_objectives": {}, "forgefather_targets": {}, "setup_done": false}
+	state.unit_abilities = {"implementation": ID, "used": {}, "doctrines": {}, "additional_doctrines": {}, "discounts": {}, "discount_armed": {}, "phase_start": -1, "end_done": "", "window": {}, "reserves": {}, "homers": {}, "force_dome": {}, "veil_of_time_pending": {}, "master_shadows": {}, "thunderhawk_targets": {}, "seeker_objectives": {}, "forgefather_targets": {}, "weapon_skill_characteristic_modifiers": {"squads": {}, "models": {}}, "setup_done": false}
 	for squad: int in state.squads:
 		state.squads[squad].disabled_abilities = []
 		for model: int in Geometry.alive(state, squad):
@@ -339,6 +360,8 @@ static func defensive_wound_modifier(state: Dictionary, target: int, strength: i
 	if has(state, target, "command-squad"): return -1
 	if has(state, target, "honour-guard-of-macragge"): return -1
 	if strength <= toughness: return 0
+	if MarineEnhancements.active(state, target, MarineEnhancements.INDEFATIGABLE_FORTITUDE): return -1
+	if Doctrines.indomitable_defence(state, target): return -1
 	if Doctrines.dutiful_tenacity(state, target): return -1
 	if has(state, target, "rites-of-tempering"): return -1
 	if has(state, target, "duty-eternal"): return -1
@@ -368,6 +391,10 @@ static func damage(state: Dictionary, model: int, amount: int) -> int:
 	var reduced := amount
 	if enabled(state) and identity(state.units[model]) in ["overlord", "captain-in-gravis-armour"]: reduced -= 1
 	if MarineEnhancements.artificer_sarcophagus_active(state, int(state.units[model].squad)): reduced -= 1
+	var pending_attack: Dictionary = state.get("pending_attack", {})
+	var prepared_attack: Dictionary = pending_attack.get("prepared", {})
+	var fortitude_targets: Variant = prepared_attack.get("terminator_fortitude_targets", [])
+	if fortitude_targets is Array and int(state.units[model].get("squad", -1)) in fortitude_targets: reduced -= 1
 	return maxi(1, reduced) if reduced < amount else amount
 
 static func damaged_attack_penalty(state: Dictionary, model: int) -> int:

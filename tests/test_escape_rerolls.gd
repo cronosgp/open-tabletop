@@ -2,6 +2,9 @@ extends SceneTree
 const P = preload("res://scripts/edition_11/prepared_training.gd")
 const C = P.Combat
 const S = C.Stratagems
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var values: Array = []
 var count := 0
 var failures := 0
@@ -27,7 +30,54 @@ func fixture(enabled: bool = true) -> Dictionary:
 func begin(state: Dictionary) -> void:
 	check(C.begin_movement(state, 1, 100, "desperate_escape", state.revision, die).is_empty(), "Escape starts")
 func react(state: Dictionary, use: bool = false, index: int = 0) -> String:
-	return C.resolve_escape_reaction(state, 1, 1, "command-re-roll" if use else "", state.revision, index, die)
+	var result := submit_escape_reaction(state, 1, "command-re-roll" if use else "", index)
+	return str(result.get("error", ""))
+func submit_escape_reaction(state: Dictionary, player: int, stratagem: String, index: int, decision_id: String = "", option_id: String = "") -> Dictionary:
+	var decision := PendingDecisions.current(state, ["stratagems"])
+	if decision.is_empty(): return {"error": "No stratagem reaction decision is pending."}
+	var selected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		var details: Dictionary = option.get("details", {})
+		if str(option.get("value", "")) == stratagem and (stratagem.is_empty() or int(details.get("die", -1)) == index):
+			selected = option
+			break
+	if selected.is_empty(): return {"error": "No current reaction option matches this choice."}
+	var choice := {
+		"action": str(selected.get("action", "")),
+		"model": int(selected.get("model", -1)),
+		"target": int(selected.get("target", -1)),
+		"value": str(selected.get("value", "")),
+		"die": int(selected.get("details", {}).get("die", -1))
+	}
+	return MatchCommandService.execute(state, player, {
+		"kind": MatchCommandService.COMMAND_REACTION,
+		"choice": {
+			"_decision_type": MatchCommandService.STRATAGEM_DECISION_ENVELOPE,
+			"decision_id": decision_id if not decision_id.is_empty() else str(decision.get("decision_id", "")),
+			"option_id": option_id if not option_id.is_empty() else str(selected.get("id", "")),
+			"choice": choice
+		},
+		"revision": state.revision
+	}, die)
+func submit_escape_wound(state: Dictionary, player: int, model: int, decision_id: String = "", option_id: String = "") -> Dictionary:
+	var decision := PendingDecisions.current(state, ["escape-wounds"])
+	if decision.is_empty(): return {"error": "No escape-wound decision is pending."}
+	var selected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if int(option.get("model", -1)) == model:
+			selected = option
+			break
+	if selected.is_empty(): return {"error": "Model is not a current escape-wound option."}
+	return MatchCommandService.execute(state, player, {
+		"kind": MatchCommandService.ALLOCATE_ESCAPE_WOUND,
+		"choice": {
+			"_decision_type": MatchCommandService.ESCAPE_WOUND_DECISION_ENVELOPE,
+			"decision_id": decision_id if not decision_id.is_empty() else str(decision.get("decision_id", "")),
+			"option_id": option_id if not option_id.is_empty() else str(selected.get("id", "")),
+			"choice": {"model": model}
+		},
+		"revision": state.revision
+	}, die)
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	check(P.initial_state({"escape_rerolls": true}).has("error"), "Escape re-roll requires core stratagems")
@@ -46,18 +96,25 @@ func run() -> void:
 	var before := var_to_bytes(state)
 	for error: String in [C.move(state, 1, 100, Vector2(-12, -8), state.revision), C.allocate_escape_wound(state, 1, 100, state.revision), C.finish_movement(state, 1, state.revision, true), C.abandon_fall_back(state, 1, state.revision), C.advance_phase(state, 1, state.revision)]:
 		check(not error.is_empty(), "Other actions are blocked")
-	check(not C.resolve_escape_reaction(state, 2, 1, "command-re-roll", state.revision, 0, die).is_empty(), "Opponent cannot choose")
+	var reaction_decision := PendingDecisions.current(state, ["stratagems"])
+	var reroll_option: Dictionary = reaction_decision.legal_options.filter(func(option: Dictionary) -> bool: return str(option.get("value", "")) == "command-re-roll" and int(option.get("details", {}).get("die", -1)) == 0)[0]
+	var before_reaction_choice := var_to_bytes(state)
+	var wrong_owner_reaction := submit_escape_reaction(state, 2, "command-re-roll", 0)
+	var stale_reaction_option := submit_escape_reaction(state, 1, "command-re-roll", 0, str(reaction_decision.decision_id), "stale-option")
+	check(not wrong_owner_reaction.get("error", "").is_empty() and not stale_reaction_option.get("error", "").is_empty() and before_reaction_choice == var_to_bytes(state), "Wrong owner and stale reaction option are rejected without mutation")
 	check(not C.resolve_escape_reaction(state, 1, 3, "command-re-roll", state.revision, 0, die).is_empty(), "Wrong squad rejected")
 	check(not C.resolve_escape_reaction(state, 1, 1, "command-re-roll", 0, 0, die).is_empty(), "Stale revision rejected")
 	check(not C.resolve_escape_reaction(state, 1, 1, "insane-bravery", state.revision, 0, die).is_empty(), "Wrong stratagem rejected")
-	check(not react(state, true, -1).is_empty() and not react(state, true, 2).is_empty(), "Invalid indices rejected")
+	check(not C.resolve_escape_reaction(state, 1, 1, "command-re-roll", state.revision, -1, die).is_empty() and not C.resolve_escape_reaction(state, 1, 1, "command-re-roll", state.revision, 2, die).is_empty(), "Invalid indices rejected by the domain rule")
 	check(count == 2 and before == var_to_bytes(state), "Rejected commands consume neither state nor dice")
 	check(not C.resolve_escape_reaction(state, 1, 1, "command-re-roll", state.revision, 0, func(): return 7).is_empty() and before == var_to_bytes(state), "Invalid die provider cannot commit CP or state")
 	state = bytes_to_var(var_to_bytes(state))
-	check(react(state, true).is_empty() and count == 3 and state.cp[1] == 3, "Exactly one replacement costs one CP")
+	var accepted_reroll := submit_escape_reaction(state, 1, "command-re-roll", 0, str(reaction_decision.decision_id), str(reroll_option.id))
+	check(accepted_reroll.get("error", "").is_empty() and count == 3 and state.cp[1] == 3, "Public reaction command applies exactly one replacement for one CP")
 	check(state.pending_move.hazard_rolls == [6, 6] and state.pending_move.hazard_remaining == 0 and S.pending(state).is_empty(), "New pool releases placement")
 	check(state.last_command_roll.original_rolls == [1, 6] and state.last_command_roll.rolls == [6, 6], "Final result retains the original pool")
-	check(not react(state, true).is_empty(), "No second or late replacement")
+	var replayed_reroll := submit_escape_reaction(state, 1, "command-re-roll", 0, str(reaction_decision.decision_id), str(reroll_option.id))
+	check(not replayed_reroll.get("error", "").is_empty(), "Resolved escape reaction decision cannot be replayed")
 	check(C.finish_movement(state, 1, state.revision, true).is_empty() and state.pending_move.hazard_rolls == [6, 6] and state.cp[1] == 3, "Reset keeps hazards and CP spent")
 	check(C.abandon_fall_back(state, 1, state.revision).is_empty() and state.squads[1].moved, "Abandoning consumes the move")
 	check(not C.begin_movement(state, 1, 100, "desperate_escape", state.revision, die).is_empty(), "Cannot reroll by selecting escape again")
@@ -70,13 +127,28 @@ func run() -> void:
 	check(state.pending_move.hazard_remaining == 0 and not S.pending(state).is_empty(), "All-success pools still offer a decision")
 	check(react(state, true, 1).is_empty() and count == start + 3 and state.pending_move.hazard_rolls == [6, 1] and state.pending_move.hazard_remaining == 1, "Only selected success becomes a failure")
 	check(state.units[100].wounds == 2, "Prevention not rolled during replacement")
-	check(C.allocate_escape_wound(state, 1, 100, state.revision, die).is_empty() and count == start + 4 and state.units[100].wounds == 2, "FNP occurs only after the decision")
+	var prevented_wound := submit_escape_wound(state, 1, 100)
+	check(prevented_wound.get("error", "").is_empty() and count == start + 4 and state.units[100].wounds == 2, "FNP occurs only after the public escape-wound decision")
+	check(ResolutionFrames.current(state).get("status", "") == "resolving", "A prevented final escape wound still resumes placement")
 	state = fixture()
 	values = [1, 2]
 	begin(state)
 	start = count
 	check(react(state).is_empty() and count == start and state.cp[1] == 4 and state.pending_move.hazard_remaining == 2, "Accept is free and does not roll again")
-	check(C.allocate_escape_wound(state, 1, 101, state.revision).is_empty() and state.units[101].wounds == 1, "Allocation resumes normally")
+	var escape_frame_id := str(ResolutionFrames.current(state).get("frame_id", ""))
+	check(ResolutionFrames.current(state).get("status", "") == "suspended" and ResolutionFrames.current(state).get("resume_point", "") == "escape-wound-allocation", "Accepted escape hazards suspend the movement frame for allocation")
+	var escape_decision := PendingDecisions.current(state, ["escape-wounds"])
+	var escape_option: Dictionary = escape_decision.legal_options.filter(func(option: Dictionary) -> bool: return int(option.get("model", -1)) == 101)[0]
+	var before_escape_choice := var_to_bytes(state)
+	var wrong_owner_escape := submit_escape_wound(state, 2, 101)
+	var stale_escape_option := submit_escape_wound(state, 1, 101, str(escape_decision.decision_id), "stale-option")
+	check(not wrong_owner_escape.get("error", "").is_empty() and not stale_escape_option.get("error", "").is_empty() and before_escape_choice == var_to_bytes(state), "Wrong owner and stale escape-wound option are rejected without mutation")
+	var first_escape_allocation := submit_escape_wound(state, 1, 101, str(escape_decision.decision_id), str(escape_option.id))
+	check(first_escape_allocation.get("error", "").is_empty() and state.units[101].wounds == 1, "Public allocation command resumes the escape movement")
+	check(ResolutionFrames.current(state).get("status", "") == "suspended" and str(ResolutionFrames.current(state).get("frame_id", "")) == escape_frame_id, "Movement stays suspended under the same frame while escape wounds remain")
+	var second_escape_allocation := submit_escape_wound(state, 1, 101)
+	check(second_escape_allocation.get("error", "").is_empty() and state.pending_move.hazard_remaining == 0, "Second accepted hazard wound allocates through the public command")
+	check(ResolutionFrames.current(state).get("status", "") == "resolving" and str(ResolutionFrames.current(state).get("frame_id", "")) == escape_frame_id, "Final accepted escape wound resumes the original movement frame")
 	check(not react(state, true).is_empty(), "No reroll after allocation")
 	# Shared hazard multiplier is captured before any casualties.
 	state = fixture()

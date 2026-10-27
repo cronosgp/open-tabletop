@@ -5,6 +5,8 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
 const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 
 var failures := 0
 
@@ -28,10 +30,23 @@ func find_model(state: Dictionary, owner: int, identity: String) -> int:
 		if state.units[model].owner == owner and Abilities.identity(state.units[model]) == identity: return model
 	return -1
 
-func action(state: Dictionary, player: int, action_id: String, target: int = -1) -> Dictionary:
+func action(state: Dictionary, player: int, action_id: String, target: int = -1, model: int = -1) -> Dictionary:
 	for option: Dictionary in C.UnitActions.choices(state, player):
-		if option.action == action_id and (target < 0 or option.target == target): return option
+		if option.action == action_id and (target < 0 or option.target == target) and (model < 0 or option.model == model): return option
 	return {}
+
+func submit_choice(state: Dictionary, player: int, action_id: String, target: int = -1, model: int = -1) -> Dictionary:
+	var decision := C.UnitActions.pending_decision(state)
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No matching UnitActions decision for Player %d." % player}
+	var option_projection: Dictionary = {}
+	for candidate: Dictionary in decision.get("legal_options", []):
+		if str(candidate.get("action", "")) == action_id and int(candidate.get("target", -1)) == target and (model < 0 or int(candidate.get("model", -1)) == model):
+			option_projection = candidate
+			break
+	if option_projection.is_empty(): return {"error": "The pending decision does not offer %s for target %d." % [action_id, target]}
+	var choice := action(state, player, action_id, target, model)
+	if choice.is_empty(): return {"error": "UnitActions no longer offers %s for target %d." % [action_id, target]}
+	return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(option_projection.get("id", "")), "choice": choice}})
 
 func make_state(attach_shrike: bool = true) -> Dictionary:
 	var lists := F.selections()
@@ -92,7 +107,11 @@ func run() -> void:
 	var warlord_choice := action(standalone, 1, "warlord")
 	check(not warlord_choice.is_empty() and warlord_choice.model == standalone_model, "Shrike is eligible to be declared Warlord")
 	if not warlord_choice.is_empty():
-		check(C.unit_action(standalone, 1, warlord_choice, Vector2.ZERO, standalone.revision).is_empty(), "Shrike can be recorded as Warlord")
+		var before_wrong_warlord_owner := var_to_bytes(standalone)
+		var wrong_warlord_owner := submit_choice(standalone, 2, "warlord", -1, standalone_model)
+		check(not str(wrong_warlord_owner.get("error", "")).is_empty() and var_to_bytes(standalone) == before_wrong_warlord_owner, "The opponent cannot submit or mutate Shrike's immediate Warlord choice")
+		var warlord_result := submit_choice(standalone, 1, "warlord", -1, standalone_model)
+		check(str(warlord_result.get("error", "")).is_empty(), "Shrike can be recorded as Warlord through the public command")
 		standalone.first_player = 1
 		var cp_before: int = standalone.cp[1]
 		C.UnitActions.start_round(standalone)
@@ -100,13 +119,33 @@ func run() -> void:
 	state.phase = "fight"
 	state.active = 2
 	state.fight_step = "complete"
+	state.fight_actor = 2
+	state.unit_abilities.window = {}
+	state.unit_abilities.end_done = ""
+	state.unit_abilities.phase_key = C.UnitActions.key(state)
+	state.resolution_frames = []
 	var echo_candidates := C.UnitActions.echo_ravenspire_squads(state, 1)
 	check(squad in echo_candidates, "Echo of the Ravenspire is available at the end of the opponent's Fight phase when unengaged")
-	check(C.UnitActions.open_end(state), "The end-of-phase window opens for Echo of the Ravenspire")
-	var echo := action(state, 1, "echo-of-ravenspire", squad)
-	check(not echo.is_empty(), "Shrike's unit receives an end-of-phase Strategic Reserves choice")
-	if not echo.is_empty(): check(C.unit_action(state, 1, echo, Vector2.ZERO, state.revision).is_empty(), "Echo of the Ravenspire moves the unit into Strategic Reserves")
+	var close_error := C.advance_phase(state, 2, state.revision)
+	var end_decision := C.UnitActions.pending_decision(state)
+	check(close_error.is_empty() and end_decision.get("timing", "") == "end-phase:fight" and ResolutionFrames.current(state).get("kind", "") == "phase-close", "Opponent Fight close suspends its phase-close frame for the normalized Echo of the Ravenspire decision: " + close_error)
+	var attempts := 0
+	while attempts < 2 and not end_decision.is_empty() and int(end_decision.get("priority_player_id", -1)) != 1:
+		var priority_player := int(end_decision.get("priority_player_id", -1))
+		var declined := submit_choice(state, priority_player, "pass")
+		if not str(declined.get("error", "")).is_empty(): break
+		end_decision = C.UnitActions.pending_decision(state)
+		attempts += 1
+	var echo_error := "No Echo of the Ravenspire decision for Player 1."
+	if int(end_decision.get("priority_player_id", -1)) == 1:
+		var echo_use := submit_choice(state, 1, "echo-of-ravenspire", squad)
+		echo_error = str(echo_use.get("error", ""))
+	check(echo_error.is_empty() and state.unit_abilities.reserves.has(squad) and ResolutionFrames.current(state).get("kind", "") == "phase-close", "Public Echo of the Ravenspire choice places the unit in reserves and retains phase close: " + echo_error)
 	check(state.unit_abilities.reserves.has(squad) and state.unit_abilities.reserves[squad].get("source", "") == "echo-of-ravenspire" and Geometry.alive(state, squad).all(func(id: int) -> bool: return not state.units[id].get("on_battlefield", true)), "Echo records reserve source and removes every model from the battlefield")
+	if state.unit_abilities.reserves.has(squad):
+		var restored: Dictionary = bytes_to_var(var_to_bytes(state))
+		var pass_end := submit_choice(restored, 1, "pass")
+		check(str(pass_end.get("error", "")).is_empty() and (ResolutionFrames.current(restored).is_empty() or str(ResolutionFrames.current(restored).get("action_id", "")) != "phase-close:%d:fight" % int(state.turn)), "Passing after save/restore resumes Fight close: " + str(pass_end.get("error", "")))
 	var engaged := make_state()
 	var engaged_model := find_model(engaged, 1, "kayvaan-shrike")
 	var engaged_squad: int = engaged.units[engaged_model].squad

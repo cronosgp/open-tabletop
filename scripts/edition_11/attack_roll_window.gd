@@ -13,8 +13,9 @@ static func begin(weapon: Dictionary, defender: Dictionary, context: Dictionary,
 	if not generated.error.is_empty(): return generated
 	var keywords: Dictionary = weapon.get("keywords", {})
 	var covered: bool = context.get("benefit_of_cover", false) and not keywords.get("ignores-cover", false)
-	var modifier: int = context.get("hit_modifier", 0)
-	if keywords.get("heavy", false) and context.heavy_eligible: modifier = clampi(modifier + 1, -1, 1)
+	var snap_shooting: bool = context.get("snap_shooting", false)
+	var modifier: int = 0 if snap_shooting else int(context.get("hit_modifier", 0))
+	if not snap_shooting and keywords.get("heavy", false) and context.heavy_eligible: modifier = clampi(modifier + 1, -1, 1)
 	var dice := Attacks.Dice.new(roller)
 	var hits: Array[int] = []
 	if not pause_generation and not keywords.get("torrent", false):
@@ -42,10 +43,22 @@ static func eligible(checkpoint: Dictionary) -> Array[int]:
 			offset += record.rolls.size()
 		return result
 	if phase not in ["hit", "wound"]: return result
+	if phase == "hit" and checkpoint.get("context", {}).get("snap_shooting", false): return result
 	var values: Array = checkpoint.hit_rolls if phase == "hit" else checkpoint.effective_wounds
 	var used: Array = checkpoint.rerolled_hits if phase == "hit" else checkpoint.rerolled_wounds
 	for index in range(values.size()):
 		if index not in used: result.append(index)
+	return result
+
+static func eligible_natural_wounds(checkpoint: Dictionary, face: int) -> Array[int]:
+	var result: Array[int] = []
+	if checkpoint.get("phase", "") != "wound": return result
+	var target := Attacks.wound_target(int(checkpoint.weapon.strength), int(checkpoint.defender.toughness))
+	var modifier: int = checkpoint.context.get("wound_modifier", 0)
+	for index: int in eligible(checkpoint):
+		var value: int = checkpoint.effective_wounds[index]
+		if value == face and (Attacks.successful_roll(value, target, modifier) or Attacks.anti_critical(value, checkpoint.weapon, checkpoint.context)):
+			result.append(index)
 	return result
 
 static func reroll(checkpoint: Dictionary, index: int, revision: int, roller: Callable) -> Dictionary:
@@ -106,14 +119,20 @@ static func advance(checkpoint: Dictionary, revision: int, roller: Callable) -> 
 	elif next.phase == "hit":
 		var normal: int = next.generated.count if keywords.get("torrent", false) else 0
 		var automatic := 0
+		var hit_outcomes: Array[Dictionary] = []
 		for value: int in next.hit_rolls:
-			if not Attacks.successful_roll(value, next.effective_skill, next.hit_modifier): continue
-			if value == 6 and keywords.get("lethal-hits", false) and next.context.get("use_lethal_hits", true): automatic += 1
+			var snap_shooting: bool = next.context.get("snap_shooting", false)
+			var passed := value >= int(next.context.get("snap_hit_threshold", 6)) if snap_shooting else Attacks.successful_roll(value, next.effective_skill, next.hit_modifier)
+			var critical := not snap_shooting and passed and value == 6
+			hit_outcomes.append({"roll": value, "success": passed, "critical": critical})
+			if not passed: continue
+			if critical and keywords.get("lethal-hits", false) and next.context.get("use_lethal_hits", true): automatic += 1
 			else: normal += 1
-			if value == 6: normal += int(keywords.get("sustained-hits", 0))
+			if critical: normal += int(keywords.get("sustained-hits", 0))
 		if normal + automatic > 10000: return {"error": "Hit pool exceeds prototype limit."}
 		next.hits = normal + automatic
 		next.automatic_wounds = automatic
+		next.hit_outcomes = hit_outcomes
 		var target := Attacks.wound_target(int(next.weapon.strength), int(next.defender.toughness))
 		var modifier: int = next.context.get("wound_modifier", 0)
 		for index in range(normal): next.effective_wounds.append(dice.d6())
@@ -132,10 +151,14 @@ static func advance(checkpoint: Dictionary, revision: int, roller: Callable) -> 
 		var modifier: int = next.context.get("wound_modifier", 0)
 		var wounds: int = next.automatic_wounds
 		var critical := 0
+		var wound_outcomes: Array[Dictionary] = []
 		for value: int in next.effective_wounds:
 			var anti_critical := Attacks.anti_critical(value, next.weapon, next.context)
-			if Attacks.successful_roll(value, target, modifier) or anti_critical: wounds += 1
-			if value == 6 or anti_critical: critical += 1
+			var passed := Attacks.successful_roll(value, target, modifier) or anti_critical
+			var is_critical := value == 6 or anti_critical
+			wound_outcomes.append({"roll": value, "success": passed, "critical": is_critical})
+			if passed: wounds += 1
+			if is_critical: critical += 1
 		var devastating: int = critical if keywords.get("devastating-wounds", false) else 0
 		var saves: Array[int] = []
 		if not next.context.get("defer_saves", false):
@@ -143,14 +166,17 @@ static func advance(checkpoint: Dictionary, revision: int, roller: Callable) -> 
 		saves.sort()
 		next.result = {"error": "", "implementation": Attacks.IMPLEMENTATION, "attacks": next.generated.count,
 			"benefit_of_cover": next.covered, "effective_skill": next.effective_skill,
+			"plunging_fire": bool(next.context.get("plunging_fire", false)),
 			"hit_modifier": next.hit_modifier, "wound_modifier": modifier, "wound_target": target,
 			"snap_shooting": next.context.get("snap_shooting", false),
+			"snap_hit_threshold": int(next.context.get("snap_hit_threshold", 6)),
 			"attack_generation": next.generated.records.duplicate(true), "damage_rolls": [], "hits": next.hits, "wounds": wounds,
 			"critical_wounds": critical, "devastating_wounds": devastating, "devastating_attacks_resolved": 0,
 			"save_count": wounds - devastating, "normal_damage_applied": 0, "mortal_damage_applied": 0,
 			"prevented_wounds": 0, "prevention_rolls": [], "hit_rolls": next.hit_rolls.duplicate(),
 			"wound_rolls": next.wound_rolls.duplicate(), "final_hit_rolls": next.hit_rolls.duplicate(),
-			"final_wound_rolls": next.effective_wounds.duplicate(), "save_rolls": saves}
+			"final_wound_rolls": next.effective_wounds.duplicate(), "hit_outcomes": next.get("hit_outcomes", []),
+			"wound_outcomes": wound_outcomes, "save_rolls": saves, "save_outcomes": []}
 		next.phase = "complete"
 	if not dice.error.is_empty(): return {"error": dice.error}
 	next.dice_history.append_array(dice.history)

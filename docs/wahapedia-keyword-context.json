@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "id": "wahapedia-marine-keyword-context-2026-10-19-v48",
-  "scope": "Audit context for the currently exported fixed profiles; not a runtime chapter implementation or general chapter keyword registry. Exported faction keywords are tracked as runtime identity tags and excluded from non-faction datasheet keyword comparison.",
+  "id": "wahapedia-marine-keyword-context-2026-10-26-v49",
+  "scope": "Audit context for the currently exported fixed profiles and conditional Chapter keywords. Every prepared match with current-reference Marine profiles resolves their Chapter context, removes source-projected DEATHWING/RAVENWING from shared instances, then applies Dark Angels DEATHWING to TERMINATOR/DREADNOUGHT families and listed identities and RAVENWING to MOUNTED/VEHICLE+FLY families, including when optional unit abilities are off. Exported faction keywords remain runtime identity tags and are excluded from non-faction datasheet keyword comparison.",
   "export_updated_at": "2026-10-16T15:03:46-03:00",
   "source_pages": [
     {
@@ -34,7 +34,16 @@
       "requires_chapter": "dark-angels",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
       "export_locator": "Datasheets_keywords.csv, datasheet 000002677: non-faction keyword row Deathwing",
-      "scope_note": "Keep out of the shared runtime profile. Dark Angels chapter rules supply this keyword in the chapter-specific context; runtime chapter selection is not implemented."
+      "scope_note": "Keep out of the shared base profile. Prepared-match ChapterRules removes source-projected DEATHWING/RAVENWING from shared current-reference profile instances outside the applicable context, then applies the Dark Angels grants to the Terminator family and listed identities."
+    },
+    {
+      "datasheet_id": "000001165",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000001165: non-faction keyword row Deathwing",
+      "scope_note": "Keep out of the shared base profile. Prepared-match ChapterRules applies DEATHWING to Bladeguard Ancient only in Dark Angels context."
     },
     {
       "datasheet_id": "000000147",
@@ -371,6 +380,44 @@
       "runtime_identity": "kayvaan-shrike",
       "tag": "RAVEN GUARD",
       "meaning": "Runtime chapter faction identity tag; excluded from non-faction datasheet keyword comparison and not implemented as a global chapter rule."
+    }
+  ],
+  "implementation_reference_check": {
+    "checked_on": "2026-10-26",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
+    "app_revision": "Space Marines and Dark Angels App v2.8.1 (October 2026)",
+    "locators": {
+      "The Ravenwing": "The Ravenwing, lines 848-853: friendly ADEPTUS ASTARTES MOUNTED units and VEHICLE FLY units have RAVENWING.",
+      "The Deathwing": "The Deathwing, lines 854-861: friendly TERMINATOR and DREADNOUGHT families plus listed datasheet identities have DEATHWING."
+    }
+  },
+  "conditional_rule_grants": [
+    {
+      "keyword": "RAVENWING",
+      "requires_chapter": "dark-angels",
+      "eligible_families": [
+        "ADEPTUS ASTARTES MOUNTED",
+        "ADEPTUS ASTARTES VEHICLE+FLY"
+      ]
+    },
+    {
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "eligible_families": [
+        "ADEPTUS ASTARTES TERMINATOR",
+        "ADEPTUS ASTARTES DREADNOUGHT"
+      ],
+      "eligible_datasheet_names": [
+        "Bladeguard Ancient",
+        "Bladeguard Veteran Squad",
+        "Sternguard Veteran Squad",
+        "Vanguard Veteran Squad with Jump Packs",
+        "Land Raider",
+        "Land Raider Crusader",
+        "Land Raider Redeemer",
+        "Repulsor",
+        "Repulsor Executioner"
+      ]
     }
   ]
 }

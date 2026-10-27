@@ -5,6 +5,7 @@ const C = F.C
 const A = C.UnitAbilities
 const U = C.UnitActions
 const E = preload("res://scripts/edition_11/equipment.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -29,11 +30,28 @@ func fresh() -> Dictionary:
 func act(s: Dictionary, action: String, model: int = -2, target: int = -2, value: String = "") -> String:
 	for choice: Dictionary in C.unit_choices(s, 1):
 		if choice.action == action and (model == -2 or choice.model == model) and (target == -2 or choice.target == target) and (value.is_empty() or choice.value == value):
-			return C.unit_action(s, 1, choice, Vector2.ZERO, s.revision, func() -> int: return 6)
+			var decision := U.pending_decision(s)
+			if not decision.is_empty():
+				for projected: Dictionary in decision.get("legal_options", []):
+					if str(projected.get("action", "")) == str(choice.get("action", "")) and int(projected.get("model", -1)) == int(choice.get("model", -1)) and int(projected.get("target", -1)) == int(choice.get("target", -1)) and str(projected.get("value", "")) == str(choice.get("value", "")):
+						var envelope := {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": choice}
+						var result: Dictionary = MatchCommands.execute(s, 1, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(s.get("revision", -1)), "choice": envelope}, func() -> int: return 6)
+						return str(result.get("error", ""))
+				return "Selected UnitActions choice is not in the pending decision."
+			var immediate: Dictionary = MatchCommands.execute(s, 1, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(s.get("revision", -1)), "choice": choice}, func() -> int: return 6)
+			return str(immediate.get("error", ""))
 	return "No eligible choice: " + action
 
 func marker(s: Dictionary, owner: int = 1) -> void:
 	s.mission.objectives = [{"kind": "marker", "position": Vector2.ZERO, "name": "Boundary objective", "controller": owner, "secured": 0}]
+
+func choose_no_doctrine(s: Dictionary) -> String:
+	var decision := C.Doctrines.pending_decision(s)
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("value", "")) != "none": continue
+		var result := MatchCommands.execute(s, int(decision.get("priority_player_id", -1)), {"kind": MatchCommands.SELECT_DOCTRINE, "doctrine": "none", "decision_id": str(decision.get("decision_id", "")), "option_id": str(option.get("id", "")), "revision": int(s.revision)})
+		return str(result.get("error", ""))
+	return "No projected no-doctrine option."
 
 func _initialize() -> void:
 	var s := fresh()
@@ -113,7 +131,7 @@ func _initialize() -> void:
 	U.attach(s, 900, 1)
 	s.phase = "command"
 	s.unit_abilities.phase_key = U.key(s)
-	check(C.select_combat_doctrine(s, 1, "none", s.revision).is_empty(), "Resolve initial army doctrine decision")
+	check(choose_no_doctrine(s).is_empty(), "Resolve initial army doctrine decision through the public command service")
 	check(act(s, "acumen", 300, 7, "assault").is_empty(), "Captain selects local doctrine through public command")
 	var restored: Dictionary = bytes_to_var(var_to_bytes(s))
 	check(U.pending(restored).get("kind", "") == "demi" and act(restored, "demi", 900, 1).is_empty(), "Serialized Captain trigger preserves Lieutenant reaction")

@@ -4,6 +4,8 @@ const P = F.P
 const C = F.C
 const A = F.A
 const Save = preload("res://scripts/match_save.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -21,8 +23,16 @@ func run() -> void:
 	check(not C.Deployment.preset(state, 1, 0).is_empty() and not C.advance_phase(state, 2, 0).is_empty(), "Deployment and gameplay cannot skip attachment declaration")
 	check(not C.select_awakened_attachment(state, 1, 4, 0).is_empty() and not C.select_awakened_attachment(state, 2, 4, -1).is_empty() and not C.select_awakened_attachment(state, 2, 1, 0).is_empty() and not C.select_awakened_attachment(state, 2, 6, 0).is_empty(), "Wrong owner, stale revision, enemy and self targets rejected")
 	check(before == var_to_bytes(state), "Invalid declarations leave the entire setup untouched")
+	var attachment_decision := PendingDecisions.current(state, ["awakened-attachment"])
+	var attachment_option: Dictionary = {}
+	for option: Dictionary in attachment_decision.get("legal_options", []):
+		if int(option.get("target", -2)) == 4: attachment_option = option
+	check(attachment_decision.get("source", "") == "awakened-attachment" and int(attachment_decision.get("priority_player_id", -1)) == 2 and not attachment_option.is_empty(), "Overlord preparation projects the current owner and legal bodyguard options")
+	var rejected_choice: Dictionary = MatchCommands.execute(state, 2, {"kind": MatchCommands.SELECT_AWAKENED_ATTACHMENT, "bodyguard": 4, "revision": state.revision, "decision_id": attachment_decision.get("decision_id", ""), "option_id": "stale-option"})
+	check(not rejected_choice.error.is_empty() and var_to_bytes(state) == before, "A stale attachment option is rejected transactionally")
 	var identity: String = state.pack_hash
-	check(C.select_awakened_attachment(state, 2, 4, 0).is_empty() and not A.needs_setup(state) and state.units[600].squad == 4 and not state.squads.has(6), "Overlord and Warriors become one real unit")
+	var accepted_choice: Dictionary = MatchCommands.execute(state, 2, {"kind": MatchCommands.SELECT_AWAKENED_ATTACHMENT, "bodyguard": 4, "revision": state.revision, "decision_id": attachment_decision.get("decision_id", ""), "option_id": attachment_option.get("id", "")})
+	check(accepted_choice.error.is_empty() and not A.needs_setup(state) and state.units[600].squad == 4 and not state.squads.has(6), "Overlord and Warriors become one real unit from a current normalized option")
 	check(state.pack_hash == identity and state.cp == {1: 0, 2: 0} and state.squads[4].starting_strength == 11 and state.units[600].max_wounds == 6, "Attachment preserves match identity, wounds, weapons and CP")
 	check(state.deployment.order == [1, 2, 4] and C.Deployment.confirm(state, 1, state.revision) != "", "Deployment order is rebuilt and still requires model placement")
 	check(F.finish_preparations(state).is_empty(), "Both players finish the current-profile army preparations")
@@ -86,15 +96,24 @@ func run() -> void:
 	F.populate(game, 2)
 	game.saved_training_consent.button_pressed = true
 	game._start_saved_match(true)
-	check(A.needs_setup(game.state) and game.action_groups.awakened.container.visible and not game.awakened_confirm.disabled, "Pre-deployment UI exposes current Overlord assignment")
+	check(not A.needs_setup(game.state) and "historical training profile" in game.status.text, "Legacy Necron lists remain blocked from new construction matches")
+	game.state = F.fresh()
+	game.combat_enabled = true
+	game.awakened_dynasty = true
+	var ui_identity: Dictionary = game._awakened_attachment_identity(4)
+	check(A.needs_setup(game.state) and not str(ui_identity.get("decision_id", "")).is_empty() and not str(ui_identity.get("option_id", "")).is_empty(), "UI maps the selected Overlord bodyguard to the current decision and option IDs")
+	var pending_attachment_decision := PendingDecisions.current(game.state, ["awakened-attachment"])
 	var saved: Dictionary = game.state.duplicate(true)
 	var rng: int = game.rng.state
 	game._save_match()
 	game._load_match()
 	check(game.awakened_dynasty and game.state == saved and game.rng.state == rng, "Pending declaration survives save without dice")
-	game.awakened_target.select(game.awakened_target.get_item_index(4))
-	game._request_awakened_attachment()
-	check(game.state.units[600].squad == 4 and A.hit_bonus(game.state, 4) == 1 and game.rng.state == rng, "UI assignment preserves models and RNG")
+	var restored_attachment_decision := PendingDecisions.current(game.state, ["awakened-attachment"])
+	check(restored_attachment_decision.get("decision_id", "") == pending_attachment_decision.get("decision_id", "") and restored_attachment_decision.get("legal_options", []) == pending_attachment_decision.get("legal_options", []) and restored_attachment_decision.get("priority_player_id", -1) == 2, "Saved attachment decision restores its identity, options and owner")
+	check("Overlord attachment declarations" in C.PhaseCloseGate.close_request_error(game.state, 2, game.state.revision), "The restored attachment declaration still blocks phase close")
+	ui_identity = game._awakened_attachment_identity(4)
+	var ui_command_result: Dictionary = MatchCommands.execute(game.state, 2, {"kind": MatchCommands.SELECT_AWAKENED_ATTACHMENT, "bodyguard": 4, "revision": game.state.revision, "decision_id": ui_identity.decision_id, "option_id": ui_identity.option_id})
+	check(ui_command_result.error.is_empty() and game.state.units[600].squad == 4 and A.hit_bonus(game.state, 4) == 1 and game.rng.state == rng, "UI-selected decision IDs preserve models and RNG through the command service")
 	game._save_match()
 	saved = game.state.duplicate(true)
 	game._load_match()

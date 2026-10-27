@@ -4,6 +4,7 @@ extends RefCounted
 
 const RULES_VERSION := "Warhammer 40,000 11th edition Core Rules (June 2026)"
 const RULES_URL := "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/"
+const ANTI_KEYWORDS := ["anti-fly", "anti-vehicle", "anti-infantry", "anti-character", "anti-non-monster-vehicle"]
 
 const PHASES := {
 	"start_turn": {"name": "Start of Turn", "summary": "Resolve rules triggered at the start of this turn before Command.", "ref": "§07.02"},
@@ -19,7 +20,11 @@ const DEFINITIONS := {
 	"assault": {"name": "Assault", "rule": "A unit that Advanced can use Assault Shooting if it has an Assault weapon; that shooting can select only Assault weapons.", "ref": "§§10.05, 24.04"},
 	"anti-fly": {"name": "Anti-Fly X+", "rule": "Against a target with the FLY keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "Core Rules — Anti-X"},
 	"anti-vehicle": {"name": "Anti-Vehicle X+", "rule": "Against a target with the VEHICLE keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "Core Rules — Anti-X"},
+	"anti-infantry": {"name": "Anti-Infantry X+", "rule": "Against a target with the INFANTRY keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "§24.03"},
+	"anti-character": {"name": "Anti-Character X+", "rule": "Against a target with the CHARACTER keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "§24.03"},
+	"anti-non-monster-vehicle": {"name": "Anti-NON-MONSTER/VEHICLE X+", "rule": "Against a target with neither the MONSTER nor VEHICLE keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "§24.03"},
 	"blast": {"name": "Blast", "rule": "Adds attack dice for each five models the target had when selected (round down). Blast X adds X dice per five. It cannot target an engaged unit.", "ref": "§24.05"},
+	"cleave": {"name": "Cleave X", "rule": "If all attacks with this weapon target only one enemy unit, add X attack dice for every five models that unit had when targets were selected (round down).", "ref": "§24.06"},
 	"close-quarters": {"name": "Close-quarters", "rule": "Enables close-quarters shooting against units your unit is engaged with, subject to the shooting-type and model restrictions in the Core Rules.", "ref": "§§10.06, 24.07"},
 	"devastating-wounds": {"name": "Devastating Wounds", "rule": "A critical wound inflicts mortal wounds equal to the weapon's Damage after its normal damage; each critical wound can damage at most one model, and excess is lost.", "ref": "§24.10"},
 	"extra-attacks": {"name": "Extra Attacks", "rule": "When the model fights, it selects all its Extra Attacks weapons in addition to one other melee weapon, if possible.", "ref": "§24.11"},
@@ -27,9 +32,13 @@ const DEFINITIONS := {
 	"heavy": {"name": "Heavy", "rule": "In the Shooting phase, +1 to the Hit roll applies if the unit is unengaged, was not set up this turn, and no model in it moved more than 3 inches this turn.", "ref": "§24.16"},
 	"hunter": {"name": "Hunter", "rule": "This weapon profile can target only units with at least one of its listed keywords.", "ref": "§04.01.03"},
 	"ignores-cover": {"name": "Ignores Cover", "rule": "The target cannot have the Benefit of Cover against this attack.", "ref": "§24.18"},
+	"indirect-fire": {"name": "Indirect Fire", "rule": "A unit with this weapon can use the Indirect Shooting type, subject to that shooting type's restrictions.", "ref": "§§10.07, 24.19"},
 	"lance": {"name": "Lance", "rule": "Each attack with this weapon gets +1 to its Wound roll if the attacking model's unit made a Charge move this turn.", "ref": "§24.21"},
 	"lethal-hits": {"name": "Lethal Hits", "rule": "On a Critical Hit, you may automatically wound instead of making a Wound roll. That attack then cannot cause a Critical Wound.", "ref": "§24.23"},
+	"melta": {"name": "Melta X", "rule": "If the target was within half this weapon's Range when selected, add X to this weapon's Damage characteristic for the unit's attacks.", "ref": "§24.25"},
+	"one-shot": {"name": "One Shot", "rule": "This weapon can be selected to make attacks only once per battle; returning a destroyed model does not restore that use.", "ref": "§24.26"},
 	"precision": {"name": "Precision", "rule": "When allocating these attacks, the attacker may select an allocation group containing a visible Character in the target unit.", "ref": "§24.28"},
+	"psychic": {"name": "Psychic", "rule": "For each attack, the controlling player can ignore any or all modifiers to its BS/WS characteristic and Hit roll; the attack counts as a psychic attack for other rules.", "ref": "§24.29"},
 	"rapid-fire": {"name": "Rapid Fire", "rule": "Rapid Fire X adds X attack dice if the target was within half the weapon's Range when selected.", "ref": "§24.30"},
 	"sustained-hits": {"name": "Sustained Hits", "rule": "On a Critical Hit, the attack scores X additional hits, where X is the weapon's value.", "ref": "§24.36"},
 	"torrent": {"name": "Torrent", "rule": "Attacks made with this weapon automatically hit; no Hit roll is made.", "ref": "§24.37"},
@@ -51,10 +60,36 @@ static func describe_weapon(option: Dictionary) -> String:
 				continue
 			var value: Variant = keywords[key]
 			var name := str(definition.name)
-			if value is int and value > 0: name += " %d" % value
+			var rule := str(definition.rule)
+			if value is int and value > 0:
+				if key in ANTI_KEYWORDS:
+					name = name.replace(" X+", " %d+" % value)
+					rule = rule.replace("X+", "%d+" % value)
+				elif key in ["cleave", "melta"]:
+					name = name.replace(" X", " %d" % value)
+					rule = rule.replace("X", str(value))
+				elif key == "sustained-hits":
+					name += " %d" % value
+					rule = "On a Critical Hit, the attack scores %d additional hits." % value
+				else:
+					name += " %d" % value
+					rule = rule.replace("X", str(value))
 			elif key == "hunter": name += " • " + str(value)
-			lines.append("%s: %s (%s)." % [name, definition.rule, definition.ref])
+			lines.append("%s: %s (%s)." % [name, rule, definition.ref])
 	lines.append("Scope: current 11e rules summary; only mechanics enabled by this match are resolved.")
+	lines.append(RULES_VERSION)
+	lines.append("Reference: " + RULES_URL)
+	return "\n\n".join(lines)
+
+static func describe_supported_weapon_glossary() -> String:
+	var lines: Array[String] = [
+		"These summaries cover weapon abilities with glossary entries. A listed ability does not mean every effect is enabled in this match.",
+	]
+	var keys: Array = DEFINITIONS.keys()
+	keys.sort()
+	for key_variant: Variant in keys:
+		var definition: Dictionary = DEFINITIONS[str(key_variant)]
+		lines.append("%s\n%s\n%s" % [definition.name, definition.rule, definition.ref])
 	lines.append(RULES_VERSION)
 	lines.append("Reference: " + RULES_URL)
 	return "\n\n".join(lines)
@@ -124,6 +159,8 @@ static func describe_stratagem_decision(kind: String, eligible: bool, reason: St
 			summary = "Command Re-roll costs 1 CP. It replaces the selected Advance die; the new result stands. Core Rules §§15.01–15.02."
 		"after_charge_roll":
 			summary = "Command Re-roll costs 1 CP. It replaces both Charge dice; the new result stands. Core Rules §§15.01–15.02."
+		"after_transport_hazard_roll":
+			summary = "Command Re-roll costs 1 CP. In Combat or Emergency Disembark, select one die from the passenger unit's Hazard pool before allocating mortal wounds; the replacement stands. Core Rules §§15.02 and 18.04–18.05."
 		"after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_attack_count_roll", "after_escape_roll":
 			summary = "Command Re-roll costs 1 CP. Select one eligible die to replace; the new result stands. Core Rules §§15.01–15.02."
 		_:

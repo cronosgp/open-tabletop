@@ -17,6 +17,7 @@ static func begin(state: Dictionary, kind: String, action_id: String, resume_poi
 			frames[frames.size() - 1] = top
 			state["resolution_frames"] = frames
 			return top
+		if str(top.get("status", "")) != "suspended": return {}
 	var parent_frame_id := ""
 	if not frames.is_empty():
 		var parent_value: Variant = frames.back()

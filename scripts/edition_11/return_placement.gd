@@ -26,13 +26,14 @@ static func error(state: Dictionary, model: int, destination: Vector2, current: 
  copy.units[model].position = destination
  var anchor_near := false
  for anchor: int in current.anchors:
-  if state.units[anchor].wounds > 0 and Geometry.edge(copy.units[model], state.units[anchor]) <= 2.0 + EPSILON: anchor_near = true
+  if state.units[anchor].wounds > 0 and Geometry.within_engagement(copy.units[model], state.units[anchor]): anchor_near = true
  if not anchor_near: return "Return within 2 inches of a surviving model that was on the battlefield at Command entry; returned models cannot extend this anchor chain."
  for other: int in copy.units:
   if other == model or copy.units[other].wounds <= 0 or not copy.units[other].get("on_battlefield", true): continue
   var distance := Geometry.edge(copy.units[model], copy.units[other])
-  if destination.distance_to(copy.units[other].position) < radius + float(copy.units[other].radius) - EPSILON: return "Returned bases cannot overlap another living or previewed model."
-  if copy.units[other].squad == current.squad and distance > 9.0 + EPSILON: return "Keep the returned model within 9 inches of every model in its unit."
-  if copy.units[other].owner != unit.owner and distance <= 2.0 + EPSILON and copy.units[other].squad not in current.engaged: return "A return cannot create engagement with a new enemy unit."
+  var vertical_distance := absf(float(copy.units[model].get("elevation", 0.0)) - float(copy.units[other].get("elevation", 0.0)))
+  if vertical_distance <= 0.001 and destination.distance_to(copy.units[other].position) < radius + float(copy.units[other].radius) - EPSILON: return "Returned bases cannot overlap another living or previewed model."
+  if copy.units[other].squad == current.squad and (distance > 9.0 + EPSILON or vertical_distance > 5.0 + EPSILON): return "Keep the returned model within 9 inches horizontally and 5 inches vertically of every model in its unit."
+  if copy.units[other].owner != unit.owner and Geometry.within_engagement(copy.units[model], copy.units[other]) and copy.units[other].squad not in current.engaged: return "A return cannot create engagement with a new enemy unit."
  # A return is a setup, not a movement path: only test the endpoint.
  return Terrain.path_error(copy, model, destination)

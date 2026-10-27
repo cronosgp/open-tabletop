@@ -6,6 +6,7 @@ const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -36,6 +37,19 @@ func option(state: Dictionary, owner: int, action: String, model: int = -999, ta
 		if not value.is_empty() and selected.value != value: continue
 		return selected
 	return {}
+
+func submit_choice(state: Dictionary, player: int, choice: Dictionary) -> Dictionary:
+	var decision := C.UnitActions.pending_decision(state)
+	var payload := choice
+	if not decision.is_empty():
+		var projected: Dictionary = {}
+		for option: Dictionary in decision.get("legal_options", []):
+			if str(option.get("action", "")) == str(choice.get("action", "")) and int(option.get("model", -1)) == int(choice.get("model", -1)) and int(option.get("target", -1)) == int(choice.get("target", -1)) and str(option.get("value", "")) == str(choice.get("value", "")):
+				projected = option
+				break
+		if projected.is_empty(): return {"error": "The selected Calgar choice is not in the current decision."}
+		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": choice}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": payload, "revision": int(state.revision)})
 
 func _initialize() -> void: call_deferred("run")
 
@@ -78,14 +92,20 @@ func run() -> void:
 	check(C.UnitActions.attachment_allowed(state, cato, victrix), "Cato retains his exact Victrix target as a conditional Support")
 	check(option(state, 1, "warlord", cato).is_empty() and not option(state, 1, "warlord", calgar).is_empty(), "Cato is no longer eligible as Warlord after his Leader role is replaced")
 	var cato_attach := option(state, 1, "attach", cato, victrix)
-	check(not cato_attach.is_empty() and C.unit_action(state, 1, cato_attach, Vector2.ZERO, state.revision).is_empty(), "Cato can attach to Victrix in the Support role when Calgar is present")
+	if not cato_attach.is_empty():
+		var before_wrong_attachment_owner := var_to_bytes(state)
+		var wrong_attachment_owner := submit_choice(state, 2, cato_attach)
+		check(not str(wrong_attachment_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_attachment_owner, "The opponent cannot submit or mutate Cato's Support attachment decision")
+		var attach_result := submit_choice(state, 1, cato_attach)
+		check(str(attach_result.get("error", "")).is_empty(), "Cato can attach to Victrix in the Support role through the public command")
 	check(state.units[cato].get("attachment_role", "") == "support", "Cato's formation is stored as Support while Calgar is in the army")
 	check("assault" in Doctrines.active_doctrines_for(state, calgar_squad) and "devastator" in Doctrines.active_doctrines_for(state, calgar_squad) and "tactical" in Doctrines.active_doctrines_for(state, calgar_squad), "Codex Adept keeps all three doctrines active for Calgar's unit")
 
 	var thunderhawk := option(state, 1, "thunderhawk-insertion", calgar, intercessors)
 	check(not thunderhawk.is_empty(), "Army preparation offers a qualifying Tacticus target")
 	if not thunderhawk.is_empty():
-		check(C.unit_action(state, 1, thunderhawk, Vector2.ZERO, state.revision).is_empty(), "Thunderhawk Insertion records the selected target")
+		var thunderhawk_result := submit_choice(state, 1, thunderhawk)
+		check(str(thunderhawk_result.get("error", "")).is_empty(), "Thunderhawk Insertion records its selected target through the public command")
 		check(C.UnitAbilities.every_model_has(state, intercessors, "deep-strike"), "Every model in the selected unit gains Deep Strike")
 		check(option(state, 1, "thunderhawk-insertion", calgar).is_empty(), "Thunderhawk Insertion cannot select a second target")
 		check(not option(state, 1, "reserve", -1, intercessors).is_empty(), "The selected unit can be placed in Strategic Reserves")
@@ -100,7 +120,8 @@ func run() -> void:
 	var tactician := option(state, 1, "master-tactician", calgar, intercessors, "assault")
 	check(not tactician.is_empty(), "Master Tactician offers an unused doctrine for a visible unit within 9 inches")
 	if not tactician.is_empty():
-		check(C.unit_action(state, 1, tactician, Vector2.ZERO, state.revision).is_empty(), "Master Tactician applies the selected Combat Doctrine")
+		var tactician_result := submit_choice(state, 1, tactician)
+		check(str(tactician_result.get("error", "")).is_empty(), "Master Tactician applies the selected Combat Doctrine through the public command")
 		check(Doctrines.has_doctrine(state, intercessors, "assault"), "The selected doctrine is active for the target unit")
 		check(option(state, 1, "master-tactician", calgar, intercessors, "assault").is_empty(), "Master Tactician cannot be used twice in the same Movement phase")
 		check("assault" in state.combat_doctrines.used[1], "The rule-driven doctrine selection consumes the army's shared limit")

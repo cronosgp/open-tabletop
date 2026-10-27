@@ -2,6 +2,7 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const UNIT := "eliminator-squad"
 var failures := 0
 func check(ok: bool, message: String) -> void:
@@ -41,8 +42,18 @@ func pick(s: Dictionary, action: String, model: int = -999, value: String = "", 
  for row: Dictionary in C.unit_choices(s, 1):
   if row.action == action and (model == -999 or row.model == model) and (value == "" or row.value == value) and (target == -999 or row.target == target): return row
  return {}
+func submit_choice(s: Dictionary, player: int, selected: Dictionary, revision: int = -2147483648) -> Dictionary:
+ var decision := C.UnitActions.pending_decision(s)
+ var projected: Dictionary = {}
+ for option: Dictionary in decision.get("legal_options", []):
+  if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+ var payload := selected
+ if not projected.is_empty(): payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+ return MatchCommands.execute(s, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(s.revision) if revision == -2147483648 else revision, "point": Vector2.ZERO, "choice": payload})
 func use(s: Dictionary, action: String, model: int = -999, value: String = "", target: int = -999) -> String:
- return C.unit_action(s, 1, pick(s, action, model, value, target), Vector2.ZERO, s.revision)
+ var selected := pick(s, action, model, value, target)
+ if selected.is_empty(): return "Unavailable: " + action
+ return str(submit_choice(s, 1, selected).get("error", ""))
 func declaration(gun: String = "bolt-sniper-rifle") -> Array:
  return [{"model": 300, "target": 4, "amount": 1, "weapon": gun, "profile": "standard"}]
 func _initialize() -> void: call_deferred("run")
@@ -65,7 +76,8 @@ func run() -> void:
  check(not C.advance_phase(s, 1, s.revision).is_empty() and not C.attack_window_error(s, 1, 500, s.revision, false).is_empty() and var_to_str(s) == before, "Selection did not lock attack order and phase")
  check(not use(s, "optics", 500, "cover").is_empty(), "Another unit replaced a live shooting selection")
  var stale := pick(s, "optics-cancel")
- check(not C.unit_action(s, 1, stale, Vector2.ZERO, s.revision - 1).is_empty() and var_to_str(s) == before, "Stale optics request changed state")
+ var stale_result := submit_choice(s, 1, stale, s.revision - 1)
+ check(not str(stale_result.get("error", "")).is_empty() and var_to_str(s) == before, "Stale optics request changed state")
  check(use(s, "optics-cancel").is_empty() and C.UnitAbilities.Detection.selection(s).is_empty(), "Selection cancellation failed")
  # A selected enemy needs range, not visibility; detection precedes target legality.
  place_target(s, 20)

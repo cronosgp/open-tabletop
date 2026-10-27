@@ -30,7 +30,17 @@
 
 ## Interface work
 
+- Write all in-game UI text, player-facing feedback and maintained project documentation in English unless the user explicitly requests another language.
 - For game UI, menus, HUD, onboarding and player feedback, use `docs/skills/design-first-ui-prompting/SKILL.md` together with the `online-game-design` skill. Adapt web-oriented examples to Godot; do not add browser, Three.js or unrelated web dependencies.
 - For visible UI changes, use `docs/skills/workflow-progress-screenshots/SKILL.md` where an actual Godot capture can be made. Label captures and limitations accurately; do not present mockups as in-game results.
 - Use `docs/skills/workflow-score-to-target/SKILL.md` when asked for a numeric quality target. Scores require visible evidence and an explicit rubric.
 - Keep game state legible and preserve rules boundaries. A clear interface does not mean an action is legal or rules-certified.
+
+## Game development and design practice
+
+- Apply player-centered game-design judgment to game work even when the request is phrased as a technical change. Identify the player goal, feedback, failure/recovery path, accessibility needs and rules boundary that the change affects; keep the scope appropriate to this tabletop tactics game.
+- At the start of game-development work, use `.agents/skills/router/SKILL.md` to select only the relevant engine, design-discipline and workflow guidance. Use `.agents/skills/prototype-fast/SKILL.md` when planning or building a playable vertical slice; keep `online-game-design` as the project's main player-experience design guidance.
+- Read the relevant project-local skills under `.agents/skills/` for each task: `godot-gdscript`, `godot-nodes-scenes`, `godot-signals-groups`, `godot-ui-control`, `godot-multiplayer`, `godot-gdscript-headless-testing`, `godot-resources`, `godot-3d-essentials`, `godot-physics`, `godot-animation`, `godot-audio`, `game-ui-ux`, `game-feel`, `input-systems`, `level-design`, `save-systems`, `camera-systems`, `create-game-assets` and `performance-optimization`. Continue using the existing `online-game-design` skill and the design-first UI workflow for player-facing changes.
+- Select skills by the systems actually touched; do not load or apply unrelated engine guidance. Treat the third-party skill set as guidance, and follow this file's project decisions, Godot version, rules provenance and verification policy when instructions conflict.
+- Design and code together: preserve deterministic rules state, make choices and consequences legible, keep presentation separate from authoritative rules where the architecture supports it, and verify visible behavior in Godot when practical. Do not claim visual or input coverage without observing it.
+- The headless-testing skill does not authorize extra tests by itself. Follow the project's verification policy and the user's current request.

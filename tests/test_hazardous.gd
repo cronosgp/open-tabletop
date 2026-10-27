@@ -1,5 +1,6 @@
 extends SceneTree
 const C = preload("res://scripts/edition_11/combat_scenario.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 var failures := 0
 var values: Array = []
 var calls := 0
@@ -30,11 +31,12 @@ func _initialize() -> void:
 	values = [1, 2] # Miss, failed hazard.
 	calls = 0
 	check(plasma(s).error.is_empty() and calls == 2 and s.pending_hazard.remaining == 1 and not s.squads[1].shot, "Miss still requires one hazard per selected weapon and defers completion")
+	check(ResolutionFrames.current(s).get("kind", "") == "attack" and ResolutionFrames.current(s).get("status", "") == "suspended" and s.pending_hazard.get("resolution_action_id", "") == ResolutionFrames.current(s).get("action_id", ""), "Hazard allocation retains the suspended attack frame")
 	check(C.actor(s) == 1 and C.Hazard.eligible(s) == [100, 101], "Owner chooses any eligible member, including a model without the weapon")
 	var before := var_to_str(s)
 	check(not C.allocate_hazard(s, 2, 100, s.revision).is_empty() and not C.allocate_hazard(s, 1, 200, s.revision).is_empty() and not C.allocate_hazard(s, 1, 101, -1).is_empty() and before == var_to_str(s), "Wrong owner, enemy and stale choices do not mutate")
 	check(not C.advance_phase(s, 1, s.revision).is_empty() and before == var_to_str(s), "Activation cannot advance while hazards pending")
-	check(C.allocate_hazard(s, 1, 101, s.revision).is_empty() and s.units[101].wounds == 1 and s.units[100].wounds == 2 and s.squads[1].shot and s.pending_hazard.is_empty() and calls == 2, "One wound without reroll or bearer restriction")
+	check(C.allocate_hazard(s, 1, 101, s.revision).is_empty() and s.units[101].wounds == 1 and s.units[100].wounds == 2 and s.squads[1].shot and s.pending_hazard.is_empty() and calls == 2 and ResolutionFrames.current(s).is_empty(), "One wound without reroll or bearer restriction; completed attack frame is released")
 	check(s.last_attack.hazardous.rolls == [2] and s.last_attack.hazardous.allocations == [101], "Completion records hazard dice and recipients")
 	check(not C.allocate_hazard(s, 1, 101, s.revision).is_empty(), "No double allocation")
 	s = fixture()
@@ -52,6 +54,7 @@ func _initialize() -> void:
 	check(not C.allocate_damage(s, 2, 200, s.revision, roll).is_empty() and before == var_to_str(s), "Bad hazard die retains final pending defender choice")
 	values = [1]
 	check(C.allocate_damage(s, 2, 200, s.revision, roll).is_empty() and s.pending_attack.is_empty() and not s.pending_hazard.is_empty() and C.actor(s) == 1, "Control returns from defender to weapon owner for hazards")
+	check(ResolutionFrames.current(s).get("kind", "") == "attack" and s.pending_hazard.get("resolution_action_id", "") == ResolutionFrames.current(s).get("action_id", ""), "Manual damage completion transfers the same frame into Hazardous allocation")
 	s.units[101].wounds = 1
 	check(C.Hazard.eligible(s) == [101], "Wounded non-character takes priority")
 	s.units[101].keywords.append("CHARACTER")
@@ -75,7 +78,7 @@ func _initialize() -> void:
 	values = [1, 1]
 	plasma(s)
 	C.allocate_hazard(s, 1, 100, s.revision)
-	check(s.pending_hazard.is_empty() and s.last_attack.hazardous.discarded == 2 and s.test_winner == 2, "Discard excess on unit death and finish elimination")
+	check(s.pending_hazard.is_empty() and s.last_attack.hazardous.discarded == 2 and s.test_winner == 2 and ResolutionFrames.current(s).is_empty(), "Discard excess on unit death, finish elimination, and release the attack frame")
 	s = fixture()
 	s.units[201].wounds = 0
 	var extra: Dictionary = s.units[100].ranged_weapons[1].duplicate(true)

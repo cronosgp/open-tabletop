@@ -3,12 +3,23 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const S = preload("res://scripts/edition_11/support_attachments.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok:
   push_error(message)
   failures += 1
 func six() -> int: return 6
+func submit_projected_choice(s: Dictionary, player: int, selected: Dictionary, decision_id: String = "", option_id: String = "") -> Dictionary:
+ var decision := C.UnitActions.pending_decision(s)
+ if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No matching UnitActions decision for Player %d." % player}
+ var projected: Dictionary = {}
+ for option: Dictionary in decision.get("legal_options", []):
+  if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+ if projected.is_empty(): return {"error": "Selected choice is absent from the current decision."}
+ var choice := {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": decision_id if not decision_id.is_empty() else str(decision.get("decision_id", "")), "option_id": option_id if not option_id.is_empty() else str(projected.get("id", "")), "choice": selected}
+ return MatchCommands.execute(s, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": choice, "revision": int(s.revision)})
 func entry(name: String, models: int = 1, copies: int = 1) -> Dictionary:
  return {"definition_id": "40kdc:11e:adeptus-astartes:" + name, "models": models, "copies": copies}
 func fixture(attach: bool = true) -> Dictionary:
@@ -121,16 +132,25 @@ func run() -> void:
   var option: Dictionary = {}
   for row: Dictionary in C.unit_choices(s, 1):
    if row.action == "ancient-loadout" and row.model == 100 and row.value == mode: option = row
-  check(not option.is_empty() and C.unit_action(s, 1, option, Vector2.ZERO, s.revision).is_empty(), "Ancient equipment swap failed: " + mode)
+  var decision := PendingDecisions.current(s, ["unit-actions"])
+  var projected: Dictionary = decision.get("legal_options", []).filter(func(candidate: Dictionary) -> bool: return str(candidate.get("action", "")) == "ancient-loadout" and int(candidate.get("model", -1)) == 100 and str(candidate.get("value", "")) == mode)[0]
+  var before_choice := var_to_bytes(s)
+  var wrong_owner := submit_projected_choice(s, 2, option)
+  var stale_option := submit_projected_choice(s, 1, option, str(decision.get("decision_id", "")), "stale-option")
+  check(not wrong_owner.get("error", "").is_empty() and not stale_option.get("error", "").is_empty() and before_choice == var_to_bytes(s), "Wrong-owner and stale Ancient loadout choices are rejected unchanged")
+  var loadout_result := submit_projected_choice(s, 1, option, str(decision.get("decision_id", "")), str(projected.get("id", "")))
+  check(not option.is_empty() and loadout_result.get("error", "").is_empty(), "Ancient equipment swap uses the public preparation command: " + mode)
   check(s.units[100].ranged_weapons == P.ancient_weapons(mode == "power").ranged and s.units[100].melee_weapons == P.ancient_weapons(mode == "power").melee, "Ancient replacement removed fists/pistol or retained rifle")
  # Public preparation exposes both support declarations and preserves Leader vacancy.
  for model: int in [100, 300]:
   var option: Dictionary = {}
   for row: Dictionary in C.unit_choices(s, 1):
    if row.action == "attach" and row.model == model and row.target == (9 if model == 100 else 5): option = row
-  var before := var_to_str(s)
-  check(not option.is_empty() and not C.unit_action(s, 2, option, Vector2.ZERO, s.revision).is_empty() and var_to_str(s) == before, "Opponent attached an Ancient")
-  check(C.unit_action(s, 1, option, Vector2.ZERO, s.revision).is_empty() and s.units[model].attachment_role == "support", "Ancient public attachment failed")
+  var before := var_to_bytes(s)
+  var wrong_owner := submit_projected_choice(s, 2, option)
+  check(not option.is_empty() and not str(wrong_owner.get("error", "")).is_empty() and var_to_bytes(s) == before, "Opponent attached an Ancient")
+  var attachment := submit_projected_choice(s, 1, option)
+  check(str(attachment.get("error", "")).is_empty() and s.units[model].attachment_role == "support", "Ancient attachment uses the normalized command")
  check(C.UnitActions.attachment_allowed(s, 700, 5), "Ancient occupied the separate Captain Leader slot")
  s.unit_abilities.implementation = "historical"
  check(C.Morale.objective_control(s, 900) == 2, "Ancient OC leaked into historical ability implementation")

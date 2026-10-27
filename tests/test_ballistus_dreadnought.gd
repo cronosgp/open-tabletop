@@ -5,6 +5,9 @@ const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Demise = preload("res://scripts/edition_11/deadly_demise.gd")
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 var failures := 0
 var dice_values: Array[int] = []
 
@@ -15,6 +18,17 @@ func _initialize() -> void: call_deferred("run")
 
 func roll_die() -> int:
 	return dice_values.pop_front() if not dice_values.is_empty() else 1
+
+func submit_unit_choice(state: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "The current decision does not project the submitted Deadly Demise choice."}
+	var payload := {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "choice": payload}, roller)
 
 func selections() -> Dictionary:
 	var result := F.selections()
@@ -136,8 +150,19 @@ func run() -> void:
 			if not battle.pending_deadly_demise.is_empty():
 				var mortal_choices := C.unit_choices(battle, 1)
 				check(mortal_choices.size() == 1 and mortal_choices[0].action == "deadly-demise-allocate", "The nearby unit owner receives the Deadly Demise allocation decision")
+				var demise_decision := PendingDecisions.current(battle, ["unit-actions"])
+				var attack_frame := C.ResolutionFrames.current(battle)
+				check(demise_decision.get("priority_player_id", -1) == 1 and demise_decision.get("resume_frame_id", "") == attack_frame.get("frame_id", "") and attack_frame.get("kind", "") == "attack" and attack_frame.get("status", "") == "suspended", "Deadly Demise decision is owned by the affected player and linked to the suspended attack")
+				check(not PhaseCloseGate.close_request_error(battle, 1, battle.revision).is_empty(), "The pending Deadly Demise packet blocks Shooting close")
+				var restored_battle: Dictionary = bytes_to_var(var_to_bytes(battle))
+				var restored_demise_decision := PendingDecisions.current(restored_battle, ["unit-actions"])
+				check(restored_demise_decision.get("decision_id", "") == demise_decision.get("decision_id", "") and restored_demise_decision.get("resume_frame_id", "") == attack_frame.get("frame_id", ""), "Deadly Demise decision and attack frame identities survive save/restore")
+				battle = restored_battle
 				if not mortal_choices.is_empty():
-					var error := C.unit_action(battle, 1, mortal_choices[0], Vector2.ZERO, battle.revision, roll_die)
-					check(error.is_empty() and battle.pending_deadly_demise.is_empty() and battle.pending_attack.is_empty() and battle.units[shooter].wounds == 4, "Resolving the mortal packet resumes and completes the attack transaction")
+					var before_wrong_owner := var_to_bytes(battle)
+					var wrong_owner_result := submit_unit_choice(battle, 2, mortal_choices[0], roll_die)
+					check(not str(wrong_owner_result.get("error", "")).is_empty() and var_to_bytes(battle) == before_wrong_owner, "The opponent cannot submit or mutate the Deadly Demise allocation")
+					var resolved := submit_unit_choice(battle, 1, mortal_choices[0], roll_die)
+					check(str(resolved.get("error", "")).is_empty() and battle.pending_deadly_demise.is_empty() and battle.pending_attack.is_empty() and battle.units[shooter].wounds == 4, "Resolving the normalized mortal packet resumes and completes the attack transaction")
 	print("Ballistus Dreadnought checks: %d failures" % failures)
 	quit(1 if failures else 0)

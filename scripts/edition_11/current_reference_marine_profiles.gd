@@ -1,7 +1,20 @@
 extends RefCounted
 ## Fixed default loadouts transcribed from the local Wahapedia e11 extraction.
 ## Wahapedia is the project's sole rules authority; local admission remains scoped and uncertified for full army legality.
-const ID := "space-marines-e11-fixed-reference-2026-10-19-v85-wardens-of-ultramar"
+const ID := "space-marines-e11-fixed-reference-2026-10-25-v86-land-speeder-vengeance"
+const CHAPTER_KEYWORD_NAMES := {
+	"BLACK TEMPLARS": "Black Templars",
+	"BLOOD ANGELS": "Blood Angels",
+	"DARK ANGELS": "Dark Angels",
+	"DEATHWATCH": "Deathwatch",
+	"IMPERIAL FISTS": "Imperial Fists",
+	"IRON HANDS": "Iron Hands",
+	"RAVEN GUARD": "Raven Guard",
+	"SALAMANDERS": "Salamanders",
+	"SPACE WOLVES": "Space Wolves",
+	"ULTRAMARINES": "Ultramarines",
+	"WHITE SCARS": "White Scars",
+}
 
 static func _build_profiles() -> Dictionary:
 	return {
@@ -183,6 +196,22 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "armoured-impact", "profiles": {"standard": _weapon("Armoured Impact", 0.0, 3, 4, 6, 0, 1, {})}}],
 		"additional_weapon_profiles": {"ranged": [{"id": "pyrecannon", "profiles": {"standard": _weapon("Pyrecannon", 12.0, 4, 0, 6, -1, 1, {"blast": 2, "torrent": true})}}], "melee": []}
 	},
+	"land-speeder-vengeance": {
+		"name": "Land Speeder Vengeance", "source_book_id": "000000023", "source_datasheet_id": "000000242", "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+		"points": 150, "points_by_models": {1: 150}, "third_plus_points_by_models": {1: 160}, "points_source": "wahapedia_e11_local_export_2026_10_21_dark_angels_app", "max_supported_copies": 3, "models": 1,
+		"base_size_source": "60mm flying base", "base_radius_inches": 30.0 / 25.4,
+		"stats": {"movement_inches": 14, "toughness": 9, "save_target": 3, "wounds": 11, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 5},
+		"keywords": ["VEHICLE", "SPEEDER", "FRAME", "FLY", "RAVENWING", "IMPERIUM", "ADEPTUS ASTARTES", "DARK ANGELS"],
+		"ranged": [
+			{"id": "heavy-bolter", "profiles": {"standard": _weapon("Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"rapid-fire": 2, "sustained-hits": 1})}},
+			{"id": "plasma-storm-battery", "profiles": {
+				"standard": _weapon("Plasma Storm Battery - Standard", 36.0, "D3+3", 3, 9, -2, 2, {"blast": 1, "twin-linked": true}),
+				"supercharge": _weapon("Plasma Storm Battery - Supercharge", 36.0, "D3+3", 3, 10, -3, 3, {"blast": 1, "twin-linked": true, "hazardous": true})
+			}}
+		],
+		"melee": [{"id": "armoured-hull", "profiles": {"standard": _weapon("Armoured Hull", 0.0, 3, 4, 6, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [{"id": "assault-cannon", "profiles": {"standard": _weapon("Assault Cannon", 24.0, 6, 3, 6, -2, 1, {"sustained-hits": 1})}}], "melee": []}
+	},
 	"invader-atvs": {
 		"name": "Invader ATVs", "source_book_id": "000000139", "source_datasheet_id": "000004247", "source_role": "Mounted", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
 		"points": 65, "points_by_models": {1: 65, 2: 130}, "third_plus_points_by_models": {1: 75, 2: 140}, "wargear_costs": {"multi-melta": 5}, "max_supported_copies": 3, "models": 1,
@@ -257,7 +286,8 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "omnissian-power-axe-and-servo-arm", "profiles": {"standard": _weapon("Omnissian Power Axe and Servo-arm", 0.0, 5, 3, 6, -2, 2, {})}}]
 	},
 	"infiltrator-squad": {
-		"name": "Infiltrator Squad", "points": 85, "points_by_models": {5: 85, 10: 150}, "models": 5, "base_radius_inches": 16.0 / 25.4,
+		"name": "Infiltrator Squad", "source_book_id": "000000139", "source_datasheet_id": "000000128", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 85, "points_by_models": {5: 85, 10: 150}, "models": 5, "base_radius_inches": 16.0 / 25.4,
 		"stats": {"movement_inches": 8, "toughness": 4, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "PHOBOS", "SMOKE", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "marksman-bolt-carbine", "profiles": {"standard": _weapon("Marksman Bolt Carbine", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 1, "precision": true})}},
@@ -265,7 +295,8 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 3, 3, 5, 0, 1, {})}}]
 	},
 	"lieutenant-in-phobos-armour": {
-		"name": "Lieutenant in Phobos Armour", "points": 40, "points_by_models": {1: 40}, "models": 1, "base_radius_inches": 20.0 / 25.4,
+		"name": "Lieutenant in Phobos Armour", "source_book_id": "000000139", "source_datasheet_id": "000002530", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 40, "points_by_models": {1: 40}, "models": 1, "base_radius_inches": 20.0 / 25.4,
 		"scouts_inches": 6,
 		"stats": {"movement_inches": 8, "toughness": 4, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "CHARACTER", "EXPLOSIVES", "IMPERIUM", "PHOBOS", "SMOKE", "ADEPTUS ASTARTES"],
@@ -273,7 +304,8 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "monomolecular-combat-blades", "profiles": {"standard": _weapon("Monomolecular Combat Blades", 0.0, 6, 2, 5, -1, 1, {"sustained-hits": 1, "precision": true})}}]
 	},
 	"captain-in-gravis-armour": {
-		"name": "Captain in Gravis Armour", "points": 90, "points_by_models": {1: 90}, "models": 1, "base_radius_inches": 20.0 / 25.4,
+		"name": "Captain in Gravis Armour", "source_book_id": "000000139", "source_datasheet_id": "000001172", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 90, "points_by_models": {1: 90}, "models": 1, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 3, "wounds": 6, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
 		"keywords": ["INFANTRY", "CAPTAIN", "CHARACTER", "EXPLOSIVES", "GRAVIS", "IMPERIUM", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "master-crafted-heavy-bolt-rifle", "profiles": {"standard": _weapon("Master-crafted Heavy Bolt Rifle", 30.0, 2, 2, 6, -1, 3, {"heavy": true, "assault": true, "rapid-fire": 1})}}],
@@ -325,14 +357,16 @@ static func _build_profiles() -> Dictionary:
 		]
 	},
 	"ancient-in-terminator-armour": {
-		"name": "Ancient in Terminator Armour", "points": 75, "points_by_models": {1: 75}, "models": 1, "base_radius_inches": 20.0 / 25.4,
+		"name": "Ancient in Terminator Armour", "source_book_id": "000000139", "source_datasheet_id": "000002677", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 75, "points_by_models": {1: 75}, "models": 1, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 2, "wounds": 5, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 4},
 		"keywords": ["INFANTRY", "ANCIENT", "CHARACTER", "IMPERIUM", "TERMINATOR", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}],
 		"melee": [{"id": "master-crafted-power-weapon", "profiles": {"standard": _weapon("Master-crafted Power Weapon", 0.0, 5, 3, 5, -2, 2, {})}}]
 	},
 	"captain-in-terminator-armour": {
-		"name": "Captain in Terminator Armour", "points": 90, "points_by_models": {1: 90}, "models": 1, "base_radius_inches": 20.0 / 25.4,
+		"name": "Captain in Terminator Armour", "source_book_id": "000000139", "source_datasheet_id": "000000135", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 90, "points_by_models": {1: 90}, "models": 1, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 2, "wounds": 6, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
 		"keywords": ["INFANTRY", "CAPTAIN", "CHARACTER", "IMPERIUM", "TERMINATOR", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 2, 5, -1, 1, {"rapid-fire": 2})}}],
@@ -358,14 +392,16 @@ static func _build_profiles() -> Dictionary:
 		}}]
 	},
 	"chaplain-in-terminator-armour": {
-		"name": "Chaplain in Terminator Armour", "points": 75, "points_by_models": {1: 75}, "models": 1, "base_radius_inches": 25.0 / 25.4,
+		"name": "Chaplain in Terminator Armour", "source_book_id": "000000139", "source_datasheet_id": "000000115", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 75, "points_by_models": {1: 75}, "models": 1, "base_radius_inches": 25.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 2, "wounds": 5, "leadership_target": 5, "objective_control": 1, "invulnerable_target": 4},
 		"keywords": ["INFANTRY", "CHAPLAIN", "CHARACTER", "IMPERIUM", "TERMINATOR", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}],
 		"melee": [{"id": "crozius-arcanum", "profiles": {"standard": _weapon("Crozius Arcanum", 0.0, 5, 2, 6, -1, 2, {"cleave": 1})}}]
 	},
 	"apothecary": {
-		"name": "Apothecary", "points": 45, "points_by_models": {1: 45}, "models": 1, "base_radius_inches": 20.0 / 25.4,
+		"name": "Apothecary", "source_book_id": "000000139", "source_datasheet_id": "000002773", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 45, "points_by_models": {1: 45}, "models": 1, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "CHARACTER", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "absolvor-bolt-pistol", "profiles": {"standard": _weapon("Absolvor Bolt Pistol", 18.0, 1, 3, 5, -2, 2, {"close-quarters": true})}}],
@@ -374,7 +410,8 @@ static func _build_profiles() -> Dictionary:
 			{"id": "reductor-pistol", "profiles": {"standard": _weapon("Reductor Pistol", 0.0, 1, 3, 5, -4, 2, {"extra-attacks": true})}}]
 	},
 	"ancient": {
-		"name": "Ancient", "points": 40, "points_by_models": {1: 40}, "models": 1, "base_radius_inches": 20.0 / 25.4,
+		"name": "Ancient", "source_book_id": "000000139", "source_datasheet_id": "000002775", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 40, "points_by_models": {1: 40}, "models": 1, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "CHARACTER", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -383,28 +420,32 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 4, 3, 5, 0, 1, {})}}]
 	},
 	"bladeguard-ancient": {
-		"name": "Bladeguard Ancient", "points": 70, "points_by_models": {1: 70}, "models": 1, "base_radius_inches": 20.0 / 25.4,
+		"name": "Bladeguard Ancient", "source_book_id": "000000139", "source_datasheet_id": "000001165", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 70, "points_by_models": {1: 70}, "models": 1, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 4},
 		"keywords": ["INFANTRY", "ANCIENT", "CHARACTER", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "heavy-bolt-pistol", "profiles": {"standard": _weapon("Heavy Bolt Pistol", 18.0, 1, 3, 5, -1, 1, {"close-quarters": true})}}],
 		"melee": [{"id": "relics-of-battle", "profiles": {"standard": _weapon("Relics of Battle", 0.0, 4, 3, 5, -2, 2, {})}}]
 	},
 	"bladeguard-veteran-squad": {
-		"name": "Bladeguard Veteran Squad", "max_supported_copies": 2, "points": 90, "points_by_models": {3: 90, 6: 180}, "third_plus_points_by_models": {3: 110, 6: 200}, "models": 3, "base_radius_inches": 20.0 / 25.4,
+		"name": "Bladeguard Veteran Squad", "source_book_id": "000000139", "source_datasheet_id": "000000071", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"max_supported_copies": 2, "points": 90, "points_by_models": {3: 90, 6: 180}, "models": 3, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 3, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "heavy-bolt-pistol", "profiles": {"standard": _weapon("Heavy Bolt Pistol", 18.0, 1, 3, 5, -1, 1, {"close-quarters": true})}}],
 		"melee": [{"id": "master-crafted-power-sword", "profiles": {"standard": _weapon("Master-crafted Power Sword", 0.0, 4, 3, 5, -2, 2, {})}}]
 	},
 	"judiciar": {
-		"name": "Judiciar", "points": 50, "points_by_models": {1: 50}, "models": 1, "base_radius_inches": 20.0 / 25.4,
+		"name": "Judiciar", "source_book_id": "000000139", "source_datasheet_id": "000002707", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 50, "points_by_models": {1: 50}, "models": 1, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0, "melee_invulnerable_target": 4},
 		"keywords": ["INFANTRY", "CHARACTER", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "absolvor-bolt-pistol", "profiles": {"standard": _weapon("Absolvor Bolt Pistol", 18.0, 1, 3, 5, -2, 2, {"close-quarters": true})}}],
 		"melee": [{"id": "executioner-relic-blade", "profiles": {"standard": _weapon("Executioner Relic Blade", 0.0, 5, 2, 7, -2, 2, {"precision": true, "devastating-wounds": true})}}]
 	},
 	"chaplain": {
-		"name": "Chaplain", "points": 60, "points_by_models": {1: 60}, "models": 1, "base_radius_inches": 20.0 / 25.4,
+		"name": "Chaplain", "source_book_id": "000000139", "source_datasheet_id": "000001174", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 60, "points_by_models": {1: 60}, "models": 1, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 4, "leadership_target": 5, "objective_control": 1, "invulnerable_target": 4},
 		"keywords": ["INFANTRY", "CHARACTER", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "absolvor-bolt-pistol", "profiles": {"standard": _weapon("Absolvor Bolt Pistol", 18.0, 1, 3, 5, -2, 2, {"close-quarters": true})}}],
@@ -448,7 +489,8 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "crozius-arcanum", "profiles": {"standard": _weapon("Crozius Arcanum", 0.0, 5, 2, 6, -1, 2, {"cleave": 1})}}]
 	},
 	"sternguard-veteran-squad": {
-		"name": "Sternguard Veteran Squad", "points": 105, "points_by_models": {5: 105, 10: 210}, "third_plus_points_by_models": {5: 120, 10: 225}, "models": 5, "base_radius_inches": 16.0 / 25.4,
+		"name": "Sternguard Veteran Squad", "source_book_id": "000000139", "source_datasheet_id": "000002255", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 105, "points_by_models": {5: 105, 10: 210}, "models": 5, "base_radius_inches": 16.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -461,7 +503,8 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 4, 3, 5, 0, 1, {})}}]
 	},
 	"eliminator-squad": {
-		"name": "Eliminator Squad", "points": 85, "points_by_models": {3: 85}, "models": 3, "base_radius_inches": 20.0 / 25.4,
+		"name": "Eliminator Squad", "source_book_id": "000000139", "source_datasheet_id": "000001668", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 85, "points_by_models": {3: 85}, "models": 3, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 8, "toughness": 4, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "PHOBOS", "SMOKE", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -471,7 +514,8 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 3, 3, 5, 0, 1, {})}}]
 	},
 	"eradicator-squad-with-melta-rifles": {
-		"name": "Eradicator Squad with Melta Rifles", "points": 100, "points_by_models": {3: 100, 6: 200}, "third_plus_points_by_models": {3: 120, 6: 220}, "models": 3, "base_radius_inches": 20.0 / 25.4,
+		"name": "Eradicator Squad with Melta Rifles", "source_book_id": "000000139", "source_datasheet_id": "000004249", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 100, "points_by_models": {3: 100, 6: 200}, "models": 3, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 3, "wounds": 3, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "GRAVIS", "IMPERIUM", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -483,7 +527,8 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 3, 3, 5, 0, 1, {})}}]
 	},
 	"eradicator-squad-with-heavy-bolters": {
-		"name": "Eradicator Squad with Heavy Bolters", "points": 100, "points_by_models": {3: 100, 6: 215}, "third_plus_points_by_models": {3: 130, 6: 245}, "models": 3, "base_radius_inches": 20.0 / 25.4,
+		"name": "Eradicator Squad with Heavy Bolters", "source_book_id": "000000139", "source_datasheet_id": "000004231", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 100, "points_by_models": {3: 100, 6: 215}, "models": 3, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 3, "wounds": 3, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "GRAVIS", "IMPERIUM", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -493,14 +538,16 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 3, 3, 5, 0, 1, {})}}]
 	},
 	"apothecary-biologis": {
-		"name": "Apothecary Biologis", "points": 60, "points_by_models": {1: 60}, "models": 1, "base_radius_inches": 20.0 / 25.4,
+		"name": "Apothecary Biologis", "source_book_id": "000000139", "source_datasheet_id": "000000060", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 60, "points_by_models": {1: 60}, "models": 1, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 3, "wounds": 5, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "APOTHECARY", "CHARACTER", "GRAVIS", "IMPERIUM", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "absolvor-bolt-pistol", "profiles": {"standard": _weapon("Absolvor Bolt Pistol", 18.0, 1, 3, 5, -2, 2, {"close-quarters": true})}}],
 		"melee": [{"id": "servo-armature", "profiles": {"standard": _weapon("Servo-armature", 0.0, 4, 3, 5, 0, 1, {})}}]
 	},
 	"aggressor-squad": {
-		"name": "Aggressor Squad", "points": 90, "points_by_models": {3: 90, 6: 180}, "models": 3, "base_radius_inches": 20.0 / 25.4,
+		"name": "Aggressor Squad", "source_book_id": "000000139", "source_datasheet_id": "000002099", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 90, "points_by_models": {3: 90, 6: 180}, "models": 3, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 3, "wounds": 3, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "GRAVIS", "IMPERIUM", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "flamestorm-gauntlets", "profiles": {
@@ -509,7 +556,8 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "twin-power-fists", "profiles": {"standard": _weapon("Twin Power Fists", 0.0, 3, 3, 8, -2, 2, {"twin-linked": true})}}]
 	},
 	"infernus-squad": {
-		"name": "Infernus Squad", 		"points": 95, "points_by_models": {5: 95, 10: 190}, "third_plus_points_by_models": {5: 105, 10: 200}, "models": 5, "base_radius_inches": 16.0 / 25.4,
+		"name": "Infernus Squad", "source_book_id": "000000139", "source_datasheet_id": "000000126", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 95, "points_by_models": {5: 95, 10: 190}, "models": 5, "base_radius_inches": 16.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -519,7 +567,8 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "ceramite-fists", "profiles": {"standard": _weapon("Ceramite Fists", 0.0, 3, 3, 5, 0, 1, {})}}]
 	},
 	"hellblaster-squad": {
-		"name": "Hellblaster Squad", "points": 115, "points_by_models": {5: 115, 10: 230}, "third_plus_points_by_models": {5: 130, 10: 245}, "models": 5, "base_radius_inches": 16.0 / 25.4,
+		"name": "Hellblaster Squad", "source_book_id": "000000139", "source_datasheet_id": "000002098", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+		"points": 115, "points_by_models": {5: 115, 10: 230}, "models": 5, "base_radius_inches": 16.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [
@@ -924,6 +973,18 @@ static func profile(identity: String) -> Dictionary:
 	var result: Dictionary = _build_profiles().get(identity, {})
 	if result.is_empty(): result = transport_profiles().get(identity, {})
 	return result.duplicate(true)
+
+static func chapter_keywords(identity: String) -> Array[String]:
+	return chapter_keywords_for(profile(identity).get("keywords", []))
+
+static func chapter_keywords_for(keywords: Array) -> Array[String]:
+	var result: Array[String] = []
+	for keyword: String in CHAPTER_KEYWORD_NAMES:
+		if keyword in keywords: result.append(keyword)
+	return result
+
+static func chapter_name(keyword: String) -> String:
+	return str(CHAPTER_KEYWORD_NAMES.get(keyword, keyword))
 
 static func transport_profiles() -> Dictionary:
 	var file := FileAccess.open("res://data/edition_11/space_marines_transport_profiles.json", FileAccess.READ)

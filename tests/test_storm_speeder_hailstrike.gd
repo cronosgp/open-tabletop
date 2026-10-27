@@ -4,6 +4,8 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const C = F.C
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -20,6 +22,17 @@ func entries(state: Dictionary, source: int, target: int, weapon: String, profil
 	var result: Array = []
 	for model: int in C.living(state, source): result.append({"model": model, "target": target, "amount": 1, "weapon": weapon, "profile": profile})
 	return result
+
+func submit_projected_choice(state: Dictionary, player: int, selected: Dictionary) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No UnitActions decision belongs to Player %d." % player}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "Selected choice is not in the current UnitActions projection."}
+	return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, func() -> int: return 6)
 
 func _initialize() -> void: call_deferred("run")
 
@@ -84,7 +97,12 @@ func run() -> void:
 	check(shot.error.is_empty() and state.unit_abilities.window.get("kind", "") == "hailstrike" and state.unit_abilities.window.targets == [target], "After its hit, Hailstrike offers the struck enemy as its mark")
 	var choices := C.unit_choices(state, 1)
 	check(choices.size() == 1 and choices[0].label.begins_with("Hailstrike:") and choices[0].target == target, "Decision prompt names Hailstrike and only offers hit enemy units")
-	if not choices.is_empty(): check(C.unit_action(state, 1, choices[0], Vector2.ZERO, state.revision).is_empty(), "Player marks the enemy hit by the Hailstrike")
+	if not choices.is_empty():
+		var before_mark := var_to_bytes(state)
+		var wrong_owner := submit_projected_choice(state, 2, choices[0])
+		check(not str(wrong_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_mark, "Opponent cannot choose the Hailstrike mark")
+		var mark_result := submit_projected_choice(state, 1, choices[0])
+		check(str(mark_result.get("error", "")).is_empty(), "Player marks the enemy hit by the Hailstrike through the normalized decision: " + str(mark_result.get("error", "")))
 	var marine_gun: Dictionary = Profiles.profile("intercessor-squad").ranged[0].profiles.saturation
 	var marine_attack := C.UnitAbilities.weapon(state, intercessors * 100, target, marine_gun, false)
 	check(marine_attack.keywords.get("ignores-cover", false), "Friendly Adeptus Astartes ranged attacks ignore cover against the marked target")

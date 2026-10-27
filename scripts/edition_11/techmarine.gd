@@ -83,6 +83,12 @@ static func modifier_ignore_active(state: Dictionary, model: int) -> bool:
 	var mark: Dictionary = marks.get(model, {})
 	return not mark.is_empty() and state.units.has(model) and int(state.units[model].get("owner", 0)) == int(mark.get("owner", -1)) and int(state.turn) < int(mark.get("expires_turn", -1))
 
+static func characteristic_modifier_ignore_active(state: Dictionary, model: int) -> bool:
+	if not state.units.has(model): return false
+	var mark: Dictionary = state.get("unit_abilities", {}).get("techmarine_blessings", {}).get(model, {})
+	var source := int(mark.get("source", -1))
+	return not mark.is_empty() and state.units.has(source) and identity(state.units[source]) == "iron-father-feirros" and int(state.units[model].get("owner", 0)) == int(mark.get("owner", -1)) and int(state.turn) < int(mark.get("expires_turn", -1))
+
 static func apply(state: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
 	var window: Dictionary = state.get("unit_abilities", {}).get("window", {})
 	if window.get("kind", "") != "blessings-of-the-omnissiah" or int(window.get("owners", [0])[0]) != player: return {"error": "No matching Blessings of the Omnissiah decision is pending."}

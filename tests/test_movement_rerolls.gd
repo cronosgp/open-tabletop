@@ -2,6 +2,7 @@ extends SceneTree
 const P = preload("res://scripts/edition_11/prepared_training.gd")
 const C = P.Combat
 const S = C.Stratagems
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var values: Array = []
 var count := 0
 func die() -> int:
@@ -17,6 +18,18 @@ func fixture(phase: String) -> Dictionary:
 	for model in [100, 300]: state.units[model].position = Vector2(-8, -8 if model == 100 else 8)
 	for model in [200, 400]: state.units[model].position = Vector2(-3, -8 if model == 200 else 8)
 	return state
+
+func submit_reaction(state: Dictionary, player: int, target: int, value: String, die: Callable = Callable()) -> Dictionary:
+	var decision := S.pending_decision(state)
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if int(option.get("target", -1)) == target and str(option.get("value", "")) == value:
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "No projected %s reaction for target %d." % [value, target]}
+	var choice := {"action": "stratagem-reaction", "model": -1, "target": target, "value": value, "die": -1}
+	var payload := {"_decision_type": MatchCommands.STRATAGEM_DECISION_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": choice}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.COMMAND_REACTION, "revision": int(state.get("revision", -1)), "choice": payload}, die)
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	assert(P.initial_state({"movement_rerolls": true}).has("error"))
@@ -34,6 +47,11 @@ func run() -> void:
 		if option.value == "": accept_option = str(option.id)
 		if option.value == "command-re-roll": reroll_option = str(option.id)
 	assert(not decision.is_empty() and int(decision.priority_player_id) == 1 and not accept_option.is_empty() and not reroll_option.is_empty() and accept_option != reroll_option)
+	var movement_frame: Dictionary = state.resolution_frames.back().duplicate(true)
+	var movement_decision_id: String = decision.decision_id
+	state = bytes_to_var(var_to_bytes(state))
+	decision = S.pending_decision(state)
+	assert(decision.decision_id == movement_decision_id and state.resolution_frames.back() == movement_frame and state.pending_move.is_empty(), "Serialized Advance reroll retains its decision and suspended Movement frame")
 	var before := var_to_bytes(state)
 	assert(not C.move(state, 1, 100, Vector2(-7, -8), state.revision).is_empty())
 	assert(not C.advance_phase(state, 1, state.revision, die).is_empty())
@@ -43,7 +61,8 @@ func run() -> void:
 	assert(not C.resolve_roll_reaction(state, 1, 1, "insane-bravery", state.revision, die).is_empty())
 	assert(not C.resolve_roll_reaction(state, 1, 1, "command-re-roll", 0, die).is_empty())
 	assert(var_to_bytes(state) == before and count == 1)
-	assert(C.resolve_roll_reaction(state, 1, 1, "command-re-roll", state.revision, die).is_empty())
+	var movement_reroll := submit_reaction(state, 1, 1, "command-re-roll", die)
+	assert(str(movement_reroll.get("error", "")).is_empty())
 	assert(count == 2 and state.pending_move.bonus == 1 and state.cp[1] == 3 and S.pending(state).is_empty())
 	assert(state.resolution_frames.size() == 1 and state.resolution_frames.back().status == "resolving" and state.resolution_frames.back().resume_point == "movement-placement")
 	assert(state.last_command_roll.original_rolls == [6] and state.last_command_roll.rolls == [1])
@@ -64,8 +83,14 @@ func run() -> void:
 	assert(S.pending(state).rolls == [1, 1] and state.pending_charge.is_empty())
 	var charge_decision := S.pending_decision(state)
 	assert(charge_decision.get("action_id", "").begins_with("charge:1:1:charge") and charge_decision.get("resume_frame_id", "") == state.resolution_frames.back().frame_id and state.resolution_frames.back().status == "suspended")
+	var charge_frame: Dictionary = state.resolution_frames.back().duplicate(true)
+	var charge_decision_id: String = charge_decision.decision_id
+	state = bytes_to_var(var_to_bytes(state))
+	charge_decision = S.pending_decision(state)
+	assert(charge_decision.decision_id == charge_decision_id and state.resolution_frames.back() == charge_frame and state.pending_charge.is_empty(), "Serialized Charge reroll retains its decision and suspended Charge frame")
 	assert(not C.select_charge_target(state, 1, 200, state.revision).error.is_empty())
-	assert(C.resolve_roll_reaction(state, 1, 1, "command-re-roll", state.revision, die).is_empty())
+	var charge_reroll := submit_reaction(state, 1, 1, "command-re-roll", die)
+	assert(str(charge_reroll.get("error", "")).is_empty())
 	assert(count - start == 4 and state.pending_charge.rolls == [6, 6] and state.pending_charge.maximum == 12 and state.cp[1] == 3)
 	assert(state.resolution_frames.size() == 1 and state.resolution_frames.back().status == "resolving" and state.resolution_frames.back().resume_point == "charge-target-selection")
 	assert(C.select_charge_target(state, 1, 200, state.revision).error.is_empty())
@@ -75,7 +100,8 @@ func run() -> void:
 	state = fixture("charge")
 	values = [6, 6, 1, 1]
 	assert(C.declare_charge(state, 1, 100, 0, die).error.is_empty())
-	assert(C.resolve_roll_reaction(state, 1, 1, "command-re-roll", state.revision, die).is_empty())
+	var worse_reroll := submit_reaction(state, 1, 1, "command-re-roll", die)
+	assert(str(worse_reroll.get("error", "")).is_empty())
 	assert(state.pending_charge.is_empty() and state.squads[1].charge_declared and state.cp[1] == 3)
 	assert(not C.declare_charge(state, 1, 100, state.revision, die).error.is_empty())
 	# Accepting uses neither dice nor CP and does not consume the phase allowance.
@@ -83,7 +109,8 @@ func run() -> void:
 	values = [3, 3]
 	assert(C.declare_charge(state, 1, 100, 0, die).error.is_empty())
 	start = count
-	assert(C.resolve_roll_reaction(state, 1, 1, "", state.revision).is_empty())
+	var accepted_charge := submit_reaction(state, 1, 1, "")
+	assert(str(accepted_charge.get("error", "")).is_empty())
 	assert(count == start and state.cp[1] == 4 and state.stratagems.uses.is_empty() and state.pending_charge.maximum == 6)
 	assert(C.decline_charge(state, 1, state.revision).is_empty())
 	values = [3, 3]

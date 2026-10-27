@@ -2,6 +2,8 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 const UNIT := "eradicator-squad-with-melta-rifles"
 var failures := 0
 func check(ok: bool, message: String) -> void:
@@ -43,6 +45,19 @@ func shoot(s: Dictionary, profile: String, dice: Array) -> Dictionary:
 	var queue := dice.duplicate()
 	var declaration := [{"model": 300, "target": 4, "amount": 1, "weapon": "melta-rifle", "profile": profile}]
 	return C.resolve_attack_plan(s, 1, 300, declaration, s.revision, false, true, func() -> int: return queue.pop_front())
+func submit_damage_choice(s: Dictionary, player: int, action: String, roller: Callable = Callable()) -> Dictionary:
+	var decision := C.UnitActions.pending_decision(s)
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No matching damage decision for Player %d." % player}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == action: projected = option; break
+	if projected.is_empty(): return {"error": "No projected damage choice %s." % action}
+	var selected: Dictionary = {}
+	for choice: Dictionary in C.UnitActions.choices(s, player):
+		if str(choice.get("action", "")) == action: selected = choice; break
+	if selected.is_empty(): return {"error": "No current damage choice %s." % action}
+	var envelope := {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	return MatchCommands.execute(s, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(s.revision), "choice": envelope}, roller)
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s := fixture()
@@ -74,9 +89,9 @@ func run() -> void:
 	var reroll: Dictionary = {}
 	for selected: Dictionary in C.unit_choices(s, 1):
 		if selected.action == "damage-reroll": reroll = selected
-	var applied := C.unit_action(s, 1, reroll, Vector2.ZERO, s.revision, func() -> int: return 1)
+	var applied := submit_damage_choice(s, 1, "damage-reroll", func() -> int: return 1)
 	var rerolled: Dictionary = s.last_attack.pools[0].damage_rolls[0]
-	check(applied.is_empty() and s.get("pending_attack", {}).is_empty() and rerolled.expression == "D3+2" and rerolled.value == 3 and s.last_attack.pools[0].excess_damage_discarded == 2, "Re-rolling replaces the whole D3 and the constant stays")
+	check(not reroll.is_empty() and str(applied.get("error", "")).is_empty() and s.get("pending_attack", {}).is_empty() and rerolled.expression == "D3+2" and rerolled.value == 3 and s.last_attack.pools[0].excess_damage_discarded == 2, "Re-rolling replaces the whole D3 and the constant stays through the public command")
 	s = fixture()
 	place(s, 8.0)
 	paused = shoot(s, "standard", [6, 6, 1, 1])
@@ -84,9 +99,9 @@ func run() -> void:
 	var keep: Dictionary = {}
 	for selected: Dictionary in C.unit_choices(s, 1):
 		if selected.action == "damage-keep": keep = selected
-	applied = C.unit_action(s, 1, keep, Vector2.ZERO, s.revision)
+	applied = submit_damage_choice(s, 1, "damage-keep")
 	var kept: Dictionary = s.last_attack.pools[0].damage_rolls[0]
-	check(applied.is_empty() and kept.expression == "D3+4" and kept.value == 5 and s.last_attack.pools[0].excess_damage_discarded == 4 and s.cp[1] == 3, "Keeping the roll applies the Melta-adjusted Damage without spending CP")
+	check(not keep.is_empty() and str(applied.get("error", "")).is_empty() and kept.expression == "D3+4" and kept.value == 5 and s.last_attack.pools[0].excess_damage_discarded == 4 and s.cp[1] == 3, "Keeping the roll applies the Melta-adjusted Damage without spending CP through the public command")
 	s.phase = "deployment"
 	s.unit_abilities.setup_players = []
 	var upgrades := 0
@@ -96,7 +111,7 @@ func run() -> void:
 	var first: Dictionary = {}
 	for selected: Dictionary in C.unit_choices(s, 1):
 		if selected.action == "eradicator-melta" and selected.value == "multi" and selected.target == 3: first = selected
-	check(C.unit_action(s, 1, first, Vector2.ZERO, s.revision).is_empty() and s.units[first.model].ranged_weapons[0].id == "multi-melta", "One model can replace its Melta Rifle")
+	check(PublicUnitCommand.error(s, 1, first).is_empty() and s.units[first.model].ranged_weapons[0].id == "multi-melta", "One model can replace its Melta Rifle through the public command")
 	upgrades = 0
 	for selected: Dictionary in C.unit_choices(s, 1):
 		if selected.action == "eradicator-melta" and selected.value == "multi" and selected.target == 3: upgrades += 1

@@ -54,6 +54,8 @@ Network checks remain deferred to final integration. This draft does not certify
 
 Reviewed 18 October 2026 against [Wahapedia Ancient](https://wahapedia.ru/wh40k11ed/factions/space-marines/Ancient) (`000002775`) and [Bladeguard Ancient](https://wahapedia.ru/wh40k11ed/factions/space-marines/Bladeguard-Ancient) (`000001165`), shared book `000000139`, App. Space Marines (11th edition). The local joined export revision is 16 October 2026, 21:03:46 GMT+3. Chapter, Legends and Boarding Actions adaptations remain excluded.
 
+The current catalog's Ancient and Bladeguard Ancient profile records now carry those exact book/datasheet identities for source-restricted options. The shared base profile omits `DEATHWING`. During prepared-match setup, ChapterRules removes source-projected conditional tags from current-reference Marine instances, then grants `DEATHWING` to Bladeguard Ancient in Dark Angels context.
+
 The Ancient is one 40-point model, 40mm base, M6/T5/Sv3/W4/Ld6/OC2, without an invulnerable save. Its Bolt Rifle has Focused Fire and Saturation profiles, alongside Bolt Pistol and Ceramite Fists. The rifle can be replaced with a Power Weapon; pistol and fists remain. Both melee weapons are ordinary weapons, so the existing selection rule still permits only one when fighting. The swap is reversible during preparation. Honour of the Company adds one OC to each model in its current unit, including itself. Battle-shock still removes usable OC; dead/off-board sources confer no bonus, and printed characteristics remain unmodified in the stored profile.
 
 The Bladeguard Ancient is one 70-point model, 40mm base, M6/T5/Sv3/W4/Ld6/OC3, with general 4+ invulnerable protection. Its fixed equipment is Heavy Bolt Pistol and Relics of Battle, without replacements. Deeds of Legend grants +1 A to the current unit’s melee weapons while any living battlefield model in that unit is in objective range. Objective control is not required, and the effect does not modify ranged weapons. The shared profile retains the ANCIENT keyword and excludes the conditional Deathwing adaptation. The ordinary Ancient does not receive that keyword from its name.
@@ -196,13 +198,13 @@ The default weapons are Bolt Rifles (Twin-linked), Twin Heavy Bolter (Twin-linke
 - **Damaged 4:** while this model has 1–4 wounds remaining, subtract 1 from its Hit rolls.
 - **Deadly Demise D3:** when destroyed, roll one D6; on a 6, each unit within 6 inches suffers a separately rolled D3 mortal-wound packet, allocated through the shared mortal-wound flow.
 - **Brutalis Charge:** this unit can use Tank Shock even if another unit has already used it this phase; its use does not prevent other units using Tank Shock. Once per phase per Brutalis unit, Tank Shock costs 1 fewer CP.
-- **Tank Shock (Crushing Impact):** immediately after a VEHICLE finishes a Charge move, choose an enemy unit engaged by a VEHICLE model in the charging unit. Roll a number of D6 equal to that model's Toughness; each 5+ inflicts 1 mortal wound, to a maximum of 6. The defending player allocates those mortal wounds through the ordinary allocation window.
+- **Tank Shock (Crushing Impact):** immediately after a MONSTER or VEHICLE unit finishes a Charge move, choose an enemy unit engaged by a model in the charging unit, then select one of your models engaged with that enemy. Roll a number of D6 equal to its Toughness. Each 1 inflicts 1 mortal wound on the charging unit; each 5+ inflicts 1 on the enemy unit, to a maximum of 6 against that enemy. The charging player's unit resolves its mortal wounds first, followed by the enemy unit's owner resolving theirs. Both packets use the shared allocation, prevention and Deadly Demise continuation paths.
 
-The post-charge Tank Shock window opens only when the charging Vehicle is engaged with an eligible enemy and the stratagem can be used. Tank Shock uses record separately so the Brutalis exception preserves one ordinary use by another unit in the same phase.
+The post-charge Tank Shock window opens only when the charging MONSTER or VEHICLE is engaged with an eligible enemy and the stratagem can be used. Tank Shock uses record separately so the Brutalis exception preserves one ordinary use by another unit in the same phase.
 
 ## Local validation
 
-The focused run passed **14/14 processes**, including `test_brutalis_dreadnought`, the capability registry, combat scenario, Tank Shock/core reactions, both existing Dreadnought regressions, the implemented catalog and roster checks. Results: `.tools/verification/20261019T053830682027Z/results.json`.
+The historical focused run passed **14/14 processes**, including `test_brutalis_dreadnought`, the capability registry, combat scenario, Tank Shock/core reactions, both existing Dreadnought regressions, the implemented catalog and roster checks. Results: `.tools/verification/20261019T053830682027Z/results.json`. That run predates MONSTER eligibility and the charging-unit mortal-wound packet; checks for the expanded current rule and human playtesting remain pending.
 
 The bounded local comparison `.tools/wahapedia-fixed-data-review-v32.json` contains 23 runtime profiles and 85 weapon trait profiles; 22/23 pass all fixed-data checks with no numeric or identity differences. Ancient in Terminator Armour remains unresolved for the shared-versus-chapter `DEATHWING` keyword context. This comparison does not certify optional wargear legality, full faction coverage or full army legality. Network validation remains deferred to final integration.
 
@@ -1210,7 +1212,7 @@ Observed 19 October 2026 from the project's local 11th-edition Wahapedia export 
 - Scouts 6 uses the existing all-model pre-battle move or reserve set-up rules.
 - Terror Troops reduces each enemy model's OC by 1 while it is within 3 inches of any living Reiver model. Battle-shock still sets OC to zero.
 - Fearsome Assault resolves at the start of the Fight phase, before pile-in. Each unique enemy unit engaged with at least one Reiver unit takes a Battle-shock test with -1 to the roll. A passing test does not clear Battle-shock already in effect.
-- Grav-chutes and Grapnel Launchers are optional unit-level equipment. Grav-chutes grant Deep Strike and reserve ingress eligibility while equipped. Grapnel Launchers permit movement paths through models and ignore vertical distance in supported flat-board geometry. Upper-floor movement remains unsupported by the board model.
+- Grav-chutes and Grapnel Launchers are optional unit-level equipment. Grav-chutes grant Deep Strike and reserve ingress eligibility while equipped. Grapnel Launchers permit movement paths through models and ignore vertical distance; on the supported central first floor, the normal wall-access requirement still applies. Focused checks for this interaction are pending.
 - Phobos Librarian and Phobos Lieutenant Leader links are admitted; the external Phobos Captain remains excluded.
 
 ## Validation boundary
@@ -1483,7 +1485,7 @@ Status: internal rules work in progress, not admitted for army construction. Sou
 - The shared 3-inch set-up distance, passenger eligibility, capacity, placement and Rapid/Tactical/Combat/Assault/Shock state transitions have targeted local Godot checks.
 - An end-to-end local destruction test covers passenger Hazard, allocation, Emergency Disembark placement and resuming the destruction queue.
 - A local Rhino test covers Veiling Smoke's free use, per-Rhino limit, separate unit use and overlapping Smokescreen sources.
-- Drop Pod Assault automatically places each Drop Pod in Strategic Reserves during preparation, applies the half-army reserve cap, and offers its own ingress in the owner's first Movement phase. Arrival begins compulsory passenger disembarkation; each passenger must be set up more than 8 inches from every enemy. Passenger units resolve in sequence, including their Hazard rolls, and Deployment Complete blocks later embarkation. Targeted local Godot checks cover these steps.
+- Drop Pod Assault automatically places each Drop Pod in Strategic Reserves during preparation, applies the half-army reserve cap, and offers its own ingress in the owner's first Movement phase. Arrival begins compulsory passenger disembarkation; each passenger must be set up more than 8 inches from every enemy. Passenger units resolve in sequence, including their Hazard rolls, and Deployment Complete blocks later embarkation. The existing targeted local Godot checks cover these steps but predate the optional Gauntlet Task Force Aggressive Disembarkation choice before each mandatory passenger Rapid Disembark. The new CP choice, pass path, multi-passenger continuation and save/restore behavior remain pending focused checks.
 - Repulsor Executioner's ranged attacks gain +1 to Hit against targets that are not below half-strength. The threshold follows the local Core Rules definition, so exactly half-strength still qualifies. The attack-plan check exercises both multi-model and single-model wound thresholds.
 - Repulsor Combat Embarkation opens a defending-player reaction after the charging unit's targets are selected and before any model moves. The defender may embark one selected, unengaged friendly ADEPTUS ASTARTES unit eligible to embark and wholly within 3 inches; a unit set up this turn is excluded. The charge target list is updated, and the charger may revise targets before placement. Passing is optional, and the reaction does not repeat for that charge. Local checks cover eligibility, player ownership, pass/embark, removing the embarked target, retargeting and resuming placement.
 - The Land Raider's Power of the Machine Spirit offers one optional Hit and one optional Wound re-roll across that unit's ranged attack activation; Hit re-rolls are unavailable for Snap Shooting and Indirect Fire. The Land Raider Crusader gains Lethal Hits against targets within 12 inches, and the Land Raider Redeemer gains Devastating Wounds against non-MONSTER, non-VEHICLE targets within 12 inches. These effects are resolved against each model's current transport profile and local attack checkpoints.
@@ -1501,7 +1503,7 @@ Status: internal rules work in progress, not admitted for army construction. Sou
 - All eight source profiles are now selectable through the consolidated local e11 catalog. Rhino and the other seven transports pass focused checks for source prices, unit limits, roster admission, current-ability materialization and the shared transport runtime. Drop Pod materializes with empty ranged and melee inventories, as listed in its source profile.
 - This admission covers bounded local rule support and does not certify complete faction composition or full army legality. Network validation remains deferred to final integration.
 
-Wardens of Ultramar was added after the transport increment; see [its profile and local checks](space-marines-profile-records.md#marine-wardens-ultramar). All 85 shared-book Marine identities are now selectable.
+Wardens of Ultramar was added after the transport increment; see [its profile and local checks](space-marines-profile-records.md#marine-wardens-ultramar). All 85 shared-book Marine identities are selectable. The Dark Angels App Land Speeder Vengeance has a separate source-linked runtime profile; its pending checks keep it out of new construction choices. Its bounded scope is recorded below.
 
 ---
 
@@ -1581,3 +1583,31 @@ Implemented datasheet rules are **Combat Doctrines**, **Raise the Banner**, **Su
 Focused offline validation passed in `.tools/verification/20261019T211419295401Z/results.json` (10/10 processes), `.tools/verification/20261019T212547325101Z/results.json` (8/8 processes) and `.tools/verification/20261019T212717951667Z/results.json` (7/7 processes). Checks cover source characteristics and weapon profiles, mixed-model defense/allocation, materialization, support eligibility, one-copy construction admission, the public Strategium action flow and reserve exception, pre-battle Scout sequencing, roster validation and adjacent leader/ability regressions.
 
 Network validation is deferred to final integration, as requested. This profile's local checks do not certify complete Space Marine faction coverage or full army legality.
+
+
+---
+
+<a id="marine-land-speeder-vengeance"></a>
+## Land Speeder Vengeance (Dark Angels App)
+
+Implemented from the verified local Wahapedia 11e Data Export, snapshot `20261021T130623Z` (retrieved 21 October 2026, export revision `20260817b`; source update `2026-10-21T16:06:23+03:00`). The source is the Dark Angels App datasheet `000000242`, book `000000023`, and is separate from the 85 shared-book Space Marine identities. The [source ledger](space-marines-rules-ledger.json) records the filenames and SHA-256 hashes used.
+
+## Profile and loadout
+
+- One model, up to three copies; 150 points for the first and second copy, 160 points for the third. M14, T9, Sv3+, 5+ invulnerable save, W11, Ld6+, OC3; 60 mm flying base.
+- Fixed equipment: Armoured Hull, Heavy Bolter and Plasma Storm Battery. Before deployment, the Heavy Bolter can be replaced with an Assault Cannon. The Plasma Storm Battery exposes Standard and Supercharge profiles, with Hazardous on Supercharge.
+- The profile carries ADEPTUS ASTARTES and DARK ANGELS faction keywords, plus SPEEDER, FRAME, FLY and RAVENWING keywords. Deep Strike, Deadly Demise D3 and Combat Doctrines use their shared runtime paths.
+
+## Storm of Vengeance
+
+Once per turn per unit in the opponent's Shooting phase, after an enemy shooting activation destroys a friendly Dark Angels unit within 6 inches of this model, the Vengeance may shoot normally but can target only the enemy unit that made that activation. Eligible Vengeance units are offered one at a time. Its reactive attack and saved Shooting-reaction frame stay bound to the triggering enemy unit.
+
+The fixed profile, loadout choice, Storm of Vengeance reaction and Nightforged Battery choices for random weapon Attack and Hazard rolls are implemented. Focused local checks and human playtesting are pending, so it is not yet a new construction choice; network validation and full Dark Angels army legality remain uncertified.
+
+## Marine transport Deadly Demise — 26 October 2026
+
+The shared destruction queue now resolves the source-linked Deadly Demise value for the eight locally admitted transport profiles: Land Raider, Land Raider Crusader and Land Raider Redeemer use D6; Drop Pod uses 1; Impulsor and Rhino use D3; Repulsor and Repulsor Executioner use D6. Passenger Emergency Disembark must finish before the transport's trigger roll. On a 6, every unit within 6 inches receives a separately rolled X mortal-wound packet when X is random; packets use the normal owner allocation and prevention flow, and chain destructions stay queued. Medusa's Wrath Vengeful Animus can force the trigger roll for eligible Astartes Vehicles.
+
+The resolved `Datasheets.csv` identities are Land Raider `000000065`, Land Raider Crusader `000000066`, Land Raider Redeemer `000002173`, Drop Pod `000000087`, Impulsor `000002568`, Rhino `000002723`, Repulsor `000002721`, and Repulsor Executioner `000002722`. Their relations point to the shared `Deadly Demise` ability `000008339` in `Abilities.csv` through `Datasheets_abilities.csv`.
+
+Source facts come from the verified Wahapedia 11e Space Marines Data Export snapshot `20261021T130623Z`, retrieved `2026-10-21T19:46:58Z`: `Datasheets.csv` SHA-256 `39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c`, `Abilities.csv` SHA-256 `4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410`, and `Datasheets_abilities.csv` SHA-256 `49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6`. Core Rules §24.08 was checked against Wahapedia's June 2026 Core Rules page on 26 October 2026. This profile addition has not had focused local checks or playtesting; it does not certify all transport rules or full army legality.

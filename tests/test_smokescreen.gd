@@ -2,6 +2,7 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Smoke = C.Terrain.Smoke
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok:
@@ -40,6 +41,14 @@ func pick(s: Dictionary, rule: String) -> Dictionary:
  for row: Dictionary in C.unit_choices(s, 1):
   if row.action == "core-stratagem" and row.value == rule: return row
  return {}
+func submit_choice(s: Dictionary, player: int, selected: Dictionary, revision: int = -2147483648) -> Dictionary:
+ var decision := C.UnitActions.pending_decision(s)
+ if decision.is_empty(): return {"error": "No pending UnitActions decision."}
+ var projected: Dictionary = {}
+ for option: Dictionary in decision.get("legal_options", []):
+  if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+ if projected.is_empty(): return {"error": "The selected choice is not in the current projection."}
+ return MatchCommands.execute(s, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(s.revision) if revision == -2147483648 else revision, "point": Vector2.ZERO, "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}})
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
  var s := fixture()
@@ -52,9 +61,11 @@ func run() -> void:
  var choice := pick(s, "smokescreen")
  check(not choice.is_empty() and choice.target == 3, "Eligible SMOKE unit not offered")
  var before := var_to_str(s)
- check(not C.unit_action(s, 2, choice, Vector2.ZERO, s.revision).is_empty() and var_to_str(s) == before, "Wrong player activated Smoke")
- check(not C.unit_action(s, 1, choice, Vector2.ZERO, s.revision - 1).is_empty() and var_to_str(s) == before, "Stale Smoke activation mutated state")
- check(C.unit_action(s, 1, choice, Vector2.ZERO, s.revision).is_empty() and s.cp[1] == 2 and s.stratagems.uses[-1].stratagem == "smokescreen", "Smoke cost/use recording failed")
+ check(not submit_choice(s, 2, choice).get("error", "").is_empty() and var_to_str(s) == before, "Wrong player activated Smoke")
+ var stale_smoke := submit_choice(s, 1, choice, s.revision - 1)
+ check(not stale_smoke.get("error", "").is_empty() and var_to_str(s) == before, "Stale Smoke activation mutated state: result=%s state_unchanged=%s" % [str(stale_smoke), str(var_to_str(s) == before)])
+ var smoke_result := submit_choice(s, 1, choice)
+ check(smoke_result.get("error", "").is_empty() and s.cp[1] == 2 and s.stratagems.uses[-1].stratagem == "smokescreen", "Smoke cost/use recording failed: " + str(smoke_result.get("error", "")))
  check(pick(s, "smokescreen").is_empty(), "Smokescreen repeated in one phase")
  check(C.Terrain.benefit_of_cover(s, 400, 3), "Smoke source unit did not receive cover")
  check(C.Terrain.benefit_of_cover(s, 400, 5) and not C.Terrain.benefit_of_cover(s, 401, 5), "Intervening smoke cover ignored per-attacker geometry")
@@ -63,7 +74,8 @@ func run() -> void:
  var pass_choice: Dictionary = {}
  for row: Dictionary in C.unit_choices(s, 1):
   if row.action == "pass": pass_choice = row
- check(C.unit_action(s, 1, pass_choice, Vector2.ZERO, s.revision).is_empty() and C.UnitActions.pending(s).is_empty(), "Start window could not finish")
+ var pass_result := submit_choice(s, 1, pass_choice)
+ check(pass_result.get("error", "").is_empty() and C.UnitActions.pending(s).is_empty(), "Start window could not finish: " + str(pass_result.get("error", "")))
  var prepared := C.AttackPlan.prepare(s, 4, false, [{"model": 400, "target": 5, "amount": 1}, {"model": 401, "target": 5, "amount": 1}], true)
  var covered := 0
  if prepared.error.is_empty():
@@ -105,7 +117,7 @@ func run() -> void:
  check(pick(s, "smokescreen").is_empty(), "Smoke offered during own Shooting")
  s = fixture()
  choice = pick(s, "smokescreen")
- check(C.unit_action(s, 1, choice, Vector2.ZERO, s.revision).is_empty(), "Second fixture Smoke rejected")
+ check(submit_choice(s, 1, choice).get("error", "").is_empty(), "Second fixture Smoke rejected")
  s.unit_abilities.implementation = "historical"
  check(Smoke.active(s).is_empty(), "Smoke survived disabled unit implementation")
  print("Smokescreen checks: %d failures" % failures)

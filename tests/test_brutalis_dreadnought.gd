@@ -4,7 +4,11 @@ const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Reactions = preload("res://scripts/edition_11/core_reactions.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 const F = preload("res://tests/all_units_fixture.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 var failures := 0
 var dice: Array[int] = []
 
@@ -15,6 +19,19 @@ func check(ok: bool, message: String) -> void:
 
 func roll_die() -> int:
 	return dice.pop_front() if not dice.is_empty() else 1
+
+func submit_choice(state: Dictionary, player: int, selected: Dictionary, roller: Callable = Callable()) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+			projected = option
+			break
+	var payload: Dictionary = selected
+	if not decision.is_empty():
+		if projected.is_empty(): return {"error": "The current decision does not project the submitted Crushing Impact choice."}
+		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "choice": payload}, roller)
 
 func selection(copies: int = 1) -> Dictionary:
 	return {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000,
@@ -75,13 +92,13 @@ func run() -> void:
 				if option.action == "brutalis-melee" and option.model == brutalis and option.value == "talons": talon_choice = option
 			check(not talon_choice.is_empty(), "Deployment choices expose the Brutalis melee replacement")
 			if not talon_choice.is_empty():
-				var equipment_error := F.C.unit_action(state, 1, talon_choice, Vector2.ZERO, state.revision)
+				var equipment_error := PublicUnitCommand.error(state, 1, talon_choice)
 				check(equipment_error.is_empty() and state.units[brutalis].melee_weapons[0].id == "brutalis-talons" and state.units[brutalis].ranged_weapons.size() == 2, "Selecting Talons removes Bolt Rifles and Brutalis Fists while preserving other weapons")
 			var melta_choice: Dictionary = {}
 			for option: Dictionary in UnitActions.choices(state, 1):
 				if option.action == "brutalis-ranged" and option.model == brutalis and option.value == "multi-melta": melta_choice = option
 			if not melta_choice.is_empty():
-				var melta_error := F.C.unit_action(state, 1, melta_choice, Vector2.ZERO, state.revision)
+				var melta_error := PublicUnitCommand.error(state, 1, melta_choice)
 				check(melta_error.is_empty() and state.units[brutalis].ranged_weapons[0].id == "twin-multi-melta", "Selecting Twin Multi-melta replaces the Twin Heavy Bolter")
 			for model: int in state.units:
 				if state.units[model].owner == 1: state.units[model].position = Vector2(-25, -20)
@@ -117,8 +134,21 @@ func run() -> void:
 				check(not tank_choice.is_empty() and Reactions.cost_of(state, 1, squad, Reactions.CRUSHING) == 0, "Brutalis Charge offers Tank Shock for 0 CP against an engaged enemy")
 				if not tank_choice.is_empty():
 					dice = [6, 5, 5, 6, 6, 6, 6, 6, 6, 6]
-					var tank_error := F.C.unit_action(state, 1, tank_choice, Vector2.ZERO, state.revision, roll_die)
-					check(tank_error.is_empty() and state.cp[1] == 0 and state.last_crushing_impact.rolls.size() == 10 and state.last_crushing_impact.mortal_wounds == 6, "Tank Shock rolls the selected model's Toughness in D6, caps mortal wounds at six and remains free at zero CP")
+					var tank_result := submit_choice(state, 1, tank_choice, roll_die)
+					check(str(tank_result.get("error", "")).is_empty() and state.cp[1] == 0 and state.last_crushing_impact.rolls.size() == 10 and state.last_crushing_impact.mortal_wounds == 6, "Tank Shock rolls the selected model's Toughness in D6, caps mortal wounds at six and remains free at zero CP through the common command")
+					var mortal_decision := PendingDecisions.current(state, ["unit-actions"])
+					var charge_frame: Dictionary = F.C.ResolutionFrames.current(state)
+					check(mortal_decision.get("priority_player_id", -1) == 2 and not mortal_decision.get("legal_options", []).is_empty() and mortal_decision.get("resume_frame_id", "") == charge_frame.get("frame_id", "") and charge_frame.get("status", "") == "suspended", "Tank Shock assigns its mortal allocation to the defender and retains the suspended Charge frame")
+					check(not PhaseCloseGate.close_request_error(state, 1, state.revision).is_empty(), "The charge owner's phase close remains blocked during Tank Shock allocation")
+					var restored_state: Dictionary = bytes_to_var(var_to_bytes(state))
+					var restored_mortal_decision := PendingDecisions.current(restored_state, ["unit-actions"])
+					check(restored_mortal_decision.get("decision_id", "") == mortal_decision.get("decision_id", "") and restored_mortal_decision.get("resume_frame_id", "") == charge_frame.get("frame_id", ""), "Tank Shock allocation decision and Charge frame identities survive save/restore")
+					state = restored_state
+					var wrong_owner_allocations := F.C.unit_choices(state, 2)
+					if not wrong_owner_allocations.is_empty():
+						var before_wrong_owner := var_to_bytes(state)
+						var wrong_owner_result := submit_choice(state, 1, wrong_owner_allocations[0], roll_die)
+						check(not str(wrong_owner_result.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_owner, "The charge owner cannot submit or mutate the defender's Tank Shock allocation")
 					var allocation_guard := 8
 					var allocations_seen := 0
 					while state.unit_abilities.window.get("kind", "") == Reactions.CRUSHING_MORTAL and allocation_guard > 0:
@@ -127,8 +157,8 @@ func run() -> void:
 						if allocations.is_empty(): break
 						allocations_seen += 1
 						dice = [1]
-						var allocation_error := F.C.unit_action(state, 2, allocations[0], Vector2.ZERO, state.revision, roll_die)
-						check(allocation_error.is_empty(), "Tank Shock mortal wounds resolve through the defender's ordinary allocation window")
+						var allocation_result := submit_choice(state, 2, allocations[0], roll_die)
+						check(str(allocation_result.get("error", "")).is_empty(), "Tank Shock mortal wounds resolve through the defender's normalized allocation window")
 					check(allocations_seen == 6 and state.last_crushing_impact.remaining == 0 and allocation_guard > 0, "All Tank Shock mortal wounds finish allocation before another reaction")
 				check(not Reactions.charge_completed(state, 1, squad), "Brutalis Charge cannot target its unit twice in the same phase")
 				state.squads[red_squad].charged = true
@@ -144,8 +174,11 @@ func run() -> void:
 				check(not normal_choice.is_empty() and Reactions.cost_of(state, 1, red_squad, Reactions.CRUSHING) == 1, "Ordinary Tank Shock remains one CP after the Brutalis bonus use")
 				if not normal_choice.is_empty():
 					dice = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-					var normal_error := F.C.unit_action(state, 1, normal_choice, Vector2.ZERO, state.revision, roll_die)
-					check(normal_error.is_empty() and state.cp[1] == 0 and state.last_crushing_impact.cp_cost == 1 and not state.stratagems.uses.back().brutalis_charge, "Ordinary Tank Shock pays its base CP cost and records distinct use")
+					var before_wrong_normal_owner := var_to_bytes(state)
+					var wrong_normal_owner := submit_choice(state, 2, normal_choice, roll_die)
+					check(not str(wrong_normal_owner.get("error", "")).is_empty() and before_wrong_normal_owner == var_to_bytes(state), "The other player cannot submit ordinary Tank Shock")
+					var normal_result := submit_choice(state, 1, normal_choice, roll_die)
+					check(str(normal_result.get("error", "")).is_empty() and state.cp[1] == 0 and state.last_crushing_impact.cp_cost == 1 and not state.stratagems.uses.back().brutalis_charge, "Ordinary Tank Shock pays its base CP cost and records distinct use through the match command")
 	if failures == 0: print("Brutalis Dreadnought checks: 0 failures")
 	else: push_error("Brutalis Dreadnought checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

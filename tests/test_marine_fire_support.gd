@@ -2,6 +2,9 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -45,6 +48,17 @@ func entries(s: Dictionary, source: int, target: int, weapon: String, profile: S
 	var result: Array = []
 	for model: int in C.living(s, source): result.append({"model": model, "target": target, "amount": 1, "weapon": weapon, "profile": profile})
 	return result
+
+func submit_projected_choice(state: Dictionary, player: int, selected: Dictionary) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No UnitActions decision belongs to Player %d." % player}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "Selected choice is not in the current UnitActions projection."}
+	return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, func() -> int: return 6)
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s := fixture()
@@ -71,7 +85,13 @@ func run() -> void:
 	check(not C.advance_phase(s, 1, s.revision).is_empty(), "Finish Driven from Cover before phase advance")
 	var selected: Dictionary = C.unit_choices(s, 1)[0]
 	var marked: int = selected.target
-	check(C.unit_action(s, 1, selected, Vector2.ZERO, s.revision).is_empty(), "Owner selects one hit enemy")
+	var decision := PendingDecisions.current(s, ["unit-actions"])
+	var before_mark := var_to_bytes(s)
+	var wrong_owner := submit_projected_choice(s, 2, selected)
+	check(not str(wrong_owner.get("error", "")).is_empty() and var_to_bytes(s) == before_mark, "Opponent cannot choose the Driven from Cover mark")
+	check(not decision.is_empty() and int(decision.get("priority_player_id", -1)) == 1 and decision.get("legal_options", []).size() == 2, "Driven from Cover projects the owner's exact hit-target choices")
+	var mark_result := submit_projected_choice(s, 1, selected)
+	check(str(mark_result.get("error", "")).is_empty(), "Owner selects one hit enemy through the normalized decision: " + str(mark_result.get("error", "")))
 	var gun: Dictionary = Profiles.profile("intercessor-squad").ranged[0].profiles.saturation
 	check(C.UnitAbilities.weapon(s, intercessors * 100, marked, gun, false).keywords.get("ignores-cover", false), "Friendly Marine ranged attacks ignore cover on the marked target")
 	s.terrain.areas = [{"name": "Cover probe", "category": "exposed", "bounds": Rect2(5, -2, 4, 4), "features": []}]
@@ -160,7 +180,7 @@ func run() -> void:
 	check(not pistol_choice.is_empty(), "Only the Hellblaster Sergeant receives the optional pistol declaration")
 	if not pistol_choice.is_empty():
 		var sergeant: int = pistol_choice.model
-		check(C.unit_action(s, 1, pistol_choice, Vector2.ZERO, s.revision).is_empty(), "Plasma Pistol can replace the Sergeant's Bolt Pistol before battle")
+		check(PublicUnitCommand.error(s, 1, pistol_choice).is_empty(), "Plasma Pistol can replace the Sergeant's Bolt Pistol before battle through the public command")
 		check(s.units[sergeant].ranged_weapons[1].id == "plasma-pistol" and s.units[sergeant + 1].ranged_weapons[1].id == "bolt-pistol", "Replacement affects exactly the Sergeant's sidearm")
 		s.phase = "shooting"
 		s.unit_abilities.setup_players = [1, 2]
