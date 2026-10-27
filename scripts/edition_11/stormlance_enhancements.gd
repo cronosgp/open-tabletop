@@ -54,6 +54,10 @@ const PHOBOS_SHOCK_VENATOR := "000011196003"
 const PHOBOS_SHADOW_VENATOR := "000011188002"
 const PHOBOS_SHADOW_EXECUTE_REDEPLOY := "000011188003"
 const OATHBOUND_EXEMPLAR := "000011176003"
+const AUGURY_SERVO_HOST := "000011172002"
+const CONSECRATING_AURA := "000011172003"
+const INCENDIARY_ANIMUS := "000011172004"
+const ZEALOUS_VANGUARD := "000011172005"
 const STORMLANCE := "stormlance"
 const IRONCLAD := "ironclad-champions"
 const GLADIUS := "gladius"
@@ -195,6 +199,21 @@ const RECORDS := {
 		"source_datasheet_ids": ["000000060", "000000073", "000000076", "000000079", "000000083", "000000112", "000000115", "000000119", "000000135", "000000140", "000000158", "000000306", "000001165", "000001172", "000001174", "000001346", "000002266", "000002530", "000002677", "000002701", "000002707", "000002773", "000002775", "000002793", "000002795", "000002796", "000003831", "000003832", "000003833", "000003871", "000004129", "000004130", "000004135", "000004136"],
 		"datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"], "required_unit_keywords": ["INFANTRY"],
 		"rule": "Adeptus Astartes Infantry unit only. When this unit is selected to make an Advance or Fall Back move, that move does not prevent this unit from being eligible to start an action."},
+	AUGURY_SERVO_HOST: {"id": AUGURY_SERVO_HOST, "name": "Augury Servo-host", "cost": 20, "detachment": "vow-sworn-crusaders", "source_restricted": true,
+		"source_datasheet_ids": ["000000060", "000000073", "000000076", "000000079", "000000083", "000000094", "000000112", "000000115", "000000119", "000000135", "000000140", "000000158", "000000306", "000001165", "000001172", "000001174", "000001346", "000002266", "000002530", "000002677", "000002701", "000002702", "000002707", "000002748", "000002773", "000002775", "000002793", "000002795", "000002796", "000003831", "000003832", "000003833", "000003871", "000004129", "000004130", "000004135", "000004136"], "datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"],
+		"rule": "Adeptus Astartes model only. In your Shooting phase, select one visible enemy unit within 18 inches of this unit. That enemy unit cannot benefit from cover for this phase."},
+	CONSECRATING_AURA: {"id": CONSECRATING_AURA, "name": "Consecrating Aura", "cost": 20, "detachment": "vow-sworn-crusaders", "source_restricted": true,
+		"source_datasheet_ids": ["000000060", "000000073", "000000076", "000000079", "000000083", "000000094", "000000112", "000000115", "000000119", "000000135", "000000140", "000000158", "000000306", "000001165", "000001172", "000001174", "000001346", "000002266", "000002530", "000002677", "000002701", "000002702", "000002707", "000002748", "000002773", "000002775", "000002793", "000002795", "000002796", "000003831", "000003832", "000003833", "000003871", "000004129", "000004130", "000004135", "000004136"],
+		"datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"],
+		"rule": "Adeptus Astartes model only. This unit has a 5+ invulnerable save."},
+	INCENDIARY_ANIMUS: {"id": INCENDIARY_ANIMUS, "name": "Incendiary Animus", "cost": 25, "detachment": "vow-sworn-crusaders", "source_restricted": true,
+		"source_datasheet_ids": ["000000094", "000000112", "000000115", "000001174", "000002707", "000004135"],
+		"datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"],
+		"rule": "Chaplain or Judiciar model only. This unit's melee attacks have +1 Strength."},
+	ZEALOUS_VANGUARD: {"id": ZEALOUS_VANGUARD, "name": "Zealous Vanguard", "cost": 25, "detachment": "vow-sworn-crusaders", "source_restricted": true,
+		"source_datasheet_ids": ["000000060", "000000073", "000000076", "000000079", "000000083", "000000094", "000000112", "000000115", "000000119", "000000135", "000000140", "000000158", "000000306", "000001165", "000001172", "000001174", "000001346", "000002266", "000002530", "000002677", "000002701", "000002702", "000002707", "000002748", "000002773", "000002775", "000002793", "000002795", "000002796", "000003831", "000003832", "000003833", "000003871", "000004129", "000004130", "000004135", "000004136"],
+		"datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"],
+		"rule": "Adeptus Astartes model only. This unit has Scouts 6 inches."},
 	THUNDERCOWL_TURBINES: {"id": THUNDERCOWL_TURBINES, "name": "Thundercowl Turbines", "cost": 15, "detachment": DARKFLIGHT, "source_restricted": true,
 		"source_datasheet_ids": ["000000084", "000000094", "000000114", "000000124", "000000137", "000000139", "000000238", "000000239", "000000240", "000000241", "000000242", "000001190", "000001191", "000001610", "000002702", "000002711", "000002712", "000002748", "000004247"],
 		"datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"], "required_unit_keyword_groups": [["FLY", "MOUNTED"]],
@@ -338,6 +357,18 @@ static func execute_and_redeploy_active(state: Dictionary, squad: int) -> bool:
 
 static func oathbound_exemplar_active(state: Dictionary, squad: int) -> bool:
 	return active(state, squad, OATHBOUND_EXEMPLAR)
+
+static func augury_servo_host_active(state: Dictionary, squad: int) -> bool:
+	return active(state, squad, AUGURY_SERVO_HOST)
+
+static func consecrating_aura_active(state: Dictionary, squad: int) -> bool:
+	return active(state, squad, CONSECRATING_AURA)
+
+static func incendiary_animus_active(state: Dictionary, squad: int) -> bool:
+	return active(state, squad, INCENDIARY_ANIMUS)
+
+static func zealous_vanguard_active(state: Dictionary, squad: int) -> bool:
+	return active(state, squad, ZEALOUS_VANGUARD)
 
 static func linebreaker_onslaught_active(state: Dictionary, squad: int) -> bool:
 	return active(state, squad, LINEBREAKER_ONSLAUGHT) and int(state.squads[squad].get("disembarked_turn", -1)) == int(state.get("turn", -2))

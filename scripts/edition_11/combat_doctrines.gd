@@ -8,8 +8,9 @@ const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancem
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
+const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const ID := "combat-doctrines-11e-gladius-v1"
-const DETACHMENTS := ["none", "gladius", "stormlance", "ironclad-champions", "gauntlet-task-force", "assault-brethren", "tactical-brethren", "devastator-brethren", "terminator-storm-force", "tacticus-firestorm-force", "tacticus-attack-force", "gravis-linebreaker-force", "gravis-siege-force", "wrath-of-the-rock", "spearpoint-task-force", "ironstorm-spearhead", "phobos-shock-force", "phobos-shadow-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "fist-of-the-god-emperor"]
+const DETACHMENTS := ["none", "gladius", "stormlance", "ironclad-champions", "gauntlet-task-force", "assault-brethren", "tactical-brethren", "devastator-brethren", "terminator-storm-force", "tacticus-firestorm-force", "tacticus-attack-force", "gravis-linebreaker-force", "gravis-siege-force", "wrath-of-the-rock", "spearpoint-task-force", "ironstorm-spearhead", "phobos-shock-force", "phobos-shadow-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "fist-of-the-god-emperor", "vow-sworn-crusaders"]
 const REFERENCE := "https://wahapedia.ru/wh40k11ed/factions/space-marines/#Combat-Doctrines"
 const NAMES := {"none": "No doctrine this turn", "devastator": "Devastator: shoot after Advance", "tactical": "Tactical: shoot and charge after Fall Back", "assault": "Assault: charge after Advance"}
 const ORDER := ["devastator", "tactical", "assault"]
@@ -31,7 +32,7 @@ static func enable(state: Dictionary, detachment: Variant = "gladius") -> void:
 	for selected: Variant in detachments.values():
 		if str(selected) not in selected_values: selected_values.append(str(selected))
 	var common_detachment := str(selected_values[0]) if selected_values.size() == 1 else ""
-	state.combat_doctrines = {"implementation": ID, "owners": owners, "detachment": common_detachment, "detachments": detachments, "gladius": "gladius" in selected_values, "stormlance": "stormlance" in selected_values, "ironclad_champions": "ironclad-champions" in selected_values, "gauntlet_task_force": "gauntlet-task-force" in selected_values, "ironstorm_spearhead": "ironstorm-spearhead" in selected_values, "extra_used": {}, "active": {}, "used": {}, "selected_turn": {}, "cp_pending_turn": -1}
+	state.combat_doctrines = {"implementation": ID, "owners": owners, "detachment": common_detachment, "detachments": detachments, "gladius": "gladius" in selected_values, "stormlance": "stormlance" in selected_values, "ironclad_champions": "ironclad-champions" in selected_values, "gauntlet_task_force": "gauntlet-task-force" in selected_values, "ironstorm_spearhead": "ironstorm-spearhead" in selected_values, "extra_used": {}, "active": {}, "used": {}, "selected_turn": {}, "cp_pending_turn": -1, "templar_vows": {}, "templar_vow_passed": {}}
 	state.marine_enhancements = {"standard_used": {}, "standard_active": {}, "master_machine_war_targets": {}, "master_machine_war_used": {}}
 	Capabilities.admit(state, "combat-doctrines", ID)
 	for selected_detachment: String in selected_values:
@@ -45,6 +46,12 @@ static func enable(state: Dictionary, detachment: Variant = "gladius") -> void:
 			Capabilities.admit(state, "gauntlet-combined-deployment", ID)
 			Capabilities.admit(state, "damocles-class-uplink", ID)
 		if selected_detachment == "ironstorm-spearhead": Capabilities.admit(state, "ironstorm-auto-targeters", ID)
+		if selected_detachment == "vow-sworn-crusaders":
+			Capabilities.admit(state, "templar-vows", TemplarVows.ID)
+			Capabilities.admit(state, "augury-servo-host", ID)
+			Capabilities.admit(state, "consecrating-aura", ID)
+			Capabilities.admit(state, "incendiary-animus", ID)
+			Capabilities.admit(state, "zealous-vanguard", ID)
 		if selected_detachment == "phobos-shock-force":
 			Capabilities.admit(state, "vanguard-ambushers", ID)
 			Capabilities.admit(state, "phobos-shock-seal-of-shrouding", ID)
@@ -141,6 +148,9 @@ static func chapter_restriction_error(state: Dictionary, detachment: String, pla
 		"blade-of-ultramar":
 			allowed_chapter = "ULTRAMARINES"
 			detachment_name = "Blade of Ultramar"
+		"vow-sworn-crusaders":
+			allowed_chapter = "BLACK TEMPLARS"
+			detachment_name = "Vow-sworn Crusaders"
 		_:
 			return ""
 	if player >= 0:

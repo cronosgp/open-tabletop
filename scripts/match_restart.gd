@@ -18,6 +18,10 @@ static func build(config: Dictionary, finished: Dictionary) -> Dictionary:
 		var legacy_primary := str(options.primary_mission)
 		var configured_primaries: Variant = config.get("official_primary_missions", {1: legacy_primary, 2: legacy_primary})
 		options.primary_missions = configured_primaries.duplicate(true) if configured_primaries is Dictionary else {1: legacy_primary, 2: legacy_primary}
+		var configured_overrides: Variant = config.get("official_primary_overrides", {1: true, 2: true})
+		options.primary_overrides = configured_overrides.duplicate(true) if configured_overrides is Dictionary else {1: true, 2: true}
+		var configured_force_dispositions: Variant = config.get("official_force_dispositions", {})
+		options.force_dispositions = configured_force_dispositions.duplicate(true) if configured_force_dispositions is Dictionary else {}
 		options.secondary_pair = config.get("official_secondary_pair", Combat.Mission.DEFAULT_SECONDARY_PAIR)
 		options.terrain_layout = config.get("official_terrain_layout", Combat.Mission.DEFAULT_TERRAIN_LAYOUT) if options.get("official_mission", false) else config.get("terrain_layout", Combat.Mission.DEFAULT_TERRAIN_LAYOUT)
 		candidate = Prepared.initial_state(options)

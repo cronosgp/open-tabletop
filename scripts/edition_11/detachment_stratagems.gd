@@ -6,6 +6,7 @@ const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd
 const G = preload("res://scripts/edition_11/contact_movement.gd")
 const Marines = preload("res://scripts/edition_11/oath_of_moment.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
+const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const ChapterRules = preload("res://scripts/edition_11/chapter_rules.gd")
 const Morale = preload("res://scripts/edition_11/morale.gd")
@@ -13,7 +14,7 @@ const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
-const ID := "gladius-awakened-stratagems-11e-v9"
+const ID := "gladius-awakened-stratagems-11e-v12"
 const ADAPTIVE := "gladius-adaptive-strategy"
 const STORM := "gladius-storm-of-devastation"
 const ARMOUR := "gladius-armour-of-contempt"
@@ -65,10 +66,21 @@ const MEDUSA_VENGEFUL_ANIMUS := "medusa-vengeful-animus"
 const MEDUSA_METHODICAL_BRUTALITY := "medusa-methodical-brutality"
 const MEDUSA_UNBOWED_CONVICTION := "medusa-unbowed-conviction"
 const MEDUSA_ANCIENT_FURY := "medusa-ancient-fury"
+const VOW_PIOUS_ENMITY := "vow-sworn-pious-enmity"
+const VOW_FOR_THE_EMPERORS_HONOUR := "vow-sworn-for-the-emperors-honour"
+const VOW_SPOOR_OF_THE_UNHOLY := "vow-sworn-spoor-of-the-unholy"
+const VOW_DREAD_CRUSADERS := "vow-sworn-dread-crusaders"
+const VOW_DEVOUT_PUSH := "vow-sworn-devout-push"
+const VOW_HERESY_BEGETS_RETRIBUTION := "vow-sworn-heresy-begets-retribution"
 const MEDUSA_POWER_OF_MACHINE_SPIRIT := "medusa-power-of-the-machine-spirit"
 const MEDUSA_ARMOURED_WRATH := "medusa-armoured-wrath"
 const VENGEFUL_ANIMUS_WINDOW := "deadly-demise-vengeful-animus"
 const METHODICAL_BRUTALITY_WINDOW := "medusa-methodical-brutality"
+const PIOUS_ENMITY_WINDOW := "vow-sworn-pious-enmity"
+const FOR_THE_EMPERORS_HONOUR_WINDOW := "vow-sworn-for-the-emperors-honour"
+const SPOOR_OF_THE_UNHOLY_WINDOW := "vow-sworn-spoor-of-the-unholy"
+const DREAD_CRUSADERS_WINDOW := "vow-sworn-dread-crusaders"
+const HeresyRetribution = preload("res://scripts/edition_11/heresy_retribution.gd")
 const RELENTLESS_ASSAULT_WINDOW := "tacticus-relentless-assault"
 const POINT_BLANK_BRUTALITY_WINDOW := "tacticus-point-blank-brutality"
 const HAIL_OF_VENGEANCE := "devastator-brethren-hail-of-vengeance"
@@ -325,6 +337,20 @@ static func enable_medusa_wrath(s: Dictionary) -> void:
 	Registry.admit(s, MEDUSA_ANCIENT_FURY, ID)
 	Registry.admit(s, MEDUSA_POWER_OF_MACHINE_SPIRIT, ID)
 	Registry.admit(s, MEDUSA_ARMOURED_WRATH, ID)
+
+static func enable_vow_sworn(s: Dictionary) -> void:
+	if not enabled(s): enable(s)
+	if "vow-sworn-crusaders" not in s.detachment_stratagems.get("modes", []): s.detachment_stratagems.modes.append("vow-sworn-crusaders")
+	if not s.detachment_stratagems.has("pious_enmity"): s.detachment_stratagems.pious_enmity = {}
+	if not s.detachment_stratagems.has("for_emperors_honour"): s.detachment_stratagems.for_emperors_honour = {}
+	if not s.detachment_stratagems.has("spoor_of_unholy"): s.detachment_stratagems.spoor_of_unholy = {}
+	if not s.has("devout_push_rolls"): s.devout_push_rolls = {}
+	Registry.admit(s, VOW_PIOUS_ENMITY, ID)
+	Registry.admit(s, VOW_FOR_THE_EMPERORS_HONOUR, ID)
+	Registry.admit(s, VOW_SPOOR_OF_THE_UNHOLY, ID)
+	Registry.admit(s, VOW_DREAD_CRUSADERS, ID)
+	Registry.admit(s, VOW_DEVOUT_PUSH, ID)
+	Registry.admit(s, VOW_HERESY_BEGETS_RETRIBUTION, ID)
 
 static func enable_blade_of_ultramar(s: Dictionary) -> void:
 	if not enabled(s): enable(s)
@@ -593,6 +619,27 @@ static func methodical_brutality_active(s: Dictionary, squad: int) -> bool:
 static func methodical_brutality_wound_bonus(s: Dictionary, squad: int) -> int:
 	return 1 if methodical_brutality_active(s, squad) and "VEHICLE" in unit_keywords(s, squad) else 0
 
+static func vow_sworn_enabled(s: Dictionary, player: int) -> bool:
+	return enabled(s) and "vow-sworn-crusaders" in s.detachment_stratagems.get("modes", []) and Registry.enabled(s, VOW_PIOUS_ENMITY) and TemplarVows.enabled_for(s, player)
+
+static func pious_enmity_record(s: Dictionary, squad: int) -> Dictionary:
+	if not Registry.enabled(s, VOW_PIOUS_ENMITY) or not s.squads.has(squad): return {}
+	var record: Dictionary = s.get("detachment_stratagems", {}).get("pious_enmity", {}).get(squad, {})
+	return record.duplicate(true) if str(record.get("phase_key", "")) == phase_key(s) else {}
+
+static func pious_enmity_active(s: Dictionary, squad: int) -> bool:
+	return not pious_enmity_record(s, squad).is_empty()
+
+static func for_emperors_honour_active(s: Dictionary, squad: int) -> bool:
+	if not Registry.enabled(s, VOW_FOR_THE_EMPERORS_HONOUR) or not s.squads.has(squad): return false
+	var record: Dictionary = s.get("detachment_stratagems", {}).get("for_emperors_honour", {}).get(squad, {})
+	return str(record.get("phase_key", "")) == phase_key(s)
+
+static func spoor_of_the_unholy_active(s: Dictionary, squad: int) -> bool:
+	if not Registry.enabled(s, VOW_SPOOR_OF_THE_UNHOLY) or not s.squads.has(squad): return false
+	var record: Dictionary = s.get("detachment_stratagems", {}).get("spoor_of_unholy", {}).get(squad, {})
+	return str(record.get("phase_key", "")) == phase_key(s)
+
 static func unbowed_conviction_active(s: Dictionary, squad: int) -> bool:
 	if not Registry.enabled(s, MEDUSA_UNBOWED_CONVICTION) or not s.squads.has(squad): return false
 	var record: Dictionary = s.get("detachment_stratagems", {}).get("unbowed_conviction", {}).get(squad, {})
@@ -611,6 +658,89 @@ static func methodical_brutality_choices(s: Dictionary, player: int) -> Array:
 	if error(s, player, squad, MEDUSA_METHODICAL_BRUTALITY).is_empty():
 		result.append({"label": "Medusa's Wrath Methodical Brutality: %s gains Sustained Hits 1%s (1 CP)" % [str(s.squads[squad].get("name", "Astartes unit")), "; Vehicle: +1 to Wound" if "VEHICLE" in unit_keywords(s, squad) else ""], "action": "detachment-stratagem", "model": -1, "target": squad, "value": MEDUSA_METHODICAL_BRUTALITY})
 	return result
+
+static func pious_enmity_choices(s: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+	var squad := int(window.get("squad", -1))
+	if window.get("kind", "") != PIOUS_ENMITY_WINDOW or window.get("owners", []) != [player] or not s.squads.has(squad): return result
+	if not error(s, player, squad, VOW_PIOUS_ENMITY).is_empty(): return result
+	var name := str(s.squads[squad].get("name", "Chaplain/Judiciar unit"))
+	result.append({"label": "Pious Enmity: re-roll melee Hit rolls of 1 for %s (1 CP)" % name, "action": "detachment-stratagem", "model": -1, "target": squad, "value": VOW_PIOUS_ENMITY, "mode": "hit-ones"})
+	result.append({"label": "Pious Enmity: against Monsters/Vehicles, re-roll melee Hit and Wound rolls of 1 for %s (1 CP)" % name, "action": "detachment-stratagem", "model": -1, "target": squad, "value": VOW_PIOUS_ENMITY, "mode": "monster-vehicle-ones"})
+	return result
+
+static func for_emperors_honour_choices(s: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+	var squad := int(window.get("squad", -1))
+	if window.get("kind", "") != FOR_THE_EMPERORS_HONOUR_WINDOW or window.get("owners", []) != [player] or not s.squads.has(squad): return result
+	if not error(s, player, squad, VOW_FOR_THE_EMPERORS_HONOUR).is_empty(): return result
+	result.append({"label": "For the Emperor's Honour!: %s gains Precision on melee attacks (1 CP)" % str(s.squads[squad].get("name", "Astartes Infantry unit")), "action": "detachment-stratagem", "model": -1, "target": squad, "value": VOW_FOR_THE_EMPERORS_HONOUR})
+	return result
+
+static func spoor_of_the_unholy_choices(s: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+	var squad := int(window.get("squad", -1))
+	if window.get("kind", "") != SPOOR_OF_THE_UNHOLY_WINDOW or window.get("owners", []) != [player] or not s.squads.has(squad): return result
+	if not error(s, player, squad, VOW_SPOOR_OF_THE_UNHOLY).is_empty(): return result
+	result.append({"label": "Spoor of the Unholy: %s ignores BS/WS and Hit modifiers this phase (1 CP)" % str(s.squads[squad].get("name", "Adeptus Astartes unit")), "action": "detachment-stratagem", "model": -1, "target": squad, "value": VOW_SPOOR_OF_THE_UNHOLY})
+	return result
+
+static func open_dread_crusaders_reaction(s: Dictionary, attacker_squad: int, target_squad: int, charge_frame_id: String) -> bool:
+	if charge_frame_id.is_empty() or not s.get("unit_abilities", {}).get("window", {}).is_empty() or not s.squads.has(target_squad): return false
+	var player := int(s.squads[target_squad].get("owner", -1))
+	if player not in [1, 2]: return false
+	s.unit_abilities.window = {"kind": DREAD_CRUSADERS_WINDOW, "owners": [player], "squad": target_squad, "attacker_squad": attacker_squad, "phase_key": phase_key(s), "resolution_frame_id": charge_frame_id}
+	if not error(s, player, target_squad, VOW_DREAD_CRUSADERS, -1, -1, attacker_squad).is_empty():
+		s.unit_abilities.window = {}
+		return false
+	return true
+
+static func dread_crusaders_choices(s: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+	var target_squad := int(window.get("squad", -1))
+	var attacker_squad := int(window.get("attacker_squad", -1))
+	if window.get("kind", "") != DREAD_CRUSADERS_WINDOW or not s.squads.has(target_squad) or not s.squads.has(attacker_squad): return result
+	var current_result: Dictionary = window.get("current_result", {})
+	if not current_result.is_empty():
+		if window.get("owners", []) != [player] or int(window.get("decision_owner", -1)) != player or int(current_result.get("squad", -1)) != attacker_squad: return result
+		result.append({"label": "Keep %s's Dread Crusaders Battle-shock result" % str(s.squads[attacker_squad].get("name", "charging unit")), "action": "dread-crusaders-roll-decision", "model": -1, "target": target_squad, "value": "keep"})
+		if MarineEnhancements.tempered_in_battle_active(s, attacker_squad): result.append({"label": "Tempered in Battle: re-roll both Leadership dice for %s" % str(s.squads[attacker_squad].get("name", "charging unit")), "action": "dread-crusaders-roll-decision", "model": -1, "target": target_squad, "value": "tempered-in-battle"})
+		return result
+	if window.get("owners", []) != [player] or not error(s, player, target_squad, VOW_DREAD_CRUSADERS, -1, -1, attacker_squad).is_empty(): return result
+	result.append({"label": "Dread Crusaders: %s takes Battle-shock at -1 because it targeted %s (1 CP)" % [str(s.squads[attacker_squad].get("name", "The charging unit")), str(s.squads[target_squad].get("name", "the charge target"))], "action": "detachment-stratagem", "model": -1, "target": target_squad, "value": VOW_DREAD_CRUSADERS, "details": {"enemy_squad": attacker_squad}})
+	return result
+
+static func resolve_dread_crusaders_roll_decision(s: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
+	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+	var target_squad := int(window.get("squad", -1))
+	var attacker_squad := int(window.get("attacker_squad", -1))
+	var charge_frame_id := str(window.get("resolution_frame_id", ""))
+	var current_result: Dictionary = window.get("current_result", {}).duplicate(true)
+	if window.get("kind", "") != DREAD_CRUSADERS_WINDOW or window.get("owners", []) != [player] or int(window.get("decision_owner", -1)) != player or not s.squads.has(target_squad) or not s.squads.has(attacker_squad) or current_result.is_empty() or int(current_result.get("squad", -1)) != attacker_squad:
+		return {"error": "No matching Dread Crusaders Leadership decision is pending."}
+	if charge_frame_id.is_empty(): return {"error": "The saved Charge continuation for Dread Crusaders is missing."}
+	if selected not in dread_crusaders_choices(s, player): return {"error": "Choose whether to keep or re-roll the Dread Crusaders Battle-shock result."}
+	if str(selected.get("value", "")) == "tempered-in-battle":
+		if not MarineEnhancements.tempered_in_battle_active(s, attacker_squad): return {"error": "Tempered in Battle no longer applies to this Leadership roll."}
+		var rerolled := Morale.roll_battle_shock(s, attacker_squad, roller, int(current_result.get("modifier", -1)))
+		if not str(rerolled.get("error", "")).is_empty(): return rerolled
+		rerolled["source"] = "Dread Crusaders"
+		rerolled["rerolled_from"] = current_result.get("rolls", []).duplicate()
+		rerolled["reroll_source"] = "tempered-in-battle"
+		current_result = rerolled
+	elif str(selected.get("value", "")) != "keep":
+		return {"error": "Choose to keep the current result or use Tempered in Battle."}
+	var remained_battle_shocked := bool(window.get("was_battle_shocked", false))
+	s.squads[attacker_squad].battle_shocked = remained_battle_shocked or not bool(current_result.get("passed", false))
+	s.last_morale = [current_result.duplicate(true)]
+	var outcome := "is Battle-shocked" if s.squads[attacker_squad].battle_shocked else "passes the test"
+	var message := "Dread Crusaders: %s rolls %s at -1 (%d vs Leadership %d) and %s." % [str(s.squads[attacker_squad].get("name", "The charging unit")), str(current_result.get("rolls", [])), int(current_result.get("modified_total", 0)), int(current_result.get("target", 0)), outcome]
+	s.unit_abilities.window = {}
+	return {"error": "", "resume_charge": true, "charge_frame_id": charge_frame_id, "message": message}
 
 static func relentless_assault_choices(s: Dictionary, player: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -865,6 +995,17 @@ static func _unit_keywords(s: Dictionary, squad: int, include_destroyed: bool) -
 static func marine_unit(s: Dictionary, squad: int) -> bool:
 	return s.squads.has(squad) and "ADEPTUS ASTARTES" in unit_keywords(s, squad)
 
+static func marine_infantry_unit(s: Dictionary, squad: int) -> bool:
+	var keywords := unit_keywords(s, squad)
+	return "ADEPTUS ASTARTES" in keywords and "INFANTRY" in keywords
+
+static func chaplain_or_judiciar_unit(s: Dictionary, squad: int) -> bool:
+	if not s.squads.has(squad): return false
+	if "CHAPLAIN" in unit_keywords(s, squad) or "JUDICIAR" in unit_keywords(s, squad): return true
+	for model: int in living(s, squad):
+		if AbilityCatalog.identity(s.units[model]) in ["chaplain", "chaplain-on-bike", "chaplain-with-jump-pack", "chaplain-in-terminator-armour", "judiciar"]: return true
+	return false
+
 static func vengeful_animus_triggered(s: Dictionary, player: int, squad: int, model: int = -1) -> bool:
 	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
 	var pending: Dictionary = s.get("pending_deadly_demise", {})
@@ -1065,6 +1206,25 @@ static func tactical_focus_roll(s: Dictionary, player: int, squad: int) -> Dicti
 	if int(roll.get("round", -1)) != int(s.get("round", 0)) or int(roll.get("turn", -1)) != int(s.get("turn", 0)) or int(roll.get("player", -1)) != player or int(roll.get("squad", -1)) != squad or str(roll.get("phase_key", "")) != phase_key(s): return {}
 	for use: Dictionary in s.get("stratagems", {}).get("uses", []):
 		if int(use.get("player", -1)) == player and int(use.get("squad", -1)) == squad and str(use.get("stratagem", "")) == TACTICAL_FOCUS and str(use.get("phase_key", "")) == phase_key(s): return roll.duplicate(true)
+	return {}
+
+static func devout_push_roll_key(s: Dictionary, player: int, squad: int) -> String:
+	return "%d:%d:%d:%d" % [int(s.get("round", 0)), int(s.get("turn", 0)), player, squad]
+
+static func devout_push_roll(s: Dictionary, player: int, squad: int) -> Dictionary:
+	var value: Variant = s.get("devout_push_rolls", {})
+	if not value is Dictionary: return {}
+	var roll_value: Variant = value.get(devout_push_roll_key(s, player, squad), {})
+	if not roll_value is Dictionary: return {}
+	var roll: Dictionary = roll_value
+	var rolls_value: Variant = roll.get("rolls", [])
+	if not rolls_value is Array or rolls_value.size() != 1 or not rolls_value[0] is int: return {}
+	var die := int(rolls_value[0])
+	if str(roll.get("expression", "")) != "D3+3" or die < 1 or die > 6: return {}
+	if int(roll.get("value", -1)) != ceili(float(die) / 2.0) + 3: return {}
+	if int(roll.get("round", -1)) != int(s.get("round", 0)) or int(roll.get("turn", -1)) != int(s.get("turn", 0)) or int(roll.get("player", -1)) != player or int(roll.get("squad", -1)) != squad or str(roll.get("phase_key", "")) != phase_key(s): return {}
+	for use: Dictionary in s.get("stratagems", {}).get("uses", []):
+		if int(use.get("player", -1)) == player and int(use.get("squad", -1)) == squad and str(use.get("stratagem", "")) == VOW_DEVOUT_PUSH and str(use.get("phase_key", "")) == phase_key(s): return roll.duplicate(true)
 	return {}
 
 static func error(s: Dictionary, player: int, squad: int, rule: String, model: int = -1, objective: int = -1, enemy_squad: int = -1, enemy_target: int = -1, require_end_window: bool = true) -> String:
@@ -1352,6 +1512,61 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		selected_to_attack = selected_to_attack or (s.phase == "fight" and int(s.fight_actor) == player and s.fight_step == "attacks" and (int(s.fight_selected) == squad or squad in Queue.choices(s, player)) and not bool(s.squads[squad].get("fought", false)))
 		if not selected_to_attack or window.get("kind", "") != METHODICAL_BRUTALITY_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad or int(declaration.get("player", -1)) != player or bool(declaration.get("melee", false)) != (s.phase == "fight"):
 			return "Methodical Brutality is used when your Adeptus Astartes unit is selected to attack."
+	elif rule == VOW_PIOUS_ENMITY:
+		if not Registry.supported(rule) or not A.enabled(s) or not vow_sworn_enabled(s, player): return "Pious Enmity requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
+		if not chaplain_or_judiciar_unit(s, squad): return "Pious Enmity requires a friendly Chaplain or Judiciar unit."
+		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var declaration: Dictionary = window.get("declaration", {})
+		var selected_to_fight: bool = s.phase == "fight" and int(s.get("fight_actor", -1)) == player and s.get("fight_step", "") == "attacks" and (int(s.get("fight_selected", -1)) == squad or squad in Queue.choices(s, player)) and not bool(s.squads[squad].get("fought", false))
+		if not selected_to_fight or window.get("kind", "") != PIOUS_ENMITY_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad or int(declaration.get("player", -1)) != player or not bool(declaration.get("melee", false)):
+			return "Pious Enmity is used when your Chaplain or Judiciar unit is selected to fight."
+	elif rule == VOW_FOR_THE_EMPERORS_HONOUR:
+		if not Registry.supported(rule) or not A.enabled(s) or not vow_sworn_enabled(s, player): return "For the Emperor's Honour! requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
+		if not marine_infantry_unit(s, squad): return "For the Emperor's Honour! requires a friendly Adeptus Astartes Infantry unit."
+		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var declaration: Dictionary = window.get("declaration", {})
+		var selected_to_fight: bool = s.phase == "fight" and int(s.get("fight_actor", -1)) == player and s.get("fight_step", "") == "attacks" and (int(s.get("fight_selected", -1)) == squad or squad in Queue.choices(s, player)) and not bool(s.squads[squad].get("fought", false))
+		if not selected_to_fight or window.get("kind", "") != FOR_THE_EMPERORS_HONOUR_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad or int(declaration.get("player", -1)) != player or not bool(declaration.get("melee", false)):
+			return "For the Emperor's Honour! is used when your Adeptus Astartes Infantry unit is selected to fight."
+	elif rule == VOW_SPOOR_OF_THE_UNHOLY:
+		if not Registry.supported(rule) or not A.enabled(s) or not vow_sworn_enabled(s, player): return "Spoor of the Unholy requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
+		if not marine_unit(s, squad): return "Spoor of the Unholy requires a friendly Adeptus Astartes unit."
+		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var declaration: Dictionary = window.get("declaration", {})
+		var selected_to_attack := false
+		if s.phase == "shooting": selected_to_attack = int(s.get("active", -1)) == player and not bool(s.squads[squad].get("shot", false))
+		elif s.phase == "fight": selected_to_attack = int(s.get("fight_actor", -1)) == player and s.get("fight_step", "") == "attacks" and (int(s.get("fight_selected", -1)) == squad or squad in Queue.choices(s, player)) and not bool(s.squads[squad].get("fought", false))
+		var expected_melee: bool = s.phase == "fight"
+		if not selected_to_attack or window.get("kind", "") != SPOOR_OF_THE_UNHOLY_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad or int(declaration.get("player", -1)) != player or bool(declaration.get("melee", false)) != expected_melee:
+			return "Spoor of the Unholy is used when your Adeptus Astartes unit is selected to attack in your Shooting phase or the Fight phase."
+	elif rule == VOW_DREAD_CRUSADERS:
+		if not Registry.supported(rule) or not Registry.enabled(s, rule) or not A.enabled(s) or not vow_sworn_enabled(s, player): return "Dread Crusaders requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
+		if not marine_infantry_unit(s, squad): return "Dread Crusaders requires the selected charge target to be a friendly Adeptus Astartes Infantry unit."
+		if s.phase != "charge" or int(s.get("active", -1)) == player: return "Dread Crusaders is used in your opponent's Charge phase."
+		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		if window.get("kind", "") != DREAD_CRUSADERS_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or int(window.get("attacker_squad", -1)) != enemy_squad or window.get("phase_key", "") != phase_key(s) or str(window.get("resolution_frame_id", "")).is_empty(): return "Dread Crusaders requires the current charge-target reaction."
+		var pending_charge: Dictionary = s.get("pending_charge", {})
+		if pending_charge.is_empty() or int(pending_charge.get("squad", -1)) != enemy_squad or not s.squads.has(enemy_squad) or int(s.squads[enemy_squad].get("owner", -1)) != int(s.active): return "The charging unit that selected this target is no longer resolving its Charge."
+		if squad not in pending_charge.get("targets", []): return "Dread Crusaders can target only a unit currently selected as a charge target."
+	elif rule == VOW_DEVOUT_PUSH:
+		if not Registry.supported(rule) or not Registry.enabled(s, rule) or not A.enabled(s) or not vow_sworn_enabled(s, player): return "Devout Push requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
+		if not marine_infantry_unit(s, squad): return "Devout Push requires a friendly Adeptus Astartes Infantry unit."
+		if s.phase != "fight" or int(s.get("fight_actor", -1)) != player or s.get("fight_step", "") not in ["pile_in", "consolidate"] or squad not in Queue.choices(s, player): return "Devout Push is used when your eligible Infantry unit is selected for a pile-in or consolidation move."
+	elif rule == VOW_HERESY_BEGETS_RETRIBUTION:
+		if not Registry.supported(rule) or not Registry.enabled(s, rule) or not A.enabled(s) or not vow_sworn_enabled(s, player): return "Heresy Begets Retribution requires current unit abilities, Vow-sworn Crusaders and Black Templars Chapter context."
+		if not marine_infantry_unit(s, squad): return "Heresy Begets Retribution requires a friendly Adeptus Astartes Infantry unit."
+		if s.phase != "movement" or int(s.get("active", -1)) == player: return "Heresy Begets Retribution is used during your opponent's Movement phase."
+		var reaction_window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var trigger_squad := int(reaction_window.get("squad", -1))
+		if reaction_window.get("kind", "") != MOVEMENT_REACTION_WINDOW or reaction_window.get("owners", []) != [player] or reaction_window.get("phase_key", "") != phase_key(s): return "Heresy Begets Retribution requires the current post-move reaction."
+		if not s.squads.has(trigger_squad) or int(s.squads[trigger_squad].get("owner", -1)) != int(s.active) or living(s, trigger_squad).is_empty(): return "The enemy unit that ended its move is no longer a valid trigger."
+		if bool(s.squads[squad].get("moved", false)): return "Heresy Begets Retribution requires a unit that has not moved this phase."
+		if Queue.engaged(s, squad): return "Heresy Begets Retribution requires an unengaged unit."
+		var within_trigger_range := false
+		for unit_model: int in living(s, squad):
+			if G.distance_to_target(s, s.units[unit_model], trigger_squad) <= 8.001: within_trigger_range = true
+		if not within_trigger_range: return "Heresy Begets Retribution requires the friendly unit to be within 8 inches of the enemy unit that just moved."
+		if enemy_squad not in heresy_closest_enemy_targets(s, squad): return "Choose one of the closest enemy units as the Surge target."
 	elif rule == MEDUSA_UNBOWED_CONVICTION:
 		if not Registry.supported(rule): return "Unbowed Conviction is blocked pending local validation."
 		if not A.enabled(s) or not medusa_wrath_enabled(s, player): return "Unbowed Conviction requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
@@ -1495,11 +1710,13 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 	else: return "Unknown detachment stratagem."
 	if rule != STORM_OF_VENGEANCE:
 		var resuming_tactical_focus := rule == TACTICAL_FOCUS and not tactical_focus_roll(s, player, squad).is_empty()
+		var resuming_devout_push := rule == VOW_DEVOUT_PUSH and not devout_push_roll(s, player, squad).is_empty()
 		var stratagem_cost := 2 if rule in [HAIL_OF_VENGEANCE, TERMINATOR_TACTICAL_DREADNOUGHT_FORTITUDE] else 1
-		if not resuming_tactical_focus and s.cp.get(player, 0) < maxi(0, stratagem_cost - A.discount(s, player, squad)): return "This stratagem costs %d CP; arm an eligible discount first." % stratagem_cost
+		if not resuming_tactical_focus and not resuming_devout_push and s.cp.get(player, 0) < maxi(0, stratagem_cost - A.discount(s, player, squad)): return "This stratagem costs %d CP; arm an eligible discount first." % stratagem_cost
 		for use: Dictionary in s.stratagems.uses:
 			if use.player == player and use.phase_key == phase_key(s):
 				if resuming_tactical_focus and int(use.get("squad", -1)) == squad and str(use.get("stratagem", "")) == TACTICAL_FOCUS: continue
+				if resuming_devout_push and int(use.get("squad", -1)) == squad and str(use.get("stratagem", "")) == VOW_DEVOUT_PUSH: continue
 				if use.stratagem == rule or (rule == RELENTLESS_ASSAULT and use.stratagem in [RELENTLESS_ASSAULT, FIRESTORM_RELENTLESS_ASSAULT]) or (rule == ARMOUR and use.stratagem in [ASSAULT_ARMOUR, TACTICAL_ARMOUR, DEVASTATOR_ARMOUR, ULTRAMARINES_ARMOUR]) or (rule == MIGHT and use.stratagem in [MIGHT, ULTRAMARINES_COURAGE]) or (rule == STORM and use.stratagem in [STORM, ULTRAMARINES_EXEMPLARY_VIGILANCE]) or (rule == ADAPTIVE and use.stratagem in [ADAPTIVE, ULTRAMARIAN_ADAPTIVITY]) or (rule == HUNTERS_INSTINCTS and use.stratagem in [HUNTERS_INSTINCTS, ULTRAMARIAN_PRACTICAL_TACTICS]) or (rule == WORTHY and use.stratagem in [DUTY_IN_DEATH, INNER_CIRCLE_DUTY_UNTO_DEATH]): return "This stratagem has already been used this phase."
 				if use.squad == squad: return "This unit already received a stratagem this phase."
 	return ""
@@ -1919,6 +2136,9 @@ static func choices(s: Dictionary, player: int) -> Array:
 				result.append({"label": "Gravis Siege Suppression Volleys: test %s at -1 (%d CP)" % [s.squads[enemy].name, maxi(0, 1 - A.discount(s, player, squad))], "action": "detachment-stratagem", "model": -1, "target": squad, "enemy_target": enemy, "value": GRAVIS_SIEGE_SUPPRESSION_VOLLEYS, "details": {"enemy_target": enemy}})
 		if error(s, player, squad, HUNTERS_INSTINCTS).is_empty(): result.append({"label": "Spearpoint Hunter's Instincts: %s (Normal Move up to D3+3 inches; 1 CP)" % s.squads[squad].name, "action": "detachment-stratagem", "model": -1, "target": squad, "value": HUNTERS_INSTINCTS})
 		if error(s, player, squad, ULTRAMARIAN_PRACTICAL_TACTICS).is_empty(): result.append({"label": "Blade of Ultramar Practical Tactics: %s (Normal Move up to D3+3 inches; %d CP)" % [s.squads[squad].name, maxi(0, 1 - A.discount(s, player, squad))], "action": "detachment-stratagem", "model": -1, "target": squad, "value": ULTRAMARIAN_PRACTICAL_TACTICS})
+		for enemy_target: int in heresy_closest_enemy_targets(s, squad):
+			if error(s, player, squad, VOW_HERESY_BEGETS_RETRIBUTION, -1, -1, enemy_target).is_empty():
+				result.append({"label": "Heresy Begets Retribution: %s Surge move toward %s (D6 inches; %d CP)" % [str(s.squads[squad].get("name", "Astartes Infantry")), str(s.squads[enemy_target].get("name", "the closest enemy")), maxi(0, 1 - A.discount(s, player, squad))], "action": "detachment-stratagem", "model": -1, "target": squad, "enemy_target": enemy_target, "details": {"enemy_target": enemy_target}, "stratagem": VOW_HERESY_BEGETS_RETRIBUTION, "value": VOW_HERESY_BEGETS_RETRIBUTION})
 		if error(s, player, squad, PHOBOS_TRANSHUMAN_REACTIONS).is_empty():
 			var reaction_distance := "6 inches (Tactical Doctrine)" if Doctrines.has_doctrine(s, squad, "tactical") else "D6 inches"
 			result.append({"label": "Phobos Shock Force Transhuman Reactions: %s (Normal Move up to %s; %d CP)" % [s.squads[squad].name, reaction_distance, maxi(0, 1 - A.discount(s, player, squad))], "action": "detachment-stratagem", "model": -1, "target": squad, "value": PHOBOS_TRANSHUMAN_REACTIONS})
@@ -1998,12 +2218,27 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	var rule := rule_of(source_rule)
 	var details_value: Variant = selected.get("details", {})
 	if typeof(details_value) != TYPE_DICTIONARY: return {"error": "Invalid detachment stratagem choice details."}
+	if rule == VOW_PIOUS_ENMITY and str(selected.get("mode", "")) not in ["hit-ones", "monster-vehicle-ones"]: return {"error": "Choose one of the available Pious Enmity effects."}
 	var objective := int(details_value.get("objective", -1)) if rule in [IN_SACRIFICE, GRAVIS_SIEGE_STAND_UNYIELDING, GAUNTLET_STORM_AND_SECURE] else -1
-	var enemy_squad := int(details_value.get("enemy_squad", -1)) if rule in [GRAVIS_LINEBREAKER_ARMOURED_IMPACT, INNER_CIRCLE_WRATH_OF_THE_LION] else -1
+	var enemy_squad := int(selected.get("enemy_target", details_value.get("enemy_target", details_value.get("enemy_squad", -1)))) if rule in [GRAVIS_LINEBREAKER_ARMOURED_IMPACT, INNER_CIRCLE_WRATH_OF_THE_LION, VOW_DREAD_CRUSADERS, VOW_HERESY_BEGETS_RETRIBUTION] else -1
 	var suppression_target := int(selected.get("enemy_target", details_value.get("enemy_target", -1))) if rule == GRAVIS_SIEGE_SUPPRESSION_VOLLEYS else -1
 	var failure := error(s, player, selected.target, source_rule, selected.model, objective, enemy_squad, suppression_target)
 	if not failure.is_empty(): return {"error": failure}
 	if rule == TACTICAL_FOCUS and not tactical_focus_roll(s, player, int(selected.target)).is_empty(): return {"error": "Tactical Focus has already been spent; resume its saved consolidation move."}
+	if rule == VOW_DEVOUT_PUSH and not devout_push_roll(s, player, int(selected.target)).is_empty(): return {"error": "Devout Push has already been paid; resume its saved contact placement."}
+	var dread_result: Dictionary = {}
+	var dread_was_battle_shocked := false
+	var heresy_roll: Dictionary = {}
+	if rule == VOW_DREAD_CRUSADERS:
+		dread_was_battle_shocked = bool(s.squads[enemy_squad].get("battle_shocked", false))
+		dread_result = Morale.roll_battle_shock(s, enemy_squad, roller, -1)
+		if not str(dread_result.get("error", "")).is_empty(): return dread_result
+	elif rule == VOW_HERESY_BEGETS_RETRIBUTION:
+		var heresy_result := RandomStat.roll("D6", roller)
+		if not str(heresy_result.get("error", "")).is_empty(): return heresy_result
+		heresy_roll = heresy_result.duplicate(true)
+		var preflight_error := HeresyRetribution.preflight_error(s, int(selected.target), enemy_squad, float(heresy_roll.get("value", 0)))
+		if not preflight_error.is_empty(): return {"error": preflight_error}
 	if rule == STORM_OF_VENGEANCE:
 		var pending_storm: Dictionary = s.detachment_stratagems.get("storm_of_vengeance_pending", {})
 		var remaining_squads: Array = pending_storm.get("squads", []).duplicate()
@@ -2131,6 +2366,7 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		s.detachment_stratagems.phobos_strike[selected.target] = {"phase_key": phase_key(s)}
 	elif rule == TERMINATOR_TACTICAL_DREADNOUGHT_FORTITUDE: pass
 	elif rule == TACTICAL_FOCUS: pass
+	elif rule == VOW_DEVOUT_PUSH: pass
 	elif rule == GAUNTLET_DUTY_IS_NEVER_DONE: pass
 	elif rule == GAUNTLET_AGGRESSIVE_DISEMBARKATION: pass
 	elif rule == RELENTLESS_ASSAULT:
@@ -2171,6 +2407,41 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	elif rule == MEDUSA_METHODICAL_BRUTALITY:
 		if not s.detachment_stratagems.has("methodical_brutality"): s.detachment_stratagems.methodical_brutality = {}
 		s.detachment_stratagems.methodical_brutality[selected.target] = {"phase_key": phase_key(s)}
+	elif rule == VOW_PIOUS_ENMITY:
+		if not s.detachment_stratagems.has("pious_enmity"): s.detachment_stratagems.pious_enmity = {}
+		s.detachment_stratagems.pious_enmity[selected.target] = {"phase_key": phase_key(s), "mode": str(selected.get("mode", ""))}
+		var mode_text := "melee Hit rolls of 1" if selected.mode == "hit-ones" else "melee Hit and Wound rolls of 1 against MONSTER/VEHICLE units"
+		return {"error": "", "message": "Pious Enmity: %s can re-roll %s for this Fight phase." % [str(s.squads[int(selected.target)].get("name", "The selected unit")), mode_text]}
+	elif rule == VOW_FOR_THE_EMPERORS_HONOUR:
+		if not s.detachment_stratagems.has("for_emperors_honour"): s.detachment_stratagems.for_emperors_honour = {}
+		s.detachment_stratagems.for_emperors_honour[selected.target] = {"phase_key": phase_key(s)}
+		return {"error": "", "message": "For the Emperor's Honour!: %s gains Precision on melee attacks for this Fight phase." % str(s.squads[int(selected.target)].get("name", "The selected unit"))}
+	elif rule == VOW_SPOOR_OF_THE_UNHOLY:
+		if not s.detachment_stratagems.has("spoor_of_unholy"): s.detachment_stratagems.spoor_of_unholy = {}
+		s.detachment_stratagems.spoor_of_unholy[selected.target] = {"phase_key": phase_key(s)}
+		return {"error": "", "message": "Spoor of the Unholy: %s ignores BS/WS and Hit modifiers for this phase." % str(s.squads[int(selected.target)].get("name", "The selected unit"))}
+	elif rule == VOW_DREAD_CRUSADERS:
+		dread_result["source"] = "Dread Crusaders"
+		s.last_morale = [dread_result.duplicate(true)]
+		if MarineEnhancements.tempered_in_battle_active(s, enemy_squad):
+			var dread_window: Dictionary = s.unit_abilities.window
+			dread_window["current_result"] = dread_result.duplicate(true)
+			dread_window["was_battle_shocked"] = dread_was_battle_shocked
+			dread_window["decision_owner"] = int(s.squads[enemy_squad].get("owner", -1))
+			dread_window["owners"] = [int(s.squads[enemy_squad].get("owner", -1))]
+			s.unit_abilities.window = dread_window
+			return {"error": "", "pending_reroll": true, "message": "Dread Crusaders: %s rolled %s at -1 (%d vs Leadership %d). Its controller can keep the result or re-roll both dice with Tempered in Battle." % [str(s.squads[enemy_squad].get("name", "The charging unit")), str(dread_result.get("rolls", [])), int(dread_result.get("modified_total", 0)), int(dread_result.get("target", 0))]}
+		s.squads[enemy_squad].battle_shocked = dread_was_battle_shocked or not bool(dread_result.get("passed", false))
+		var outcome := "is Battle-shocked" if s.squads[enemy_squad].battle_shocked else "passes the test"
+		var message := "Dread Crusaders: %s rolls %s at -1 (%d vs Leadership %d) and %s." % [str(s.squads[enemy_squad].get("name", "The charging unit")), str(dread_result.get("rolls", [])), int(dread_result.get("modified_total", 0)), int(dread_result.get("target", 0)), outcome]
+		return {"error": "", "message": message}
+	elif rule == VOW_HERESY_BEGETS_RETRIBUTION:
+		var reaction_window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var trigger_squad := int(reaction_window.get("squad", -1))
+		var surge_result := HeresyRetribution.begin(s, player, int(selected.target), trigger_squad, enemy_squad, heresy_roll)
+		if not str(surge_result.get("error", "")).is_empty(): return surge_result
+		s.last_command_roll = {"kind": "heresy-begets-retribution", "source": "Heresy Begets Retribution", "squad": int(selected.target), "target": enemy_squad, "expression": "D6", "original_rolls": heresy_roll.get("rolls", []).duplicate(), "rolls": heresy_roll.get("rolls", []).duplicate(), "value": int(heresy_roll.get("value", 0)), "rerolled": false}
+		return surge_result
 	elif rule == MEDUSA_UNBOWED_CONVICTION:
 		if not s.detachment_stratagems.has("unbowed_conviction"): s.detachment_stratagems.unbowed_conviction = {}
 		s.detachment_stratagems.unbowed_conviction[selected.target] = {"owner": player, "expires_turn": int(s.turn) + 2}
@@ -2481,23 +2752,41 @@ static func record_move(s: Dictionary, squad: int) -> void:
 static func open_movement_reaction(s: Dictionary, moved_squad: int) -> bool:
 	if not enabled(s) or s.phase != "movement" or not s.squads.has(moved_squad) or int(s.squads[moved_squad].owner) != int(s.active): return false
 	var player := 3 - int(s.active)
-	var has_reaction := false
-	for option: Dictionary in choices(s, player):
-		if str(option.get("value", "")) in [TACTICS, MASTERFUL_TACTICS, HUNTERS_INSTINCTS, PHOBOS_TRANSHUMAN_REACTIONS, ULTRAMARIAN_PRACTICAL_TACTICS]:
-			has_reaction = true
-			break
-	if not has_reaction: return false
 	var previous: Dictionary = s.get("unit_abilities", {}).get("window", {}).duplicate(true)
 	s.unit_abilities.window = {"kind": MOVEMENT_REACTION_WINDOW, "owners": [player], "squad": moved_squad,
 		"phase_key": phase_key(s), "resume_window": previous}
+	var has_reaction := false
+	for option: Dictionary in choices(s, player):
+		if str(option.get("value", "")) in [TACTICS, MASTERFUL_TACTICS, HUNTERS_INSTINCTS, PHOBOS_TRANSHUMAN_REACTIONS, ULTRAMARIAN_PRACTICAL_TACTICS, VOW_HERESY_BEGETS_RETRIBUTION]:
+			has_reaction = true
+			break
+	if not has_reaction:
+		s.unit_abilities.window = previous
+		return false
 	return true
+
+static func heresy_closest_enemy_targets(s: Dictionary, squad: int) -> Array[int]:
+	var result: Array[int] = []
+	if not s.squads.has(squad) or living(s, squad).is_empty(): return result
+	var owner := int(s.squads[squad].get("owner", -1))
+	var closest := INF
+	for enemy_squad: int in s.squads:
+		if int(s.squads[enemy_squad].get("owner", -1)) == owner or living(s, enemy_squad).is_empty(): continue
+		var distance := INF
+		for model: int in living(s, squad): distance = minf(distance, G.distance_to_target(s, s.units[model], enemy_squad))
+		if distance < closest - 0.001:
+			closest = distance
+			result = [enemy_squad]
+		elif absf(distance - closest) <= 0.001:
+			result.append(enemy_squad)
+	return result
 
 static func movement_reaction_choices(s: Dictionary, player: int) -> Array[Dictionary]:
 	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
 	if window.get("kind", "") != MOVEMENT_REACTION_WINDOW or window.get("owners", []) != [player] or window.get("phase_key", "") != phase_key(s): return []
 	var result: Array[Dictionary] = []
 	for option: Dictionary in choices(s, player):
-		if str(option.get("value", "")) in [TACTICS, MASTERFUL_TACTICS, HUNTERS_INSTINCTS, PHOBOS_TRANSHUMAN_REACTIONS, ULTRAMARIAN_PRACTICAL_TACTICS]: result.append(option)
+		if str(option.get("value", "")) in [TACTICS, MASTERFUL_TACTICS, HUNTERS_INSTINCTS, PHOBOS_TRANSHUMAN_REACTIONS, ULTRAMARIAN_PRACTICAL_TACTICS, VOW_HERESY_BEGETS_RETRIBUTION]: result.append(option)
 	result.append({"label": "Pass post-move reaction", "action": "detachment-movement-pass", "model": -1, "target": int(window.get("squad", -1)), "value": ""})
 	return result
 

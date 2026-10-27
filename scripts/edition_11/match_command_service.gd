@@ -204,7 +204,7 @@ static func _charge_roll(state: Dictionary, player: int, command: Dictionary, ro
 static func _begin_contact(state: Dictionary, player: int, command: Dictionary, roller: Callable) -> Dictionary:
 	var targets: Array[int] = []
 	for target: Variant in command.get("targets", []): targets.append(int(target))
-	var error: String = Combat.begin_contact_move(state, player, int(command.get("model", -1)), str(command.get("move_kind", "")), int(command.get("revision", -1)), targets, int(command.get("objective", -1)), roller, bool(command.get("use_tactical_focus", false)))
+	var error: String = Combat.begin_contact_move(state, player, int(command.get("model", -1)), str(command.get("move_kind", "")), int(command.get("revision", -1)), targets, int(command.get("objective", -1)), roller, bool(command.get("use_tactical_focus", false)), bool(command.get("use_devout_push", false)))
 	if not error.is_empty(): return _failure(error)
 	var singular_will_roll: Dictionary = state.get("pending_contact", {}).get("singular_will_roll", {})
 	if not singular_will_roll.is_empty():
@@ -213,6 +213,10 @@ static func _begin_contact(state: Dictionary, player: int, command: Dictionary, 
 	if not tactical_focus_roll.is_empty():
 		var retained_text := " Roll retained; no additional CP charged." if bool(state.pending_contact.get("tactical_focus_roll_reused", false)) else ""
 		return _success("Tactical Focus:%s D3 rolled %d + 3 = %d inches per model. Place the unit, then confirm consolidation." % [retained_text, int(tactical_focus_roll.rolls[0]), int(tactical_focus_roll.value)])
+	var devout_push_roll: Dictionary = state.get("pending_contact", {}).get("devout_push_roll", {})
+	if not devout_push_roll.is_empty():
+		var devout_retained_text := " Roll retained; no additional CP charged." if bool(state.pending_contact.get("devout_push_roll_reused", false)) else ""
+		return _success("Devout Push:%s D3 rolled %d + 3 = %d inches per model. Place the unit, then confirm contact movement." % [devout_retained_text, int(devout_push_roll.rolls[0]), int(devout_push_roll.value)])
 	var window: Dictionary = state.get("unit_abilities", {}).get("window", {})
 	var owners: Array = window.get("owners", [])
 	if window.get("kind", "") == Combat.TransportRules.COMBAT_EMBARKATION_WINDOW and not owners.is_empty():
@@ -222,8 +226,12 @@ static func _begin_contact(state: Dictionary, player: int, command: Dictionary, 
 static func _finish_contact(state: Dictionary, player: int, command: Dictionary) -> Dictionary:
 	var cancel := bool(command.get("cancel", false))
 	var tactical_focus_retained: bool = cancel and not state.get("pending_contact", {}).get("tactical_focus_roll", {}).is_empty()
+	var devout_push_retained: bool = cancel and not state.get("pending_contact", {}).get("devout_push_roll", {}).is_empty()
 	var validation := Combat.finish_contact_move_result(state, player, int(command.get("revision", -1)), cancel)
-	var message := "Contact placement cancelled; positions restored. Tactical Focus remains paid and its D3+3 roll is retained." if tactical_focus_retained else ("Contact placement cancelled; positions restored." if cancel else "Contact movement confirmed.")
+	var message := "Contact placement cancelled; positions restored."
+	if cancel and tactical_focus_retained: message += " Tactical Focus remains paid and its D3+3 roll is retained."
+	if cancel and devout_push_retained: message += " Devout Push remains paid and its D3+3 roll is retained."
+	if not cancel: message = "Contact movement confirmed."
 	return _apply_validation_action(validation, message)
 
 static func _attack_plan(state: Dictionary, player: int, command: Dictionary, roller: Callable) -> Dictionary:

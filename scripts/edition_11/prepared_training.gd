@@ -42,7 +42,24 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			if not Combat.Mission.PRIMARY_MISSIONS.has(selected_primary): return {"error": "Select a supported 11th-edition primary mission for Player %d." % owner}
 			primary_missions[owner] = selected_primary
 		primary_mission = str(primary_missions[1])
+	var primary_overrides := {1: true, 2: true}
+	if options.has("primary_overrides"):
+		if not options.primary_overrides is Dictionary: return {"error": "Primary override modes must be selected for Player 1 and Player 2."}
+		for raw_owner: Variant in options.primary_overrides:
+			var owner := int(raw_owner)
+			if owner not in [1, 2] or typeof(options.primary_overrides[raw_owner]) != TYPE_BOOL: return {"error": "Each primary override mode must be a Boolean for Player 1 or Player 2."}
+			primary_overrides[owner] = bool(options.primary_overrides[raw_owner])
 	var secondary_pair := str(options.get("secondary_pair", Combat.Mission.DEFAULT_SECONDARY_PAIR))
+	var force_dispositions: Dictionary = {}
+	if options.has("force_dispositions"):
+		if not options.force_dispositions is Dictionary: return {"error": "Force Dispositions must be selected for Player 1 and Player 2."}
+		force_dispositions = options.force_dispositions.duplicate(true)
+	var sealed_force_disposition_reveal: Variant = options.get("sealed_force_disposition_reveal", false)
+	if typeof(sealed_force_disposition_reveal) != TYPE_BOOL: return {"error": "Sealed Force Disposition reveal must be a Boolean match option."}
+	if sealed_force_disposition_reveal and (not options.get("official_mission", false) or not options.get("checked_rosters", false) or not force_dispositions.is_empty() or primary_overrides != {1: false, 2: false}):
+		return {"error": "Sealed Force Disposition reveal requires the checked Chapter Approved profile, no preselected Force Dispositions and matchup defaults for both players."}
+	if not force_dispositions.is_empty() and (not options.get("official_mission", false) or not options.get("checked_rosters", false)):
+		return {"error": "Force Disposition choices require the checked Chapter Approved roster profile."}
 	var terrain_profile := Combat.Terrain.layout(terrain_layout)
 	if terrain_profile.has("error"): return {"error": str(terrain_profile.error)}
 	if options.get("official_mission", false) and not Combat.Terrain.is_event_layout(terrain_layout): return {"error": "Select a supported 11th-edition Event Companion terrain layout."}
@@ -53,6 +70,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 	if marine_detachment not in Combat.Doctrines.DETACHMENTS: return {"error": "Unsupported Space Marine detachment: " + marine_detachment}
 	if not options.get("combat_doctrines", false) and marine_detachments.values().any(func(value: Variant) -> bool: return str(value) != "none"): return {"error": "Select Space Marine detachments only with 11e Combat Doctrines enabled."}
 	for selected_detachment: Variant in marine_detachments.values():
+		if selected_detachment == "vow-sworn-crusaders" and not options.get("unit_abilities", false): return {"error": "Vow-sworn Crusaders requires current unit abilities enabled for its bounded Templar Vows implementation and Black Templars Chapter context."}
 		if selected_detachment == "spearpoint-task-force" and not options.get("unit_abilities", false): return {"error": "Spearpoint Task Force requires current unit abilities enabled for Suboden Khan's end-of-Fight-phase move."}
 		if selected_detachment == "darkflight-pursuit" and not options.get("unit_abilities", false): return {"error": "Darkflight Pursuit requires current unit abilities enabled for its Dark Angels Chapter context and conditional Ravenwing keywords."}
 		if selected_detachment == "inner-circle-task-force" and not options.get("unit_abilities", false): return {"error": "Inner Circle Task Force requires current unit abilities enabled for its Dark Angels Chapter context and conditional Deathwing keywords."}
@@ -62,7 +80,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		if options.get("official_mission", false) and selected_detachment != "gladius": return {"error": "This Space Marine detachment is not reconciled for the selected CA mission."}
 	if options.get("combat_doctrines", false) and options.get("oath_of_moment", false): return {"error": "11e Combat Doctrines replaces the historical Oath of Moment profile; these options cannot be combined."}
 	for key: Variant in options:
-		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "secondary_pair", "training_scenario_id"]: continue
+		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "primary_overrides", "secondary_pair", "force_dispositions", "sealed_force_disposition_reveal", "training_scenario_id"]: continue
 		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts", "oath_of_moment", "reanimation_protocols", "combat_doctrines", "awakened_dynasty", "unit_abilities", "official_mission", "checked_rosters"]: return {"error": "Unsupported match option: " + str(key)}
 		if not options[key] is bool: return {"error": "Match options must be boolean: " + str(key)}
 	if options.get("unit_abilities", false) and (options.get("hail_of_bolts", false) or options.get("objective_secured", false) or options.get("oath_of_moment", false)): return {"error": "Current datasheets cannot combine with historical Hail of Bolts, Objective Secured or Oath profiles."}
@@ -115,6 +133,14 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			return {"error": "Players must choose the same category and points limit."}
 	if options.get("official_mission", false) and not reports.is_empty():
 		if reports[1].selection.faction != "Space Marines" or reports[2].selection.faction != "Necrons" or reports[1].selection.points_limit != 1000 or reports[1].selection.category != "incursion": return {"error": "This selected CA mission admits Space Marines P1 vs Necrons P2 with a 1000-point Incursion limit; prices and army legality remain reference data."}
+	if not force_dispositions.is_empty():
+		if force_dispositions.size() != 2: return {"error": "Select one available Force Disposition for each checked roster."}
+		for owner in [1, 2]:
+			var faction := str(reports.get(owner, {}).get("selection", {}).get("faction", ""))
+			var detachment: Dictionary = Combat.RosterValidation.DETACHMENTS.get(faction, {})
+			var available: Array = detachment.get("force_dispositions", [])
+			var selected_force_disposition := str(force_dispositions.get(owner, force_dispositions.get(str(owner), "")))
+			if selected_force_disposition not in available: return {"error": "Player %d's Force Disposition is not available from the selected checked-roster detachment." % owner}
 	var use_current_templates := current_marine_templates or _current_marine_setup(selections)
 	var state := Battlefield.apply(Combat.initial_state(terrain_layout, Combat.Objectives.TRAINING, 2, manual, varied, use_current_templates))
 	if state.has("error"): return state
@@ -188,7 +214,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		if not loadout_error.is_empty(): return {"error": loadout_error}
 		Combat.UnitAbilities.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.unit_abilities = true
-		var needs_chapter_context := options.has("marine_chapters") or ChapterRules.has_current_reference_marines(state) or marine_detachments.values().any(func(value: Variant) -> bool: return str(value) in ["wrath-of-the-rock", "spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar"])
+		var needs_chapter_context := options.has("marine_chapters") or ChapterRules.has_current_reference_marines(state) or marine_detachments.values().any(func(value: Variant) -> bool: return str(value) in ["wrath-of-the-rock", "spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "vow-sworn-crusaders"])
 		if needs_chapter_context:
 			var chapter_result := ChapterRules.resolve_and_apply(state, marine_detachments, marine_chapter_selections)
 			if not str(chapter_result.get("error", "")).is_empty(): return {"error": str(chapter_result.error)}
@@ -213,6 +239,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			if selected_detachment == "wrath-of-the-rock": Combat.DetachmentStratagems.enable_wrath_of_the_rock(state)
 			if selected_detachment == "inner-circle-task-force": Combat.DetachmentStratagems.enable_inner_circle(state)
 			if selected_detachment == "medusa-wrath": Combat.DetachmentStratagems.enable_medusa_wrath(state)
+			if selected_detachment == "vow-sworn-crusaders": Combat.DetachmentStratagems.enable_vow_sworn(state)
 			if selected_detachment == "blade-of-ultramar": Combat.DetachmentStratagems.enable_blade_of_ultramar(state)
 			if selected_detachment == "darkflight-pursuit": Combat.DetachmentStratagems.enable_darkflight(state)
 			if selected_detachment == "terminator-storm-force": Combat.DetachmentStratagems.enable_terminator_storm(state)
@@ -233,12 +260,15 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			return {"error": "Bring It Down requires each opposing roster to include at least one model with 10 or more Wounds."}
 		if secondary_pair == "engage-grievous-blow" and not defer_secondary_target_check and (not Combat.Mission.has_grievous_blow_roster_target(state, 1) or not Combat.Mission.has_grievous_blow_roster_target(state, 2)):
 			return {"error": "A Grievous Blow requires each opposing roster to include at least one unit with a starting strength of 13 or more models."}
-		Combat.Mission.enable(state, terrain_layout, primary_mission, secondary_pair, primary_missions)
+		Combat.Mission.enable(state, terrain_layout, primary_mission, secondary_pair, primary_missions, force_dispositions, primary_overrides, bool(sealed_force_disposition_reveal))
 		if not reports.is_empty():
 			state.saved_army_setup.options.official_mission = true
 			state.saved_army_setup.options.terrain_layout = terrain_layout
 			state.saved_army_setup.options.primary_mission = primary_mission
 			state.saved_army_setup.options.primary_missions = primary_missions.duplicate(true)
+			state.saved_army_setup.options.primary_overrides = state.mission.primary_overrides.duplicate(true)
+			if not force_dispositions.is_empty(): state.saved_army_setup.options.force_dispositions = force_dispositions.duplicate(true)
+			if sealed_force_disposition_reveal: state.saved_army_setup.options.sealed_force_disposition_reveal = true
 			state.saved_army_setup.options.secondary_pair = secondary_pair
 	if options.get("checked_rosters", false):
 		Combat.RosterValidation.enable(state, reports)

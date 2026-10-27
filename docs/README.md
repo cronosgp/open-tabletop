@@ -24,6 +24,7 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Current Space Marine Chapter admission](rules/current-space-marine-admission.md) — bounded single-Chapter gate for current-reference roster construction.
 - [Current unit abilities](rules/current-unit-abilities.md) · [Defender allocation](rules/defender-allocation.md) · [Detachment stratagems](rules/detachment-stratagems.md)
 - [Fist of the God-Emperor](rules/fist-of-the-god-emperor.md) — partial Black Templars support for Oathbound Exemplar and its action eligibility exception.
+- [Vow-sworn Crusaders](rules/vow-sworn-crusaders.md) — partial local support for all three Templar Vows.
 - [Devastating Wounds](rules/devastating-wounds.md) · [Equipment](rules/equipment.md) · [Escape re-rolls](rules/escape-rerolls.md)
 - [Hail of Bolts (historical)](rules/hail-of-bolts.md) · [Hazardous](rules/hazardous.md) · [Implacable Eradication](rules/implacable-eradication.md)
 - [Movement types](rules/movement-types.md) · [Multiple units](rules/multiple-units.md) · [Oath of Moment (historical)](rules/oath-of-moment.md)

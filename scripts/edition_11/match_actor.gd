@@ -20,6 +20,10 @@ static func pending_state_error(state: Dictionary) -> String:
 	for source: String in ["mission-preparation", "combat-doctrines", "oath-of-moment", "vowed-target", "awakened-attachment"]:
 		var decision_error := decision_container_error(state, source)
 		if not decision_error.is_empty(): return decision_error
+	var sealed_force_disposition_error := Mission.sealed_force_disposition_state_error(state)
+	if not sealed_force_disposition_error.is_empty(): return sealed_force_disposition_error
+	var doctrine_error := templar_vow_state_error(state)
+	if not doctrine_error.is_empty(): return doctrine_error
 	var unit_action_error := unit_action_state_error(state)
 	if not unit_action_error.is_empty(): return unit_action_error
 	var stratagem_error := stratagem_state_error(state)
@@ -105,7 +109,7 @@ static func unit_action_state_error(state: Dictionary) -> String:
 		return "Resolve the invalid pending unit ability choice before continuing."
 	if not UnitActions.supported_window_kind(str(ability_window.get("kind", ""))):
 		return "Resolve the invalid pending unit ability choice before continuing."
-	return ""
+	return UnitActions.window_state_error(state)
 
 static func stratagem_state_error(state: Dictionary) -> String:
 	var stratagems_value: Variant = state.get("stratagems", {})
@@ -130,6 +134,21 @@ static func decision_container_error(state: Dictionary, source: String) -> Strin
 	if not field_by_source.has(source): return ""
 	if typeof(state.get(str(field_by_source[source]), {})) != TYPE_DICTIONARY:
 		return "Cannot continue while %s decision state is invalid." % str(source.replace("-", " "))
+	return ""
+
+static func templar_vow_state_error(state: Dictionary) -> String:
+	var doctrines_value: Variant = state.get("combat_doctrines", {})
+	if typeof(doctrines_value) != TYPE_DICTIONARY: return "Cannot continue while Combat Doctrines state is invalid."
+	var doctrines: Dictionary = doctrines_value
+	for field: String in ["templar_vows", "templar_vow_passed"]:
+		if not doctrines.has(field): continue
+		var decisions: Variant = doctrines[field]
+		if typeof(decisions) != TYPE_DICTIONARY: return "Cannot continue while Templar Vows decision state is invalid."
+		for raw_owner: Variant in decisions:
+			if str(raw_owner) not in ["1", "2"]: return "Cannot continue while Templar Vows decision state is invalid."
+			var decision: Variant = decisions[raw_owner]
+			if field == "templar_vows" and str(decision) not in ["", "uphold-honour", "abhor-the-witch", "accept-any-challenge"]: return "Cannot continue while Templar Vows decision state is invalid."
+			if field == "templar_vow_passed" and not decision is bool: return "Cannot continue while Templar Vows decision state is invalid."
 	return ""
 
 static func player(state: Dictionary) -> int:

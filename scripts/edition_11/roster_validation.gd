@@ -10,7 +10,10 @@ const ID := "incursion-fixed-rosters-mfm1.6-2026-10-25-v34-land-speeder-vengeanc
 const CURRENT_SOURCE_STATUS := "wahapedia_e11_coverage_partial"
 const CHECKED_MAX_SQUADS := 12
 const SOURCES := {"Space Marines": {"url": "https://mfm.warhammer-community.com/en/space-marines", "version": "1.6", "sha256": "af280e710928f49d6c22775ae48fa9a5fe78de7560cf2c6712eb6d48a885c5e5"}, "Necrons": {"url": "https://mfm.warhammer-community.com/en/necrons", "version": "1.6", "sha256": "8ff758aedca89d8ea98c3912048b572b8d6ae2a5f66477a811973b91e505ee94"}}
-const DETACHMENTS := {"Space Marines": {"id": "gladius-task-force", "name": "Gladius Task Force", "dp": 3, "force_disposition": "Take and Hold"}, "Necrons": {"id": "awakened-dynasty", "name": "Awakened Dynasty", "dp": 3, "force_disposition": "Take and Hold"}}
+const DETACHMENTS := {
+	"Space Marines": {"id": "gladius-task-force", "name": "Gladius Task Force", "dp": 3, "force_dispositions": ["priority-assets", "take-and-hold"]},
+	"Necrons": {"id": "awakened-dynasty", "name": "Awakened Dynasty", "dp": 3, "force_dispositions": ["take-and-hold", "priority-assets"]}
+}
 const CAPTURED_REFERENCE_POINTS := {
   "necron-warriors": {
     "cost": 85,

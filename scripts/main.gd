@@ -134,13 +134,22 @@ var checked_rosters := false
 var checked_rosters_choice: CheckBox
 var official_mission := false
 var official_mission_choice: CheckBox
+var official_force_disposition_heading: Label
+var official_force_disposition_heading_p2: Label
+var official_force_disposition_help: Label
+var official_force_disposition_choice_p1: OptionButton
+var official_force_disposition_choice_p2: OptionButton
+var official_force_disposition_choices: Dictionary = {1: "take-and-hold", 2: "take-and-hold"}
 var official_primary_choice: OptionButton
 var official_primary_choice_p2: OptionButton
+var official_primary_matchup_default_p1: CheckBox
+var official_primary_matchup_default_p2: CheckBox
 var official_primary_heading: Label
 var official_primary_heading_p2: Label
 var official_primary_help: Label
 var official_primary_help_p2: Label
 var official_primary_missions: Dictionary = {1: "battlefield-dominance", 2: "battlefield-dominance"}
+var official_primary_matchup_defaults: Dictionary = {1: true, 2: true}
 var official_secondary_choice: OptionButton
 var official_secondary_heading: Label
 var official_secondary_help: Label
@@ -414,6 +423,7 @@ var escape_wound_button: Button
 var abandon_move_button: Button
 var begin_contact_button: Button
 var tactical_focus_button: Button
+var devout_push_button: Button
 var consolidation_objective: OptionButton
 var contact_enemy: OptionButton
 var contact_elevation_choice: OptionButton
@@ -1058,24 +1068,70 @@ func _build_ui() -> void:
 			hazard_reroll_choice.button_pressed = true
 			count_reroll_choice.button_pressed = true
 			escape_reroll_choice.button_pressed = true
-		_refresh_army_choices())
+			_apply_official_primary_matchup_defaults()
+		_refresh_army_choices()
+		_refresh_official_layout_controls())
 	official_mission_choice = CheckBox.new()
 	official_mission_choice.text = "Next prepared match: Chapter Approved 2026-27 mission"
-	official_mission_choice.tooltip_text = "11th-edition mission with one supported primary per player, Hammer and Anvil, the selected Event Companion terrain and a fixed secondary pair shared by both players. Eight current primary cards are implemented; current abilities are required, and reference points do not certify army legality."
+	official_mission_choice.tooltip_text = "11th-edition mission with one supported primary per player, Hammer and Anvil, selected Event Companion terrain and a fixed secondary pair. For the checked Gladius vs Awakened Dynasty rosters, each player can choose Take and Hold or Priority Assets; primary cards default from the matchup and can be overridden directly. In local play with both defaults on, players lock choices one at a time and reveal the matchup after both lock; direct overrides and LAN setup remain visible. Ten current primary cards are implemented; current abilities are required, and reference points do not certify army legality."
 	advanced.add_child(official_mission_choice)
 	official_mission_choice.toggled.connect(func(active: bool):
 		if active: unit_abilities_choice.button_pressed = true
+		if active: _apply_official_primary_matchup_defaults()
 		_refresh_official_layout_controls()
 		_review_saved_armies())
+	official_force_disposition_heading = Label.new()
+	official_force_disposition_heading.text = "Force Disposition · Player 1"
+	official_force_disposition_heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	advanced.add_child(official_force_disposition_heading)
+	official_force_disposition_choice_p1 = OptionButton.new()
+	_populate_official_force_disposition_choice(official_force_disposition_choice_p1, 1)
+	official_force_disposition_choice_p1.item_selected.connect(func(index: int):
+		official_force_disposition_choices[1] = str(official_force_disposition_choice_p1.get_item_metadata(index))
+		_apply_official_primary_matchup_defaults()
+		_refresh_force_disposition_help()
+		_refresh_primary_mission_help(1)
+		_refresh_primary_mission_help(2))
+	advanced.add_child(official_force_disposition_choice_p1)
+	official_force_disposition_heading_p2 = Label.new()
+	official_force_disposition_heading_p2.text = "Force Disposition · Player 2"
+	official_force_disposition_heading_p2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	advanced.add_child(official_force_disposition_heading_p2)
+	official_force_disposition_choice_p2 = OptionButton.new()
+	_populate_official_force_disposition_choice(official_force_disposition_choice_p2, 2)
+	official_force_disposition_choice_p2.item_selected.connect(func(index: int):
+		official_force_disposition_choices[2] = str(official_force_disposition_choice_p2.get_item_metadata(index))
+		_apply_official_primary_matchup_defaults()
+		_refresh_force_disposition_help()
+		_refresh_primary_mission_help(1)
+		_refresh_primary_mission_help(2))
+	advanced.add_child(official_force_disposition_choice_p2)
+	official_force_disposition_help = Label.new()
+	official_force_disposition_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	advanced.add_child(official_force_disposition_help)
+	_refresh_force_disposition_help()
 	official_primary_heading = Label.new()
 	official_primary_heading.text = "11e Primary Mission · Player 1"
 	official_primary_heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	advanced.add_child(official_primary_heading)
+	official_primary_matchup_default_p1 = CheckBox.new()
+	official_primary_matchup_default_p1.text = "Use Force Disposition matchup default"
+	official_primary_matchup_default_p1.set_pressed_no_signal(true)
+	official_primary_matchup_default_p1.toggled.connect(func(use_default: bool):
+		official_primary_matchup_defaults[1] = use_default
+		if use_default: _apply_official_primary_matchup_defaults()
+		_refresh_force_disposition_help()
+		_refresh_primary_mission_help(1)
+		_refresh_official_layout_controls())
+	advanced.add_child(official_primary_matchup_default_p1)
 	official_primary_choice = OptionButton.new()
 	for primary_id: String in Combat.Mission.PRIMARY_MISSIONS:
 		official_primary_choice.add_item(str(Combat.Mission.PRIMARY_MISSIONS[primary_id].name))
 		official_primary_choice.set_item_metadata(official_primary_choice.item_count - 1, primary_id)
 	official_primary_choice.item_selected.connect(func(_index: int):
+		official_primary_matchup_defaults[1] = false
+		official_primary_matchup_default_p1.set_pressed_no_signal(false)
+		_refresh_force_disposition_help()
 		_refresh_primary_mission_help(1)
 		_refresh_official_layout_controls())
 	advanced.add_child(official_primary_choice)
@@ -1086,11 +1142,24 @@ func _build_ui() -> void:
 	official_primary_heading_p2.text = "11e Primary Mission · Player 2"
 	official_primary_heading_p2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	advanced.add_child(official_primary_heading_p2)
+	official_primary_matchup_default_p2 = CheckBox.new()
+	official_primary_matchup_default_p2.text = "Use Force Disposition matchup default"
+	official_primary_matchup_default_p2.set_pressed_no_signal(true)
+	official_primary_matchup_default_p2.toggled.connect(func(use_default: bool):
+		official_primary_matchup_defaults[2] = use_default
+		if use_default: _apply_official_primary_matchup_defaults()
+		_refresh_force_disposition_help()
+		_refresh_primary_mission_help(2)
+		_refresh_official_layout_controls())
+	advanced.add_child(official_primary_matchup_default_p2)
 	official_primary_choice_p2 = OptionButton.new()
 	for primary_id: String in Combat.Mission.PRIMARY_MISSIONS:
 		official_primary_choice_p2.add_item(str(Combat.Mission.PRIMARY_MISSIONS[primary_id].name))
 		official_primary_choice_p2.set_item_metadata(official_primary_choice_p2.item_count - 1, primary_id)
 	official_primary_choice_p2.item_selected.connect(func(_index: int):
+		official_primary_matchup_defaults[2] = false
+		official_primary_matchup_default_p2.set_pressed_no_signal(false)
+		_refresh_force_disposition_help()
 		_refresh_primary_mission_help(2)
 		_refresh_official_layout_controls())
 	advanced.add_child(official_primary_choice_p2)
@@ -1213,6 +1282,8 @@ func _build_ui() -> void:
 	marine_detachment_choice.set_item_metadata(marine_detachment_choice.item_count - 1, "phobos-shadow-force")
 	marine_detachment_choice.add_item("Fist of the God-Emperor — Oathbound only (partial)")
 	marine_detachment_choice.set_item_metadata(marine_detachment_choice.item_count - 1, "fist-of-the-god-emperor")
+	marine_detachment_choice.add_item("Vow-sworn Crusaders — Templar Vows (partial)")
+	marine_detachment_choice.set_item_metadata(marine_detachment_choice.item_count - 1, "vow-sworn-crusaders")
 	marine_detachment_choice.tooltip_text = "Select a Space Marine detachment with locally implemented effects. Detachments marked partial expose only the effects listed here; other effects remain unavailable. Vanguard Ambushers is blocked pending focused local validation and does not activate. Remaining Phobos Shock Force rules, local checks and full army legality remain pending. Ironstorm Auto-targeters lets a friendly Adeptus Astartes Vehicle unit other than a Walker optionally re-roll one Hit roll and one Wound roll during each ranged attack activation. Ironstorm also supports Redoubtable Machine Spirit (25 points: 5+ invulnerable save and heal 1 at Command end) and Gunnery Honours (15 points: ranged attacks gain Heavy) on eligible non-Transport, non-Fly, non-Walker vehicles. Gladius supports Adept of the Codex, Artificer Armour, Laurels of Triumph and Standard of the Emperor Ascendant on eligible units; the roster identifies the bearer for model-only enhancements. Ironclad Champions implements Enduring Vengeance, all three stratagems and both enhancements. Assault, Tactical and Devastator Brethren each allow their named Combat Doctrine one additional time per battle. Terminator Storm Force gives Adeptus Astartes Terminator units +1 to Charge rolls; Champion of the First Company (20 points) grants Lethal Hits to all melee attacks in its export-eligible bearer's unit while the bearer lives. Corporeum Reliquary (25 points) lets an export-eligible Terminator unit ingress in its owner's first Movement phase of battle round 1; it does not enable opponent-turn Rapid Ingress. Merciless Veterans costs 1 CP when an eligible Terminator unit is selected to shoot and gives its ranged attacks Lethal Hits and Sustained Hits 1 for the phase. Tacticus Firestorm Force grants Rapid Fire at any distance within maximum range for Tacticus units. Tacticus Attack Force lets Tacticus units re-roll Advance rolls. Gravis Linebreaker Force lets Gravis units that made a Normal move fire without Heavy and with +1 to Hit. Wrath of the Rock worsens Wound rolls by 1 against Astartes Infantry/Mounted targets when Strength exceeds Toughness. Spearpoint allows one extra Assault or Tactical Doctrine selection per battle and gives +1 to Advance rolls to friendly Adeptus Astartes Mounted/Speeder units. At Fight-phase end, if Suboden Khan's unit was eligible to fight this phase, it can make a Normal Move while unengaged or a Fall Back move while engaged, using the models' Movement characteristics. Selecting Spearpoint enables current unit abilities for that movement workflow. The White Scars-only chapter restriction is enforced for current runtime profiles. Other detachment rules, interactions and full army legality remain pending."
 	marine_detachment_choice.tooltip_text += " Gravis Siege Force gives friendly Gravis units within objective range -1 to incoming Wound rolls when attack Strength exceeds their Toughness. Immovable Conquerors adds +1 OC to an eligible Gravis unit for 15 points. Narthecis Gauntlet (20 points) is available to an export-eligible Apothecary Biologis and heals its unit D3+1 wounds in the Command phase. Gravis Linebreaker offers Indefatigable Fortitude and Relentless Advance (20 points each; -1 to Wound against stronger attacks or Scouts 5 for the unit), available to export-eligible Apothecary Biologis and Captain in Gravis Armour bearers. Gravis Linebreaker and Gravis Siege offer Annihilating Force at attack declaration (1 CP, Lethal Hits for the phase); Gravis Linebreaker also offers Purgation Push after a shot (1 CP, move up to 5 inches and end within objective range; no Charge or embark this turn) and Armoured Impact after a charge (1 CP, one mortal wound for each 3+ on a D6 per engaged model). Gravis Siege offers Stand Unyielding at Movement-phase end (1 CP, secure one objective controlled by an eligible Gravis unit) and Suppression Volleys after a Gravis shooting activation hits (1 CP, one hit enemy takes Battle-shock at -1). Focused local checks remain pending."
 	marine_detachment_choice.tooltip_text += " Darkflight Pursuit implements Black-winged Vigilance and the 15-point Thundercowl Turbines ingress exception for eligible current Ravenwing FLY/MOUNTED profiles. It requires current unit abilities and Dark Angels Chapter context. Wings of Shadow is selectable as a 1 CP defender reaction that grants Stealth before dice when an enemy targets eligible Ravenwing FLY/MOUNTED units in its Shooting phase. We Are Vengeance is selectable after an enemy Shooting activation targets an unengaged Ravenwing FLY unit and allows a Normal Move up to D3+3 inches. Skyborne Surveillance is selectable after a Ravenwing FLY unit shoots and grants +3 detection to visible enemy units within 6 inches through the end of the Shooting phase. Nightforged Battery remains unsupported; focused checks and full army legality remain pending."
@@ -1224,11 +1295,12 @@ func _build_ui() -> void:
 	marine_detachment_choice.tooltip_text += " Gauntlet Task Force is partial: after a friendly Adeptus Astartes Transport shoots, choose one enemy unit it hit or pass. That unit is Assailed until end of turn; friendly Adeptus Astartes units that disembarked this turn gain Sustained Hits 1 against it. Linebreaker Onslaught (20 points) lets its enhanced unit re-roll Charge rolls and prevents Snap Shooting targeting if it disembarked this turn; 21 current-catalog Infantry bearers are source-linked. Damocles-class Uplink (15 points) is selectable for six Captain profiles; while its bearer unit is embarked, assign one unused doctrine in your Movement phase to nearby Infantry with Combat Doctrines, until your next Command phase. Storm and Secure (1 CP) lets a friendly Astartes Transport carrying Astartes Battleline secure an objective it controls at the end of your Movement phase. Duty is Never Done (1 CP, end of the Fight phase) lets an unengaged friendly Astartes Infantry unit that was eligible to fight embark in a friendly eligible Transport when every model is within 6 inches. Aggressive Disembarkation (1 CP) is available for current Movement-phase disembark choices; each model may be set up within, rather than wholly within, the Transport's set-up distance. Emergency Disembark now offers an optional pre-Hazard use of Aggressive Disembarkation; models may be set up within (not wholly within) 6 inches and must still be placed as close as possible. Before each mandatory Drop Pod Assault Rapid Disembark, the pre-placement choice is available after arrival, including after Rapid Ingress during the opponent's Movement phase; the more-than-8-inch enemy restriction remains. Other out-of-phase selection contexts remain unsupported; focused checks remain pending."
 	marine_detachment_choice.tooltip_text += " Phobos Shadow Force is partial. After a friendly PHOBOS or SCOUT SQUAD shoots in its own Shooting phase, Shadow Masters offers Hidden preservation for the turn or a Normal Move up to D6 inches that blocks Charge until turn end. Strike from the Shadows (1 CP) grants hidden PHOBOS attacks +1 Strength and Lethal Hits; Tactical Withdrawal (1 CP) can place an unengaged PHOBOS or SCOUT SQUAD in Strategic Reserves at the opponent's Fight-phase end; Mortis Snares (1 CP) arms controlled objectives at Movement-phase end and can inflict D6 mortal wounds when an enemy move ends within range and the owner's roll is 2+. Venator Omni-auspex (15 points) grants Wound rerolls against fully hidden targets, with successful natural 2s optional in Assault Doctrine; Execute and Redeploy (25 points) offers an unengaged post-shot Normal Move up to 6 inches and blocks Charge until turn end. Both enhancements are limited to four export-linked PHOBOS bearers. Shadow Masters remains limited to the owner's Shooting phase. Focused checks, network validation and full army legality remain pending."
 	marine_detachment_choice.tooltip_text += " Fist of the God-Emperor is partial: Oathbound Exemplar (10 points) is selectable for source-linked Adeptus Astartes Infantry units. It removes only the Advance/Fall Back restriction from starting an otherwise eligible action. Purge and Sanctify, Righteous Fervour and the three detachment stratagems remain unavailable; current checks, network validation and full army legality remain pending."
+	marine_detachment_choice.tooltip_text += " Vow-sworn Crusaders is partial: at the start of the first battle round, choose one of three Vows. Abhor the Witch grants Precision and Lance to current-reference Adeptus Astartes melee attacks against Psykers; Accept Any Challenge adds +1 to Wound when the target's Toughness exceeds the weapon's Strength; Uphold secures objectives controlled by current-reference Adeptus Astartes Infantry and lets those units start otherwise eligible actions after Advancing. Consecrating Aura (20 points) is selectable for 23 export-linked current-catalog bearer profiles and gives its unit a 5+ invulnerable save while preserving better existing saves. Incendiary Animus (25 points) is selectable for five export-linked Chaplain or Judiciar profiles and gives its unit +1 Strength on melee attacks. Zealous Vanguard (25 points) gives 23 source-linked bearer profiles' units Scouts 6 through the shared pre-battle move or Reserve set-up. Augury Servo-host (20 points) lets the unit select one visible enemy within 18 inches that cannot benefit from cover for the phase. Pious Enmity (1 CP) is offered when a friendly Chaplain/Judiciar unit is selected to fight; choose melee Hit rerolls of 1, or Hit and Wound rerolls of 1 against MONSTER/VEHICLE targets. The other five stratagems and 2 DP Force Disposition enforcement remain unavailable or pending; focused checks, network validation and full army legality also remain pending. Current unit abilities and Black Templars Chapter context are required."
 	advanced.add_child(marine_detachment_choice)
 	marine_detachment_choice.item_selected.connect(func(_index: int):
 		marine_detachment = _selected_marine_detachment()
 		marine_detachments = _selected_marine_detachments()
-		if marine_detachment in ["spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "fist-of-the-god-emperor"] and unit_abilities_choice != null: unit_abilities_choice.button_pressed = true
+		if marine_detachment in ["spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "fist-of-the-god-emperor", "vow-sworn-crusaders"] and unit_abilities_choice != null: unit_abilities_choice.button_pressed = true
 		_review_saved_armies())
 	var marine_detachment_heading_p2 := Label.new()
 	marine_detachment_heading_p2.text = "Player 2 Space Marine detachment"
@@ -1246,11 +1318,12 @@ func _build_ui() -> void:
 	marine_detachment_choice_p2.tooltip_text += " Blade of Ultramar implements Mastered Doctrines: if the army includes Marneus Calgar, each Combat Doctrine can be selected one additional time per battle. It requires current unit abilities and Ultramarines Chapter context. Student of the Codex (20 points) is selectable for six current-catalog Captain profiles; it keeps Tactical Doctrine active for the enhanced unit alongside its other doctrine. Armour of Antoninus (15 points) is selectable for 23 source-linked current-catalog Character profiles; its bearer has Save 2+ and Feel No Pain 5+. Oath of Macragge (20 points) is selectable for 23 source-linked current-catalog Character profiles; its bearer's melee attacks gain +1 Strength and AP, or +2 Strength and AP while Assault Doctrine is active. Veteran of Behemoth (20 points) is selectable for 23 source-linked current-catalog Character profiles; the bearer unit's ranged attacks gain Sustained Hits 1. All four enhancements, Armour of Contempt, Courage and Honour!, Exemplary Vigilance, Ultramarian Adaptivity, and Practical Tactics have local runtime paths. Courage costs 1 CP and grants Lance to the selected unit’s melee attacks; Exemplary Vigilance costs 1 CP and grants ranged Ignores Cover; Ultramarian Adaptivity costs 1 CP and assigns a Combat Doctrine to one friendly unit until your next Command phase; Practical Tactics costs 1 CP and offers a D3+3-inch Normal Move after an enemy move ends nearby; Tactical Foresight costs 1 CP when an enemy targets a friendly Astartes unit in the opponent's Shooting or Fight phase and gives that enemy's attacks -1 to Wound when Strength exceeds Toughness. All six stratagems have local runtime paths; focused local checks, current official rule locators and full army legality remain pending."
 	marine_detachment_choice_p2.tooltip_text += " Phobos Shadow Force is partial. Shadow Masters offers Hidden preservation or a D6-inch Normal Move after an eligible unit shoots, and the 15-point Venator Omni-auspex plus 25-point Execute and Redeploy enhancements are selectable for four export-linked PHOBOS bearers. Strike from the Shadows, Tactical Withdrawal and Mortis Snares have bounded local paths. Shadow Masters remains limited to the owner's Shooting phase; focused checks, network validation and full army legality remain pending."
 	marine_detachment_choice_p2.tooltip_text += " Fist of the God-Emperor is partial: Oathbound Exemplar (10 points) is selectable for source-linked Adeptus Astartes Infantry units. It removes only the Advance/Fall Back restriction from starting an otherwise eligible action. Purge and Sanctify, Righteous Fervour and the three detachment stratagems remain unavailable; current checks, network validation and full army legality remain pending."
+	marine_detachment_choice_p2.tooltip_text += " Vow-sworn Crusaders is partial: at the start of the first battle round, choose one of three Vows. Abhor the Witch grants Precision and Lance to current-reference Adeptus Astartes melee attacks against Psykers; Accept Any Challenge adds +1 to Wound when the target's Toughness exceeds the weapon's Strength; Uphold secures objectives controlled by current-reference Adeptus Astartes Infantry and lets those units start otherwise eligible actions after Advancing. Consecrating Aura (20 points) is selectable for 23 export-linked current-catalog bearer profiles and gives its unit a 5+ invulnerable save while preserving better existing saves. Incendiary Animus (25 points) is selectable for five export-linked Chaplain or Judiciar profiles and gives its unit +1 Strength on melee attacks. Zealous Vanguard (25 points) gives 23 source-linked bearer profiles' units Scouts 6 through the shared pre-battle move or Reserve set-up. Augury Servo-host (20 points) lets the unit select one visible enemy within 18 inches that cannot benefit from cover for the phase. Pious Enmity (1 CP) is offered when a friendly Chaplain/Judiciar unit is selected to fight; choose melee Hit rerolls of 1, or Hit and Wound rerolls of 1 against MONSTER/VEHICLE targets. The other five stratagems and 2 DP Force Disposition enforcement remain unavailable or pending; focused checks, network validation and full army legality also remain pending. Current unit abilities and Black Templars Chapter context are required."
 	advanced.add_child(marine_detachment_choice_p2)
 	marine_detachment_choice_p2.item_selected.connect(func(_index: int):
 		marine_detachment_p2 = _selected_marine_detachment_for(marine_detachment_choice_p2)
 		marine_detachments = _selected_marine_detachments()
-		if marine_detachment_p2 in ["spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "fist-of-the-god-emperor"] and unit_abilities_choice != null: unit_abilities_choice.button_pressed = true
+		if marine_detachment_p2 in ["spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "fist-of-the-god-emperor", "vow-sworn-crusaders"] and unit_abilities_choice != null: unit_abilities_choice.button_pressed = true
 		_review_saved_armies())
 	var marine_chapter_heading_p1 := Label.new()
 	marine_chapter_heading_p1.text = "Player 1 Chapter context"
@@ -1795,6 +1868,8 @@ func _build_ui() -> void:
 	begin_contact_button = _button(column, "Begin contact movement", _request_begin_contact)
 	tactical_focus_button = _button(column, "Tactical Focus (1 CP) and begin consolidation", _request_tactical_focus_contact)
 	tactical_focus_button.visible = false
+	devout_push_button = _button(column, "Devout Push (1 CP) and begin pile-in", _request_devout_push_contact)
+	devout_push_button.visible = false
 	consolidation_objective = OptionButton.new()
 	column.add_child(consolidation_objective)
 	contact_enemy = OptionButton.new()
@@ -2583,6 +2658,10 @@ func _mission_overview_copy() -> String:
 	if Combat.Mission.enabled(state):
 		lines.append("CA 2026-27 · %s · Hammer and Anvil" % str(mission.get("name", "Primary mission")))
 		lines.append("Score: P1 %d VP · P2 %d VP" % [int(mission.get("scores", {}).get(1, 0)), int(mission.get("scores", {}).get(2, 0))])
+		var force_disposition_names: Dictionary = mission.get("force_disposition_names", {})
+		if not force_disposition_names.is_empty():
+			lines.append("Force Dispositions: P1 %s · P2 %s" % [str(force_disposition_names.get(1, "Unknown")), str(force_disposition_names.get(2, "Unknown"))])
+			lines.append("Primary cards use direct selection, which can override the disposition matchup.")
 		var primary_names: Dictionary = mission.get("primary_names", {})
 		lines.append("Primary cards: P1 %s · P2 %s" % [str(primary_names.get(1, primary_names.get("1", "Primary"))), str(primary_names.get(2, primary_names.get("2", "Primary")))])
 		lines.append("Primary: %d / %d VP · fixed secondaries: %d / %d VP" % [int(mission.get("primary", {}).get(1, 0)), int(mission.get("primary", {}).get(2, 0)), int(mission.get("secondary", {}).get(1, 0)), int(mission.get("secondary", {}).get(2, 0))])
@@ -3127,7 +3206,7 @@ func _build_action_groups(column: VBoxContainer) -> void:
 		"reaction": {"title": "Decision window", "controls": [reaction_help, reaction_roll, reaction_use_row, reaction_use, reaction_sudden_row, reaction_sudden, reaction_dice_hint, reaction_dice, reaction_squad]},
 		"deployment": {"title": "Deploy", "controls": [deployment_help, deployment_preset_button, deployment_confirm_button]},
 		"movement": {"title": "Move", "controls": [movement_choice, movement_elevation_choice, sudden_onslaught_choice, take_to_skies_choice, movement_choices, begin_move_button, escape_wound_button, finish_move_button, cancel_move_button, abandon_move_button, coherency_button]},
-		"contact": {"title": "Charge / fight", "controls": [charge_targets, charge_button, take_to_skies_charge_choice, begin_contact_button, tactical_focus_button, consolidation_objective, contact_enemy, contact_elevation_choice, confirm_contact_button, cancel_contact_button]},
+		"contact": {"title": "Charge / fight", "controls": [charge_targets, charge_button, take_to_skies_charge_choice, begin_contact_button, tactical_focus_button, devout_push_button, consolidation_objective, contact_enemy, contact_elevation_choice, confirm_contact_button, cancel_contact_button]},
 		"attack": {"title": "Attacks", "controls": [shooting_complete, lethal_choice, plan_begin, plan_steps, plan_assignment_status, plan_hail, indirect_choice, plan_weapon, plan_target, plan_amount, plan_add, plan_clear, plan_summary, plan_confirm, plan_cancel]},
 		"defense": {"title": "Allocate", "controls": [defense_steps, defense_picker, recipient_scroll, allocate_button, precision_skip]},
 		"objectives": {"title": "Objective", "controls": [action_objective, action_button]},
@@ -3981,6 +4060,100 @@ func _selected_official_primary_mission(player: int = 1) -> String:
 func _selected_official_primary_missions() -> Dictionary:
 	return {1: _selected_official_primary_mission(1), 2: _selected_official_primary_mission(2)}
 
+func _selected_official_primary_overrides() -> Dictionary:
+	if official_primary_matchup_default_p1 == null or official_primary_matchup_default_p2 == null: return {1: true, 2: true}
+	return {1: not official_primary_matchup_default_p1.button_pressed, 2: not official_primary_matchup_default_p2.button_pressed}
+
+func _selected_official_force_disposition(player: int = 1) -> String:
+	var picker: OptionButton = official_force_disposition_choice_p1 if player == 1 else official_force_disposition_choice_p2
+	if picker == null or picker.selected < 0: return "take-and-hold"
+	return str(picker.get_item_metadata(picker.selected))
+
+func _selected_official_force_dispositions() -> Dictionary:
+	if checked_rosters_choice == null or not checked_rosters_choice.button_pressed: return {}
+	if official_mission_choice == null or not official_mission_choice.button_pressed: return {}
+	return {1: _selected_official_force_disposition(1), 2: _selected_official_force_disposition(2)}
+
+func _mission_force_disposition_reveal_pending() -> bool:
+	return combat_enabled and Combat.Mission.enabled(state) and str(state.get("mission", {}).get("stage", "")) in ["force-disposition-p1", "force-disposition-p2"]
+
+func _sealed_force_disposition_reveal_available() -> bool:
+	if _mission_force_disposition_reveal_pending(): return true
+	return not combat_enabled and mode == "local" and official_mission_choice != null and official_mission_choice.button_pressed and checked_rosters_choice != null and checked_rosters_choice.button_pressed and official_primary_matchup_default_p1 != null and official_primary_matchup_default_p2 != null and official_primary_matchup_default_p1.button_pressed and official_primary_matchup_default_p2.button_pressed
+
+func _populate_official_force_disposition_choice(picker: OptionButton, player: int) -> void:
+	if picker == null: return
+	picker.clear()
+	var faction := "Space Marines" if player == 1 else "Necrons"
+	var detachment: Dictionary = Combat.RosterValidation.DETACHMENTS.get(faction, {})
+	for disposition_id: String in detachment.get("force_dispositions", []):
+		if not Combat.Mission.FORCE_DISPOSITIONS.has(disposition_id): continue
+		picker.add_item(str(Combat.Mission.FORCE_DISPOSITIONS[disposition_id]))
+		picker.set_item_metadata(picker.item_count - 1, disposition_id)
+	var default_id := str(official_force_disposition_choices.get(player, "take-and-hold"))
+	var selected_index := 0
+	for index in picker.item_count:
+		if str(picker.get_item_metadata(index)) == default_id:
+			selected_index = index
+			break
+	if picker.item_count > 0: picker.select(selected_index)
+
+func _select_official_force_dispositions(force_dispositions: Dictionary) -> void:
+	for player in [1, 2]:
+		var selected_id := str(force_dispositions.get(player, force_dispositions.get(str(player), "take-and-hold")))
+		if not Combat.Mission.FORCE_DISPOSITIONS.has(selected_id): selected_id = "take-and-hold"
+		official_force_disposition_choices[player] = selected_id
+		var picker: OptionButton = official_force_disposition_choice_p1 if player == 1 else official_force_disposition_choice_p2
+		if picker == null: continue
+		for index in picker.item_count:
+			if str(picker.get_item_metadata(index)) == selected_id:
+				picker.select(index)
+				break
+	_refresh_force_disposition_help()
+	_refresh_primary_mission_help(1)
+	_refresh_primary_mission_help(2)
+
+func _select_official_primary_overrides(primary_overrides: Dictionary) -> void:
+	for player in [1, 2]:
+		var raw_override: Variant = primary_overrides.get(player, primary_overrides.get(str(player), true))
+		var use_matchup_default := not bool(raw_override)
+		official_primary_matchup_defaults[player] = use_matchup_default
+		var choice: CheckBox = official_primary_matchup_default_p1 if player == 1 else official_primary_matchup_default_p2
+		if choice != null: choice.set_pressed_no_signal(use_matchup_default)
+	_refresh_primary_mission_help(1)
+	_refresh_primary_mission_help(2)
+
+func _apply_official_primary_matchup_defaults() -> void:
+	var force_dispositions := _selected_official_force_dispositions()
+	if force_dispositions.size() != 2: return
+	for player in [1, 2]:
+		if not bool(official_primary_matchup_defaults.get(player, false)): continue
+		var own_disposition := str(force_dispositions.get(player, force_dispositions.get(str(player), "")))
+		var opponent_disposition := str(force_dispositions.get(3 - player, force_dispositions.get(str(3 - player), "")))
+		var default_primary := Combat.Mission.default_primary_mission(own_disposition, opponent_disposition)
+		if not default_primary.is_empty(): _select_official_primary_mission(default_primary, player)
+
+func _refresh_force_disposition_help() -> void:
+	if official_force_disposition_help == null: return
+	if _mission_force_disposition_reveal_pending():
+		official_force_disposition_help.text = "Player %d is locking a Force Disposition. The first choice stays hidden until both players have locked theirs." % Combat.Mission.actor(state)
+		return
+	if _sealed_force_disposition_reveal_available():
+		official_force_disposition_help.text = "In local play, each player locks a Force Disposition after the match starts. The matchup and primary cards appear only after both choices are locked. Direct primary overrides use the visible setup controls instead."
+		return
+	if checked_rosters_choice == null or not checked_rosters_choice.button_pressed:
+		official_force_disposition_help.text = "Force Disposition choices are available for the checked Gladius vs Awakened Dynasty roster profile. Without that profile, use the direct primary selections below."
+		return
+	var p1_disposition := str(Combat.Mission.FORCE_DISPOSITIONS.get(_selected_official_force_disposition(1), "Unknown"))
+	var p2_disposition := str(Combat.Mission.FORCE_DISPOSITIONS.get(_selected_official_force_disposition(2), "Unknown"))
+	var p1_default := Combat.Mission.default_primary_mission(_selected_official_force_disposition(1), _selected_official_force_disposition(2))
+	var p2_default := Combat.Mission.default_primary_mission(_selected_official_force_disposition(2), _selected_official_force_disposition(1))
+	var p1_default_name := str(Combat.Mission.PRIMARY_MISSIONS.get(p1_default, {}).get("name", "Unsupported pairing"))
+	var p2_default_name := str(Combat.Mission.PRIMARY_MISSIONS.get(p2_default, {}).get("name", "Unsupported pairing"))
+	var p1_mode := "matchup default" if bool(official_primary_matchup_defaults.get(1, true)) else "direct override"
+	var p2_mode := "matchup default" if bool(official_primary_matchup_defaults.get(2, true)) else "direct override"
+	official_force_disposition_help.text = "Each selected 3 DP detachment offers Take and Hold and Priority Assets. Choices: P1 %s; P2 %s. Matchup defaults: P1 %s; P2 %s. Current primary modes: P1 %s; P2 %s. Turn each default checkbox off to override or back on to restore the matchup card." % [p1_disposition, p2_disposition, p1_default_name, p2_default_name, p1_mode, p2_mode]
+
 func _selected_official_secondary_pair() -> String:
 	if official_secondary_choice == null or official_secondary_choice.selected < 0: return Combat.Mission.DEFAULT_SECONDARY_PAIR
 	return str(official_secondary_choice.get_item_metadata(official_secondary_choice.selected))
@@ -3988,6 +4161,9 @@ func _selected_official_secondary_pair() -> String:
 func _refresh_primary_mission_help(player: int = 1) -> void:
 	var help: Label = official_primary_help if player == 1 else official_primary_help_p2
 	if help == null: return
+	if _mission_force_disposition_reveal_pending() or _sealed_force_disposition_reveal_available():
+		help.text = "This player's primary is determined from both Force Dispositions after both players lock their choices."
+		return
 	match _selected_official_primary_mission(player):
 		"battlefield-dominance": help.text = "Score from controlling objectives; the selected Event Companion terrain and shared fixed secondaries remain in use."
 		"meatgrinder": help.text = "Reward enemy unit destruction, objective control and taking the opponent’s home objective."
@@ -3995,9 +4171,20 @@ func _refresh_primary_mission_help(player: int = 1) -> void:
 		"outmanoeuvre": help.text = "Round 1 end turn: 4VP per non-home objective. Rounds 2–3 Command: 5VP each. Rounds 4–5 end turn: 6VP each. Enemy home objective at any turn end: +10VP."
 		"immovable-object": help.text = "End turn: +3VP if you control a central objective. From rounds 2–4 at Command, and round 5 at turn end, score 5VP per controlled non-home objective."
 		"delaying-action": help.text = "End turn: +2VP per enemy unit destroyed. From round 2, score +4VP at the checkpoint for any objective other than either home objective, and +3VP at turn end if you control a central and an expansion objective."
+		"inescapable-dominion": help.text = "End turn: +4VP if you control at least three objectives. From round 2 at the checkpoint, score +5VP if you control at least two objectives and +4VP if you control more objectives than your opponent. At battle end, score +5VP if you control the opponent's home objective."
+		"sabotage": help.text = "Shooting phase: start Sabotage at a non-home objective within range; each unit starting this phase must choose a different objective. It completes at end of turn only if you control that objective. Score +3VP per completed unit, plus +2VP per such unit within range of an objective in enemy territory. From round 2 at the checkpoint, score +4VP if you control any non-home objective."
 		"reconnaissance-sweep": help.text = "Score for spreading units across table quarters, destroying enemy units and controlling objectives."
 		"secure-asset": help.text = "Start Secure Asset in the Shooting phase at a controlled non-home objective; hold it through end of turn."
-	help.text += "\nEach player scores their own choice. This practice setup does not select roster-available Force Dispositions or derive missions from their pairings."
+	var force_dispositions := _selected_official_force_dispositions()
+	var default_primary := ""
+	if force_dispositions.size() == 2:
+		default_primary = Combat.Mission.default_primary_mission(str(force_dispositions.get(player, "")), str(force_dispositions.get(3 - player, "")))
+	if not default_primary.is_empty() and bool(official_primary_matchup_defaults.get(player, false)):
+		help.text += "\nThis matchup default is selected from your Force Disposition and your opponent's. The primary dropdown is disabled until you turn this option off."
+	elif not force_dispositions.is_empty():
+		help.text += "\nThis is a direct primary selection override for your recorded Force Disposition matchup."
+	else:
+		help.text += "\nEach player scores their own choice. This training setup uses direct primary selection without roster-bound Force Dispositions."
 
 func _refresh_secondary_mission_help() -> void:
 	if official_secondary_help == null: return
@@ -4058,14 +4245,34 @@ func _select_official_terrain_layout(layout_id: String) -> void:
 func _refresh_official_layout_controls() -> void:
 	if official_layout_heading == null: return
 	var active := official_mission_choice.button_pressed
+	var sealed_reveal := _sealed_force_disposition_reveal_available()
+	var hidden_reveal_pending := _mission_force_disposition_reveal_pending()
+	var show_force_disposition_controls := active and checked_rosters_choice.button_pressed and not sealed_reveal
+	if combat_enabled and Combat.Mission.enabled(state) and not hidden_reveal_pending:
+		var revealed_dispositions := Combat.Mission.force_disposition_assignments(state)
+		if revealed_dispositions.size() == 2 and revealed_dispositions != official_force_disposition_choices:
+			_select_official_force_dispositions(revealed_dispositions)
+	official_force_disposition_heading.visible = show_force_disposition_controls
+	official_force_disposition_choice_p1.visible = show_force_disposition_controls
+	official_force_disposition_heading_p2.visible = show_force_disposition_controls
+	official_force_disposition_choice_p2.visible = show_force_disposition_controls
+	official_force_disposition_help.visible = active
+	official_force_disposition_choice_p1.disabled = not show_force_disposition_controls or mode != "local"
+	official_force_disposition_choice_p2.disabled = not show_force_disposition_controls or mode != "local"
+	_refresh_force_disposition_help()
 	official_primary_heading.visible = active
-	official_primary_choice.visible = active
+	official_primary_matchup_default_p1.visible = active and checked_rosters_choice.button_pressed and not hidden_reveal_pending
+	official_primary_choice.visible = active and not sealed_reveal
 	official_primary_help.visible = active
 	official_primary_heading_p2.visible = active
-	official_primary_choice_p2.visible = active
+	official_primary_matchup_default_p2.visible = active and checked_rosters_choice.button_pressed and not hidden_reveal_pending
+	official_primary_choice_p2.visible = active and not sealed_reveal
 	official_primary_help_p2.visible = active
-	official_primary_choice.disabled = not active or mode != "local"
-	official_primary_choice_p2.disabled = not active or mode != "local"
+	var has_matchup_defaults := _selected_official_force_dispositions().size() == 2
+	official_primary_matchup_default_p1.disabled = not active or not checked_rosters_choice.button_pressed or mode != "local" or hidden_reveal_pending
+	official_primary_matchup_default_p2.disabled = not active or not checked_rosters_choice.button_pressed or mode != "local" or hidden_reveal_pending
+	official_primary_choice.disabled = not active or mode != "local" or sealed_reveal or (has_matchup_defaults and official_primary_matchup_default_p1.button_pressed)
+	official_primary_choice_p2.disabled = not active or mode != "local" or sealed_reveal or (has_matchup_defaults and official_primary_matchup_default_p2.button_pressed)
 	official_secondary_heading.visible = active
 	official_secondary_choice.visible = active
 	official_secondary_help.visible = active
@@ -4092,8 +4299,8 @@ func _refresh_official_layout_preview() -> void:
 	official_layout_preview_status.text = "The 11th-edition source diagram is not cached on this computer. The preset remains playable with bounded wall and first-floor proxies."
 
 func _initial_state() -> Dictionary:
-	if combat_enabled and saved_army_mode: return PreparedTraining.waiting({"manual_allocation": manual_allocation, "varied_equipment": false, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "marine_detachment": marine_detachment if combat_doctrines else "none", "marine_detachments": _selected_marine_detachments() if combat_doctrines else {1: "none", 2: "none"}, "marine_chapters": _selected_marine_chapters(), "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "primary_mission": _selected_official_primary_mission(), "primary_missions": _selected_official_primary_missions(), "secondary_pair": _selected_official_secondary_pair(), "terrain_layout": terrain_layout, "checked_rosters": checked_rosters})
-	if combat_enabled and prepared_match: return PreparedTraining.initial_state({"manual_allocation": manual_allocation, "varied_equipment": varied_equipment, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "marine_detachment": marine_detachment if combat_doctrines else "none", "marine_detachments": _selected_marine_detachments() if combat_doctrines else {1: "none", 2: "none"}, "marine_chapters": _selected_marine_chapters(), "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "primary_mission": _selected_official_primary_mission(), "primary_missions": _selected_official_primary_missions(), "secondary_pair": _selected_official_secondary_pair(), "terrain_layout": terrain_layout, "checked_rosters": checked_rosters})
+	if combat_enabled and saved_army_mode: return PreparedTraining.waiting({"manual_allocation": manual_allocation, "varied_equipment": false, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "marine_detachment": marine_detachment if combat_doctrines else "none", "marine_detachments": _selected_marine_detachments() if combat_doctrines else {1: "none", 2: "none"}, "marine_chapters": _selected_marine_chapters(), "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "primary_mission": _selected_official_primary_mission(), "primary_missions": _selected_official_primary_missions(), "primary_overrides": _selected_official_primary_overrides(), "force_dispositions": _selected_official_force_dispositions(), "secondary_pair": _selected_official_secondary_pair(), "terrain_layout": terrain_layout, "checked_rosters": checked_rosters})
+	if combat_enabled and prepared_match: return PreparedTraining.initial_state({"manual_allocation": manual_allocation, "varied_equipment": varied_equipment, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "marine_detachment": marine_detachment if combat_doctrines else "none", "marine_detachments": _selected_marine_detachments() if combat_doctrines else {1: "none", 2: "none"}, "marine_chapters": _selected_marine_chapters(), "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "primary_mission": _selected_official_primary_mission(), "primary_missions": _selected_official_primary_missions(), "primary_overrides": _selected_official_primary_overrides(), "force_dispositions": _selected_official_force_dispositions(), "secondary_pair": _selected_official_secondary_pair(), "terrain_layout": terrain_layout, "checked_rosters": checked_rosters})
 	if combat_enabled and allocation_practice: return TestBattlefield.apply(AllocationPractice.initial_state(damage_rerolls, count_rerolls))
 	return TestBattlefield.apply(Combat.initial_state(terrain_layout, mission_id, squads_per_side, manual_allocation, varied_equipment)) if combat_enabled else Rules.initial_state()
 
@@ -4295,7 +4502,7 @@ func _start_saved_match(local_match: bool = true, tactical_training: bool = fals
 	if selections.is_empty():
 		status.text = "Select at least your saved list before enabling LAN."
 		return
-	var options := {"manual_allocation": defender_choice.button_pressed, "varied_equipment": false, "core_stratagems": stratagem_choice.button_pressed, "movement_rerolls": reroll_choice.button_pressed, "attack_rerolls": attack_reroll_choice.button_pressed, "save_rerolls": save_reroll_choice.button_pressed, "damage_rerolls": damage_reroll_choice.button_pressed, "hazard_rerolls": hazard_reroll_choice.button_pressed, "escape_rerolls": escape_reroll_choice.button_pressed, "count_rerolls": count_reroll_choice.button_pressed, "objective_secured": objective_secured_choice.button_pressed, "implacable_eradication": implacable_eradication_choice.button_pressed, "hail_of_bolts": hail_of_bolts_choice.button_pressed, "oath_of_moment": oath_of_moment_choice.button_pressed, "reanimation_protocols": reanimation_protocols_choice.button_pressed, "combat_doctrines": combat_doctrines_choice.button_pressed, "marine_detachment": _selected_marine_detachment() if combat_doctrines_choice.button_pressed else "none", "marine_detachments": _selected_marine_detachments() if combat_doctrines_choice.button_pressed else {1: "none", 2: "none"}, "marine_chapters": _selected_marine_chapters(), "awakened_dynasty": awakened_dynasty_choice.button_pressed, "unit_abilities": unit_abilities_choice.button_pressed, "official_mission": official_mission_choice.button_pressed, "primary_mission": _selected_official_primary_mission(), "primary_missions": _selected_official_primary_missions(), "secondary_pair": _selected_official_secondary_pair(), "terrain_layout": terrain_layout, "checked_rosters": checked_rosters_choice.button_pressed}
+	var options := {"manual_allocation": defender_choice.button_pressed, "varied_equipment": false, "core_stratagems": stratagem_choice.button_pressed, "movement_rerolls": reroll_choice.button_pressed, "attack_rerolls": attack_reroll_choice.button_pressed, "save_rerolls": save_reroll_choice.button_pressed, "damage_rerolls": damage_reroll_choice.button_pressed, "hazard_rerolls": hazard_reroll_choice.button_pressed, "escape_rerolls": escape_reroll_choice.button_pressed, "count_rerolls": count_reroll_choice.button_pressed, "objective_secured": objective_secured_choice.button_pressed, "implacable_eradication": implacable_eradication_choice.button_pressed, "hail_of_bolts": hail_of_bolts_choice.button_pressed, "oath_of_moment": oath_of_moment_choice.button_pressed, "reanimation_protocols": reanimation_protocols_choice.button_pressed, "combat_doctrines": combat_doctrines_choice.button_pressed, "marine_detachment": _selected_marine_detachment() if combat_doctrines_choice.button_pressed else "none", "marine_detachments": _selected_marine_detachments() if combat_doctrines_choice.button_pressed else {1: "none", 2: "none"}, "marine_chapters": _selected_marine_chapters(), "awakened_dynasty": awakened_dynasty_choice.button_pressed, "unit_abilities": unit_abilities_choice.button_pressed, "official_mission": official_mission_choice.button_pressed, "primary_mission": _selected_official_primary_mission(), "primary_missions": _selected_official_primary_missions(), "primary_overrides": _selected_official_primary_overrides(), "force_dispositions": _selected_official_force_dispositions(), "secondary_pair": _selected_official_secondary_pair(), "terrain_layout": terrain_layout, "checked_rosters": checked_rosters_choice.button_pressed}
 	if tactical_training: options.training_scenario_id = TrainingRoster.Tactical.ID
 	var candidate := PreparedTraining.initial_state(options, selections) if local_match else PreparedTraining.waiting(options)
 	if candidate.has("error"):
@@ -4435,7 +4642,7 @@ func _try_saved_armies() -> void:
 	if pending_armies.size() != 2:
 		_broadcast()
 		return
-	var candidate := PreparedTraining.initial_state({"manual_allocation": manual_allocation, "varied_equipment": false, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "marine_detachment": marine_detachment if combat_doctrines else "none", "marine_detachments": _selected_marine_detachments() if combat_doctrines else {1: "none", 2: "none"}, "marine_chapters": _selected_marine_chapters(), "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "primary_mission": _selected_official_primary_mission(), "primary_missions": _selected_official_primary_missions(), "secondary_pair": _selected_official_secondary_pair(), "terrain_layout": terrain_layout, "checked_rosters": checked_rosters}, pending_armies)
+	var candidate := PreparedTraining.initial_state({"manual_allocation": manual_allocation, "varied_equipment": false, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "marine_detachment": marine_detachment if combat_doctrines else "none", "marine_detachments": _selected_marine_detachments() if combat_doctrines else {1: "none", 2: "none"}, "marine_chapters": _selected_marine_chapters(), "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "primary_mission": _selected_official_primary_mission(), "primary_missions": _selected_official_primary_missions(), "primary_overrides": _selected_official_primary_overrides(), "force_dispositions": _selected_official_force_dispositions(), "secondary_pair": _selected_official_secondary_pair(), "terrain_layout": terrain_layout, "checked_rosters": checked_rosters}, pending_armies)
 	if candidate.has("error"):
 		_broadcast()
 		status.text = candidate.error
@@ -4461,7 +4668,27 @@ func _try_saved_armies() -> void:
 func _start_prepared_match() -> void:
 	if mode != "local": return
 	local_visual_armies.clear()
-	var candidate := PreparedTraining.initial_state({"manual_allocation": defender_choice.button_pressed, "varied_equipment": equipment_choice.button_pressed, "core_stratagems": stratagem_choice.button_pressed, "movement_rerolls": reroll_choice.button_pressed, "attack_rerolls": attack_reroll_choice.button_pressed, "save_rerolls": save_reroll_choice.button_pressed, "damage_rerolls": damage_reroll_choice.button_pressed, "hazard_rerolls": hazard_reroll_choice.button_pressed, "escape_rerolls": escape_reroll_choice.button_pressed, "count_rerolls": count_reroll_choice.button_pressed, "objective_secured": objective_secured_choice.button_pressed, "implacable_eradication": implacable_eradication_choice.button_pressed, "hail_of_bolts": hail_of_bolts_choice.button_pressed, "oath_of_moment": oath_of_moment_choice.button_pressed, "reanimation_protocols": reanimation_protocols_choice.button_pressed, "combat_doctrines": combat_doctrines_choice.button_pressed, "marine_detachment": _selected_marine_detachment() if combat_doctrines_choice.button_pressed else "none", "marine_detachments": _selected_marine_detachments() if combat_doctrines_choice.button_pressed else {1: "none", 2: "none"}, "marine_chapters": _selected_marine_chapters(), "awakened_dynasty": awakened_dynasty_choice.button_pressed, "unit_abilities": unit_abilities_choice.button_pressed, "official_mission": official_mission_choice.button_pressed, "primary_mission": _selected_official_primary_mission(), "primary_missions": _selected_official_primary_missions(), "secondary_pair": _selected_official_secondary_pair(), "terrain_layout": terrain_layout, "checked_rosters": checked_rosters_choice.button_pressed})
+	var use_sealed_reveal := _sealed_force_disposition_reveal_available()
+	var selected_force_dispositions := {} if use_sealed_reveal else _selected_official_force_dispositions()
+	var prepared_options := {
+		"manual_allocation": defender_choice.button_pressed, "varied_equipment": equipment_choice.button_pressed,
+		"core_stratagems": stratagem_choice.button_pressed, "movement_rerolls": reroll_choice.button_pressed,
+		"attack_rerolls": attack_reroll_choice.button_pressed, "save_rerolls": save_reroll_choice.button_pressed,
+		"damage_rerolls": damage_reroll_choice.button_pressed, "hazard_rerolls": hazard_reroll_choice.button_pressed,
+		"escape_rerolls": escape_reroll_choice.button_pressed, "count_rerolls": count_reroll_choice.button_pressed,
+		"objective_secured": objective_secured_choice.button_pressed, "implacable_eradication": implacable_eradication_choice.button_pressed,
+		"hail_of_bolts": hail_of_bolts_choice.button_pressed, "oath_of_moment": oath_of_moment_choice.button_pressed,
+		"reanimation_protocols": reanimation_protocols_choice.button_pressed, "combat_doctrines": combat_doctrines_choice.button_pressed,
+		"marine_detachment": _selected_marine_detachment() if combat_doctrines_choice.button_pressed else "none",
+		"marine_detachments": _selected_marine_detachments() if combat_doctrines_choice.button_pressed else {1: "none", 2: "none"},
+		"marine_chapters": _selected_marine_chapters(), "awakened_dynasty": awakened_dynasty_choice.button_pressed,
+		"unit_abilities": unit_abilities_choice.button_pressed, "official_mission": official_mission_choice.button_pressed,
+		"primary_mission": _selected_official_primary_mission(), "primary_missions": _selected_official_primary_missions(),
+		"primary_overrides": _selected_official_primary_overrides(), "force_dispositions": selected_force_dispositions,
+		"secondary_pair": _selected_official_secondary_pair(), "terrain_layout": terrain_layout,
+		"checked_rosters": checked_rosters_choice.button_pressed, "sealed_force_disposition_reveal": use_sealed_reveal
+	}
+	var candidate := PreparedTraining.initial_state(prepared_options)
 	if candidate.has("error"):
 		status.text = candidate.error
 		return
@@ -4943,7 +5170,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			if Combat.UnitActions.pending(state).get("kind", "") == "ingress":
 				for choice: Dictionary in _available_unit_choices(_local_player()):
 					if choice.action == "ingress-place" and choice.model == selected: ability = choice
-			if ability.action in ["ingress-place", "scout-place", "homer", "heal-revive", "heal-place", "purgation-place", "transport-disembark-place"]:
+			if Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW:
+				for choice: Dictionary in _available_unit_choices(_local_player()):
+					if choice.action == "heresy-retribution-place" and choice.model == selected: ability = choice
+			if ability.action in ["ingress-place", "scout-place", "homer", "heal-revive", "heal-place", "purgation-place", "transport-disembark-place", "heresy-retribution-place"]:
 				unit_action_x.value = target.x
 				unit_action_z.value = target.y
 				if mode == "client": request_unit_action.rpc_id(1, ability, target, state.revision)
@@ -5114,6 +5344,7 @@ func _refresh_decision() -> void:
 		elif Combat.UnitActions.battle_actor(state) > 0: instruction = "Optional: place or skip Terminator Homers, then finish setup."
 		elif Combat.UnitActions.pending(state).get("kind", "") in ["healing", "healing-order"]: instruction = "Unit healing: resolve wounds and confirm returned-model previews."
 		elif Combat.UnitActions.pending(state).get("kind", "") == "ingress": instruction = "Required: preview every arriving model, then confirm the coherent unit or cancel ingress."
+		elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW: instruction = "Heresy Begets Retribution: preview every model's Surge move, follow the selected target's movement rules, then confirm."
 		elif Combat.UnitActions.pending(state).get("kind", "") == "bladeguard": instruction = "Bladeguard: choose a stance or decline. Attack dice wait."
 		elif Combat.UnitActions.pending(state).get("kind", "") == "wound": instruction = "Implacable Eradication: choose free wound rerolls, then keep the remaining dice to continue to saves."
 		else: instruction = "Required: resolve or decline the current unit ability window."
@@ -5574,6 +5805,7 @@ func _refresh() -> void:
 		var previews: Dictionary = Combat.Reanimation.pending(state).get("current", {}).get("placements", {}) if combat_enabled else {}
 		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == "ingress": previews = Combat.UnitActions.pending(state).positions
 		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == "healing": previews = Combat.UnitActions.pending(state).placements
+		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW: previews = Combat.UnitActions.pending(state).positions
 		if combat_enabled and not state.get("unit_abilities", {}).get("transport_window", {}).is_empty(): previews = state.unit_abilities.transport_window.placements
 		var display_position: Vector2 = previews.get(id, unit.position)
 		var elevation := float(unit.get("elevation", 0.0))
@@ -5799,8 +6031,10 @@ func _refresh() -> void:
 	marine_chapter_choice_p2.disabled = mode != "local" or not unit_abilities_choice.button_pressed
 	checked_rosters_choice.disabled = mode != "local"
 	official_mission_choice.disabled = mode != "local"
-	official_primary_choice.disabled = mode != "local" or not official_mission_choice.button_pressed
-	official_primary_choice_p2.disabled = mode != "local" or not official_mission_choice.button_pressed
+	official_primary_matchup_default_p1.disabled = mode != "local" or not official_mission_choice.button_pressed
+	official_primary_matchup_default_p2.disabled = mode != "local" or not official_mission_choice.button_pressed
+	official_primary_choice.disabled = mode != "local" or not official_mission_choice.button_pressed or official_primary_matchup_default_p1.button_pressed
+	official_primary_choice_p2.disabled = mode != "local" or not official_mission_choice.button_pressed or official_primary_matchup_default_p2.button_pressed
 	official_secondary_choice.disabled = mode != "local" or not official_mission_choice.button_pressed
 	unit_abilities_choice.disabled = mode != "local"
 	awakened_dynasty_choice.disabled = mode != "local"
@@ -5847,6 +6081,7 @@ func _refresh() -> void:
 	action_objective.disabled = not can_act
 	var pending_contact: bool = combat_enabled and not state.pending_contact.is_empty()
 	tactical_focus_button.visible = false
+	devout_push_button.visible = false
 	var previous_enemy := contact_enemy.get_selected_id()
 	contact_enemy.clear()
 	contact_enemy.visible = false
@@ -5902,13 +6137,25 @@ func _refresh() -> void:
 	if combat_enabled and state.phase == "fight" and state.fight_step == "consolidate" and state.units.has(selected):
 		var saved_focus_roll: Dictionary = Combat.DetachmentStratagems.tactical_focus_roll(state, _local_player(), int(state.units[selected].squad))
 		if not saved_focus_roll.is_empty(): begin_contact_button.disabled = true
+	if combat_enabled and not pending_contact and state.phase == "fight" and state.fight_step in ["pile_in", "consolidate"] and state.units.has(selected):
+		var devout_squad := int(state.units[selected].squad)
+		var devout_error := Combat.DetachmentStratagems.error(state, _local_player(), devout_squad, Combat.DetachmentStratagems.VOW_DEVOUT_PUSH)
+		if devout_error.is_empty():
+			var saved_devout_roll := Combat.DetachmentStratagems.devout_push_roll(state, _local_player(), devout_squad)
+			devout_push_button.visible = true
+			devout_push_button.text = "Resume Devout Push (roll retained)" if not saved_devout_roll.is_empty() else ("Devout Push (1 CP) and begin pile-in" if state.fight_step == "pile_in" else "Devout Push (1 CP) and begin consolidation")
+			devout_push_button.tooltip_text = "Devout Push costs 1 CP, reduced by an eligible discount. Roll D3+3 inches, then place and confirm this unit’s pile-in or consolidation. Canceling placement restores positions and retains the paid roll; resuming does not charge CP again."
+			devout_push_button.disabled = not can_act or state.units[selected].owner != _local_player() or state.units[selected].wounds <= 0
+			if not saved_devout_roll.is_empty():
+				begin_contact_button.disabled = true
+				begin_contact_button.tooltip_text += "\n\nDevout Push is already paid for this contact move. Resume the saved roll to finish placement."
 	if combat_enabled and state.phase == "fight" and state.fight_step in ["attacks", "consolidation_reaction"] and begin_contact_button.disabled and not pending_contact:
 		begin_contact_button.visible = false
 		contact_enemy.visible = false
 	confirm_contact_button.visible = pending_contact
 	cancel_contact_button.visible = pending_contact
 	confirm_contact_button.tooltip_text = "Confirm this charge/pile-in/consolidation preview. Legal placement and coherency are checked before applying the move."
-	cancel_contact_button.tooltip_text = "Discard the current placement preview and restore model positions. If Tactical Focus was used, its paid roll remains available to resume."
+	cancel_contact_button.tooltip_text = "Discard the placement preview and restore model positions. Paid Tactical Focus or Devout Push rolls remain available to resume; Charge dice are retained too."
 	cancel_contact_button.text = "Cancel contact placement (retain charge roll)" if pending_contact and state.pending_contact.kind == "charge" else "Cancel contact placement"
 	confirm_contact_button.disabled = not can_act
 	cancel_contact_button.disabled = not can_act
@@ -6047,7 +6294,7 @@ func _refresh() -> void:
 	allocate_button.disabled = not allocating or not can_act or not (Combat.Hazard.choice_error(state, _local_player(), selected) if hazard_pending else Combat.Allocation.choice_error(state, _local_player(), selected)).is_empty()
 	if precision_pending and selected < 0: allocate_button.disabled = true
 	if allocating:
-		for control in [end_button, charge_button, begin_contact_button, tactical_focus_button, begin_move_button, action_button, plan_begin, plan_confirm, coherency_button, escape_wound_button, abandon_move_button, finish_move_button, cancel_move_button, confirm_contact_button, cancel_contact_button]: control.disabled = true
+		for control in [end_button, charge_button, begin_contact_button, tactical_focus_button, devout_push_button, begin_move_button, action_button, plan_begin, plan_confirm, coherency_button, escape_wound_button, abandon_move_button, finish_move_button, cancel_move_button, confirm_contact_button, cancel_contact_button]: control.disabled = true
 	_refresh_defense_steps(allocating, hazard_pending, eligible_recipient_models)
 	_refresh_action_groups()
 	_refresh_unit_choices()
@@ -6831,6 +7078,7 @@ func _refresh_attack_plan() -> void:
 	end_button.disabled = true
 	begin_contact_button.disabled = true
 	tactical_focus_button.disabled = true
+	devout_push_button.disabled = true
 	action_button.disabled = true
 	var previous_target := plan_target.get_selected_id()
 	var previous_weapon := _plan_weapon_choice()
@@ -7209,6 +7457,15 @@ func _save_config() -> Dictionary:
 	var saved_primary_missions: Dictionary = _selected_official_primary_missions()
 	if Combat.Mission.enabled(state): saved_primary_missions = Combat.Mission.primary_assignments(state)
 	var saved_primary_mission := str(saved_primary_missions.get(1, _selected_official_primary_mission()))
+	var saved_primary_overrides: Dictionary = _selected_official_primary_overrides()
+	if Combat.Mission.enabled(state):
+		var recorded_primary_overrides: Variant = state.mission.get("primary_overrides", {1: true, 2: true})
+		if recorded_primary_overrides is Dictionary: saved_primary_overrides = recorded_primary_overrides.duplicate(true)
+	var saved_force_dispositions: Dictionary = _selected_official_force_dispositions()
+	if Combat.Mission.enabled(state):
+		var recorded_force_dispositions := Combat.Mission.force_disposition_assignments(state)
+		if not recorded_force_dispositions.is_empty(): saved_force_dispositions = recorded_force_dispositions
+		elif _mission_force_disposition_reveal_pending(): saved_force_dispositions = {}
 	var saved_secondary_pair := str(state.get("mission", {}).get("secondary_pair_id", _selected_official_secondary_pair()))
 	var selected_detachment := marine_detachment if combat_doctrines else "none"
 	var selected_detachments: Dictionary = _selected_marine_detachments() if combat_doctrines else {1: "none", 2: "none"}
@@ -7220,14 +7477,22 @@ func _save_config() -> Dictionary:
 	if match_manifest.has("marine_detachment"): selected_detachment = str(match_manifest.marine_detachment)
 	var declared_chapters: Dictionary = match_manifest.get("marine_chapter_selections", match_manifest.get("marine_chapters", {}))
 	if not declared_chapters.is_empty(): selected_chapters = declared_chapters.duplicate(true)
-	return {"combat_enabled": combat_enabled, "saved_army_mode": saved_army_mode, "prepared_match": prepared_match, "terrain_layout": terrain_layout, "mission_id": mission_id, "squads_per_side": squads_per_side, "manual_allocation": manual_allocation, "varied_equipment": varied_equipment, "allocation_practice": allocation_practice, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "marine_detachment": selected_detachment, "marine_detachments": selected_detachments, "marine_chapters": selected_chapters, "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "official_terrain_layout": saved_event_layout, "official_primary_mission": saved_primary_mission, "official_primary_missions": saved_primary_missions, "official_secondary_pair": saved_secondary_pair, "checked_rosters": checked_rosters}
+	return {"combat_enabled": combat_enabled, "saved_army_mode": saved_army_mode, "prepared_match": prepared_match, "terrain_layout": terrain_layout, "mission_id": mission_id, "squads_per_side": squads_per_side, "manual_allocation": manual_allocation, "varied_equipment": varied_equipment, "allocation_practice": allocation_practice, "core_stratagems": core_stratagems, "movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls, "save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls, "hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls, "count_rerolls": count_rerolls, "objective_secured": objective_secured, "implacable_eradication": implacable_eradication, "hail_of_bolts": hail_of_bolts, "oath_of_moment": oath_of_moment, "reanimation_protocols": reanimation_protocols, "combat_doctrines": combat_doctrines, "marine_detachment": selected_detachment, "marine_detachments": selected_detachments, "marine_chapters": selected_chapters, "awakened_dynasty": awakened_dynasty, "unit_abilities": unit_abilities, "official_mission": official_mission, "official_terrain_layout": saved_event_layout, "official_primary_mission": saved_primary_mission, "official_primary_missions": saved_primary_missions, "official_primary_overrides": saved_primary_overrides, "official_force_dispositions": saved_force_dispositions, "official_secondary_pair": saved_secondary_pair, "checked_rosters": checked_rosters}
 
 func _prepared_options_for_restore(config: Dictionary, saved_state: Dictionary) -> Dictionary:
 	var legacy_primary := str(config.get("official_primary_mission", "battlefield-dominance"))
 	var primary_ids: Dictionary = {1: legacy_primary, 2: legacy_primary}
 	var configured_primary_ids: Variant = config.get("official_primary_missions", {})
 	if configured_primary_ids is Dictionary: primary_ids = configured_primary_ids.duplicate(true)
-	var options := {"manual_allocation": config.manual_allocation, "varied_equipment": config.varied_equipment, "core_stratagems": config.core_stratagems, "movement_rerolls": config.movement_rerolls, "attack_rerolls": config.attack_rerolls, "save_rerolls": config.save_rerolls, "damage_rerolls": config.damage_rerolls, "hazard_rerolls": config.hazard_rerolls, "escape_rerolls": config.escape_rerolls, "count_rerolls": config.count_rerolls, "objective_secured": config.objective_secured, "implacable_eradication": config.implacable_eradication, "hail_of_bolts": config.hail_of_bolts, "oath_of_moment": config.oath_of_moment, "reanimation_protocols": config.reanimation_protocols, "combat_doctrines": config.combat_doctrines, "marine_detachment": config.marine_detachment, "marine_detachments": config.get("marine_detachments", {1: config.marine_detachment, 2: config.marine_detachment}), "awakened_dynasty": config.awakened_dynasty, "unit_abilities": config.unit_abilities, "official_mission": config.official_mission, "primary_mission": legacy_primary, "primary_missions": primary_ids, "secondary_pair": config.get("official_secondary_pair", Combat.Mission.DEFAULT_SECONDARY_PAIR), "terrain_layout": str(config.official_terrain_layout if config.official_mission else config.terrain_layout), "checked_rosters": config.checked_rosters}
+	var configured_primary_overrides: Variant = config.get("official_primary_overrides", {1: true, 2: true})
+	var primary_overrides: Dictionary = configured_primary_overrides.duplicate(true) if configured_primary_overrides is Dictionary else {1: true, 2: true}
+	var configured_force_dispositions: Variant = config.get("official_force_dispositions", {})
+	var force_dispositions: Dictionary = configured_force_dispositions.duplicate(true) if configured_force_dispositions is Dictionary else {}
+	var saved_mission: Dictionary = saved_state.get("mission", {})
+	var sealed_reveal_pending := bool(saved_mission.get("sealed_force_disposition_reveal", false)) and str(saved_mission.get("stage", "")) in ["force-disposition-p1", "force-disposition-p2"]
+	if force_dispositions.is_empty() and config.get("checked_rosters", false) and config.get("official_mission", false) and not sealed_reveal_pending: force_dispositions = {1: "take-and-hold", 2: "take-and-hold"}
+	var options := {"manual_allocation": config.manual_allocation, "varied_equipment": config.varied_equipment, "core_stratagems": config.core_stratagems, "movement_rerolls": config.movement_rerolls, "attack_rerolls": config.attack_rerolls, "save_rerolls": config.save_rerolls, "damage_rerolls": config.damage_rerolls, "hazard_rerolls": config.hazard_rerolls, "escape_rerolls": config.escape_rerolls, "count_rerolls": config.count_rerolls, "objective_secured": config.objective_secured, "implacable_eradication": config.implacable_eradication, "hail_of_bolts": config.hail_of_bolts, "oath_of_moment": config.oath_of_moment, "reanimation_protocols": config.reanimation_protocols, "combat_doctrines": config.combat_doctrines, "marine_detachment": config.marine_detachment, "marine_detachments": config.get("marine_detachments", {1: config.marine_detachment, 2: config.marine_detachment}), "awakened_dynasty": config.awakened_dynasty, "unit_abilities": config.unit_abilities, "official_mission": config.official_mission, "primary_mission": legacy_primary, "primary_missions": primary_ids, "primary_overrides": primary_overrides, "force_dispositions": force_dispositions, "secondary_pair": config.get("official_secondary_pair", Combat.Mission.DEFAULT_SECONDARY_PAIR), "terrain_layout": str(config.official_terrain_layout if config.official_mission else config.terrain_layout), "checked_rosters": config.checked_rosters}
+	options.sealed_force_disposition_reveal = sealed_reveal_pending
 	var manifest: Dictionary = saved_state.get("match_manifest", {})
 	if manifest.get("marine_chapter_rules", "") == ChapterRules.ID:
 		options.marine_chapters = config.get("marine_chapters", {1: "", 2: ""}).duplicate(true)
@@ -7515,6 +7780,9 @@ func _load_match(as_host: bool = false, validate_only: bool = false, saved_overr
 	if not config.has("official_primary_missions"):
 		var stored_primaries: Variant = saved.state.get("mission", {}).get("primary_ids", {})
 		config.official_primary_missions = stored_primaries.duplicate(true) if stored_primaries is Dictionary and not stored_primaries.is_empty() else {1: str(config.official_primary_mission), 2: str(config.official_primary_mission)}
+	if not config.has("official_primary_overrides"):
+		var stored_overrides: Variant = saved.state.get("mission", {}).get("primary_overrides", {1: true, 2: true})
+		config.official_primary_overrides = stored_overrides.duplicate(true) if stored_overrides is Dictionary else {1: true, 2: true}
 	if not config.has("official_secondary_pair"): config.official_secondary_pair = str(saved.state.get("mission", {}).get("secondary_pair_id", Combat.Mission.DEFAULT_SECONDARY_PAIR))
 	if not config.has("official_terrain_layout"):
 		config.official_terrain_layout = str(saved.state.get("mission", {}).get("terrain_layout", Combat.Mission.DEFAULT_TERRAIN_LAYOUT))
@@ -7537,6 +7805,28 @@ func _load_match(as_host: bool = false, validate_only: bool = false, saved_overr
 			if not Combat.Mission.PRIMARY_MISSIONS.has(selected_primary) or selected_primary != str(saved_primaries[owner]):
 				status.text = "The selected primary mission for Player %d does not match the save." % owner
 				return
+		var saved_primary_overrides: Dictionary = saved.state.get("mission", {}).get("primary_overrides", {1: true, 2: true})
+		var configured_primary_overrides: Variant = config.get("official_primary_overrides", {1: true, 2: true})
+		if not configured_primary_overrides is Dictionary:
+			status.text = "The saved primary selection modes are invalid."
+			return
+		for owner in [1, 2]:
+			var configured_override: Variant = configured_primary_overrides.get(owner, configured_primary_overrides.get(str(owner), true))
+			var saved_primary_override: Variant = saved_primary_overrides.get(owner, saved_primary_overrides.get(str(owner), true))
+			if typeof(configured_override) != TYPE_BOOL or typeof(saved_primary_override) != TYPE_BOOL or bool(configured_override) != bool(saved_primary_override):
+				status.text = "The primary selection mode for Player %d does not match the save." % owner
+				return
+		var saved_force_dispositions := Combat.Mission.force_disposition_assignments(saved.state)
+		if not saved_force_dispositions.is_empty():
+			var configured_force_dispositions: Variant = config.get("official_force_dispositions", {})
+			if not configured_force_dispositions is Dictionary:
+				status.text = "The saved Force Disposition choices are invalid."
+				return
+			for owner in [1, 2]:
+				var configured_disposition := str(configured_force_dispositions.get(owner, configured_force_dispositions.get(str(owner), "")))
+				if configured_disposition != str(saved_force_dispositions.get(owner, saved_force_dispositions.get(str(owner), ""))):
+					status.text = "The Force Disposition selection for Player %d does not match the save." % owner
+					return
 	if config.official_mission and (not Combat.Mission.SECONDARY_PAIRS.has(str(config.official_secondary_pair)) or str(config.official_secondary_pair) != Combat.Mission.secondary_pair_id(saved.state)):
 		status.text = "The selected fixed secondary pair does not match the save."
 		return
@@ -7681,7 +7971,9 @@ func _load_match(as_host: bool = false, validate_only: bool = false, saved_overr
 		if not transport_error.is_empty():
 			status.text = transport_error
 			return
-	for key in config: set(key, config[key])
+	for key in config:
+		if key in ["official_force_dispositions", "official_primary_overrides"]: continue
+		set(key, config[key])
 	stratagem_choice.button_pressed = core_stratagems
 	reroll_choice.button_pressed = movement_rerolls
 	attack_reroll_choice.button_pressed = attack_rerolls
@@ -7705,7 +7997,13 @@ func _load_match(as_host: bool = false, validate_only: bool = false, saved_overr
 	_select_marine_chapter(marine_chapter_choice_p2, str(marine_chapters[2]))
 	checked_rosters_choice.set_pressed_no_signal(checked_rosters)
 	official_mission_choice.set_pressed_no_signal(official_mission)
+	var configured_force_dispositions: Variant = config.get("official_force_dispositions", {1: "take-and-hold", 2: "take-and-hold"})
+	var loaded_force_dispositions: Dictionary = {}
+	if configured_force_dispositions is Dictionary: loaded_force_dispositions = configured_force_dispositions.duplicate(true)
+	_select_official_force_dispositions(loaded_force_dispositions)
 	_select_official_primary_missions(config.get("official_primary_missions", {1: str(config.official_primary_mission), 2: str(config.official_primary_mission)}))
+	_select_official_primary_overrides(config.get("official_primary_overrides", {1: true, 2: true}))
+	_apply_official_primary_matchup_defaults()
 	_select_official_secondary_pair(str(config.official_secondary_pair))
 	_select_official_terrain_layout(str(config.official_terrain_layout))
 	_refresh_official_layout_controls()
@@ -8406,27 +8704,30 @@ func _apply_charge(player: int, target: int, revision: int) -> void:
 	_present_match_command(player, result)
 
 func _request_begin_contact() -> void:
-	_request_begin_contact_with_tactical_focus(false)
+	_request_begin_contact_with_stratagems(false, false)
 
 func _request_tactical_focus_contact() -> void:
-	_request_begin_contact_with_tactical_focus(true)
+	_request_begin_contact_with_stratagems(true, false)
 
-func _request_begin_contact_with_tactical_focus(use_tactical_focus: bool) -> void:
+func _request_devout_push_contact() -> void:
+	_request_begin_contact_with_stratagems(false, true)
+
+func _request_begin_contact_with_stratagems(use_tactical_focus: bool, use_devout_push: bool) -> void:
 	if not combat_enabled: return
 	var kind: String = "charge" if state.phase == "charge" else "pile_in" if state.fight_step == "pile_in" else "consolidate" if state.fight_step == "consolidate" else "overrun"
 	var objective := consolidation_objective.get_selected_id() if consolidation_objective.visible else -1
 	var targets: Array[int] = []
 	if contact_enemy.visible: targets.append(contact_enemy.get_selected_id())
-	if mode == "client": request_begin_contact.rpc_id(1, selected, kind, state.revision, objective, targets, use_tactical_focus)
-	else: _apply_begin_contact(_local_player(), selected, kind, state.revision, objective, targets, use_tactical_focus)
+	if mode == "client": request_begin_contact.rpc_id(1, selected, kind, state.revision, objective, targets, use_tactical_focus, use_devout_push)
+	else: _apply_begin_contact(_local_player(), selected, kind, state.revision, objective, targets, use_tactical_focus, use_devout_push)
 
 @rpc("any_peer", "call_remote", "reliable")
-func request_begin_contact(model: int, kind: String, revision: int, objective: int = -1, targets: Array[int] = [], use_tactical_focus: bool = false) -> void:
-	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_begin_contact(2, model, kind, revision, objective, targets, use_tactical_focus)
+func request_begin_contact(model: int, kind: String, revision: int, objective: int = -1, targets: Array[int] = [], use_tactical_focus: bool = false, use_devout_push: bool = false) -> void:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_begin_contact(2, model, kind, revision, objective, targets, use_tactical_focus, use_devout_push)
 
-func _apply_begin_contact(player: int, model: int, kind: String, revision: int, objective: int = -1, targets: Array[int] = [], use_tactical_focus: bool = false) -> void:
+func _apply_begin_contact(player: int, model: int, kind: String, revision: int, objective: int = -1, targets: Array[int] = [], use_tactical_focus: bool = false, use_devout_push: bool = false) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.BEGIN_CONTACT, "model": model, "move_kind": kind, "revision": revision, "targets": targets, "objective": objective, "use_tactical_focus": use_tactical_focus}, _d6)
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.BEGIN_CONTACT, "model": model, "move_kind": kind, "revision": revision, "targets": targets, "objective": objective, "use_tactical_focus": use_tactical_focus, "use_devout_push": use_devout_push}, _d6)
 	_present_match_command(player, result)
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -8889,6 +9190,11 @@ func _refresh_unit_actions() -> void:
 			unit_action_help.text = "Relic Teleportarium: set up the Deathwing unit more than 6 inches horizontally from every enemy. It cannot Charge this turn. The CP is spent when selected and is not refunded if placement is canceled. Confirm only after every model fits coherently."
 		else:
 			unit_action_help.text = "Ingress: select each model and place its preview using X/Z or right-click. Confirm only after the whole unit fits coherently, more than 8 inches from enemies. Cancel preserves reserves and resources."
+	elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW:
+		var heresy_window: Dictionary = Combat.UnitActions.pending(state)
+		var heresy_target := int(heresy_window.get("surge_target", -1))
+		unit_action_help.text = "Heresy Begets Retribution: D6 = %d. Preview each model with X/Z or right-click. Every model moves closer; models that can reach Engagement Range must engage the selected closest enemy, and models that cannot must end as close as possible. Keep coherency and avoid engaging any other enemy, then confirm. Reset keeps the spent CP and roll." % [int(heresy_window.get("distance", 0))]
+		if state.squads.has(heresy_target): unit_action_help.text += "\nSurge target: %s." % str(state.squads[heresy_target].get("name", "enemy unit"))
 	elif Combat.UnitActions.pending(state).get("kind", "") in ["evade-and-survive", "evade-placement"]:
 		unit_action_help.text = "Evade and Survive: during the opponent's Movement phase, after an enemy ends a move within 8 inches, an unengaged Lieutenant can make one normal move of D3+3 inches. Preview and confirm; the move must end unengaged."
 	elif Combat.UnitActions.pending(state).get("kind", "") in ["tactical-fluidity", "tactical-fluidity-placement"]:
@@ -8912,7 +9218,7 @@ func _refresh_unit_actions() -> void:
 	if not unit_action_help.tooltip_text.is_empty(): full_help += "\n" + unit_action_help.tooltip_text
 	unit_choice_reference.text = "CURRENT CHOICE\n" + str(unit_action_picker.get_selected_metadata().label) + "\n\n" + full_help
 	unit_action_help.tooltip_text = full_help
-	var tactical: bool = str(Combat.UnitActions.pending(state).get("kind", "")) in ["healing", "healing-order", "ingress", "bladeguard", "wound", "evade-and-survive", "evade-placement", "tactical-fluidity", "tactical-fluidity-placement", Combat.DetachmentStratagems.UNSTOPPABLE_WINDOW, Combat.UnitActions.TargetAuguryWeb.WINDOW] or not optics.is_empty() or not state.get("unit_abilities", {}).get("transport_window", {}).is_empty()
+	var tactical: bool = str(Combat.UnitActions.pending(state).get("kind", "")) in ["healing", "healing-order", "ingress", "bladeguard", "wound", "evade-and-survive", "evade-placement", "tactical-fluidity", "tactical-fluidity-placement", Combat.DetachmentStratagems.UNSTOPPABLE_WINDOW, Combat.UnitActions.TargetAuguryWeb.WINDOW, Combat.UnitActions.HeresyRetribution.WINDOW] or not optics.is_empty() or not state.get("unit_abilities", {}).get("transport_window", {}).is_empty()
 	if not tactical and not battle_start_setup: unit_action_help.text = "Choose an option, then Confirm choice."
 	if guided_first_session and not preparing:
 		# The picker may truncate a long unit/stratagem label, including its CP cost.
@@ -9135,6 +9441,7 @@ func _unit_choice_payload(choice: Dictionary) -> Dictionary:
 		if int(choice.get("model", -1)) != int(option.get("model", -1)): continue
 		if int(choice.get("target", -1)) != int(option.get("target", -1)): continue
 		if str(choice.get("value", "")) != str(option.get("value", "")): continue
+		if int(choice.get("enemy_target", -1)) != int(option.get("enemy_target", -1)): continue
 		option_id = str(option.get("id", ""))
 		break
 	return {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.decision_id), "option_id": option_id, "choice": choice.duplicate(true)}
@@ -9191,7 +9498,7 @@ func _update_unit_placement_controls() -> void:
 		var selected_option: Variant = unit_action_picker.get_selected_metadata()
 		if selected_option is Dictionary:
 			selected_action = str(selected_option.get("action", ""))
-			placement = selected_action in ["homer", "ingress-place", "scout-place", "heal-revive", "heal-place", "evade-place", "fluidity-place"]
+			placement = selected_action in ["homer", "ingress-place", "scout-place", "heal-revive", "heal-place", "evade-place", "fluidity-place", "heresy-retribution-place"]
 	unit_action_x.visible = placement
 	unit_action_z.visible = placement
 	var homer_position := selected_action == "homer"
