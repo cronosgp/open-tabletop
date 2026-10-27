@@ -126,7 +126,6 @@ const ETERNAL := "protocol-of-the-eternal-revenant"
 const VENGEFUL := "protocol-of-the-vengeful-stars"
 const Queue = preload("res://scripts/edition_11/fight_queue.gd")
 const TacticalFluidity = preload("res://scripts/edition_11/tactical_fluidity.gd")
-const Morale = preload("res://scripts/edition_11/morale.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const VowedTarget = preload("res://scripts/edition_11/vowed_target.gd")
 
@@ -554,7 +553,7 @@ static func medusa_wrath_enabled(s: Dictionary, player: int) -> bool:
 static func armoured_wrath_context(s: Dictionary, squad: int) -> Dictionary:
 	if not s.squads.has(squad): return {}
 	var player := int(s.squads[squad].get("owner", -1))
-	if not Registry.supported(MEDUSA_ARMOURED_WRATH) or not UnitAbilities.enabled(s) or not medusa_wrath_enabled(s, player) or not marine_unit(s, squad): return {}
+	if not Registry.supported(MEDUSA_ARMOURED_WRATH) or not A.enabled(s) or not medusa_wrath_enabled(s, player) or not marine_unit(s, squad): return {}
 	var feirros_rerolls := false
 	for model: int in s.units:
 		var source: Dictionary = s.units[model]
@@ -1120,7 +1119,7 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		elif not Registry.enabled(s, RELENTLESS_ASSAULT) or not Doctrines.wrath_of_the_chapter(s, squad): return "Relentless Assault requires your Tacticus Attack Force and a friendly TACTICUS unit."
 		var attack_window: Dictionary = s.get("unit_abilities", {}).get("window", {})
 		var declaration: Dictionary = attack_window.get("declaration", {})
-		var is_fight := s.phase == "fight"
+		var is_fight: bool = s.phase == "fight"
 		if s.phase not in ["shooting", "fight"] or (s.phase == "shooting" and int(s.active) != player): return "Relentless Assault is used in your Shooting phase or Fight phase."
 		if is_fight and (int(s.get("fight_actor", -1)) != player or s.get("fight_step", "") != "attacks"): return "Relentless Assault requires your selected unit's Fight-phase attack activation."
 		if attack_window.get("kind", "") != RELENTLESS_ASSAULT_WINDOW or attack_window.get("owners", []) != [player] or int(attack_window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad or int(declaration.get("player", -1)) != player or bool(declaration.get("melee", false)) != is_fight: return "Relentless Assault requires the selected unit's immediate attack declaration window."
@@ -1336,8 +1335,8 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		if "PHOBOS" not in unit_keywords(s, squad): return "Strike from the Shadows requires a friendly PHOBOS unit."
 		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
 		var declaration: Dictionary = window.get("declaration", {})
-		var is_fight := s.phase == "fight"
-		var selected_to_attack := s.phase == "shooting" and int(s.active) == player and not bool(s.squads[squad].get("shot", false))
+		var is_fight: bool = s.phase == "fight"
+		var selected_to_attack: bool = s.phase == "shooting" and int(s.active) == player and not bool(s.squads[squad].get("shot", false))
 		selected_to_attack = selected_to_attack or (is_fight and int(s.get("fight_actor", -1)) == player and s.get("fight_step", "") == "attacks" and (int(s.get("fight_selected", -1)) == squad or squad in Queue.choices(s, player)) and not bool(s.squads[squad].get("fought", false)))
 		if not selected_to_attack or s.phase not in ["shooting", "fight"]: return "Strike from the Shadows is used when your hidden PHOBOS unit is selected to attack in your Shooting or Fight phase."
 		if not phobos_unit_hidden(s, squad): return "Strike from the Shadows requires every living model in the PHOBOS unit to be hidden."
@@ -1345,28 +1344,28 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 			return "Strike from the Shadows requires the selected unit's immediate attack declaration window."
 	elif rule == MEDUSA_METHODICAL_BRUTALITY:
 		if not Registry.supported(rule): return "Methodical Brutality is blocked pending local validation."
-		if not UnitAbilities.enabled(s) or not medusa_wrath_enabled(s, player): return "Methodical Brutality requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
+		if not A.enabled(s) or not medusa_wrath_enabled(s, player): return "Methodical Brutality requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
 		if not marine_unit(s, squad): return "Methodical Brutality requires a friendly Adeptus Astartes unit."
 		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
 		var declaration: Dictionary = window.get("declaration", {})
-		var selected_to_attack := s.phase == "shooting" and int(s.active) == player and not bool(s.squads[squad].get("shot", false))
+		var selected_to_attack: bool = s.phase == "shooting" and int(s.active) == player and not bool(s.squads[squad].get("shot", false))
 		selected_to_attack = selected_to_attack or (s.phase == "fight" and int(s.fight_actor) == player and s.fight_step == "attacks" and (int(s.fight_selected) == squad or squad in Queue.choices(s, player)) and not bool(s.squads[squad].get("fought", false)))
 		if not selected_to_attack or window.get("kind", "") != METHODICAL_BRUTALITY_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad or int(declaration.get("player", -1)) != player or bool(declaration.get("melee", false)) != (s.phase == "fight"):
 			return "Methodical Brutality is used when your Adeptus Astartes unit is selected to attack."
 	elif rule == MEDUSA_UNBOWED_CONVICTION:
 		if not Registry.supported(rule): return "Unbowed Conviction is blocked pending local validation."
-		if not UnitAbilities.enabled(s) or not medusa_wrath_enabled(s, player): return "Unbowed Conviction requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
+		if not A.enabled(s) or not medusa_wrath_enabled(s, player): return "Unbowed Conviction requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
 		if not marine_unit(s, squad): return "Unbowed Conviction requires a friendly Adeptus Astartes unit."
 		if s.phase != "command" or int(s.active) != player: return "Unbowed Conviction is used in your Command phase."
 		if not below_starting_strength(s, squad): return "Unbowed Conviction requires a friendly unit below Starting Strength."
 	elif rule == MEDUSA_ANCIENT_FURY:
 		if not Registry.supported(rule): return "Ancient Fury is blocked pending local validation."
-		if not UnitAbilities.enabled(s) or not medusa_wrath_enabled(s, player): return "Ancient Fury requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
+		if not A.enabled(s) or not medusa_wrath_enabled(s, player): return "Ancient Fury requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
 		if not marine_unit(s, squad) or "DREADNOUGHT" not in unit_keywords(s, squad): return "Ancient Fury requires a friendly Adeptus Astartes Dreadnought unit."
 		if s.phase != "command" or int(s.active) != player: return "Ancient Fury is used in your Command phase."
 	elif rule == MEDUSA_POWER_OF_MACHINE_SPIRIT:
 		if not Registry.supported(rule): return "Power of the Machine Spirit is blocked pending local validation."
-		if not UnitAbilities.enabled(s) or not medusa_wrath_enabled(s, player): return "Power of the Machine Spirit requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
+		if not A.enabled(s) or not medusa_wrath_enabled(s, player): return "Power of the Machine Spirit requires current unit abilities, Medusa's Wrath and Iron Hands Chapter context."
 		if s.phase != "shooting" or int(s.active) == player: return "Power of the Machine Spirit is used in your opponent's Shooting phase."
 		var pending: Dictionary = s.get("detachment_stratagems", {}).get("medusa_power_pending", {})
 		if pending.get("phase_key", "") != phase_key(s) or int(pending.get("player", -1)) != player or squad not in pending.get("targets", []): return "Power of the Machine Spirit requires this Vehicle to have been targeted while unengaged by the enemy unit that just shot."
@@ -1409,7 +1408,7 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		var reserves: Variant = s.get("unit_abilities", {}).get("reserves", {})
 		if not reserves is Dictionary or not reserves.has(squad): return "Relic Teleportarium requires this Deathwing unit to be in Strategic Reserves."
 		if not reserve_unit_has_deep_strike(s, squad): return "Relic Teleportarium requires every model in the unit to have Deep Strike."
-		if not StormlanceEnhancements.ingress_round_allowed(s, squad): return "This unit cannot make an ingress move in this battle round."
+		if not MarineEnhancements.ingress_round_allowed(s, squad): return "This unit cannot make an ingress move in this battle round."
 	elif rule == GRAVIS_LINEBREAKER_PURGATION_PUSH:
 		if not Registry.supported(rule) or Doctrines.detachment_for(s, player) != "gravis-linebreaker-force" or "gravis-linebreaker-force" not in s.detachment_stratagems.get("modes", []): return "Purgation Push requires your Gravis Linebreaker Force detachment."
 		if not gravis_unit(s, squad): return "Purgation Push requires a friendly GRAVIS unit."
@@ -2618,7 +2617,7 @@ static func _record_medusa_power_trigger(s: Dictionary, attacker: int, prepared:
 	var firing_player := int(s.squads[attacker].get("owner", -1))
 	if int(s.active) != firing_player or not bool(s.squads[attacker].get("shot", false)): return
 	var reacting_player := 3 - firing_player
-	if not UnitAbilities.enabled(s) or not medusa_wrath_enabled(s, reacting_player) or not Registry.supported(MEDUSA_POWER_OF_MACHINE_SPIRIT): return
+	if not A.enabled(s) or not medusa_wrath_enabled(s, reacting_player) or not Registry.supported(MEDUSA_POWER_OF_MACHINE_SPIRIT): return
 	var eligible_targets: Array[int] = []
 	var batches: Array = prepared.get("batches", [])
 	for batch_value: Variant in batches:
@@ -2838,7 +2837,7 @@ static func clear_vengeful(s: Dictionary) -> void:
 		var active_reaction: Dictionary = s.detachment_stratagems.get("vengeful", {}).duplicate(true)
 		var pending_storm: Dictionary = s.detachment_stratagems.get("storm_of_vengeance_pending", {}).duplicate(true)
 		var next_storm: Dictionary = pending_storm
-		var other_reaction_pending := not active_reaction.is_empty() or not s.detachment_stratagems.get("hail_of_vengeance", {}).is_empty() or not s.detachment_stratagems.get("hail_of_vengeance_pending", {}).is_empty()
+		var other_reaction_pending: bool = not active_reaction.is_empty() or not s.detachment_stratagems.get("hail_of_vengeance", {}).is_empty() or not s.detachment_stratagems.get("hail_of_vengeance_pending", {}).is_empty()
 		if str(active_reaction.get("source", "")) == STORM_OF_VENGEANCE and active_reaction.get("phase_key", "") == phase_key(s):
 			var remaining: Array = active_reaction.get("remaining_squads", [])
 			next_storm = {"phase_key": phase_key(s), "player": int(active_reaction.get("player", -1)), "attacker": int(active_reaction.get("attacker", -1)), "squads": remaining.duplicate()} if not remaining.is_empty() else {}

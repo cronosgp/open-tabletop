@@ -2,7 +2,7 @@ extends RefCounted
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 ## Core Rules §§01.07, 08.03, 15.01–15.12; reaction cards live in core_reactions.gd.
 const Morale = preload("res://scripts/edition_11/morale.gd")
-const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
+const ReactionState = preload("res://scripts/edition_11/core_reaction_state.gd")
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
@@ -28,7 +28,7 @@ static func enable(state: Dictionary, movement_rerolls: bool = false, attack_rer
 	state.stratagems = {"implementation": ID, "pending": {}, "uses": [], "command_done_turn": -1}
 	state.pack_hash = (str(state.pack_hash) + ID).sha256_text()
 	state.scope = "Core stratagem supported: Insane Bravery before Command battle-shock only. " + str(state.get("scope", "")).replace("stratagems,", "other stratagems,")
-	CoreReactions.enable(state)
+	ReactionState.enable(state)
 	if movement_rerolls:
 		state.stratagems.movement_rerolls = true
 		state.pack_hash = (str(state.pack_hash) + REROLL_ID).sha256_text()
@@ -133,7 +133,7 @@ static func choice_error(state: Dictionary, player: int, squad: int, revision: i
 	if revision != state.revision: return "O estado mudou; sincronize antes de decidir."
 	if state.get("test_winner", 0) != 0: return "The match has ended."
 	if window.phase_key != phase_key(state) or player != window.player: return "This decision belongs to the player shown in the window."
-	if window.kind not in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_transport_hazard_roll", "after_attack_count_roll"] and player != state.active and not (window.kind == "after_charge_roll" and CoreReactions.heroic_charger(state, player, squad)): return "This decision belongs to the active player."
+	if window.kind not in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_transport_hazard_roll", "after_attack_count_roll"] and player != state.active and not (window.kind == "after_charge_roll" and ReactionState.heroic_charger(state, player, squad)): return "This decision belongs to the active player."
 	var has_living_model := not Morale.living(state, squad).is_empty()
 	if window.kind == "after_transport_hazard_roll":
 		has_living_model = false

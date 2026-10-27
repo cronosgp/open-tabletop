@@ -1,11 +1,11 @@
 extends RefCounted
 const UnitPrevention = preload("res://scripts/edition_11/unit_prevention.gd")
+const ReactionState = preload("res://scripts/edition_11/core_reaction_state.gd")
 ## Core e11 reaction stratagems and their shared decision flows.
 const A = preload("res://scripts/edition_11/unit_abilities.gd")
 const G = preload("res://scripts/edition_11/contact_movement.gd")
 const Queue = preload("res://scripts/edition_11/fight_queue.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
-const Registry = preload("res://scripts/edition_11/capabilities.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Prevention = preload("res://scripts/edition_11/wound_prevention.gd")
 const Actions = preload("res://scripts/edition_11/actions.gd")
@@ -31,17 +31,13 @@ const PHOBOS_MORTIS_SNARES_MORTAL := "phobos-shadow-mortis-mortal"
 const BRUTALIS_CHARGE := "brutalis-charge"
 
 static func enable(s: Dictionary) -> void:
-	if s.has("core_reactions"): return
-	s.core_reactions = {"implementation": ID, "overwatch": {}, "heroic": {}, "chargers": [], "charge_closed": false, "epic": {}}
-	s.pack_hash = (str(s.pack_hash) + ID).sha256_text()
-	s.scope = "Core stratagems: Smokescreen, Explosives, Fire Overwatch, Heroic Intervention, Counteroffensive, Epic Challenge and Crushing Impact/Tank Shock. " + str(s.get("scope", ""))
-	for ability in [OVERWATCH, HEROIC, COUNTER, EPIC, EXPLOSIVES, SMOKE, CRUSHING]: Registry.admit(s, ability, ID)
+	ReactionState.enable(s)
 
 static func enabled(s: Dictionary) -> bool:
-	return s.get("core_reactions", {}).get("implementation", "") == ID and s.has("stratagems") and A.enabled(s)
+	return ReactionState.enabled(s)
 
 static func phase_key(s: Dictionary) -> String:
-	return "%d:%s" % [s.turn, s.phase]
+	return ReactionState.phase_key(s)
 
 static func living(s: Dictionary, squad: int) -> Array[int]:
 	var result: Array[int] = []
@@ -69,9 +65,7 @@ static func overwatch_shooter(s: Dictionary, squad: int) -> bool:
 	return shot.get("phase_key", "") == phase_key(s) and int(shot.get("squad", -1)) == squad
 
 static func heroic_charger(s: Dictionary, player: int, squad: int) -> bool:
-	if not enabled(s): return false
-	var heroic: Dictionary = s.core_reactions.get("heroic", {})
-	return heroic.get("phase_key", "") == phase_key(s) and int(heroic.get("player", -1)) == player and int(heroic.get("squad", -1)) == squad
+	return ReactionState.heroic_charger(s, player, squad)
 
 static func fray_charger(s: Dictionary, squad: int) -> bool:
 	if not enabled(s): return false

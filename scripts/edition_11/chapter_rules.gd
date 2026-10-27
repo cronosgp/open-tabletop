@@ -112,10 +112,10 @@ static func resolve_and_apply(state: Dictionary, detachment_assignments: Diction
 		var keywords: Array = unit.get("keywords", []).duplicate()
 		# The local export can expose Dark Angels rule keywords on shared profiles.
 		# Normalize them out before applying the selected Chapter context.
-	while "DEATHWING" in keywords:
-		keywords.erase("DEATHWING")
-	while "RAVENWING" in keywords:
-		keywords.erase("RAVENWING")
+		while "DEATHWING" in keywords:
+			keywords.erase("DEATHWING")
+		while "RAVENWING" in keywords:
+			keywords.erase("RAVENWING")
 		if str(resolved[owner]) == "DARK ANGELS" and ("TERMINATOR" in profile_keywords or "DREADNOUGHT" in profile_keywords or identity in DARK_ANGELS_DEATHWING_IDENTITIES):
 			if "DEATHWING" not in keywords:
 				keywords.append("DEATHWING")

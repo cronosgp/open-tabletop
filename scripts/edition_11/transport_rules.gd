@@ -614,9 +614,9 @@ static func disembark_choices(state: Dictionary, player: int) -> Array[Dictionar
 static func gauntlet_aggressive_disembarkation_error(state: Dictionary, player: int, transport_model: int, passenger_squad: int, mode: String) -> String:
 	var stratagem_error := DetachmentStratagems.error(state, player, passenger_squad, DetachmentStratagems.GAUNTLET_AGGRESSIVE_DISEMBARKATION, transport_model)
 	if not stratagem_error.is_empty(): return stratagem_error
-	var emergency := mode == "emergency"
+	var emergency: bool = mode == "emergency"
 	var window: Dictionary = state.get("unit_abilities", {}).get("transport_window", {})
-	var drop_pod_context := not emergency and window.get("kind", "") == "disembark" and window.get("stage", "") == "aggressive-choice" and bool(window.get("mandatory_drop_pod", false)) and bool(window.get("drop_pod_assault", false))
+	var drop_pod_context: bool = not emergency and window.get("kind", "") == "disembark" and window.get("stage", "") == "aggressive-choice" and bool(window.get("mandatory_drop_pod", false)) and bool(window.get("drop_pod_assault", false))
 	if emergency:
 		if window.get("kind", "") != "emergency" or window.get("stage", "") != "aggressive-choice" or int(window.get("player", -1)) != player or int(window.get("transport", -1)) != transport_model or int(window.get("passenger_squad", -1)) != passenger_squad: return "Aggressive Disembarkation requires the current Emergency Disembark move selection."
 	elif drop_pod_context:
@@ -798,18 +798,18 @@ static func choices(state: Dictionary, player: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	if window.get("stage", "") == "hazard-reroll": return result
 	if window.get("stage", "") == "aggressive-choice":
-		var emergency := window.get("kind", "") == "emergency"
-		var drop_pod := window.get("kind", "") == "disembark" and bool(window.get("mandatory_drop_pod", false)) and bool(window.get("drop_pod_assault", false))
+		var emergency: bool = window.get("kind", "") == "emergency"
+		var drop_pod: bool = window.get("kind", "") == "disembark" and bool(window.get("mandatory_drop_pod", false)) and bool(window.get("drop_pod_assault", false))
 		if not emergency and not drop_pod: return result
 		var transport_model := int(window.get("transport", -1))
 		var passenger_squad := int(window.get("passenger_squad", -1))
 		var mode := str(window.get("mode", ""))
+		var action_prefix := "transport-emergency-aggressive" if emergency else "transport-disembark-aggressive"
+		var normal_move_name := "Emergency Disembark" if emergency else "Drop Pod Assault Rapid Disembark"
+		var normal_move_details := "; roll Hazard, then set up wholly within 6 inches and as close as possible" if emergency else ": set up each model wholly within 3 inches of the Drop Pod and more than 8 inches from every enemy unit"
 		if gauntlet_aggressive_disembarkation_error(state, player, transport_model, passenger_squad, mode).is_empty():
 			var cost := DetachmentStratagems.gauntlet_aggressive_disembarkation_cost(state, player, passenger_squad)
 			var setup_distance := 6 if emergency else 3
-			var action_prefix := "transport-emergency-aggressive" if emergency else "transport-disembark-aggressive"
-			var normal_move_name := "Emergency Disembark" if emergency else "Drop Pod Assault Rapid Disembark"
-			var normal_move_details := "; roll Hazard, then set up wholly within 6 inches and as close as possible" if emergency else ": set up each model wholly within 3 inches of the Drop Pod and more than 8 inches from every enemy unit"
 			var aggressive_restriction := " and more than 8 inches from every enemy unit" if drop_pod else ""
 			result.append({"label": "Aggressive Disembarkation (%d CP): set up within %d inches%s%s" % [cost, setup_distance, ", still as close as possible" if emergency else "", aggressive_restriction], "action": action_prefix + "-use", "model": transport_model, "target": passenger_squad, "value": ""})
 		result.append({"label": "%s normally%s" % [normal_move_name, normal_move_details], "action": action_prefix + "-pass", "model": transport_model, "target": passenger_squad, "value": ""})
@@ -975,9 +975,9 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 	var action := str(selected.get("action", ""))
 	if action in ["transport-emergency-aggressive-use", "transport-emergency-aggressive-pass", "transport-disembark-aggressive-use", "transport-disembark-aggressive-pass"]:
 		var window: Dictionary = state.get("unit_abilities", {}).get("transport_window", {})
-		var emergency_choice := action.begins_with("transport-emergency-")
-		var drop_pod_choice := action.begins_with("transport-disembark-")
-		var correct_context := window.get("kind", "") == "emergency" if emergency_choice else window.get("kind", "") == "disembark" and bool(window.get("mandatory_drop_pod", false)) and bool(window.get("drop_pod_assault", false))
+		var emergency_choice: bool = action.begins_with("transport-emergency-")
+		var drop_pod_choice: bool = action.begins_with("transport-disembark-")
+		var correct_context: bool = window.get("kind", "") == "emergency" if emergency_choice else window.get("kind", "") == "disembark" and bool(window.get("mandatory_drop_pod", false)) and bool(window.get("drop_pod_assault", false))
 		if not correct_context or window.get("stage", "") != "aggressive-choice" or int(window.get("player", -1)) != player or int(selected.get("target", -1)) != int(window.get("passenger_squad", -2)) or int(selected.get("model", -1)) != int(window.get("transport", -2)): return "No matching transport stratagem choice is pending."
 		var working: Dictionary = state.duplicate(true)
 		var working_window: Dictionary = working.unit_abilities.transport_window

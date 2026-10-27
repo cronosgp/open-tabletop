@@ -481,14 +481,15 @@ static func _enemy_unit_in_deployment_zone(s: Dictionary, zone_owner: int) -> bo
 	var zones: Dictionary = s.get("deployment", {}).get("zones", {})
 	if not zones.has(zone_owner) or not zones[zone_owner] is Rect2 or zones[zone_owner].size == Vector2.ZERO: return false
 	var zone: Rect2 = zones[zone_owner]
-	var enemy_player := 3 - zone_owner
+	var enemy_player: int = 3 - zone_owner
 	for squad: int in s.squads:
 		if int(s.squads[squad].get("owner", 0)) != enemy_player: continue
 		for model: int in G.alive(s, squad):
 			var unit: Dictionary = s.units[model]
 			if not unit.get("on_battlefield", true): continue
 			var radius := float(unit.get("radius", 0.0))
-			if zone.get_closest_point(unit.position).distance_to(unit.position) <= radius + 0.001: return true
+			var closest_point: Vector2 = unit.position.clamp(zone.position, zone.end)
+			if closest_point.distance_to(unit.position) <= radius + 0.001: return true
 	return false
 
 static func _outflank_unit_profile(s: Dictionary, squad: int, player: int) -> Dictionary:
@@ -625,7 +626,7 @@ static func score(s: Dictionary) -> bool:
 				award(s, 3 - unit.owner, "secondary", 3 + (1 if unit.max_wounds >= 4 else 0), "end turn", "assassination")
 		"engage-bring-it-down":
 			for bring_scoring_player in [1, 2]:
-				var bring_enemy := 3 - bring_scoring_player
+				var bring_enemy: int = 3 - bring_scoring_player
 				var destroyed_large_models := 0
 				for start_record: Dictionary in m.turn_start_models.get(bring_enemy, []):
 					var model := int(start_record.get("model", -1))
@@ -634,7 +635,7 @@ static func score(s: Dictionary) -> bool:
 				award(s, bring_scoring_player, "secondary", destroyed_large_models * 4, "end turn", "bring-it-down")
 		"engage-grievous-blow":
 			for grievous_scoring_player in [1, 2]:
-				var grievous_enemy := 3 - grievous_scoring_player
+				var grievous_enemy: int = 3 - grievous_scoring_player
 				var destroyed_large_units := 0
 				for squad: int in m.turn_start_alive.get(grievous_enemy, []):
 					if int(m.battle_start_strength.get(squad, 0)) < 13 or not s.squads.has(squad): continue
@@ -648,7 +649,7 @@ static func score(s: Dictionary) -> bool:
 				var destroyed_enemy_units := int(losses.units[3 - no_prisoners_scoring_player])
 				award(s, no_prisoners_scoring_player, "secondary", mini(destroyed_enemy_units * 2, 5), "end turn", "no-prisoners")
 		"engage-behind-enemy-lines":
-			var enemy_zone_owner := 3 - s.active
+			var enemy_zone_owner: int = 3 - int(s.active)
 			var forward_units := 0
 			for squad: int in s.squads:
 				if int(s.squads[squad].get("owner", 0)) != s.active: continue
@@ -671,7 +672,7 @@ static func score(s: Dictionary) -> bool:
 				award(s, scorer, "secondary", requested, "end turn", "display-of-might")
 		"engage-overwhelming-force":
 			for scoring_player in [1, 2]:
-				var enemy_player := 3 - scoring_player
+				var enemy_player: int = 3 - int(scoring_player)
 				var destroyed_near_objective := 0
 				for squad: int in m.turn_start_objective_units.get(enemy_player, []):
 					if s.squads.has(squad) and G.alive(s, squad).is_empty(): destroyed_near_objective += 1
@@ -684,7 +685,7 @@ static func score(s: Dictionary) -> bool:
 			if forward_position_vp > 0: award(s, s.active, "secondary", forward_position_vp, "end turn", "forward-position")
 		"engage-defend-stronghold":
 			if s.round >= 2:
-				var stronghold_player := 3 - s.active
+				var stronghold_player: int = 3 - int(s.active)
 				if _controls_home(s, stronghold_player, stronghold_player):
 					var stronghold_vp := 3 if _enemy_unit_in_deployment_zone(s, stronghold_player) else 5
 					award(s, stronghold_player, "secondary", stronghold_vp, "end opponent turn", "defend-stronghold")

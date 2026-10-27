@@ -33,6 +33,8 @@ static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, ef
 	state.match_manifest = {"schema_version": 1, "scenario": scenario_id, "rules_implementation": RulesetIdentity.PACK_ID,
 		"content_hash": state.pack_hash, "battlefield": Battlefield.ID, "mission": Objectives.TRAINING,
 		"manual_allocation": effective.manual_allocation, "varied_equipment": effective.varied_equipment, "first_player": 1, "rosters": rosters}
+	var terrain_layout := str(effective.get("terrain_layout", ""))
+	if not terrain_layout.is_empty(): state.match_manifest.terrain_layout = terrain_layout
 	if effective.core_stratagems: state.match_manifest.core_stratagems = Stratagems.ID
 	if effective.movement_rerolls: state.match_manifest.movement_rerolls = Stratagems.REROLL_ID
 	if effective.attack_rerolls: state.match_manifest.attack_rerolls = Stratagems.ATTACK_REROLL_ID
