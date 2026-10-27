@@ -16,7 +16,7 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var profile := Profiles.profile("company-heroes")
 	check(profile.get("source_book_id") == "000000139" and profile.get("source_datasheet_id") == "000002772" and profile.get("source_export_updated_at") == "2026-10-16T21:03:46+03:00", "Company Heroes points to the pinned Wahapedia e11 export")
-	check(profile.get("models") == 4 and profile.get("points_by_models", {}) == {4: 125} and profile.get("third_plus_points_by_models", {}) == {4: 145} and is_equal_approx(profile.get("base_radius_inches", 0.0), 40.0 / 25.4), "Fixed 4-model composition, copy-tier prices and 40 mm bases match local source data")
+	check(profile.get("models") == 4 and profile.get("points_by_models", {}) == {4: 125} and profile.get("third_plus_points_by_models", {}) == {4: 145} and is_equal_approx(profile.get("base_radius_inches", 0.0), 20.0 / 25.4), "Fixed 4-model composition, copy-tier prices and 40 mm base radius match local source data")
 	check(profile.get("stats", {}) == {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0}, "Shared characteristics match all four source model rows")
 	check(Catalog.SPECS.has("company-heroes") and Roster.POINTS.get("company-heroes", {}).get("third_plus_sizes", {}) == {4: 145}, "Company Heroes are selectable with Wahapedia copy-tier prices")
 	var three := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 10000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:company-heroes", "models": 4, "copies": 3}]})

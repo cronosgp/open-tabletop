@@ -23,7 +23,6 @@ const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const Reivers = preload("res://scripts/edition_11/reivers.gd")
 const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
-const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 
@@ -100,7 +99,6 @@ static func advance_after_admission(state: Dictionary, roller: Callable, hooks: 
 	if not PhaseProgression.ends_turn(state.phase):
 		if state.phase == "fight": DetachmentStratagems.remove_lingering(state)
 		if state.phase == "movement":
-			_resolve_vanguard_ambushers(state)
 			for squad: int in state.squads:
 				if state.squads[squad].owner == state.active and not state.squads[squad].moved:
 					state.squads[squad].move_type = "stationary"
@@ -148,21 +146,6 @@ static func _suspend_phase_close_for_command_choice(state: Dictionary, resume_po
 	if frame.is_empty(): return "Could not create a Command phase-close continuation frame."
 	return ResolutionFrames.suspend(state, str(frame.frame_id), resume_point)
 
-static func _resolve_vanguard_ambushers(state: Dictionary) -> void:
-	if not Capabilities.supported("vanguard-ambushers") or Doctrines.detachment_for(state, int(state.active)) != "phobos-shock-force": return
-	if not state.combat_doctrines.has("vanguard_ambushers"): state.combat_doctrines.vanguard_ambushers = {}
-	for squad: int in state.squads:
-		if int(state.squads[squad].owner) != int(state.active): continue
-		if not UnitAbilities.has_target_keyword(state, squad, "PHOBOS"): continue
-		var alive := Contact.alive(state, squad)
-		if alive.is_empty(): continue
-		var is_hidden := false
-		for model: int in alive:
-			if Terrain.hidden(state, model):
-				is_hidden = true
-				break
-		if is_hidden: state.combat_doctrines.vanguard_ambushers[squad] = int(state.turn)
-
 static func _resolve_current_end_control(state: Dictionary) -> void:
 	if not UnitAbilities.enabled(state) or (state.phase not in ["command", "movement", "shooting", "charge", "fight"] and not (Mission.enabled(state) and state.phase == "end_turn")): return
 	var phase_key := UnitActions.key(state)
@@ -181,4 +164,3 @@ static func _resolve_current_end_control(state: Dictionary) -> void:
 							Objectives.secure(state, index, state.active)
 							break
 	state.unit_abilities.control_done = phase_key
-

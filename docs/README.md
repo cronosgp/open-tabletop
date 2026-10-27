@@ -39,7 +39,7 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Data-pack format](data/data-packs.md) — existing format and legacy adapter status.
 - [11e starter lab](data/11e-starter.md) — isolated exercise and its legacy sample inputs.
 - [Faction catalog](data/faction-catalog.md) · [ForceOrg import](data/forceorg-import.md) · [Model import validation](data/model-import-validation.md)
-- [Wahapedia importer](wahapedia-import.md) · [Space Marines catalog and source reconciliation](space-marines-catalog.md) · [Consolidated Space Marines profile records](space-marines-profile-records.md) · [Datasheet implementation architecture](datasheet-implementation-architecture.md)
+- [Wahapedia importer](wahapedia-import.md) · [Space Marines catalog and source reconciliation](space-marines-catalog.md) · [Space Marines coverage matrix](space-marines-coverage.md) · [Consolidated Space Marines profile records](space-marines-profile-records.md) · [Datasheet implementation architecture](datasheet-implementation-architecture.md)
 - [Space Marine enhancement implementations](stormlance-enhancements.md) — source-linked local enhancement choices and effect boundaries.
 - [Design-first UI prompting skill](skills/design-first-ui-prompting/SKILL.md) · [progress screenshots](skills/workflow-progress-screenshots/SKILL.md) · [score-to-target workflow](skills/workflow-score-to-target/SKILL.md)
 - [Game development and design skills](skills/game-development-design.md) — selected Godot and cross-engine skills, use guidance and source attribution.
