@@ -318,9 +318,6 @@ static func _settle_phase_start_frame(state: Dictionary) -> void:
 	else:
 		ResolutionFrames.complete(state, str(frame.frame_id))
 
-static func _resolve_vanguard_ambushers(state: Dictionary) -> void:
-	PhaseResolution._resolve_vanguard_ambushers(state)
-
 static func select_oath_target(state: Dictionary, player: int, target: int, revision: int) -> String:
 	var error := OathOfMoment.choice_error(state, player, target, revision)
 	if not error.is_empty(): return error

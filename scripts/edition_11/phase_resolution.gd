@@ -145,21 +145,6 @@ static func _suspend_phase_close_for_command_choice(state: Dictionary, resume_po
 	if frame.is_empty(): return "Could not create a Command phase-close continuation frame."
 	return ResolutionFrames.suspend(state, str(frame.frame_id), resume_point)
 
-static func _resolve_vanguard_ambushers(state: Dictionary) -> void:
-	if not Capabilities.supported("vanguard-ambushers") or Doctrines.detachment_for(state, int(state.active)) != "phobos-shock-force": return
-	if not state.combat_doctrines.has("vanguard_ambushers"): state.combat_doctrines.vanguard_ambushers = {}
-	for squad: int in state.squads:
-		if int(state.squads[squad].owner) != int(state.active): continue
-		if not UnitAbilities.has_target_keyword(state, squad, "PHOBOS"): continue
-		var alive := Contact.alive(state, squad)
-		if alive.is_empty(): continue
-		var is_hidden := false
-		for model: int in alive:
-			if Terrain.hidden(state, model):
-				is_hidden = true
-				break
-		if is_hidden: state.combat_doctrines.vanguard_ambushers[squad] = int(state.turn)
-
 static func _resolve_current_end_control(state: Dictionary) -> void:
 	if not UnitAbilities.enabled(state) or (state.phase not in ["command", "movement", "shooting", "charge", "fight"] and not (Mission.enabled(state) and state.phase == "end_turn")): return
 	var phase_key := UnitActions.key(state)
