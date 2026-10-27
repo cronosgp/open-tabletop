@@ -4697,7 +4697,7 @@ func _start_objectives(unit_count: int = 1, layout_id: String = Combat.Terrain.D
 func _toggle_combat(layout: String = Combat.Terrain.DEFAULT_LAYOUT) -> void:
 	if mode != "local": return
 	if not saved_army_mode: local_visual_armies.clear()
-	var next_terrain := terrain_layout if combat_enabled else layout
+	var next_terrain: String = str(terrain_layout) if combat_enabled else layout
 	var next_manual := manual_allocation if combat_enabled else defender_choice.button_pressed
 	var next_varied := varied_equipment if combat_enabled else equipment_choice.button_pressed
 	var candidate: Dictionary = Rules.initial_state() if combat_enabled else TestBattlefield.apply(Combat.initial_state(next_terrain, "elimination", 1, next_manual, next_varied))
@@ -8960,7 +8960,7 @@ func _refresh_unit_actions() -> void:
 	if Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.TargetAuguryWeb.WINDOW:
 		var augury_moment := "start" if Combat.UnitActions.pending(state).get("moment", "") == "start" else "end"
 		unit_action_help.text = "Target Augury Web at the %s of the Techmarine unit's move: choose one friendly Adeptus Astartes Vehicle model within 3 inches of any model in that unit. That Vehicle model gains Lethal Hits for ranged and melee attacks until the start of your next Command phase. Choose a Vehicle or pass." % augury_moment
-	var optics := Combat.UnitAbilities.Detection.selection(state)
+	var optics: Dictionary = Combat.UnitAbilities.Detection.selection(state)
 	if not optics.is_empty():
 		var effect: String = "Ignores Cover" if optics.mode == "cover" else "+6 detection on " + state.squads[optics.target].name
 		unit_action_help.text = "%s active for the selected Eliminators. Shoot this unit now; other units wait." % effect
@@ -9054,7 +9054,7 @@ func _is_setup_equipment_choice(choice: Dictionary) -> bool:
 func _setup_required_summary(owner: int) -> String:
 	var finish_choice := _setup_finish_choice(owner)
 	if not finish_choice.is_empty():
-		var probe := Combat.UnitActions.apply(state.duplicate(true), owner, finish_choice, Vector2.ZERO, func() -> int: return 1)
+		var probe: Dictionary = Combat.UnitActions.apply(state.duplicate(true), owner, finish_choice, Vector2.ZERO, func() -> int: return 1)
 		var validator_error := str(probe.get("error", ""))
 		if not validator_error.is_empty(): return "Required before finishing: " + validator_error
 	return "Required checks are clear. You may finish now or customize equipment first."
