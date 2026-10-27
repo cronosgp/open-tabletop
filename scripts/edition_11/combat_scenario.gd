@@ -1944,15 +1944,15 @@ static func _continue_attack_declaration(state: Dictionary, declaration: Diction
 	if not final_prepared.error.is_empty(): return final_prepared
 	if not bool(declaration.melee) and DetachmentStratagems.medusa_power_snap_shooting(state, int(declaration.squad)):
 		var snap_batches: Array = final_prepared.get("batches", [])
-		for index in range(snap_batches.size()):
-			if not snap_batches[index] is Dictionary: continue
-			var batch: Dictionary = snap_batches[index]
+		for batch_index in range(snap_batches.size()):
+			if not snap_batches[batch_index] is Dictionary: continue
+			var batch: Dictionary = snap_batches[batch_index]
 			var context: Dictionary = batch.get("context", {}).duplicate(true)
 			context.snap_shooting = true
 			context.snap_hit_threshold = 6
 			context.hit_reroll = "none"
 			batch["context"] = context
-			snap_batches[index] = batch
+			snap_batches[batch_index] = batch
 		final_prepared.batches = snap_batches
 	var fortitude_targets: Variant = declaration.get("terminator_fortitude_targets", [])
 	final_prepared.terminator_fortitude_targets = fortitude_targets.duplicate(true) if fortitude_targets is Array else []
