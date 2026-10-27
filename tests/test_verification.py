@@ -39,6 +39,10 @@ class VerificationTests(unittest.TestCase):
         self.assertFalse(verification.requires_legacy_starter("targeted", ["test_phase_progression"]))
         self.assertTrue(verification.requires_legacy_starter("full", ["test_phase_progression"]))
 
+    def test_demo_profile_never_stages_optional_legacy_snapshot(self):
+        self.assertTrue(verification.needs_legacy_starter("test_army_builder"))
+        self.assertFalse(verification.requires_legacy_starter("demo", ["test_army_builder"]))
+
     def test_focused_profile_runs_fast_architecture_and_runner_checks(self):
         command = verification.python_command("focused")
         self.assertEqual(command[-2:], ["tests.test_architecture", "tests.test_verification"])
