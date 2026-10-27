@@ -20,6 +20,8 @@ static func pending_state_error(state: Dictionary) -> String:
 	for source: String in ["mission-preparation", "combat-doctrines", "oath-of-moment", "vowed-target", "awakened-attachment"]:
 		var decision_error := decision_container_error(state, source)
 		if not decision_error.is_empty(): return decision_error
+	var sealed_force_disposition_error := Mission.sealed_force_disposition_state_error(state)
+	if not sealed_force_disposition_error.is_empty(): return sealed_force_disposition_error
 	var doctrine_error := templar_vow_state_error(state)
 	if not doctrine_error.is_empty(): return doctrine_error
 	var unit_action_error := unit_action_state_error(state)

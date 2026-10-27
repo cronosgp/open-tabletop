@@ -171,6 +171,7 @@ static func terrain(s: Dictionary, two: bool, terrain_layout: String = DEFAULT_T
 
 static func actor(s: Dictionary) -> int:
 	if not enabled(s) or s.phase == "army_selection": return -1
+	if not sealed_force_disposition_state_error(s).is_empty(): return -1
 	match s.mission.stage:
 		"force-disposition-p1": return 1
 		"force-disposition-p2": return 2
@@ -239,6 +240,40 @@ static func force_disposition_assignments(s: Dictionary) -> Dictionary:
 		return {}
 	var force_dispositions: Dictionary = mission.get("force_dispositions", {})
 	return force_dispositions.duplicate(true)
+
+static func sealed_force_disposition_state_error(s: Dictionary) -> String:
+	var mission_value: Variant = s.get("mission", {})
+	if typeof(mission_value) != TYPE_DICTIONARY: return "Cannot continue while mission decision state is invalid."
+	var mission: Dictionary = mission_value
+	var sealed_value: Variant = mission.get("sealed_force_disposition_reveal", false)
+	if typeof(sealed_value) != TYPE_BOOL: return "Cannot continue while sealed Force Disposition state is invalid."
+	var choices_value: Variant = mission.get("sealed_force_disposition_choices", {})
+	if typeof(choices_value) != TYPE_DICTIONARY: return "Cannot continue while sealed Force Disposition state is invalid."
+	var sealed_choices: Dictionary = choices_value
+	var stage := str(mission.get("stage", ""))
+	var pending_stage := stage in ["force-disposition-p1", "force-disposition-p2"]
+	if not bool(sealed_value):
+		if pending_stage or not sealed_choices.is_empty(): return "Cannot continue while sealed Force Disposition state is invalid."
+		return ""
+	if not enabled(s): return "Cannot continue while sealed Force Disposition state is invalid."
+	var assignments := force_disposition_assignments(s)
+	if pending_stage:
+		if not assignments.is_empty() or str(mission.get("primary_selection_mode", "")) != "sealed-force-disposition-default-pending":
+			return "Cannot continue while sealed Force Disposition state is invalid."
+		if stage == "force-disposition-p1":
+			if not sealed_choices.is_empty(): return "Cannot continue while sealed Force Disposition state is invalid."
+		elif sealed_choices.size() != 1 or (not sealed_choices.has(1) and not sealed_choices.has("1")):
+			return "Cannot continue while sealed Force Disposition state is invalid."
+		var player_one_choice := str(sealed_choices.get(1, sealed_choices.get("1", "")))
+		if stage == "force-disposition-p2" and not FORCE_DISPOSITIONS.has(player_one_choice):
+			return "Cannot continue while sealed Force Disposition state is invalid."
+		return ""
+	if not sealed_choices.is_empty() or assignments.size() != 2 or str(mission.get("primary_selection_mode", "")) != "force-disposition-default":
+		return "Cannot continue while sealed Force Disposition state is invalid."
+	for player in [1, 2]:
+		var disposition := str(assignments.get(player, assignments.get(str(player), "")))
+		if not FORCE_DISPOSITIONS.has(disposition): return "Cannot continue while sealed Force Disposition state is invalid."
+	return ""
 
 static func _ensure_tracking(m: Dictionary) -> void:
 	# Older saves for this mission predate the optional-primary trackers.
