@@ -149,7 +149,7 @@ func _clear_position_around_base(camera: Camera3D, point: Vector2, panel_size: V
 	var excluded := _project_base_bounds(camera, base_world, base_radius)
 	for candidate: Vector2 in candidates:
 		var clamped := _clamp_position(candidate, safe_position, max_position)
-		if excluded.is_empty() or not Rect2(clamped, panel_size).intersects(excluded):
+		if excluded.size == Vector2.ZERO or not Rect2(clamped, panel_size).intersects(excluded):
 			return clamped
 	return _clamp_position(preferred, safe_position, max_position)
 

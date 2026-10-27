@@ -86,12 +86,12 @@ func present(model: Dictionary) -> void:
 			profile_name.add_theme_font_size_override("font_size", 15)
 			profile_name.add_theme_color_override("font_color", Color("edf1f2"))
 			profile.add_child(profile_name)
-			var stats := GridContainer.new()
-			stats.columns = 3
-			stats.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			stats.add_theme_constant_override("h_separation", 8)
-			stats.add_theme_constant_override("v_separation", 4)
-			profile.add_child(stats)
+			var weapon_stats := GridContainer.new()
+			weapon_stats.columns = 3
+			weapon_stats.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			weapon_stats.add_theme_constant_override("h_separation", 8)
+			weapon_stats.add_theme_constant_override("v_separation", 4)
+			profile.add_child(weapon_stats)
 			var headings := ["Range", "Attacks", "WS" if section == "melee" else "BS", "Strength", "AP", "Damage"]
 			var values: Array = [weapon.get("range", "—"), weapon.get("attacks", "—"), weapon.get("skill", "—"), weapon.get("strength", "—"), weapon.get("ap", "—"), weapon.get("damage", "—")]
 			for index in range(headings.size()):
@@ -110,7 +110,7 @@ func present(model: Dictionary) -> void:
 				value.add_theme_color_override("font_color", Color("edf1f2"))
 				value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 				stat.add_child(value)
-				stats.add_child(stat)
+				weapon_stats.add_child(stat)
 			var weapon_keywords := str(weapon.get("keywords", ""))
 			if not weapon_keywords.is_empty():
 				var keyword_label := Label.new()

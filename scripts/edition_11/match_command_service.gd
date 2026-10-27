@@ -225,8 +225,8 @@ static func _begin_contact(state: Dictionary, player: int, command: Dictionary, 
 
 static func _finish_contact(state: Dictionary, player: int, command: Dictionary) -> Dictionary:
 	var cancel := bool(command.get("cancel", false))
-	var tactical_focus_retained := cancel and not state.get("pending_contact", {}).get("tactical_focus_roll", {}).is_empty()
-	var devout_push_retained := cancel and not state.get("pending_contact", {}).get("devout_push_roll", {}).is_empty()
+	var tactical_focus_retained: bool = cancel and not state.get("pending_contact", {}).get("tactical_focus_roll", {}).is_empty()
+	var devout_push_retained: bool = cancel and not state.get("pending_contact", {}).get("devout_push_roll", {}).is_empty()
 	var validation := Combat.finish_contact_move_result(state, player, int(command.get("revision", -1)), cancel)
 	var message := "Contact placement cancelled; positions restored."
 	if cancel and tactical_focus_retained: message += " Tactical Focus remains paid and its D3+3 roll is retained."

@@ -89,8 +89,6 @@ func run() -> void:
 \tvar game = load(\"res://scenes/main.tscn\").instantiate()
 \troot.add_child(game)
 \tgame._start_guided_first_session()
-\tgame.match_save_path = \"user://matches/pck-smoke.save\"
-\tgame.match_journal_directory = \"user://matches/journals/pck-smoke\"
 \tvar points: Dictionary = game.state.get(\"training_points\", {})
 \tgame._refresh_first_session_guide()
 \tgame._refresh_decision()
@@ -141,7 +139,7 @@ func run() -> void:
 \t\tgame._load_match()
 \t\trecovery_ok = game.resume_succeeded and game.state == saved_state and game.rng.state == saved_rng
 \tvar ok: bool = game.saved_army_mode and game.guided_first_session and points == {1: 290, 2: 235} and title_ok and guide_ok and setup_ok and inspect_id >= 0 and reference_absent and implemented_scope_visible and inspection_read_only and recovery_ok
-\tprint(\"PCK tactical smoke: %s (title=%s guide=%s setup=%s reference_absent=%s implemented_scope=%s inspection_read_only=%s save_recovery=%s)\" % [\"PASS\" if ok else \"FAIL\", title_ok, guide_ok, setup_ok, reference_absent, implemented_scope_visible, inspection_read_only, recovery_ok])
+\tprint(\"PCK tactical smoke: %s (title=%s guide=%s setup=%s reference_absent=%s implemented_scope=%s inspection_read_only=%s save_recovery=%s save_error=%s)\" % [\"PASS\" if ok else \"FAIL\", title_ok, guide_ok, setup_ok, reference_absent, implemented_scope_visible, inspection_read_only, recovery_ok, save_error])
 \tgame.free()
 \tawait process_frame
 \tquit(0 if ok else 1)

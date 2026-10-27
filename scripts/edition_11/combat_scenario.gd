@@ -1209,7 +1209,7 @@ static func select_charge_target(state: Dictionary, player: int, target: int, re
 	var charging_squad := int(working.pending_charge.squad)
 	if _begin_charge_frame(working, charging_squad, "charge-target-selection").is_empty(): return {"error": "Could not resume the charge resolution frame."}
 	if not working.pending_charge.has("targets"): working.pending_charge.targets = []
-	var was_selected := enemy in working.pending_charge.targets
+	var was_selected: bool = enemy in working.pending_charge.targets
 	if was_selected: working.pending_charge.targets.erase(enemy)
 	else: working.pending_charge.targets.append(enemy)
 	var names: Array[String] = []
@@ -1467,8 +1467,8 @@ static func finish_contact_move_result(state: Dictionary, player: int, revision:
 		else:
 			var complete_error := _complete_contact_frame(state, cancelled_move)
 			if not complete_error.is_empty(): return _movement_validation_result("movement_continuation_unavailable", complete_error, "Reopen the contact move before continuing.")
-		var tactical_focus_retained := not cancelled_move.get("tactical_focus_roll", {}).is_empty()
-		var devout_push_retained := not cancelled_move.get("devout_push_roll", {}).is_empty()
+		var tactical_focus_retained: bool = not cancelled_move.get("tactical_focus_roll", {}).is_empty()
+		var devout_push_retained: bool = not cancelled_move.get("devout_push_roll", {}).is_empty()
 		var cancellation_message := "Contact placement cancelled; positions restored."
 		if tactical_focus_retained: cancellation_message += " Tactical Focus remains paid and its roll is retained."
 		if devout_push_retained: cancellation_message += " Devout Push remains paid and its roll is retained."

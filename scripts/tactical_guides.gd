@@ -286,7 +286,7 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 	hover_recovery = str(movement_validation.get("recovery", "Choose another destination or cancel the move."))
 	if not hover_valid and hover_error.is_empty(): hover_error = "Movement validation did not complete."
 	var tint := GREEN if hover_valid else RED
-	var movement_distance := unit.position.distance_to(destination)
+	var movement_distance: float = unit.position.distance_to(destination)
 	if combat:
 		var movement_ignores_vertical := Combat.Terrain.ignores_vertical_movement(state, selected)
 		movement_distance = Combat.Terrain.movement_distance(unit.position, movement_current_elevation, destination, movement_target_elevation, movement_ignores_vertical)
