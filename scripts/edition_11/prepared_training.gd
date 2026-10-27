@@ -54,6 +54,10 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 	if options.has("force_dispositions"):
 		if not options.force_dispositions is Dictionary: return {"error": "Force Dispositions must be selected for Player 1 and Player 2."}
 		force_dispositions = options.force_dispositions.duplicate(true)
+	var sealed_force_disposition_reveal: Variant = options.get("sealed_force_disposition_reveal", false)
+	if typeof(sealed_force_disposition_reveal) != TYPE_BOOL: return {"error": "Sealed Force Disposition reveal must be a Boolean match option."}
+	if sealed_force_disposition_reveal and (not options.get("official_mission", false) or not options.get("checked_rosters", false) or not force_dispositions.is_empty() or primary_overrides != {1: false, 2: false}):
+		return {"error": "Sealed Force Disposition reveal requires the checked Chapter Approved profile, no preselected Force Dispositions and matchup defaults for both players."}
 	if not force_dispositions.is_empty() and (not options.get("official_mission", false) or not options.get("checked_rosters", false)):
 		return {"error": "Force Disposition choices require the checked Chapter Approved roster profile."}
 	var terrain_profile := Combat.Terrain.layout(terrain_layout)
@@ -76,7 +80,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		if options.get("official_mission", false) and selected_detachment != "gladius": return {"error": "This Space Marine detachment is not reconciled for the selected CA mission."}
 	if options.get("combat_doctrines", false) and options.get("oath_of_moment", false): return {"error": "11e Combat Doctrines replaces the historical Oath of Moment profile; these options cannot be combined."}
 	for key: Variant in options:
-		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "primary_overrides", "secondary_pair", "force_dispositions", "training_scenario_id"]: continue
+		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "primary_overrides", "secondary_pair", "force_dispositions", "sealed_force_disposition_reveal", "training_scenario_id"]: continue
 		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts", "oath_of_moment", "reanimation_protocols", "combat_doctrines", "awakened_dynasty", "unit_abilities", "official_mission", "checked_rosters"]: return {"error": "Unsupported match option: " + str(key)}
 		if not options[key] is bool: return {"error": "Match options must be boolean: " + str(key)}
 	if options.get("unit_abilities", false) and (options.get("hail_of_bolts", false) or options.get("objective_secured", false) or options.get("oath_of_moment", false)): return {"error": "Current datasheets cannot combine with historical Hail of Bolts, Objective Secured or Oath profiles."}
@@ -257,7 +261,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			return {"error": "Bring It Down requires each opposing roster to include at least one model with 10 or more Wounds."}
 		if secondary_pair == "engage-grievous-blow" and not defer_secondary_target_check and (not Combat.Mission.has_grievous_blow_roster_target(state, 1) or not Combat.Mission.has_grievous_blow_roster_target(state, 2)):
 			return {"error": "A Grievous Blow requires each opposing roster to include at least one unit with a starting strength of 13 or more models."}
-		Combat.Mission.enable(state, terrain_layout, primary_mission, secondary_pair, primary_missions, force_dispositions, primary_overrides)
+		Combat.Mission.enable(state, terrain_layout, primary_mission, secondary_pair, primary_missions, force_dispositions, primary_overrides, bool(sealed_force_disposition_reveal))
 		if not reports.is_empty():
 			state.saved_army_setup.options.official_mission = true
 			state.saved_army_setup.options.terrain_layout = terrain_layout
@@ -265,6 +269,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			state.saved_army_setup.options.primary_missions = primary_missions.duplicate(true)
 			state.saved_army_setup.options.primary_overrides = state.mission.primary_overrides.duplicate(true)
 			if not force_dispositions.is_empty(): state.saved_army_setup.options.force_dispositions = force_dispositions.duplicate(true)
+			if sealed_force_disposition_reveal: state.saved_army_setup.options.sealed_force_disposition_reveal = true
 			state.saved_army_setup.options.secondary_pair = secondary_pair
 	if options.get("checked_rosters", false):
 		Combat.RosterValidation.enable(state, reports)

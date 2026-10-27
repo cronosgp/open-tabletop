@@ -84,6 +84,7 @@ static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, ef
 		state.match_manifest.primary_overrides = primary_overrides.duplicate(true)
 		state.match_manifest.primary_selection_modes = primary_selection_modes.duplicate(true)
 		state.match_manifest.primary_selection_mode = str(state.mission.get("primary_selection_mode", "direct-selection"))
+		if options.get("sealed_force_disposition_reveal", false): state.match_manifest.sealed_force_disposition_reveal = true
 		var force_dispositions := Mission.force_disposition_assignments(state)
 		if not force_dispositions.is_empty():
 			state.match_manifest.force_dispositions = force_dispositions

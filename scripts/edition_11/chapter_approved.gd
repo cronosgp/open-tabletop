@@ -67,7 +67,7 @@ static func default_primary_mission(force_disposition: String, opponent_force_di
 	var row: Dictionary = FORCE_DISPOSITION_PRIMARY_DEFAULTS.get(force_disposition, {})
 	return str(row.get(opponent_force_disposition, ""))
 
-static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOUT, primary_id: String = "battlefield-dominance", secondary_pair_id: String = DEFAULT_SECONDARY_PAIR, primary_ids: Dictionary = {}, force_disposition_ids: Dictionary = {}, primary_overrides: Dictionary = {}) -> void:
+static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOUT, primary_id: String = "battlefield-dominance", secondary_pair_id: String = DEFAULT_SECONDARY_PAIR, primary_ids: Dictionary = {}, force_disposition_ids: Dictionary = {}, primary_overrides: Dictionary = {}, sealed_force_disposition_reveal: bool = false) -> void:
 	if not T.is_event_layout(terrain_layout): terrain_layout = DEFAULT_TERRAIN_LAYOUT
 	if not PRIMARY_MISSIONS.has(primary_id): primary_id = "battlefield-dominance"
 	if not SECONDARY_PAIRS.has(secondary_pair_id): secondary_pair_id = DEFAULT_SECONDARY_PAIR
@@ -88,17 +88,21 @@ static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOU
 		for owner in [1, 2]:
 			var opponent_disposition := str(selected_force_dispositions[3 - owner])
 			derived_primaries[owner] = default_primary_mission(str(selected_force_dispositions[owner]), opponent_disposition)
+	var reveal_pending := sealed_force_disposition_reveal and selected_force_dispositions.is_empty()
 	var effective_primary_overrides := {1: true, 2: true}
 	for owner in [1, 2]:
 		var raw_override: Variant = primary_overrides.get(owner, primary_overrides.get(str(owner), true))
 		if typeof(raw_override) == TYPE_BOOL: effective_primary_overrides[owner] = raw_override
 		if derived_primaries[owner] != "" and not effective_primary_overrides[owner]:
 			selected_primaries[owner] = derived_primaries[owner]
+		elif reveal_pending:
+			selected_primaries[owner] = "battlefield-dominance"
+			effective_primary_overrides[owner] = false
 		else:
 			effective_primary_overrides[owner] = true
 	var selection_modes := {}
 	for owner in [1, 2]:
-		selection_modes[owner] = "force-disposition-default" if derived_primaries[owner] != "" and not effective_primary_overrides[owner] else "direct-selection-override" if not selected_force_dispositions.is_empty() else "direct-selection"
+		selection_modes[owner] = "sealed-force-disposition-default-pending" if reveal_pending else "force-disposition-default" if derived_primaries[owner] != "" and not effective_primary_overrides[owner] else "direct-selection-override" if not selected_force_dispositions.is_empty() else "direct-selection"
 	primary_id = str(selected_primaries[1])
 	var p1: Dictionary = PRIMARY_MISSIONS[selected_primaries[1]]
 	var p2: Dictionary = PRIMARY_MISSIONS[selected_primaries[2]]
@@ -116,8 +120,8 @@ static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOU
 	s.battle_size = "Incursion - CA 2026-27 (reference lists)"
 	s.first_player = 1
 	var default_mode_count := int(selection_modes[1] == "force-disposition-default") + int(selection_modes[2] == "force-disposition-default")
-	var primary_selection_mode := "force-disposition-default" if default_mode_count == 2 else "direct-selection-override" if default_mode_count == 0 and not selected_force_dispositions.is_empty() else "mixed-force-disposition-default-and-override" if not selected_force_dispositions.is_empty() else "direct-selection"
-	s.mission = {"id": ID, "primary_id": primary_id, "primary_ids": selected_primaries, "primary_names": {1: p1.name, 2: p2.name}, "primary_overrides": effective_primary_overrides, "primary_selection_modes": selection_modes, "secondary_pair_id": secondary_pair_id, "name": "P1: %s / P2: %s" % [p1.name, p2.name] if selected_primaries[1] != selected_primaries[2] else str(p1.name), "deployment": "Hammer and Anvil", "force_dispositions": selected_force_dispositions, "force_disposition_names": selected_force_disposition_names, "primary_selection_mode": primary_selection_mode, "terrain_layout": terrain_layout, "secondary_mode": "fixed", "secondary_cards": secondary_cards, "rounds": 5, "stage": "terrain", "roll_winner": 0, "attacker": 0, "defender": 0, "battle_ready": {}, "objectives": [], "tempting_targets": {}, "actions": actions, "actions_by_player": player_actions, "scores": {1: 0, 2: 0}, "primary": {1: 0, 2: 0}, "secondary": {1: 0, 2: 0}, "cards": {1: {secondary_cards[0]: 0, secondary_cards[1]: 0}, 2: {secondary_cards[0]: 0, secondary_cards[1]: 0}}, "round_points": {}, "scored": [], "dead_characters": [], "log": [], "turn_start_alive": {1: [], 2: []}, "turn_start_objective_units": {1: [], 2: []}, "turn_start_central": {1: [], 2: []}, "turn_start_models": {1: [], 2: []}, "last_turn_losses": {1: 0, 2: 0}, "asset_secured_turn": {1: -1, 2: -1}, "sabotage_started_objectives": {1: {"turn": -1, "objectives": []}, 2: {"turn": -1, "objectives": []}}, "sabotage_committed_units": {1: [], 2: []}}
+	var primary_selection_mode := "sealed-force-disposition-default-pending" if reveal_pending else "force-disposition-default" if default_mode_count == 2 else "direct-selection-override" if default_mode_count == 0 and not selected_force_dispositions.is_empty() else "mixed-force-disposition-default-and-override" if not selected_force_dispositions.is_empty() else "direct-selection"
+	s.mission = {"id": ID, "primary_id": primary_id, "primary_ids": selected_primaries, "primary_names": {1: p1.name, 2: p2.name}, "primary_overrides": effective_primary_overrides, "primary_selection_modes": selection_modes, "secondary_pair_id": secondary_pair_id, "name": "P1: %s / P2: %s" % [p1.name, p2.name] if selected_primaries[1] != selected_primaries[2] else str(p1.name), "deployment": "Hammer and Anvil", "force_dispositions": selected_force_dispositions, "force_disposition_names": selected_force_disposition_names, "primary_selection_mode": primary_selection_mode, "sealed_force_disposition_reveal": reveal_pending, "sealed_force_disposition_choices": {}, "terrain_layout": terrain_layout, "secondary_mode": "fixed", "secondary_cards": secondary_cards, "rounds": 5, "stage": "force-disposition-p1" if reveal_pending else "terrain", "roll_winner": 0, "attacker": 0, "defender": 0, "battle_ready": {}, "objectives": [], "tempting_targets": {}, "actions": actions, "actions_by_player": player_actions, "scores": {1: 0, 2: 0}, "primary": {1: 0, 2: 0}, "secondary": {1: 0, 2: 0}, "cards": {1: {secondary_cards[0]: 0, secondary_cards[1]: 0}, 2: {secondary_cards[0]: 0, secondary_cards[1]: 0}}, "round_points": {}, "scored": [], "dead_characters": [], "log": [], "turn_start_alive": {1: [], 2: []}, "turn_start_objective_units": {1: [], 2: []}, "turn_start_central": {1: [], 2: []}, "turn_start_models": {1: [], 2: []}, "last_turn_losses": {1: 0, 2: 0}, "asset_secured_turn": {1: -1, 2: -1}, "sabotage_started_objectives": {1: {"turn": -1, "objectives": []}, 2: {"turn": -1, "objectives": []}}, "sabotage_committed_units": {1: [], 2: []}}
 	s.mission.battle_start_strength = {}
 	s.mission.battle_strength_recorded = false
 	terrain(s, false, terrain_layout)
@@ -168,6 +172,8 @@ static func terrain(s: Dictionary, two: bool, terrain_layout: String = DEFAULT_T
 static func actor(s: Dictionary) -> int:
 	if not enabled(s) or s.phase == "army_selection": return -1
 	match s.mission.stage:
+		"force-disposition-p1": return 1
+		"force-disposition-p2": return 2
 		"terrain", "roles-roll": return 1
 		"tempting-target-p1": return 2
 		"tempting-target-p2": return 1
@@ -185,6 +191,11 @@ static func choices(s: Dictionary, player: int) -> Array:
 	if player != actor(s) or s.get("test_winner", 0) != 0: return []
 	if s.phase == "mission_first_turn": return [choice("Roll off for first turn (ties roll again)", "mission-first")]
 	match s.mission.stage:
+		"force-disposition-p1", "force-disposition-p2":
+			var options: Array = []
+			for disposition_id: String in ["take-and-hold", "priority-assets"]:
+				options.append(choice("Seal %s" % str(FORCE_DISPOSITIONS[disposition_id]), "mission-force-disposition", -1, disposition_id))
+			return options
 		"terrain": return [choice("Roll central objective configuration (D6)", "mission-terrain")]
 		"tempting-target-p1", "tempting-target-p2":
 			var target_owner := 1 if s.mission.stage == "tempting-target-p1" else 2
@@ -299,6 +310,20 @@ static func _turn_losses(s: Dictionary) -> Dictionary:
 static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Callable) -> String:
 	var m: Dictionary = s.mission
 	match selected.action:
+		"mission-force-disposition":
+			if not bool(m.get("sealed_force_disposition_reveal", false)) or m.stage not in ["force-disposition-p1", "force-disposition-p2"]: return "Sealed Force Disposition selection is not active."
+			var selected_disposition := str(selected.get("value", ""))
+			if not FORCE_DISPOSITIONS.has(selected_disposition): return "Choose an available Force Disposition."
+			var selecting_player := 1 if m.stage == "force-disposition-p1" else 2
+			if player != selecting_player: return "This sealed choice belongs to Player %d." % selecting_player
+			if not m.get("sealed_force_disposition_choices", null) is Dictionary: m.sealed_force_disposition_choices = {}
+			m.sealed_force_disposition_choices[selecting_player] = selected_disposition
+			if selecting_player == 1:
+				m.stage = "force-disposition-p2"
+			else:
+				var selected_dispositions: Dictionary = m.sealed_force_disposition_choices
+				var selection_error := _reveal_force_disposition_defaults(s, selected_dispositions)
+				if not selection_error.is_empty(): return selection_error
 		"mission-terrain":
 			var die := roll(roller)
 			if die < 1 or die > 6: return "Invalid mission die."
@@ -440,6 +465,62 @@ static func controlled_excluding_home_objectives(s: Dictionary, player: int) -> 
 
 static func _primary_checkpoint(s: Dictionary) -> bool:
 	return s.round >= 2 and ((s.phase == "command" and s.round < 5) or (s.phase == "end_turn" and s.round == 5))
+
+static func _reveal_force_disposition_defaults(s: Dictionary, selected_dispositions: Dictionary) -> String:
+	if selected_dispositions.size() != 2: return "Both players must lock a Force Disposition before the matchup can be revealed."
+	var dispositions := {}
+	var disposition_names := {}
+	var primary_ids := {}
+	var primary_names := {}
+	var actions_by_player := {1: [], 2: []}
+	var actions: Array[String] = []
+	for player in [1, 2]:
+		var disposition := str(selected_dispositions.get(player, selected_dispositions.get(str(player), "")))
+		if not FORCE_DISPOSITIONS.has(disposition): return "Choose an available Force Disposition for both players."
+		dispositions[player] = disposition
+		disposition_names[player] = str(FORCE_DISPOSITIONS[disposition])
+	for player in [1, 2]:
+		var primary := default_primary_mission(str(dispositions[player]), str(dispositions[3 - player]))
+		if not PRIMARY_MISSIONS.has(primary): return "This Force Disposition matchup has no supported primary default."
+		primary_ids[player] = primary
+		primary_names[player] = str(PRIMARY_MISSIONS[primary].name)
+		if primary == "secure-asset": actions_by_player[player].append("secure-asset")
+		if primary == "sabotage": actions_by_player[player].append("sabotage")
+		for action_id: String in actions_by_player[player]:
+			if action_id not in actions: actions.append(action_id)
+	var mission: Dictionary = s.mission
+	mission.force_dispositions = dispositions
+	mission.force_disposition_names = disposition_names
+	mission.primary_ids = primary_ids
+	mission.primary_names = primary_names
+	mission.primary_overrides = {1: false, 2: false}
+	mission.primary_selection_modes = {1: "force-disposition-default", 2: "force-disposition-default"}
+	mission.primary_selection_mode = "force-disposition-default"
+	mission.primary_id = str(primary_ids[1])
+	mission.name = "%s / %s" % [str(primary_names[1]), str(primary_names[2])] if primary_ids[1] != primary_ids[2] else str(primary_names[1])
+	mission.actions = actions
+	mission.actions_by_player = actions_by_player
+	mission.sealed_force_disposition_choices = {}
+	mission.stage = "terrain"
+	mission.log.append("Both players locked their Force Dispositions. The matchup primary cards are revealed.")
+	if s.get("saved_army_setup", null) is Dictionary:
+		var setup_options: Dictionary = s.saved_army_setup.get("options", {})
+		setup_options.force_dispositions = dispositions.duplicate(true)
+		setup_options.primary_missions = primary_ids.duplicate(true)
+		setup_options.primary_overrides = {1: false, 2: false}
+		setup_options.sealed_force_disposition_reveal = false
+	if s.get("match_manifest", null) is Dictionary:
+		var manifest: Dictionary = s.match_manifest
+		manifest.force_dispositions = dispositions.duplicate(true)
+		manifest.primary_mission = str(primary_ids[1])
+		manifest.primary_missions = primary_ids.duplicate(true)
+		manifest.primary_overrides = {1: false, 2: false}
+		manifest.primary_selection_modes = {1: "force-disposition-default", 2: "force-disposition-default"}
+		manifest.primary_selection_mode = "force-disposition-default"
+		manifest.sealed_force_disposition_reveal = true
+		if s.saved_army_setup is Dictionary: manifest.saved_armies = s.saved_army_setup.duplicate(true)
+		s.pack_hash = var_to_str(manifest).sha256_text()
+	return ""
 
 static func _score_primary(s: Dictionary, losses: Dictionary) -> void:
 	var m: Dictionary = s.mission
@@ -802,6 +883,8 @@ static func score(s: Dictionary) -> bool:
 
 static func summary(s: Dictionary) -> String:
 	var m: Dictionary = s.mission
+	if str(m.get("stage", "")) in ["force-disposition-p1", "force-disposition-p2"]:
+		return "CA 2026-27 - Sealed Force Disposition selection\nPlayer %d: choose and lock your Force Disposition. The matchup stays hidden until both choices are locked." % actor(s)
 	var pair_id := secondary_pair_id(s)
 	var pair_label := str(SECONDARY_PAIRS[pair_id].label)
 	var names: Dictionary = m.get("primary_names", {1: str(m.get("name", "Battlefield Dominance")), 2: str(m.get("name", "Battlefield Dominance"))})
@@ -816,7 +899,11 @@ static func summary(s: Dictionary) -> String:
 		var p1_target := str(targets.get(1, targets.get("1", "")))
 		var p2_target := str(targets.get(2, targets.get("2", "")))
 		target_summary = "\nTempting Targets — P1: %s · P2: %s" % [p1_target if not p1_target.is_empty() else "awaiting opponent", p2_target if not p2_target.is_empty() else "awaiting opponent"]
-	return "CA 2026-27 - %s / Hammer and Anvil\nPrimary: P1 %s (%d VP) · P2 %s (%d VP)\nSelection: P1 %s · P2 %s\nTotal: %d / %d VP | Fixed secondaries %d / %d VP\n%s%s | Round %d/5\n%s" % [str(m.get("name", "Battlefield Dominance")), str(names.get(1, names.get("1", "Primary"))), m.primary[1], str(names.get(2, names.get("2", "Primary"))), m.primary[2], p1_selection, p2_selection, m.scores[1], m.scores[2], m.secondary[1], m.secondary[2], pair_label, target_summary, s.round, m.log[-1] if not m.log.is_empty() else "Resolve mission preparation choices."]
+	var force_dispositions: Dictionary = m.get("force_disposition_names", {})
+	var force_disposition_summary := ""
+	if force_dispositions.size() == 2:
+		force_disposition_summary = "\nForce Dispositions: P1 %s · P2 %s" % [str(force_dispositions.get(1, force_dispositions.get("1", ""))), str(force_dispositions.get(2, force_dispositions.get("2", "")))]
+	return "CA 2026-27 - %s / Hammer and Anvil\nPrimary: P1 %s (%d VP) · P2 %s (%d VP)\nSelection: P1 %s · P2 %s\nTotal: %d / %d VP | Fixed secondaries %d / %d VP\n%s%s%s | Round %d/5\n%s" % [str(m.get("name", "Battlefield Dominance")), str(names.get(1, names.get("1", "Primary"))), m.primary[1], str(names.get(2, names.get("2", "Primary"))), m.primary[2], p1_selection, p2_selection, m.scores[1], m.scores[2], m.secondary[1], m.secondary[2], pair_label, force_disposition_summary, target_summary, s.round, m.log[-1] if not m.log.is_empty() else "Resolve mission preparation choices."]
 
 static func secret_formations(s: Dictionary) -> bool:
 	return enabled(s) and s.phase == "deployment" and s.mission.stage == "formations" and s.unit_abilities.get("setup_players", []).size() < 2

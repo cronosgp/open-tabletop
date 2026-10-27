@@ -2582,7 +2582,13 @@ static func unit_action(state: Dictionary, player: int, selected: Dictionary, po
 		var mission_error := Mission.apply(working, player, selected, roller)
 		if not mission_error.is_empty(): return mission_error
 		if selected.action == "mission-side": Deployment.begin(working)
-		_event(working, selected.label)
+		var mission_event_label := str(selected.label)
+		if selected.action == "mission-force-disposition":
+			if str(working.mission.stage) in ["force-disposition-p1", "force-disposition-p2"]:
+				mission_event_label = "Player %d sealed a Force Disposition. Pass the device to Player %d." % [player, 3 - player]
+			else:
+				mission_event_label = "Both players sealed their Force Dispositions; the matchup is revealed."
+		_event(working, mission_event_label)
 		state.clear()
 		state.merge(working, true)
 		return ""
