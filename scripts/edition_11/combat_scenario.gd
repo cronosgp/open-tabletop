@@ -42,7 +42,6 @@ const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
 const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
 const Hammer = preload("res://scripts/edition_11/hammer_of_wrath.gd")
-const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const PhaseProgression = preload("res://scripts/edition_11/phase_progression.gd")
 const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 const PhaseResolution = preload("res://scripts/edition_11/phase_resolution.gd")
@@ -318,9 +317,6 @@ static func _settle_phase_start_frame(state: Dictionary) -> void:
 		if str(frame.get("status", "")) == "resolving": ResolutionFrames.suspend(state, str(frame.frame_id), "phase-start-choice")
 	else:
 		ResolutionFrames.complete(state, str(frame.frame_id))
-
-static func _resolve_vanguard_ambushers(state: Dictionary) -> void:
-	PhaseResolution._resolve_vanguard_ambushers(state)
 
 static func select_oath_target(state: Dictionary, player: int, target: int, revision: int) -> String:
 	var error := OathOfMoment.choice_error(state, player, target, revision)

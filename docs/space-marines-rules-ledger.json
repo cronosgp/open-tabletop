@@ -1,11 +1,14 @@
 {
   "current_source_policy": {
-    "id": "wahapedia-e11-definitive-2026-10-18",
+    "id": "wahapedia-e11-definitive-data-and-rules-2026-10-20",
+    "superseded_policy_id": "wahapedia-e11-gw-cross-check-required-2026-10-20",
     "document": "rules-source-policy.md",
     "authority": "Wahapedia /wh40k11ed/",
     "official_gw_confirmation_required": false,
+    "previous_official_gw_confirmation_required": true,
+    "previous_official_gw_policy_status": "superseded_by_wahapedia_only_user_decision",
     "preferred_ingestion": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
-    "remaining_gate": "Current Wahapedia snapshot reconciliation, complete executable effects and scope/interaction validation; no automatic full-match certification."
+    "remaining_gate": "Current Wahapedia snapshot reconciliation, complete executable effects and scope/interaction validation; no automatic full-match certification. GW cross-check is not required."
   },
   "ledger_id": "space-marines-e11-source-ledger",
   "schema_version": 1,
@@ -17,7 +20,7 @@
     "faction_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
     "observed_app_version": "2.8.1",
     "observed_update": "October 2026",
-    "canonical_source_policy": "Definitive project rules authority by user decision on 18 October 2026. GW confirmation is optional. Resolve page/export conflicts within the selected Wahapedia e11 snapshot before admission.",
+    "canonical_source_policy": "Wahapedia e11 export/pages are definitive for datasheet data and rules by user decision. Official GW cross-check is not required and its absence is not a gate. Source reconciliation, implementation, local tests and scope validation remain required.",
     "freshness_check_2026_10_17": "Live faction page reports App 2.8.1 / October 2026, matching the current official app-store version number. This is a freshness signal, not proof of per-rule accuracy.",
     "direct_page_observation_2026_10_17": {
       "source_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/iron-hands",
@@ -36,16 +39,50 @@
     "runtime_identity_source": "scripts/edition_11/unit_abilities.gd",
     "capability_registry": "scripts/edition_11/capabilities.gd"
   },
+  "coverage_summary": {
+    "matrix": "space-marines-coverage.csv",
+    "shared_book_id": "000000139",
+    "export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_identity_audit": "space-marines-source-identity-map.json",
+    "source_identity_export_updated_at": "2026-10-19 03:47:32",
+    "source_identity_datasheets_sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+    "source_inventory_subjects": 85,
+    "runtime_profile_candidates": 85,
+    "runtime_profiles_with_source_metadata": 65,
+    "runtime_profiles_missing_source_metadata": 20,
+    "source_identity_mappings_reconciled": 85,
+    "source_identity_matches_case_insensitive_exact": 84,
+    "source_identity_matches_apostrophe_normalized": 1,
+    "source_ids_reconciled_is_not_data_or_option_comparison": true,
+    "official_gw_rule_cross_check_required": false,
+    "official_gw_rule_cross_check_status": "not_required_by_current_source_policy",
+    "superseded_official_gw_required_policy": "The intermediate GW-cross-check-required policy revision is retained as history only and is superseded by the user's 20 October 2026 Wahapedia-only decision.",
+    "historical_fixed_data_profiles_compared": 6,
+    "profiles_with_bounded_current_source_data_tests": 19,
+    "profile_parity_tests_passed": 10,
+    "copy_cost_profiles_tested": 7,
+    "additional_source_field_only_profiles": 2,
+    "source_metadata_present_but_not_directly_compared": 55,
+    "complete_datasheet_implementations_verified": 0,
+    "focused_local_test_scripts_passed": 14,
+    "related_fixture_tests_blocked": 3,
+    "company_heroes_full_test": "blocked_by_missing_manifest",
+    "full_scope_validated": 0,
+    "external_leader_identity_only_dependencies": 41,
+    "chapter_books_forge_world_legends": "deferred",
+    "network_validation": "deferred_to_final_integration",
+    "vanguard_ambushers": "pending_hidden_movement_end_and_attack_integration"
+  },
   "source_status_values": {
-    "reference_checked_official_locator_pending": "Checked against the current e11 consolidated page and current implementation scope; a precise official Codex or amendment locator for the full rule text is still needed.",
+    "wahapedia_reference_checked_local_validation_pending": "The current Wahapedia e11 source was checked; local implementation and scope/interaction validation remain pending. A GW locator is not required.",
     "catalogued_only": "Identity captured; rule mechanics and implementation have not been fully reconciled.",
-    "identity_candidates_only": "Names transcribed from a current-reference index view; source-book identity, official status, rules, options, and matched-play eligibility are not yet individually resolved.",
+    "identity_candidates_only": "Names transcribed from a current-reference index view; source-book identity, shared/chapter context, rules, options, and matched-play scope are not yet individually resolved.",
     "legacy_candidate_state_rule_inventory_pending": "Earlier state value: identity and DP/disposition candidate records may exist, but first-pass mechanics still need to be checked in detailed_detachment_records.",
-    "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending": "Identity and initial DP/disposition candidates captured; first-pass mechanics summarized from the current e11 reference. Current official cost/disposition and full-rule reconciliation remain pending.",
-    "chapter_reference_candidate_official_reconciliation_pending": "Chapter detachment identity, DP and disposition transcribed from the current e11 consolidated reference. Applicable official Codex/faction-pack and amendment reconciliation is incomplete; do not use as a certified cost or legal option.",
-    "reference_checked_official_full_rule_locator_pending": "Current e11 reference checked; official full Codex/update locator remains pending.",
-    "reference_checked_official_preview_partial": "Current e11 reference checked; the official preview confirms only part or the broad direction of the rule.",
-    "reference_checked_duration_and_official_locator_pending": "Current e11 reference checked; duration interpretation and official full Codex/update locator remain pending.",
+    "identity_dp_and_wahapedia_reconciliation_pending": "Identity and initial DP/disposition candidates captured; first-pass mechanics summarized from Wahapedia e11. Per-record local source reconciliation, implementation and validation remain pending.",
+    "chapter_reference_candidate_local_scope_pending": "Chapter detachment identity, DP and disposition transcribed from Wahapedia e11. Source applicability, local implementation and rule validation are incomplete; do not use as a certified cost or legal option.",
+    "wahapedia_rule_text_reviewed_local_scope_pending": "Current Wahapedia e11 rule text was reviewed; complete local effect and interaction validation remain pending.",
+    "wahapedia_reference_reviewed_local_scope_pending": "Wahapedia e11 reference reviewed; local rule coverage and scope remain pending. Any external preview is optional context.",
+    "wahapedia_duration_interaction_pending_local_validation": "Wahapedia e11 source checked; duration behavior and interaction validation remain pending.",
     "wahapedia_e11_local_export_checked_2026_10_16": "Current Wahapedia e11 local export was checked; implementation and validation state are tracked separately.",
     "wahapedia_e11_local_export_checked_2026_10_21": "Verified Wahapedia e11 Data Export snapshot 20261021T130623Z was checked; revision, retrieval identity, filenames and hashes are recorded on the implementation entry.",
     "wahapedia_e11_local_export_checked_2026_10_16_implementation_incomplete": "Identity, detachment points and disposition were checked in the current Wahapedia e11 local export; some rules remain unimplemented.",
@@ -60,18 +97,18 @@
       "id": "space-marines/intercessor-squad",
       "name": "Intercessor Squad",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
-      "source_status": "reference_checked_official_locator_pending",
+      "source_status": "wahapedia_reference_checked_local_validation_pending",
       "rules": [
         {
           "id": "bolter-discipline",
           "name": "Bolter Discipline",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability"
         },
         {
           "id": "tactical-mainstay",
           "name": "Tactical Mainstay",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability"
         }
       ]
@@ -80,12 +117,12 @@
       "id": "space-marines/assault-intercessor-squad",
       "name": "Assault Intercessor Squad",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Assault-Intercessor-Squad",
-      "source_status": "reference_checked_official_locator_pending",
+      "source_status": "wahapedia_reference_checked_local_validation_pending",
       "rules": [
         {
           "id": "targeted-intercession",
           "name": "Targeted Intercession",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability"
         }
       ]
@@ -94,12 +131,12 @@
       "id": "space-marines/heavy-intercessor-squad",
       "name": "Heavy Intercessor Squad",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Heavy-Intercessor-Squad",
-      "source_status": "reference_checked_official_locator_pending",
+      "source_status": "wahapedia_reference_checked_local_validation_pending",
       "rules": [
         {
           "id": "unyielding-in-the-face-of-the-foe",
           "name": "Unyielding in the Face of the Foe",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability"
         }
       ]
@@ -108,24 +145,24 @@
       "id": "space-marines/terminator-squad",
       "name": "Terminator Squad",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
-      "source_status": "reference_checked_official_locator_pending",
+      "source_status": "wahapedia_reference_checked_local_validation_pending",
       "rules": [
         {
           "id": "deep-strike",
           "name": "Deep Strike",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout reserves"
         },
         {
           "id": "fury-of-the-first",
           "name": "Fury of the First",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability"
         },
         {
           "id": "teleport-homer",
           "name": "Teleport Homer",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability; associated Rapid Ingress interaction"
         }
       ]
@@ -134,30 +171,30 @@
       "id": "space-marines/captain",
       "name": "Captain",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain",
-      "source_status": "reference_checked_official_locator_pending",
+      "source_status": "wahapedia_reference_checked_local_validation_pending",
       "rules": [
         {
           "id": "leader",
           "name": "Leader",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-profile attachment choices"
         },
         {
           "id": "strategic-acumen",
           "name": "Strategic Acumen",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability"
         },
         {
           "id": "finest-hour",
           "name": "Finest Hour",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability"
         },
         {
           "id": "transhuman-strategist",
           "name": "Transhuman Strategist",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability / faction capability registry"
         }
       ]
@@ -166,24 +203,24 @@
       "id": "space-marines/lieutenant",
       "name": "Lieutenant",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
-      "source_status": "reference_checked_official_locator_pending",
+      "source_status": "wahapedia_reference_checked_local_validation_pending",
       "rules": [
         {
           "id": "support",
           "name": "Support",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-profile mandatory attachment choices"
         },
         {
           "id": "tactical-precision",
           "name": "Tactical Precision",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability"
         },
         {
           "id": "demi-company-commander",
           "name": "Demi-company Commander",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "fixed-loadout current unit ability"
         }
       ]
@@ -192,53 +229,53 @@
       "id": "space-marines/roboute-guilliman",
       "name": "Roboute Guilliman",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Roboute-Guilliman",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_reference_reviewed_local_scope_pending",
       "official_preview_url": "https://www.warhammer-community.com/en-gb/articles/paxsnmde/first-look-space-marines-datasheets/",
       "rules": [
         {
           "id": "codex-adept",
           "name": "Codex Adept",
-          "status": "reference_checked_official_preview_partial",
+          "status": "wahapedia_reference_reviewed_local_scope_pending",
           "implementation_scope": "partial passive effect: all three Combat Doctrines are active for this unit; does not implement the complete datasheet"
         },
         {
           "id": "primarch-of-the-xiii",
           "name": "Primarch of the XIII",
-          "status": "reference_checked_official_preview_partial",
+          "status": "wahapedia_reference_reviewed_local_scope_pending",
           "implementation_scope": "implemented aura: friendly Astartes units within 6 inches can re-roll hit and wound rolls of 1; full Guilliman datasheet remains unimplemented"
         },
         {
           "id": "feel-no-pain-5-guilliman",
           "name": "Feel No Pain 5+",
-          "status": "reference_checked_official_preview_partial",
+          "status": "wahapedia_reference_reviewed_local_scope_pending",
           "implementation_scope": "implemented for Guilliman against normal and mortal wounds; full datasheet remains unimplemented"
         },
         {
           "id": "author-of-the-codex",
           "name": "Author of the Codex",
-          "status": "reference_checked_official_preview_partial",
+          "status": "wahapedia_reference_reviewed_local_scope_pending",
           "implementation_scope": "Movement-phase selection of one visible friendly Astartes unit within 12 inches; chosen doctrine adds to other active doctrines until the start of the owner's next Command phase; choice uses shared once-per-battle doctrine accounting"
         },
         {
           "id": "leader-of-the-astartes",
           "name": "Leader of the Astartes",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "implemented conditional Lone Operative against ranged attacks beyond 12 inches while within 3 inches of friendly Astartes Infantry; full Guilliman datasheet remains unimplemented"
         },
         {
           "id": "supreme-commander",
           "name": "Supreme Commander",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "implemented army-preparation requirement that Guilliman be selected as Warlord; full army legality remains unimplemented"
         },
         {
           "id": "transhuman-strategist",
           "name": "Transhuman Strategist",
-          "status": "reference_checked_official_locator_pending",
+          "status": "wahapedia_reference_checked_local_validation_pending",
           "implementation_scope": "implemented Warlord CP gain for a living Guilliman at battle-round start; full army legality remains unimplemented"
         }
       ],
-      "limitation": "The runtime has an experimental fixed-loadout profile and the listed mechanics transcribed from the current e11 reference. The official preview confirms only parts of the datasheet; a complete official Codex/app locator, exact current roster applicability and full army legality remain pending."
+      "limitation": "The runtime has an experimental fixed-loadout profile and listed mechanics transcribed from Wahapedia e11. Broader options, current roster applicability and full army legality remain pending; an official GW locator is not a gate."
     },
     {
       "id": "space-marines/chaplain-with-jump-pack",
@@ -1146,7 +1183,7 @@
       "observed_app_version": "2.8.1",
       "observed_update": "October 2026",
       "status": "identity_candidates_only",
-      "limitation": "Visible category index, not a complete Codex roster or matched-play eligibility determination. The page's keyword totals span its broader datasheet set regardless of filter. Confirm each record's exact source book, chapter restrictions, game mode, current options, and official update locator before implementation.",
+      "limitation": "Visible category index, not a complete roster or matched-play eligibility determination. The page's keyword totals span its broader datasheet set regardless of filter. Confirm each record's exact Wahapedia source book, chapter restrictions, game mode and current options before implementation.",
       "direct_page_observation_2026_10_17": {
         "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
         "reported_app_version": "2.8.1",
@@ -1511,7 +1548,7 @@
         "take-and-hold",
         "priority-assets"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/assault-brethren",
@@ -1520,7 +1557,7 @@
       "force_dispositions": [
         "take-and-hold"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/tactical-brethren",
@@ -1529,7 +1566,7 @@
       "force_dispositions": [
         "priority-assets"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/devastator-brethren",
@@ -1538,7 +1575,7 @@
       "force_dispositions": [
         "purge-the-foe"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/terminator-storm-force",
@@ -1547,7 +1584,7 @@
       "force_dispositions": [
         "priority-assets"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/tacticus-attack-force",
@@ -1556,7 +1593,7 @@
       "force_dispositions": [
         "take-and-hold"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/tacticus-firestorm-force",
@@ -1565,7 +1602,7 @@
       "force_dispositions": [
         "priority-assets"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/phobos-shadow-force",
@@ -1574,7 +1611,7 @@
       "force_dispositions": [
         "disruption"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/phobos-shock-force",
@@ -1583,7 +1620,7 @@
       "force_dispositions": [
         "disruption"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/gravis-linebreaker-force",
@@ -1592,7 +1629,7 @@
       "force_dispositions": [
         "take-and-hold"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/gravis-siege-force",
@@ -1601,7 +1638,7 @@
       "force_dispositions": [
         "take-and-hold"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/stormlance-task-force",
@@ -1610,7 +1647,7 @@
       "force_dispositions": [
         "reconnaissance"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/ironclad-champions",
@@ -1628,7 +1665,7 @@
       "force_dispositions": [
         "reconnaissance"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/ironstorm-spearhead",
@@ -1637,7 +1674,7 @@
       "force_dispositions": [
         "purge-the-foe"
       ],
-      "status": "identity_dp_and_reference_first_pass_inventory_official_reconciliation_pending"
+      "status": "identity_dp_and_wahapedia_reconciliation_pending"
     },
     {
       "id": "space-marines/black-templars/vow-sworn-crusaders",
@@ -1648,7 +1685,7 @@
       "force_dispositions": [
         "purge-the-foe"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/black-templars/marshals-household",
@@ -1659,7 +1696,7 @@
       "force_dispositions": [
         "priority-assets"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/black-templars/fist-of-the-god-emperor",
@@ -1670,7 +1707,7 @@
       "force_dispositions": [
         "take-and-hold"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/blood-angels/angelic-inheritors",
@@ -1682,7 +1719,7 @@
         "priority-assets",
         "purge-the-foe"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending",
+      "status": "chapter_reference_candidate_local_scope_pending",
       "source_conflict_id": "blood-angels-angelic-inheritors-dp-2026-09"
     },
     {
@@ -1694,7 +1731,7 @@
       "force_dispositions": [
         "disruption"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/blood-angels/wrath-of-the-doomed",
@@ -1705,7 +1742,7 @@
       "force_dispositions": [
         "purge-the-foe"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/dark-angels/wrath-of-the-rock",
@@ -1716,7 +1753,7 @@
       "force_dispositions": [
         "take-and-hold"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/dark-angels/inner-circle-task-force",
@@ -1750,7 +1787,7 @@
         "priority-assets",
         "purge-the-foe"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/deathwatch/deathwatch-support",
@@ -1761,7 +1798,7 @@
       "force_dispositions": [
         "disruption"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/iron-hands/medusas-wrath",
@@ -1783,7 +1820,7 @@
       "force_dispositions": [
         "take-and-hold"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/raven-guard/shadowmark-talon",
@@ -1794,7 +1831,7 @@
       "force_dispositions": [
         "disruption"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/salamanders/forgefathers-seekers",
@@ -1805,7 +1842,7 @@
       "force_dispositions": [
         "priority-assets"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/space-wolves/saga-of-the-great-wolf",
@@ -1816,7 +1853,7 @@
       "force_dispositions": [
         "take-and-hold"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/space-wolves/champions-of-fenris",
@@ -1827,7 +1864,7 @@
       "force_dispositions": [
         "priority-assets"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/space-wolves/saga-of-the-beastslayer",
@@ -1838,7 +1875,7 @@
       "force_dispositions": [
         "purge-the-foe"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/ultramarines/blade-of-ultramar",
@@ -1850,7 +1887,7 @@
         "take-and-hold",
         "priority-assets"
       ],
-      "status": "chapter_reference_candidate_official_reconciliation_pending"
+      "status": "chapter_reference_candidate_local_scope_pending"
     },
     {
       "id": "space-marines/white-scars/spearpoint-task-force",
@@ -1870,7 +1907,7 @@
     "official_version_checked": "MFM 1.6, 2026-10-17",
     "official_source_record": "docs/roster-validation.md",
     "reference_disposition_source": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
-    "limitation": "Official MFM 1.6 confirms detachment-point costs; the disposition mapping and detailed detachment rules still need a precise official Codex/update locator per record."
+    "limitation": "The captured MFM 1.6 snapshot records detachment-point costs; reconcile disposition and detailed detachment rules against current Wahapedia e11 records and local validation. GW locators are not required."
   },
   "chapter_detachment_source_crosschecks": {
     "reference_source": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
@@ -1894,7 +1931,7 @@
       "mfm_fetch_status": "official_hub_links_current_mfm_but_automated_page_fetch_returns_403",
       "search_index_boundary": "Search-indexed MFM pages are marked crawled about three months earlier and expose v1.0/launch-era detachment tables. They cannot be treated as the live 14 October MFM contents.",
       "public_codex_errata_locator": "No post-Codex Space Marines faction-pack PDF or full Codex errata locator was found on the public downloads surface in this check.",
-      "implication": "The official MFM hub is the authoritative live points/disposition surface, but the values for this check could not be captured from its current page. Keep current chapter DP/disposition certification pending."
+      "implication": "This was an October 17 historical GW retrieval check. Under the current Wahapedia-only source policy, reconcile chapter detachment points and disposition against the selected Wahapedia e11 data; the unavailable GW page is not a support gate."
     },
     "known_conflicts": [
       {
@@ -1954,7 +1991,7 @@
         "id": "codex-discipline",
         "name": "Codex Discipline",
         "summary": "The army may select one Combat Doctrine one additional time per battle.",
-        "status": "reference_checked_official_preview_partial"
+        "status": "wahapedia_reference_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -2027,7 +2064,7 @@
           "timing": "Fight phase, when a friendly ADEPTUS ASTARTES unit is selected to fight.",
           "target": "That friendly ADEPTUS ASTARTES unit.",
           "effect_summary": "The unit's melee attacks gain Lance until the end of the phase.",
-          "status": "reference_checked_official_preview_partial"
+          "status": "wahapedia_reference_reviewed_local_scope_pending"
         },
         {
           "id": "gladius-adaptive-strategy",
@@ -2036,7 +2073,7 @@
           "timing": "Your Command phase.",
           "target": "One friendly ADEPTUS ASTARTES unit.",
           "effect_summary": "Choose one Combat Doctrine; it is active for that unit until the start of your next Command phase.",
-          "status": "reference_checked_official_preview_partial"
+          "status": "wahapedia_reference_reviewed_local_scope_pending"
         },
         {
           "id": "gladius-storm-of-devastation",
@@ -2045,7 +2082,7 @@
           "timing": "Your Shooting phase, when a friendly ADEPTUS ASTARTES unit is selected to shoot.",
           "target": "That friendly ADEPTUS ASTARTES unit.",
           "effect_summary": "The unit's ranged attacks gain Ignores Cover for that attack sequence.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "gladius-responsive-tactics",
@@ -2054,7 +2091,7 @@
           "timing": "Opponent Movement phase, when an enemy unit ends a move within 8 inches of a friendly unengaged ADEPTUS ASTARTES Infantry or Mounted unit.",
           "target": "That friendly Infantry or Mounted unit.",
           "effect_summary": "The unit can make a Normal move of up to D6 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "implementation_scope": "All four Gladius enhancements have local catalog, assignment, points and match paths for eligible profiles; model-only effects apply to the assigned unit's first model in the current roster format. Adept of the Codex preserves Tactical Doctrine alongside another doctrine after attachment. Artificer Armour and Laurels of Triumph apply their bonuses to the bearer; the Standard supports Ancient, Bladeguard Ancient and Ancient in Terminator Armour profiles and implements its once-per-battle unit melee Attack increase. Focused checks pass in tests/test_gladius_enhancements.gd. Gladius Armour of Contempt passes its local trigger, cost, attacker-binding and AP checks in tests/test_detachment_stratagems.gd. Network validation is deferred; full army legality remains uncertified.",
@@ -2081,7 +2118,7 @@
         "name": "Purge and Sanctify",
         "summary": "When a Crusader Squad makes a Surge move, it may select the closest objective as the destination; models end as close as possible to that objective.",
         "restrictions": "Army may include Black Templars units but no Adeptus Astartes units from other Chapters.",
-        "status": "reference_checked_official_preview_partial"
+        "status": "wahapedia_reference_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -2090,7 +2127,7 @@
           "points": 15,
           "eligibility": "Crusader Squad unit",
           "effect_summary": "The unit can re-roll Advance rolls.",
-          "status": "reference_checked_official_preview_partial"
+          "status": "wahapedia_reference_reviewed_local_scope_pending"
         },
         {
           "id": "oathbound-exemplar",
@@ -2124,7 +2161,7 @@
           "timing": "Your Command phase.",
           "target": "One friendly Crusader Squad unit.",
           "effect_summary": "Choose one Combat Doctrine; it is active for that unit until your next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "fist-angels-defiant",
@@ -2133,7 +2170,7 @@
           "timing": "Opponent Shooting or Fight phase, when an enemy unit targets a friendly Crusader Squad.",
           "target": "That Crusader Squad.",
           "effect_summary": "Attacks with Strength greater than the unit's Toughness worsen their Wound roll by 1.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "fist-avowed-destruction",
@@ -2142,7 +2179,7 @@
           "timing": "Fight phase, when a friendly Crusader Squad is selected to fight.",
           "target": "That Crusader Squad.",
           "effect_summary": "Its melee attacks gain Lethal Hits or Sustained Hits 1, chosen for the use.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -2171,7 +2208,7 @@
           "points": 10,
           "eligibility": "Sword Brethren Squad unit",
           "effect_summary": "The unit gains +1 to Charge rolls.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "inheritors-of-sigismund",
@@ -2179,7 +2216,7 @@
           "points": 15,
           "eligibility": "Sword Brethren Squad unit",
           "effect_summary": "The unit gains Fights First.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -2190,7 +2227,7 @@
           "timing": "Fight phase, when a friendly Sword Brethren Squad is selected to fight.",
           "target": "That Sword Brethren Squad.",
           "effect_summary": "Its melee attacks against Monster or Vehicle units gain +2 Strength.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "marshal-unsparing-execution",
@@ -2199,7 +2236,7 @@
           "timing": "Opponent Movement phase, when an enemy unit engaged with a friendly Sword Brethren Squad is selected to Fall Back.",
           "target": "That Sword Brethren Squad.",
           "effect_summary": "The enemy must use the Desperate Escape mode; if Battle-shocked, it applies -1 to those Hazardous rolls.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "marshal-blade-of-detestation",
@@ -2208,7 +2245,7 @@
           "timing": "Charge phase, after a friendly Sword Brethren Squad ends a Charge move.",
           "target": "That Sword Brethren Squad and one enemy unit it is engaged with.",
           "effect_summary": "Roll one D6 per friendly model engaged with that enemy; each 4+ inflicts one mortal wound, to a maximum of six.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -2222,7 +2259,7 @@
       "chapter": "Black Templars",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_reference_reviewed_local_scope_pending",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/xciydqwa/space-marines-detachments-space-wolves-black-templars-and-deathwatch/"
       ],
@@ -2231,7 +2268,7 @@
         "name": "Templar Vows",
         "summary": "At the start of the first battle round, choose one Vow for friendly Adeptus Astartes units until battle end: attacks against Psykers gain Precision and Lance; attacks against units with higher Toughness than the attacker's Strength gain +1 to Wound; or Infantry securing an objective secures it and can Advance without losing action-start eligibility.",
         "restrictions": "Army may include Black Templars units but no Adeptus Astartes units from other Chapters.",
-        "status": "reference_checked_official_preview_partial"
+        "status": "wahapedia_reference_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -2240,7 +2277,7 @@
           "points": 20,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "In your Shooting phase, select one visible enemy within 18 inches; it cannot benefit from cover.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "consecrating-aura",
@@ -2248,7 +2285,7 @@
           "points": 20,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "The bearer's unit gains a 5+ invulnerable save.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "incendiary-animus",
@@ -2256,7 +2293,7 @@
           "points": 25,
           "eligibility": "Chaplain or Judiciar model",
           "effect_summary": "The bearer's unit gains +1 Strength on melee attacks.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "zealous-vanguard",
@@ -2264,7 +2301,7 @@
           "points": 25,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "The bearer's unit gains Scouts 6 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -2275,7 +2312,7 @@
           "timing": "Opponent Charge phase, when an enemy unit selects charge targets.",
           "target": "One Adeptus Astartes Infantry unit selected as a charge target.",
           "effect_summary": "The charging enemy takes a Battle-shock test with -1 to the test.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "vow-for-the-emperors-honour",
@@ -2284,7 +2321,7 @@
           "timing": "Fight phase, when a friendly Adeptus Astartes Infantry unit is selected to fight.",
           "target": "That Infantry unit.",
           "effect_summary": "Its melee attacks gain Precision for the phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "vow-heresy-begets-retribution",
@@ -2293,7 +2330,7 @@
           "timing": "Opponent Movement phase, when an enemy ends a move within 8 inches of a friendly Adeptus Astartes Infantry unit.",
           "target": "That Infantry unit.",
           "effect_summary": "The unit can make a Surge move up to D6 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "vow-spoor-of-the-unholy",
@@ -2302,7 +2339,7 @@
           "timing": "Your Shooting or Fight phase, when a friendly Adeptus Astartes unit is selected to attack.",
           "target": "That Adeptus Astartes unit.",
           "effect_summary": "Ignore modifiers to its Ballistic Skill, Weapon Skill and Hit rolls for the attack sequence.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "vow-pious-enmity",
@@ -2311,7 +2348,7 @@
           "timing": "Fight phase, when a friendly Chaplain or Judiciar unit is selected to fight.",
           "target": "That Chaplain or Judiciar unit.",
           "effect_summary": "Choose re-roll hit rolls of 1 for melee attacks, or re-roll hit rolls of 1 and wound rolls of 1 against Monster or Vehicle targets.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "vow-devout-push",
@@ -2320,7 +2357,7 @@
           "timing": "Fight phase, when a friendly Adeptus Astartes Infantry unit is selected for a Pile-in or Consolidation move.",
           "target": "That Infantry unit.",
           "effect_summary": "The selected Pile-in or Consolidation move can be up to D3+3 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -2336,7 +2373,7 @@
       "chapter": "Blood Angels",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_reference_reviewed_local_scope_pending",
       "source_conflict_id": "blood-angels-angelic-inheritors-dp-2026-09",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/voakmnny/space-marines-detachments-blood-angels-and-dark-angels/"
@@ -2346,7 +2383,7 @@
         "name": "Legacy of the Angel",
         "summary": "Friendly Blood Angels Character units can re-roll Hit rolls of 1 and Wound rolls of 1.",
         "restrictions": "Army may include Blood Angels units but no Adeptus Astartes units from other Chapters.",
-        "status": "reference_checked_official_preview_partial"
+        "status": "wahapedia_reference_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -2355,7 +2392,7 @@
           "points": 25,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "The bearer's unit gains Scouts 6 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "blazing-icon",
@@ -2363,7 +2400,7 @@
           "points": 20,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "Enemy units cannot target the bearer's unit with Snap Shooting attacks.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "ordained-sacrifice",
@@ -2371,7 +2408,7 @@
           "points": 25,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "Once per battle per army, when the bearer is destroyed, roll a D6 at phase end; on 2+, set it back up as close as possible, unengaged, with 3 wounds.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "unto-death",
@@ -2379,7 +2416,7 @@
           "points": 15,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "Once per battle per army, in Command, the unit can re-roll Advance and Charge rolls until turn end.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -2390,7 +2427,7 @@
           "timing": "Fight phase, when a friendly Adeptus Astartes unit is selected to fight.",
           "target": "That unit.",
           "effect_summary": "Melee attacks gain Lethal Hits; if the unit is a Character unit, they gain Lethal Hits and Lance.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "angelic-strike-now-for-glory",
@@ -2399,7 +2436,7 @@
           "timing": "Your Shooting phase, when a friendly Adeptus Astartes unit is selected to attack.",
           "target": "That unit.",
           "effect_summary": "Ranged attacks gain Sustained Hits 1.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "angelic-instant-of-grace",
@@ -2408,7 +2445,7 @@
           "timing": "Your Command phase.",
           "target": "One friendly Adeptus Astartes Infantry unit.",
           "effect_summary": "The unit gains the Character keyword until your next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "angelic-measured-strategist",
@@ -2417,7 +2454,7 @@
           "timing": "Your Command phase.",
           "target": "One friendly Adeptus Astartes Character unit.",
           "effect_summary": "Choose one Combat Doctrine; it is active for that unit until your next Command phase.",
-          "status": "reference_checked_official_preview_partial"
+          "status": "wahapedia_reference_reviewed_local_scope_pending"
         },
         {
           "id": "angelic-unto-the-burning-skies",
@@ -2426,7 +2463,7 @@
           "timing": "End of your opponent's Fight phase.",
           "target": "The Sanguinor or one unengaged Adeptus Astartes Jump Pack unit.",
           "effect_summary": "Place the unit in Strategic Reserves.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "angelic-in-the-shadow-of-great-wings",
@@ -2435,7 +2472,7 @@
           "timing": "Opponent Shooting phase, when an enemy unit targets a friendly Adeptus Astartes Character unit.",
           "target": "That Character unit.",
           "effect_summary": "The unit gains Stealth and -3 inches Detection range.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -2457,7 +2494,7 @@
         "name": "Wrath of Angels",
         "summary": "The Tactical Doctrine is active for Sanguinary Guard units in addition to any other Combat Doctrine.",
         "restrictions": "Army may include Blood Angels units but no Adeptus Astartes units from other Chapters.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "wahapedia_rule_text_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -2466,7 +2503,7 @@
           "points": 15,
           "eligibility": "Adeptus Astartes Jump Pack model",
           "effect_summary": "Once per battle per army, when selected to fight, the bearer can gain +1 Damage on melee attacks.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "angelic-executioner",
@@ -2474,7 +2511,7 @@
           "points": 20,
           "eligibility": "Adeptus Astartes Jump Pack model",
           "effect_summary": "When selected to fight, choose Lethal Hits or Sustained Hits 1 for the unit's melee attacks.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -2485,7 +2522,7 @@
           "timing": "Charge phase, when a friendly Sanguinary Guard unit ends a Charge move.",
           "target": "That unit and one enemy unit it is engaged with.",
           "effect_summary": "Roll one D6 for each friendly model engaged with that enemy; each 3+ inflicts one mortal wound.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "encarmine-inexorable-valour",
@@ -2494,7 +2531,7 @@
           "timing": "Opponent Movement phase, after an enemy that was engaged with friendly Sanguinary Guard ends a Fall Back move, if that Guard unit is now unengaged.",
           "target": "That Sanguinary Guard unit.",
           "effect_summary": "The unit can make a Normal move up to D3+3 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "encarmine-blinding-blurs-of-vengeance",
@@ -2503,7 +2540,7 @@
           "timing": "Opponent Shooting phase, when an enemy unit targets friendly Sanguinary Guard.",
           "target": "That Sanguinary Guard unit.",
           "effect_summary": "The unit gains Stealth and -3 inches Detection range.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -2524,7 +2561,7 @@
         "name": "Sanguinius' Fury",
         "summary": "At each phase start, Death Company units have the Assault Doctrine active; Devastator and Tactical Doctrines cannot be active for them.",
         "restrictions": "Army may include Blood Angels units but no Adeptus Astartes units from other Chapters.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "wahapedia_rule_text_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -2533,7 +2570,7 @@
           "points": 10,
           "eligibility": "Death Company model",
           "effect_summary": "Heroic Intervention costs 1 fewer CP when targeting the bearer's unit.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "on-the-archtraitors-bridge",
@@ -2541,7 +2578,7 @@
           "points": 20,
           "eligibility": "Death Company model",
           "effect_summary": "The bearer's melee attacks gain +2 Attacks.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -2552,7 +2589,7 @@
           "timing": "Any phase, when an enemy unit destroys a friendly Death Company unit.",
           "target": "That enemy unit.",
           "effect_summary": "The enemy is hated until battle end; friendly Death Company attacks against it gain +1 to Wound.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "wrath-no-barrier-to-retribution",
@@ -2561,7 +2598,7 @@
           "timing": "Movement or Charge phase, when a friendly Death Company Dreadnought is selected for a Normal, Advance or Charge move.",
           "target": "That Dreadnought.",
           "effect_summary": "The unit gains Mobile.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "wrath-rage-fuelled-response",
@@ -2570,7 +2607,7 @@
           "timing": "Opponent Shooting phase, after an enemy that targeted a friendly unengaged Death Company unit has shot.",
           "target": "That Death Company unit.",
           "effect_summary": "The unit can make a Surge move up to D6 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -3148,7 +3185,7 @@
       "chapter": "Deathwatch",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_reference_reviewed_local_scope_pending",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/xciydqwa/space-marines-detachments-space-wolves-black-templars-and-deathwatch/"
       ],
@@ -3157,7 +3194,7 @@
         "name": "Mission Tactics",
         "summary": "Kill Teams gain one attack package based on the active Combat Doctrine: Devastator grants Sustained Hits 1, Tactical grants Lethal Hits, or Assault grants Precision against enemies within 9 inches.",
         "restrictions": "Army can include Deathwatch Adeptus Astartes but no Adeptus Astartes from another Chapter. Agents of the Imperium Deathwatch units are excluded except Kill Team Cassius, which is Legends.",
-        "status": "reference_checked_official_preview_partial"
+        "status": "wahapedia_reference_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -3166,7 +3203,7 @@
           "points": 10,
           "eligibility": "Watch Master or Captain model",
           "effect_summary": "The bearer receives the Thief of Secrets melee weapon profile; profile details remain to be reconciled as weapon data.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "beacon-angelis-black-spear",
@@ -3174,7 +3211,7 @@
           "points": 25,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "If the bearer's unit is a Kill Team, it gains Deep Strike and Rapid Ingress targeting it costs 1 fewer CP.",
-          "status": "reference_checked_official_preview_partial"
+          "status": "wahapedia_reference_reviewed_local_scope_pending"
         },
         {
           "id": "tome-of-ectoclades",
@@ -3182,7 +3219,7 @@
           "points": 15,
           "eligibility": "Watch Master or Captain model",
           "effect_summary": "Once per battle per army, in Command, all three Combat Doctrines are active for the bearer's unit until your next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "osseus-key",
@@ -3190,7 +3227,7 @@
           "points": 20,
           "eligibility": "Watch Master or Techmarine model",
           "effect_summary": "Enemy Vehicle units within 6 inches of the bearer have -1 Attack on their attacks.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -3201,7 +3238,7 @@
           "timing": "Opponent Shooting or Fight phase, when an enemy unit targets a friendly Adeptus Astartes unit.",
           "target": "That friendly unit.",
           "effect_summary": "Attacks targeting it worsen their AP by 1 until that enemy unit has attacked.",
-          "status": "reference_checked_duration_and_official_locator_pending"
+          "status": "wahapedia_duration_interaction_pending_local_validation"
         },
         {
           "id": "black-spear-kraken-rounds",
@@ -3210,7 +3247,7 @@
           "timing": "Your Shooting phase, when a Kill Team is selected to shoot.",
           "target": "That Kill Team.",
           "effect_summary": "Its ranged attacks gain +6 inches Range and +1 Strength.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "black-spear-hellfire-rounds",
@@ -3219,7 +3256,7 @@
           "timing": "Your Shooting phase, when a Kill Team is selected to shoot.",
           "target": "That Kill Team.",
           "effect_summary": "Its ranged attacks, except Devastating Wounds attacks, gain Anti-Non-Vehicle 4+.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "black-spear-dragonfire-rounds",
@@ -3228,7 +3265,7 @@
           "timing": "Your Shooting phase, when a Kill Team is selected to shoot.",
           "target": "That Kill Team.",
           "effect_summary": "Its ranged attacks re-roll Wound rolls of 1 and gain Ignores Cover.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "black-spear-adaptive-tactics",
@@ -3237,7 +3274,7 @@
           "timing": "Your Command phase.",
           "target": "One friendly Adeptus Astartes unit.",
           "effect_summary": "Choose one Combat Doctrine; it is active for that unit until your next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "black-spear-site-to-site-teleportation",
@@ -3246,7 +3283,7 @@
           "timing": "End of your opponent's Fight phase.",
           "target": "One friendly unengaged Adeptus Astartes Infantry unit.",
           "effect_summary": "Place it in Strategic Reserves; if it is a Kill Team, it gains Deep Strike until the end of your next Movement phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -3262,7 +3299,7 @@
       "chapter": "Deathwatch",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_reference_reviewed_local_scope_pending",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/xciydqwa/space-marines-detachments-space-wolves-black-templars-and-deathwatch/"
       ],
@@ -3271,7 +3308,7 @@
         "name": "Mission Tactics / Deathwatch Allies",
         "summary": "Kill Teams use the same doctrine-linked Furor, Malleus and Purgatus tactics as Black Spear Task Force.",
         "restrictions": "Deathwatch units may join another Space Marines army up to a combined 500 points. A Deathwatch model cannot be Warlord unless another rule says otherwise. Kill Teams can only use enhancements from this detachment. This is an exception to Space Marine Chapters Army Rules.",
-        "status": "reference_checked_official_preview_partial"
+        "status": "wahapedia_reference_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -3280,7 +3317,7 @@
           "points": 25,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "If the bearer's unit is a Kill Team, it gains Deep Strike and Rapid Ingress targeting it costs 1 fewer CP.",
-          "status": "reference_checked_official_preview_partial"
+          "status": "wahapedia_reference_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -3291,7 +3328,7 @@
           "timing": "Your Shooting phase, when a Kill Team is selected to shoot.",
           "target": "That Kill Team.",
           "effect_summary": "Its ranged attacks gain +6 inches Range and +1 Strength.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "deathwatch-support-dragonfire-rounds",
@@ -3300,7 +3337,7 @@
           "timing": "Your Shooting phase, when a Kill Team is selected to shoot.",
           "target": "That Kill Team.",
           "effect_summary": "Its ranged attacks re-roll Wound rolls of 1 and gain Ignores Cover.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "deathwatch-support-hellfire-rounds",
@@ -3309,7 +3346,7 @@
           "timing": "Your Shooting phase, when a Kill Team is selected to shoot.",
           "target": "That Kill Team.",
           "effect_summary": "Its ranged attacks, except Devastating Wounds attacks, gain Anti-Non-Vehicle 4+.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "deathwatch-support-blackstar-extraction",
@@ -3318,7 +3355,7 @@
           "timing": "End of your opponent's Fight phase.",
           "target": "One friendly unengaged Kill Team.",
           "effect_summary": "Place the unit in Strategic Reserves.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -3332,7 +3369,7 @@
       "chapter": "Space Wolves",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_reference_reviewed_local_scope_pending",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/xciydqwa/space-marines-detachments-space-wolves-black-templars-and-deathwatch/"
       ],
@@ -3341,7 +3378,7 @@
         "name": "The Great Wolf Watches",
         "summary": "Adeptus Astartes Character units have Countercharge: once per battle round per unit, Heroic Intervention targeting that unit costs 1 fewer CP.",
         "restrictions": "Space Wolves army; chapter mixing must follow the applicable Chapter rules.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "wahapedia_rule_text_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -3350,7 +3387,7 @@
           "points": 15,
           "eligibility": "Adeptus Astartes Infantry model",
           "effect_summary": "The bearer's unit can re-roll Charge rolls.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "a-giant-amongst-giants",
@@ -3358,7 +3395,7 @@
           "points": 15,
           "eligibility": "Adeptus Astartes Infantry model",
           "effect_summary": "The bearer gains +2 Wounds and +1 Strength on melee attacks.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -3369,7 +3406,7 @@
           "timing": "Fight phase, when a friendly Adeptus Astartes Character unit is selected to fight.",
           "target": "That Character unit.",
           "effect_summary": "Its melee attacks can re-roll Hit rolls of 1 and Wound rolls of 1.",
-          "status": "reference_checked_official_preview_partial"
+          "status": "wahapedia_reference_reviewed_local_scope_pending"
         },
         {
           "id": "champions-heroic-resolve",
@@ -3378,7 +3415,7 @@
           "timing": "Opponent Shooting or Fight phase, when an enemy unit targets a friendly Adeptus Astartes Character unit.",
           "target": "That Character unit.",
           "effect_summary": "Attacks targeting it have -1 Damage until the attacking unit has attacked.",
-          "status": "reference_checked_official_preview_partial"
+          "status": "wahapedia_reference_reviewed_local_scope_pending"
         },
         {
           "id": "champions-birth-of-a-saga",
@@ -3387,7 +3424,7 @@
           "timing": "Your Command phase.",
           "target": "One friendly Adeptus Astartes unit, excluding Monster and Vehicle units.",
           "effect_summary": "The unit gains Character until your next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -3401,7 +3438,7 @@
       "chapter": "Space Wolves",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_reference_reviewed_local_scope_pending",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/xciydqwa/space-marines-detachments-space-wolves-black-templars-and-deathwatch/"
       ],
@@ -3410,7 +3447,7 @@
         "name": "Legendary Slayers",
         "summary": "Blood Claws, Thunderwolf Cavalry and Wulfen attacks gain Lethal Hits against Character, Monster and Vehicle targets.",
         "restrictions": "Army may include Space Wolves units but no Adeptus Astartes units from other Chapters.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "wahapedia_rule_text_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -3419,7 +3456,7 @@
           "points": 20,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "After both armies deploy, redeploy up to three Blood Claws, Thunderwolf Cavalry or Wulfen units; they may enter Strategic Reserves regardless of the normal reserve count.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "wolf-touched",
@@ -3427,7 +3464,7 @@
           "points": 15,
           "eligibility": "Wulfen or Wulfen with Storm Shields Leader model",
           "effect_summary": "The unit gains Wulfen and +2 inches Move.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -3438,7 +3475,7 @@
           "timing": "Fight phase, when a friendly Blood Claws, Thunderwolf Cavalry or Wulfen unit is selected to fight.",
           "target": "That unit.",
           "effect_summary": "Its melee attacks gain Lance.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "beastslayer-coordinated-strike",
@@ -3447,7 +3484,7 @@
           "timing": "End of your opponent's Fight phase.",
           "target": "One unengaged Blood Claws, Thunderwolf Cavalry or Wulfen unit within 9 inches of a battlefield edge.",
           "effect_summary": "Place the unit in Strategic Reserves.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "beastslayer-impetuosity",
@@ -3456,7 +3493,7 @@
           "timing": "Opponent Shooting phase, after an enemy that targeted a friendly unengaged Blood Claws, Thunderwolf Cavalry or Wulfen unit has shot.",
           "target": "That friendly unit.",
           "effect_summary": "The unit can make a Surge move up to D6 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -3470,7 +3507,7 @@
       "chapter": "Space Wolves",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_reference_reviewed_local_scope_pending",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/xciydqwa/space-marines-detachments-space-wolves-black-templars-and-deathwatch/"
       ],
@@ -3479,7 +3516,7 @@
         "name": "Master of Wolves",
         "summary": "Non-Monster/Vehicle Adeptus Astartes units gain doctrine-dependent effects: Assault gives +1 Advance and Charge rolls; Devastator lets ranged attacks re-roll Hit rolls of 1; Tactical gives Sustained Hits 1 against enemies within 9 inches. Once per battle per army, Logan Grimnar can extend the rule to friendly Adeptus Astartes Monsters and Vehicles until the next Command phase.",
         "restrictions": "Army may include Space Wolves units but no Adeptus Astartes units from other Chapters.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "wahapedia_rule_text_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -3488,7 +3525,7 @@
           "points": 15,
           "eligibility": "Wolf Priest model",
           "effect_summary": "Once per turn per unit, at Fight phase start, select an enemy within 6 inches; it takes a Battle-shock test with -1.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "grimnars-mark",
@@ -3496,7 +3533,7 @@
           "points": 15,
           "eligibility": "Adeptus Astartes Terminator Captain model",
           "effect_summary": "Once per battle round per army, the bearer can use Rapid Ingress or Heroic Intervention for 1 fewer CP without preventing uses of that Stratagem on other units that phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "chariots-of-the-storm",
@@ -3504,7 +3541,7 @@
           "points": 25,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "After deployment, redeploy up to three friendly Adeptus Astartes units; they may enter Strategic Reserves regardless of the normal reserve count.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "skjalds-foretelling",
@@ -3512,7 +3549,7 @@
           "points": 20,
           "eligibility": "Wolf Guard Battle Leader model",
           "effect_summary": "The bearer's melee attacks gain Lance.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -3523,7 +3560,7 @@
           "timing": "Your Shooting or Fight phase, when a friendly Adeptus Astartes Infantry unit is selected to attack.",
           "target": "That Infantry unit.",
           "effect_summary": "Its attacks can re-roll Wound rolls of 1 and 2.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "great-wolf-wolf-totems",
@@ -3532,7 +3569,7 @@
           "timing": "Any phase, when a friendly Adeptus Astartes Infantry or Mounted unit suffers a mortal wound.",
           "target": "That unit.",
           "effect_summary": "The unit gains Feel No Pain 5+ against mortal wounds.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "great-wolf-fangs-of-the-pack",
@@ -3541,7 +3578,7 @@
           "timing": "Fight phase, when a friendly Adeptus Astartes Infantry or Mounted unit is selected to fight.",
           "target": "That unit.",
           "effect_summary": "Its melee attacks gain Precision.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "great-wolf-fenrisian-ferocity",
@@ -3550,7 +3587,7 @@
           "timing": "Movement or Charge phase, when a friendly Adeptus Astartes Mounted or Walker unit is selected to move or declares a Charge.",
           "target": "That unit.",
           "effect_summary": "The unit gains Mobile.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "great-wolf-grimnars-command",
@@ -3559,7 +3596,7 @@
           "timing": "Your Command phase.",
           "target": "One friendly Adeptus Astartes unit, excluding Monster and Vehicle units.",
           "effect_summary": "Choose one Combat Doctrine; it is active for that unit until your next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "great-wolf-battle-instincts",
@@ -3568,7 +3605,7 @@
           "timing": "Opponent Shooting phase, after an enemy that targeted a friendly unengaged Adeptus Astartes Infantry or Mounted unit has shot.",
           "target": "That unit.",
           "effect_summary": "The unit can make a Normal move up to D3+3 inches.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -3841,7 +3878,7 @@
       "chapter": "Imperial Fists",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_full_rule_locator_pending",
+      "source_status": "wahapedia_rule_text_reviewed_local_scope_pending",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/dhwqtqkc/space-marines-detachments-salamanders-raven-guard-and-more/"
       ],
@@ -3850,7 +3887,7 @@
         "name": "Adaptive Defence",
         "summary": "Astartes within terrain reroll Wound rolls of 1. Units are entrenched if within terrain, not set up this turn, and no model moved more than 3 inches. Lysander and Tor Garadon are always entrenched. After deployment, redeploy up to three Astartes Infantry units, which may enter Strategic Reserves.",
         "restrictions": "Army can include Imperial Fists units but no Astartes units from other Chapters.",
-        "status": "reference_checked_official_full_rule_locator_pending"
+        "status": "wahapedia_rule_text_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -3859,7 +3896,7 @@
           "points": 10,
           "eligibility": "Gravis model",
           "effect_summary": "Once per battle per army, at phase end after bearer is destroyed, on 2+ return it unengaged with 3 wounds.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "castellum-omnivox",
@@ -3867,7 +3904,7 @@
           "points": 10,
           "eligibility": "Adeptus Astartes unit",
           "effect_summary": "Advance or Fall Back does not prevent the unit from being eligible to start an action.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "defensive-mastery",
@@ -3875,7 +3912,7 @@
           "points": 10,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "After deployment, redeploy up to three Astartes Infantry units; they may enter Strategic Reserves.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "spy-skull-data-link",
@@ -3883,7 +3920,7 @@
           "points": 10,
           "eligibility": "Adeptus Astartes unit",
           "effect_summary": "The unit's ranged weapons gain Ignores Cover.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -3894,7 +3931,7 @@
           "timing": "Command phase.",
           "target": "One friendly Astartes unit within objective range.",
           "effect_summary": "+1 OC until end of turn.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "ceramite-stand-to-the-end",
@@ -3903,7 +3940,7 @@
           "timing": "Opponent Shooting or Fight phase, when a non-Monster/Vehicle enemy targets a friendly Astartes unit.",
           "target": "That Astartes unit.",
           "effect_summary": "Attacks with Strength greater than Toughness have -1 to Wound; if entrenched, all attacks have -1 to Wound.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "ceramite-augmented-targeting",
@@ -3912,7 +3949,7 @@
           "timing": "Shooting or Fight phase, when a friendly Astartes unit is selected to attack.",
           "target": "That unit.",
           "effect_summary": "Choose Lethal Hits or Sustained Hits 1; if entrenched, gain both.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "ceramite-establish-supremacy",
@@ -3921,7 +3958,7 @@
           "timing": "Fight phase, when an entrenched Astartes Infantry unit consolidates.",
           "target": "That Infantry unit.",
           "effect_summary": "It may use objective consolidation regardless of Before Moving restrictions, including moving out of Engagement Range if other conditions are met.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "ceramite-priority-strike",
@@ -3930,7 +3967,7 @@
           "timing": "Shooting or Fight phase, when Astartes Infantry/Mounted is selected to attack.",
           "target": "That unit.",
           "effect_summary": "+1 to Wound against Monster or Vehicle targets.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "ceramite-evasive-repositioning",
@@ -3939,7 +3976,7 @@
           "timing": "Opponent Shooting phase, after an enemy unit shoots.",
           "target": "One friendly unengaged Astartes Infantry/Mounted unit that lost a wound from those attacks.",
           "effect_summary": "Normal move up to D6 inches, or D3+3 if entrenched; cannot embark until end of turn.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -3954,7 +3991,7 @@
       "chapter": "Raven Guard",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_reference_reviewed_local_scope_pending",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/dhwqtqkc/space-marines-detachments-salamanders-raven-guard-and-more/"
       ],
@@ -3962,8 +3999,8 @@
         "id": "shadow-tactics",
         "name": "Shadow Tactics",
         "summary": "Astartes units gain Stealth; Phobos and Scout Squad units have -3 inches detection range. Aethon Shaan can reduce Into Darkness by 1 CP once per battle round per army.",
-        "restrictions": "Raven Guard army; chapter-mixing rule needs official locator.",
-        "status": "reference_checked_official_preview_partial"
+        "restrictions": "Raven Guard army; reconcile the chapter-mixing rule against the current Wahapedia e11 source and local eligibility checks.",
+        "status": "wahapedia_reference_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -3972,7 +4009,7 @@
           "points": 25,
           "eligibility": "Adeptus Astartes Infantry model",
           "effect_summary": "Bearer's unit gains Infiltrators.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "umbral-raptor",
@@ -3980,7 +4017,7 @@
           "points": 15,
           "eligibility": "Adeptus Astartes Infantry model",
           "effect_summary": "Bearer gains Fights First and Lone Operative.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "shadowmark-hunters-instincts-enhancement",
@@ -3988,7 +4025,7 @@
           "points": 25,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "In the first Movement phase, the bearer's unit can make an ingress move.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "coronal-susurrant",
@@ -3996,7 +4033,7 @@
           "points": 30,
           "eligibility": "Phobos model",
           "effect_summary": "Enemy non-Monster/Vehicle units engaged with the bearer cannot be targeted by their controller's Stratagems.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -4007,7 +4044,7 @@
           "timing": "End of opponent Fight phase.",
           "target": "Up to two Phobos/Scout units, or one other unengaged Astartes Infantry unit.",
           "effect_summary": "Remove target unit(s) and place into Strategic Reserves.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "shadow-raptorial-vigilance",
@@ -4016,7 +4053,7 @@
           "timing": "Opponent Movement phase, after an enemy ends a move within 8 inches.",
           "target": "One friendly unengaged Astartes Infantry unit.",
           "effect_summary": "Normal move up to D6 inches, or up to 6 for Phobos/Scout.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "shadow-murderous-fusillade",
@@ -4025,7 +4062,7 @@
           "timing": "Shooting phase, when an Astartes Infantry unit that made an ingress move this turn is selected to shoot.",
           "target": "That unit.",
           "effect_summary": "+1 BS and +1 AP to ranged attacks.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "shadow-suppressed-weapons",
@@ -4034,7 +4071,7 @@
           "timing": "Your Shooting phase, after a friendly Astartes Infantry unit has shot.",
           "target": "That unit.",
           "effect_summary": "Those attacks do not prevent the unit from being hidden.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "shadow-feint-and-thrust",
@@ -4043,7 +4080,7 @@
           "timing": "Your Command phase.",
           "target": "One friendly Astartes Infantry unit.",
           "effect_summary": "Tactical Doctrine is active for that unit in addition to any other doctrine until next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "shadow-lay-low-the-tyrants",
@@ -4052,7 +4089,7 @@
           "timing": "Fight phase, when a friendly Astartes Infantry unit is selected to fight.",
           "target": "That unit.",
           "effect_summary": "Melee attacks gain Precision.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -4067,7 +4104,7 @@
       "chapter": "Salamanders",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/",
       "observed_app_version": "2.8.1",
-      "source_status": "reference_checked_official_preview_partial",
+      "source_status": "wahapedia_reference_reviewed_local_scope_pending",
       "official_preview_sources": [
         "https://www.warhammer-community.com/en-gb/articles/dhwqtqkc/space-marines-detachments-salamanders-raven-guard-and-more/"
       ],
@@ -4076,7 +4113,7 @@
         "name": "Vulkan's Quest",
         "summary": "Devastator Doctrine can be selected one additional time per battle; Astartes ranged attacks targeting units within 12 inches gain +1 Strength. If Vulkan He’stan is included, Infernus Squads can start actions after Advancing/Falling Back and can shoot after starting an action.",
         "restrictions": "Army can include Salamanders units but no Astartes units from other Chapters.",
-        "status": "reference_checked_official_preview_partial"
+        "status": "wahapedia_reference_reviewed_local_scope_pending"
       },
       "enhancements": [
         {
@@ -4085,7 +4122,7 @@
           "points": 25,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "Unit ignores modifiers to BS, WS and Hit rolls.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "adamantine-mantle-salamanders",
@@ -4093,7 +4130,7 @@
           "points": 20,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "Attacks allocated to bearer have -1 Damage.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "war-tempered-artifice",
@@ -4101,7 +4138,7 @@
           "points": 25,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "Bearer's melee attacks gain +1 Strength and +1 Damage.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "immolator",
@@ -4109,7 +4146,7 @@
           "points": 20,
           "eligibility": "Adeptus Astartes model",
           "effect_summary": "Torrent weapons equipped by models in the bearer's unit gain +1 Attack.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "stratagems": [
@@ -4120,7 +4157,7 @@
           "timing": "Start of opponent Charge phase.",
           "target": "Unengaged Astartes unit with Torrent/Melta weapon; select visible enemy within 12 inches.",
           "effect_summary": "Selected enemy has -1 to Charge rolls.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "salamanders-wrath-and-ruin",
@@ -4129,7 +4166,7 @@
           "timing": "Your Command phase.",
           "target": "One friendly Astartes Infantry unit.",
           "effect_summary": "Assault or Tactical Doctrine active for that unit until next Command phase.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "salamanders-forged-in-fire",
@@ -4138,7 +4175,7 @@
           "timing": "Your Shooting phase, when an engaged Astartes unit is selected to shoot.",
           "target": "That unit.",
           "effect_summary": "Its Torrent weapons lose Blast, gain Close-Quarters and +1 Attack.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "salamanders-immolation-protocols",
@@ -4147,7 +4184,7 @@
           "timing": "Your Shooting phase, when Astartes Infantry is selected to attack.",
           "target": "That Infantry unit.",
           "effect_summary": "Ranged Torrent attacks gain +1 AP.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "salamanders-crucible-of-battle",
@@ -4156,7 +4193,7 @@
           "timing": "Shooting or Fight phase, when Astartes Infantry attacks an enemy within 6 inches.",
           "target": "That Infantry unit.",
           "effect_summary": "Its attacks reroll Hit and Wound rolls of 1.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "salamanders-burning-vengeance",
@@ -4165,7 +4202,7 @@
           "timing": "Opponent Shooting phase, after an enemy shoots a friendly Astartes Transport.",
           "target": "One friendly Astartes unit embarked within it.",
           "effect_summary": "Disembark and shoot normally, targeting only the enemy unit that shot the Transport.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         }
       ],
       "known_interactions_to_review": [
@@ -5558,8 +5595,10 @@
         "name": "Vanguard Ambushers",
         "summary": "At Movement phase end, if a friendly Phobos unit is hidden, its attacks can reroll Wound rolls of 1 until turn end.",
         "source_row_id": "000011195",
-        "status": "implemented_pending_local_validation",
-        "implementation_scope": "Eligible units must have the PHOBOS unit keyword and every living battlefield model must be hidden in current terrain. Their Shooting and Fight attack contexts gain Wound rerolls of 1 through the current player's turn."
+        "status": "blocked_pending_local_validation",
+        "official_gw_cross_check_status": "not_required_by_current_source_policy",
+        "status_note": "Capability remains blocked until unit-level Hidden is reconciled to local terrain semantics, the Movement-end trigger is validated, and focused attack-integration tests pass.",
+        "implementation_scope": "Eligibility implementation is removed and blocked: Wahapedia row 000011195 describes a PHOBOS unit being Hidden, but the current terrain implementation only exposes model-level Hidden semantics. The Movement-end trigger and Shooting/Fight Wound-reroll-1 resolver remain gated pending local validation."
       },
       "enhancements": [
         {
@@ -5645,7 +5684,7 @@
           "timing": "Shooting or Fight phase, when a hidden Phobos unit is selected to attack.",
           "target": "That unit.",
           "effect_summary": "Attacks gain +1 Strength and Lethal Hits.",
-          "status": "reference_checked_official_full_rule_locator_pending"
+          "status": "wahapedia_rule_text_reviewed_local_scope_pending"
         },
         {
           "id": "phobos-transhuman-reactions",
@@ -6581,13 +6620,13 @@
         "assessment": "Material mismatch across profile, weapon, points and abilities, including an older Oath-linked rule."
       }
     ],
-    "conclusion": "The sampled 40k.app Space Marines pages lag current Codex-era e11 reference content in multiple fields. Keep the app as a candidate discovery and discrepancy surface only; verify each rule/profile against the current requested e11 reference and applicable official GW source before catalog admission. Do not import or use these sampled values for gameplay."
+    "conclusion": "The sampled 40k.app Space Marines pages lag current e11 reference content in multiple fields. Keep the app as a candidate discovery and discrepancy surface only; verify each candidate against current Wahapedia e11 and local scope checks before catalog admission. GW sources are optional context and do not gate admission. Do not import or use these sampled values for gameplay."
   },
   "known_gaps": [
-    "Official Codex or amendment page/section references are not attached to each record yet.",
+    "Per-record Wahapedia page/section and snapshot references are not attached to every candidate yet.",
     "Weapon and wargear profiles, legal options, points variants, geometry, and chapter interactions are outside this first ledger slice.",
     "The seven profile records and partial identity candidates are not a complete Space Marines catalog and do not certify all army construction rules. Guilliman is now a selectable fixed-loadout entry through the consolidated local catalog; full army legality remains uncertified.",
-    "All twenty chapter and all fifteen shared Codex detachment candidates now have first-pass rule, restriction, enhancement, and stratagem summaries. Chapter records contain 61 enhancements and 94 stratagems; shared Codex records contain 32 enhancements and 48 stratagems. This is reference inventory, not gameplay support. All records still need official full-text locators, DP/disposition reconciliation and source-level interaction checks.",
+    "All twenty chapter and all fifteen shared Codex detachment candidates now have first-pass rule, restriction, enhancement, and stratagem summaries. Chapter records contain 61 enhancements and 94 stratagems; shared Codex records contain 32 enhancements and 48 stratagems. This is reference inventory, not gameplay support. Records still need current Wahapedia text/revision, DP/disposition reconciliation and local interaction checks; GW locators are not required.",
     "Rules are identified here but not yet encoded in a portable effect DSL; existing behavior is implemented in the fixed-match code path."
   ],
   "implementation_followup": {

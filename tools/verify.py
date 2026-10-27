@@ -115,6 +115,10 @@ def needs_legacy_starter(suite):
 
 
 def requires_legacy_starter(profile, selected_suites):
+    # The allowlisted demo is the clean-checkout baseline; optional legacy
+    # fixtures belong only to targeted or full validation profiles.
+    if profile == "demo":
+        return False
     return profile == "full" or any(needs_legacy_starter(suite) for suite in selected_suites)
 
 

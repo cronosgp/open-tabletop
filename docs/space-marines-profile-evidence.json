@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "source": {
+    "authority": "Wahapedia e11 local export",
+    "edition": 11,
+    "source_book_id": "000000139",
+    "source_export_updated_at": "2026-10-19 03:47:32",
+    "verified_snapshot_file_count": 23,
+    "source_identity_audit": "space-marines-source-identity-map.json",
+    "scope": "Bounded source-data evidence only; it does not certify a complete datasheet."
+  },
+  "validation_run": {
+    "engine": "Godot 4.7.stable",
+    "date": "2026-10-20",
+    "command_template": "& .\\.tools\\godot-4.7\\Godot_v4.7-stable_win64_console.exe --headless --path . --script tests\\<test-file>",
+    "profile_parity_test_files": [
+      "tests\\test_aethon_shaan_profile_parity.gd",
+      "tests\\test_ballistus_dreadnought_profile_parity.gd",
+      "tests\\test_apothecary_biologis_profile_parity.gd",
+      "tests\\test_captain_phobos_profile_parity.gd",
+      "tests\\test_cato_profile_parity.gd",
+      "tests\\test_gravis_captain_profile_parity.gd",
+      "tests\\test_judiciar_profile_parity.gd",
+      "tests\\test_vulkan_hestan_profile_parity.gd",
+      "tests\\test_techmarine_profile_parity.gd",
+      "tests\\test_infernus_squad_profile_parity.gd"
+    ],
+    "copy_cost_test": {
+      "file": "tests\\test_space_marine_copy_cost_parity.gd",
+      "source_profiles": [
+        "victrix-honour-guard",
+        "bladeguard-veteran-squad",
+        "sternguard-veteran-squad",
+        "eradicator-squad-with-melta-rifles",
+        "eradicator-squad-with-heavy-bolters",
+        "hellblaster-squad",
+        "assault-intercessors-with-jump-packs"
+      ],
+      "result": "passed"
+    },
+    "source_field_test": {
+      "file": "tests\\test_space_marine_profile_source_fields.gd",
+      "source_profiles": [
+        "darnath-lysander",
+        "judiciar",
+        "company-heroes"
+      ],
+      "result": "passed",
+      "scope": "Lysander CHARACTER keyword, Judiciar melee-only invulnerable save, and Company Heroes 40 mm base radius; not a full profile comparison."
+    },
+    "vanguard_test": {
+      "file": "tests\\test_vanguard_ambushers.gd",
+      "result": "passed",
+      "capability_remains_blocked": true,
+      "remaining_gates": [
+        "Unit-level Hidden behavior",
+        "Movement-end trigger integration",
+        "Attack-resolution integration"
+      ]
+    },
+    "catalog_test": {
+      "file": "tests\\test_implemented_catalog.gd",
+      "result": "passed",
+      "selectable_shared_book_profiles": 85,
+      "excluded_profiles": 4
+    },
+    "leader_support_link_test": {
+      "file": "tests\\test_space_marine_leader_links.gd",
+      "command": "& .\\.tools\\godot-4.7\\Godot_v4.7-stable_win64_console.exe --headless --path . --script tests\\test_space_marine_leader_links.gd",
+      "result": "passed",
+      "source_comparison_command": "& powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\tools\\validate_space_marine_leader_links.ps1",
+      "source_comparison_result": "153/153 in-scope Leader/Support relations across 37 datasheets match the pinned Wahapedia snapshot; 88 out-of-scope targets are excluded.",
+      "scope": "Exercises every source-listed target through runtime eligibility and ability-source registration, Support map parity, Titus/Techmarine Warlord and attachment choices, and Cato's conditional Support selector. Does not validate full datasheet rules or army legality."
+    },
+    "company_heroes_full_test": {
+      "file": "tests\\test_company_heroes_current.gd",
+      "result": "blocked",
+      "blocker": "Cannot open manifest."
+    },
+    "export_helper_run": {
+      "file": "tools\\export_reference_marines.gd",
+      "command": "& .\\.tools\\godot-4.7\\Godot_v4.7-stable_win64_console.exe --headless --path . --script tools\\export_reference_marines.gd -- --output .tools\\marine-profiles-85-session-check.json",
+      "result": "passed",
+      "exported_profile_identities": 85
+    },
+    "other_fixture_blocked_tests": [
+      {
+        "file": "tests\\test_aggressors.gd",
+        "result": "blocked",
+        "blocker": "Cannot open manifest."
+      },
+      {
+        "file": "tests\\test_redemptor_dreadnought.gd",
+        "result": "blocked_at_materialization",
+        "blocker": "The test fails its materialization assertion; the missing starter-pack manifest is the reported fixture blocker."
+      }
+    ],
+    "aggregate_result": {
+      "passed_scripts": 15,
+      "failed_scripts": 0,
+      "separately_blocked_scripts": 3,
+      "blocked_test_files": [
+        "tests\\test_company_heroes_current.gd",
+        "tests\\test_aggressors.gd",
+        "tests\\test_redemptor_dreadnought.gd"
+      ]
+    }
+  },
+  "profiles": {
+    "aethon-shaan": {
+      "profile_parity_test": "tests\\test_aethon_shaan_profile_parity.gd",
+      "scope": "Selected composition/cost, characteristics, keywords, weapons and weapon-trait metadata; not a complete ability behavior test."
+    },
+    "ballistus-dreadnought": {
+      "profile_parity_test": "tests\\test_ballistus_dreadnought_profile_parity.gd",
+      "scope": "Composition/cost, characteristics, keywords, five weapon profiles and linked Damaged/Deadly Demise parameters; ability behavior is not covered."
+    },
+    "apothecary-biologis": {
+      "profile_parity_test": "tests\\test_apothecary_biologis_profile_parity.gd",
+      "scope": "Composition/cost, base, characteristics, keywords and weapon records; abilities and Leader links are not covered."
+    },
+    "captain-in-phobos-armour": {
+      "profile_parity_test": "tests\\test_captain_phobos_profile_parity.gd",
+      "scope": "Composition/cost, base, characteristics, keywords and three weapons; abilities and Leader links are not covered."
+    },
+    "cato-sicarius": {
+      "profile_parity_test": "tests\\test_cato_profile_parity.gd",
+      "scope": "Selected source profile fields and weapon records; not a complete datasheet test."
+    },
+    "captain-in-gravis-armour": {
+      "profile_parity_test": "tests\\test_gravis_captain_profile_parity.gd",
+      "scope": "Base data and all three source-listed weapon replacements, including Extra Attacks."
+    },
+    "judiciar": {
+      "profile_parity_test": "tests\\test_judiciar_profile_parity.gd",
+      "source_field_test": true,
+      "scope": "Profile parity plus melee-only invulnerable-save field behavior; Leader links and full Tempormortis behavior remain outside the parity test."
+    },
+    "vulkan-hestan": {
+      "profile_parity_test": "tests\\test_vulkan_hestan_profile_parity.gd",
+      "scope": "Selected source profile data; full ability and Leader behavior is not implied."
+    },
+    "techmarine": {
+      "profile_parity_test": "tests\\test_techmarine_profile_parity.gd",
+      "scope": "Composition/cost, base, characteristics, keywords and three weapon records; abilities and Leader links are not covered."
+    },
+    "infernus-squad": {
+      "profile_parity_test": "tests\\test_infernus_squad_profile_parity.gd",
+      "scope": "Composition/cost tiers, selected characteristics, keywords, weapons and local catalog output."
+    },
+    "victrix-honour-guard": {
+      "copy_cost_test": true,
+      "scope": "First/third-copy costs for 3- and 6-model choices."
+    },
+    "bladeguard-veteran-squad": {
+      "copy_cost_test": true,
+      "scope": "First/third-copy costs for 3- and 6-model choices."
+    },
+    "sternguard-veteran-squad": {
+      "copy_cost_test": true,
+      "scope": "First/third-copy costs for 5- and 10-model choices."
+    },
+    "eradicator-squad-with-melta-rifles": {
+      "copy_cost_test": true,
+      "scope": "First/third-copy costs for 3- and 6-model choices."
+    },
+    "eradicator-squad-with-heavy-bolters": {
+      "copy_cost_test": true,
+      "scope": "First/third-copy costs for 3- and 6-model choices."
+    },
+    "hellblaster-squad": {
+      "copy_cost_test": true,
+      "scope": "First/third-copy costs for 5- and 10-model choices."
+    },
+    "assault-intercessors-with-jump-packs": {
+      "copy_cost_test": true,
+      "scope": "First/third-copy costs for 5- and 10-model choices."
+    },
+    "darnath-lysander": {
+      "source_field_test": true,
+      "scope": "Source CHARACTER keyword assertion only."
+    },
+    "company-heroes": {
+      "source_field_test": true,
+      "full_profile_test_blocked": "Cannot open manifest.",
+      "scope": "40 mm base-radius assertion passed; broader materialization and ability test is blocked."
+    }
+  },
+  "coverage_limits": {
+    "profiles_with_bounded_source_data_evidence": 19,
+    "profile_parity_tests_passed": 10,
+    "copy_cost_profiles_tested": 7,
+    "additional_source_field_only_profiles": 2,
+    "complete_datasheet_implementations_verified": 0,
+    "complete_datasheet_scopes_validated": 0
+  },
+  "contributor_reported_broad_source_audit": {
+    "status": "reported_from_session_only_comparison_artifact; the 85-identity export was rerun locally, but the comparison results were not independently reproduced and are not counted in executable-test metrics",
+    "weapon_profiles": {
+      "compared": 412,
+      "exact_names_matched": 412,
+      "all_six_core_stats_matched": 412,
+      "documented_handling": "Source BS '-' is treated as auto-hit for Torrent, including the Redemptor Heavy Flamer's runtime null BS.",
+      "export_coverage_report": "Thirty-eight named lines were reportedly absent before the exporter expansion; the latest session-only comparison reports zero missing."
+    },
+    "homogeneous_model_characteristics": {
+      "profiles_compared": 76,
+      "mismatches": 0,
+      "notes": "Judiciar's source melee-only invulnerable-save descriptor is accounted for."
+    },
+    "model_sizes_and_copy_costs": {
+      "profiles_compared": 77,
+      "mismatches": 0
+    },
+    "uniform_base_geometry": {
+      "profiles_compared": 75,
+      "mismatches": 0,
+      "deferred_composite_or_special_geometries": 2
+    },
+    "mixed_characteristics": {
+      "profile": "wardens-of-ultramar",
+      "status": "reported per-model stats/loadout coverage; not a homogeneous-profile comparison"
+    }
+  }
+}

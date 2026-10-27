@@ -1,0 +1,737 @@
+﻿{
+    "schema_version":  1,
+    "source":  "Wahapedia",
+    "edition":  "11th",
+    "source_root":  "https://wahapedia.ru/wh40k11ed/",
+    "source_book_id":  "000000139",
+    "faction_id":  "SM",
+    "source_export_updated_at":  "2026-10-19 03:47:32",
+    "source_update_stable_before_after":  true,
+    "source_update_marker_before":  "2026-10-19 03:47:32",
+    "source_update_marker_after":  "2026-10-19 03:47:32",
+    "observed_app_version":  "2.8.1 / October 2026",
+    "source_subject_count":  85,
+    "runtime_profile_count":  85,
+    "identity_matches_case_insensitive_exact":  84,
+    "identity_matches_apostrophe_normalized":  1,
+    "datasheets_csv_sha256":  "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+    "verified_snapshot_file_count":  23,
+    "runtime_existing_source_ids_verified":  65,
+    "runtime_name_only_profiles_mapped":  20,
+    "data_or_options_reconciled_by_this_map":  0,
+    "snapshot_manifest_sha256":  "8fdccac63fbd2cbd9bd024328916f8393bc00e5e7263ce0406a76aefa3c3be5c",
+    "verified_snapshot_files":  [
+                                    {
+                                        "name":  "Abilities.csv",
+                                        "bytes":  205188,
+                                        "sha256":  "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16"
+                                    },
+                                    {
+                                        "name":  "Datasheets.csv",
+                                        "bytes":  799121,
+                                        "sha256":  "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+                                    },
+                                    {
+                                        "name":  "Datasheets_abilities.csv",
+                                        "bytes":  875338,
+                                        "sha256":  "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+                                    },
+                                    {
+                                        "name":  "Datasheets_detachment_abilities.csv",
+                                        "bytes":  192980,
+                                        "sha256":  "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+                                    },
+                                    {
+                                        "name":  "Datasheets_enhancements.csv",
+                                        "bytes":  182733,
+                                        "sha256":  "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+                                    },
+                                    {
+                                        "name":  "Datasheets_keywords.csv",
+                                        "bytes":  381825,
+                                        "sha256":  "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+                                    },
+                                    {
+                                        "name":  "Datasheets_leader.csv",
+                                        "bytes":  27703,
+                                        "sha256":  "1cc7e67ccfd005085705c9565b477c9b5c894f6bd407d9f329b4799f45c68b87"
+                                    },
+                                    {
+                                        "name":  "Datasheets_models.csv",
+                                        "bytes":  101847,
+                                        "sha256":  "12d7689fc6ab4cd418cab1aeb103c5c935da18fbf84e1d3d657dd3fbbab09537"
+                                    },
+                                    {
+                                        "name":  "Datasheets_models_cost.csv",
+                                        "bytes":  166328,
+                                        "sha256":  "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+                                    },
+                                    {
+                                        "name":  "Datasheets_options.csv",
+                                        "bytes":  310151,
+                                        "sha256":  "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+                                    },
+                                    {
+                                        "name":  "Datasheets_stratagems.csv",
+                                        "bytes":  1383331,
+                                        "sha256":  "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+                                    },
+                                    {
+                                        "name":  "Datasheets_unit_composition.csv",
+                                        "bytes":  77941,
+                                        "sha256":  "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+                                    },
+                                    {
+                                        "name":  "Datasheets_wargear.csv",
+                                        "bytes":  551713,
+                                        "sha256":  "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+                                    },
+                                    {
+                                        "name":  "Detachment_abilities.csv",
+                                        "bytes":  289870,
+                                        "sha256":  "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c"
+                                    },
+                                    {
+                                        "name":  "Detachments.csv",
+                                        "bytes":  127211,
+                                        "sha256":  "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+                                    },
+                                    {
+                                        "name":  "Detachments_chapter_dp.csv",
+                                        "bytes":  111,
+                                        "sha256":  "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+                                    },
+                                    {
+                                        "name":  "Enhancements.csv",
+                                        "bytes":  425559,
+                                        "sha256":  "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c"
+                                    },
+                                    {
+                                        "name":  "Enhancements_wargear.csv",
+                                        "bytes":  777,
+                                        "sha256":  "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+                                    },
+                                    {
+                                        "name":  "Export-Data-Specs.xlsx",
+                                        "bytes":  19901,
+                                        "sha256":  "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+                                    },
+                                    {
+                                        "name":  "Factions.csv",
+                                        "bytes":  1876,
+                                        "sha256":  "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+                                    },
+                                    {
+                                        "name":  "Last_update.csv",
+                                        "bytes":  39,
+                                        "sha256":  "f2be5332c4707688b6153b8504df5d7ad54c1a175d6abafdeece7827bc0c2930"
+                                    },
+                                    {
+                                        "name":  "Source.csv",
+                                        "bytes":  7608,
+                                        "sha256":  "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+                                    },
+                                    {
+                                        "name":  "Stratagems.csv",
+                                        "bytes":  1039230,
+                                        "sha256":  "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+                                    }
+                                ],
+    "identity_mappings":  [
+                              {
+                                  "identity":  "cato-sicarius",
+                                  "runtime_name":  "Cato Sicarius",
+                                  "source_name":  "Cato Sicarius",
+                                  "source_datasheet_id":  "000004184",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "victrix-honour-guard",
+                                  "runtime_name":  "Victrix Honour Guard",
+                                  "source_name":  "Victrix Honour Guard",
+                                  "source_datasheet_id":  "000004185",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "marneus-calgar",
+                                  "runtime_name":  "Marneus Calgar",
+                                  "source_name":  "Marneus Calgar",
+                                  "source_datasheet_id":  "000004246",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "kor-sarro-khan",
+                                  "runtime_name":  "Kor\u0027sarro Khan",
+                                  "source_name":  "Kor’sarro Khan",
+                                  "source_datasheet_id":  "000002709",
+                                  "identity_match_method":  "apostrophe-normalized-name"
+                              },
+                              {
+                                  "identity":  "captain-titus",
+                                  "runtime_name":  "Captain Titus",
+                                  "source_name":  "Captain Titus",
+                                  "source_datasheet_id":  "000004187",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "wardens-of-ultramar",
+                                  "runtime_name":  "Wardens of Ultramar",
+                                  "source_name":  "Wardens of Ultramar",
+                                  "source_datasheet_id":  "000004188",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "kayvaan-shrike",
+                                  "runtime_name":  "Kayvaan Shrike",
+                                  "source_name":  "Kayvaan Shrike",
+                                  "source_datasheet_id":  "000002708",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "chief-librarian-tigurius",
+                                  "runtime_name":  "Chief Librarian Tigurius",
+                                  "source_name":  "Chief Librarian Tigurius",
+                                  "source_datasheet_id":  "000001611",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "caanok-var",
+                                  "runtime_name":  "Caanok Var",
+                                  "source_name":  "Caanok Var",
+                                  "source_datasheet_id":  "000004166",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "company-heroes",
+                                  "runtime_name":  "Company Heroes",
+                                  "source_name":  "Company Heroes",
+                                  "source_datasheet_id":  "000002772",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "outrider-squad",
+                                  "runtime_name":  "Outrider Squad",
+                                  "source_name":  "Outrider Squad",
+                                  "source_datasheet_id":  "000002712",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "gladiator-reaper",
+                                  "runtime_name":  "Gladiator Reaper",
+                                  "source_name":  "Gladiator Reaper",
+                                  "source_datasheet_id":  "000001667",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "gladiator-valiant",
+                                  "runtime_name":  "Gladiator Valiant",
+                                  "source_name":  "Gladiator Valiant",
+                                  "source_datasheet_id":  "000001825",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "gladiator-lancer",
+                                  "runtime_name":  "Gladiator Lancer",
+                                  "source_name":  "Gladiator Lancer",
+                                  "source_datasheet_id":  "000002705",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "land-speeder",
+                                  "runtime_name":  "Land Speeder",
+                                  "source_name":  "Land Speeder",
+                                  "source_datasheet_id":  "000002711",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "invader-atvs",
+                                  "runtime_name":  "Invader ATVs",
+                                  "source_name":  "Invader ATVs",
+                                  "source_datasheet_id":  "000004247",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "storm-speeder-hammerstrike",
+                                  "runtime_name":  "Storm Speeder Hammerstrike",
+                                  "source_name":  "Storm Speeder Hammerstrike",
+                                  "source_datasheet_id":  "000000114",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "storm-speeder-hailstrike",
+                                  "runtime_name":  "Storm Speeder Hailstrike",
+                                  "source_name":  "Storm Speeder Hailstrike",
+                                  "source_datasheet_id":  "000000124",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "storm-speeder-thunderstrike",
+                                  "runtime_name":  "Storm Speeder Thunderstrike",
+                                  "source_name":  "Storm Speeder Thunderstrike",
+                                  "source_datasheet_id":  "000001610",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "lieutenant-with-combi-weapon",
+                                  "runtime_name":  "Lieutenant with Combi-weapon",
+                                  "source_name":  "Lieutenant with Combi-weapon",
+                                  "source_datasheet_id":  "000000076",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "techmarine",
+                                  "runtime_name":  "Techmarine",
+                                  "source_name":  "Techmarine",
+                                  "source_datasheet_id":  "000000140",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "infiltrator-squad",
+                                  "runtime_name":  "Infiltrator Squad",
+                                  "source_name":  "Infiltrator Squad",
+                                  "source_datasheet_id":  "000000128",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "lieutenant-in-phobos-armour",
+                                  "runtime_name":  "Lieutenant in Phobos Armour",
+                                  "source_name":  "Lieutenant In Phobos Armour",
+                                  "source_datasheet_id":  "000002530",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "captain-in-gravis-armour",
+                                  "runtime_name":  "Captain in Gravis Armour",
+                                  "source_name":  "Captain In Gravis Armour",
+                                  "source_datasheet_id":  "000001172",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "tor-garadon",
+                                  "runtime_name":  "Tor Garadon",
+                                  "source_name":  "Tor Garadon",
+                                  "source_datasheet_id":  "000002473",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "darnath-lysander",
+                                  "runtime_name":  "Darnath Lysander",
+                                  "source_name":  "Darnath Lysander",
+                                  "source_datasheet_id":  "000002105",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "suboden-khan",
+                                  "runtime_name":  "Suboden Khan",
+                                  "source_name":  "Suboden Khan",
+                                  "source_datasheet_id":  "000004167",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "iron-father-feirros",
+                                  "runtime_name":  "Iron Father Feirros",
+                                  "source_name":  "Iron Father Feirros",
+                                  "source_datasheet_id":  "000000127",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "ancient-in-terminator-armour",
+                                  "runtime_name":  "Ancient in Terminator Armour",
+                                  "source_name":  "Ancient In Terminator Armour",
+                                  "source_datasheet_id":  "000002677",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "captain-in-terminator-armour",
+                                  "runtime_name":  "Captain in Terminator Armour",
+                                  "source_name":  "Captain In Terminator Armour",
+                                  "source_datasheet_id":  "000000135",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "adrax-agatone",
+                                  "runtime_name":  "Adrax Agatone",
+                                  "source_name":  "Adrax Agatone",
+                                  "source_datasheet_id":  "000002100",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "kaius-konorius",
+                                  "runtime_name":  "Kaius Konorius",
+                                  "source_name":  "Kaius Konorius",
+                                  "source_datasheet_id":  "000004248",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "chaplain-in-terminator-armour",
+                                  "runtime_name":  "Chaplain in Terminator Armour",
+                                  "source_name":  "Chaplain In Terminator Armour",
+                                  "source_datasheet_id":  "000000115",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "apothecary",
+                                  "runtime_name":  "Apothecary",
+                                  "source_name":  "Apothecary",
+                                  "source_datasheet_id":  "000002773",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "ancient",
+                                  "runtime_name":  "Ancient",
+                                  "source_name":  "Ancient",
+                                  "source_datasheet_id":  "000002775",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "bladeguard-ancient",
+                                  "runtime_name":  "Bladeguard Ancient",
+                                  "source_name":  "Bladeguard Ancient",
+                                  "source_datasheet_id":  "000001165",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "bladeguard-veteran-squad",
+                                  "runtime_name":  "Bladeguard Veteran Squad",
+                                  "source_name":  "Bladeguard Veteran Squad",
+                                  "source_datasheet_id":  "000000071",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "judiciar",
+                                  "runtime_name":  "Judiciar",
+                                  "source_name":  "Judiciar",
+                                  "source_datasheet_id":  "000002707",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "chaplain",
+                                  "runtime_name":  "Chaplain",
+                                  "source_name":  "Chaplain",
+                                  "source_datasheet_id":  "000001174",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "chaplain-on-bike",
+                                  "runtime_name":  "Chaplain on Bike",
+                                  "source_name":  "Chaplain On Bike",
+                                  "source_datasheet_id":  "000000094",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "captain-on-bike",
+                                  "runtime_name":  "Captain on Bike",
+                                  "source_name":  "Captain on Bike",
+                                  "source_datasheet_id":  "000002702",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "chaplain-with-jump-pack",
+                                  "runtime_name":  "Chaplain With Jump Pack",
+                                  "source_name":  "Chaplain With Jump Pack",
+                                  "source_datasheet_id":  "000000112",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "sternguard-veteran-squad",
+                                  "runtime_name":  "Sternguard Veteran Squad",
+                                  "source_name":  "Sternguard Veteran Squad",
+                                  "source_datasheet_id":  "000002255",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "eliminator-squad",
+                                  "runtime_name":  "Eliminator Squad",
+                                  "source_name":  "Eliminator Squad",
+                                  "source_datasheet_id":  "000001668",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "eradicator-squad-with-melta-rifles",
+                                  "runtime_name":  "Eradicator Squad with Melta Rifles",
+                                  "source_name":  "Eradicator Squad with Melta Rifles",
+                                  "source_datasheet_id":  "000004249",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "eradicator-squad-with-heavy-bolters",
+                                  "runtime_name":  "Eradicator Squad with Heavy Bolters",
+                                  "source_name":  "Eradicator Squad with Heavy Bolters",
+                                  "source_datasheet_id":  "000004231",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "apothecary-biologis",
+                                  "runtime_name":  "Apothecary Biologis",
+                                  "source_name":  "Apothecary Biologis",
+                                  "source_datasheet_id":  "000000060",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "aggressor-squad",
+                                  "runtime_name":  "Aggressor Squad",
+                                  "source_name":  "Aggressor Squad",
+                                  "source_datasheet_id":  "000002099",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "infernus-squad",
+                                  "runtime_name":  "Infernus Squad",
+                                  "source_name":  "Infernus Squad",
+                                  "source_datasheet_id":  "000000126",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "hellblaster-squad",
+                                  "runtime_name":  "Hellblaster Squad",
+                                  "source_name":  "Hellblaster Squad",
+                                  "source_datasheet_id":  "000002098",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "intercessor-squad",
+                                  "runtime_name":  "Intercessor Squad",
+                                  "source_name":  "Intercessor Squad",
+                                  "source_datasheet_id":  "000001157",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "assault-intercessor-squad",
+                                  "runtime_name":  "Assault Intercessor Squad",
+                                  "source_name":  "Assault Intercessor Squad",
+                                  "source_datasheet_id":  "000001606",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "assault-intercessors-with-jump-packs",
+                                  "runtime_name":  "Assault Intercessors With Jump Packs",
+                                  "source_name":  "Assault Intercessors With Jump Packs",
+                                  "source_datasheet_id":  "000002776",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "inceptor-squad",
+                                  "runtime_name":  "Inceptor Squad",
+                                  "source_name":  "Inceptor Squad",
+                                  "source_datasheet_id":  "000000125",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "captain-with-jump-pack",
+                                  "runtime_name":  "Captain With Jump Pack",
+                                  "source_name":  "Captain With Jump Pack",
+                                  "source_datasheet_id":  "000000083",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "vanguard-veteran-squad-with-jump-packs",
+                                  "runtime_name":  "Vanguard Veteran Squad With Jump Packs",
+                                  "source_name":  "Vanguard Veteran Squad With Jump Packs",
+                                  "source_datasheet_id":  "000000147",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "heavy-intercessor-squad",
+                                  "runtime_name":  "Heavy Intercessor Squad",
+                                  "source_name":  "Heavy Intercessor Squad",
+                                  "source_datasheet_id":  "000001177",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "terminator-squad",
+                                  "runtime_name":  "Terminator Squad",
+                                  "source_name":  "Terminator Squad",
+                                  "source_datasheet_id":  "000001183",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "terminator-assault-squad",
+                                  "runtime_name":  "Terminator Assault Squad",
+                                  "source_name":  "Terminator Assault Squad",
+                                  "source_datasheet_id":  "000000118",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "librarian-in-terminator-armour",
+                                  "runtime_name":  "Librarian in Terminator Armour",
+                                  "source_name":  "Librarian In Terminator Armour",
+                                  "source_datasheet_id":  "000000079",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "librarian",
+                                  "runtime_name":  "Librarian",
+                                  "source_name":  "Librarian",
+                                  "source_datasheet_id":  "000002266",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "aethon-shaan",
+                                  "runtime_name":  "Aethon Shaan",
+                                  "source_name":  "Aethon Shaan",
+                                  "source_datasheet_id":  "000004148",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "librarian-in-phobos-armour",
+                                  "runtime_name":  "Librarian in Phobos Armour",
+                                  "source_name":  "Librarian In Phobos Armour",
+                                  "source_datasheet_id":  "000000119",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "captain-in-phobos-armour",
+                                  "runtime_name":  "Captain in Phobos Armour",
+                                  "source_name":  "Captain In Phobos Armour",
+                                  "source_datasheet_id":  "000002701",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "scout-squad",
+                                  "runtime_name":  "Scout Squad",
+                                  "source_name":  "Scout Squad",
+                                  "source_datasheet_id":  "000001160",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "incursor-squad",
+                                  "runtime_name":  "Incursor Squad",
+                                  "source_name":  "Incursor Squad",
+                                  "source_datasheet_id":  "000001159",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "reiver-squad",
+                                  "runtime_name":  "Reiver Squad",
+                                  "source_name":  "Reiver Squad",
+                                  "source_datasheet_id":  "000002718",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "captain",
+                                  "runtime_name":  "Captain",
+                                  "source_name":  "Captain",
+                                  "source_datasheet_id":  "000000073",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "lieutenant",
+                                  "runtime_name":  "Lieutenant",
+                                  "source_name":  "Lieutenant",
+                                  "source_datasheet_id":  "000001346",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "roboute-guilliman",
+                                  "runtime_name":  "Roboute Guilliman",
+                                  "source_name":  "Roboute Guilliman",
+                                  "source_datasheet_id":  "000000138",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "firestrike-servo-turrets",
+                                  "runtime_name":  "Firestrike Servo-turrets",
+                                  "source_name":  "Firestrike Servo-turrets",
+                                  "source_datasheet_id":  "000000086",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "ballistus-dreadnought",
+                                  "runtime_name":  "Ballistus Dreadnought",
+                                  "source_name":  "Ballistus Dreadnought",
+                                  "source_datasheet_id":  "000000091",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "redemptor-dreadnought",
+                                  "runtime_name":  "Redemptor Dreadnought",
+                                  "source_name":  "Redemptor Dreadnought",
+                                  "source_datasheet_id":  "000002717",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "brutalis-dreadnought",
+                                  "runtime_name":  "Brutalis Dreadnought",
+                                  "source_name":  "Brutalis Dreadnought",
+                                  "source_datasheet_id":  "000000136",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "invictor-tactical-warsuit",
+                                  "runtime_name":  "Invictor Tactical Warsuit",
+                                  "source_name":  "Invictor Tactical Warsuit",
+                                  "source_datasheet_id":  "000001156",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "desolation-squad",
+                                  "runtime_name":  "Desolation Squad",
+                                  "source_name":  "Desolation Squad",
+                                  "source_datasheet_id":  "000002270",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "vulkan-hestan",
+                                  "runtime_name":  "Vulkan He’stan",
+                                  "source_name":  "Vulkan He’stan",
+                                  "source_datasheet_id":  "000002726",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "land-raider",
+                                  "runtime_name":  "Land Raider",
+                                  "source_name":  "Land Raider",
+                                  "source_datasheet_id":  "000000065",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "land-raider-crusader",
+                                  "runtime_name":  "Land Raider Crusader",
+                                  "source_name":  "Land Raider Crusader",
+                                  "source_datasheet_id":  "000000066",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "drop-pod",
+                                  "runtime_name":  "Drop Pod",
+                                  "source_name":  "Drop Pod",
+                                  "source_datasheet_id":  "000000087",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "land-raider-redeemer",
+                                  "runtime_name":  "Land Raider Redeemer",
+                                  "source_name":  "Land Raider Redeemer",
+                                  "source_datasheet_id":  "000002173",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "impulsor",
+                                  "runtime_name":  "Impulsor",
+                                  "source_name":  "Impulsor",
+                                  "source_datasheet_id":  "000002568",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "repulsor",
+                                  "runtime_name":  "Repulsor",
+                                  "source_name":  "Repulsor",
+                                  "source_datasheet_id":  "000002721",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "repulsor-executioner",
+                                  "runtime_name":  "Repulsor Executioner",
+                                  "source_name":  "Repulsor Executioner",
+                                  "source_datasheet_id":  "000002722",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              },
+                              {
+                                  "identity":  "rhino",
+                                  "runtime_name":  "Rhino",
+                                  "source_name":  "Rhino",
+                                  "source_datasheet_id":  "000002723",
+                                  "identity_match_method":  "case-insensitive-exact-name"
+                              }
+                          ]
+}
