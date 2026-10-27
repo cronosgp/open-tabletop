@@ -3,7 +3,6 @@ extends RefCounted
 const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Contact = preload("res://scripts/edition_11/contact_movement.gd")
-const Morale = preload("res://scripts/edition_11/morale.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
 const ID := "templar-vows-11e-v2"
@@ -100,13 +99,13 @@ static func challenge_active(state: Dictionary, squad: int, melee: bool) -> bool
 	var owner := int(state.squads[squad].get("owner", -1))
 	return selected_vow(state, owner) == CHALLENGE and current_astartes_unit(state, squad)
 
-static func secure_controlled_objectives(state: Dictionary, owner: int) -> void:
+static func secure_controlled_objectives(state: Dictionary, owner: int, control_value: Callable) -> void:
 	if selected_vow(state, owner) != UPHOLD: return
 	var objectives: Array = state.get("mission", {}).get("objectives", [])
 	for index in range(objectives.size()):
 		var objective: Dictionary = objectives[index]
 		if int(objective.get("controller", 0)) != owner: continue
-		for squad: int in Objectives.controlling_squads(state, objective, Callable(Morale, "objective_control")):
+		for squad: int in Objectives.controlling_squads(state, objective, control_value):
 			if int(state.squads[squad].get("owner", -1)) == owner and infantry_unit(state, squad):
 				Objectives.secure(state, index, owner)
 				break

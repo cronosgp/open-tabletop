@@ -169,7 +169,7 @@ static func _resolve_current_end_control(state: Dictionary) -> void:
 	if state.unit_abilities.get("control_done", "") == phase_key: return
 	Objectives.resolve_control(state, Callable(Morale, "objective_control"))
 	if state.phase == "movement":
-		TemplarVows.secure_controlled_objectives(state, int(state.active))
+		TemplarVows.secure_controlled_objectives(state, int(state.active), Callable(Morale, "objective_control"))
 		for index in range(state.get("mission", {}).get("objectives", []).size()):
 			var objective: Dictionary = state.mission.objectives[index]
 			if objective.controller != state.active: continue
