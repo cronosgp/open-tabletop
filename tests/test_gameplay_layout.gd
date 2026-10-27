@@ -38,13 +38,16 @@ func run() -> void:
 	game.match_tabs.current_tab = 1
 	check(army_width > play_width, "Army Workshop expands its workspace while Play keeps more of the board visible")
 	game.technical_toggle.button_pressed = true
+	game.technical_toggle.toggled.emit(true)
 	game.details.text += "\nLong selection details".repeat(80)
+	game.match_tabs.current_tab = 6
 	for frame in range(5): await process_frame
+	var details_scroll := game.match_tabs.get_child(6) as ScrollContainer
 	var header_position: Vector2 = game.decision_label.global_position
 	var score_position: Vector2 = game.objective_summary.global_position
-	game.gameplay_scroll.scroll_vertical = 10000
+	details_scroll.scroll_vertical = 10000
 	for frame in range(5): await process_frame
-	check(game.gameplay_scroll.scroll_vertical > 0, "Long gameplay details can scroll")
+	check(details_scroll.scroll_vertical > 0, "Long gameplay details can scroll in Help")
 	check(game.decision_label.global_position == header_position and game.objective_summary.global_position == score_position, "Decision and scoreboard remain fixed while details scroll")
 	check(game.decision_label.get_global_rect().end.y <= game.match_tabs.global_position.y, "Decision text stays above the tabs")
 	game._start_allocation_practice()

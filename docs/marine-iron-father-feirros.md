@@ -1,7 +1,0 @@
-# Iron Father Feirros
-
-Iron Father Feirros is admitted from the local Wahapedia 11th-edition Space Marines export: shared book `000000139`, datasheet `000000127`, export timestamp `2026-10-16T21:03:46+03:00`. The one-model profile costs 85 points and uses the exported characteristics, 40 mm base, Bolt Pistol, Gorgon's Wrath, Harrowhand and Medusan Manipuli.
-
-The runtime implements his four source-listed Leader links (Aggressor Squad, Heavy Intercessors and both Eradicator variants), Feel No Pain 5+, Combat Doctrines, Transhuman Strategist, Master of the Forge, Rites of Tempering and Iron Father. Master of the Forge can be used at the start or end of his unit's move to heal a nearby Adeptus Astartes Vehicle by 3 wounds and let its attacks ignore BS, Hit and Wound modifiers until the next Movement phase. Rites of Tempering gives his unit -1 to Wound when the attacking Strength exceeds that unit's Toughness. Iron Father grants Feirros Lone Operative near a friendly Astartes Vehicle; the core Attached-unit restriction still applies.
-
-`tests/test_iron_father_feirros.gd` checks the source profile, all Leader links, personal Feel No Pain, Warlord eligibility and CP, both Strength conditions for Rites, conditional Lone Operative, deferred end-of-move repair timing, fixed 3-wound healing and modifier protection. The Techmarine regression checks the shared repair machinery. This profile is sourced from the pinned local extraction; network validation remains deferred to final integration. It does not certify full army legality.

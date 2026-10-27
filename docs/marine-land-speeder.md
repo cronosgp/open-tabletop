@@ -1,9 +1,0 @@
-# Land Speeder — current e11 implementation
-
-Implemented 19 October 2026 from the pinned local Wahapedia Space Marines export, shared book `000000139`, datasheet `000002711`, revision `2026-10-16T21:03:46+03:00`. The fixed reference is one model on a 105 × 70 mm oval, represented by the documented 52.5 mm bounding-circle proxy. It uses M14, T8, Sv3+, W9, Ld6+ and OC3. The first through third Land Speeder costs 105 points each.
-
-The default ranged loadout is Multi-melta (18", A2, BS3+, S10, AP-3, D3+2, Melta 3), Onslaught Gatling Cannon (24", A8, BS3+, S5, AP-1, D1, Devastating Wounds except against MONSTER or VEHICLE) and Stormfury Missile Launcher (48", A1, BS3+, S10, AP-3, D3+3). During army preparation, the Onslaught Gatling Cannon can be replaced with a Pyrecannon (12", A4, Torrent, Blast 2). Armoured Impact is A3, WS4+, S6, AP0, D1. Source keywords are VEHICLE, FRAME, FLY, IMPERIUM, RAVENWING and SPEEDER; ADEPTUS ASTARTES is retained as the runtime faction identity. Deep Strike is available through the existing reserve flow.
-
-**Purgation Run:** after the Land Speeder shoots during its own Shooting phase, its controller can decline or roll D6 and make a Normal Move up to that distance. The move uses the existing preview and confirm flow, stays within the battlefield and supported ground-level terrain/base checks, and must end unengaged. Choosing the ability blocks the unit from declaring a charge until the end of the turn.
-
-`tests/test_land_speeder.gd` covers the pinned source identity, profile, costs, default weapons, Pyrecannon replacement, Deep Strike, restricted Devastating Wounds, post-shot offer, D6 movement, charge restriction and expiry. The broader local validation passed 9/9 processes in `.tools/verification/20261019T104954638154Z/results.json`. Network validation remains deferred to final integration; this increment does not certify full faction or army legality.

@@ -1,6 +1,7 @@
 extends RefCounted
 const ReturnPlacement = preload("res://scripts/edition_11/return_placement.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 ## September 2026 faction rule, scoped to admitted core profiles and Overlord attachments.
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
@@ -68,6 +69,49 @@ static func enabled(state: Dictionary) -> bool:
 
 static func pending(state: Dictionary) -> Dictionary:
 	return state.get("reanimation", {}).get("pending", {})
+
+## Project Reanimation's staged choices without duplicating its admission rules.
+## Placement coordinates remain free-form inputs and are checked by position_error.
+static func pending_decision(state: Dictionary) -> Dictionary:
+	var window := pending(state)
+	if window.is_empty(): return {}
+	for required: String in ["revision", "squads", "units", "turn", "phase"]:
+		if not state.has(required): return {}
+	var owner := int(window.get("player", -1))
+	if owner not in [1, 2] or int(window.get("turn", -1)) != int(state.turn): return {}
+	if not choice_error(state, owner, int(state.revision)).is_empty(): return {}
+	var options: Array[Dictionary] = []
+	var current: Dictionary = window.get("current", {})
+	if current.is_empty():
+		for squad_value: Variant in window.get("remaining", []):
+			var squad := int(squad_value)
+			if not state.get("squads", {}).has(squad) or not supported_unit(state, squad) or Geometry.alive(state, squad).is_empty(): continue
+			options.append(_decision_option("Roll Reanimation for %s" % str(state.squads[squad].name), squad, -1, "roll"))
+	elif current.get("reroll_pending", false):
+		# The paired UnitActions decision owns Their Number is Legion's keep/re-roll choice.
+		return {}
+	else:
+		var squad := int(current.get("squad", -1))
+		if not state.get("squads", {}).has(squad): return {}
+		var assigned: int = current.get("placements", {}).size() + current.get("unplaced", []).size()
+		for model: int in returnable(state):
+			var already_assigned: bool = current.get("placements", {}).has(model)
+			if model not in current.get("unplaced", []) and (already_assigned or assigned < int(current.get("slots", 0))):
+				options.append(_decision_option("Choose a return position for model %d" % model, squad, model, "place", {"position": "validated-by-rules"}))
+				options.append(_decision_option("Declare model %d unplaceable" % model, squad, model, "unplaceable"))
+		if assigned < int(current.get("slots", 0)):
+			options.append(_decision_option("Suggest return positions", squad, -1, "suggest"))
+		if assigned > 0:
+			options.append(_decision_option("Reset placement preview", squad, -1, "reset"))
+		if confirm_error(state).is_empty():
+			options.append(_decision_option("Confirm Reanimation for %s" % str(state.squads[squad].name), squad, -1, "confirm"))
+	if options.is_empty(): return {}
+	return PendingDecision.create(state, "reanimation", "command-phase:reanimation", owner, options, false)
+
+static func _decision_option(label: String, squad: int, model: int, value: String, details: Dictionary = {}) -> Dictionary:
+	var option := {"label": label, "action": "reanimation", "model": model, "target": squad, "value": value}
+	if not details.is_empty(): option.details = details
+	return option
 
 static func start_command(state: Dictionary) -> void:
 	if not enabled(state): return

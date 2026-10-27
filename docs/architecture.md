@@ -23,6 +23,19 @@ Status: target architecture for the incremental refactor started on `refactor/ar
 
 These are dependency boundaries, not a requirement to split the Godot project into plugins or services. The first implementation can remain a single desktop application.
 
+## Current structural seams
+
+- `scripts/edition_11/phase_progression.gd` exposes the five player-facing phases separately from internal `start_turn`/`end_turn` progression steps, and owns turn rollover/reset. `scripts/edition_11/phase_resolution.gd` sequences start/end effects after common admission; `combat_scenario.gd` remains the compatibility facade and owns fight-specific action advancement.
+- `scripts/edition_11/phase_close_gate.gd` centralizes common command admission and existing blockers for close requests, including in-progress movement, charge, contact, transport placement and reactive shooting. It also refuses close requests with an unresolved frame unless that frame is the matching phase-close continuation re-entering the gate. `phase_resolution.gd` sequences phase-boundary work and persists a LIFO continuation frame when an end-of-phase decision suspends the close request. Movement drafts and pre-placement roll/stratagem windows persist action frames through confirmation, editable normal-move cancellation, or failed Fall Back; resetting locked movement placement keeps the frame open. Charge frames span optional pre-roll decisions, roll reactions, target selection, contact placement and immediate post-charge effects. These are initial workflow migrations, not a universal action lifecycle.
+- `scripts/edition_11/match_actor.gd` resolves command priority from mission, setup, reaction and allocation windows separately from active turn ownership. Domain modules provide those windows; the actor resolver owns their precedence.
+- `combat_doctrines.gd`, `stratagems.gd`, `reanimation_protocols.gd` and `damage_allocation.gd` expose their active choices through normalized pending-decision projections; their existing validators remain authoritative. Reanimation projects model placement intent while leaving the coordinate to the domain validator. Damage allocation projects attacker-owned Precision choices and defender-owned allocation choices. `UnitActions` projects phase-start/end and other active unit-ability or preparation windows with legal options. `match_actor.gd` consumes projected owners for command priority, and `phase_close_gate.gd` uses those projections to block progression.
+- `scripts/edition_11/match_command_service.gd` executes gameplay commands for deployment, model placement, reactions, damage/coherency allocation, preparation choices, movement and contact workflows, charge, shooting, attack plans, fights and mission-action starts against the rules facade. It centralizes the shared projected-decision owner, identity and option-envelope checks while domain modules retain authoritative rule validation. It returns plain outcomes; `main.gd` keeps RPC admission, broadcast and player feedback. Legacy non-combat exercise movement remains on its existing path.
+- `unit_actions.gd` now surfaces eligible core and detachment reactions in an open end-of-phase choice window. `core_reactions.gd` can preflight timing eligibility before that window is created.
+- `scripts/edition_11/match_manifest.gd` builds match identity without preloading the combat orchestrator. The rules implementation identity has its own small module.
+- `scripts/edition_11/leader_catalog.gd` owns read-only leader identity facts shared by abilities, actions and attachment setup. It stays below those modules in the preload graph, avoiding the previous rules-to-setup cycle.
+- The prior rules preload cycle was removed: doctrine queries now depend on the low-level `unit_ability_catalog.gd`, and objective control calculations are passed into objective queries by their caller. `tests/test_architecture.py` checks that the edition rules preload graph stays acyclic. The large scene/controller in `scripts/main.gd` remains a separate migration task.
+- The root RPC adapters now ask `scripts/network/match_session.gd` whether a sender owns the admitted guest seat; `main.gd` no longer repeats direct sender-ID comparisons. Focused verification also runs the static architecture and verification-runner tests so boundary regressions are caught during a narrow iteration.
+
 ## Authoritative command flow
 
 1. A client submits an intent with its seat, expected match revision and selected identifiers.
@@ -40,7 +53,7 @@ Before gameplay, the host builds an immutable manifest containing at least:
 - edition and core-rule implementation revision;
 - each content pack's identity, source revision, content hash and capability set;
 - faction/datasheet/weapon/equipment definition identities;
-- points/MFM snapshot identity when roster construction uses points;
+- the source snapshot identity for datasheet and point facts used by roster construction;
 - mission and battlefield identities and content hashes;
 - match options, deployment and randomization configuration;
 - save schema and implementation versions needed to resume.
@@ -55,12 +68,14 @@ Support should be recorded at the smallest useful scope: a named rule or datashe
 2. **Implemented** — the host resolver enforces the behavior.
 3. **Locally validated** — rule cases have deterministic checks.
 4. **Network validated** — host, guest, stale commands and reconnect preserve behavior.
-5. **Source reviewed** — effect and timing were checked against the requested 11e reference and current official updates.
+5. **Source reviewed** — effect and timing were checked against the selected Wahapedia 11e page/export and its recorded revision. Games Workshop publications may be noted as context, but do not gate admission or override that reference.
 6. **Certified scope** — named rosters, mission, battlefield, options and version boundary were reviewed together.
 
 A capability is matchable only if every required rule in its dependency set is implemented and enabled. A broad provider flag or a successful test suite cannot promote a rule to certified scope.
 
 Common reusable rule concepts should represent timing windows, mandatory/optional triggers, legal targets, player choices, resource costs, effect duration, stacking/precedence and event provenance. Faction abilities can then use these concepts while retaining explicit custom code for effects that cannot be expressed safely as data.
+
+The shared progression, action lifecycle, decision contract and phase-close gate are specified in [Phase, action and decision flow](architecture/phase-action-decision-flow.md). That document is an implementation contract, not a claim that the runtime already has a generic reaction engine.
 
 ## Shared battlefield before the editor
 
@@ -72,10 +87,10 @@ Maintain one high-quality shared battlefield during rules expansion. Add mission
 
 1. Keep current match behavior stable; write characterization checks before moving high-risk code.
 2. Extract immutable manifest construction and validation into a match/content boundary. The initial manifest builder is now separate from prepared match construction.
-3. Extract peer creation, offline reset and connection-signal forwarding into `scripts/network/session_transport.gd`.
-4. Extract seat challenge/proof protocol decisions into `scripts/network/seat_handshake.gd` and seat lifecycle/admission into `scripts/network/match_session.gd`; retain root RPC endpoints as adapters.
-5. Move command dispatch and revision/actor checks out of `scripts/main.gd`; keep RPC callbacks thin and preserve endpoint paths during migration.
-6. Consolidate capability, provenance and evidence metadata into a versioned registry consumed by setup, validation, support UI and test discovery.
+3. **Extracted:** peer creation, offline reset and connection-signal forwarding live in `scripts/network/session_transport.gd`.
+4. **Extracted:** seat challenge/proof decisions live in `scripts/network/seat_handshake.gd`; seat lifecycle/admission and guest command authorization live in `scripts/network/match_session.gd`. Root RPC endpoints remain as adapters.
+5. **In progress:** supported combat gameplay dispatch now goes through `scripts/edition_11/match_command_service.gd`, while `main.gd` retains RPC, presentation and legacy exercise handling. Preserve endpoint paths during migration. A shared command envelope, idempotency policy and negotiated endpoint manifest remain future work; revision and actor validation still lives in domain workflows and the common admission gate.
+6. **In progress:** the capability registry exists and feeds rules gates, but provenance/evidence consumption across setup, support UI and test discovery still needs consolidation.
 7. Move current fixed profiles to the versioned content format without changing their admitted rules or prices.
 8. Add a generic timing/choice/effect API and migrate one existing faction feature at a time.
 9. Continue with core rules, faction slices, missions and the shared battlefield. Build the map editor only after these are complete.

@@ -32,7 +32,8 @@ const TacticalFluidity = preload("res://scripts/edition_11/tactical_fluidity.gd"
 const PurgationRun = preload("res://scripts/edition_11/purgation_run.gd")
 const CatoSicarius = preload("res://scripts/edition_11/cato_sicarius.gd")
 const VictrixHonourGuard = preload("res://scripts/edition_11/victrix_honour_guard.gd")
-const Leaders = preload("res://scripts/edition_11/leaders.gd")
+const LeaderCatalog = preload("res://scripts/edition_11/leader_catalog.gd")
+const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
 
 static func key(state: Dictionary) -> String:
@@ -55,6 +56,43 @@ static func actor(state: Dictionary) -> int:
 	if not state.get("fearsome_assault", {}).is_empty(): return int(state.fearsome_assault.get("owner", -1))
 	var window := pending(state)
 	return int(window.owners[0]) if not window.is_empty() else -1
+
+## Common decision envelope for the combined phase-start/end ability/reaction windows.
+## Specialized action handlers remain authoritative and recompute choices on submit.
+static func phase_decision(state: Dictionary) -> Dictionary:
+	var window := pending(state)
+	var kind := str(window.get("kind", ""))
+	if kind not in ["start", "end"] or not A.enabled(state): return {}
+	var owners: Array = window.get("owners", [])
+	if owners.is_empty(): return {}
+	var owner := int(owners[0])
+	var options := choices(state, owner)
+	var pass_allowed := options.any(func(option: Dictionary) -> bool: return option.get("action", "") == "pass")
+	return PendingDecision.create(state, "unit-actions", "%s-phase:%s" % [kind, str(state.get("phase", ""))], owner, options, pass_allowed)
+
+## Normalized projection of specialized unit-ability and preparation windows.
+## Rule handlers still recompute their legal options when a command is submitted.
+static func pending_decision(state: Dictionary) -> Dictionary:
+	var phase_choice := phase_decision(state)
+	if not phase_choice.is_empty(): return phase_choice
+	var owner := actor(state)
+	if owner <= 0: return {}
+	var window := pending(state)
+	var timing: String
+	if not window.is_empty():
+		var kind := str(window.get("kind", "pending-choice"))
+		timing = "%s:%s" % [str(state.get("phase", "")), str(window.get("trigger", kind))]
+	elif setup_actor(state) == owner:
+		timing = "%s:army-preparation" % str(state.get("phase", ""))
+	else:
+		return {}
+	var options := choices(state, owner)
+	if options.is_empty(): return {}
+	var pass_allowed := options.any(func(option: Dictionary) -> bool:
+		var action := str(option.get("action", ""))
+		return action == "pass" or action.ends_with("-pass") or str(option.get("value", "")) == "pass"
+	)
+	return PendingDecision.create(state, "unit-actions", timing, owner, options, pass_allowed)
 
 static func choice(label: String, action: String, model: int = -1, target: int = -1, value: String = "") -> Dictionary:
 	return {"label": label, "action": action, "model": model, "target": target, "value": value}
@@ -80,7 +118,7 @@ static func models(state: Dictionary, player: int, ability: String) -> Array[int
 	return result
 
 static func is_support_identity(state: Dictionary, unit: Dictionary) -> bool:
-	var calgar_in_army := Leaders.army_has_calgar(state, int(unit.get("owner", -1)))
+	var calgar_in_army := LeaderCatalog.army_has_calgar(state, int(unit.get("owner", -1)))
 	return Supports.is_support_identity(A.identity(unit), calgar_in_army)
 
 static func guilliman_model(state: Dictionary, player: int) -> int:
@@ -551,8 +589,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 				var shield: bool = unit.get("relic_shield", false)
 				result.append(choice("Chaplain %d: equip %s" % [model, "Storm Bolter" if shield else "Relic Shield (+1 W)"], "terminator-chaplain-shield", model, unit.squad, "bolter" if shield else "shield"))
 			var source := A.identity(unit)
-			if source in ["lieutenant-in-phobos-armour", "librarian", "librarian-in-phobos-armour", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "aethon-shaan", "captain-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "iron-father-feirros", "caanok-var", "ancient-in-terminator-armour", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "librarian-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "judiciar", "captain", "chaplain", "chaplain-on-bike", "captain-on-bike", "suboden-khan", "chaplain-with-jump-pack", "lieutenant", "apothecary-biologis", "captain-with-jump-pack", "adrax-agatone", "kaius-konorius", "vulkan-hestan", "overlord", "royal-warden", "roboute-guilliman", "marneus-calgar", "captain-titus", "techmarine"] and (source != "cato-sicarius" or not Leaders.army_has_calgar(state, player)) and (required_warlord == -1 or model == required_warlord): result.append(choice("Warlord: model %d" % model, "warlord", model))
-			if MarineLeaderLinks.TARGETS.has(source) and not unit.has("attachment_role"):
+			if source in ["lieutenant-in-phobos-armour", "librarian", "librarian-in-phobos-armour", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "aethon-shaan", "captain-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "iron-father-feirros", "caanok-var", "ancient-in-terminator-armour", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "librarian-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "judiciar", "captain", "chaplain", "chaplain-on-bike", "captain-on-bike", "suboden-khan", "chaplain-with-jump-pack", "lieutenant", "apothecary-biologis", "captain-with-jump-pack", "adrax-agatone", "kaius-konorius", "vulkan-hestan", "overlord", "royal-warden", "roboute-guilliman", "marneus-calgar", "captain-titus", "techmarine"] and (source != "cato-sicarius" or not LeaderCatalog.army_has_calgar(state, player)) and (required_warlord == -1 or model == required_warlord): result.append(choice("Warlord: model %d" % model, "warlord", model))
+			if (MarineLeaderLinks.TARGETS.has(source) or source in ["overlord", "royal-warden"]) and not unit.has("attachment_role"):
 				for target: int in state.squads:
 					if attachment_allowed(state, model, target): result.append(choice("Attach %s %d to %s" % [source, model, state.squads[target].name], "attach", model, target))
 		for squad: int in state.squads:
@@ -697,6 +735,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 				var squad: int = state.units[model].squad
 				if R.enabled(state) and R.supported_unit(state, squad) and not state.unit_abilities.used.has("orb:%d" % squad) and state.unit_abilities.used.get("resurrect-turn:%d" % player, -1) != state.turn:
 					result.append(choice("Resurrection Orb %d: activate D6 healing" % model, "orb", model))
+			result.append_array(DetachmentStratagems.choices(state, player))
+			result.append_array(CoreReactions.choices(state, player))
 		if state.phase == "movement" and state.active != player and state.has("stratagems"):
 			for squad: int in state.unit_abilities.reserves:
 				if state.squads[squad].owner != player or state.unit_abilities.used.get("ingress:%d:%s" % [player, key(state)], false) or state.squads[squad].battle_shocked: continue
@@ -1664,7 +1704,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if not a.has("battle_players"): a.battle_players = []
 			a.battle_players.append(player)
 		"warlord":
-			if A.identity(state.units.get(model, {})) == "cato-sicarius" and Leaders.army_has_calgar(state, player): return {"error": "Captain of the Honour Guard replaces Cato's Leader role with Support while Marneus Calgar is in the army; choose another Warlord."}
+			if A.identity(state.units.get(model, {})) == "cato-sicarius" and LeaderCatalog.army_has_calgar(state, player): return {"error": "Captain of the Honour Guard replaces Cato's Leader role with Support while Marneus Calgar is in the army; choose another Warlord."}
 			if not a.has("warlords"): a.warlords = {}
 			a.warlords[player] = model
 			for unit: Dictionary in state.units.values():

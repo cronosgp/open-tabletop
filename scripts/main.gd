@@ -41,6 +41,7 @@ var waiting_activity: VBoxContainer
 var waiting_activity_text: Label
 var workshop_tabs: TabContainer
 const Combat = preload("res://scripts/edition_11/combat_scenario.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
 const FiringDeck = preload("res://scripts/edition_11/firing_deck.gd")
 const KeywordGlossary = preload("res://scripts/edition_11/keyword_glossary.gd")
 const AllocationPractice = preload("res://scripts/edition_11/allocation_practice.gd")
@@ -924,7 +925,7 @@ func _build_ui() -> void:
 		hover_style.bg_color = Color("f1c875")
 		primary.add_theme_stylebox_override("hover", hover_style)
 	var saved_title := Label.new()
-	saved_title.text = "Ready armies • 500-point training category • fixed weapons"
+	saved_title.text = "Ready armies • local reference lists • fixed weapons"
 	var saved_lists := _make_setup_foldout(roster_page, "Two-army training match", "Choose saved lists for local or LAN training. This uses partial rules; official army legality is not certified.")
 	saved_lists.add_child(saved_title)
 	for owner in [1, 2]:
@@ -1984,7 +1985,7 @@ func _refresh_army_choices() -> void:
 			var report := Combat.RosterValidation.inspect(list) if str(list.get("id", "")).begins_with("preset:checked-mfm16") else TrainingRoster.inspect(list)
 			picker.add_item("P%d • %s • %d/%d pts" % [owner, list.name, report.total, list.points_limit])
 			picker.set_item_metadata(picker.item_count - 1, list.duplicate(true))
-			if list.id == previous or (previous.is_empty() and list.faction == ("Space Marines" if owner == 1 else "Necrons") and report.selection.get("copies", 0) == 2): picker.select(picker.item_count - 1)
+			if list.id == previous or (previous.is_empty() and list.faction == "Space Marines"): picker.select(picker.item_count - 1)
 		for profile: Dictionary in army_builder.store.data.profiles:
 			for list: Dictionary in profile.lists:
 				picker.add_item("%s / %s" % [profile.name, list.name])
@@ -2066,7 +2067,10 @@ func _picked_army(owner: int) -> Dictionary:
 
 func _saved_army_report(owner: int) -> Dictionary:
 	var list := _picked_army(owner)
-	return {"error": "Choose a list for player %d." % owner} if list.is_empty() else (Combat.RosterValidation.inspect(list) if checked_rosters_choice.button_pressed else TrainingRoster.inspect(list))
+	if list.is_empty(): return {"error": "Choose a list for player %d." % owner}
+	if checked_rosters_choice.button_pressed:
+		return {"error": "The saved MFM 1.6 roster check is historical and cannot create a new current-catalog match."}
+	return TrainingRoster.admit_current_catalog(list)
 
 func _review_saved_armies() -> void:
 	if saved_army_review == null: return
@@ -2102,6 +2106,9 @@ func _review_saved_armies() -> void:
 func _start_saved_match(local_match: bool = true) -> void:
 	if mode != "local": return
 	guided_first_session = false
+	if checked_rosters_choice.button_pressed:
+		status.text = "The saved MFM 1.6 roster check is historical; use the current local catalog to create a new match."
+		return
 	if not local_match and not saved_training_consent.button_pressed:
 		status.text = "Review the scope and accept the partial training rules for LAN."
 		return
@@ -2183,8 +2190,8 @@ func _submit_saved_army() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_saved_army(selection: Dictionary) -> void:
-	if mode != "host" or not saved_army_mode or multiplayer.get_remote_sender_id() != guest_id: return
-	var report := Combat.RosterValidation.admit(selection) if checked_rosters else TrainingRoster.admit(selection)
+	if mode != "host" or not saved_army_mode or not match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): return
+	var report := TrainingRoster.admit_current_catalog(selection)
 	if not report.error.is_empty():
 		_feedback(2, report.error)
 		return
@@ -2263,17 +2270,16 @@ func _request_deployment_preset() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_deployment_preset(revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_deployment(2, revision, false)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_deployment(2, revision, false)
 
 func _apply_deployment(player: int, revision: int, confirm: bool) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error := Deployment.confirm(state, player, revision) if confirm else Deployment.preset(state, player, revision)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
+	var kind := MatchCommandService.DEPLOYMENT_CONFIRM if confirm else MatchCommandService.DEPLOYMENT_PRESET
+	var result := MatchCommandService.execute(state, player, {"kind": kind, "revision": revision})
+	if not str(result.get("error", "")).is_empty(): _feedback(player, result.error); return
 	if state.phase == "deployment": selected = Combat.living(state, Deployment.current(state))[0]
 	_broadcast()
-	_feedback(player, "Unit deployment confirmed." if confirm else "Preview positions accepted; confirm this unit when ready.")
+	_feedback(player, result.message)
 
 func _start_allocation_practice() -> void:
 	local_visual_armies.clear()
@@ -3645,28 +3651,31 @@ func _refresh_defense_presentation(allocating: bool, hazard: bool) -> void:
 
 func _request_allocate_damage() -> void:
 	if not combat_enabled: return
-	if mode == "client": request_allocate_damage.rpc_id(1, selected, state.revision)
-	else: _apply_allocate_damage(_local_player(), selected, state.revision)
+	var identity := _damage_decision_identity(selected)
+	if mode == "client": request_allocate_damage.rpc_id(1, selected, state.revision, str(identity.get("decision_id", "")), str(identity.get("option_id", "")))
+	else: _apply_allocate_damage(_local_player(), selected, state.revision, str(identity.get("decision_id", "")), str(identity.get("option_id", "")))
 
 func _request_skip_precision() -> void:
 	if not combat_enabled: return
-	if mode == "client": request_allocate_damage.rpc_id(1, -1, state.revision)
-	else: _apply_allocate_damage(_local_player(), -1, state.revision)
+	var identity := _damage_decision_identity(-1)
+	if mode == "client": request_allocate_damage.rpc_id(1, -1, state.revision, str(identity.get("decision_id", "")), str(identity.get("option_id", "")))
+	else: _apply_allocate_damage(_local_player(), -1, state.revision, str(identity.get("decision_id", "")), str(identity.get("option_id", "")))
+
+func _damage_decision_identity(model: int) -> Dictionary:
+	var decision := Combat.Allocation.pending_decision(state)
+	for option: Dictionary in decision.get("legal_options", []):
+		if int(option.get("model", -1)) == model:
+			return {"decision_id": str(decision.get("decision_id", "")), "option_id": str(option.get("id", ""))}
+	return {}
 
 @rpc("any_peer", "call_remote", "reliable")
-func request_allocate_damage(model: int, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_allocate_damage(2, model, revision)
+func request_allocate_damage(model: int, revision: int, decision_id: String = "", option_id: String = "") -> void:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_allocate_damage(2, model, revision, decision_id, option_id)
 
-func _apply_allocate_damage(player: int, model: int, revision: int) -> void:
+func _apply_allocate_damage(player: int, model: int, revision: int, decision_id: String = "", option_id: String = "") -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error := Combat.allocate_hazard(state, player, model, revision, _d6) if not state.get("pending_hazard", {}).is_empty() else Combat.allocate_damage(state, player, model, revision, _d6)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
-	_broadcast()
-	if Combat.Stratagems.pending(state).get("kind") == "after_damage_roll":
-		_feedback(player, "Recipient confirmed. The attacker resolves damage before prevention and casualties.")
-	else: _feedback(player, "Damage choice accepted; continue allocation or the next action window.")
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.ALLOCATE_DAMAGE, "model": model, "revision": revision, "decision_id": decision_id, "option_id": option_id}, _d6)
+	_present_match_command(player, result)
 
 func _begin_attack_plan() -> void:
 	if not combat_enabled or not state.units.has(selected): return
@@ -3861,16 +3870,12 @@ func _plan_weapon_choice() -> Dictionary:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_attack_plan(attacker: int, entries: Array, revision: int, melee: bool, lethal: bool, hail_target: int = -1, indirect_shooting: bool = false) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_attack_plan(2, attacker, entries, revision, melee, lethal, hail_target, indirect_shooting)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_attack_plan(2, attacker, entries, revision, melee, lethal, hail_target, indirect_shooting)
 
 func _apply_attack_plan(player: int, attacker: int, entries: Array, revision: int, melee: bool, lethal: bool, hail_target: int = -1, indirect_shooting: bool = false) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var result := Combat.resolve_attack_plan(state, player, attacker, entries, revision, melee, lethal, _d6, hail_target, indirect_shooting)
-	if not result.error.is_empty():
-		_feedback(player, result.error)
-		return
-	_broadcast()
-	_feedback(player, result.message)
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.ATTACK_PLAN, "attacker": attacker, "entries": entries, "revision": revision, "melee": melee, "use_lethal": lethal, "hail_target": hail_target, "indirect_shooting": indirect_shooting}, _d6)
+	_present_match_command(player, result)
 
 func _sync_terrain() -> void:
 	if terrain_root == null: return
@@ -4112,7 +4117,7 @@ func _history_page(start: int = -1) -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func request_history_page(start: int) -> void:
 	if Combat.Mission.secret_formations(state): return
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()):
 		receive_history_page.rpc_id(guest_id, _journal_page(start))
 
 @rpc("authority", "call_remote", "reliable")
@@ -4388,7 +4393,7 @@ func receive_state(snapshot: Dictionary) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_move(id: int, target: Vector2, revision: int = -1) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()):
 		_apply_move(2, id, target, revision)
 
 func _apply_move(player: int, id: int, target: Vector2, revision: int = -1) -> void:
@@ -4396,12 +4401,8 @@ func _apply_move(player: int, id: int, target: Vector2, revision: int = -1) -> v
 		status.text = "Wait for player 2."
 		return
 	if combat_enabled:
-		var error: String = Deployment.place(state, player, id, target, revision) if state.phase == "deployment" else Combat.move(state, player, id, target, revision)
-		if not error.is_empty():
-			_feedback(player, error)
-			return
-		_broadcast()
-		_feedback(player, "Deployment position accepted." if state.phase == "deployment" else "Miniature repositioned. Confirm the squad's movement when ready.")
+		var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.PLACE_MODEL, "model": id, "destination": target, "revision": revision})
+		_present_match_command(player, result)
 		return
 	var reason: String = Rules.validate_move(state, player, id, target)
 	if not reason.is_empty():
@@ -4601,29 +4602,39 @@ func _request_use_reaction() -> void:
 
 func _request_command_reaction(stratagem: String) -> void:
 	var squad := reaction_squad.get_selected_id()
-	if mode == "client": request_command_reaction.rpc_id(1, squad, stratagem, state.revision, reaction_die.get_selected_id() if reaction_die != null else -1)
-	else: _apply_command_reaction(_local_player(), squad, stratagem, state.revision, reaction_die.get_selected_id() if reaction_die != null else -1)
+	var die := reaction_die.get_selected_id() if reaction_die != null else -1
+	var choice := _stratagem_choice_payload(squad, stratagem, die)
+	if mode == "client": request_command_reaction.rpc_id(1, choice, state.revision)
+	else: _apply_command_reaction(_local_player(), choice, state.revision)
+
+func _stratagem_choice_payload(squad: int, stratagem: String, die: int) -> Dictionary:
+	var choice := {"action": "stratagem-reaction", "model": -1, "target": squad, "value": stratagem, "die": die}
+	var decision := Combat.Stratagems.pending_decision(state)
+	var option_id := ""
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) != str(choice.action): continue
+		if int(option.get("target", -1)) != squad or str(option.get("value", "")) != stratagem: continue
+		if int(option.get("details", {}).get("die", -1)) != die: continue
+		option_id = str(option.get("id", ""))
+		break
+	return {"_decision_type": MatchCommandService.STRATAGEM_DECISION_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": option_id, "choice": choice}
 
 @rpc("any_peer", "call_remote", "reliable")
-func request_command_reaction(squad: int, stratagem: String, revision: int, die: int = -1) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id:
-		_apply_command_reaction(2, squad, stratagem, revision, die)
+func request_command_reaction(choice: Dictionary, revision: int) -> void:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()):
+		_apply_command_reaction(2, choice, revision)
 
-func _apply_command_reaction(player: int, squad: int, stratagem: String, revision: int, die: int = -1) -> void:
+func _apply_command_reaction(player: int, choice: Dictionary, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
+	var selected: Dictionary = choice.get("choice", {})
+	var squad := int(selected.get("target", -1))
+	var stratagem := str(selected.get("value", ""))
 	var morale: bool = Combat.Stratagems.pending(state).get("kind") == "before_battle_shock"
 	var attack: bool = Combat.Stratagems.pending(state).get("kind") in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_attack_count_roll", "after_escape_roll"]
 	var hazard: bool = Combat.Stratagems.pending(state).get("kind") == "after_hazardous_roll"
 	var escape: bool = Combat.Stratagems.pending(state).get("kind") == "after_escape_roll"
-	var error: String
-	if escape: error = Combat.resolve_escape_reaction(state, player, squad, stratagem, revision, die, _d6)
-	elif hazard: error = Combat.resolve_hazard_reaction(state, player, squad, stratagem, revision, die, _d6)
-	elif attack: error = Combat.resolve_attack_reaction(state, player, squad, stratagem, revision, die, _d6)
-	elif morale: error = Combat.resolve_command_reaction(state, player, squad, stratagem, revision, _d6)
-	else: error = Combat.resolve_roll_reaction(state, player, squad, stratagem, revision, _d6)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
+	var command_result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.COMMAND_REACTION, "choice": choice, "revision": revision}, _d6)
+	if not str(command_result.get("error", "")).is_empty(): _feedback(player, command_result.error); return
 	_broadcast()
 	var message: String
 	if morale:
@@ -4643,7 +4654,7 @@ func _apply_command_reaction(player: int, squad: int, stratagem: String, revisio
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_end(revision: int = -1, model: int = -1) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()):
 		_apply_end(2, revision, model)
 
 func _apply_end(player: int, revision: int = -1, model: int = -1) -> void:
@@ -4652,16 +4663,12 @@ func _apply_end(player: int, revision: int = -1, model: int = -1) -> void:
 		_apply_deployment(player, revision, true)
 		return
 	if combat_enabled:
-		var squad: int = state.units[model].squad if state.units.has(model) and state.units[model].owner == player else -1
-		var error: String = Combat.advance_phase(state, player, revision, _d6, squad)
-		if not error.is_empty():
-			_feedback(player, error)
+		var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.ADVANCE_PHASE, "revision": revision, "model": model}, _d6)
+		if not result.error.is_empty():
+			_feedback(player, result.error)
 			return
 		_broadcast()
-		if not Combat.Stratagems.pending(state).is_empty():
-			_feedback(player, "Battle-shock pending: choose a unit and decide before rolling.")
-		else:
-			_feedback(player, "Phase: %s. %s" % [state.phase, "Right click an enemy to shoot." if state.phase == "shooting" else "Move individual miniatures, then confirm the squad." if state.phase == "movement" else "Advance when ready; unimplemented effects are listed above."])
+		_feedback(player, result.message)
 		return
 	if player != state.active:
 		_feedback(player, "Wait for your turn.")
@@ -4671,7 +4678,7 @@ func _apply_end(player: int, revision: int = -1, model: int = -1) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_attack(attacker: int, target: int, revision: int, use_lethal: bool) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()):
 		_apply_attack(2, attacker, target, revision, use_lethal)
 
 func _apply_attack(player: int, attacker: int, target: int, revision: int, use_lethal: bool) -> void:
@@ -4679,12 +4686,8 @@ func _apply_attack(player: int, attacker: int, target: int, revision: int, use_l
 	if mode == "host" and guest_id == 0:
 		status.text = "Wait for player 2."
 		return
-	var result: Dictionary = Combat.shoot(state, player, attacker, target, revision, use_lethal, _d6)
-	if not result.error.is_empty():
-		_feedback(player, result.error)
-		return
-	_broadcast()
-	_feedback(player, result.message)
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.SHOOT, "attacker": attacker, "target": target, "revision": revision, "use_lethal": use_lethal}, _d6)
+	_present_match_command(player, result)
 
 func _d6() -> int:
 	var value := rng.randi_range(1, 6)
@@ -4699,16 +4702,12 @@ func _request_action() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_action(model: int, objective: int, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_action(2, model, objective, revision)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_action(2, model, objective, revision)
 
 func _apply_action(player: int, model: int, objective: int, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error := Combat.start_action(state, player, model, objective, revision)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
-	_broadcast()
-	_feedback(player, "Secure Ground started. Shooting and charging remain restricted until turn end.")
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.START_ACTION, "model": model, "objective": objective, "revision": revision})
+	_present_match_command(player, result)
 
 func _request_begin_movement() -> void:
 	if not combat_enabled: return
@@ -4719,18 +4718,16 @@ func _request_begin_movement() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_begin_movement(model: int, move_type: String, revision: int, use_sudden_onslaught: bool = false) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()):
 		_apply_begin_movement(2, model, move_type, revision, use_sudden_onslaught)
 
 func _apply_begin_movement(player: int, model: int, move_type: String, revision: int, use_sudden_onslaught: bool = false) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error: String = Combat.begin_movement(state, player, model, move_type, revision, _d6, use_sudden_onslaught)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.BEGIN_MOVEMENT, "model": model, "move_type": move_type, "revision": revision, "use_sudden_onslaught": use_sudden_onslaught}, _d6)
+	if not str(result.get("error", "")).is_empty(): _feedback(player, result.error); return
 	sudden_onslaught_choice.set_pressed_no_signal(false)
 	_broadcast()
-	_feedback(player, "Roll complete: accept the result or use Command Re-roll before allocation and movement." if not Combat.Stratagems.pending(state).is_empty() else "Movement selected. Allocate any escape wounds, then place models and confirm.")
+	_feedback(player, result.message)
 
 func _request_escape_wound() -> void:
 	if not combat_enabled: return
@@ -4744,31 +4741,23 @@ func _request_abandon_fall_back() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_abandon_fall_back(revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()):
 		_apply_abandon_fall_back(2, revision)
 
 func _apply_abandon_fall_back(player: int, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error: String = Combat.abandon_fall_back(state, player, revision)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
-	_broadcast()
-	_feedback(player, "Fall Back not completed. Positions restored; casualties retained and movement selection consumed.")
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.ABANDON_FALL_BACK, "revision": revision})
+	_present_match_command(player, result)
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_escape_wound(model: int, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()):
 		_apply_escape_wound(2, model, revision)
 
 func _apply_escape_wound(player: int, model: int, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error: String = Combat.allocate_escape_wound(state, player, model, revision, _d6)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
-	_broadcast()
-	_feedback(player, "Escape mortal wound allocated.")
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.ALLOCATE_ESCAPE_WOUND, "model": model, "revision": revision}, _d6)
+	_present_match_command(player, result)
 
 func _request_coherency_removal() -> void:
 	if not combat_enabled: return
@@ -4777,17 +4766,13 @@ func _request_coherency_removal() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_coherency_removal(model: int, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()):
 		_apply_coherency_removal(2, model, revision)
 
 func _apply_coherency_removal(player: int, model: int, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error: String = Combat.remove_for_coherency(state, player, model, revision)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
-	_broadcast()
-	_feedback(player, "Model %d removed for coherency." % model)
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.REMOVE_COHERENCY, "model": model, "revision": revision})
+	_present_match_command(player, result)
 
 func _request_finish_movement(cancel: bool) -> void:
 	if not combat_enabled: return
@@ -4796,16 +4781,12 @@ func _request_finish_movement(cancel: bool) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_finish_movement(revision: int, cancel: bool) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_finish_movement(2, revision, cancel)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_finish_movement(2, revision, cancel)
 
 func _apply_finish_movement(player: int, revision: int, cancel: bool) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error: String = Combat.finish_movement(state, player, revision, cancel, _d6)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
-	_broadcast()
-	_feedback(player, "Placement reset; selected move, dice and casualties retained." if cancel and not state.pending_move.is_empty() else "Pending movement cancelled." if cancel else "Squad movement confirmed.")
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.FINISH_MOVEMENT, "revision": revision, "cancel": cancel}, _d6)
+	_present_match_command(player, result)
 
 func _request_charge_roll() -> void:
 	if not combat_enabled: return
@@ -4815,37 +4796,21 @@ func _request_charge_roll() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_charge_roll(model: int, revision: int, decline: bool) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_charge_roll(2, model, revision, decline)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_charge_roll(2, model, revision, decline)
 
 func _apply_charge_roll(player: int, model: int, revision: int, decline: bool) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	if decline:
-		var error: String = Combat.decline_charge(state, player, revision)
-		if not error.is_empty():
-			_feedback(player, error)
-			return
-		_broadcast()
-		_feedback(player, "Charge finished without movement.")
-		return
-	var result: Dictionary = Combat.declare_charge(state, player, model, revision, _d6)
-	if not result.error.is_empty():
-		_feedback(player, result.error)
-		return
-	_broadcast()
-	_feedback(player, result.message)
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.CHARGE_ROLL, "model": model, "revision": revision, "decline": decline}, _d6)
+	_present_match_command(player, result)
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_charge(target: int, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_charge(2, target, revision)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_charge(2, target, revision)
 
 func _apply_charge(player: int, target: int, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var result: Dictionary = Combat.select_charge_target(state, player, target, revision)
-	if not result.error.is_empty():
-		_feedback(player, result.error)
-		return
-	_broadcast()
-	_feedback(player, result.message)
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.CHARGE_TARGET, "target": target, "revision": revision})
+	_present_match_command(player, result)
 
 func _request_begin_contact() -> void:
 	if not combat_enabled: return
@@ -4858,32 +4823,21 @@ func _request_begin_contact() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_begin_contact(model: int, kind: String, revision: int, objective: int = -1, targets: Array[int] = []) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_begin_contact(2, model, kind, revision, objective, targets)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_begin_contact(2, model, kind, revision, objective, targets)
 
 func _apply_begin_contact(player: int, model: int, kind: String, revision: int, objective: int = -1, targets: Array[int] = []) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error: String = Combat.begin_contact_move(state, player, model, kind, revision, targets, objective)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
-	_broadcast()
-	if state.get("unit_abilities", {}).get("window", {}).get("kind", "") == Combat.TransportRules.COMBAT_EMBARKATION_WINDOW:
-		_feedback(player, "Charge placement paused: Player %d must resolve Repulsor Combat Embarkation." % state.unit_abilities.window.owners[0])
-		return
-	_feedback(player, "Place individual models with right-click, then confirm contact movement.")
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.BEGIN_CONTACT, "model": model, "move_kind": kind, "revision": revision, "targets": targets, "objective": objective})
+	_present_match_command(player, result)
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_contact_move(model: int, destination: Vector2, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_contact_move(2, model, destination, revision)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_contact_move(2, model, destination, revision)
 
 func _apply_contact_move(player: int, model: int, destination: Vector2, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error: String = Combat.stage_contact_move(state, player, model, destination, revision)
-	if not error.is_empty():
-		_feedback(player, error)
-		return
-	_broadcast()
-	_feedback(player, "Contact placement staged.")
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.STAGE_CONTACT, "model": model, "destination": destination, "revision": revision})
+	_present_match_command(player, result)
 
 func _request_finish_contact(cancel: bool) -> void:
 	if not combat_enabled: return
@@ -4892,29 +4846,28 @@ func _request_finish_contact(cancel: bool) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_finish_contact(revision: int, cancel: bool) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_finish_contact(2, revision, cancel)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_finish_contact(2, revision, cancel)
 
 func _apply_finish_contact(player: int, revision: int, cancel: bool) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error: String = Combat.finish_contact_move(state, player, revision, cancel)
-	if not error.is_empty():
-		_feedback(player, error)
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.FINISH_CONTACT, "revision": revision, "cancel": cancel})
+	_present_match_command(player, result)
+
+func _present_match_command(player: int, result: Dictionary) -> void:
+	if not str(result.get("error", "")).is_empty():
+		_feedback(player, str(result.error))
 		return
 	_broadcast()
-	_feedback(player, "Contact placement cancelled; positions restored." if cancel else "Contact movement confirmed.")
+	_feedback(player, str(result.get("message", "Command completed.")))
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_fight(attacker: int, target: int, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_fight(2, attacker, target, revision)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_fight(2, attacker, target, revision)
 
 func _apply_fight(player: int, attacker: int, target: int, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var result: Dictionary = Combat.fight(state, player, attacker, target, revision, _d6)
-	if not result.error.is_empty():
-		_feedback(player, result.error)
-		return
-	_broadcast()
-	_feedback(player, result.message)
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.FIGHT, "attacker": attacker, "target": target, "revision": revision}, _d6)
+	_present_match_command(player, result)
 
 func _refresh_oath() -> void:
 	var pending: bool = combat_enabled and Combat.OathOfMoment.needs_choice(state)
@@ -4936,14 +4889,12 @@ func _request_oath_target() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_oath_target(target: int, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_oath_target(2, target, revision)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_oath_target(2, target, revision)
 
 func _apply_oath_target(player: int, target: int, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error := Combat.select_oath_target(state, player, target, revision)
-	if not error.is_empty(): _feedback(player, error); return
-	_broadcast()
-	_feedback(player, "Oath of Moment: " + state.squads[target].name + ". Continue the Command phase.")
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_OATH_TARGET, "target": target, "revision": revision})
+	_present_match_command(player, result)
 
 func _reanimation_model_selected(_index: int) -> void:
 	var model := reanimation_model.get_selected_id()
@@ -4992,19 +4943,32 @@ func _refresh_reanimation() -> void:
 
 func _request_reanimation(action: String) -> void:
 	var point := Vector2(reanimation_x.value, reanimation_z.value)
-	if mode == "client": request_reanimation.rpc_id(1, action, reanimation_squad.get_selected_id(), reanimation_model.get_selected_id(), point, state.revision)
-	else: _apply_reanimation(_local_player(), action, reanimation_squad.get_selected_id(), reanimation_model.get_selected_id(), point, state.revision)
+	var squad := int(Combat.Reanimation.pending(state).get("current", {}).get("squad", reanimation_squad.get_selected_id())) if action != "roll" else reanimation_squad.get_selected_id()
+	var model := reanimation_model.get_selected_id() if action in ["place", "unplaceable"] else -1
+	var choice := _reanimation_choice_payload(action, squad, model)
+	if mode == "client": request_reanimation.rpc_id(1, choice, point, state.revision)
+	else: _apply_reanimation(_local_player(), choice, point, state.revision)
+
+func _reanimation_choice_payload(action: String, squad: int, model: int) -> Dictionary:
+	var choice := {"action": "reanimation", "model": model, "target": squad, "value": action}
+	var decision := Combat.Reanimation.pending_decision(state)
+	var option_id := ""
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) != str(choice.action): continue
+		if int(option.get("model", -1)) != model or int(option.get("target", -1)) != squad: continue
+		if str(option.get("value", "")) != action: continue
+		option_id = str(option.get("id", ""))
+		break
+	return {"_decision_type": MatchCommandService.REANIMATION_DECISION_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": option_id, "choice": choice}
 
 @rpc("any_peer", "call_remote", "reliable")
-func request_reanimation(action: String, squad: int, model: int, point: Vector2, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_reanimation(2, action, squad, model, point, revision)
+func request_reanimation(choice: Dictionary, point: Vector2, revision: int) -> void:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_reanimation(2, choice, point, revision)
 
-func _apply_reanimation(player: int, action: String, squad: int, model: int, point: Vector2, revision: int) -> void:
+func _apply_reanimation(player: int, choice: Dictionary, point: Vector2, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error := Combat.resolve_reanimation(state, player, action, squad, model, point, revision, _d6)
-	if not error.is_empty(): _feedback(player, error); return
-	_broadcast()
-	_feedback(player, "Reanimation updated. " + (("Healing complete; resolve remaining end-phase choices." if Combat.UnitAbilities.enabled(state) else "Command complete.") if Combat.Reanimation.pending(state).is_empty() else "Resolve the remaining returns and units."))
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.RESOLVE_REANIMATION, "choice": choice, "point": point, "revision": revision}, _d6)
+	_present_match_command(player, result)
 
 func _refresh_doctrine() -> void:
 	var pending: bool = combat_enabled and Combat.Doctrines.needs_choice(state)
@@ -5033,19 +4997,26 @@ func _refresh_doctrine() -> void:
 func _request_combat_doctrine() -> void:
 	var index := doctrine_choice.get_selected_id()
 	var doctrine: String = "none" if index == 0 else Combat.Doctrines.ORDER[index - 1]
-	if mode == "client": request_combat_doctrine.rpc_id(1, doctrine, state.revision)
-	else: _apply_combat_doctrine(_local_player(), doctrine, state.revision)
+	var decision := Combat.Doctrines.pending_decision(state)
+	var option_id := ""
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == "combat-doctrine" and str(option.get("value", "")) == doctrine:
+			option_id = str(option.get("id", ""))
+			break
+	var decision_id := str(decision.get("decision_id", ""))
+	if mode == "client": request_combat_doctrine.rpc_id(1, doctrine, decision_id, option_id, state.revision)
+	else: _apply_combat_doctrine(_local_player(), doctrine, decision_id, option_id, state.revision)
 
 @rpc("any_peer", "call_remote", "reliable")
-func request_combat_doctrine(doctrine: String, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_combat_doctrine(2, doctrine, revision)
+func request_combat_doctrine(doctrine: String, decision_id: String, option_id: String, revision: int) -> void:
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_combat_doctrine(2, doctrine, decision_id, option_id, revision)
 
-func _apply_combat_doctrine(player: int, doctrine: String, revision: int) -> void:
+func _apply_combat_doctrine(player: int, doctrine: String, decision_id: String, option_id: String, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error := Combat.select_combat_doctrine(state, player, doctrine, revision)
-	if not error.is_empty(): _feedback(player, error); return
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_DOCTRINE, "doctrine": doctrine, "decision_id": decision_id, "option_id": option_id, "revision": revision})
+	if not result.error.is_empty(): _feedback(player, result.error); return
 	_broadcast()
-	_feedback(player, Combat.Doctrines.NAMES[doctrine] + ". Continue Command.")
+	_feedback(player, result.message)
 
 func _refresh_awakened() -> void:
 	var pending: bool = combat_enabled and Combat.Mission.actor(state) < 0 and Combat.Awakened.needs_setup(state)
@@ -5073,14 +5044,12 @@ func _request_awakened_attachment() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_awakened_attachment(bodyguard: int, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_awakened_attachment(2, bodyguard, revision)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_awakened_attachment(2, bodyguard, revision)
 
 func _apply_awakened_attachment(player: int, bodyguard: int, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error := Combat.select_awakened_attachment(state, player, bodyguard, revision)
-	if not error.is_empty(): _feedback(player, error); return
-	_broadcast()
-	_feedback(player, "Overlord assignment saved. " + ("Declare the next Overlord." if Combat.Awakened.needs_setup(state) else ("Finish army preparations, then deploy." if Combat.UnitAbilities.enabled(state) else "Review and confirm deployment for every model.")))
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_AWAKENED_ATTACHMENT, "bodyguard": bodyguard, "revision": revision})
+	_present_match_command(player, result)
 
 func _open_unit_choice_help() -> void:
 	match_tabs.current_tab = 6
@@ -5182,20 +5151,34 @@ func _refresh_unit_actions() -> void:
 func _request_unit_action() -> void:
 	if unit_action_picker.selected < 0: return
 	var choice: Dictionary = unit_action_picker.get_selected_metadata()
+	var submitted_choice := _unit_choice_payload(choice)
 	var point := Vector2(unit_action_x.value, unit_action_z.value)
-	if mode == "client": request_unit_action.rpc_id(1, choice, point, state.revision)
-	else: _apply_unit_action(_local_player(), choice, point, state.revision)
+	if mode == "client": request_unit_action.rpc_id(1, submitted_choice, point, state.revision)
+	else: _apply_unit_action(_local_player(), submitted_choice, point, state.revision)
+
+func _unit_choice_payload(choice: Dictionary) -> Dictionary:
+	var decision := Combat.UnitActions.pending_decision(state)
+	if decision.is_empty(): return choice
+	var option_id := ""
+	for option: Dictionary in decision.legal_options:
+		if str(choice.get("action", "")) != str(option.get("action", "")): continue
+		if int(choice.get("model", -1)) != int(option.get("model", -1)): continue
+		if int(choice.get("target", -1)) != int(option.get("target", -1)): continue
+		if str(choice.get("value", "")) != str(option.get("value", "")): continue
+		option_id = str(option.get("id", ""))
+		break
+	return {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.decision_id), "option_id": option_id, "choice": choice.duplicate(true)}
 
 @rpc("any_peer", "call_remote", "reliable")
 func request_unit_action(choice: Dictionary, point: Vector2, revision: int) -> void:
-	if mode == "host" and multiplayer.get_remote_sender_id() == guest_id: _apply_unit_action(2, choice, point, revision)
+	if mode == "host" and match_session.accepts_guest_command(multiplayer.get_remote_sender_id()): _apply_unit_action(2, choice, point, revision)
 
 func _apply_unit_action(player: int, choice: Dictionary, point: Vector2, revision: int) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var error := Combat.unit_action(state, player, choice, point, revision, _d6)
-	if not error.is_empty(): _feedback(player, error); return
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "choice": choice, "point": point, "revision": revision}, _d6)
+	if not result.error.is_empty(): _feedback(player, result.error); return
 	_broadcast()
-	_feedback(player, "Mission choice saved." if choice.action.begins_with("mission-") else "Unit ability choice saved.")
+	_feedback(player, result.message)
 
 func _sync_ability_tokens() -> void:
 	var tokens: Dictionary = state.get("unit_abilities", {}).get("homers", {}) if combat_enabled else {}

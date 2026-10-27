@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2026-10-16
 
-Initial public prototype. See the [support matrix](docs/support-matrix.md) for
-the current feature surface and the [roadmap](docs/roadmap.md) for what remains.
+Initial public prototype. See the [support matrix](docs/project/support-matrix.md) for
+the current feature surface and the [roadmap](docs/project/roadmap.md) for what remains.
 
 ### Added
 

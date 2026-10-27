@@ -52,6 +52,10 @@ func admit(peer_id: int) -> void:
 	pending_seats.erase(peer_id)
 	guest_id = peer_id
 
+## Authorizes match commands only from the currently admitted guest seat.
+func accepts_guest_command(peer_id: int) -> bool:
+	return guest_id > 0 and peer_id == guest_id
+
 func reject(peer_id: int) -> void:
 	pending_seats.erase(peer_id)
 

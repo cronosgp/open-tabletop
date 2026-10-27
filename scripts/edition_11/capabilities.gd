@@ -196,9 +196,9 @@ const KNOWN := {
 	"vanguard-ambushers": {"category": CATEGORY_DETACHMENT, "name": "Vanguard Ambushers (Phobos Shock Force)", "supported": false, "source_status": "wahapedia_e11_local_export_2026_10_19", "validation_status": "pending_local_rule_context_validation", "scope": "Eligibility and effect are disabled pending reconciliation of unit-level Hidden with local terrain semantics, validation of the Movement-end trigger and focused attack-integration tests."},
 	"ironstorm-redoubtable-machine-spirit": {"category": CATEGORY_ENHANCEMENT, "name": "Redoubtable Machine Spirit (Ironstorm)", "supported": true, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "tests_passed_local_targeted", "scope": "25 points; exact local enhancement-to-datasheet eligibility filtered to Vehicle units excluding Transport-role, Fly and Walker datasheets. Grants a 5+ invulnerable save and restores 1 lost wound at the end of the owner's Command phase."},
 	"ironstorm-gunnery-honours": {"category": CATEGORY_ENHANCEMENT, "name": "Gunnery Honours (Ironstorm)", "supported": true, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "tests_passed_local_targeted", "scope": "15 points; exact local enhancement-to-datasheet eligibility filtered to Vehicle units excluding Transport-role, Fly and Walker datasheets. The assigned unit's ranged profiles gain Heavy."},
-	"ironstorm-layered-ceramite": {"category": CATEGORY_STRATAGEM, "name": "Layered Ceramite (Ironstorm)", "supported": true, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "implementation_pending_local_validation", "scope": "1 CP, any phase when a friendly Adeptus Astartes Vehicle suffers a mortal wound. Opens a choice before the local Devastating Wounds, Hazardous, Deadly Demise, Explosives, Tank Shock, Hammer of Wrath, Haywire Mine, Telepathic Assault, Desperate Escape or transport disembark Hazard allocation; grants Feel No Pain 5+ against mortal wounds for the phase."},
-	"ironstorm-might-of-the-machine-spirit": {"category": CATEGORY_STRATAGEM, "name": "Might of the Machine Spirit (Ironstorm)", "supported": true, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "implementation_pending_local_validation", "scope": "1 CP in your Command phase; a friendly Adeptus Astartes Vehicle excluding Dedicated Transport, Fly and Walker ignores modeled Move, Hit and Wound modifiers until your next Command phase. The current engine does not model direct BS characteristic modifiers; its source BS profile remains unchanged."},
-	"ironstorm-headhunter-doctrine": {"category": CATEGORY_STRATAGEM, "name": "Headhunter Doctrine (Ironstorm)", "supported": true, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "implementation_pending_local_validation", "scope": "1 CP when an eligible friendly Ironstorm Vehicle is selected to shoot in your Shooting phase; its ranged attacks gain Lethal Hits only against MONSTER or VEHICLE targets. The decision is bound to the attack declaration before attack profiles are prepared."},
+	"ironstorm-layered-ceramite": {"category": CATEGORY_STRATAGEM, "name": "Layered Ceramite (Ironstorm)", "supported": false, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "implementation_pending_local_validation", "scope": "1 CP, any phase when a friendly Adeptus Astartes Vehicle suffers a mortal wound. Opens a choice before the local Devastating Wounds, Hazardous, Deadly Demise, Explosives, Tank Shock, Hammer of Wrath, Haywire Mine, Telepathic Assault, Desperate Escape or transport disembark Hazard allocation; grants Feel No Pain 5+ against mortal wounds for the phase."},
+	"ironstorm-might-of-the-machine-spirit": {"category": CATEGORY_STRATAGEM, "name": "Might of the Machine Spirit (Ironstorm)", "supported": false, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "implementation_pending_local_validation", "scope": "1 CP in your Command phase; a friendly Adeptus Astartes Vehicle excluding Dedicated Transport, Fly and Walker ignores modeled Move, Hit and Wound modifiers until your next Command phase. The current engine does not model direct BS characteristic modifiers; its source BS profile remains unchanged."},
+	"ironstorm-headhunter-doctrine": {"category": CATEGORY_STRATAGEM, "name": "Headhunter Doctrine (Ironstorm)", "supported": false, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "implementation_pending_local_validation", "scope": "1 CP when an eligible friendly Ironstorm Vehicle is selected to shoot in your Shooting phase; its ranged attacks gain Lethal Hits only against MONSTER or VEHICLE targets. The decision is bound to the attack declaration before attack profiles are prepared."},
 	"spearpoint-spear-thrust-and-sabre-swing": {"category": CATEGORY_STRATAGEM, "name": "Spear Thrust and Sabre Swing (Spearpoint)", "supported": true, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "tests_passed_local_targeted", "scope": "When an Adeptus Astartes unit is selected to fight, spend 1 CP: its melee attacks gain Lethal Hits or Lance; if it has Mounted, they gain both. Effects apply through the end of the Fight phase."},
 	"spearpoint-flawless-riders": {"category": CATEGORY_STRATAGEM, "name": "Flawless Riders (Spearpoint)", "supported": true, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "tests_passed_local_targeted", "scope": "In your Movement or Charge phase, when a friendly Adeptus Astartes Mounted unit is selected to move or declares a charge, spend 1 CP; it gains Mobile for that phase."},
 	"spearpoint-evasive-manoeuvres": {"category": CATEGORY_STRATAGEM, "name": "Evasive Manoeuvres (Spearpoint)", "supported": true, "source_status": "wahapedia_e11_local_export_2026_10_16", "validation_status": "tests_passed_local_targeted", "scope": "When an enemy Shooting attack targets a friendly Adeptus Astartes Mounted/Speeder unit, spend 1 CP; ranged attacks targeting it have -1 to Wound for that Shooting phase."},
@@ -294,12 +294,15 @@ static func name(capability: String) -> String:
 	return KNOWN.get(capability, {}).get("name", capability)
 
 ## Record that a verified implementation is active for this match.
-static func admit(state: Dictionary, capability: String, implementation: String) -> void:
+static func admit(state: Dictionary, capability: String, implementation: String) -> bool:
+	if not supported(capability): return false
 	if not state.has("capabilities"): state.capabilities = {}
 	state.capabilities[capability] = {"implementation": implementation, "enabled": true}
+	return true
 
 ## Canonical per-squad bookkeeping: move a capability from disabled to enabled.
-static func admit_squad(state: Dictionary, squad: int, capability: String) -> void:
+static func admit_squad(state: Dictionary, squad: int, capability: String) -> bool:
+	if not supported(capability) or not state.get("squads", {}).has(squad): return false
 	var entry: Dictionary = state.squads[squad]
 	var disabled: Array = entry.get("disabled_abilities", []).duplicate()
 	disabled.erase(capability)
@@ -307,9 +310,10 @@ static func admit_squad(state: Dictionary, squad: int, capability: String) -> vo
 	var enabled: Array = entry.get("enabled_abilities", []).duplicate()
 	if capability not in enabled: enabled.append(capability)
 	entry.enabled_abilities = enabled
+	return true
 
 static func enabled(state: Dictionary, capability: String) -> bool:
-	return state.get("capabilities", {}).get(capability, {}).get("enabled", false)
+	return supported(capability) and state.get("capabilities", {}).get(capability, {}).get("enabled", false)
 
 ## Recognised-but-unsupported capabilities still disabled on any squad.
 static func blocked(state: Dictionary) -> Array[String]:

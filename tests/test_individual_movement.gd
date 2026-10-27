@@ -17,6 +17,7 @@ func _initialize() -> void:
 	var state := fresh()
 	var other: Vector2 = state.units[101].position
 	check(Combat.move(state, 1, 100, Vector2(-13, -4), state.revision) == "", "Individual movement rejected")
+	check(state.resolution_frames.size() == 1 and state.resolution_frames.back().kind == "unit-action" and state.resolution_frames.back().status == "resolving", "Movement draft opens an action-level resolution frame")
 	check(state.units[101].position == other, "Squadmate moved with selected miniature")
 	check(is_equal_approx(Combat.movement_remaining(state, 100), 5.0), "Selected model budget incorrect")
 	check(is_equal_approx(Combat.movement_remaining(state, 101), 6.0), "Squadmate budget consumed")
@@ -24,7 +25,7 @@ func _initialize() -> void:
 	check(not Combat.finish_movement(state, 2, state.revision).is_empty(), "Opponent confirmed movement")
 	check(not Combat.finish_movement(state, 1, state.revision - 1).is_empty(), "Stale confirmation accepted")
 	check(Combat.finish_movement(state, 1, state.revision) == "", "Coherent move not confirmed")
-	check(state.squads[1].moved and state.pending_move.is_empty(), "Activation not completed")
+	check(state.squads[1].moved and state.pending_move.is_empty() and state.resolution_frames.is_empty(), "Confirmed movement completes its action frame")
 	check(not Combat.move(state, 1, 101, Vector2(-13, -2), state.revision).is_empty(), "Committed squad activated again")
 	check(Combat.advance_phase(state, 1, state.revision) == "", "Confirmed squad could not advance phase")
 	state = fresh()
@@ -43,7 +44,7 @@ func _initialize() -> void:
 	check(Combat.move(state, 1, 100, Vector2(-12, -6), state.revision) == "", "Remaining segment rejected")
 	check(is_zero_approx(Combat.movement_remaining(state, 100)), "Movement did not exhaust at six inches")
 	check(Combat.finish_movement(state, 1, state.revision, true) == "", "Cancellation failed")
-	check(state.units[100].position == Vector2(-12, -4) and not state.units[100].moved and not state.squads[1].moved, "Cancellation failed to restore the original state")
+	check(state.units[100].position == Vector2(-12, -4) and not state.units[100].moved and not state.squads[1].moved and state.resolution_frames.is_empty(), "Cancellation restores the original state and completes its action frame")
 	check(is_equal_approx(Combat.movement_remaining(state, 100), 6), "Cancellation did not restore the uncommitted budget")
 	check(not Combat.finish_movement(state, 1, state.revision).is_empty(), "Empty movement could be confirmed")
 	state = fresh()
@@ -58,6 +59,10 @@ func _initialize() -> void:
 	check(not Combat.finish_movement(state, 1, state.revision).is_empty(), "Normal move finished engaged")
 	check(Combat.move(state, 1, 100, Vector2(-12, -4), state.revision) == "", "Model could not leave engagement during a draft")
 	check(Combat.finish_movement(state, 1, state.revision) == "", "Unengaged final position rejected after temporary engagement")
+	state = fresh()
+	check(Combat.move(state, 1, 100, Vector2(-13, -4), state.revision) == "", "Legacy-save movement draft setup")
+	state.erase("resolution_frames") # Simulate a save written before action frames were introduced.
+	check(Combat.finish_movement(state, 1, state.revision) == "" and state.pending_move.is_empty(), "Legacy pending movement remains confirmable without a saved frame")
 	# A straight path may pass within 2 inches if it avoids enemy bases and ends clear.
 	state = fresh()
 	for id: int in state.units:

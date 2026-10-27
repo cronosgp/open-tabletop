@@ -1,6 +1,7 @@
 extends RefCounted
 ## Explicit Intercessor capability. Never activate arbitrary imported ability DSL.
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
+const Morale = preload("res://scripts/edition_11/morale.gd")
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const ID := "intercessor-objective-secured-v1"
 const DEFINITION := "40kdc:11e:adeptus-astartes:intercessor-squad"
@@ -28,7 +29,7 @@ static func end_command(state: Dictionary) -> String:
 	for index in range(objectives.size()):
 		var objective: Dictionary = objectives[index]
 		if objective.controller != state.active or objective.secured == state.active: continue
-		for squad: int in Objectives.controlling_squads(state, objective):
+		for squad: int in Objectives.controlling_squads(state, objective, Callable(Morale, "objective_control")):
 			if not intercessors(state, squad): continue
 			# controlling_squads requires a living, in-range, positive-OC model.
 			if Objectives.secure(state, index, state.active).is_empty(): secured.append(str(objective.name))

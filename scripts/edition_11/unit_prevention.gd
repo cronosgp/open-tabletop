@@ -3,6 +3,7 @@ extends RefCounted
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
+const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const GRANTS := {
 	"chaplain-in-terminator-armour": [{"target": 4, "against": "mortal"}],
 	"librarian-in-terminator-armour": [{"target": 4, "against": "psychic"}],
@@ -31,7 +32,7 @@ static func rules(state: Dictionary, model: int) -> Variant:
  var squad: int = int(state.units[model].get("squad", -1))
  var layered: Dictionary = state.get("detachment_stratagems", {}).get("layered_ceramite", {}).get(squad, {})
  var phase_key := "%d:%s" % [int(state.get("turn", 0)), str(state.get("phase", ""))]
- if layered.get("phase_key", "") == phase_key:
+ if Capabilities.enabled(state, "ironstorm-layered-ceramite") and layered.get("phase_key", "") == phase_key:
   var layered_fnp := {"target": 5, "against": "mortal"}
   if layered_fnp not in result: result.append(layered_fnp)
  if MarineEnhancements.artificer_armour_bearer(state, model) or MarineEnhancements.standard_bearer(state, model):

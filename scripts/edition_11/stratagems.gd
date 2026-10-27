@@ -5,6 +5,7 @@ const Morale = preload("res://scripts/edition_11/morale.gd")
 const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
+const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const ID := "core-stratagem-windows-v1"
 const REROLL_ID := "command-reroll-movement-v1"
 const ATTACK_REROLL_ID := "command-reroll-hit-wound-v1"
@@ -60,6 +61,47 @@ static func enable(state: Dictionary, movement_rerolls: bool = false, attack_rer
 
 static func pending(state: Dictionary) -> Dictionary:
 	return state.get("stratagems", {}).get("pending", {})
+
+## Common read-only view for roll and Battle-shock reaction windows.
+## choice_error/use_error and the specialized resolvers remain authoritative.
+static func pending_decision(state: Dictionary) -> Dictionary:
+	var window := pending(state)
+	if window.is_empty(): return {}
+	for required: String in ["revision", "squads", "units", "cp", "active", "turn", "phase"]:
+		if not state.has(required): return {}
+	var owner := int(window.get("player", -1))
+	if owner not in [1, 2]: return {}
+	var squads: Array = window.get("remaining", []) if window.get("kind", "") == "before_battle_shock" else [int(window.get("squad", -1))]
+	var options: Array[Dictionary] = []
+	for squad_value: Variant in squads:
+		var squad := int(squad_value)
+		if not choice_error(state, owner, squad, int(state.get("revision", -1))).is_empty(): continue
+		var accept_label := "Roll Battle-shock normally" if window.kind == "before_battle_shock" else "Accept the current result"
+		options.append(_decision_option(accept_label, squad, "", -1))
+		if window.kind == "before_battle_shock":
+			if use_error(state, owner, squad, "insane-bravery", int(state.get("revision", -1))).is_empty():
+				options.append(_decision_option("Insane Bravery: pass without rolling", squad, "insane-bravery", -1))
+			continue
+		var stratagems: Array[String] = []
+		if use_error(state, owner, squad, "command-re-roll", int(state.get("revision", -1))).is_empty(): stratagems.append("command-re-roll")
+		if window.kind == "after_advance_roll":
+			if window.get("sudden", false): stratagems.append("sudden-storm")
+			if window.get("supercharged", false): stratagems.append("supercharged-engines")
+			if window.get("honour_vigilance", false): stratagems.append("honour-of-vigilance")
+			if window.get("wrath_chapter", false): stratagems.append("wrath-of-the-chapter")
+			if window.get("stormseers_wisdom", false): stratagems.append("stormseers-wisdom")
+		elif window.kind == "after_charge_roll":
+			if window.get("valour", false): stratagems.append("unstoppable-valour")
+			if window.get("master_shadows", false): stratagems.append("master-shadows")
+		var die_options: Array = window.get("eligible", []) if window.kind in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_attack_count_roll", "after_escape_roll"] else [-1]
+		for stratagem: String in stratagems:
+			for die_value: Variant in die_options:
+				options.append(_decision_option("%s · %s" % [stratagem, "all dice" if int(die_value) < 0 else "die %d" % (int(die_value) + 1)], squad, stratagem, int(die_value)))
+	if options.is_empty(): return {}
+	return PendingDecision.create(state, "stratagems", "reaction:%s" % str(window.get("kind", "")), owner, options, true)
+
+static func _decision_option(label: String, squad: int, stratagem: String, die: int) -> Dictionary:
+	return {"label": label, "action": "stratagem-reaction", "model": -1, "target": squad, "value": stratagem, "details": {"die": die}}
 
 static func phase_key(state: Dictionary) -> String:
 	return "%d:%s" % [state.turn, state.phase]

@@ -389,13 +389,16 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		if window.get("kind", "") != UNSTOPPABLE_WINDOW or int(window.get("squad", -1)) != squad or window.get("owners", []) != [player]: return "Unstoppable Advance is used when this Dreadnought is selected to move or declares a charge."
 		if str(window.get("trigger", "")) != str(s.phase): return "Unstoppable Advance is only available for the selected Movement or Charge phase action."
 	elif rule == IRONSTORM_MIGHT:
+		if not Registry.supported(rule): return "Might of the Machine Spirit is blocked pending local validation."
 		if not ironstorm_enabled(s, player) or s.phase != "command" or int(s.active) != player or not ironstorm_vehicle_unit(s, squad): return "Might of the Machine Spirit requires your Command phase and an eligible Ironstorm Vehicle unit."
 	elif rule == IRONSTORM_HEADHUNTER:
+		if not Registry.supported(rule): return "Headhunter Doctrine is blocked pending local validation."
 		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
 		var declaration: Dictionary = window.get("declaration", {})
 		if not ironstorm_enabled(s, player) or s.phase != "shooting" or int(s.active) != player or s.squads[squad].shot or not ironstorm_vehicle_unit(s, squad): return "Headhunter Doctrine requires an eligible Ironstorm Vehicle selected to shoot in your Shooting phase."
 		if window.get("kind", "") != HEADHUNTER_WINDOW or window.get("owners", []) != [player] or int(window.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("squad", -1)) != squad: return "Headhunter Doctrine is used when the Vehicle is selected to shoot."
 	elif rule == IRONSTORM_LAYERED_CERAMITE:
+		if not Registry.supported(rule): return "Layered Ceramite is blocked pending local validation."
 		if not ironstorm_enabled(s, player) or not layered_ceramite_triggered(s, squad): return "Layered Ceramite is available when this friendly Ironstorm Vehicle suffers a mortal wound."
 	elif rule == UNDYING:
 		var after: Dictionary = s.detachment_stratagems.get("after", {})
@@ -775,7 +778,7 @@ static func weapon(s: Dictionary, squad: int, original: Dictionary, profile: Dic
 		copy.keywords["ignores-cover"] = true
 		var storm_record: Dictionary = s.detachment_stratagems.storm.get(squad, {})
 		if storm_record.get("source", "") == STORM_OF_FIRE and storm_record.get("devastator_bonus", false): copy.ap = int(copy.ap) - 1
-	if not melee and s.get("detachment_stratagems", {}).get("headhunter", {}).get(squad, {}).get("phase_key", "") == phase_key(s):
+	if not melee and Registry.enabled(s, IRONSTORM_HEADHUNTER) and s.get("detachment_stratagems", {}).get("headhunter", {}).get(squad, {}).get("phase_key", "") == phase_key(s):
 		var monster_or_vehicle := false
 		for target_model: int in living(s, target_squad):
 			var target_keywords: Array = s.units[target_model].get("keywords", [])
@@ -807,7 +810,7 @@ static func weapon(s: Dictionary, squad: int, original: Dictionary, profile: Dic
 	return copy
 
 static func might_ignore_active(s: Dictionary, squad: int) -> bool:
-	if not enabled(s) or not s.squads.has(squad): return false
+	if not enabled(s) or not Registry.enabled(s, IRONSTORM_MIGHT) or not s.squads.has(squad): return false
 	var record: Dictionary = s.get("detachment_stratagems", {}).get("might_machine_spirit", {}).get(squad, {})
 	return not record.is_empty() and int(s.squads[squad].get("owner", -1)) == int(record.get("owner", -2)) and int(s.turn) < int(record.get("expires_turn", -1))
 

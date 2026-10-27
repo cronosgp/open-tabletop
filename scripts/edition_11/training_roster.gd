@@ -79,6 +79,19 @@ static func admit(selection: Variant) -> Dictionary:
 	return {"error": "", "selection": canonical, "total": total, "unit_cost": resolved.cost, "pack_hash": resolved.pack_hash,
 		"template": resolved.template, "unsupported_abilities": resolved.unit.get("unsupported_rules", []).duplicate()}
 
+## Admission for a new match. Historical training and unreconciled profiles may
+## still be inspected or used to reconstruct old saves, but cannot enter new
+## construction through this boundary.
+static func admit_current_catalog(list: Variant) -> Dictionary:
+	var report := Capabilities.admit(list) if list is Dictionary and list.get("schema_version") == 2 and not list.has("edition") else inspect(list)
+	if not report.get("error", "").is_empty(): return report
+	if int(report.selection.get("schema_version", 0)) != 2:
+		return {"error": "This saved list uses a historical training profile and remains a legacy draft."}
+	for resolved: Dictionary in report.get("definitions", {}).values():
+		if not resolved.get("spec", {}).get("current_reference", false):
+			return {"error": "This saved list contains historical profiles and remains a legacy draft."}
+	return report
+
 static func digest(selection: Dictionary) -> String:
 	var report := admit(selection)
 	return JSON.stringify(report.selection).sha256_text() if report.error.is_empty() else ""
@@ -123,28 +136,11 @@ static func reprice(list: Dictionary) -> Dictionary:
 ## Built-ins are independent copies, never inserted into a profile implicitly.
 static func presets(checked: bool = false) -> Array[Dictionary]:
 	var lists: Array[Dictionary] = []
-	for faction: String in ["Space Marines", "Necrons"]:
-		for copies in [1, 2]:
-			var result := template(faction, "training", 500)
-			if not result.error.is_empty(): continue
-			var list: Dictionary = result.list
-			list.entries.resize(copies)
-			list.id = "preset:" + faction + ":" + str(copies)
-			list.name = "%s • %d squad%s" % [faction, copies, "s" if copies > 1 else ""]
-			if inspect(list).error.is_empty(): lists.append(list)
-	for faction: String in ["Space Marines", "Necrons"]:
-		var result := Capabilities.reference_army(faction)
-		if result.error.is_empty() and inspect(result.list).error.is_empty(): lists.append(result.list)
-	var led := awakened_reference()
-	if led.error.is_empty() and inspect(led.list).error.is_empty(): lists.append(led.list)
-	if checked:
-		for faction in ["Space Marines", "Necrons"]:
-			var result := Checked.preset(faction)
-			if result.error.is_empty(): lists.append(result.list)
-		var full := Checked.marine_incursion_list()
-		if full.error.is_empty(): lists.append(full.list)
-		var necron_full := Checked.necron_incursion_list()
-		if necron_full.error.is_empty(): lists.append(necron_full.list)
+	# New-match choices come only from the current local Space Marine catalog.
+	# Historical starter and MFM-derived profiles remain available through their
+	# explicit legacy loading paths; they are not fresh construction presets.
+	var reference := Capabilities.reference_army("Space Marines")
+	if reference.error.is_empty() and inspect(reference.list).error.is_empty(): lists.append(reference.list)
 	return lists
 
 static func awakened_reference() -> Dictionary:

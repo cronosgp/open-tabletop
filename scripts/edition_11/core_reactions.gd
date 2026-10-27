@@ -94,10 +94,10 @@ static func end_available(s: Dictionary, player: int) -> bool:
 	if not enabled(s) or not A.enabled(s): return false
 	if s.phase == "movement" and player != s.active:
 		for squad: int in s.squads:
-			if error(s, player, squad, OVERWATCH).is_empty(): return true
+			if error(s, player, squad, OVERWATCH, -1, false, -1, true).is_empty(): return true
 	if s.phase == "charge" and player != s.active:
 		for squad: int in s.squads:
-			if error(s, player, squad, HEROIC).is_empty() or error(s, player, squad, FRAY).is_empty(): return true
+			if error(s, player, squad, HEROIC, -1, false, -1, true).is_empty() or error(s, player, squad, FRAY, -1, false, -1, true).is_empty(): return true
 	return false
 
 static func reopen_heroic_choices(s: Dictionary) -> bool:
@@ -136,7 +136,7 @@ static func cost_of(s: Dictionary, player: int, squad: int, rule: String) -> int
 	if rule in [HEROIC, FRAY] and A.has(s, squad, "blackwing-mantle") and s.get("unit_abilities", {}).get("used", {}).get("blackwing:%d" % player, "") != phase_key(s): price = maxi(0, price - 1)
 	return price
 
-static func error(s: Dictionary, player: int, squad: int, rule: String, model: int = -1, preview_start: bool = false, target: int = -1) -> String:
+static func error(s: Dictionary, player: int, squad: int, rule: String, model: int = -1, preview_start: bool = false, target: int = -1, preview_end: bool = false) -> String:
 	if not enabled(s): return "Core reaction stratagems are disabled."
 	if not s.squads.has(squad) or s.squads[squad].owner != player or living(s, squad).is_empty(): return "Choose a living friendly unit."
 	if s.squads[squad].battle_shocked: return "Battle-shocked units cannot receive friendly stratagems."
@@ -156,13 +156,13 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		if model not in living(s, squad) or not Terrain.has_keyword(s.units[model], ["explosives", "grenades"]): return "Choose a living EXPLOSIVES/GRENADES model."
 	elif rule == OVERWATCH:
 		if s.phase != "movement" or s.active == player: return "Fire Overwatch is used at the end of your opponent's Movement phase."
-		if window.get("kind", "") != "end": return "Fire Overwatch is used at the end of the Movement phase."
+		if window.get("kind", "") != "end" and not preview_end: return "Fire Overwatch is used at the end of the Movement phase."
 		if Queue.engaged(s, squad): return "An engaged unit cannot fire Overwatch."
 		if keyword(s, squad, "TITANIC"): return "Titanic units cannot fire Overwatch."
 		if overwatch_targets(s, squad).is_empty(): return "Overwatch requires a visible enemy within 24 inches."
 	elif rule in [HEROIC, FRAY]:
 		if s.phase != "charge" or s.active == player: return "Heroic Intervention is used at the end of your opponent's Charge phase."
-		if window.get("kind", "") != "end": return "Heroic Intervention is used at the end of the Charge phase."
+		if window.get("kind", "") != "end" and not preview_end: return "Heroic Intervention is used at the end of the Charge phase."
 		if Queue.engaged(s, squad): return "An engaged unit cannot make a Heroic Intervention."
 		if s.squads[squad].charge_declared: return "This unit already declared a charge this phase."
 		if rule == HEROIC:

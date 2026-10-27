@@ -42,7 +42,7 @@ func run() -> void:
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000000138" and profile.points == 415 and profile.models == 1 and profile.max_supported_copies == 1, "Source identity, composition, uniqueness and cost match the local Wahapedia export")
 	check(profile.stats == {"movement_inches":8, "toughness":10, "save_target":2, "wounds":16, "leadership_target":5, "objective_control":4, "invulnerable_target":4}, "Characteristics and invulnerable save match the source")
 	check(Doctrines.active_doctrines_for(state, state.units[primarch].squad).size() == 3, "Codex Adept keeps all three Combat Doctrines active")
-	check({"target":5, "against":"any"} in Prevention.rules(state, primarch), "Guilliman receives one 5+ Feel No Pain roll against each wound")
+	check({"target":6, "against":"any"} in Prevention.rules(state, primarch), "Guilliman receives one 6+ Feel No Pain roll against each wound")
 	state.unit_abilities.warlords = {1:primarch}
 	state.active = 1
 	state.round = 2

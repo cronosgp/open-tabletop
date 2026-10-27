@@ -25,26 +25,26 @@ func _initialize() -> void:
 	state.phase = "movement"
 	check(Combat.advance_phase(state, 1, 0).is_empty() and objective.controller == 1, "Phase boundary captures terrain objective")
 	state.units[200].position = Vector2(2, 0)
-	Objectives.resolve_control(state)
+	Objectives.resolve_control(state, Callable(Combat.Morale, "objective_control"))
 	check(objective.controller == 0 and objective.levels == {1: 2, 2: 2}, "Equal OC yields neutral objective")
 	state.squads[2].battle_shocked = true
-	Objectives.resolve_control(state)
+	Objectives.resolve_control(state, Callable(Combat.Morale, "objective_control"))
 	check(objective.controller == 1 and objective.levels[2] == 0, "Battle-shocked model contributes zero")
 	check(Objectives.secure(state, 0, 2) != "" and Objectives.secure(state, 0, 1).is_empty(), "Secure requires current control")
 	state.squads[2].battle_shocked = false
-	Objectives.resolve_control(state)
+	Objectives.resolve_control(state, Callable(Combat.Morale, "objective_control"))
 	check(objective.controller == 1 and objective.secured == 1, "Secured owner keeps control at equal positive OC")
 	state.squads[2].battle_shocked = true
 	state.units[100].position = Vector2(-12, 0)
-	Objectives.resolve_control(state)
-	check(objective.controller == 1 and objective.secured == 1 and Objectives.controlling_squads(state, objective).is_empty(), "Secured control persists at zero OC without controlling units")
+	Objectives.resolve_control(state, Callable(Combat.Morale, "objective_control"))
+	check(objective.controller == 1 and objective.secured == 1 and Objectives.controlling_squads(state, objective, Callable(Combat.Morale, "objective_control")).is_empty(), "Secured control persists at zero OC without controlling units")
 	state.squads[2].battle_shocked = false
-	Objectives.resolve_control(state)
+	Objectives.resolve_control(state, Callable(Combat.Morale, "objective_control"))
 	check(objective.controller == 2 and objective.secured == 0, "Greater enemy OC removes secured status")
 	state.units[100].position = Vector2(1, 0)
 	state.units[200].wounds = 0
-	Objectives.resolve_control(state)
-	check(Objectives.controlling_squads(state, objective) == [1], "Only living positive-OC in-range squads control")
+	Objectives.resolve_control(state, Callable(Combat.Morale, "objective_control"))
+	check(Objectives.controlling_squads(state, objective, Callable(Combat.Morale, "objective_control")) == [1], "Only living positive-OC in-range squads control")
 	var marker := {"kind": "marker", "position": Vector2.ZERO}
 	var model: Dictionary = state.units[100].duplicate(true)
 	model.position = Vector2(3 + Objectives.MARKER_RADIUS + model.radius, 0)
@@ -75,7 +75,7 @@ func _initialize() -> void:
 	state.round = 5
 	state.active = 2
 	state.phase = "end_turn"
-	Objectives.resolve_control(state)
+	Objectives.resolve_control(state, Callable(Combat.Morale, "objective_control"))
 	check(Combat.advance_phase(state, 2, 0).is_empty() and state.test_winner == 1 and state.round == 5, "Fifth round ends with points victory")
 	before = var_to_str(state)
 	check(not Combat.advance_phase(state, 2, state.revision).is_empty() and var_to_str(state) == before, "Finished mission rejects further scoring")

@@ -263,11 +263,11 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS) -> Dictionary:
 
 static func reference_army(faction: String) -> Dictionary:
 	if faction not in ["Space Marines", "Necrons"]: return {"error": "No reference army for this faction."}
-	var list := Roster.new_list("11e", faction, "training", 500)
-	list.id = "reference:core-v1:" + faction
+	var list := Roster.new_list("11e", faction, "custom", 1000)
+	list.id = "reference:core-v2:" + faction
 	list.name = "Mixed reference — " + faction
-	list.pricing_source = "starter-training-v1"
-	list.notes = "Core-profile training. Fixed weapons; unit/faction abilities and official legality are not implemented."
+	list.pricing_source = "local-reference-profiles"
+	list.notes = "Reference draft with fixed weapons; this is not a complete army legality or rules-support claim. Necron profile facts remain historical starter data and are not current construction choices."
 	for source: String in (["intercessor-squad", "terminator-squad"] if faction == "Space Marines" else ["necron-warriors", "immortals"]):
 		var spec: Dictionary = SPECS[source]
 		var resolved := resolve(faction, "40kdc:11e:%s:%s" % [spec.folder, source])

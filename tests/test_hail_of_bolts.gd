@@ -70,7 +70,12 @@ func run() -> void:
 	check(not C.resolve_attack_plan(state, 1, 100, rows, state.revision, false, true, one, 4).error.is_empty() and before == var_to_bytes(state), "Cannot choose a second ability target after shooting")
 	var marine := P.Training.inspect(P.Training.Capabilities.reference_army("Space Marines").list)
 	var necron := P.Training.inspect(P.Training.Capabilities.reference_army("Necrons").list)
-	state = P.initial_state({"hail_of_bolts": true, "objective_secured": true}, {1: marine.selection, 2: necron.selection})
+	state = P.initial_state({"unit_abilities": true, "hail_of_bolts": true, "objective_secured": true}, {1: marine.selection, 2: necron.selection})
+	check(state.has("error") and "historical" in str(state.error), "Current datasheets fail closed when paired with historical Hail of Bolts and Objective Secured profiles")
+	if state.has("error"):
+		print("Hail of Bolts local checks: %d failures" % failures)
+		quit(0 if failures == 0 else 1)
+		return
 	check("hail-of-bolts" in state.squads[1].enabled_abilities and "objective-secured" in state.squads[1].enabled_abilities and "target-elimination" not in state.squads[1].disabled_abilities, "Verified ability replaces the provisional slot and composes with Objective Secured")
 	C.ObjectiveSecured.enable(state)
 	check("hail-of-bolts" in state.squads[1].enabled_abilities, "Enabling the other ability cannot erase Hail of Bolts")

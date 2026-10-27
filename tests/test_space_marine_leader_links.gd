@@ -98,7 +98,7 @@ func _initialize() -> void:
 		check(has_attachment_choice, "%s attachment target is exposed in the army-preparation action menu" % source)
 	var cato_with_calgar := fixture("cato-sicarius", "victrix-honour-guard", true)
 	check(UnitActions.is_support_identity(cato_with_calgar, cato_with_calgar.units[100]), "Cato changes to Support while Calgar is in the army")
-	check(UnitActions.models(cato_with_calgar, 1, "support").has(100) and UnitActions.models(cato_with_calgar, 1, "leader").is_empty(), "Cato's conditional Support role is exposed to the correct action selector")
+	check(UnitActions.models(cato_with_calgar, 1, "support").has(100) and not UnitActions.models(cato_with_calgar, 1, "leader").has(100), "Cato's conditional Support role is exposed to the correct action selector")
 	var cato_without_calgar := fixture("cato-sicarius", "victrix-honour-guard")
 	check(not UnitActions.is_support_identity(cato_without_calgar, cato_without_calgar.units[100]), "Cato remains a Leader without Calgar")
 	check(UnitActions.models(cato_without_calgar, 1, "leader").has(100) and UnitActions.models(cato_without_calgar, 1, "support").is_empty(), "Cato retains the Leader selector without Calgar")

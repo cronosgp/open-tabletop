@@ -2,7 +2,7 @@ Historical status (19 October 2026): the local construction catalog exposed 85 s
 
 User decision, 18 October 2026: the army builder offers only sheets whose rules are consolidated in the game. It no longer fetches the broad OpenHammer API catalog or loads its cached catalogs.
 
-`scripts/implemented_army_catalog.gd` derives choices from the explicit runtime admission inventory. Its conservative publication gate requires a current-reference profile, no `tests_written_not_run` or `local_checks_pending` marker, a resolvable runtime definition and declared current model-count prices. Sizes and prices come from that same local profile; this does not independently establish full army legality or final network readiness. Rule authority remains Wahapedia e11 under `rules-source-policy.md`.
+`scripts/implemented_army_catalog.gd` derives choices from the explicit runtime admission inventory. Its conservative publication gate requires a current-reference profile, no `tests_written_not_run` or `local_checks_pending` marker, a resolvable runtime definition and declared current model-count prices. Sizes and prices come from that same local profile; this does not independently establish full army legality or final network readiness. Rule authority remains Wahapedia e11 under [source assessment](data/source-assessment.md).
 
 Current runtime snapshot: 85 profile candidates are exposed through the local construction catalog. See the [per-datasheet matrix](space-marines-coverage.md) for source-link gaps and incomplete rule/option validation. Four Necron profiles remain outside this Space Marines construction catalog. This publication boundary does not certify full faction legality or final network readiness.
 

@@ -69,12 +69,12 @@ func _initialize() -> void:
 	s = fresh()
 	marker(s)
 	s.units[500].position = Vector2.ZERO
-	check(A.save_bonus(s, 5) == 1, "Heavy Intercessors benefit while controlling objective")
+	check(A.save_bonus(s, 5, Callable(C.Morale, "objective_control")) == 1, "Heavy Intercessors benefit while controlling objective")
 	s.mission.objectives[0].controller = 2
-	check(A.save_bonus(s, 5) == 0, "Proximity to enemy-controlled objective does not grant save bonus")
+	check(A.save_bonus(s, 5, Callable(C.Morale, "objective_control")) == 0, "Proximity to enemy-controlled objective does not grant save bonus")
 	s.mission.objectives[0].controller = 1
 	for id: int in range(500, 505): s.units[id].objective_control = 0
-	check(A.save_bonus(s, 5) == 0, "Zero-OC unit cannot satisfy controlling-unit requirement")
+	check(A.save_bonus(s, 5, Callable(C.Morale, "objective_control")) == 0, "Zero-OC unit cannot satisfy controlling-unit requirement")
 
 	s = fresh()
 	U.attach(s, 900, 1)

@@ -26,7 +26,8 @@ func run() -> void:
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	game._start_objectives()
-	check(game.rendered_board_size == Vector2(43, 43) and "43 × 43" in game.session_label.text, "Rendered board and displayed scenario agree")
+	for frame in range(8): await process_frame
+	check(game.rendered_board_size == Vector2(43, 43) and "43 × 43" in game.session_label.tooltip_text, "Rendered board and displayed scenario tooltip agree")
 	check(game.state.pack_hash == game._initial_state().pack_hash, "Offline and host/rejoin factories use the same preset")
 	game._start_allocation_practice()
 	check(game.state.board_size == Vector2(43, 43), "Rules lab uses the same initial testing dimensions")

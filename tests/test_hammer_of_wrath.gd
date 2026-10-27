@@ -52,6 +52,9 @@ func _initialize() -> void:
 		quit(1)
 		return
 	check(state.squads[1].charged and state.unit_abilities.window.kind == Hammer.ID, "Completed charge opens Hammer of Wrath")
+	var charge_frame := Combat.ResolutionFrames.current(state)
+	var hammer_decision := Combat.UnitActions.pending_decision(state)
+	check(charge_frame.status == "suspended" and charge_frame.resume_point == "charge-post-move-reaction" and hammer_decision.get("resume_frame_id", "") == charge_frame.frame_id, "The post-charge reaction links back to the suspended charge action")
 	var targets := Combat.unit_choices(state, 1)
 	check(targets.size() == 2, "Attacker may select the engaged enemy or skip")
 	var choice: Dictionary = targets[0] if targets[0].action == Hammer.ID else targets[1]
@@ -61,13 +64,14 @@ func _initialize() -> void:
 	check(Combat.unit_action(state, 1, choice, Vector2.ZERO, state.revision, func() -> int: return 4).is_empty(), "Host resolves one D6 for each engaged model")
 	check(state.last_hammer_of_wrath.rolls == [4] and state.last_hammer_of_wrath.mortal_wounds == 1, "Each 4+ inflicts one mortal wound")
 	check(state.unit_abilities.window.kind == Hammer.MORTAL_WINDOW and Combat.actor(state) == 2, "Defender receives mandatory mortal-wound allocation")
+	check(Combat.ResolutionFrames.current(state).status == "suspended", "The charge continuation remains open during required post-charge damage allocation")
 	state = bytes_to_var(var_to_bytes(state))
 	var allocations := Combat.unit_choices(state, 2)
 	check(not allocations.is_empty(), "Mortal allocation survives serialization")
 	if not allocations.is_empty():
 		state.units[allocations[0].model].feel_no_pain = [{"target": 5, "against": "mortal"}]
 		check(Combat.unit_action(state, 2, allocations[0], Vector2.ZERO, state.revision, func() -> int: return 5).is_empty(), "Mortal Feel No Pain is applied")
-		check(state.units[allocations[0].model].wounds == state.units[allocations[0].model].max_wounds and state.unit_abilities.window.is_empty(), "Prevented mortal closes the allocation")
+		check(state.units[allocations[0].model].wounds == state.units[allocations[0].model].max_wounds and state.unit_abilities.window.is_empty() and Combat.ResolutionFrames.current(state).is_empty(), "Prevented mortal closes the allocation and charge continuation")
 	state = fixture()
 	if not charge(state):
 		quit(1)
@@ -75,7 +79,7 @@ func _initialize() -> void:
 	targets = Combat.unit_choices(state, 1)
 	choice = targets[0] if targets[0].action == Hammer.ID else targets[1]
 	check(Combat.unit_action(state, 1, choice, Vector2.ZERO, state.revision, func() -> int: return 3).is_empty(), "A failed 3+ result resolves")
-	check(state.last_hammer_of_wrath.mortal_wounds == 0 and state.unit_abilities.window.is_empty(), "No mortal successes opens no defender window")
+	check(state.last_hammer_of_wrath.mortal_wounds == 0 and state.unit_abilities.window.is_empty() and Combat.ResolutionFrames.current(state).is_empty(), "No mortal successes opens no defender window and completes the charge action")
 	state = fixture()
 	if not charge(state):
 		quit(1)
@@ -85,7 +89,7 @@ func _initialize() -> void:
 	for item: Dictionary in targets:
 		if item.action == "hammer-of-wrath-pass": skip = item
 	check(not skip.is_empty() and Combat.unit_action(state, 1, skip, Vector2.ZERO, state.revision).is_empty(), "Optional Hammer of Wrath may be declined")
-	check(state.unit_abilities.window.is_empty(), "Skipping the ability closes its choice window")
+	check(state.unit_abilities.window.is_empty() and Combat.ResolutionFrames.current(state).is_empty(), "Skipping the ability closes its choice window and charge continuation")
 	var profile := Profiles.profile("assault-intercessors-with-jump-packs")
 	check(profile.stats.movement_inches == 12 and profile.stats.toughness == 5 and profile.stats.wounds == 2, "Profile characteristics match the local e11 source")
 	check(profile.points_by_models == {5: 95, 10: 190} and profile.max_supported_copies == 2, "Supported sizes/prices remain inside the exported first-two-unit price tier")

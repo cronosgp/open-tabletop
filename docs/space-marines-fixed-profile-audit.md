@@ -2,7 +2,7 @@
 
 **Subsequent user decision, 18 October 2026:** [Wahapedia e11 is the definitive source](rules-source-policy.md). The official-locator gates recorded below describe the earlier review and are superseded. The remaining actionable gates are complete Wahapedia source/scope reconciliation and executable interaction validation; certification is not automatically restored.
 
-Observed 18 October 2026. This historical review covers the original six-profile fixed-loadout pass, not complete datasheet, Chapter or army legality. Guilliman was outside that original scope; his current admission is recorded in [the Guilliman note](marine-guilliman.md).
+Observed 18 October 2026. This historical review covers the original six-profile fixed-loadout pass, not complete datasheet, Chapter or army legality. Guilliman was outside that original scope; his current admission is recorded in [the Guilliman note](space-marines-profile-records.md#marine-guilliman).
 
 ## Evidence and remaining gates
 

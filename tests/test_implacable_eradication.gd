@@ -20,11 +20,12 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
-	var marine := P.Training.inspect(P.Training.Capabilities.reference_army("Space Marines").list)
 	var necron := P.Training.inspect(P.Training.Capabilities.reference_army("Necrons").list)
-	var selections := {1: marine.selection, 2: necron.selection}
+	# This rules exercise remains on isolated historical Necron profiles. It does
+	# not combine them with current Space Marine datasheets or certify the rule.
+	var selections := {1: necron.selection, 2: necron.selection}
 	var state := P.initial_state({"implacable_eradication": true}, selections)
-	check(not state.has("error"), "Reference lists support the capability")
+	check(not state.has("error"), "Legacy Necron reference lists support the isolated training capability")
 	check(Ability.immortals(state, 2) and not Ability.immortals(state, 6), "Only canonical Immortals qualify")
 	check("implacable-eradication" in state.squads[2].enabled_abilities and "implacable-eradication" not in state.squads[2].disabled_abilities, "Ability metadata is enabled")
 	check(P.from_setup(state.saved_army_setup).pack_hash == state.pack_hash, "Saved army setup reproduces capability identity")
@@ -73,7 +74,8 @@ func run() -> void:
 	check(plan.error.is_empty() and plan.batches[0].context.wound_reroll == "ones", "Ranged declaration freezes the canonical ability")
 	var shot_dice := Dice.new([3, 3, 1, 5, 5, 1, 1])
 	var shot := P.Combat.shoot(exchange, 2, 200, 500, exchange.revision, true, shot_dice.roll)
-	check(shot.error.is_empty() and exchange.units[500].wounds == 1 and shot_dice.offset == 7, "Real Gauss blaster attack rerolls the one before allocating two wounds")
+	check(shot.error.is_empty() and exchange.units[500].wounds == 0 and shot_dice.offset == 7, "Real Gauss blaster attack rerolls the one and destroys the one-wound legacy target")
+	exchange.units[500].wounds = exchange.units[500].max_wounds
 	exchange.units[500].position = Vector2(-9, 4)
 	exchange.units[200].position = Vector2(-7.5, 4)
 	plan = P.Combat.AttackPlan.prepare(exchange, 2, true, [{"model": 200, "target": 5, "amount": 2}], true)

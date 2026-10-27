@@ -1,7 +1,6 @@
 extends RefCounted
 ## Core control rules; scoring below belongs to an explicit custom training mission.
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
-const Morale = preload("res://scripts/edition_11/morale.gd")
 const TRAINING := "objective-training-v1"
 const MARKER_RADIUS := 20.0 / 25.4
 
@@ -34,15 +33,15 @@ static func consolidation_candidates(state: Dictionary, squad: int) -> Array[int
 				break
 	return result
 
-static func levels(state: Dictionary, objective: Dictionary) -> Dictionary:
+static func levels(state: Dictionary, objective: Dictionary, control_value: Callable) -> Dictionary:
 	var result := {1: 0, 2: 0}
 	for id: int in state.units:
-		if in_range(state.units[id], objective): result[state.units[id].owner] += Morale.objective_control(state, id)
+		if in_range(state.units[id], objective): result[state.units[id].owner] += int(control_value.call(state, id))
 	return result
 
-static func resolve_control(state: Dictionary) -> void:
+static func resolve_control(state: Dictionary, control_value: Callable) -> void:
 	for objective: Dictionary in state.get("mission", {}).get("objectives", []):
-		var totals := levels(state, objective)
+		var totals := levels(state, objective, control_value)
 		objective.levels = totals
 		var secured: int = objective.secured
 		if secured != 0 and totals[3 - secured] <= totals[secured]:
@@ -51,11 +50,11 @@ static func resolve_control(state: Dictionary) -> void:
 			objective.secured = 0
 			objective.controller = 1 if totals[1] > totals[2] else 2 if totals[2] > totals[1] else 0
 
-static func controlling_squads(state: Dictionary, objective: Dictionary) -> Array[int]:
+static func controlling_squads(state: Dictionary, objective: Dictionary, control_value: Callable) -> Array[int]:
 	var result: Array[int] = []
 	for id: int in state.units:
 		var model: Dictionary = state.units[id]
-		if model.owner == objective.controller and in_range(model, objective) and Morale.objective_control(state, id) > 0 and model.squad not in result:
+		if model.owner == objective.controller and in_range(model, objective) and int(control_value.call(state, id)) > 0 and model.squad not in result:
 			result.append(model.squad)
 	return result
 
