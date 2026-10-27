@@ -4,6 +4,8 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const C = F.C
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -20,6 +22,17 @@ func models(state: Dictionary, squad_id: int) -> Array[int]:
 	var result: Array[int] = []
 	for model: int in C.living(state, squad_id): result.append(model)
 	return result
+
+func submit_choice(state: Dictionary, player: int, selected: Dictionary) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	var payload := selected
+	if not decision.is_empty():
+		var projected: Dictionary = {}
+		for option: Dictionary in decision.get("legal_options", []):
+			if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+		if projected.is_empty(): return {"error": "The selected Catechism option is not in the current projection."}
+		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": payload, "point": Vector2.ZERO, "revision": int(state.revision)})
 
 func _initialize() -> void: call_deferred("run")
 
@@ -48,7 +61,13 @@ func run() -> void:
 		quit(1)
 		return
 	state.phase = "command"
-	if C.Doctrines.needs_choice(state): C.select_combat_doctrine(state, 1, "none", state.revision)
+	if C.Doctrines.needs_choice(state):
+		var doctrine_decision := C.Doctrines.pending_decision(state)
+		for option: Dictionary in doctrine_decision.get("legal_options", []):
+			if str(option.get("value", "")) != "none": continue
+			var doctrine_result := MatchCommands.execute(state, int(doctrine_decision.get("priority_player_id", -1)), {"kind": MatchCommands.SELECT_DOCTRINE, "doctrine": "none", "decision_id": str(doctrine_decision.get("decision_id", "")), "option_id": str(option.get("id", "")), "revision": int(state.revision)})
+			check(str(doctrine_result.get("error", "")).is_empty(), "No-doctrine preparation choice uses the public command service")
+			break
 	state.phase = "deployment"
 	var chaplain := squad(state, "chaplain-on-bike")
 	var outriders := squad(state, "outrider-squad")
@@ -95,7 +114,11 @@ func run() -> void:
 		quit(1)
 		return
 	var selected: Dictionary = targets.filter(func(choice: Dictionary) -> bool: return choice.target == target_a)[0]
-	check(C.unit_action(state, 1, selected, Vector2.ZERO, state.revision).is_empty(), "Catechism target selection applies")
+	var before_wrong_owner := var_to_bytes(state)
+	var wrong_owner_result := submit_choice(state, 2, selected)
+	check(not str(wrong_owner_result.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_owner, "A non-priority player cannot select Catechism's target")
+	var selected_result := submit_choice(state, 1, selected)
+	check(str(selected_result.get("error", "")).is_empty(), "Catechism target selection applies: " + str(selected_result.get("error", "")))
 	check(C.UnitAbilities.has(state, outriders, "catechism-of-fire") and C.UnitAbilities.has(state, outriders, "litany-of-hate"), "Attached unit receives Catechism and Litany while the Chaplain lives")
 	var twin_bolt_rifle: Dictionary = Profiles.profile("outrider-squad").ranged[1].profiles.standard
 	var target_effect: Dictionary = C.UnitAbilities.weapon(state, rider_model, target_a, twin_bolt_rifle, false)

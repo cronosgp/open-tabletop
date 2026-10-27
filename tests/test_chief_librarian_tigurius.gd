@@ -6,6 +6,9 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Prevention = preload("res://scripts/edition_11/unit_prevention.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 
 var failures := 0
 var dice_queue: Array[int] = []
@@ -37,6 +40,25 @@ func action(state: Dictionary, action_id: String, value: String = "", target: in
 	for option: Dictionary in C.UnitActions.choices(state, player):
 		if option.action == action_id and (value.is_empty() or option.value == value) and (target < 0 or option.target == target): return option
 	return {}
+
+func submit_action(state: Dictionary, player: int, action_id: String, target: int, value: String = "", model: int = -1) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == action_id and int(option.get("target", -1)) == target and str(option.get("value", "")) == value and (model < 0 or int(option.get("model", -1)) == model):
+			projected = option
+			break
+	var choice_owner := int(decision.get("priority_player_id", player))
+	var selected: Dictionary = {}
+	for option: Dictionary in C.UnitActions.choices(state, choice_owner):
+		if str(option.get("action", "")) == action_id and int(option.get("target", -1)) == target and str(option.get("value", "")) == value and (model < 0 or int(option.get("model", -1)) == model):
+			selected = option
+			break
+	if selected.is_empty(): return {"error": "UnitActions no longer offers %s for target %d." % [action_id, target]}
+	var payload: Dictionary = selected
+	if not projected.is_empty():
+		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "choice": payload}, Callable(self, "queued_die"))
 
 func make_state() -> Dictionary:
 	var lists := F.selections()
@@ -102,7 +124,11 @@ func run() -> void:
 	check(can_be_warlord, "Tigurius is eligible to be declared Warlord")
 	var warlord_choice := action(state, "warlord", "", model)
 	if not warlord_choice.is_empty():
-		check(C.unit_action(state, 1, warlord_choice, Vector2.ZERO, state.revision).is_empty(), "Tigurius can be recorded as Warlord")
+		var before_wrong_warlord_owner := var_to_bytes(state)
+		var wrong_warlord_owner := submit_action(state, 2, "warlord", -1, "", model)
+		check(not str(wrong_warlord_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_warlord_owner, "The opponent cannot submit or mutate Tigurius's Warlord choice")
+		var warlord_result := submit_action(state, 1, "warlord", -1, "", model)
+		check(str(warlord_result.get("error", "")).is_empty(), "Tigurius can be recorded as Warlord through the public command")
 		var cp_before: int = state.cp[1]
 		state.first_player = 1
 		C.UnitActions.start_round(state)
@@ -114,7 +140,12 @@ func run() -> void:
 	var prescience := action(state, "tigurius-psychic", "prescience", squad)
 	check(not prescience.is_empty(), "Prescience is offered in the Movement phase")
 	dice_queue = [4]
-	if not prescience.is_empty(): check(C.unit_action(state, 1, prescience, Vector2.ZERO, state.revision, queued_die).is_empty(), "Prescience resolves its psychic test")
+	if not prescience.is_empty():
+		var before_wrong_prescience_owner := var_to_bytes(state)
+		var wrong_prescience_owner := submit_action(state, 2, "tigurius-psychic", squad, "prescience", model)
+		check(not str(wrong_prescience_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_prescience_owner, "The opponent cannot submit or mutate Tigurius's Prescience choice")
+		var prescience_result := submit_action(state, 1, "tigurius-psychic", squad, "prescience", model)
+		check(str(prescience_result.get("error", "")).is_empty(), "Prescience resolves its psychic test through the common match command")
 	check(Abilities.save_bonus(state, squad, Callable(C.Morale, "objective_control")) == 1 and not state.squads[squad].battle_shocked, "Successful Prescience grants +1 to saves")
 	state.turn = 2
 	Abilities.start_command(state)
@@ -127,15 +158,37 @@ func run() -> void:
 	var telepathic := action(state, "tigurius-psychic", "telepathic-assault", immortals)
 	check(not telepathic.is_empty(), "Telepathic Assault is offered against a visible enemy in 24 inches")
 	dice_queue = [1, 4, 2]
-	if not telepathic.is_empty(): check(C.unit_action(state, 1, telepathic, Vector2.ZERO, state.revision, queued_die).is_empty(), "Telepathic Assault resolves its psychic and damage dice")
+	if not telepathic.is_empty():
+		var psychic_result := submit_action(state, 1, "tigurius-psychic", immortals, "telepathic-assault", model)
+		check(str(psychic_result.get("error", "")).is_empty(), "Telepathic Assault resolves through the common match command")
 	check(state.squads[squad].battle_shocked, "A psychic roll of 1 makes Tigurius's unit Battle-shocked")
 	check(state.unit_abilities.get("window", {}).get("kind", "") == C.CoreReactions.TIGURIUS_MORTAL and state.get("last_tigurius_telepathic_assault", {}).get("mortal_wounds", 0) == 3, "Telepathic Assault inflicts 2D3 mortal wounds and opens normal allocation")
-	var mortal_choice := action(state, "mortal-allocate", C.CoreReactions.TIGURIUS_MORTAL, -1, 2)
-	check(not mortal_choice.is_empty(), "Defending player receives a mortal-wound allocation choice")
-	if not mortal_choice.is_empty():
+	var mortal_decision := PendingDecisions.current(state, ["unit-actions"])
+	check(mortal_decision.get("source", "") == "unit-actions" and mortal_decision.get("priority_player_id", -1) == 2 and mortal_decision.get("legal_options", []).size() > 0, "The defending player receives a normalized mortal-wound allocation decision")
+	check(not PhaseCloseGate.close_request_error(state, 1, state.revision).is_empty(), "Shooting close remains blocked while Telepathic Assault has mortal wounds to allocate")
+	var restored_mortal_state: Dictionary = bytes_to_var(var_to_bytes(state))
+	var restored_mortal_decision := PendingDecisions.current(restored_mortal_state, ["unit-actions"])
+	check(restored_mortal_decision.get("decision_id", "") == mortal_decision.get("decision_id", ""), "Telepathic Assault allocation retains its normalized decision identity through save/restore")
+	state = restored_mortal_state
+	var first_mortal_model := int(mortal_decision.legal_options[0].model)
+	var before_wrong_mortal_owner := var_to_bytes(state)
+	var wrong_mortal_owner := submit_action(state, 1, "mortal-allocate", immortals, C.CoreReactions.TIGURIUS_MORTAL, first_mortal_model)
+	check(not str(wrong_mortal_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_mortal_owner, "The attacker cannot submit or mutate the defender's mortal allocation")
+	var mortal_allocations_ok := true
+	for allocation_index in range(3):
+		var current_decision := PendingDecisions.current(state, ["unit-actions"])
+		var available: Array = current_decision.get("legal_options", [])
+		if available.is_empty():
+			mortal_allocations_ok = false
+			break
+		var model_to_wound := int(available[0].model)
 		dice_queue = [4]
-		check(C.unit_action(state, 2, mortal_choice, Vector2.ZERO, state.revision, queued_die).is_empty(), "Mortal wound uses the target model's ordinary prevention rules")
-		check(state.last_tigurius_telepathic_assault.remaining == 2 and state.last_tigurius_telepathic_assault.allocations.size() == 1, "Mortal allocation updates the outstanding damage record")
+		var allocation_result := submit_action(state, 2, "mortal-allocate", immortals, C.CoreReactions.TIGURIUS_MORTAL, model_to_wound)
+		if not str(allocation_result.get("error", "")).is_empty():
+			mortal_allocations_ok = false
+			break
+	check(mortal_allocations_ok and state.last_tigurius_telepathic_assault.remaining == 0 and state.last_tigurius_telepathic_assault.allocations.size() == 3 and state.unit_abilities.window.is_empty(), "All three mortal wounds resolve through defender-owned normalized choices")
+	check(PhaseCloseGate.close_request_error(state, 1, state.revision).is_empty(), "Shooting close can resume after the mortal allocation packet completes")
 	var simultaneous := make_state()
 	var simultaneous_model := find_model(simultaneous, 1, "chief-librarian-tigurius")
 	var simultaneous_squad: int = simultaneous.units[simultaneous_model].squad
@@ -144,11 +197,15 @@ func run() -> void:
 	simultaneous.turn = 1
 	var simultaneous_prescience := action(simultaneous, "tigurius-psychic", "prescience", simultaneous_squad)
 	dice_queue = [6]
-	if not simultaneous_prescience.is_empty(): check(C.unit_action(simultaneous, 1, simultaneous_prescience, Vector2.ZERO, simultaneous.revision, queued_die).is_empty(), "Prescience resolves before the Shooting phase")
+	if not simultaneous_prescience.is_empty():
+		var simultaneous_prescience_result := submit_action(simultaneous, 1, "tigurius-psychic", simultaneous_squad, "prescience", simultaneous_model)
+		check(str(simultaneous_prescience_result.get("error", "")).is_empty(), "Prescience resolves before the Shooting phase through the common match command")
 	simultaneous.phase = "shooting"
 	var simultaneous_telepathic := action(simultaneous, "tigurius-psychic", "telepathic-assault", find_squad(simultaneous, 2, "immortals"))
 	dice_queue = [6, 6, 6]
-	if not simultaneous_telepathic.is_empty(): check(C.unit_action(simultaneous, 1, simultaneous_telepathic, Vector2.ZERO, simultaneous.revision, queued_die).is_empty(), "Telepathic Assault remains available in the same own turn")
+	if not simultaneous_telepathic.is_empty():
+		var simultaneous_telepathic_result := submit_action(simultaneous, 1, "tigurius-psychic", find_squad(simultaneous, 2, "immortals"), "telepathic-assault", simultaneous_model)
+		check(str(simultaneous_telepathic_result.get("error", "")).is_empty(), "Telepathic Assault remains available in the same own turn through the common match command")
 	check(simultaneous.unit_abilities.used.has("tigurius-prescience:%d:1" % simultaneous_squad) and simultaneous.unit_abilities.used.has("tigurius-telepathic:%d:1" % simultaneous_squad), "Level-2 Prescience and level-1 Telepathic Assault each resolve during one turn")
 	print("Chief Librarian Tigurius profile checks: %d failures" % failures)
 	quit(1 if failures else 0)

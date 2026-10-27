@@ -1,6 +1,6 @@
 extends RefCounted
 ## Dependency-free visibility effects, shared by terrain and unit abilities.
-const ABILITY_IMPLEMENTATION_ID := "track-a-current-datasheets-2026-10-v56-vulkan-hestan"
+const ABILITY_IMPLEMENTATION_ID := "track-a-current-datasheets-2026-10-v57-transport-deadly-demise"
 const EPSILON := 0.001
 
 static func cloaks(state: Dictionary, squad: int) -> bool:
@@ -27,10 +27,16 @@ static func detection_range(state: Dictionary, model: int, grounded: bool) -> fl
 			var target_unit: Dictionary = state.units[model]
 			if target_unit.position.distance_to(target_unit.position.clamp(rect.position, rect.end)) <= float(target_unit.radius) + EPSILON: result += 3.0
 	if state.get("detachment_stratagems", {}).get("implementation", "") == "gladius-awakened-stratagems-11e-v5" and state.get("detachment_stratagems", {}).get("spotted", {}).has(int(state.units[model].squad)): result += 3.0
+	var stratagem_state: Dictionary = state.get("detachment_stratagems", {})
+	var skyborne: Dictionary = stratagem_state.get("skyborne_surveillance", {}).get(int(state.units[model].squad), {})
+	if stratagem_state.get("implementation", "") == "gladius-awakened-stratagems-11e-v5" and "darkflight-pursuit" in stratagem_state.get("modes", []) and skyborne.get("phase_key", "") == "%d:%s" % [int(state.turn), str(state.phase)] and int(skyborne.get("owner", -1)) != int(state.units[model].owner): result += 3.0
 	return result
 
 static func stealth(state: Dictionary, squad: int) -> bool:
 	if _has_trifold_path(state, squad): return true
+	var darkflight_record: Dictionary = state.get("detachment_stratagems", {}).get("wings_shadow", {}).get(squad, {})
+	var target_squad: Dictionary = state.get("squads", {}).get(squad, {})
+	if not target_squad.is_empty() and int(darkflight_record.get("owner", -1)) == int(target_squad.get("owner", -2)) and state.get("phase", "") == "shooting" and darkflight_record.get("phase_key", "") == "%d:%s" % [int(state.get("turn", 0)), str(state.get("phase", ""))]: return true
 	return _every_model_has_stealth(state, squad)
 
 static func _has_trifold_path(state: Dictionary, squad: int) -> bool:

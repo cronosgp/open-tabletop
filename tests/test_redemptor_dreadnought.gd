@@ -2,6 +2,7 @@ extends SceneTree
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const Demise = preload("res://scripts/edition_11/deadly_demise.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
@@ -101,7 +102,7 @@ func run() -> void:
 	dice = [6]
 	var exploded := Demise.begin(exploded_state, [100], roll_die)
 	check(exploded.error.is_empty() and exploded.complete and exploded_state.last_deadly_demise.events[0].triggered, "A Redemptor Dreadnought can trigger its extracted Deadly Demise D3 on a 6")
-	var setup := {"test_winner": 0, "phase": "deployment", "turn": 1, "active": 1, "units": {100: {"definition_id": "40kdc:11e:adeptus-astartes:redemptor-dreadnought", "owner": 1, "squad": 1, "wounds": 12, "max_wounds": 12, "ranged_weapons": profile.ranged.duplicate(true)}},
+	var setup := {"test_winner": 0, "phase": "deployment", "turn": 1, "round": 1, "revision": 0, "active": 1, "events": [], "units": {100: {"definition_id": "40kdc:11e:adeptus-astartes:redemptor-dreadnought", "owner": 1, "squad": 1, "wounds": 12, "max_wounds": 12, "ranged_weapons": profile.ranged.duplicate(true)}},
 		"squads": {1: {"owner": 1, "name": "Redemptor", "training_cost": 170}}, "unit_abilities": {"implementation": Abilities.ID, "setup_players": [], "window": {}, "used": {}, "doctrines": {}, "reserves": {}},
 		"awakened_dynasty": {"pending": []}, "pending_attack": {}, "pending_hazard": {}, "stratagems": {"pending": {}}, "training_points": {1: 170}, "points_limit": 180,
 		"roster_validation": {"armies": {1: {"total": 170, "points_limit": 180, "breakdown": [{"definition_id": "40kdc:11e:adeptus-astartes:redemptor-dreadnought", "total": 170, "wargear_cost": 0}]}}}}
@@ -115,10 +116,10 @@ func run() -> void:
 	var too_expensive: Dictionary = setup.duplicate(true)
 	too_expensive.training_points[1] = 175
 	too_expensive.points_limit = 175
-	var rejected := UnitActions.apply(too_expensive, 1, macro_choice, Vector2.ZERO, roll_die)
+	var rejected := PublicUnitCommand.submit(too_expensive, 1, macro_choice, Vector2.ZERO, roll_die)
 	check(not rejected.get("error", "").is_empty() and too_expensive.units[100].ranged_weapons[2].id == "heavy-onslaught-gatling-cannon", "A Macro Plasma choice that exceeds the roster points limit is rejected")
-	var macro_result := UnitActions.apply(setup, 1, macro_choice, Vector2.ZERO, roll_die)
-	var pod_result := UnitActions.apply(setup, 1, iCarus_choice, Vector2.ZERO, roll_die)
+	var macro_result := PublicUnitCommand.submit(setup, 1, macro_choice, Vector2.ZERO, roll_die)
+	var pod_result := PublicUnitCommand.submit(setup, 1, iCarus_choice, Vector2.ZERO, roll_die)
 	check(macro_result.error.is_empty() and pod_result.error.is_empty() and setup.units[100].ranged_weapons.size() == 4 and setup.units[100].ranged_weapons[2].id == "macro-plasma-incinerator", "Legal setup choices equip the Macro Plasma and Icarus pod")
 	check(setup.training_points[1] == 180 and setup.squads[1].training_cost == 180 and setup.roster_validation.armies[1].total == 180 and setup.roster_validation.armies[1].breakdown[0].wargear_cost == 10, "The paid Macro Plasma option updates both training and admitted roster points")
 	var setup_choices := UnitActions.choices(setup, 1)
@@ -127,8 +128,8 @@ func run() -> void:
 	for option: Dictionary in setup_choices:
 		if option.action == "redemptor-fragstorm" and option.value == "storm-bolters": storm_bolters_choice = option
 		if option.action == "redemptor-auxiliary" and option.value == "onslaught": onslaught_choice = option
-	var storm_result := UnitActions.apply(setup, 1, storm_bolters_choice, Vector2.ZERO, roll_die) if not storm_bolters_choice.is_empty() else {"error": "missing Storm Bolters choice"}
-	var gatling_result := UnitActions.apply(setup, 1, onslaught_choice, Vector2.ZERO, roll_die) if not onslaught_choice.is_empty() else {"error": "missing Onslaught choice"}
+	var storm_result := PublicUnitCommand.submit(setup, 1, storm_bolters_choice, Vector2.ZERO, roll_die) if not storm_bolters_choice.is_empty() else {"error": "missing Storm Bolters choice"}
+	var gatling_result := PublicUnitCommand.submit(setup, 1, onslaught_choice, Vector2.ZERO, roll_die) if not onslaught_choice.is_empty() else {"error": "missing Onslaught choice"}
 	check(storm_result.error.is_empty() and gatling_result.error.is_empty() and setup.units[100].ranged_weapons[0].id == "storm-bolters" and setup.units[100].ranged_weapons[1].id == "onslaught-gatling-cannon", "The remaining independent replacement options update the equipped weapons")
 	print("Redemptor Dreadnought checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

@@ -63,7 +63,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			origins[model] = state.units[model].position
 			positions[model] = state.units[model].position
 		state.unit_abilities.used[_used_key(player, int(state.turn))] = true
-		state.unit_abilities.window = {"kind": PLACEMENT, "owners": [player], "squad": squad, "source": source, "distance": 6, "origins": origins, "positions": positions, "resume_window": window.get("resume_window", {})}
+		state.unit_abilities.window = {"kind": PLACEMENT, "owners": [player], "squad": squad, "source": source, "trigger": int(window.get("trigger", -1)), "distance": 6, "origins": origins, "positions": positions, "resume_window": window.get("resume_window", {})}
 		return {"error": "", "message": "Cato Sicarius may make a Normal Move up to 6 inches."}
 	if window.get("kind", "") != PLACEMENT or int(window.get("owners", [0])[0]) != player or int(window.get("squad", -1)) != squad: return {"error": "No Cato Sicarius reaction move is pending."}
 	match selected.action:

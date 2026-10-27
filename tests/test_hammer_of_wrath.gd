@@ -5,12 +5,27 @@ const Hammer = preload("res://scripts/edition_11/hammer_of_wrath.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const F = preload("res://tests/all_units_fixture.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 
 func check(condition: bool, message: String) -> void:
 	if not condition:
 		push_error(message)
 		failures += 1
+
+func submit_choice(state: Dictionary, player: int, selected: Dictionary, roller: Callable = Callable()) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	var payload: Dictionary = selected
+	if not decision.is_empty():
+		var projected: Dictionary = {}
+		for option: Dictionary in decision.get("legal_options", []):
+			if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+				projected = option
+				break
+		if projected.is_empty(): return {"error": "The current decision does not project the submitted Hammer of Wrath choice."}
+		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "choice": payload}, roller)
 
 func fixture() -> Dictionary:
 	var state := Combat.initial_state("legacy-solid-v1")
@@ -55,22 +70,31 @@ func _initialize() -> void:
 	var charge_frame := Combat.ResolutionFrames.current(state)
 	var hammer_decision := Combat.UnitActions.pending_decision(state)
 	check(charge_frame.status == "suspended" and charge_frame.resume_point == "charge-post-move-reaction" and hammer_decision.get("resume_frame_id", "") == charge_frame.frame_id, "The post-charge reaction links back to the suspended charge action")
+	check(not hammer_decision.get("decision_id", "").is_empty() and hammer_decision.get("priority_player_id", -1) == 1, "The attacker owns the normalized Hammer of Wrath reaction")
 	var targets := Combat.unit_choices(state, 1)
 	check(targets.size() == 2, "Attacker may select the engaged enemy or skip")
 	var choice: Dictionary = targets[0] if targets[0].action == Hammer.ID else targets[1]
 	check("1 engaged models" in choice.label, "Dice count follows models engaged with the chosen unit")
 	var before := state.duplicate(true)
-	check(not Combat.unit_action(state, 1, choice, Vector2.ZERO, state.revision, func() -> int: return 7).is_empty() and state == before, "Invalid dice reject atomically")
-	check(Combat.unit_action(state, 1, choice, Vector2.ZERO, state.revision, func() -> int: return 4).is_empty(), "Host resolves one D6 for each engaged model")
+	var invalid_result := submit_choice(state, 1, choice, func() -> int: return 7)
+	check(not str(invalid_result.get("error", "")).is_empty() and state == before, "Invalid dice reject atomically through the normalized command")
+	var hammer_result := submit_choice(state, 1, choice, func() -> int: return 4)
+	check(str(hammer_result.get("error", "")).is_empty(), "Host resolves one D6 for each engaged model through the normalized command")
 	check(state.last_hammer_of_wrath.rolls == [4] and state.last_hammer_of_wrath.mortal_wounds == 1, "Each 4+ inflicts one mortal wound")
 	check(state.unit_abilities.window.kind == Hammer.MORTAL_WINDOW and Combat.actor(state) == 2, "Defender receives mandatory mortal-wound allocation")
 	check(Combat.ResolutionFrames.current(state).status == "suspended", "The charge continuation remains open during required post-charge damage allocation")
 	state = bytes_to_var(var_to_bytes(state))
+	var restored_hammer_decision := PendingDecisions.current(state, ["unit-actions"])
+	check(restored_hammer_decision.get("priority_player_id", -1) == 2 and restored_hammer_decision.get("resume_frame_id", "") == charge_frame.get("frame_id", ""), "The defender's normalized decision retains the suspended charge frame through serialization")
 	var allocations := Combat.unit_choices(state, 2)
 	check(not allocations.is_empty(), "Mortal allocation survives serialization")
 	if not allocations.is_empty():
 		state.units[allocations[0].model].feel_no_pain = [{"target": 5, "against": "mortal"}]
-		check(Combat.unit_action(state, 2, allocations[0], Vector2.ZERO, state.revision, func() -> int: return 5).is_empty(), "Mortal Feel No Pain is applied")
+		var before_wrong_owner := var_to_bytes(state)
+		var wrong_owner := submit_choice(state, 1, allocations[0], func() -> int: return 5)
+		check(not str(wrong_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_owner, "The attacker cannot submit or mutate the defender's mortal allocation")
+		var allocation_result := submit_choice(state, 2, allocations[0], func() -> int: return 5)
+		check(str(allocation_result.get("error", "")).is_empty(), "Mortal Feel No Pain is applied through the normalized command")
 		check(state.units[allocations[0].model].wounds == state.units[allocations[0].model].max_wounds and state.unit_abilities.window.is_empty() and Combat.ResolutionFrames.current(state).is_empty(), "Prevented mortal closes the allocation and charge continuation")
 	state = fixture()
 	if not charge(state):
@@ -78,7 +102,7 @@ func _initialize() -> void:
 		return
 	targets = Combat.unit_choices(state, 1)
 	choice = targets[0] if targets[0].action == Hammer.ID else targets[1]
-	check(Combat.unit_action(state, 1, choice, Vector2.ZERO, state.revision, func() -> int: return 3).is_empty(), "A failed 3+ result resolves")
+	check(str(submit_choice(state, 1, choice, func() -> int: return 3).get("error", "")).is_empty(), "A failed 3+ result resolves through the normalized command")
 	check(state.last_hammer_of_wrath.mortal_wounds == 0 and state.unit_abilities.window.is_empty() and Combat.ResolutionFrames.current(state).is_empty(), "No mortal successes opens no defender window and completes the charge action")
 	state = fixture()
 	if not charge(state):
@@ -88,7 +112,7 @@ func _initialize() -> void:
 	var skip: Dictionary
 	for item: Dictionary in targets:
 		if item.action == "hammer-of-wrath-pass": skip = item
-	check(not skip.is_empty() and Combat.unit_action(state, 1, skip, Vector2.ZERO, state.revision).is_empty(), "Optional Hammer of Wrath may be declined")
+	check(not skip.is_empty() and str(submit_choice(state, 1, skip).get("error", "")).is_empty(), "Optional Hammer of Wrath may be declined through the normalized command")
 	check(state.unit_abilities.window.is_empty() and Combat.ResolutionFrames.current(state).is_empty(), "Skipping the ability closes its choice window and charge continuation")
 	var profile := Profiles.profile("assault-intercessors-with-jump-packs")
 	check(profile.stats.movement_inches == 12 and profile.stats.toughness == 5 and profile.stats.wounds == 2, "Profile characteristics match the local e11 source")
@@ -117,7 +141,7 @@ func _initialize() -> void:
 	var plasma_choice: Dictionary = {}
 	for item: Dictionary in prep_choices:
 		if item.action == "jump-pack-trooper-pistol" and item.value == "plasma-pistol": plasma_choice = item; break
-	check(not plasma_choice.is_empty() and Combat.unit_action(prep, 1, plasma_choice, Vector2.ZERO, prep.revision).is_empty(), "Regular model may replace its Heavy Bolt Pistol")
+	check(not plasma_choice.is_empty() and submit_choice(prep, 1, plasma_choice).get("error", "").is_empty(), "Regular model may replace its Heavy Bolt Pistol through the public unit-choice command")
 	prep_choices = Combat.unit_choices(prep, 1)
 	trooper_plasma_options = 0
 	for item: Dictionary in prep_choices:

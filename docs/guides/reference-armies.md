@@ -1,14 +1,16 @@
-# Listas de referência
+# Reference armies
 
-As listas de referência são exemplos de composição e não certificam legalidade completa. O catálogo atual de construção é local e contém apenas os perfis consolidados de Space Marines.
+Reference armies illustrate formations and do not certify full army legality. Current construction uses only consolidated local Space Marine profiles.
 
-| Lista | Estado | Composição | Pontos locais |
+| List | Status | Formation | Local points |
 |---|---|---|---:|
-| Space Marines | Disponível para nova construção | 2 × 5 Intercessors; 2 × 5 Terminators | 550 / limite 1000 |
-| Necrons | Draft legado | 4 × 10 Warriors; 2 × 5 Immortals | 480 históricos |
+| Space Marines | Current local reference | 2 × 5 Intercessors; 2 × 5 Terminators | 550 / limit 1000 |
+| Fire and Manoeuvre | Current local tactical training | Captain; 5 Intercessors; 5 Hellblasters | 290 / limit 1000 |
+| Close Assault | Current local tactical training | Chaplain; 5 Assault Intercessors; 3 Bladeguard Veterans | 235 / limit 1000 |
+| Necrons | Legacy draft | 4 × 10 Warriors; 2 × 5 Immortals | 480 historical |
 
-O seletor de partida oferece a lista Space Marine atual para ambos os jogadores. Listas Necron já salvas continuam preservadas e editáveis, mas não são opções atuais de construção nem podem ser combinadas com o catálogo Wahapedia atual numa nova partida.
+The army picker preserves the original Space Marine mirror and adds both [tactical training](tactical-training.md) forces. The title-screen training action selects the two distinct forces, with optional side swapping, current abilities and Gladius/Core stratagems. Saved Necron lists remain legacy drafts outside new current-catalog matches. Tactical forces are asymmetric; their points do not establish competitive balance or full army legality.
 
-Os perfis Necron e suas interações permanecem isolados em exercícios e testes históricos. Seus dados não devem ser usados para inferir suporte atual da 11ª edição. A inclusão de outra facção exige catálogo local reconciliado, regras implementadas e verificações de admissão próprias.
+Necron profiles and interactions remain isolated in historical exercises and tests. They do not establish current-edition support. Another faction requires its own reconciled local catalog, implemented rules and admission evidence.
 
-Veja a [política de construção](../construction-catalog-policy.md), a [matriz de suporte](../project/support-matrix.md) e o [guia de partidas com listas salvas](saved-army-matches.md).
+See the [construction policy](../construction-catalog-policy.md), [support matrix](../project/support-matrix.md) and [saved-army guide](saved-army-matches.md).

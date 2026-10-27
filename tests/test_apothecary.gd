@@ -3,6 +3,7 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const H = preload("res://scripts/edition_11/unit_healing.gd")
 const S = preload("res://scripts/edition_11/support_attachments.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok:
@@ -39,9 +40,30 @@ func fixture() -> Dictionary:
  s.unit_abilities.anchors = {5: C.living(s, 5)}
  return s
 func choose(s: Dictionary, action: String, model: int = -1, point: Vector2 = Vector2.ZERO) -> String:
- for option: Dictionary in C.unit_choices(s, 1):
-  if option.action == action and (model == -1 or option.model == model): return C.unit_action(s, 1, option, point, s.revision, six)
- return "Choice unavailable: " + action
+  var result: Dictionary = {}
+  if not C.UnitActions.pending_decision(s).is_empty():
+   result = choose_normalized(s, action, model, point)
+  else:
+   var selected: Dictionary = {}
+   for option: Dictionary in C.UnitActions.choices(s, 1):
+    if option.action == action and (model == -1 or option.model == model): selected = option; break
+   if selected.is_empty(): return "Choice unavailable: " + action
+   result = MatchCommandService.execute(s, 1, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(s.revision), "point": point, "choice": selected}, six)
+  return str(result.get("error", ""))
+func choose_normalized(s: Dictionary, action: String, model: int = -1, point: Vector2 = Vector2.ZERO, player: int = 1) -> Dictionary:
+ var selected: Dictionary = {}
+ for option: Dictionary in C.UnitActions.choices(s, player):
+  if str(option.get("action", "")) == action and (model == -1 or int(option.get("model", -1)) == model): selected = option; break
+ if selected.is_empty(): return {"error": "No projected %s healing choice." % action}
+ return submit_normalized(s, player, selected, point)
+func submit_normalized(s: Dictionary, player: int, selected: Dictionary, point: Vector2 = Vector2.ZERO, revision: int = -2147483648) -> Dictionary:
+ var decision := C.UnitActions.pending_decision(s)
+ if decision.is_empty(): return {"error": "No UnitActions decision is pending."}
+ var projected: Dictionary = {}
+ for option: Dictionary in decision.get("legal_options", []):
+  if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+ if projected.is_empty(): return {"error": "The selected healing option is not in the pending decision."}
+ return MatchCommandService.execute(s, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(s.revision) if revision == -2147483648 else revision, "point": point, "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, six)
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
  var s := fixture()
@@ -94,6 +116,23 @@ func run() -> void:
  s = fixture()
  s.units[500].wounds = 1
  check(C.advance_phase(s, 1, s.revision, six).is_empty() and s.phase == "command" and s.unit_abilities.window.get("kind", "") == "healing-order", "Command advance skipped useful healing")
+ var healing_frame := C.ResolutionFrames.current(s)
+ var healing_decision := C.UnitActions.pending_decision(s)
+ check(healing_frame.get("kind", "") == "phase-close" and healing_frame.get("status", "") == "suspended" and healing_decision.get("resume_frame_id", "") == healing_frame.get("frame_id", ""), "Command healing carries the persisted phase-close frame")
+ var healing_frame_id := str(healing_frame.get("frame_id", ""))
+ var before_pending_healing_close := var_to_bytes(s)
+ var blocked_healing_close := C.advance_phase(s, 1, s.revision, six)
+ check(not blocked_healing_close.is_empty() and var_to_bytes(s) == before_pending_healing_close, "Command close cannot bypass pending normalized Apothecary healing")
+ var normalized_heal_order := choose_normalized(s, "narthecium")
+ check(str(normalized_heal_order.get("error", "")).is_empty() and s.unit_abilities.window.get("kind", "") == "healing", "The Apothecary starts Command healing through its normalized public choice: " + str(normalized_heal_order.get("error", "")))
+ s = bytes_to_var(var_to_bytes(s))
+ healing_decision = C.UnitActions.pending_decision(s)
+ check(healing_decision.get("resume_frame_id", "") == healing_frame_id and C.ResolutionFrames.current(s).get("frame_id", "") == healing_frame_id, "The Command healing continuation survives save and restore")
+ var normalized_heal_confirm := choose_normalized(s, "heal-confirm")
+ check(str(normalized_heal_confirm.get("error", "")).is_empty() and s.unit_abilities.window.is_empty(), "The normalized confirmation completes the Apothecary's transactional healing order: " + str(normalized_heal_confirm.get("error", "")))
+ var resumed_healing_close := C.advance_phase(s, 1, s.revision, six)
+ var opponent_end_pass := choose_normalized(s, "pass", -1, Vector2.ZERO, 2)
+ check(resumed_healing_close.is_empty() and str(opponent_end_pass.get("error", "")).is_empty() and s.phase == "movement" and C.ResolutionFrames.current(s).is_empty(), "Resuming Command close after the opponent passes their end-phase choices completes the original frame: " + resumed_healing_close + " / " + str(opponent_end_pass.get("error", "")))
  s = fixture()
  for id: int in C.living(s, 2): s.units[id].position = Vector2(0,-11.5)
  var plan := C.AttackPlan.single_target(s, 5, 2, true)
@@ -107,8 +146,8 @@ func run() -> void:
  check(choose(s, "narthecium").is_empty(), "Healing setup failed")
  var option: Dictionary = C.unit_choices(s, 1).filter(func(row: Dictionary) -> bool: return row.action == "heal-confirm")[0]
  before = var_to_str(s)
- check(not C.unit_action(s, 2, option, Vector2.ZERO, s.revision, six).is_empty() and var_to_str(s) == before, "Opponent confirmed healing")
- check(not C.unit_action(s, 1, option, Vector2.ZERO, s.revision - 1, six).is_empty() and var_to_str(s) == before, "Stale healing command accepted")
+ check(not submit_normalized(s, 2, option).is_empty() and var_to_str(s) == before, "Opponent confirmed healing")
+ check(not submit_normalized(s, 1, option, Vector2.ZERO, s.revision - 1).is_empty() and var_to_str(s) == before, "Stale healing command accepted")
  check(choose(s, "heal-confirm").is_empty(), "Owner cannot confirm after rejected commands")
  s.turn = 5
  s.units[500].wounds = 1

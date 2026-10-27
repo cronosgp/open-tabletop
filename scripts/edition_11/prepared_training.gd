@@ -6,20 +6,63 @@ const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const Training = preload("res://scripts/edition_11/training_roster.gd")
 const MatchManifest = preload("res://scripts/edition_11/match_manifest.gd")
 const CurrentMarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const ChapterRules = preload("res://scripts/edition_11/chapter_rules.gd")
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const ID := "prepared-objective-training-v2"
 
-static func initial_state(options: Dictionary = {}, selections: Dictionary = {}) -> Dictionary:
+static func initial_state(options: Dictionary = {}, selections: Dictionary = {}, current_marine_templates: bool = false, defer_secondary_target_check: bool = false) -> Dictionary:
 	var marine_detachment := str(options.get("marine_detachment", "gladius" if options.get("combat_doctrines", false) else "none"))
-	if marine_detachment not in ["none", "gladius", "stormlance", "ironclad-champions", "assault-brethren", "tactical-brethren", "devastator-brethren", "terminator-storm-force", "tacticus-firestorm-force", "tacticus-attack-force", "gravis-linebreaker-force", "wrath-of-the-rock", "spearpoint-task-force", "ironstorm-spearhead", "phobos-shock-force"]: return {"error": "Unsupported Space Marine detachment: " + marine_detachment}
-	if not options.get("combat_doctrines", false) and marine_detachment != "none": return {"error": "Select a Space Marine detachment only with 11e Combat Doctrines enabled."}
-	if options.get("combat_doctrines", false) and marine_detachment == "none": return {"error": "11e Combat Doctrines requires a declared Space Marine detachment."}
-	if marine_detachment == "spearpoint-task-force" and not options.get("unit_abilities", false): return {"error": "Spearpoint Task Force requires current unit abilities enabled for Suboden Khan's end-of-Fight-phase move."}
-	if options.get("checked_rosters", false) and marine_detachment != "gladius": return {"error": "The saved checked-roster snapshot is reconciled for Gladius only."}
-	if options.get("official_mission", false) and marine_detachment != "gladius": return {"error": "This Space Marine detachment is not reconciled for the selected CA mission."}
+	var marine_detachments: Dictionary = options.get("marine_detachments", {}).duplicate(true)
+	if marine_detachments.is_empty(): marine_detachments = {1: marine_detachment, 2: marine_detachment}
+	var marine_chapter_selections := {1: "", 2: ""}
+	if options.has("marine_chapters"):
+		if not options.marine_chapters is Dictionary: return {"error": "Chapter selections must be a per-player map."}
+		for owner: Variant in options.marine_chapters:
+			if int(owner) not in [1, 2]: return {"error": "Choose a Chapter context for Player 1 or Player 2."}
+		marine_chapter_selections = ChapterRules.normalize_assignments(options.marine_chapters)
+		for owner in [1, 2]:
+			var chapter := str(marine_chapter_selections[owner])
+			if not chapter.is_empty() and not CurrentMarineProfiles.CHAPTER_KEYWORD_NAMES.has(chapter):
+				return {"error": "Choose a recognized Space Marine Chapter for Player %d." % owner}
+			if not chapter.is_empty() and not options.get("unit_abilities", false):
+				return {"error": "Chapter context requires current unit abilities to be enabled."}
+	for owner: Variant in marine_detachments:
+		if int(owner) not in [1, 2] or str(marine_detachments[owner]) not in Combat.Doctrines.DETACHMENTS: return {"error": "Choose a supported Space Marine detachment for each player."}
+	for owner in [1, 2]:
+		if not marine_detachments.has(owner) and not marine_detachments.has(str(owner)): marine_detachments[owner] = marine_detachment
+	var terrain_layout := str(options.get("terrain_layout", Combat.Terrain.DEFAULT_LAYOUT))
+	var primary_mission := str(options.get("primary_mission", "battlefield-dominance"))
+	var primary_missions := {1: primary_mission, 2: primary_mission}
+	if options.has("primary_missions"):
+		if not options.primary_missions is Dictionary: return {"error": "Primary missions must be selected for Player 1 and Player 2."}
+		for raw_owner: Variant in options.primary_missions:
+			var owner := int(raw_owner)
+			var selected_primary := str(options.primary_missions[raw_owner])
+			if owner not in [1, 2]: return {"error": "Choose a primary mission for Player 1 or Player 2."}
+			if not Combat.Mission.PRIMARY_MISSIONS.has(selected_primary): return {"error": "Select a supported 11th-edition primary mission for Player %d." % owner}
+			primary_missions[owner] = selected_primary
+		primary_mission = str(primary_missions[1])
+	var secondary_pair := str(options.get("secondary_pair", Combat.Mission.DEFAULT_SECONDARY_PAIR))
+	var terrain_profile := Combat.Terrain.layout(terrain_layout)
+	if terrain_profile.has("error"): return {"error": str(terrain_profile.error)}
+	if options.get("official_mission", false) and not Combat.Terrain.is_event_layout(terrain_layout): return {"error": "Select a supported 11th-edition Event Companion terrain layout."}
+	if options.get("official_mission", false):
+		for owner in [1, 2]:
+			if not Combat.Mission.PRIMARY_MISSIONS.has(str(primary_missions[owner])): return {"error": "Select a supported 11th-edition Chapter Approved primary mission for Player %d." % owner}
+	if options.get("official_mission", false) and not Combat.Mission.SECONDARY_PAIRS.has(secondary_pair): return {"error": "Select a supported 11th-edition fixed secondary pair."}
+	if marine_detachment not in Combat.Doctrines.DETACHMENTS: return {"error": "Unsupported Space Marine detachment: " + marine_detachment}
+	if not options.get("combat_doctrines", false) and marine_detachments.values().any(func(value: Variant) -> bool: return str(value) != "none"): return {"error": "Select Space Marine detachments only with 11e Combat Doctrines enabled."}
+	for selected_detachment: Variant in marine_detachments.values():
+		if selected_detachment == "spearpoint-task-force" and not options.get("unit_abilities", false): return {"error": "Spearpoint Task Force requires current unit abilities enabled for Suboden Khan's end-of-Fight-phase move."}
+		if selected_detachment == "darkflight-pursuit" and not options.get("unit_abilities", false): return {"error": "Darkflight Pursuit requires current unit abilities enabled for its Dark Angels Chapter context and conditional Ravenwing keywords."}
+		if selected_detachment == "inner-circle-task-force" and not options.get("unit_abilities", false): return {"error": "Inner Circle Task Force requires current unit abilities enabled for its Dark Angels Chapter context and conditional Deathwing keywords."}
+		if selected_detachment == "medusa-wrath" and not options.get("unit_abilities", false): return {"error": "Medusa's Wrath requires current unit abilities enabled for its Iron Hands Chapter context."}
+		if selected_detachment == "blade-of-ultramar" and not options.get("unit_abilities", false): return {"error": "Blade of Ultramar requires current unit abilities enabled for its Ultramarines Chapter context and Marneus Calgar rule."}
+		if options.get("checked_rosters", false) and selected_detachment != "gladius": return {"error": "The saved checked-roster snapshot is reconciled for Gladius only."}
+		if options.get("official_mission", false) and selected_detachment != "gladius": return {"error": "This Space Marine detachment is not reconciled for the selected CA mission."}
 	if options.get("combat_doctrines", false) and options.get("oath_of_moment", false): return {"error": "11e Combat Doctrines replaces the historical Oath of Moment profile; these options cannot be combined."}
 	for key: Variant in options:
-		if key == "marine_detachment": continue
+		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "secondary_pair", "training_scenario_id"]: continue
 		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts", "oath_of_moment", "reanimation_protocols", "combat_doctrines", "awakened_dynasty", "unit_abilities", "official_mission", "checked_rosters"]: return {"error": "Unsupported match option: " + str(key)}
 		if not options[key] is bool: return {"error": "Match options must be boolean: " + str(key)}
 	if options.get("unit_abilities", false) and (options.get("hail_of_bolts", false) or options.get("objective_secured", false) or options.get("oath_of_moment", false)): return {"error": "Current datasheets cannot combine with historical Hail of Bolts, Objective Secured or Oath profiles."}
@@ -60,17 +103,20 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 			for resolved: Dictionary in report.definitions.values() if report.has("definitions") else []:
 				if resolved.get("requires_current_abilities", false) and not options.get("unit_abilities", false): return {"error": "This Marine profile requires current unit abilities to be enabled."}
 			reports[owner] = report
+			if options.get("combat_doctrines", false) and report.selection.faction == "Space Marines" and str(marine_detachments.get(owner, marine_detachments.get(str(owner), "none"))) == "none": return {"error": "11e Combat Doctrines requires a declared detachment for each Space Marine army."}
 			for entry: Dictionary in report.selection.get("entries", []):
 				var enhancement_id := str(entry.get("enhancement_id", ""))
 				if enhancement_id != "":
 					var enhancement: Dictionary = StormlanceEnhancements.RECORDS.get(enhancement_id, {})
-					if enhancement.is_empty() or str(enhancement.get("detachment", "")) != marine_detachment:
+					var assigned_detachment := str(marine_detachments.get(owner, marine_detachments.get(str(owner), marine_detachment)))
+					if enhancement.is_empty() or str(enhancement.get("detachment", "")) != assigned_detachment:
 						return {"error": "The selected enhancement requires its matching Space Marine detachment in the match setup."}
 		if reports[1].selection.category != reports[2].selection.category or reports[1].selection.points_limit != reports[2].selection.points_limit:
 			return {"error": "Players must choose the same category and points limit."}
 	if options.get("official_mission", false) and not reports.is_empty():
 		if reports[1].selection.faction != "Space Marines" or reports[2].selection.faction != "Necrons" or reports[1].selection.points_limit != 1000 or reports[1].selection.category != "incursion": return {"error": "This selected CA mission admits Space Marines P1 vs Necrons P2 with a 1000-point Incursion limit; prices and army legality remain reference data."}
-	var state := Battlefield.apply(Combat.initial_state(Combat.Terrain.DEFAULT_LAYOUT, Combat.Objectives.TRAINING, 2, manual, varied))
+	var use_current_templates := current_marine_templates or _current_marine_setup(selections)
+	var state := Battlefield.apply(Combat.initial_state(terrain_layout, Combat.Objectives.TRAINING, 2, manual, varied, use_current_templates))
 	if state.has("error"): return state
 	if core: Combat.Stratagems.enable(state, movement_rerolls, attack_rerolls, save_rerolls, damage_rerolls, hazard_rerolls, count_rerolls, escape_rerolls)
 	if not reports.is_empty():
@@ -98,9 +144,11 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 		state.battle_size = "Custom training"
 		state.test_battlefield = "saved-army-training-43x43-v1"
 		state.training_points = {1: reports[1].total, 2: reports[2].total}
-		state.saved_army_setup = {"schema_version": 1, "options": {"manual_allocation": manual, "varied_equipment": false},
+		state.saved_army_setup = {"schema_version": 1, "options": {"manual_allocation": manual, "varied_equipment": false, "terrain_layout": terrain_layout},
 			"armies": {1: reports[1].selection, 2: reports[2].selection}}
-		if marine_detachment != "none": state.saved_army_setup.options.marine_detachment = marine_detachment
+		state.saved_army_setup.options.marine_detachments = marine_detachments.duplicate(true)
+		if marine_detachments.get(1, "") == marine_detachments.get(2, "") and marine_detachments.get(1, "") != "none": state.saved_army_setup.options.marine_detachment = marine_detachment
+		if options.get("unit_abilities", false) and options.has("marine_chapters"): state.saved_army_setup.options.marine_chapters = marine_chapter_selections.duplicate(true)
 		if core: state.saved_army_setup.options.core_stratagems = true
 		if movement_rerolls: state.saved_army_setup.options.movement_rerolls = true
 		if attack_rerolls: state.saved_army_setup.options.attack_rerolls = true
@@ -125,10 +173,13 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 		Combat.Reanimation.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.reanimation_protocols = true
 	if options.get("combat_doctrines", false):
-		Combat.Doctrines.enable(state, marine_detachment)
+		Combat.Doctrines.enable(state, marine_detachments)
 		if not reports.is_empty():
 			state.saved_army_setup.options.combat_doctrines = true
-			if marine_detachment != "gladius": state.saved_army_setup.options.marine_detachment = marine_detachment
+			state.saved_army_setup.options.marine_detachments = marine_detachments.duplicate(true)
+			if marine_detachments.get(1, "") == marine_detachments.get(2, ""): state.saved_army_setup.options.marine_detachment = marine_detachment
+		if marine_detachments.values().any(func(value: Variant) -> bool: return str(value) == "gauntlet-task-force"):
+			Combat.DetachmentStratagems.enable_gauntlet(state)
 	if options.get("awakened_dynasty", false):
 		Combat.Awakened.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.awakened_dynasty = true
@@ -137,19 +188,58 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 		if not loadout_error.is_empty(): return {"error": loadout_error}
 		Combat.UnitAbilities.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.unit_abilities = true
-		if marine_detachment == "gladius" and not Combat.DetachmentStratagems.enabled(state): Combat.DetachmentStratagems.enable(state)
-		if marine_detachment == "assault-brethren": Combat.DetachmentStratagems.enable_assault_brethren(state)
-		if marine_detachment == "tactical-brethren": Combat.DetachmentStratagems.enable_tactical_brethren(state)
-		if marine_detachment == "devastator-brethren": Combat.DetachmentStratagems.enable_devastator_brethren(state)
-		if marine_detachment == "stormlance": Combat.DetachmentStratagems.enable_stormlance(state)
-		if marine_detachment == "ironclad-champions": Combat.DetachmentStratagems.enable_ironclad(state)
-		if marine_detachment == "ironstorm-spearhead": Combat.DetachmentStratagems.enable_ironstorm(state)
-		if marine_detachment == "spearpoint-task-force": Combat.DetachmentStratagems.enable_spearpoint(state)
-	var chapter_error := Combat.Doctrines.chapter_restriction_error(state, marine_detachment)
-	if not chapter_error.is_empty(): return {"error": chapter_error}
+		var needs_chapter_context := options.has("marine_chapters") or ChapterRules.has_current_reference_marines(state) or marine_detachments.values().any(func(value: Variant) -> bool: return str(value) in ["wrath-of-the-rock", "spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar"])
+		if needs_chapter_context:
+			var chapter_result := ChapterRules.resolve_and_apply(state, marine_detachments, marine_chapter_selections)
+			if not str(chapter_result.get("error", "")).is_empty(): return {"error": str(chapter_result.error)}
+			if not reports.is_empty(): state.saved_army_setup.options.marine_chapters = chapter_result.selections.duplicate(true)
+		if marine_detachments.values().any(func(value: Variant) -> bool: return str(value) == "inner-circle-task-force"):
+			for owner in [1, 2]:
+				if str(marine_detachments.get(owner, marine_detachments.get(str(owner), "none"))) == "inner-circle-task-force" and not Combat.OathOfMoment.marine_army(state, owner):
+					return {"error": "Inner Circle Task Force currently requires a current-reference Space Marine roster for its selected player."}
+			Combat.VowedTarget.enable(state)
+		var unique_detachments: Array[String] = []
+		for selected_detachment: Variant in marine_detachments.values():
+			if str(selected_detachment) not in unique_detachments: unique_detachments.append(str(selected_detachment))
+		for selected_detachment: String in unique_detachments:
+			if selected_detachment == "gladius": Combat.DetachmentStratagems.enable_gladius(state)
+			if selected_detachment == "assault-brethren": Combat.DetachmentStratagems.enable_assault_brethren(state)
+			if selected_detachment == "tactical-brethren": Combat.DetachmentStratagems.enable_tactical_brethren(state)
+			if selected_detachment == "devastator-brethren": Combat.DetachmentStratagems.enable_devastator_brethren(state)
+			if selected_detachment == "stormlance": Combat.DetachmentStratagems.enable_stormlance(state)
+			if selected_detachment == "ironclad-champions": Combat.DetachmentStratagems.enable_ironclad(state)
+			if selected_detachment == "ironstorm-spearhead": Combat.DetachmentStratagems.enable_ironstorm(state)
+			if selected_detachment == "spearpoint-task-force": Combat.DetachmentStratagems.enable_spearpoint(state)
+			if selected_detachment == "wrath-of-the-rock": Combat.DetachmentStratagems.enable_wrath_of_the_rock(state)
+			if selected_detachment == "inner-circle-task-force": Combat.DetachmentStratagems.enable_inner_circle(state)
+			if selected_detachment == "medusa-wrath": Combat.DetachmentStratagems.enable_medusa_wrath(state)
+			if selected_detachment == "blade-of-ultramar": Combat.DetachmentStratagems.enable_blade_of_ultramar(state)
+			if selected_detachment == "darkflight-pursuit": Combat.DetachmentStratagems.enable_darkflight(state)
+			if selected_detachment == "terminator-storm-force": Combat.DetachmentStratagems.enable_terminator_storm(state)
+			if selected_detachment == "tacticus-firestorm-force": Combat.DetachmentStratagems.enable_firestorm(state)
+			if selected_detachment == "phobos-shock-force": Combat.DetachmentStratagems.enable_phobos_shock(state)
+			if selected_detachment == "phobos-shadow-force": Combat.DetachmentStratagems.enable_phobos_shadow(state)
+			if selected_detachment in ["gravis-linebreaker-force", "gravis-siege-force"]: Combat.DetachmentStratagems.enable_gravis(state, selected_detachment)
+	if not options.get("unit_abilities", false) and ChapterRules.has_current_reference_marines(state):
+		var resolved_chapter_result := ChapterRules.resolve_and_apply(state, marine_detachments, marine_chapter_selections)
+		if not str(resolved_chapter_result.get("error", "")).is_empty(): return {"error": str(resolved_chapter_result.error)}
+		if not reports.is_empty(): state.saved_army_setup.options.marine_chapters = resolved_chapter_result.selections.duplicate(true)
+	for owner in [1, 2]:
+		var assigned := str(marine_detachments.get(owner, marine_detachments.get(str(owner), "none")))
+		var chapter_error := Combat.Doctrines.chapter_restriction_error(state, assigned, owner)
+		if not chapter_error.is_empty(): return {"error": chapter_error}
 	if options.get("official_mission", false):
-		Combat.Mission.enable(state)
-		if not reports.is_empty(): state.saved_army_setup.options.official_mission = true
+		if secondary_pair == "engage-bring-it-down" and not defer_secondary_target_check and (not Combat.Mission.has_bring_it_down_roster_target(state, 1) or not Combat.Mission.has_bring_it_down_roster_target(state, 2)):
+			return {"error": "Bring It Down requires each opposing roster to include at least one model with 10 or more Wounds."}
+		if secondary_pair == "engage-grievous-blow" and not defer_secondary_target_check and (not Combat.Mission.has_grievous_blow_roster_target(state, 1) or not Combat.Mission.has_grievous_blow_roster_target(state, 2)):
+			return {"error": "A Grievous Blow requires each opposing roster to include at least one unit with a starting strength of 13 or more models."}
+		Combat.Mission.enable(state, terrain_layout, primary_mission, secondary_pair, primary_missions)
+		if not reports.is_empty():
+			state.saved_army_setup.options.official_mission = true
+			state.saved_army_setup.options.terrain_layout = terrain_layout
+			state.saved_army_setup.options.primary_mission = primary_mission
+			state.saved_army_setup.options.primary_missions = primary_missions.duplicate(true)
+			state.saved_army_setup.options.secondary_pair = secondary_pair
 	if options.get("checked_rosters", false):
 		Combat.RosterValidation.enable(state, reports)
 		state.saved_army_setup.options.checked_rosters = true
@@ -158,15 +248,18 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {})
 		"movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls,
 		"save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls,
 		"hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls,
-		"count_rerolls": count_rerolls
+		"count_rerolls": count_rerolls, "terrain_layout": terrain_layout
 	}
+	if options.has("training_scenario_id"):
+		if options.training_scenario_id != Training.Tactical.ID or not Training.Tactical.matches(state): return {"error": "The tactical scenario requires its versioned current Marine formations."}
+		state.saved_army_setup.options.training_scenario_id = Training.Tactical.ID
 	MatchManifest.seal(state, options, reports, manifest_options, ID)
 	Deployment.begin(state)
 	Combat.Awakened.begin_setup(state)
 	return state
 
 static func waiting(options: Dictionary) -> Dictionary:
-	var state := initial_state(options)
+	var state := initial_state(options, {}, true, true)
 	if state.has("error"): return state
 	if options.get("checked_rosters", false): state.erase("saved_army_setup")
 	state.phase = "army_selection"
@@ -177,6 +270,13 @@ static func waiting(options: Dictionary) -> Dictionary:
 static func from_setup(setup: Variant) -> Dictionary:
 	if not setup is Dictionary or setup.size() != 3 or setup.get("schema_version") != 1 or not setup.get("options") is Dictionary or not setup.get("armies") is Dictionary: return {"error": "Invalid public training setup."}
 	return initial_state(setup.options, setup.armies)
+
+static func _current_marine_setup(selections: Dictionary) -> bool:
+	if selections.size() != 2: return false
+	for owner in [1, 2]:
+		var selection: Variant = selections.get(owner, selections.get(str(owner), {}))
+		if not selection is Dictionary or int(selection.get("schema_version", 0)) != 2 or str(selection.get("faction", "")) != "Space Marines": return false
+	return true
 
 static func _materialize_mixed(state: Dictionary, original: Dictionary, report: Dictionary, owner: int) -> void:
 	var index := 0

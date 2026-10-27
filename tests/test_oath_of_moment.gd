@@ -2,6 +2,7 @@ extends SceneTree
 const P = preload("res://scripts/edition_11/prepared_training.gd")
 const C = P.Combat
 const O = C.OathOfMoment
+const Commands = preload("res://scripts/edition_11/match_command_service.gd")
 const A = preload("res://scripts/edition_11/attack_sequence.gd")
 const W = preload("res://scripts/edition_11/attack_roll_window.gd")
 const Save = preload("res://scripts/match_save.gd")
@@ -31,13 +32,25 @@ func run() -> void:
 	var state := fixture()
 	state.phase = "start_turn"
 	check(C.advance_phase(state, 1, state.revision).is_empty() and O.needs_choice(state) and state.cp == {1: 1, 2: 1}, "Selection opens at Command entry after CP gain")
+	var oath_decision := O.pending_decision(state)
+	var oath_frame := C.ResolutionFrames.current(state)
+	check(oath_decision.get("source", "") == "oath-of-moment" and int(oath_decision.get("priority_player_id", -1)) == 1 and oath_decision.get("resume_frame_id", "") == oath_frame.get("frame_id", ""), "Oath target decision is normalized and linked to the Command-start continuation")
 	check(O.targets(state, 1) == [2, 4], "Both living enemy units are eligible without range or visibility requirements")
+	var oath_decision_id: String = oath_decision.decision_id
+	state = bytes_to_var(var_to_bytes(state))
+	oath_decision = O.pending_decision(state)
+	oath_frame = C.ResolutionFrames.current(state)
+	check(oath_decision.get("decision_id", "") == oath_decision_id and oath_decision.get("legal_options", []).size() == 2 and oath_decision.get("resume_frame_id", "") == oath_frame.get("frame_id", ""), "Serialized Oath decision retains its options and Command-start continuation")
 	var before := var_to_bytes(state)
 	check(not C.advance_phase(state, 1, state.revision).is_empty(), "Cannot leave Command before selection")
 	check(not C.begin_movement(state, 1, 100, "normal", state.revision).is_empty(), "Other gameplay commands are blocked")
 	check(not C.select_oath_target(state, 2, 2, state.revision).is_empty() and not C.select_oath_target(state, 1, 1, state.revision).is_empty(), "Wrong owner and friendly target rejected")
 	check(not C.select_oath_target(state, 1, 2, 0).is_empty() and before == var_to_bytes(state), "Stale revision rejected transactionally")
-	check(C.select_oath_target(state, 1, 2, state.revision).is_empty() and not O.needs_choice(state), "Choose one target without CP or dice")
+	var stale_option := Commands.execute(state, 1, {"kind": Commands.SELECT_OATH_TARGET, "target": 2, "revision": state.revision, "decision_id": oath_decision.decision_id, "option_id": "stale-option"})
+	check(not stale_option.get("error", "").is_empty() and before == var_to_bytes(state), "Stale normalized option ID is rejected transactionally")
+	var target_option: Dictionary = oath_decision.legal_options.filter(func(option: Dictionary) -> bool: return int(option.get("target", -1)) == 2)[0]
+	var selected := Commands.execute(state, 1, {"kind": Commands.SELECT_OATH_TARGET, "target": 2, "revision": state.revision, "decision_id": oath_decision.decision_id, "option_id": target_option.id})
+	check(selected.get("error", "").is_empty() and not O.needs_choice(state) and C.ResolutionFrames.current(state).is_empty(), "Choose one target through its normalized option and complete the shared phase-start frame")
 	check(state.cp == {1: 1, 2: 1} and O.context(state, 1, 2) == {"hit_reroll": "failed", "wound_modifier": 1}, "Codex-context attacks receive hit rerolls and the conditional wound modifier")
 	check(O.context(state, 1, 4).is_empty() and O.context(state, 2, 1).is_empty(), "Other targets and enemy faction do not inherit Oath")
 	check(not C.select_oath_target(state, 1, 4, state.revision).is_empty(), "No second selection this Command phase")

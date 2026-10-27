@@ -36,4 +36,4 @@ Historical verification result: on 17 October, this CA infantry match was marked
 - Datasheet abilities for the ten admitted loadouts are in the current unit-ability profile.
 - Gladius/Awakened stratagems for checked rosters are implemented; enhancements stay rejected.
 - Reanimation does not return slain Characters; Eternal Revenant covers the Awakened Infantry Character case.
-- Upper floors and exact imported-mesh visibility remain geometry gaps, not required by the selected ground-level CA board.
+- A bounded central first-floor Movement slice now exists for the training board, but Event Companion floors, vertical combat transitions and exact imported-mesh visibility remain geometry gaps. The selected CA board uses its existing ground-level proxy.

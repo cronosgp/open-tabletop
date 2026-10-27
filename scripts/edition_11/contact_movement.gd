@@ -1,6 +1,6 @@
 extends RefCounted
-## Flat-board base geometry and optional sampled straight-line charge suggestions.
-## Player-controlled contact paths are validated by contact_actions.gd.
+## Base geometry with bounded elevation, plus sampled straight-line charge suggestions.
+## Player-controlled contact paths are validated by contact_actions.gd across supported first-floor surfaces.
 
 const Movement = preload("res://scripts/rules.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
@@ -15,9 +15,19 @@ static func alive(state: Dictionary, squad: int) -> Array[int]:
 static func edge(first: Dictionary, second: Dictionary) -> float:
 	return maxf(0.0, first.position.distance_to(second.position) - float(first.radius) - float(second.radius))
 
+static func within_engagement(first: Dictionary, second: Dictionary) -> bool:
+	return edge(first, second) <= 2.0 + EPSILON and absf(float(first.get("elevation", 0.0)) - float(second.get("elevation", 0.0))) <= 5.0 + EPSILON
+
 static func distance_to_target(state: Dictionary, model: Dictionary, target: int) -> float:
 	var distance := INF
 	for id: int in alive(state, target): distance = minf(distance, edge(model, state.units[id]))
+	return distance
+
+static func distance_to_target_at_height(state: Dictionary, model: Dictionary, target: int, maximum_vertical: float = 5.0) -> float:
+	var distance := INF
+	for id: int in alive(state, target):
+		if absf(float(model.get("elevation", 0.0)) - float(state.units[id].get("elevation", 0.0))) > maximum_vertical + EPSILON: continue
+		distance = minf(distance, edge(model, state.units[id]))
 	return distance
 
 static func coherent(state: Dictionary, squad: int) -> bool:
@@ -28,6 +38,7 @@ static func coherent(state: Dictionary, squad: int) -> bool:
 		for other: int in ids:
 			if id == other: continue
 			var distance := edge(state.units[id], state.units[other])
+			if absf(float(state.units[id].get("elevation", 0.0)) - float(state.units[other].get("elevation", 0.0))) > 5.0 + EPSILON: return false
 			if distance > 9.0 + EPSILON: return false
 			if distance <= 2.0 + EPSILON: neighbor = true
 		if not neighbor: return false
@@ -37,30 +48,49 @@ static func coherent(state: Dictionary, squad: int) -> bool:
 	while not frontier.is_empty():
 		var current: int = frontier.pop_back()
 		for other: int in ids:
-			if not reached.has(other) and edge(state.units[current], state.units[other]) <= 2.0 + EPSILON:
+			if not reached.has(other) and edge(state.units[current], state.units[other]) <= 2.0 + EPSILON and absf(float(state.units[current].get("elevation", 0.0)) - float(state.units[other].get("elevation", 0.0))) <= 5.0 + EPSILON:
 				reached[other] = true
 				frontier.append(other)
 	return reached.size() == ids.size()
 
-static func clear_path(state: Dictionary, model_id: int, destination: Vector2, maximum: float, through_enemies: bool = false, through_models: bool = false) -> bool:
+static func clear_path(state: Dictionary, model_id: int, destination: Vector2, maximum: float, through_enemies: bool = false, through_models: bool = false, destination_elevation: float = -1.0, move_type: String = "") -> bool:
 	var model: Dictionary = state.units[model_id]
-	var identity := str(model.get("definition_id", "")).get_slice(":", 3)
-	if identity == "reiver-squad" and state.squads[model.squad].get("reiver_grapnel_launchers", false): through_models = true
-	if not destination.is_finite() or model.position.distance_to(destination) > maximum + EPSILON: return false
+	if state.get("squads", {}).get(int(model.get("squad", -1)), {}).get("reiver_grapnel_launchers", false): through_models = true
+	if Terrain.take_to_skies_active(state, model_id): through_models = true
+	var target_elevation := float(model.get("elevation", 0.0)) if destination_elevation < 0.0 else destination_elevation
+	var ignores_vertical := Terrain.ignores_vertical_movement(state, model_id)
+	if not destination.is_finite() or Terrain.movement_distance(model.position, float(model.get("elevation", 0.0)), destination, target_elevation, ignores_vertical) > maximum + EPSILON: return false
 	var radius: float = model.radius
 	var half_board := Movement.half_board(state)
 	if absf(destination.x) > half_board.x - radius + EPSILON or absf(destination.y) > half_board.y - radius + EPSILON: return false
-	if not Terrain.path_error(state, model_id, destination).is_empty(): return false
+	if not Terrain.path_error(state, model_id, destination, target_elevation).is_empty(): return false
 	if not through_enemies and not through_models:
 		for id: int in state.units:
-			if state.units[id].owner == model.owner or state.units[id].wounds <= 0 or not state.units[id].get("on_battlefield", true): continue
-			var closest := Geometry2D.get_closest_point_to_segment(state.units[id].position, model.position, destination)
-			if closest.distance_to(state.units[id].position) < radius + float(state.units[id].radius) - EPSILON: return false
+			if id == model_id: continue
+			var other: Dictionary = state.units[id]
+			if other.wounds <= 0 or not other.get("on_battlefield", true): continue
+			var is_enemy: bool = other.owner != model.owner
+			if not is_enemy and not monster_vehicle_move_blocks_large_model(model, other, move_type): continue
+			if is_enemy and monster_vehicle_can_pass_enemy_model(model, other, move_type): continue
+			var other_elevation := float(other.get("elevation", 0.0))
+			if absf(other_elevation - float(model.get("elevation", 0.0))) > EPSILON and absf(other_elevation - target_elevation) > EPSILON: continue
+			var closest := Geometry2D.get_closest_point_to_segment(other.position, model.position, destination)
+			if closest.distance_to(other.position) < radius + float(other.radius) - EPSILON: return false
 	return true
+
+static func monster_vehicle_move_blocks_large_model(model: Dictionary, other: Dictionary, move_type: String) -> bool:
+	if move_type not in ["normal", "advance"]: return false
+	return Terrain.has_keyword(model, ["monster", "vehicle"]) and Terrain.has_keyword(other, ["monster", "vehicle"])
+
+static func monster_vehicle_can_pass_enemy_model(model: Dictionary, other: Dictionary, move_type: String) -> bool:
+	if move_type not in ["normal", "advance"]: return false
+	if not Terrain.has_keyword(model, ["monster", "vehicle"]): return false
+	return not Terrain.has_keyword(other, ["monster", "vehicle"])
 
 static func _open_destination(state: Dictionary, model_id: int, destination: Vector2, placed: Dictionary) -> bool:
 	var model: Dictionary = state.units[model_id]
 	for id: int in placed:
+		if absf(float(model.get("elevation", 0.0)) - float(state.units[id].get("elevation", 0.0))) > EPSILON: continue
 		if destination.distance_to(placed[id]) < float(model.radius) + float(state.units[id].radius) - EPSILON: return false
 	return true
 
@@ -116,7 +146,8 @@ static func charge_plan(state: Dictionary, squad: int, target: int, maximum: flo
 	if not coherent(working, squad): return {"error": "Supported charge placement would break coherency; finish without moving."}
 	var engaged := false
 	for id: int in members:
-		if distance_to_target(working, working.units[id], target) <= 2.0 + EPSILON: engaged = true
+		for enemy_id: int in alive(working, target):
+			if within_engagement(working.units[id], working.units[enemy_id]): engaged = true
 	if not engaged:
 		return {"error": "Supported charge placement cannot engage the target."}
 	return {"error": "", "positions": placed}

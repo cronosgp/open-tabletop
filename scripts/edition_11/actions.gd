@@ -5,7 +5,10 @@ const Morale = preload("res://scripts/edition_11/morale.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
+const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
+const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const SECURE := "training-secure"
+const SECURE_ASSET := "secure-asset"
 
 static func keyword(state: Dictionary, squad: int, names: Array[String]) -> bool:
 	for id: int in Morale.living(state, squad):
@@ -20,7 +23,7 @@ static func on_field(state: Dictionary, squad: int) -> bool:
 static func engaged(state: Dictionary, squad: int) -> bool:
 	for id: int in Morale.living(state, squad):
 		for enemy: int in state.units:
-			if state.units[enemy].wounds > 0 and state.units[enemy].get("on_battlefield", true) and state.units[enemy].owner != state.squads[squad].owner and Geometry.edge(state.units[id], state.units[enemy]) <= 2.0 + Terrain.EPSILON: return true
+			if state.units[enemy].wounds > 0 and state.units[enemy].get("on_battlefield", true) and state.units[enemy].owner != state.squads[squad].owner and Geometry.within_engagement(state.units[id], state.units[enemy]): return true
 	return false
 
 static func eligibility_error(state: Dictionary, squad: int) -> String:
@@ -28,9 +31,14 @@ static func eligibility_error(state: Dictionary, squad: int) -> String:
 	var unit: Dictionary = state.squads[squad]
 	if keyword(state, squad, ["aircraft", "fortification"]): return "Aircraft and Fortifications cannot start actions."
 	if unit.battle_shocked and not UnitAbilities.has(state, squad, "tactical-mainstay"): return "Battle-shocked units cannot start actions."
-	if int(unit.stats.objective_control) <= 0: return "The unit needs positive OC to start an action."
+	var objective_control := int(unit.stats.objective_control) + AncientFury.objective_control_bonus(state, squad)
+	var lion_will: Dictionary = state.get("detachment_stratagems", {}).get("lion_will", {}).get(squad, {})
+	if int(lion_will.get("turn", -1)) == int(state.get("turn", -2)) and int(lion_will.get("owner", -1)) == int(unit.get("owner", -2)): objective_control += 1
+	var for_the_emperor: Dictionary = state.get("detachment_stratagems", {}).get("for_the_emperor", {}).get(squad, {})
+	if int(for_the_emperor.get("turn", -1)) == int(state.get("turn", -2)) and int(for_the_emperor.get("owner", -1)) == int(unit.get("owner", -2)): objective_control += 1
+	if objective_control <= 0: return "The unit needs positive OC to start an action."
 	if engaged(state, squad) and not UnitAbilities.has(state, squad, "tactical-mainstay") and not keyword(state, squad, ["titanic"]): return "Engaged units cannot start actions."
-	if (unit.advanced or unit.fell_back) and not UnitAbilities.has(state, squad, "flexible-asset"): return "Units that Advanced or Fell Back cannot start actions this turn."
+	if (unit.advanced or unit.fell_back) and not UnitAbilities.has(state, squad, "flexible-asset") and not MarineEnhancements.oathbound_exemplar_active(state, squad): return "Units that Advanced or Fell Back cannot start actions this turn."
 	if unit.get("started_action_turn", -1) == state.turn: return "This unit already started an action this turn."
 	if str(unit.get("overwatch_block", "")) == "%d:%s" % [state.turn, state.phase]: return "A unit that fired Overwatch cannot start an action until this phase ends."
 	if str(unit.get("indirect_shooting_block", "")) == "%d:%s" % [state.turn, state.phase]: return "A unit that used Indirect Shooting cannot start an action until this phase ends."
@@ -50,22 +58,45 @@ static func targets(state: Dictionary, squad: int) -> Array[int]:
 		if objectives[index].controller == state.squads[squad].owner and squad in Objectives.controlling_squads(state, objectives[index], Callable(Morale, "objective_control")): result.append(index)
 	return result
 
+static func mission_actions(state: Dictionary, player: int) -> Array:
+	var mission: Dictionary = state.get("mission", {})
+	var by_player: Variant = mission.get("actions_by_player", {})
+	if by_player is Dictionary and (by_player.has(player) or by_player.has(str(player))):
+		var selected: Variant = by_player.get(player, by_player.get(str(player), []))
+		return selected if selected is Array else []
+	return mission.get("actions", [])
+
+static func has_mission_action(state: Dictionary, player: int, action_id: String) -> bool:
+	return action_id in mission_actions(state, player)
+
+static func _mission_action_for_squad(state: Dictionary, squad: int) -> String:
+	var owner := int(state.get("squads", {}).get(squad, {}).get("owner", -1))
+	return SECURE_ASSET if has_mission_action(state, owner, SECURE_ASSET) else SECURE
+
 static func start_error(state: Dictionary, squad: int, objective: int) -> String:
 	var error := eligibility_error(state, squad)
 	if not error.is_empty(): return error
-	if SECURE not in state.get("mission", {}).get("actions", []): return "This mission does not offer the training action."
-	if state.phase != "shooting" or state.squads[squad].owner != state.active: return "Start Secure Ground during your Shooting phase."
+	var owner := int(state.squads[squad].owner)
+	var action_id := _mission_action_for_squad(state, squad)
+	if not has_mission_action(state, owner, action_id): return "This mission does not offer this action."
+	if action_id == SECURE_ASSET:
+		var objectives: Array = state.get("mission", {}).get("objectives", [])
+		if objective < 0 or objective >= objectives.size(): return "Select a valid objective."
+		var home_role := "attacker" if owner == int(state.mission.get("attacker", 0)) else "defender"
+		if str(objectives[objective].get("role", "")) == home_role: return "Secure Asset cannot target your home objective."
+	if state.phase != "shooting" or state.squads[squad].owner != state.active: return "Start this action during your Shooting phase."
 	if not state.pending_move.is_empty() or not state.pending_contact.is_empty(): return "Finish pending placement first."
-	if state.squads[squad].shot: return "Secure Ground requires a unit that has not shot this phase."
+	if state.squads[squad].shot: return "A unit that has already shot this phase cannot start an action."
 	for other: int in state.squads:
 		if state.squads[other].owner == state.active and state.squads[other].get("started_action_turn", -1) == state.turn:
-			return "Secure Ground can start once per army per turn."
+			return "This action can start once per army per turn."
 	if objective not in targets(state, squad): return "Select a controlled objective within range of this unit."
 	return ""
 
 static func start(state: Dictionary, squad: int, objective: int) -> void:
 	state.squads[squad].started_action_turn = state.turn
-	state.squads[squad].action = {"id": SECURE, "objective": objective, "turn": state.turn}
+	var action_id := _mission_action_for_squad(state, squad)
+	state.squads[squad].action = {"id": action_id, "objective": objective, "turn": state.turn}
 
 static func interrupt(state: Dictionary, squad: int, reason: String) -> void:
 	var action: Dictionary = state.squads[squad].get("action", {})
@@ -88,10 +119,13 @@ static func complete_end_turn(state: Dictionary) -> void:
 		if action.objective not in targets(state, squad):
 			interrupt(state, squad, "unit no longer controls the chosen objective from within range")
 			continue
-		var error := Objectives.secure(state, action.objective, state.squads[squad].owner)
-		if not error.is_empty():
-			interrupt(state, squad, error)
-			continue
+		if str(action.id) == SECURE_ASSET:
+			state.mission.asset_secured_turn[state.squads[squad].owner] = state.turn
+		else:
+			var error := Objectives.secure(state, action.objective, state.squads[squad].owner)
+			if not error.is_empty():
+				interrupt(state, squad, error)
+				continue
 		state.squads[squad].last_action = {"id": action.id, "objective": action.objective, "turn": action.turn, "status": "completed"}
 		state.squads[squad].action = {}
-		state.events.append({"revision": state.revision + 1, "message": "%s completed Secure Ground: %s secured." % [state.squads[squad].name, state.mission.objectives[action.objective].name]})
+		state.events.append({"revision": state.revision + 1, "message": "%s completed %s at %s." % [state.squads[squad].name, "Secure Asset" if str(action.id) == SECURE_ASSET else "Secure Ground", state.mission.objectives[action.objective].name]})

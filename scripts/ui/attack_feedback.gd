@@ -17,13 +17,10 @@ func clear() -> void:
 static func record_key(state: Dictionary) -> String:
 	var last: Dictionary = state.get("last_attack", {})
 	if last.is_empty(): return ""
-	var index := -1
-	var events: Array = state.get("events", [])
-	for i in range(events.size() - 1, -1, -1):
-		if events[i].get("message", "") == last.get("message", ""):
-			index = i
-			break
-	return "%s:%d" % [str(hash(var_to_str(last))), index]
+	# History is bounded: array positions change even when no attack happens.
+	# New records persist their completion identity; old saves use stable content.
+	if last.has("completion_revision"): return "attack:%d" % int(last.completion_revision)
+	return "legacy:" + str(hash(var_to_str(last)))
 
 static func center(state: Dictionary, squad: int) -> Variant:
 	var point := Vector3.ZERO

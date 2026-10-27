@@ -35,6 +35,21 @@ func _initialize() -> void:
 	var start_decision := Combat.UnitActions.phase_decision(state)
 	check(start_decision.timing == "start-phase:movement" and start_decision.priority_player_id == 2, "Phase-start ability windows use the same normalized decision contract")
 	check(start_decision.pass_allowed and start_decision.legal_options.any(func(option: Dictionary) -> bool: return option.action == "pass"), "Phase-start optional effects expose the same explicit pass behavior")
+	for phase: String in ["command", "movement", "shooting", "charge", "fight"]:
+		for kind: String in ["start", "end"]:
+			for owner: int in [1, 2]:
+				var probe := state.duplicate(true)
+				probe.phase = phase
+				probe.unit_abilities.window = {"kind": kind, "owners": [owner]}
+				var snapshot := var_to_str(probe)
+				var projected := Combat.UnitActions.pending_decision(probe)
+				check(not projected.is_empty() and Combat.actor(probe) == projected.priority_player_id, "Phase ownership agrees with the complete projection for %s/%s/P%d" % [phase, kind, owner])
+				check(var_to_str(probe) == snapshot, "Priority queries do not mutate a phase window or its options")
+	var malformed := state.duplicate(true)
+	malformed.unit_abilities.window = {"kind": "end", "owners": [3]}
+	check(Combat.actor(malformed) == -1, "The phase-owner shortcut cannot bypass invalid-owner admission")
+	malformed.unit_abilities.window = {"kind": "unknown-phase-window", "owners": [2]}
+	check(Combat.actor(malformed) == -1, "An unknown window still fails closed before priority projection")
 	state.unit_abilities.window = {"kind": "bladeguard", "owners": [2], "remaining": [1]}
 	var specialized_decision := Combat.UnitActions.pending_decision(state)
 	check(specialized_decision.source == "unit-actions" and specialized_decision.timing == "movement:bladeguard", "Specialized ability windows use the shared decision projection")
@@ -49,6 +64,8 @@ func _initialize() -> void:
 	check(doctrine_decision.priority_player_id == doctrine_state.active and not doctrine_decision.pass_allowed and doctrine_decision.close_policy == "select-required", "Doctrine choice is required and remains owned by the active Marine player")
 	check(doctrine_decision.legal_options.any(func(option: Dictionary) -> bool: return option.value == "none") and doctrine_decision.legal_options.any(func(option: Dictionary) -> bool: return option.value in Combat.Doctrines.ORDER), "Doctrine projection exposes only no-doctrine and currently available choices")
 	check(Combat.actor(doctrine_state) == doctrine_decision.priority_player_id, "Match command priority consumes the normalized doctrine decision owner")
+	doctrine_state.unit_abilities.window = {"kind": "start", "owners": [2]}
+	check(Combat.actor(doctrine_state) == doctrine_decision.priority_player_id, "Combat Doctrine retains priority over a phase-start unit window")
 	check(PendingDecision.create(state, "", "end-phase:movement", 2, [{"action": "pass"}], true).is_empty(), "Malformed decision envelopes fail closed")
 
 	print("Pending decision checks: %d failures" % failures)

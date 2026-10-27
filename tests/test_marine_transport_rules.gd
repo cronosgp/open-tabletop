@@ -1,7 +1,13 @@
 extends SceneTree
 const Transport = preload("res://scripts/edition_11/transport_rules.gd")
+const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Actions = preload("res://scripts/edition_11/actions.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -27,6 +33,22 @@ func add_passengers(state: Dictionary, squad: int, keywords: Array, positions: A
 	for index in range(5):
 		var position: Vector2 = positions[index] if index < positions.size() else Vector2(1.2 + index * 0.1, 0)
 		state.units[squad * 100 + index] = {"owner": 1, "squad": squad, "definition_id": "40kdc:11e:adeptus-astartes:assault-intercessor-squad", "position": position, "radius": 0.1, "keywords": keywords.duplicate(), "wounds": 2, "on_battlefield": true}
+
+func submit_disembark_choice(state: Dictionary, player: int, action: String, model: int, point: Vector2 = Vector2.ZERO) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == action and int(option.get("model", -1)) == model:
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "The current disembark decision does not offer %s for model %d." % [action, model]}
+	var choice: Dictionary = {}
+	for option: Dictionary in UnitActions.choices(state, player):
+		if str(option.get("action", "")) == action and int(option.get("model", -1)) == model:
+			choice = option
+			break
+	if choice.is_empty(): return {"error": "Transport rules no longer offer the projected disembark option."}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "point": point, "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": choice}}, func() -> int: return 6)
 
 func run() -> void:
 	var rhino := make_state("rhino")
@@ -60,7 +82,10 @@ func run() -> void:
 	var disembark := make_state("rhino")
 	disembark["board_size"] = Vector2(48, 36)
 	disembark["terrain"] = {"id": "terrain-11e-v1", "areas": []}
-	disembark["unit_abilities"] = {"transport_window": {}}
+	disembark["round"] = 1
+	disembark["revision"] = 0
+	disembark["events"] = []
+	disembark["unit_abilities"] = {"implementation": Abilities.ID, "transport_window": {}, "window": {}, "used": {}}
 	add_passengers(disembark, 2, ["ADEPTUS ASTARTES", "INFANTRY", "TACTICUS"])
 	check(Transport.embark(disembark, 1, 100, 2).is_empty(), "Test passenger squad embarks before disembark choices")
 	disembark.squads[2].embarked_this_turn = 0
@@ -69,13 +94,24 @@ func run() -> void:
 	check(Transport.disembark_choices(disembark, 1).size() == 1 and Transport.disembark_choices(disembark, 1)[0].value == "rapid", "A transport that made a Normal move requires Rapid Disembark")
 	var rapid_choice := Transport.disembark_choices(disembark, 1)[0]
 	check(Transport.apply(disembark, 1, rapid_choice, Vector2.ZERO, func() -> int: return 6).is_empty(), "Rapid Disembark resolves its mandatory Hazard rolls and opens a placement window")
+	var disembark_frame := ResolutionFrames.current(disembark)
+	check(disembark_frame.get("kind", "") == "transport-disembark" and disembark_frame.get("status", "") == "suspended", "A normal disembarkation suspends a persisted continuation while Hazard and placement steps remain")
+	var disembark_decision := PendingDecisions.current(disembark, ["unit-actions"])
+	check(disembark.unit_abilities.window.get("kind", "") == Transport.DISEMBARK_WINDOW and disembark_decision.get("priority_player_id", -1) == 1 and disembark_decision.get("resume_frame_id", "") == disembark_frame.get("frame_id", ""), "A no-failure disembark placement has a normalized owner decision linked to its continuation")
+	check(not PhaseCloseGate.close_request_error(disembark, 1, disembark.revision).is_empty(), "A pending disembark placement blocks phase close until its models are placed")
+	var restored_disembark: Dictionary = bytes_to_var(var_to_bytes(disembark))
+	var restored_disembark_decision := PendingDecisions.current(restored_disembark, ["unit-actions"])
+	check(restored_disembark.unit_abilities.transport_window.get("resolution_frame_id", "") == disembark_frame.get("frame_id", "") and ResolutionFrames.current(restored_disembark).get("frame_id", "") == disembark_frame.get("frame_id", "") and restored_disembark_decision.get("decision_id", "") == disembark_decision.get("decision_id", ""), "Saving and restoring disembarkation preserves the decision and exact continuation identity")
+	disembark = restored_disembark
 	var positions: Array[Vector2] = [Vector2(1.45, 0), Vector2(1.70, 0), Vector2(1.95, 0), Vector2(2.20, 0), Vector2(2.45, 0)]
 	for index in range(5):
 		var model := 200 + index
-		var place := {"action": "transport-disembark-place", "model": model, "target": 2, "value": ""}
-		check(Transport.apply(disembark, 1, place, positions[index]).is_empty(), "Disembark placement accepts legal wholly-within, non-overlapping model position %d" % model)
+		var place_result := submit_disembark_choice(disembark, 1, "transport-disembark-place", model, positions[index])
+		check(str(place_result.get("error", "")).is_empty(), "Disembark placement accepts legal wholly-within, non-overlapping model position %d through the normalized command" % model)
 	check(Transport.confirm_error(disembark).is_empty(), "A complete coherently placed squad can confirm disembarkation")
-	check(Transport.apply(disembark, 1, {"action": "transport-disembark-confirm"}, Vector2.ZERO).is_empty(), "Disembark confirmation restores every model to the battlefield")
+	var confirm_result := submit_disembark_choice(disembark, 1, "transport-disembark-confirm", -1)
+	check(str(confirm_result.get("error", "")).is_empty(), "Disembark confirmation restores every model through the normalized command")
+	check(ResolutionFrames.current(disembark).is_empty(), "Confirming a normal disembarkation completes its continuation frame")
 	check(disembark.units[200].on_battlefield and not disembark.units[200].has("embarked_transport") and disembark.squads[2].get("disembarked_turn", -1) == 1 and disembark.squads[2].moved and Actions.charge_blocked(disembark, 2), "Rapid Disembark sets up the unit, prevents charging this turn and consumes its move")
 	var hazard_disembark := make_state("rhino")
 	hazard_disembark["unit_abilities"] = {"transport_window": {}, "window": {}}
@@ -93,6 +129,19 @@ func run() -> void:
 	for index in range(hazard_survivors.size()):
 		check(Transport.apply(hazard_disembark, 1, {"action": "transport-disembark-place", "model": hazard_survivors[index]}, Vector2(1.4 + index * 0.25, 0)).is_empty(), "Survivors can be placed after disembark Hazard")
 	check(Transport.apply(hazard_disembark, 1, {"action": "transport-disembark-confirm"}, Vector2.ZERO).is_empty() and hazard_disembark.unit_abilities.window.is_empty(), "Normal Disembark closes its Hazard actor window after confirmation")
+	var doomed_disembark := make_state("rhino")
+	doomed_disembark["unit_abilities"] = {"transport_window": {}, "window": {}}
+	add_passengers(doomed_disembark, 2, ["ADEPTUS ASTARTES", "INFANTRY", "TACTICUS"])
+	for model in [200, 201, 202, 203, 204]: doomed_disembark.units[model].wounds = 1
+	check(Transport.embark(doomed_disembark, 1, 100, 2).is_empty(), "Passenger unit embarks before testing an all-casualties Hazard outcome")
+	doomed_disembark.squads[2].embarked_this_turn = 0
+	doomed_disembark.squads[1].move_type = "normal"
+	check(Transport.apply(doomed_disembark, 1, Transport.disembark_choices(doomed_disembark, 1)[0], Vector2.ZERO, func() -> int: return 1).is_empty(), "A disembarkation with failed Hazard rolls opens its framed allocation step")
+	for _index in range(5):
+		var doomed_choices := Transport.choices(doomed_disembark, 1)
+		if doomed_choices.is_empty(): break
+		check(Transport.apply(doomed_disembark, 1, doomed_choices[0], Vector2.ZERO).is_empty(), "Hazard casualties resolve until the passenger unit is destroyed")
+	check(doomed_disembark.unit_abilities.transport_window.is_empty() and ResolutionFrames.current(doomed_disembark).is_empty(), "When Hazard destroys every passenger, the no-choice path closes its transport frame automatically")
 	var combat_disembark := make_state("rhino")
 	combat_disembark["board_size"] = Vector2(48, 36)
 	combat_disembark["terrain"] = {"id": "blocked-tactical-zone", "areas": [{"name": "Transport enclosure", "category": "ruin", "bounds": Rect2(-4, -4, 8, 8), "features": [{"bounds": Rect2(-4, -4, 8, 8), "height": 4.0, "blocks_end": true}]}]}

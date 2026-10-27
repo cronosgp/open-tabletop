@@ -4,6 +4,7 @@ const Capabilities = preload("res://scripts/edition_11/army_capabilities.gd")
 const Enhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
 const CurrentProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const C = Prepared.Combat
 var failures := 0
 
@@ -57,8 +58,17 @@ func run() -> void:
 		var advance_error := C.begin_movement(wisdom, 1, first_model(wisdom, wisdom_squad), "advance", wisdom.revision, func() -> int: return 2)
 		check(advance_error.is_empty() and C.Stratagems.pending(wisdom).get("stormseers_wisdom", false), "Stormseer's Wisdom opens after the unit's Advance roll: " + advance_error)
 		var cp_before: int = wisdom.cp[1]
-		var reroll_error := C.resolve_roll_reaction(wisdom, 1, wisdom_squad, "stormseers-wisdom", wisdom.revision, func() -> int: return 5)
-		check(reroll_error.is_empty() and wisdom.cp[1] == cp_before and wisdom.pending_move.get("raw_bonus", 0) == 5, "Stormseer's Wisdom rerolls the Advance D6 for free and uses the new result")
+		var decision := C.Stratagems.pending_decision(wisdom)
+		var projected: Dictionary = {}
+		for option: Dictionary in decision.get("legal_options", []):
+			if int(option.get("target", -1)) == wisdom_squad and str(option.get("value", "")) == "stormseers-wisdom": projected = option
+		var choice := {"action": "stratagem-reaction", "model": -1, "target": wisdom_squad, "value": "stormseers-wisdom", "die": -1}
+		var envelope := {"_decision_type": MatchCommands.STRATAGEM_DECISION_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": choice}
+		var before_wrong_owner := var_to_bytes(wisdom)
+		var wrong_owner := MatchCommands.execute(wisdom, 2, {"kind": MatchCommands.COMMAND_REACTION, "choice": envelope, "revision": wisdom.revision}, func() -> int: return 5)
+		check(not str(wrong_owner.get("error", "")).is_empty() and var_to_bytes(wisdom) == before_wrong_owner, "The opponent cannot submit or mutate Stormseer's Wisdom")
+		var reroll_result := MatchCommands.execute(wisdom, 1, {"kind": MatchCommands.COMMAND_REACTION, "choice": envelope, "revision": wisdom.revision}, func() -> int: return 5)
+		check(str(reroll_result.get("error", "")).is_empty() and wisdom.cp[1] == cp_before and wisdom.pending_move.get("raw_bonus", 0) == 5, "Stormseer's Wisdom rerolls the Advance D6 through the public command for free")
 
 	var huntmaster := Prepared.initial_state({"manual_allocation": false, "core_stratagems": true, "unit_abilities": true, "combat_doctrines": true, "marine_detachment": Enhancements.SPEARPOINT}, {1: army("outrider-squad", Enhancements.CHOGORIAN_HUNTMASTER, 3), 2: army("intercessor-squad", "", 5)})
 	check(not huntmaster.has("error"), "Chogorian Huntmaster enters a local Spearpoint training match: " + str(huntmaster.get("error", "")))

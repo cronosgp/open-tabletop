@@ -15,7 +15,7 @@
   "full_match_certified": false,
   "known_scope_limits": [
     "Full faction/army legality is not certified.",
-    "Upper-floor/vertical terrain geometry is not supported by the current board model.",
+    "Grapnel movement on the bounded central first floor is implemented, but its elevation interaction still needs focused local checks; other upper-floor and vertical combat geometry remains unsupported.",
     "External Phobos Captain link remains excluded.",
     "Network validation and full local regression are deferred."
   ]

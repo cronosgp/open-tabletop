@@ -5,6 +5,8 @@ const Enhancements = preload("res://scripts/edition_11/stormlance_enhancements.g
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const CurrentProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 const C = Prepared.Combat
 const D = C.DetachmentStratagems
 var failures := 0
@@ -43,13 +45,25 @@ func run() -> void:
 		var first := C.begin_movement(state, 1, 100, "advance", state.revision, func() -> int: return 2)
 		check(first.is_empty() and C.Stratagems.pending(state).get("supercharged", false), "Advance opens the Supercharged Engines decision window")
 		var cp_before: int = state.cp[1]
-		var reroll := C.resolve_roll_reaction(state, 1, bike_squad, "supercharged-engines", state.revision, func() -> int: return 5)
-		check(reroll.is_empty() and state.cp[1] == cp_before and state.pending_move.bonus >= 5, "Supercharged reroll is free and its new D6 result is mandatory")
+		var decision := C.Stratagems.pending_decision(state)
+		var projected: Dictionary = {}
+		for option: Dictionary in decision.get("legal_options", []):
+			if int(option.get("target", -1)) == bike_squad and str(option.get("value", "")) == "supercharged-engines": projected = option
+		var choice := {"action": "stratagem-reaction", "model": -1, "target": bike_squad, "value": "supercharged-engines", "die": -1}
+		var envelope := {"_decision_type": MatchCommands.STRATAGEM_DECISION_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": choice}
+		var before_wrong_owner := var_to_bytes(state)
+		var wrong_owner := MatchCommands.execute(state, 2, {"kind": MatchCommands.COMMAND_REACTION, "choice": envelope, "revision": state.revision}, func() -> int: return 5)
+		check(not str(wrong_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_owner, "The opponent cannot submit or mutate Supercharged Engines")
+		var reroll_result := MatchCommands.execute(state, 1, {"kind": MatchCommands.COMMAND_REACTION, "choice": envelope, "revision": state.revision}, func() -> int: return 5)
+		check(str(reroll_result.get("error", "")).is_empty() and state.cp[1] == cp_before and state.pending_move.bonus >= 5, "Supercharged reroll uses the public command for free and its new D6 result is mandatory")
 		state.pending_move = {}
+		state.pending_contact = {}
+		state.resolution_frames = []
 		state.phase = "shooting"
 		state.active = 2
 		state.unit_abilities.window = {}
 		state.unit_abilities.setup_done = true
+		state.unit_abilities.phase_key = UnitActions.key(state)
 		state.terrain.areas = []
 		for model: int in state.units:
 			if state.units[model].squad == speeder_squad: state.units[model].position = Vector2(0, 0)
@@ -60,9 +74,9 @@ func run() -> void:
 			if candidate.get("action", "") == "auspex-spotted" and int(candidate.get("target", -1)) == bike_squad: spotted_choice = candidate
 		check(not spotted_choice.is_empty(), "Auspex offers a visible enemy within 12 inches at Shooting start")
 		if not spotted_choice.is_empty():
-			var result: Dictionary = UnitActions.apply(state, 2, spotted_choice, Vector2.ZERO, Callable())
-			check(result.get("error", "").is_empty() and is_equal_approx(Detection.detection_range(state, 100, false), 18.0), "Auspex marks the target spotted and adds 3 inches to detection")
-			check(D.spotted_source_used(state, speeder_squad) and UnitActions.auspex_triangulation_choices(state, 2).is_empty(), "One Auspex bearer marks no more than one enemy unit in its Shooting phase")
+			var result: Dictionary = PublicUnitCommand.submit(state, 2, spotted_choice, Vector2.ZERO, Callable())
+			check(result.get("error", "").is_empty() and is_equal_approx(Detection.detection_range(state, 100, false), 18.0), "Auspex marks the target spotted and adds 3 inches to detection: %s" % str(result.get("error", "")))
+			check(D.spotted_source_used(state, speeder_squad) and UnitActions.auspex_triangulation_choices(state, 2).is_empty(), "One Auspex bearer marks no more than one enemy unit in its Shooting phase: %s" % str(result.get("error", "")))
 			state.turn += 1
 			check(D.spotted(state, bike_squad) and is_equal_approx(Detection.detection_range(state, 100, false), 18.0) and not D.spotted_source_used(state, speeder_squad), "The spotted bonus persists and the Auspex can be used again in a later Shooting phase")
 			for model: int in state.units:

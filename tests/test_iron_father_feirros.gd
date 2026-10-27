@@ -7,6 +7,8 @@ const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Techmarine = preload("res://scripts/edition_11/techmarine.gd")
 const Prevention = preload("res://scripts/edition_11/unit_prevention.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -33,6 +35,17 @@ func action(state: Dictionary, action_id: String, model: int = -1) -> Dictionary
 	for option: Dictionary in C.UnitActions.choices(state, 1):
 		if option.action == action_id and (model < 0 or int(option.get("model", -1)) == model): return option
 	return {}
+
+func submit_projected_choice(state: Dictionary, player: int, selected: Dictionary) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No UnitActions decision belongs to Player %d." % player}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "Selected choice is not in the current UnitActions projection."}
+	return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, func() -> int: return 6)
 
 func _initialize() -> void: call_deferred("run")
 
@@ -109,15 +122,25 @@ func run() -> void:
 	var move_error := C.begin_movement(state, 1, feirros, "normal", state.revision)
 	check(move_error.is_empty() and state.unit_abilities.window.get("kind", "") == "blessings-of-the-omnissiah", "Master of the Forge opens at the start of Feirros's move")
 	var defer := action(state, "master-forge-defer")
-	check(not defer.is_empty() and C.unit_action(state, 1, defer, Vector2.ZERO, state.revision).is_empty(), "Master of the Forge can be deferred until the end of the move")
+	var before_wrong_owner := var_to_bytes(state)
+	var wrong_defer_owner := submit_projected_choice(state, 2, defer) if not defer.is_empty() else {"error": "choice missing"}
+	check(not str(wrong_defer_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_owner, "Opponent cannot defer Feirros's Master of the Forge")
+	var defer_result := submit_projected_choice(state, 1, defer) if not defer.is_empty() else {"error": "choice missing"}
+	check(not defer.is_empty() and str(defer_result.get("error", "")).is_empty(), "Master of the Forge can be deferred through the normalized decision until the end of the move")
 	state.pending_move = {}
 	state.squads[aggressors].moved = true
 	state.squads[aggressors].move_type = "normal"
 	C.UnitActions.end_move(state, aggressors)
 	var repair := action(state, "master-of-the-forge")
 	check(not repair.is_empty() and repair.target == vehicle, "Master of the Forge offers the nearby Astartes Vehicle")
-	if not repair.is_empty(): check(C.unit_action(state, 1, repair, Vector2.ZERO, state.revision).is_empty(), "Master of the Forge repair action resolves")
+	if not repair.is_empty():
+		var before_wrong_repair_owner := var_to_bytes(state)
+		var wrong_repair_owner := submit_projected_choice(state, 2, repair)
+		check(not str(wrong_repair_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_repair_owner, "Opponent cannot resolve Feirros's repair")
+		var repair_result := submit_projected_choice(state, 1, repair)
+		check(str(repair_result.get("error", "")).is_empty(), "Master of the Forge repair action uses the normalized decision: " + str(repair_result.get("error", "")))
 	check(state.units[vehicle].wounds == 10 and Techmarine.modifier_ignore_active(state, vehicle), "Master of the Forge heals a fixed 3 wounds and grants temporary attack-modifier protection")
+	check(Techmarine.characteristic_modifier_ignore_active(state, vehicle), "Master of the Forge also ignores direct BS/WS characteristic modifiers")
 	state.turn += 2
 	check(not Techmarine.modifier_ignore_active(state, vehicle), "Master of the Forge protection ends at the next own Movement phase")
 	print("Iron Father Feirros local checks: %d failures" % failures)

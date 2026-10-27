@@ -7,6 +7,8 @@ const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Defenders = preload("res://scripts/edition_11/defender_groups.gd")
 const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -28,6 +30,17 @@ func find_model(state: Dictionary, owner: int, identity: String) -> int:
 	for model: int in state.units:
 		if state.units[model].owner == owner and C.UnitAbilities.identity(state.units[model]) == identity: return model
 	return -1
+
+func submit_projected_choice(state: Dictionary, player: int, selected: Dictionary) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No UnitActions decision belongs to Player %d." % player}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "Selected choice is not in the current UnitActions projection."}
+	return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, func() -> int: return 6)
 
 func _initialize() -> void: call_deferred("run")
 
@@ -81,7 +94,11 @@ func run() -> void:
 	for option: Dictionary in choices:
 		if option.action == "rampart" and option.model == lysander: rampart_choice = option
 	check(not rampart_choice.is_empty() and state.unit_abilities.window.kind == "start", "Rampart is offered only in the start-of-phase decision window")
-	check(C.unit_action(state, 1, rampart_choice, Vector2.ZERO, state.revision).is_empty(), "Rampart can be activated at phase start")
+	var before_rampart := var_to_bytes(state)
+	var wrong_rampart := submit_projected_choice(state, 2, rampart_choice)
+	check(not str(wrong_rampart.get("error", "")).is_empty() and var_to_bytes(state) == before_rampart, "Opponent cannot activate Rampart")
+	var rampart_result := submit_projected_choice(state, 1, rampart_choice)
+	check(str(rampart_result.get("error", "")).is_empty(), "Rampart can be activated through the normalized phase-start decision: " + str(rampart_result.get("error", "")))
 	check(C.UnitAbilities.rampart_active(state, lysander) and Defenders.profile(state, lysander).invulnerable_target == 2, "Rampart gives Darnath a 2+ invulnerable save for the current phase")
 	choices = C.UnitActions.choices(state, 1)
 	check(not choices.any(func(option: Dictionary) -> bool: return option.action == "rampart"), "Rampart is spent for the battle and cannot be activated twice")

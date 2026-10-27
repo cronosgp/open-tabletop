@@ -17,6 +17,7 @@ DEMO = {"test_rules", "test_data_pack", "test_model_cache",
         "test_forceorg_catalog", "test_forceorg_catalog_download", "test_model_download", "test_network", "test_army_catalog", "test_army_builder"}
 QUICK_PROFILES = {"focused", "targeted"}
 VARIANTS = {"test_attack_plan_network": ["--ranged-test"],
+            "test_current_reference_match_network": ["--tactical-profile-test"],
             "test_saved_armies_network": ["--budget-mismatch-test", "--stratagem-test", "--movement-rerolls-test", "--attack-rerolls-test", "--save-rerolls-test", "--damage-rerolls-test", "--hazard-rerolls-test", "--count-rerolls-test", "--escape-rerolls-test"],
             "test_movement_rerolls_network": ["--advance-test"],
             "test_attack_rerolls_network": ["--wound-test", "--save-test", "--damage-test", "--hazard-test", "--count-test"],
@@ -24,11 +25,44 @@ VARIANTS = {"test_attack_plan_network": ["--ranged-test"],
             "test_equipment_network": ["--melee-test", "--vehicle-test"],
             "test_weapon_selection_network": ["--allocation-test", "--random-test"]}
 ERROR = re.compile(r"SCRIPT ERROR:|(?:^|\n)ERROR:|(?:^|\n)FAIL(?:\s|:)|\b[1-9]\d* failures\b")
+# Godot 4.7.2's headless dummy renderer reports these RID cleanup messages
+# after an otherwise clean process exit, including on the normal project startup.
+# Keep them in raw logs and reports, but do not treat shutdown-only diagnostics as
+# runtime/test failures. Other ERROR/SCRIPT ERROR output remains fatal.
+HEADLESS_RID_CLEANUP = re.compile(
+    r"(?m)^ERROR: \d+ RID allocations of type '.+' were leaked at exit\.$"
+)
 PRELOAD = re.compile(r'preload\("res://([^"\n]+\.gd)"\)')
+
+# These vertical slices use current-catalog templates in the prepared-match
+# flow. Their dependency graph also includes the legacy combat constructor,
+# which remains available for separate historical exercises.
+CURRENT_CATALOG_MATCH_SUITES = {
+    "test_tactical_combat_flow",
+    "test_tactical_training",
+    "test_local_match_vertical_slice",
+    "test_current_reference_match_network",
+    "test_roll_choice_ui",
+    "test_doctrine_choice_ui",
+    "test_save_outcome_ui",
+    "test_selection_response",
+}
+
+# The builder regression injects its own synthetic catalog and only opens the
+# main scene to verify navigation.  It does not invoke the historical training
+# roster, even though the builder script preloads that optional exercise.
+DATA_FREE_RUNTIME_SUITES = {
+    "test_army_builder",
+}
+
+
+def has_headless_rid_cleanup(output):
+    return bool(HEADLESS_RID_CLEANUP.search(re.sub(r"\x1b\[[0-9;]*m", "", output)))
 
 
 def failed(code, output):
     output = re.sub(r"\x1b\[[0-9;]*m", "", output)
+    output = HEADLESS_RID_CLEANUP.sub("", output)
     return code != 0 or bool(ERROR.search(output))
 
 
@@ -55,6 +89,14 @@ def select_suites(profile, suites, requested, network):
 
 
 def needs_legacy_starter(suite):
+    if suite in DATA_FREE_RUNTIME_SUITES:
+        return False
+    # These UI tests start practice matches through main.tscn at runtime, so
+    # their data dependency is not visible to the static preload walker.
+    if suite in {"test_action_guidance", "test_gameplay_layout", "test_unit_choice_help_ui", "test_selection_card"}:
+        return True
+    if suite in CURRENT_CATALOG_MATCH_SUITES:
+        return False
     pending = [ROOT / "tests" / (suite + ".gd")]
     visited = set()
     while pending:
@@ -161,7 +203,7 @@ class Runner:
             while process.poll() is None:
                 if log.is_file():
                     partial = log.read_text(encoding="utf-8", errors="replace")
-                    if ERROR.search(re.sub(r"\x1b\[[0-9;]*m", "", partial)):
+                    if failed(0, partial):
                         early_failure = True
                         process.kill()
                         process.wait()
@@ -179,7 +221,8 @@ class Runner:
         status = "timeout" if expired else "failed" if early_failure or failed(process.returncode, output) else "passed"
         result = dict(name=label, status=status, exit_code=process.returncode,
                       seconds=round(time.monotonic() - started, 2), log=str(log),
-                      stopped_on_error=early_failure)
+                      stopped_on_error=early_failure,
+                      headless_rid_cleanup_diagnostics=has_headless_rid_cleanup(output))
         self.results.append(result)
         print(f"{status.upper():7} {label}", flush=True)
         if status != "passed":

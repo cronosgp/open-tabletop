@@ -1,5 +1,7 @@
 extends SceneTree
 const Combat = preload("res://scripts/edition_11/combat_scenario.gd")
+const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 var failures := 0
 func check(condition: bool, message: String) -> void:
 	if not condition:
@@ -27,6 +29,9 @@ func _initialize() -> void:
 	check(not Combat.begin_contact_move(state, 1, 100, "charge", 0).is_empty(), "Charge placement before dice accepted")
 	choose_charge(state)
 	var origin: Vector2 = state.units[100].position
+	var contact_frame: Dictionary = state.resolution_frames.back().duplicate(true)
+	state = bytes_to_var(var_to_bytes(state))
+	check(state.pending_contact.get("kind", "") == "charge" and state.resolution_frames.back() == contact_frame, "Serialized manual charge retains its placement draft and continuation frame")
 	check(not Combat.advance_phase(state, 1, state.revision).is_empty(), "Phase skipped a draft contact move")
 	check(not Combat.stage_contact_move(state, 2, 100, Vector2(-7, -8), state.revision).is_empty(), "Opponent placed charging model")
 	check(not Combat.stage_contact_move(state, 1, 200, Vector2(-4, -8), state.revision).is_empty(), "Enemy model moved as charger")
@@ -47,11 +52,24 @@ func _initialize() -> void:
 	Combat.advance_phase(state, 1, state.revision)
 	check(state.fight_step == "pile_in", "Fight did not start with pile-in")
 	Combat.begin_contact_move(state, 1, 100, "pile_in", state.revision)
+	var pile_frame := ResolutionFrames.current(state)
+	check(pile_frame.get("kind", "") == "unit-action" and pile_frame.get("status", "") == "suspended" and str(state.pending_contact.get("resolution_action_id", "")) == pile_frame.get("action_id", ""), "Pile-in placement owns a suspended contact continuation frame")
+	check("pending contact movement" in PhaseCloseGate.command_error(state, 1, state.revision), "Unrelated commands are blocked during a pending pile-in")
+	var restored_pile_in: Dictionary = bytes_to_var(var_to_bytes(state))
+	check(ResolutionFrames.current(restored_pile_in) == pile_frame and restored_pile_in.pending_contact.get("resolution_action_id", "") == pile_frame.get("action_id", ""), "Pile-in placement retains its continuation identity after save/resume")
+	state = restored_pile_in
 	var radii: float = state.units[100].radius + state.units[200].radius
 	var contact := Vector2(-3 - radii, -8)
+	var legacy_contact: Dictionary = bytes_to_var(var_to_bytes(state))
+	legacy_contact.resolution_frames = []
+	legacy_contact.pending_contact.erase("resolution_action_id")
+	check(Combat.stage_contact_move(legacy_contact, 1, 100, contact, legacy_contact.revision) == "", "An older unframed contact draft could not resume through its owning action")
+	check(ResolutionFrames.current(legacy_contact).get("status", "") == "suspended" and not legacy_contact.pending_contact.get("resolution_action_id", "").is_empty(), "Resuming an older contact draft creates its persisted frame")
+	check(Combat.finish_contact_move(legacy_contact, 1, legacy_contact.revision, true) == "" and ResolutionFrames.current(legacy_contact).is_empty(), "Cancelling a migrated legacy contact draft completes the restored frame")
 	check(Combat.stage_contact_move(state, 1, 100, contact, state.revision) == "", "Pile-in into base contact rejected")
+	check(ResolutionFrames.current(state).get("status", "") == "suspended", "Each staged pile-in segment re-suspends the continuation")
 	check(not Combat.fight(state, 1, 100, 200, state.revision, six).error.is_empty(), "Attacked during pending pile-in")
-	check(Combat.finish_contact_move(state, 1, state.revision) == "" and state.fight_actor == 2, "Confirmed pile-in did not give opponent their window")
+	check(Combat.finish_contact_move(state, 1, state.revision) == "" and state.fight_actor == 2 and ResolutionFrames.current(state).is_empty(), "Confirmed pile-in did not give opponent their window and complete its frame")
 	Combat.begin_contact_move(state, 2, 200, "pile_in", state.revision)
 	check(not Combat.stage_contact_move(state, 2, 200, Vector2(-2.5, -8), state.revision).is_empty(), "Base-contact model moved during pile-in")
 	check(Combat.finish_contact_move(state, 2, state.revision) == "" and state.fight_step == "attacks", "Stationary pile-in completion rejected")
@@ -70,6 +88,14 @@ func _initialize() -> void:
 	Combat.stage_contact_move(state, 1, 100, Vector2(-6.1, -8), state.revision)
 	check(Combat.finish_contact_move(state, 1, state.revision) == "" and state.squads[1].overrun_used and state.squads[2].fight_eligible, "Overrun did not grant enemy fight eligibility")
 	check(not Combat.begin_contact_move(state, 1, 100, "overrun", state.revision).is_empty(), "Second overrun allowed")
+	var cancel_state := fixture()
+	cancel_state.phase = "fight"
+	cancel_state.fight_step = "attacks"
+	cancel_state.squads[1].charged = true
+	var cancel_origin: Vector2 = cancel_state.units[100].position
+	check(Combat.begin_contact_move(cancel_state, 1, 100, "overrun", cancel_state.revision) == "", "Eligible overrun could not start for cancellation check")
+	check(Combat.stage_contact_move(cancel_state, 1, 100, Vector2(-6.1, -8), cancel_state.revision) == "", "Overrun draft could not stage for cancellation check")
+	check(Combat.finish_contact_move(cancel_state, 1, cancel_state.revision, true) == "" and cancel_state.units[100].position == cancel_origin and ResolutionFrames.current(cancel_state).is_empty(), "Cancelling overrun restores placement and completes its frame")
 	# Engaging consolidation forces an immediate enemy fight and resumes afterwards.
 	state = fixture()
 	state.units[200].position = Vector2(-4, -8)

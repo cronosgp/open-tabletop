@@ -7,6 +7,7 @@ const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const Enhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -54,6 +55,15 @@ func choice_for(s: Dictionary, player: int, value: String, target: int, mode: St
 	for choice: Dictionary in D.choices(s, player):
 		if str(choice.get("value", "")) == value and int(choice.get("target", -1)) == target and (mode.is_empty() or str(choice.get("mode", "")) == mode): return choice
 	return {}
+
+func submit_normalized_choice(s: Dictionary, player: int, selected: Dictionary, roller: Callable = Callable()) -> Dictionary:
+	var decision := C.UnitActions.pending_decision(s)
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No matching UnitActions decision for Player %d." % player}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")): projected = option; break
+	if projected.is_empty(): return {"error": "The selected option is not in the current projected decision."}
+	return MatchCommandService.execute(s, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(s.revision), "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, roller)
 
 func _initialize() -> void:
 	var dreadnought := "40kdc:11e:adeptus-astartes:redemptor-dreadnought"
@@ -112,14 +122,80 @@ func _initialize() -> void:
 	check(terror_result.get("error", "").is_empty() and D.adamantine_targets(s, dread_squad) == [enemy_squad], "Adamantine Terror only tests enemy units engaged with the selected Dreadnought")
 	check(int(terror_roll.get("modifier", 0)) == -1 and not terror_roll.get("passed", true) and s.squads[enemy_squad].battle_shocked and s.cp[1] == 2, "Adamantine Terror applies -1 to the Battle-shock roll and marks a failed target")
 
+	var mixed_armies := {
+		1: {"schema_version": 2, "faction": "Space Marines", "category": "training", "points_limit": 500, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:redemptor-dreadnought", "models": 1, "copies": 1}]},
+		2: {"schema_version": 2, "faction": "Space Marines", "category": "training", "points_limit": 500, "entries": [
+			{"definition_id": "40kdc:11e:adeptus-astartes:captain-on-bike", "models": 1, "copies": 1, "enhancement_id": Enhancements.LORD_OF_THE_RAVENWING},
+			{"definition_id": "40kdc:11e:adeptus-astartes:chaplain-on-bike", "models": 1, "copies": 1}]}}
+	var aura_terror := P.initial_state({"unit_abilities": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true, "marine_detachment": Enhancements.WRATH_OF_THE_ROCK}, mixed_armies)
+	check(not aura_terror.has("error"), "Opposing Astartes armies can materialize the synthetic mixed-detachment interaction")
+	if not aura_terror.has("error"):
+		D.enable_ironclad(aura_terror)
+		aura_terror.combat_doctrines.ironclad_champions = true
+		aura_terror.mission.stage = "battle"
+		aura_terror.awakened_dynasty.pending = []
+		aura_terror.unit_abilities.setup_players = [1, 2]
+		aura_terror.unit_abilities.battle_players = [1, 2]
+		aura_terror.unit_abilities.phase_key = C.UnitActions.key(aura_terror)
+		aura_terror.deployment.complete = true
+		aura_terror.cp = {1: 3, 2: 3}
+		var terror_dread := squad_for(aura_terror, 1, "redemptor-dreadnought")
+		var tempered_squad := squad_for(aura_terror, 2, "captain-on-bike")
+		var second_terror_squad := squad_for(aura_terror, 2, "chaplain-on-bike")
+		var tempered_model := model_for(aura_terror, tempered_squad)
+		var second_terror_model := model_for(aura_terror, second_terror_squad)
+		aura_terror.squads[tempered_squad].enhancement_id = Enhancements.TEMPERED_IN_BATTLE
+		aura_terror.units[tempered_model].enhancement_id = Enhancements.TEMPERED_IN_BATTLE
+		aura_terror.units[model_for(aura_terror, terror_dread)].position = Vector2.ZERO
+		aura_terror.units[tempered_model].position = Vector2(2.8, 0.0)
+		aura_terror.units[second_terror_model].position = Vector2(-2.8, 0.0)
+		aura_terror.phase = "fight"
+		aura_terror.unit_abilities.window = {"kind": "start", "owners": [1]}
+		var terror_start_choice := choice_for(aura_terror, 1, D.ADAMANTINE_TERROR, terror_dread)
+		var normalized_terror_start := submit_normalized_choice(aura_terror, 1, terror_start_choice, func() -> int: return 2)
+		var terror_start_error := str(normalized_terror_start.get("error", ""))
+		var current_terror: Dictionary = D.adamantine_pending(aura_terror).get("current_result", {})
+		check(D.adamantine_targets(aura_terror, terror_dread) == [tempered_squad, second_terror_squad], "Adamantine Terror queues each enemy unit engaged with the Dreadnought")
+		check(terror_start_error.is_empty() and aura_terror.cp[1] == 2 and current_terror.get("squad", -1) == tempered_squad and current_terror.get("rolls", []) == [2, 2] and not aura_terror.squads[tempered_squad].battle_shocked and C.UnitActions.actor(aura_terror) == 2, "Adamantine Terror spends CP once and holds the target's result for the target controller: " + terror_start_error + " pending=" + str(D.adamantine_pending(aura_terror)) + " cp=" + str(aura_terror.cp))
+		var terror_decision := C.UnitActions.pending_decision(aura_terror)
+		var terror_reroll: Dictionary = {}
+		for option: Dictionary in C.unit_choices(aura_terror, 2):
+			if option.get("action", "") == "adamantine-terror-decision" and option.get("value", "") == "tempered-in-battle": terror_reroll = option
+		check(terror_decision.get("priority_player_id", -1) == 2 and not terror_reroll.is_empty(), "The tested unit's controller receives the normalized aura reroll choice")
+		var terror_restore: Dictionary = bytes_to_var(var_to_bytes(aura_terror))
+		check(C.UnitActions.pending_decision(terror_restore).get("decision_id", "") == terror_decision.get("decision_id", "") and C.ResolutionFrames.current(terror_restore).get("status", "") == "suspended", "The Adamantine Terror reroll and Fight-start frame survive serialization")
+		var blocked_terror_close := C.advance_phase(terror_restore, 1, terror_restore.revision)
+		check(not blocked_terror_close.is_empty() and not terror_restore.squads[tempered_squad].battle_shocked, "The Fight phase cannot close before the Adamantine Terror result is decided")
+		var normalized_terror_reroll := submit_normalized_choice(terror_restore, 2, terror_reroll, func() -> int: return 6)
+		var terror_reroll_error := str(normalized_terror_reroll.get("error", ""))
+		var second_result: Dictionary = D.adamantine_pending(terror_restore).get("current_result", {})
+		var second_reroll: Dictionary = {}
+		for option: Dictionary in C.unit_choices(terror_restore, 2):
+			if option.get("action", "") == "adamantine-terror-decision" and option.get("value", "") == "tempered-in-battle": second_reroll = option
+		check(terror_reroll_error.is_empty() and second_result.get("squad", -1) == second_terror_squad and second_result.get("rolls", []) == [6, 6] and not second_reroll.is_empty(), "Resolving one aura reroll resumes the next engaged unit's Leadership test")
+		var normalized_second_reroll := submit_normalized_choice(terror_restore, 2, second_reroll, func() -> int: return 6)
+		var second_reroll_error := str(normalized_second_reroll.get("error", ""))
+		var final_results: Array = terror_restore.get("last_adamantine_terror", [])
+		var first_final: Dictionary = final_results[0] if not final_results.is_empty() else {}
+		var second_final: Dictionary = final_results[1] if final_results.size() > 1 else {}
+		check(second_reroll_error.is_empty() and final_results.size() == 2 and not terror_restore.squads[tempered_squad].battle_shocked and not terror_restore.squads[second_terror_squad].battle_shocked and first_final.get("rerolled_from", []) == [2, 2] and second_final.get("rerolled_from", []) == [6, 6] and terror_restore.cp[1] == 2, "Tempered in Battle re-rolls both dice for each Adamantine Terror target and applies the passing results")
+		check(D.adamantine_pending(terror_restore).is_empty(), "Adamantine Terror clears its saved continuation after all Leadership decisions finish")
+
 	s = prepared()
 	dread_squad = squad_for(s, 1, "redemptor-dreadnought")
 	dread_unit = model_for(s, dread_squad)
 	s.phase = "movement"
 	s.unit_abilities.window = {"kind": D.UNSTOPPABLE_WINDOW, "owners": [1], "squad": dread_squad, "trigger": "movement", "action": "movement", "model": dread_unit, "move_type": "normal"}
 	var advance_choice := choice_for(s, 1, D.UNSTOPPABLE_ADVANCE, dread_squad)
-	var advance_result := D.apply(s, 1, advance_choice)
-	check(advance_result.get("error", "").is_empty() and advance_result.has("resume_mobile_declaration") and D.mobile_active(s, dread_squad) and Terrain.mobile_unit(s, dread_unit) and s.cp[1] == 2, "Unstoppable Advance grants Mobile for the declaration and resumes the selected move")
+	var advance_decision := C.UnitActions.pending_decision(s)
+	var advance_restore: Dictionary = bytes_to_var(var_to_bytes(s))
+	var restored_advance_decision := C.UnitActions.pending_decision(advance_restore)
+	check(advance_decision.get("priority_player_id", -1) == 1 and not advance_choice.is_empty() and restored_advance_decision.get("decision_id", "") == advance_decision.get("decision_id", ""), "Unstoppable Advance is a Player 1 declaration choice with a stable identity after save and restore")
+	var normalized_advance_choice: Dictionary = {}
+	for option: Dictionary in C.unit_choices(advance_restore, 1):
+		if option.get("action", "") == "detachment-stratagem" and option.get("value", "") == D.UNSTOPPABLE_ADVANCE and int(option.get("target", -1)) == dread_squad: normalized_advance_choice = option
+	var advance_result := submit_normalized_choice(advance_restore, 1, normalized_advance_choice)
+	check(advance_result.get("error", "").is_empty() and advance_restore.unit_abilities.window.is_empty() and D.mobile_active(advance_restore, dread_squad) and Terrain.mobile_unit(advance_restore, dread_unit) and advance_restore.cp[1] == 2, "The normalized Unstoppable Advance choice grants Mobile, spends 1 CP and returns control to the selected movement declaration: " + str(advance_result.get("error", "")))
 
 	s = prepared(Enhancements.VENERABLE_CHAMPION)
 	dread_squad = squad_for(s, 1, "redemptor-dreadnought")

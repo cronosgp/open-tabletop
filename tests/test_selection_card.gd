@@ -13,6 +13,22 @@ func run() -> void:
 	check("No model selected" in game.selection_card.text and not game.details.visible, "Initial view is compact")
 	game._start_allocation_practice()
 	check("Intercessor" in game.selection_card.text and "W 2/2" in game.selection_card.text, "Selected unit and model wounds are visible")
+	check("models alive" not in game.selection_card.text and "P1" not in game.selection_card.text, "Compact card omits repeated owner and living-count information")
+	check(not game.selection_stats.visible, "Selection footer leaves combat characteristics in the full datasheet")
+	check(game.army_card_host.get_index() > game.army_roster.get_parent().get_index(), "Selection footer sits below the scrollable roster")
+	for phase: String in ["command", "movement", "shooting", "charge", "fight", "end_turn"]:
+		var previous_phase: String = game.state.phase
+		game.state.phase = phase
+		game._refresh_command_panel_title()
+		check(game.command_panel_title.text == phase.replace("_", " ").to_upper().replace("END TURN", "END OF TURN"), "Action heading follows phase: " + phase)
+		game.state.phase = previous_phase
+	game._refresh_command_panel_title()
+	var card_state := var_to_str(game.state)
+	game.datasheet_button.pressed.emit()
+	check(game.tactical_overlay_content == game.datasheet_details and not game.datasheet_view.last_model.ranged.is_empty() and not game.datasheet_view.last_model.melee.is_empty(), "Datasheet opens structured ranged and melee profiles in the full inspector")
+	check(var_to_str(game.state) == card_state, "Opening the datasheet is read-only")
+	game._close_tactical_screen()
+	check(not game.datasheet_details.visible and game.state.units.has(game.selected), "Closing datasheet preserves selection and clears the overlay")
 	check(not "Equipped profiles" in game.selection_card.text and "Equipped profiles" in game.details.text, "Equipment remains in expandable detail")
 	game.technical_toggle.button_pressed = true
 	check(game.details.visible, "Details can be expanded")

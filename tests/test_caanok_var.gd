@@ -4,6 +4,7 @@ const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Prevention = preload("res://scripts/edition_11/unit_prevention.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -30,6 +31,21 @@ func action(state: Dictionary, action_id: String, value: String = "", target: in
 	for option: Dictionary in C.UnitActions.choices(state, 1):
 		if option.action == action_id and (value.is_empty() or option.value == value) and (target < 0 or option.target == target): return option
 	return {}
+
+func submit_choice(state: Dictionary, player: int, choice: Dictionary) -> Dictionary:
+	var decision := C.UnitActions.pending_decision(state)
+	if decision.is_empty(): return {"error": "Cerebrex preparation decision is not open."}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(choice.get("action", "")) and int(option.get("model", -1)) == int(choice.get("model", -1)) and int(option.get("target", -1)) == int(choice.get("target", -1)) and str(option.get("value", "")) == str(choice.get("value", "")):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "Cerebrex target is not in the current preparation decision."}
+	var envelope := {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": choice}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": envelope, "revision": int(state.revision)})
+
+func submit_immediate_choice(state: Dictionary, player: int, choice: Dictionary) -> Dictionary:
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": choice, "revision": int(state.revision)})
 
 func _initialize() -> void: call_deferred("run")
 
@@ -66,7 +82,12 @@ func run() -> void:
 	state.unit_abilities.setup_players = []
 	var scout_choice := action(state, "cerebrex-scout", "", intercessors)
 	check(not scout_choice.is_empty(), "Cerebrex offers an eligible friendly Adeptus Astartes Infantry target during army preparation")
-	if not scout_choice.is_empty(): check(C.unit_action(state, 1, scout_choice, Vector2.ZERO, state.revision).is_empty(), "Cerebrex records the chosen Scout unit")
+	if not scout_choice.is_empty():
+		var before_wrong_scout_owner := var_to_bytes(state)
+		var wrong_scout_owner := submit_choice(state, 2, scout_choice)
+		check(not str(wrong_scout_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_scout_owner, "The opponent cannot submit or mutate Caanok's Cerebrex preparation decision")
+		var scout_result := submit_choice(state, 1, scout_choice)
+		check(str(scout_result.get("error", "")).is_empty(), "Cerebrex records its Scout target through the public command")
 	check(C.UnitAbilities.scout_distance(state, intercessors) == 6 and C.UnitAbilities.scout_distance(state, term) == 0, "Cerebrex grants Scouts 6 only to the selected unit")
 	state.phase = "shooting"
 	state.active = 1
@@ -74,7 +95,12 @@ func run() -> void:
 	var enemy_model := Geometry.alive(state, enemy)[0]
 	var cold := action(state, "cold-select", "lethal", squad)
 	check(not cold.is_empty(), "Cold and Calculating offers a shooting attack choice")
-	if not cold.is_empty(): check(C.unit_action(state, 1, cold, Vector2.ZERO, state.revision).is_empty(), "Cold and Calculating records Lethal Hits selection")
+	if not cold.is_empty():
+		var before_wrong_cold_owner := var_to_bytes(state)
+		var wrong_cold_owner := submit_immediate_choice(state, 2, cold)
+		check(not str(wrong_cold_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_cold_owner, "The opponent cannot submit or mutate Caanok's immediate Cold and Calculating selection")
+		var cold_result := submit_immediate_choice(state, 1, cold)
+		check(str(cold_result.get("error", "")).is_empty(), "Cold and Calculating records Lethal Hits through the public command")
 	state.units[enemy_model].keywords.append("VEHICLE")
 	var monster_weapon := C.UnitAbilities.weapon(state, model, enemy, profile.ranged[0].profiles.standard, false)
 	check(monster_weapon.keywords.get("lethal-hits", false), "Cold and Calculating gives Lethal Hits against Vehicle targets")
@@ -90,7 +116,9 @@ func run() -> void:
 	state.unit_abilities.used.erase("cold:%d:fight" % squad)
 	var sustained := action(state, "cold-select", "sustained", squad)
 	check(not sustained.is_empty(), "Cold and Calculating offers a separate Fight-phase choice")
-	if not sustained.is_empty(): check(C.unit_action(state, 1, sustained, Vector2.ZERO, state.revision).is_empty(), "Cold and Calculating records Sustained Hits selection")
+	if not sustained.is_empty():
+		var sustained_result := submit_immediate_choice(state, 1, sustained)
+		check(str(sustained_result.get("error", "")).is_empty(), "Cold and Calculating records Sustained Hits through the public command")
 	check(C.UnitAbilities.weapon(state, model, enemy, profile.melee[0].profiles.standard, true).keywords.get("sustained-hits", 0) == 1, "Cold and Calculating grants Sustained Hits 1 against non-Monsters/Vehicles")
 	state.combat_doctrines.active[1] = "tactical"
 	state.units[enemy_model].keywords.append("VEHICLE")

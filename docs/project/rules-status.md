@@ -1,8 +1,30 @@
 # 11e implementation status
 
-Current summary: [support matrix](support-matrix.md), updated 21 October 2026. Sections below are historical increment reports; their “next” and “pending” statements may have been superseded by later entries. Use [verification](../verification/verification.md) for the current test commands.
+Current summary: [support matrix](support-matrix.md), updated 26 October 2026. The default `terrain-11e-v1` central ruin and the Dense ruins in Event Companion layouts A/B/C now have bounded 3-inch first-floor proxies for movement, contact placement, 3D cylindrical-proxy visibility and Plunging Fire. Desperate Escape applies the Core Hazard rule's three-mortal-wound result when every model in a unit is MONSTER or VEHICLE, before and after an optional Command Re-roll. Engaged MONSTER/VEHICLE shooting now respects the own-Shooting-phase target exception, Close-quarters targeting and the BLAST restriction. Event Companion floor dimensions are project-authored approximations; focused local checks and playtesting are pending. Sections below are historical increment reports; their “next” and “pending” statements may have been superseded by later entries. Use [verification](../verification/verification.md) for the current test commands.
 
-Updated 15 October 2026. Baseline reference: [11e Core Rules and FAQs](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/), particularly §§01.06–01.07, 03.01–03.04, 08.03, and 09.05 for this increment. This is a restricted two-squad integration exercise, not a complete supported edition pack. Imported datasheet conflicts still need resolution.
+## Blade of Ultramar: current enhancements and stratagems (26 October 2026)
+
+Wahapedia Space Marines 11e App 2.8.1, observed 26 October 2026, defines Armour of Antoninus at 15 points: the bearer has a 2+ Save and Feel No Pain 5+. The local export snapshot `20261021T130623Z` identifies enhancement row `000010633003`, with 37 related datasheets; 23 resolve to current-catalog Marine profiles. The runtime restricts assignment to a non-Epic-Hero Adeptus Astartes Character under Blade of Ultramar and routes Save/FNP through the existing per-model systems. Focused local checks and player-facing review remain pending; no tests or Godot session were run for this expansion.
+
+Oath of Macragge (`000010633004`, 20 points) links to the same 37 export datasheets, of which 23 resolve to current-catalog Character profiles outside the Epic Hero exclusion. Its bearer gains +1 Strength and AP on melee attacks, or +2 while Assault Doctrine is active. The runtime applies this through the existing per-model melee weapon path; focused local checks remain pending.
+
+Veteran of Behemoth (`000010633005`, 20 points) shares the same 37 export datasheets; 23 resolve to current-catalog Character profiles outside the Epic Hero exclusion. The bearer unit gains Sustained Hits 1 on ranged attacks through the shared attack-profile path. All four enhancements now have bounded local runtime paths. Armour of Contempt (1 CP, source row `000010634002`) uses the shared attack-declaration response and binds -1 AP to the triggering enemy’s attacks. Courage and Honour! (1 CP, source row `000010634005`) uses the shared Lance profile path when a friendly Astartes unit is selected to fight. Exemplary Vigilance (1 CP, source row `000010634003`) grants ranged attacks Ignores Cover when a friendly Astartes unit is selected to shoot. Ultramarian Adaptivity (1 CP, source row `000010634004`) assigns one Combat Doctrine to a friendly unit until its owner’s next Command phase. Practical Tactics (1 CP, source row `000010634006`) offers a D3+3-inch Normal Move to an eligible unengaged unit after an enemy ends a move within 8 inches. Tactical Foresight (1 CP, source row `000010634007`) opens a defender response when an enemy targets a friendly Astartes unit; if used, that enemy's attacks against the target have -1 to Wound when Strength exceeds Toughness through its current attack sequence. All six require Blade of Ultramar with Ultramarines Chapter context. Focused local checks remain pending; current official full-rule locators also need confirmation.
+
+**Armour of Contempt**, **Courage and Honour!**, **Exemplary Vigilance**, **Ultramarian Adaptivity**, **Practical Tactics** and **Tactical Foresight** use existing attack-declaration, melee-profile, ranged-profile, per-unit doctrine, post-move reaction and wound-modifier systems. They require current unit abilities and Ultramarines Chapter context; focused local checks, network validation and full army legality remain pending.
+
+Updated 26 October 2026. The Marine detachment references are Wahapedia 11e Space Marines App 2.8.1 and local Data Export snapshot `20261021T130623Z`; the shared modifier uses the [11e Core Rules and FAQs](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/). Exact current full-rule locators, network validation and focused checks remain pending. This status record does not certify a complete supported edition pack or full army legality.
+
+## Transport Hazard update (26 October 2026)
+
+Combat and Emergency Disembark now use the current Core Rules Hazard multiplier: each failed roll causes three mortal wounds when every living passenger model is MONSTER or VEHICLE. Only those two modes roll one Hazard per model; Rapid, Tactical, Assault and Shock do not. When configured and eligible, the passenger owner may use Command Re-roll on one die before allocation. Emergency placement returns to the active player after Hazard allocation is complete. Focused local checks are pending.
+
+## Crushing Impact / Tank Shock update (26 October 2026)
+
+Current Wahapedia 11e Core Rules §15.06 allows a friendly MONSTER or VEHICLE unit to use Crushing Impact immediately after it ends a Charge move. The selected model contributes D6 equal to its Toughness; each 1 causes one mortal wound to the charging unit, then each 5+ causes one mortal wound to the selected enemy unit, to a maximum of six against that enemy. The local path resolves the charging unit's packet first, then the target's packet, through shared allocation, prevention and Deadly Demise continuations. Brutalis Charge retains its additional per-unit use and cost reduction. Focused checks and human playtesting for this expansion are pending; older Tank Shock verification entries below cover the prior Vehicle-only, target-packet behavior.
+
+## Shooting at engaged Monsters and Vehicles update (26 October 2026)
+
+Current Wahapedia 11e Core Rules §17.03 permits ranged attacks against an engaged enemy MONSTER/VEHICLE during the attacking player's own Shooting phase, except with BLAST; attacks suffer -1 to Hit unless they use a CLOSE-QUARTERS weapon and the attacking unit is engaged with the target. An attacking unit already engaged still has to use its eligible Close-quarters shooting and target only units it is engaged with. The shared attack planner now enforces these target boundaries and phase restriction. Focused local checks and playtesting remain pending; broader out-of-phase shooting exceptions are not covered.
 
 ## Completed in this increment
 
@@ -44,7 +66,7 @@ New tests: `test_contact_reachability.gd` and `test_contact_exceptions_network.g
 ## Remaining implementation order
 
 1. Expand contact certificates for remaining obstructions/arrangements, add objective consolidation with the objective system, and generalize fight/reaction queues beyond the two-squad exercise.
-2. Extend ground terrain to upper floors, vertical movement, plunging fire and exact imported-model visibility.
+2. Extend the bounded central first-floor Movement slice to Event Companion floors, vertical Charge/contact movement, plunging fire and exact imported-model visibility.
 3. Add objectives, control and secured objectives, mission setup, actions, battle-round triggers, scoring and victory. Use effective OC, morale and move/shoot restrictions in these systems.
 4. Add stratagem timing, costs, eligibility and reactions, then faction/unit abilities for the two starter squads with verified profiles.
 5. Expand attack allocation to defender choices, mixed profiles and attached characters; generalize the infantry escape mortal-wound implementation to other sources, remaining weapon mechanics and damage prevention.
@@ -56,13 +78,13 @@ Each increment needs deterministic rules tests and applicable UI/network checks 
 
 The default combat map now includes exposed, light and dense terrain with feature heights and per-model traversal permissions. Cover worsens BS by 1 and splits shooting pools per attacker. Hidden, firing history, detection, Obscuring and Gone to Ground synchronize through host snapshots. The renderer and tactical guides use the same layout. [Terrain documentation](../rules/terrain.md) explains the cylindrical visibility proxies and geometric limits.
 
-Eleven local rules/UI suites and eight host/client loopback suites passed on Windows, including new terrain and terrain-network tests. Old solid-map fixtures retain their assertions by explicitly selecting the legacy map. Upper floors, vertical movement, plunging fire and exact imported-mesh visibility remain pending. Objectives, control and scoring are the next major gameplay increment. Linux and separate-machine LAN remain unverified.
+Eleven local rules/UI suites and eight host/client loopback suites passed on Windows, including new terrain and terrain-network tests. Old solid-map fixtures retain their assertions by explicitly selecting the legacy map. A bounded central first-floor movement slice is now implemented for Infantry, Beasts, Swarm, FLY and equipped Reivers; its focused checks remain pending. Event-layout floors, vertical Charge/contact transitions, plunging fire and exact imported-mesh visibility remain open. Objectives, control and scoring are the next major gameplay increment. Linux and separate-machine LAN remain unverified.
 
 ## Objective control and training increment completed
 
 Core terrain-objective control now resolves at phase boundaries, with effective OC, battle-shock, ties and secured-objective retention/loss. A separate custom training mission awards 1 VP per controlled objective at round end and finishes after five rounds with a win or draw. Its configuration, control, scores and result synchronize through the host. Securing remains an internal effect for future verified abilities, not a free player action. See [objectives](../rules/objectives.md).
 
-Eleven local rules/UI suites and four host/client suites (objectives, terrain, shooting and melee) passed on Windows. The training panel and objective outlines were visually inspected. Official mission decks, deployment, actions and objective consolidation remain pending. Linux and separate-machine LAN remain unverified.
+Eleven local rules/UI suites and four host/client suites (objectives, terrain, shooting and melee) passed on Windows. The training panel and objective outlines were visually inspected. The runtime now includes a bounded Chapter Approved 2026-27 mission profile; random mission/deck selection, other deployment configurations, actions outside this profile and full objective/mission coverage remain pending. The newest fixed-secondary expansion awaits local focused checks. Linux and separate-machine LAN remain unverified.
 
 ## Objective consolidation increment completed
 

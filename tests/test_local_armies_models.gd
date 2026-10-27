@@ -3,6 +3,7 @@ const Training = preload("res://scripts/edition_11/training_roster.gd")
 const Matcher = preload("res://scripts/forceorg_matcher.gd")
 const Assets = preload("res://scripts/local_models.gd")
 const ImportPanel = preload("res://scripts/model_import_panel.gd")
+const Profiles = preload("res://scripts/army_profiles.gd")
 var failures := 0
 const DIR := "res://.tools/local-armies-models"
 func check(ok: bool, message: String) -> void:
@@ -16,13 +17,15 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute(DIR)
 	var presets := Training.presets()
-	check(presets.size() == 1 and presets[0].faction == "Space Marines", "Fresh construction presets use only the current local Space Marine catalog")
+	check(presets.size() == 3 and presets[0].id == "reference:core-v2:Space Marines", "The original reference remains first beside two tactical training forces")
 	for list: Dictionary in presets:
+		check(list.faction == "Space Marines" and Training.admit_current_catalog(list).error.is_empty(), "Every fresh preset passes current local catalog admission")
 		check(Training.inspect(list).error.is_empty() and list.points_limit == 1000, "Current local reference passes canonical admission at its declared limit")
 	presets[0].entries.clear()
 	check(not Training.presets()[0].entries.is_empty(), "Preset edits cannot mutate future defaults")
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
+	game.army_builder.store = Profiles.new(DIR.path_join("army-lists.json"))
 	game.auto_models.button_pressed = false
 	game.unit_abilities_choice.button_pressed = true
 	check(game._picked_army(1).faction == "Space Marines" and game._picked_army(2).faction == "Space Marines", "Fresh launch preselects the current local reference for both seats")
@@ -130,4 +133,7 @@ func run() -> void:
 	var verified := {"name": "necron warrior reaper / component 1", "kind": "CustomMesh", "path": "ObjectStates/0/ChildObjects/0", "references": {"MeshURL": Matcher.VERIFIED_NECRON_BODY}}
 	check(Matcher.choose(Training.definition("Necrons").unit.id, [verified]).error.is_empty(), "The previously verified Necron body can render over the board base")
 	print("Local armies and automatic models: %d failures" % failures)
+	panel.free()
+	restored.free()
+	for frame in range(3): await process_frame
 	quit(0 if failures == 0 else 1)

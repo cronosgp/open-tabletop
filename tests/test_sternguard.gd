@@ -1,6 +1,7 @@
 extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const UNIT := "sternguard-veteran-squad"
 var failures := 0
@@ -42,7 +43,7 @@ func pick(s: Dictionary, action: String, model: int, value: String) -> Dictionar
   if row.action == action and row.model == model and row.value == value: return row
  return {}
 func equip(s: Dictionary, action: String, model: int, value: String) -> String:
- return C.unit_action(s, 1, pick(s, action, model, value), Vector2.ZERO, s.revision)
+ return PublicUnitCommand.error(s, 1, pick(s, action, model, value))
 func declaration(profile: String = "infernus", model: int = 300, gun: String = "artificer-firearm") -> Array:
  return [{"model": model, "target": 4, "amount": 1, "weapon": gun, "profile": profile}]
 func _initialize() -> void: call_deferred("run")

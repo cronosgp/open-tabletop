@@ -26,7 +26,7 @@ static func begin(state: Dictionary, squad: int, amount: int, source: int, roll:
  for target: int in state.squads:
   if state.squads[target].owner == state.squads[squad].owner: continue
   for model: int in Geometry.alive(state, squad):
-   if Geometry.distance_to_target(state, state.units[model], target) <= 2.001:
+   if Geometry.distance_to_target_at_height(state, state.units[model], target) <= 2.001:
     engaged.append(target)
     break
  state.unit_abilities.window = {"kind": "healing", "revive_on_battlefield": true, "owners": [state.squads[squad].owner], "squad": squad, "source": source, "total": amount, "remaining": amount, "roll": roll.duplicate(true), "wounds": {}, "placements": {}, "anchors": state.unit_abilities.get("anchors", {}).get(squad, Geometry.alive(state, squad)).duplicate(), "engaged": engaged, "placement_failure_declared": false}

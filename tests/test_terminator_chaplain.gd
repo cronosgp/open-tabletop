@@ -4,6 +4,9 @@ const C = F.C
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const U = preload("res://scripts/edition_11/unit_prevention.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok:
@@ -40,8 +43,48 @@ func fixture(attached: bool = true) -> Dictionary:
  return s
 func equip(s: Dictionary, value: String) -> String:
  for option: Dictionary in C.unit_choices(s, 1):
-  if option.action == "terminator-chaplain-shield" and option.value == value: return C.unit_action(s, 1, option, Vector2.ZERO, s.revision)
+  if option.action != "terminator-chaplain-shield" or option.value != value: continue
+  var decision := PendingDecisions.current(s, ["unit-actions"])
+  for projected: Dictionary in decision.get("legal_options", []):
+   if str(projected.get("action", "")) != str(option.get("action", "")) or int(projected.get("model", -1)) != int(option.get("model", -1)) or int(projected.get("target", -1)) != int(option.get("target", -1)) or str(projected.get("value", "")) != str(option.get("value", "")): continue
+   var result := MatchCommandService.execute(s, 1, {
+    "kind": MatchCommandService.SELECT_UNIT_CHOICE,
+    "choice": {
+     "_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE,
+     "decision_id": str(decision.get("decision_id", "")),
+     "option_id": str(projected.get("id", "")),
+     "choice": option
+    },
+    "revision": s.revision
+   })
+   return str(result.get("error", ""))
+  return "Equipment option is absent from the current preparation decision."
  return "Equipment choice unavailable"
+func submit_reserve(s: Dictionary, player: int, squad: int, decision_id: String = "", option_id: String = "") -> Dictionary:
+ var decision := PendingDecisions.current(s, ["unit-actions"])
+ if decision.is_empty(): return {"error": "No army-preparation decision is pending."}
+ var domain_choice: Dictionary = {}
+ for choice: Dictionary in C.unit_choices(s, player):
+  if str(choice.get("action", "")) == "reserve" and int(choice.get("target", -1)) == squad:
+   domain_choice = choice
+   break
+ if domain_choice.is_empty(): return {"error": "This squad has no current reserve choice."}
+ var projected: Dictionary = {}
+ for option: Dictionary in decision.get("legal_options", []):
+  if str(option.get("action", "")) == str(domain_choice.get("action", "")) and int(option.get("model", -1)) == int(domain_choice.get("model", -1)) and int(option.get("target", -1)) == int(domain_choice.get("target", -1)) and str(option.get("value", "")) == str(domain_choice.get("value", "")):
+   projected = option
+   break
+ if projected.is_empty(): return {"error": "This squad has no projected reserve option."}
+ return MatchCommandService.execute(s, player, {
+  "kind": MatchCommandService.SELECT_UNIT_CHOICE,
+  "choice": {
+   "_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE,
+   "decision_id": decision_id if not decision_id.is_empty() else str(decision.get("decision_id", "")),
+   "option_id": option_id if not option_id.is_empty() else str(projected.get("id", "")),
+   "choice": domain_choice
+  },
+  "revision": s.revision
+ })
 func attack(s: Dictionary, mortal: bool) -> Dictionary:
  var weapon := {"name": "Fortitude probe", "attacks": 1, "skill": 2, "strength": 12, "ap": -6, "damage": 2, "range_inches": 24, "keywords": {"devastating-wounds": true} if mortal else {}}
  return C.AttackPlan.resolve(s, {"targets": [5], "batches": [{"target": 5, "weapon": weapon, "context": {"weapon_count": 1}}]}, six if mortal else three, false)
@@ -95,16 +138,27 @@ func run() -> void:
   if option.action == "reserve" and option.target == 5: reserve = option
  s.points_limit = 500
  check(s.squads[5].training_cost == 265, "Reserve cost omitted attached Character")
- check(not reserve.is_empty() and not C.unit_action(s, 1, reserve, Vector2.ZERO, s.revision).is_empty() and s.unit_abilities.reserves.is_empty(), "Combined reserve unit bypassed half-points limit")
+ var reserve_decision := PendingDecisions.current(s, ["unit-actions"])
+ var reserve_projection: Dictionary = reserve_decision.legal_options.filter(func(option: Dictionary) -> bool: return str(option.get("action", "")) == "reserve" and int(option.get("target", -1)) == 5)[0]
+ var before_reserve := var_to_bytes(s)
+ var wrong_owner_reserve := submit_reserve(s, 2, 5)
+ var stale_reserve := submit_reserve(s, 1, 5, str(reserve_decision.decision_id), "stale-option")
+ check(not wrong_owner_reserve.get("error", "").is_empty() and not stale_reserve.get("error", "").is_empty() and before_reserve == var_to_bytes(s), "Wrong-owner and stale reserve declarations are rejected unchanged")
+ var over_limit_reserve := submit_reserve(s, 1, 5, str(reserve_decision.decision_id), str(reserve_projection.id))
+ check(not reserve.is_empty() and not over_limit_reserve.get("error", "").is_empty() and s.unit_abilities.reserves.is_empty() and before_reserve == var_to_bytes(s), "Combined reserve unit bypassed the half-points limit")
  s.points_limit = 1000
- check(C.unit_action(s, 1, reserve, Vector2.ZERO, s.revision).is_empty() and s.unit_abilities.reserves[5].cost == 265, "Legal combined reserve cost incorrect")
+ reserve_decision = PendingDecisions.current(s, ["unit-actions"])
+ reserve_projection = reserve_decision.legal_options.filter(func(option: Dictionary) -> bool: return str(option.get("action", "")) == "reserve" and int(option.get("target", -1)) == 5)[0]
+ var combined_reserve := submit_reserve(s, 1, 5, str(reserve_decision.decision_id), str(reserve_projection.id))
+ check(combined_reserve.get("error", "").is_empty() and s.unit_abilities.reserves[5].cost == 265, "Public command admits legal combined reserve cost: %s" % str(combined_reserve))
  s = fixture(false)
  s.phase = "deployment"
  s.unit_abilities.setup_players = []
  reserve = {}
  for option: Dictionary in C.unit_choices(s, 1):
   if option.action == "reserve" and option.target == 1: reserve = option
- check(not reserve.is_empty() and C.unit_action(s, 1, reserve, Vector2.ZERO, s.revision).is_empty() and not s.units[100].on_battlefield, "Standalone Chaplain Deep Strike reserves unavailable")
+ var standalone_reserve := submit_reserve(s, 1, 1)
+ check(not reserve.is_empty() and standalone_reserve.get("error", "").is_empty() and not s.units[100].on_battlefield, "Public command permits standalone Chaplain Deep Strike reserves")
  s = fixture()
  var probe := {"name": "Manual Fortitude probe", "attacks": 1, "skill": 2, "strength": 12, "ap": -6, "damage": 2, "range_inches": 24, "keywords": {"devastating-wounds": true}}
  C.Allocation.start(s, {"targets": [5], "batches": [{"target": 5, "weapon": probe, "context": {"weapon_count": 1}}]}, 2, 2, [], false, false, false)
@@ -113,8 +167,13 @@ func run() -> void:
  check(C.Allocation.apply(s, 500, six).error.is_empty() and s.units[500].wounds == 3, "Manual mortal allocation missed Fortitude")
  s = fixture()
  s.phase = "movement"
- s.pending_move = {"squad": 5, "hazard_remaining": 2}
- check(C.allocate_escape_wound(s, 1, 500, s.revision, six).is_empty() and s.units[500].wounds == 3 and s.last_escape_prevention.prevented == 1, "Escape mortal wounds missed Fortitude")
+ s.pending_move = {"squad": 5, "move_type": "desperate_escape", "origins": {}, "prior_flags": {}, "spent": {}, "bonus": 0, "hazard_remaining": 1, "hazard_rolls": [1], "locked": true}
+ var movement_frame := ResolutionFrames.begin(s, "unit-action", "movement:%d:5:movement" % int(s.turn), "escape-wound-allocation")
+ check(not movement_frame.is_empty() and ResolutionFrames.suspend(s, str(movement_frame.get("frame_id", "")), "escape-wound-allocation").is_empty(), "Escape allocation fixture retains its pending Movement continuation")
+ var escape_decision := PendingDecisions.current(s, ["escape-wounds"])
+ var escape_option: Dictionary = escape_decision.legal_options.filter(func(option: Dictionary) -> bool: return int(option.get("model", -1)) == 500)[0]
+ var escape_allocation := MatchCommandService.execute(s, 1, {"kind": MatchCommandService.ALLOCATE_ESCAPE_WOUND, "choice": {"_decision_type": MatchCommandService.ESCAPE_WOUND_DECISION_ENVELOPE, "decision_id": str(escape_decision.decision_id), "option_id": str(escape_option.id), "choice": {"model": 500}}, "revision": s.revision}, six)
+ check(escape_allocation.get("error", "").is_empty() and s.units[500].wounds == 3 and s.last_escape_prevention.prevented == 1, "Public Desperate Escape allocation applies Terminator Chaplain Fortitude")
  s = fixture()
  s.units[500].feel_no_pain = "invalid"
  check(not C.Attacks.Prevention.validate(U.rules(s, 500)).is_empty(), "Unit grant hid invalid personal prevention")

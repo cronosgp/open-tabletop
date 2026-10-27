@@ -96,7 +96,7 @@ static func position_error(state: Dictionary, model: int, point: Vector2) -> Str
 	projected.units[model].position = point
 	var terrain_error := Terrain.path_error(projected, model, point)
 	if not terrain_error.is_empty(): return terrain_error
-	if not Geometry.clear_path(state, model, point, float(window.distance), false): return "The Land Speeder cannot move through blocking enemy bases."
+	if not Geometry.clear_path(state, model, point, float(window.distance), false, false, -1.0, "normal"): return "The Land Speeder cannot move through blocking model bases."
 	for other: int in state.units:
 		if other == model or state.units[other].wounds <= 0 or not state.units[other].get("on_battlefield", true): continue
 		if point.distance_to(Vector2(state.units[other].position)) < radius + float(state.units[other].radius) - 0.001: return "Bases cannot overlap at the destination."

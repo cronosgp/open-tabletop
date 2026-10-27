@@ -3,13 +3,14 @@ extends SceneTree
 const F = preload("res://tests/marine_gravis_ancient_fixture.gd")
 const C = F.C
 const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok: push_error(message); failures+=1
 func three() -> int:return 3
 func equip(s: Dictionary, mode: String) -> String:
  for option: Dictionary in C.unit_choices(s,1):
-  if option.action=="gravis-captain-loadout" and option.value==mode:return C.unit_action(s,1,option,Vector2.ZERO,s.revision)
+  if option.action=="gravis-captain-loadout" and option.value==mode:return PublicUnitCommand.error(s,1,option)
  return "Unavailable loadout"
 func _initialize() -> void:call_deferred("run")
 func run() -> void:

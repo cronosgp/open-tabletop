@@ -11,9 +11,11 @@ An open-source Godot prototype for playing Warhammer 40,000 with user-supplied v
 1. Install **Godot 4.7.2 stable, standard edition (no .NET)**.
 2. Import `project.godot` in Godot and press **F5**.
 
-The original movement demonstration starts without Python, external data, model downloads, or network access. In the local demo, select a miniature's base with the left mouse button and request a move with the right button. Scroll to zoom, middle-drag to orbit, and use WASD to pan. **Host LAN** and **Join** support direct LAN/loopback connections; this is not internet matchmaking.
+The original movement demonstration starts without Python, external data, model downloads, or network access. In the local demo, select a miniature's base with the left mouse button and request a move with the right button. Scroll to zoom, middle-drag to orbit, and use W/A/S/D by default to pan; remap camera pan, Focus and Datasheet keys in Settings. **Host LAN** and **Join** support direct LAN/loopback connections; this is not internet matchmaking.
 
-Combat exercises are separate from the clean-checkout demo. Their exact data requirements and rule boundaries are listed in the [support matrix](docs/project/support-matrix.md) and the [documentation index](docs/README.md). An exercise or selectable profile does not by itself certify a legal army or a complete official match.
+The project-owned tactical training profile also starts offline from the current-reference Marine catalog embedded in the runtime; it does not require the historical starter snapshot or a download. Other combat exercises remain separate, and their exact data requirements and rule boundaries are listed in the [support matrix](docs/project/support-matrix.md) and the [documentation index](docs/README.md). An exercise or selectable profile does not by itself certify a legal army or a complete official match.
+
+**Start tactical training** offers two distinct local Marine forces with current abilities, Gladius/Core stratagems and optional tips. Review its [configuration and validation limits](docs/guides/tactical-training.md); the original mirror remains selectable.
 
 ## Rules and datasheet sources
 
@@ -32,9 +34,9 @@ Record the export URL, edition, retrieval date, snapshot identity, filenames, an
 Requirements for project checks: Python 3.10+ and Godot 4.7.2. Python is not needed to launch the clean-checkout movement demo.
 
 ```text
-python tools/verify.py --godot /path/to/godot --profile demo --network
-python tools/verify.py --godot /path/to/godot --profile full --network
-python tools/build_demo.py --godot /path/to/godot
+python tools/verify.py --godot /path/to/godot --profile demo --network --timeout 300
+python tools/verify.py --godot /path/to/godot --profile full --network --timeout 300
+python tools/build_demo.py --godot /path/to/godot --timeout 300
 ```
 
 The demo profile uses synthetic/offline fixtures and local loopback only. The current full profile still depends on the legacy pinned starter snapshot; it is not a Wahapedia data-source check or a rules-certification result. See [verification instructions](docs/verification/verification.md) for Windows executable paths, test isolation, timeouts, and limitations; see [latest recorded results](docs/verification/verification-results.md) for evidence and platform boundaries.

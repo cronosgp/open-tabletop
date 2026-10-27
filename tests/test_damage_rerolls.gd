@@ -92,6 +92,9 @@ func run() -> void:
 	# The real synthetic lab exposes D3 without modifying the starter armies.
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
+	var checkpoint_key := str(Time.get_ticks_usec())
+	game.match_save_path = "user://matches/damage-reroll-allocation-%s.save" % checkpoint_key
+	game.match_journal_directory = "user://matches/journals/damage-reroll-allocation-%s" % checkpoint_key
 	game.damage_reroll_choice.button_pressed = true
 	game._start_allocation_practice()
 	assert(game.damage_rerolls and game.core_stratagems and game.state.cp == {1: 2, 2: 2})
@@ -99,12 +102,33 @@ func run() -> void:
 	game.rng.seed = 42
 	game._apply_attack(1, 100, 200, 0, true)
 	game._request_skip_precision()
+	var allocation_recovery_checked := false
 	for attempt in range(15):
 		if not S.pending(game.state).is_empty() or game.state.pending_attack.is_empty(): break
 		var eligible: Array = C.Allocation.eligible(game.state)
 		assert(not eligible.is_empty())
+		var allocation_decision: Dictionary = C.Allocation.pending_decision(game.state)
+		assert(not allocation_decision.is_empty())
 		var identity: Dictionary = game._damage_decision_identity(eligible[0])
+		if not allocation_recovery_checked:
+			var allocation_snapshot := var_to_bytes(game.state)
+			var allocation_rng_state: int = game.rng.state
+			var allocation_decision_snapshot: Dictionary = allocation_decision.duplicate(true)
+			var allocation_frame: Dictionary = C.ResolutionFrames.current(game.state)
+			var allocation_owner: int = int(allocation_decision.priority_player_id)
+			assert(allocation_owner == C.actor(game.state) and not allocation_frame.is_empty())
+			assert(game._save_snapshot().is_empty())
+			game.state.revision += 1
+			game._load_match(false)
+			var restored_allocation_decision: Dictionary = C.Allocation.pending_decision(game.state)
+			assert(game.resume_succeeded and allocation_snapshot == var_to_bytes(game.state) and allocation_rng_state == game.rng.state)
+			assert(restored_allocation_decision == allocation_decision_snapshot and C.actor(game.state) == allocation_owner)
+			assert(C.ResolutionFrames.current(game.state) == allocation_frame)
+			allocation_recovery_checked = true
+			eligible = C.Allocation.eligible(game.state)
+			identity = game._damage_decision_identity(eligible[0])
 		game._apply_allocate_damage(C.actor(game.state), eligible[0], game.state.revision, identity.decision_id, identity.option_id)
+	assert(allocation_recovery_checked)
 	assert(S.pending(game.state).kind == "after_damage_roll" and game.reaction_die.visible and not game.reaction_use.disabled)
 	var snapshot := var_to_bytes(game.state)
 	var rng_state: int = game.rng.state

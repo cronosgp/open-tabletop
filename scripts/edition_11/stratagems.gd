@@ -2,7 +2,7 @@ extends RefCounted
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 ## Core Rules §§01.07, 08.03, 15.01–15.12; reaction cards live in core_reactions.gd.
 const Morale = preload("res://scripts/edition_11/morale.gd")
-const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
+const ReactionState = preload("res://scripts/edition_11/core_reaction_state.gd")
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
@@ -10,17 +10,17 @@ const ID := "core-stratagem-windows-v1"
 const REROLL_ID := "command-reroll-movement-v1"
 const ATTACK_REROLL_ID := "command-reroll-hit-wound-v1"
 const COUNT_REROLL_ID := "command-reroll-attack-count-v1"
-const HAZARD_REROLL_ID := "command-reroll-weapon-hazard-v1"
+const HAZARD_REROLL_ID := "command-reroll-hazard-pools-v2"
 const ESCAPE_REROLL_ID := "command-reroll-escape-hazard-v1"
 const DAMAGE_REROLL_ID := "command-reroll-damage-v1"
 const SAVE_REROLL_ID := "command-reroll-save-v1"
 const SUPPORTED := {"insane-bravery": {"cost": 1, "window": "before_battle_shock", "phase": "command", "once_per_battle": true},
-	"command-re-roll": {"cost": 1, "windows": ["after_advance_roll", "after_charge_roll", "after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_attack_count_roll", "after_escape_roll"], "once_per_battle": false},
+	"command-re-roll": {"cost": 1, "windows": ["after_advance_roll", "after_charge_roll", "after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_transport_hazard_roll", "after_attack_count_roll", "after_escape_roll"], "once_per_battle": false},
 	"fire-overwatch": {"cost": 1, "window": "end_movement", "once_per_battle": false},
 	"heroic-intervention": {"cost": 1, "window": "end_charge", "once_per_battle": false},
 	"counteroffensive": {"cost": 2, "window": "after_enemy_fights", "once_per_battle": false},
 	"epic-challenge": {"cost": 1, "window": "selected_to_fight", "once_per_battle": false},
-	"crushing-impact": {"cost": 1, "window": "immediately_after_vehicle_charge", "once_per_battle": false},
+	"crushing-impact": {"cost": 1, "window": "immediately_after_monster_or_vehicle_charge", "once_per_battle": false},
 	"explosives": {"cost": 1, "window": "own_shooting_before_shooting", "once_per_battle": false}}
 
 static func enable(state: Dictionary, movement_rerolls: bool = false, attack_rerolls: bool = false, save_rerolls: bool = false, damage_rerolls: bool = false, hazard_rerolls: bool = false, count_rerolls: bool = false, escape_rerolls: bool = false) -> Dictionary:
@@ -28,7 +28,7 @@ static func enable(state: Dictionary, movement_rerolls: bool = false, attack_rer
 	state.stratagems = {"implementation": ID, "pending": {}, "uses": [], "command_done_turn": -1}
 	state.pack_hash = (str(state.pack_hash) + ID).sha256_text()
 	state.scope = "Core stratagem supported: Insane Bravery before Command battle-shock only. " + str(state.get("scope", "")).replace("stratagems,", "other stratagems,")
-	CoreReactions.enable(state)
+	ReactionState.enable(state)
 	if movement_rerolls:
 		state.stratagems.movement_rerolls = true
 		state.pack_hash = (str(state.pack_hash) + REROLL_ID).sha256_text()
@@ -48,7 +48,7 @@ static func enable(state: Dictionary, movement_rerolls: bool = false, attack_rer
 	if hazard_rerolls:
 		state.stratagems.hazard_rerolls = true
 		state.pack_hash = (str(state.pack_hash) + HAZARD_REROLL_ID).sha256_text()
-		state.scope = "Command Re-roll supported for weapon Hazardous tests before mortal wound allocation. Desperate Escape hazard re-rolls remain unsupported. " + state.scope
+		state.scope = "Command Re-roll supported for Hazard rolls from weapons and transport disembarkation before mortal-wound allocation. Desperate Escape uses its separately gated hazard re-roll. " + state.scope
 	if count_rerolls:
 		state.stratagems.count_rerolls = true
 		state.pack_hash = (str(state.pack_hash) + COUNT_REROLL_ID).sha256_text()
@@ -81,6 +81,12 @@ static func pending_decision(state: Dictionary) -> Dictionary:
 		if window.kind == "before_battle_shock":
 			if use_error(state, owner, squad, "insane-bravery", int(state.get("revision", -1))).is_empty():
 				options.append(_decision_option("Insane Bravery: pass without rolling", squad, "insane-bravery", -1))
+			if UnitAbilities.potential_discount(state, owner, squad) > 0 and UnitAbilities.discount(state, owner, squad) == 0:
+				options.append(_decision_option("My Will Be Done: reduce Insane Bravery by 1 CP", squad, "my-will-be-done", -1))
+			continue
+		if window.kind in ["after_battle_shock_roll", "after_escape_battle_shock_roll"]:
+			if StormlanceEnhancements.tempered_in_battle_active(state, squad):
+				options.append(_decision_option("Tempered in Battle: re-roll both dice", squad, "tempered-in-battle", -1))
 			continue
 		var stratagems: Array[String] = []
 		if use_error(state, owner, squad, "command-re-roll", int(state.get("revision", -1))).is_empty(): stratagems.append("command-re-roll")
@@ -93,10 +99,13 @@ static func pending_decision(state: Dictionary) -> Dictionary:
 		elif window.kind == "after_charge_roll":
 			if window.get("valour", false): stratagems.append("unstoppable-valour")
 			if window.get("master_shadows", false): stratagems.append("master-shadows")
-		var die_options: Array = window.get("eligible", []) if window.kind in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_attack_count_roll", "after_escape_roll"] else [-1]
+			if window.get("lord_of_the_ravenwing", false): stratagems.append("lord-of-the-ravenwing")
+			if window.get("linebreaker_onslaught", false): stratagems.append("linebreaker-onslaught")
+		var die_options: Array = window.get("eligible", []) if window.kind in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_transport_hazard_roll", "after_attack_count_roll", "after_escape_roll"] else [-1]
 		for stratagem: String in stratagems:
 			for die_value: Variant in die_options:
-				options.append(_decision_option("%s · %s" % [stratagem, "all dice" if int(die_value) < 0 else "die %d" % (int(die_value) + 1)], squad, stratagem, int(die_value)))
+				var label := "Linebreaker Onslaught · re-roll both Charge dice" if stratagem == "linebreaker-onslaught" else "%s · %s" % [stratagem, "all dice" if int(die_value) < 0 else "die %d" % (int(die_value) + 1)]
+				options.append(_decision_option(label, squad, stratagem, int(die_value)))
 	if options.is_empty(): return {}
 	return PendingDecision.create(state, "stratagems", "reaction:%s" % str(window.get("kind", "")), owner, options, true)
 
@@ -124,13 +133,29 @@ static func choice_error(state: Dictionary, player: int, squad: int, revision: i
 	if revision != state.revision: return "O estado mudou; sincronize antes de decidir."
 	if state.get("test_winner", 0) != 0: return "The match has ended."
 	if window.phase_key != phase_key(state) or player != window.player: return "This decision belongs to the player shown in the window."
-	if window.kind not in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_attack_count_roll"] and player != state.active and not (window.kind == "after_charge_roll" and CoreReactions.heroic_charger(state, player, squad)): return "This decision belongs to the active player."
-	if not state.squads.has(squad) or state.squads[squad].owner != player or Morale.living(state, squad).is_empty(): return "Select one of your living units."
+	if window.kind not in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll", "after_transport_hazard_roll", "after_attack_count_roll"] and player != state.active and not (window.kind == "after_charge_roll" and ReactionState.heroic_charger(state, player, squad)): return "This decision belongs to the active player."
+	var has_living_model := not Morale.living(state, squad).is_empty()
+	if window.kind == "after_transport_hazard_roll":
+		has_living_model = false
+		for model: int in state.units:
+			if int(state.units[model].get("squad", -1)) == squad and int(state.units[model].get("wounds", 0)) > 0:
+				has_living_model = true
+				break
+	if not state.squads.has(squad) or state.squads[squad].owner != player or not has_living_model: return "Select one of your living units."
 	if window.kind == "before_battle_shock":
 		if state.phase != "command" or squad not in window.remaining or not Morale.needs_command_roll(state, squad): return "Select a unit that still needs this test."
+	elif window.kind == "after_battle_shock_roll":
+		if state.phase != "command" or squad != int(window.get("squad", -1)) or squad not in window.get("remaining", []) or window.get("current_result", {}).is_empty():
+			return "This Leadership result is no longer pending."
+	elif window.kind == "after_escape_battle_shock_roll":
+		var draft: Dictionary = state.get("pending_move", {})
+		if state.phase != "movement" or draft.get("move_type", "") != "desperate_escape" or int(draft.get("squad", -1)) != squad or int(window.get("squad", -1)) != squad or window.get("current_result", {}).is_empty():
+			return "This Desperate Escape Leadership result is no longer pending."
 	elif window.kind in ["after_advance_roll", "after_charge_roll"]:
 		if squad != window.squad: return "This roll belongs to another unit or ability."
-		if window.kind == "after_charge_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("valour", false) or window.get("master_shadows", false)): return "This roll belongs to another unit or ability."
+		if window.kind == "after_charge_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("valour", false) or window.get("master_shadows", false) or window.get("lord_of_the_ravenwing", false) or window.get("linebreaker_onslaught", false)): return "This roll belongs to another unit or ability."
+		if window.kind == "after_charge_roll" and window.get("lord_of_the_ravenwing", false) and not StormlanceEnhancements.lord_of_the_ravenwing_active(state, squad): return "Lord of the Ravenwing is no longer active for this Charge."
+		if window.kind == "after_charge_roll" and window.get("linebreaker_onslaught", false) and not StormlanceEnhancements.linebreaker_onslaught_active(state, squad): return "Linebreaker Onslaught is no longer active for this Charge."
 		if window.kind == "after_advance_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("sudden", false) or window.get("supercharged", false) or window.get("honour_vigilance", false) or window.get("wrath_chapter", false) or window.get("stormseers_wisdom", false)): return "This roll belongs to another unit or ability."
 		if state.phase != ("movement" if window.kind == "after_advance_roll" else "charge"): return "A fase da rolagem mudou."
 	elif window.kind in ["after_hit_roll", "after_wound_roll"]:
@@ -141,6 +166,10 @@ static func choice_error(state: Dictionary, player: int, squad: int, revision: i
 		if not state.stratagems.get("damage_rerolls", false) or squad != window.squad or state.get("pending_attack", {}).is_empty(): return "This decision does not match the pending damage roll."
 	elif window.kind == "after_hazardous_roll":
 		if not state.stratagems.get("hazard_rerolls", false) or squad != window.squad or state.get("pending_hazard", {}).is_empty(): return "This decision does not match the pending Hazardous pool."
+	elif window.kind == "after_transport_hazard_roll":
+		var transport_window: Dictionary = state.get("unit_abilities", {}).get("transport_window", {})
+		if not state.stratagems.get("hazard_rerolls", false) or squad != int(window.get("squad", -1)) or transport_window.is_empty() or transport_window.get("stage", "") != "hazard-reroll" or int(transport_window.get("passenger_squad", -1)) != squad or transport_window.get("hazard_rolls", []) != window.get("rolls", []):
+			return "This decision does not match the pending transport Hazard pool."
 	elif window.kind == "after_attack_count_roll":
 		if not state.stratagems.get("count_rerolls", false) or squad != window.squad or state.get("pending_attack", {}).is_empty(): return "This decision does not match the pending attack generation."
 	elif window.kind == "after_escape_roll":
@@ -178,13 +207,15 @@ static func eligibility_error(state: Dictionary, player: int, squad: int, strata
 
 static func open_roll(state: Dictionary, player: int, squad: int, kind: String, rolls: Array, draft: Dictionary = {}, wrath_chapter: bool = false) -> bool:
 	var master_shadows: bool = kind == "after_charge_roll" and UnitAbilities.master_shadows_active(state, squad)
+	var lord_of_the_ravenwing: bool = kind == "after_charge_roll" and StormlanceEnhancements.lord_of_the_ravenwing_active(state, squad)
+	var linebreaker_onslaught: bool = kind == "after_charge_roll" and StormlanceEnhancements.linebreaker_onslaught_active(state, squad)
 	var supercharged: bool = kind == "after_advance_roll" and StormlanceEnhancements.active(state, squad, StormlanceEnhancements.SUPERCHARGED)
 	var honour_vigilance: bool = kind == "after_advance_roll" and Doctrines.has_doctrine(state, squad, "devastator") and StormlanceEnhancements.honour_of_vigilance_active(state, squad)
 	var stormseers_wisdom: bool = kind == "after_advance_roll" and StormlanceEnhancements.stormseers_wisdom_active(state, squad)
 	var command_reroll: bool = state.get("stratagems", {}).get("movement_rerolls", false) and eligibility_error(state, player, squad, "command-re-roll").is_empty()
-	if not command_reroll and not master_shadows and not supercharged and not honour_vigilance and not wrath_chapter and not stormseers_wisdom: return false
+	if not command_reroll and not master_shadows and not lord_of_the_ravenwing and not linebreaker_onslaught and not supercharged and not honour_vigilance and not wrath_chapter and not stormseers_wisdom: return false
 	if not state.has("stratagems"): state.stratagems = {"pending": {}, "uses": [], "command_done_turn": -1}
-	state.stratagems.pending = {"kind": kind, "player": player, "squad": squad, "phase_key": phase_key(state), "rolls": rolls.duplicate(), "draft": draft.duplicate(true), "master_shadows": master_shadows, "supercharged": supercharged, "honour_vigilance": honour_vigilance, "wrath_chapter": wrath_chapter, "stormseers_wisdom": stormseers_wisdom}
+	state.stratagems.pending = {"kind": kind, "player": player, "squad": squad, "phase_key": phase_key(state), "rolls": rolls.duplicate(), "draft": draft.duplicate(true), "master_shadows": master_shadows, "lord_of_the_ravenwing": lord_of_the_ravenwing, "linebreaker_onslaught": linebreaker_onslaught, "supercharged": supercharged, "honour_vigilance": honour_vigilance, "wrath_chapter": wrath_chapter, "stormseers_wisdom": stormseers_wisdom}
 	return true
 
 static func consume(state: Dictionary, player: int, squad: int, stratagem: String) -> void:

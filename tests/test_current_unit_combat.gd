@@ -1,6 +1,8 @@
 extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 var rolls: Array[int] = []
 func die() -> int: return rolls.pop_front() if not rolls.is_empty() else 1
@@ -24,6 +26,18 @@ func fixture(alive: Array[int], active: int = 1) -> Dictionary:
 	return s
 func gun(s: Dictionary, model: int, damage: int, ap: int) -> void:
 	s.units[model].ranged_weapons = [{"id": "test-cannon", "profiles": {"standard": {"name": "Synthetic allocation probe", "attacks": 1, "skill": 2, "strength": 10, "ap": ap, "damage": damage, "range_inches": 24, "keywords": {}}}}]
+
+func submit_choice(s: Dictionary, player: int, selected: Dictionary) -> Dictionary:
+	var decision := PendingDecisions.current(s, ["unit-actions"])
+	if decision.is_empty(): return {"error": "No current UnitActions decision is pending."}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(selected.get("action", "")) and int(option.get("model", -1)) == int(selected.get("model", -1)) and int(option.get("target", -1)) == int(selected.get("target", -1)) and str(option.get("value", "")) == str(selected.get("value", "")):
+			projected = option
+			break
+	if projected.is_empty(): return {"error": "The current UnitActions decision does not offer this option."}
+	return MatchCommands.execute(s, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(s.get("revision", -1)), "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, Callable(self, "die"))
+
 func _initialize() -> void:
 	var s := fixture([700, 600])
 	s.units[700].position = Vector2.ZERO
@@ -95,13 +109,29 @@ func _initialize() -> void:
 	for selected: Dictionary in C.unit_choices(s, 2):
 		if selected.action == "wound-reroll": reroll = selected
 	check(not reroll.is_empty() and s.pending_attack.current.checkpoint.effective_wounds == [4], "Successful wound rolls can also be selected for Implacable Eradication")
+	var decision := PendingDecisions.current(s, ["unit-actions"])
+	var decision_id := str(decision.get("decision_id", ""))
+	var reroll_option_id := ""
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) == str(reroll.get("action", "")) and int(option.get("model", -1)) == int(reroll.get("model", -1)) and int(option.get("target", -1)) == int(reroll.get("target", -1)) and str(option.get("value", "")) == str(reroll.get("value", "")):
+			reroll_option_id = str(option.get("id", ""))
+			break
+	var restored_decision_state: Dictionary = bytes_to_var(var_to_bytes(s))
+	check(int(decision.get("priority_player_id", -1)) == 2 and not reroll_option_id.is_empty() and str(PendingDecisions.current(restored_decision_state, ["unit-actions"]).get("decision_id", "")) == decision_id, "Implacable Eradication exposes a defender-owned stable decision through save/restore")
+	var before_wrong_owner := var_to_bytes(restored_decision_state)
+	var wrong_owner := submit_choice(restored_decision_state, 1, reroll)
+	check(not str(wrong_owner.get("error", "")).is_empty() and before_wrong_owner == var_to_bytes(restored_decision_state), "The attacker cannot mutate the defender's Implacable reroll decision")
+	s = restored_decision_state
 	rolls = [6]
-	check(C.unit_action(s, 2, reroll, Vector2.ZERO, s.revision, die).is_empty() and s.pending_attack.current.checkpoint.effective_wounds == [6] and s.cp[2] == 0, "Free wound reroll replaces a success without CP")
+	var reroll_result := submit_choice(s, 2, reroll)
+	check(reroll_result.get("error", "").is_empty() and s.pending_attack.current.checkpoint.effective_wounds == [6] and s.cp[2] == 0, "Normalized free wound reroll replaces a success without CP")
 	var snapshot := var_to_bytes(s)
-	check(not C.unit_action(s, 2, reroll, Vector2.ZERO, s.revision, die).is_empty() and snapshot == var_to_bytes(s), "A re-rolled wound cannot be re-rolled again")
+	var repeated_reroll := MatchCommands.execute(s, 2, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(s.revision), "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": decision_id, "option_id": reroll_option_id, "choice": reroll}}, Callable(self, "die"))
+	check(not str(repeated_reroll.get("error", "")).is_empty() and snapshot == var_to_bytes(s), "A re-rolled wound cannot be re-rolled again through its stale decision envelope")
 	var restored: Dictionary = bytes_to_var(snapshot)
 	rolls = [1]
 	var keep: Dictionary = C.unit_choices(restored, 2)[0]
-	check(keep.action == "wound-finish" and C.unit_action(restored, 2, keep, Vector2.ZERO, restored.revision, die).is_empty() and restored.units[700].wounds == 1, "Serialized Implacable choice resumes saves and damage once")
+	var keep_result := submit_choice(restored, 2, keep)
+	check(keep.action == "wound-finish" and keep_result.get("error", "").is_empty() and restored.units[700].wounds == 1, "Serialized Implacable choice resumes saves and damage once")
 	print("Current unit combat checks: %d failures" % failures)
 	quit(1 if failures else 0)

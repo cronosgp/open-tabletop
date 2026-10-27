@@ -3,6 +3,7 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const UNIT := "eradicator-squad-with-heavy-bolters"
+const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -42,7 +43,7 @@ func mark(s: Dictionary, squad: int, target: int) -> Dictionary:
 		if selected.action == "overlap-target" and s.units[selected.model].squad == squad and selected.target == target: return selected
 	return {}
 func apply(s: Dictionary, selected: Dictionary) -> String:
-	return C.unit_action(s, 1, selected, Vector2.ZERO, s.revision)
+	return PublicUnitCommand.error(s, 1, selected)
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s := fixture()

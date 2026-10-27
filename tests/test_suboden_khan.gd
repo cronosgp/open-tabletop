@@ -8,6 +8,8 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const TacticalFluidity = preload("res://scripts/edition_11/tactical_fluidity.gd")
+const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
+const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -29,6 +31,74 @@ func find_model(state: Dictionary, owner: int, identity: String) -> int:
 	for model: int in state.units:
 		if state.units[model].owner == owner and C.UnitAbilities.identity(state.units[model]) == identity: return model
 	return -1
+
+func choose_current(state: Dictionary, player: int, action: String, target: int = -1, model: int = -1, point: Vector2 = Vector2.ZERO) -> Dictionary:
+	var decision := C.UnitActions.pending_decision(state)
+	if decision.is_empty() or int(decision.get("priority_player_id", -1)) != player: return {"error": "No matching UnitActions decision for Player %d." % player}
+	var option: Dictionary = {}
+	for candidate: Dictionary in decision.get("legal_options", []):
+		if str(candidate.get("action", "")) == action and int(candidate.get("target", -1)) == target and int(candidate.get("model", -1)) == model:
+			option = candidate
+			break
+	if option.is_empty(): return {"error": "Decision does not offer %s for target %d/model %d." % [action, target, model]}
+	var choice: Dictionary = {}
+	for candidate: Dictionary in C.UnitActions.choices(state, player):
+		if str(candidate.get("action", "")) == action and int(candidate.get("target", -1)) == target and int(candidate.get("model", -1)) == model:
+			choice = candidate
+			break
+	if choice.is_empty(): return {"error": "UnitActions no longer offers %s for target %d/model %d." % [action, target, model]}
+	return MatchCommandService.execute(state, player, {
+		"kind": MatchCommandService.SELECT_UNIT_CHOICE,
+		"revision": int(state.get("revision", -1)),
+		"point": point,
+		"choice": {
+			"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE,
+			"decision_id": str(decision.get("decision_id", "")),
+			"option_id": str(option.get("id", "")),
+			"choice": choice
+		}
+	})
+
+func place_squad_in_clear_area(state: Dictionary, squad: int) -> bool:
+	var members := Geometry.alive(state, squad)
+	var terrain_areas: Array = Terrain.areas(state)
+	for y in range(-18, 19, 2):
+		for x in range(-18, 5, 2):
+			var candidates: Dictionary = {}
+			var fits := true
+			for index in range(members.size()):
+				var model := members[index]
+				var position := Vector2(x + float(index) * 3.8, y)
+				var radius := float(state.units[model].get("radius", 0.0))
+				if absf(position.x) + radius > float(state.board_size.x) / 2.0 or absf(position.y) + radius > float(state.board_size.y) / 2.0:
+					fits = false
+					break
+				for other: int in state.units:
+					if other in members or int(state.units[other].get("wounds", 0)) <= 0 or not state.units[other].get("on_battlefield", true): continue
+					var required_distance := radius + float(state.units[other].get("radius", 0.0)) + (1.01 if int(state.units[other].get("owner", -1)) != int(state.units[model].get("owner", -1)) else 0.001)
+					if position.distance_to(Vector2(state.units[other].get("position", Vector2.ZERO))) <= required_distance:
+						fits = false
+						break
+				if not fits: break
+				for area: Dictionary in terrain_areas:
+					for feature: Dictionary in area.get("features", []):
+						var bounds: Rect2 = feature.get("bounds", Rect2())
+						if bool(feature.get("blocks_end", false)) and Terrain.within({"position": position, "radius": radius}, bounds):
+							fits = false
+							break
+					if not fits: break
+				if not fits: break
+				for placed_model: int in candidates:
+					var required_spacing := radius + float(state.units[placed_model].get("radius", 0.0)) + 0.001
+					if position.distance_to(Vector2(candidates[placed_model])) <= required_spacing:
+						fits = false
+						break
+				if not fits: break
+				candidates[model] = position
+			if fits:
+				for model: int in candidates: state.units[model].position = candidates[model]
+				return true
+	return false
 
 func _initialize() -> void: call_deferred("run")
 
@@ -101,29 +171,86 @@ func run() -> void:
 	doctrine_state.squads[outriders].moved = false
 	doctrine_state.squads[outriders].advanced = false
 	doctrine_state.pending_move = {}
+	doctrine_state.resolution_frames = []
 	var doctrine_advance_error := C.begin_movement(doctrine_state, 1, model, "advance", doctrine_state.revision, func() -> int: return 3)
 	check(doctrine_advance_error.is_empty() and doctrine_state.pending_move.bonus == 4, "Assault Doctrine modifier is applied to the actual Advance roll")
 	doctrine_state.phase = "charge"
 	doctrine_state.pending_move = {}
+	doctrine_state.resolution_frames = []
 	doctrine_state.squads[outriders].advanced = true
 	var charge_result := C.declare_charge(doctrine_state, 1, model, doctrine_state.revision, func() -> int: return 3)
 	check(charge_result.error.is_empty() and doctrine_state.pending_charge.maximum == 7, "Assault Doctrine modifier is applied to the actual Charge roll after Advance")
 	var spearpoint_state := state.duplicate(true)
 	C.Doctrines.enable(spearpoint_state, "spearpoint-task-force")
 	C.DetachmentStratagems.enable_spearpoint(spearpoint_state)
+	check("assault" in C.Doctrines.available(spearpoint_state, 1) and "tactical" in C.Doctrines.available(spearpoint_state, 1), "Spearpoint permits an additional Assault or Tactical Doctrine selection")
+	spearpoint_state.combat_doctrines.used[1] = ["assault", "tactical"]
+	check("assault" in C.Doctrines.available(spearpoint_state, 1) and "tactical" in C.Doctrines.available(spearpoint_state, 1), "Spearpoint keeps its single extra selection available while either eligible doctrine has been used once")
+	C.Doctrines.record_selection(spearpoint_state, 1, "tactical")
+	check("assault" not in C.Doctrines.available(spearpoint_state, 1) and "tactical" not in C.Doctrines.available(spearpoint_state, 1), "Using Spearpoint's extra doctrine selection consumes it")
+	check(C.Doctrines.advance_bonus(spearpoint_state, outriders) == 1 and C.Doctrines.advance_bonus(spearpoint_state, intercessors) == 0, "Spearpoint adds one only to Astartes Mounted/Speeder Advance rolls")
 	spearpoint_state.squads[intercessors].advanced = true
-	check(C.Doctrines.charge_error(spearpoint_state, intercessors).is_empty(), "Storm-swift Onslaught lets an Adeptus Astartes unit charge after Advancing")
+	check(not C.Doctrines.charge_error(spearpoint_state, intercessors).is_empty(), "Spearpoint no longer grants charges after Advancing")
 	spearpoint_state.squads[intercessors].advanced = false
 	spearpoint_state.squads[intercessors].fell_back = true
-	check(C.Doctrines.charge_error(spearpoint_state, intercessors).is_empty(), "Storm-swift Onslaught also lets an Adeptus Astartes unit charge after Falling Back")
-	for destroyed_enemy_model: int in Geometry.alive(spearpoint_state, enemy): spearpoint_state.units[destroyed_enemy_model].wounds = 0
-	for other_enemy_model: int in spearpoint_state.units:
-		if spearpoint_state.units[other_enemy_model].owner == 2 and spearpoint_state.units[other_enemy_model].wounds > 0: spearpoint_state.units[other_enemy_model].position = Vector2(40, 35)
+	check(not C.Doctrines.charge_error(spearpoint_state, intercessors).is_empty(), "Spearpoint no longer grants charges after Falling Back")
 	spearpoint_state.phase = "fight"
 	spearpoint_state.active = 2
-	C.Doctrines.record_spearpoint_destroyed_unit(spearpoint_state, outriders, enemy)
+	spearpoint_state.squads[outriders].fight_eligible = true
 	var storm_swift_error := TacticalFluidity.start_end_fight(spearpoint_state, 1, outriders)
-	check(Geometry.alive(spearpoint_state, enemy).is_empty() and storm_swift_error.is_empty() and spearpoint_state.unit_abilities.window.get("source", "") == "storm-swift-onslaught" and spearpoint_state.unit_abilities.window.get("distance", 0.0) == 6.0, "Wrath of the First Khan opens Suboden's 6-inch Normal Move after his unit destroys an enemy in the Fight phase")
+	var storm_swift_choices := TacticalFluidity.choices(spearpoint_state, 1)
+	check(not Geometry.alive(spearpoint_state, enemy).is_empty() and storm_swift_error.is_empty() and spearpoint_state.unit_abilities.window.get("source", "") == "storm-swift-onslaught" and spearpoint_state.unit_abilities.window.get("mode", "") == "normal" and str(storm_swift_choices[0].label).contains("Normal Move up to 12 inches"), "Wrath of the First Khan offers a Movement-characteristic Normal Move after eligibility, without requiring a destroyed enemy")
+	var storm_swift_use := TacticalFluidity.apply(spearpoint_state, 1, storm_swift_choices[0], Vector2.ZERO, func() -> int: return 1)
+	check(storm_swift_use.error.is_empty() and spearpoint_state.unit_abilities.window.kind == TacticalFluidity.PLACEMENT and spearpoint_state.unit_abilities.window.distance_by_model[model] == 12.0, "Suboden's Normal Move preview uses his 12-inch Movement characteristic")
 	check(not TacticalFluidity.suboden_squads(spearpoint_state, 1).has(outriders), "Wrath of the First Khan cannot be used twice in the same Fight phase")
+	var engaged_state := state.duplicate(true)
+	C.Doctrines.enable(engaged_state, "spearpoint-task-force")
+	engaged_state.phase = "fight"
+	engaged_state.squads[outriders].fight_eligible = true
+	engaged_state.units[enemy_model].position = engaged_state.units[model].position + Vector2(2, 0)
+	var engaged_error := TacticalFluidity.start_end_fight(engaged_state, 1, outriders)
+	var engaged_choices := TacticalFluidity.choices(engaged_state, 1)
+	check(engaged_error.is_empty() and engaged_state.unit_abilities.window.mode == "fallback" and str(engaged_choices[0].label).contains("Fall Back up to 12 inches"), "Wrath of the First Khan offers a Fall Back move when Suboden's unit is engaged")
+	var engaged_use := TacticalFluidity.apply(engaged_state, 1, engaged_choices[0], Vector2.ZERO, func() -> int: return 1)
+	check(engaged_use.error.is_empty() and engaged_state.unit_abilities.window.kind == TacticalFluidity.PLACEMENT and engaged_state.unit_abilities.window.mode == "fallback" and engaged_state.unit_abilities.window.distance_by_model[model] == 12.0, "Suboden's Fall Back preview uses his Movement characteristic")
+	var continuation := state.duplicate(true)
+	C.Doctrines.enable(continuation, "spearpoint-task-force")
+	C.DetachmentStratagems.enable_spearpoint(continuation)
+	continuation.phase = "fight"
+	continuation.active = 2
+	continuation.turn = 4
+	continuation.round = 2
+	continuation.fight_step = "complete"
+	continuation.fight_actor = 2
+	continuation.squads[outriders].fight_eligible = true
+	continuation.unit_abilities.window = {}
+	continuation.unit_abilities.end_done = ""
+	continuation.unit_abilities.used.erase("storm-swift-onslaught:%d:%d:fight" % [outriders, continuation.turn])
+	continuation.pending_move = {}
+	continuation.pending_charge = {}
+	continuation.pending_contact = {}
+	continuation.resolution_frames = []
+	check(place_squad_in_clear_area(continuation, outriders), "The phase-end placement fixture starts from an unengaged, clear battlefield location")
+	var close_error := C.advance_phase(continuation, 2, continuation.revision)
+	var end_decision := C.UnitActions.pending_decision(continuation)
+	check(close_error.is_empty() and continuation.unit_abilities.window.get("kind", "") == "end" and end_decision.get("priority_player_id", -1) == 1 and ResolutionFrames.current(continuation).get("kind", "") == "phase-close", "Fight close opens Suboden's opponent-owned end decision under a suspended phase-close frame: " + close_error)
+	var start_move := choose_current(continuation, 1, "storm-swift-move", outriders)
+	check(str(start_move.get("error", "")).is_empty() and continuation.unit_abilities.window.get("kind", "") == TacticalFluidity.WINDOW, "The public unit-choice command starts Wrath of the First Khan from the live phase-end decision: " + str(start_move.get("error", "")))
+	var move_use := choose_current(continuation, 1, "fluidity-use", outriders)
+	check(str(move_use.get("error", "")).is_empty() and continuation.unit_abilities.window.get("kind", "") == TacticalFluidity.PLACEMENT, "The normalized Tactical Fluidity decision opens model placement: " + str(move_use.get("error", "")))
+	var placement_frame_id := str(C.UnitActions.pending_decision(continuation).get("resume_frame_id", ""))
+	var restored_continuation: Dictionary = bytes_to_var(var_to_bytes(continuation))
+	check(not placement_frame_id.is_empty() and C.UnitActions.pending_decision(restored_continuation).get("resume_frame_id", "") == placement_frame_id and ResolutionFrames.current(restored_continuation).get("status", "") == "suspended", "The phase-close frame identity survives save/resume during Suboden's placement choice")
+	var pending_placement_before := var_to_str(restored_continuation)
+	var close_while_placing := C.advance_phase(restored_continuation, 2, restored_continuation.revision)
+	check("unit ability choices" in close_while_placing and var_to_str(restored_continuation) == pending_placement_before, "The active player cannot close Fight past the opponent's saved movement choice, and the blocked request is read-only")
+	for member: int in Geometry.alive(restored_continuation, outriders):
+		var staged := choose_current(restored_continuation, 1, "fluidity-place", outriders, member, restored_continuation.units[member].position)
+		check(str(staged.get("error", "")).is_empty(), "Suboden placement preview records model %d without committing the move: %s" % [member, str(staged.get("error", ""))])
+	var confirm_move := choose_current(restored_continuation, 1, "fluidity-confirm", outriders)
+	check(str(confirm_move.get("error", "")).is_empty() and restored_continuation.unit_abilities.window.get("kind", "") == "end" and ResolutionFrames.current(restored_continuation).get("kind", "") == "phase-close", "Confirming Suboden's move returns to the phase-end decision under the same close frame: " + str(confirm_move.get("error", "")))
+	var end_pass := choose_current(restored_continuation, 1, "pass")
+	var next_boundary_frame := ResolutionFrames.current(restored_continuation)
+	check(str(end_pass.get("error", "")).is_empty() and restored_continuation.phase == "end_turn" and next_boundary_frame.get("kind", "") == "phase-close" and next_boundary_frame.get("action_id", "") == "phase-close:%d:end_turn" % continuation.turn and next_boundary_frame.get("resume_point", "") == "end-turn-coherency-casualties", "Passing the end window completes Fight close and enters the distinct mandatory End-of-Turn coherency continuation: " + str(end_pass.get("error", "")))
 	print("Suboden Khan local checks: %d failures" % failures)
 	quit(1 if failures else 0)

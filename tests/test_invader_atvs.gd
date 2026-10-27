@@ -5,6 +5,8 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
+const Commands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -32,6 +34,17 @@ func choice_for(options: Array, action: String, model: int, value: String) -> Di
 	for option: Dictionary in options:
 		if option.action == action and option.model == model and option.value == value: return option
 	return {}
+
+func submit_loadout(state: Dictionary, player: int, selected: Dictionary, decision_id: String = "", option_id: String = "") -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty(): return {"error": "No current Invader ATV preparation decision is open."}
+	var projected: Dictionary = {}
+	for candidate: Dictionary in decision.get("legal_options", []):
+		if str(candidate.get("action", "")) == str(selected.get("action", "")) and int(candidate.get("model", -1)) == int(selected.get("model", -1)) and int(candidate.get("target", -1)) == int(selected.get("target", -1)) and str(candidate.get("value", "")) == str(selected.get("value", "")):
+			projected = candidate
+			break
+	if projected.is_empty(): return {"error": "The current Invader ATV decision does not offer this loadout."}
+	return Commands.execute(state, player, {"kind": Commands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": Commands.UNIT_CHOICE_ENVELOPE, "decision_id": decision_id if not decision_id.is_empty() else str(decision.get("decision_id", "")), "option_id": option_id if not option_id.is_empty() else str(projected.get("id", "")), "choice": selected}})
 
 func _initialize() -> void: call_deferred("run")
 
@@ -73,14 +86,19 @@ func run() -> void:
 	var setup := C.UnitActions.choices(state, 1)
 	var multi_one := choice_for(setup, "invader-atv-gun", atvs[0], "multi-melta")
 	var multi_two := choice_for(setup, "invader-atv-gun", atvs[1], "multi-melta")
-	check(not multi_one.is_empty() and C.unit_action(state, 1, multi_one, Vector2.ZERO, state.revision).is_empty(), "The first ATV can replace its cannon with a Multi-melta")
+	var prep_decision := PendingDecisions.current(state, ["unit-actions"])
+	var before_loadout := var_to_bytes(state)
+	var wrong_owner := submit_loadout(state, 2, multi_one)
+	var stale_option := submit_loadout(state, 1, multi_one, str(prep_decision.get("decision_id", "")), "stale-option")
+	check(not wrong_owner.get("error", "").is_empty() and not stale_option.get("error", "").is_empty() and before_loadout == var_to_bytes(state), "Wrong-owner and stale ATV loadout commands are rejected unchanged")
+	check(not multi_one.is_empty() and submit_loadout(state, 1, multi_one).get("error", "").is_empty(), "The first ATV can replace its cannon with a Multi-melta through the public command")
 	setup = C.UnitActions.choices(state, 1)
 	multi_two = choice_for(setup, "invader-atv-gun", atvs[1], "multi-melta")
-	check(not multi_two.is_empty() and C.unit_action(state, 1, multi_two, Vector2.ZERO, state.revision).is_empty(), "Each ATV can independently replace its cannon")
+	check(not multi_two.is_empty() and submit_loadout(state, 1, multi_two).get("error", "").is_empty(), "Each ATV can independently replace its cannon through the public command")
 	check(state.squads[atv_squad].training_cost == 140 and state.units[atvs[0]].ranged_weapons[1].profiles.standard.keywords.melta == 3 and state.units[atvs[1]].ranged_weapons[1].id == "multi-melta", "Two optional Multi-meltas add ten points and replace the cannons")
 	setup = C.UnitActions.choices(state, 1)
 	var restore := choice_for(setup, "invader-atv-gun", atvs[0], "onslaught")
-	check(not restore.is_empty() and C.unit_action(state, 1, restore, Vector2.ZERO, state.revision).is_empty() and state.squads[atv_squad].training_cost == 135, "Restoring one cannon removes one Multi-melta cost")
+	check(not restore.is_empty() and submit_loadout(state, 1, restore).get("error", "").is_empty() and state.squads[atv_squad].training_cost == 135, "Restoring one cannon removes one Multi-melta cost through the public command")
 
 	state.phase = "shooting"
 	state.active = 1

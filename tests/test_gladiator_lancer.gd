@@ -4,6 +4,8 @@ const Profiles = preload("res://scripts/edition_11/current_reference_marine_prof
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const C = F.C
+const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -15,6 +17,19 @@ func squad(state: Dictionary, identity: String) -> int:
 	for model: int in state.units:
 		if C.UnitAbilities.identity(state.units[model]) == identity: return int(state.units[model].squad)
 	return -1
+
+func submit_choice(state: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
+	var decision := PendingDecisions.current(state, ["unit-actions"])
+	if decision.is_empty(): return {"error": "No pending UnitActions decision."}
+	var projected: Dictionary = {}
+	for option: Dictionary in decision.get("legal_options", []):
+		if str(option.get("action", "")) != str(selected.get("action", "")) or int(option.get("model", -1)) != int(selected.get("model", -1)) or int(option.get("target", -1)) != int(selected.get("target", -1)) or str(option.get("value", "")) != str(selected.get("value", "")): continue
+		var details: Dictionary = option.get("details", {})
+		if details.has("die") and int(selected.get("die", -1)) != int(details.get("die", -2)): continue
+		projected = option
+		break
+	if projected.is_empty(): return {"error": "The choice is not in the current decision projection."}
+	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "point": Vector2.ZERO, "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, roller)
 
 func _initialize() -> void: call_deferred("run")
 
@@ -59,14 +74,19 @@ func run() -> void:
 	check(attack_result.error.is_empty() and state.unit_abilities.window.get("kind", "") == "aquilon-hit" and hit_choices.any(func(choice: Dictionary) -> bool: return choice.action == "hit-reroll") and hit_choices.any(func(choice: Dictionary) -> bool: return choice.action == "hit-finish"), "Combat exposes an optional single hit-die reroll choice")
 	if state.unit_abilities.window.get("kind", "") == "aquilon-hit":
 		var hit_choice: Dictionary = hit_choices.filter(func(choice: Dictionary) -> bool: return choice.action == "hit-reroll")[0]
-		var hit_error := C.unit_action(state, 1, hit_choice, Vector2.ZERO, state.revision, func() -> int: return 6)
+		var wrong_hit_owner_before := var_to_bytes(state)
+		var wrong_hit_owner := submit_choice(state, 2, hit_choice, func() -> int: return 6)
+		check(not str(wrong_hit_owner.get("error", "")).is_empty() and var_to_bytes(state) == wrong_hit_owner_before, "A non-priority player cannot submit the Lancer's reroll decision")
+		var hit_result := submit_choice(state, 1, hit_choice, func() -> int: return 6)
+		var hit_error := str(hit_result.get("error", ""))
 		check(hit_error.is_empty() and state.pending_attack.current.checkpoint.phase == "wound" and state.unit_abilities.window.get("kind", "") == "wound" and state.pending_attack.aquilon_used[str(target)].get("hit", false), "Choosing one hit die reroll advances to Aquilon's optional wound reroll window and consumes its hit reroll for this target")
 		var wound_choices := C.unit_choices(state, 1)
 		var wound_rerolls := wound_choices.filter(func(choice: Dictionary) -> bool: return choice.action == "wound-reroll")
 		check(wound_rerolls.size() == 1, "Aquilon offers one eligible wound-die reroll choice")
 		if not wound_rerolls.is_empty():
 			var dice: Array[int] = [6, 1, 1]
-			var wound_error := C.unit_action(state, 1, wound_rerolls[0], Vector2.ZERO, state.revision, func() -> int: return dice.pop_front() if not dice.is_empty() else 1)
+			var wound_result := submit_choice(state, 1, wound_rerolls[0], func() -> int: return dice.pop_front() if not dice.is_empty() else 1)
+			var wound_error := str(wound_result.get("error", ""))
 			var damage_choices := C.unit_choices(state, 1)
 			check(wound_error.is_empty() and state.unit_abilities.window.get("kind", "") == "damage-reroll" and damage_choices.any(func(choice: Dictionary) -> bool: return choice.action == "damage-reroll" and str(choice.label).begins_with("Aquilon Optics")) and state.pending_attack.aquilon_used[str(target)].get("wound", false) and state.pending_attack.aquilon_used[str(target)].get("damage", false), "Aquilon wound reroll resolves once for the target and opens its optional damage reroll")
 	for id: int in C.living(state, target): state.units[id].keywords.erase("VEHICLE")

@@ -5,6 +5,7 @@ const Capabilities = preload("res://scripts/edition_11/army_capabilities.gd")
 const Pack = preload("res://scripts/data_pack.gd")
 const Roster = preload("res://scripts/army_roster.gd")
 const CurrentMarines = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Tactical = preload("res://scripts/edition_11/tactical_training.gd")
 const DIRECTORY := "res://data/imported/starter-11e-v1"
 const SPECS := {
 	"Space Marines": {"folder": "adeptus-astartes", "source": "intercessor-squad", "models": 5, "template": 1,
@@ -28,8 +29,6 @@ static func inspect(list: Variant) -> Dictionary:
 	var error := Roster.validate(list)
 	if not error.is_empty(): return {"error": error}
 	if list.edition != "11e": return {"error": "The training engine only uses the implemented 11th edition pack."}
-	var resolved := definition(list.faction)
-	if not resolved.error.is_empty(): return resolved
 	var spec: Dictionary = SPECS[list.faction]
 	var mixed := false
 	var requested := 0
@@ -40,12 +39,14 @@ static func inspect(list: Variant) -> Dictionary:
 		var entries: Array[Dictionary] = []
 		for entry: Dictionary in list.entries:
 			if entry.faction != list.faction: return {"error": "Mixed factions are unsupported in core-profile training."}
-			var selected := {"definition_id": resolved.unit.id if entry.unit_id in spec.aliases else entry.unit_id, "models": int(entry.models), "copies": int(entry.copies)}
+			var selected := {"definition_id": Capabilities.canonical_id(list.faction, str(entry.unit_id)), "models": int(entry.models), "copies": int(entry.copies)}
 			if entry.get("enhancement_id", "") != "": selected.enhancement_id = str(entry.enhancement_id)
 			entries.append(selected)
 		var report := Capabilities.admit({"schema_version": 2, "faction": list.faction, "entries": entries, "category": list.category, "points_limit": int(list.points_limit)})
 		if report.error.is_empty(): report.saved_reference_points = Roster.summary(list).points
 		return report
+	var resolved := definition(list.faction)
+	if not resolved.error.is_empty(): return resolved
 	var count := 0
 	for entry: Dictionary in list.entries:
 		if entry.unit_id not in spec.aliases or entry.faction != list.faction:
@@ -141,6 +142,9 @@ static func presets(checked: bool = false) -> Array[Dictionary]:
 	# explicit legacy loading paths; they are not fresh construction presets.
 	var reference := Capabilities.reference_army("Space Marines")
 	if reference.error.is_empty() and inspect(reference.list).error.is_empty(): lists.append(reference.list)
+	for assault: bool in [false, true]:
+		var tactical := Tactical.army(assault)
+		if tactical.error.is_empty() and admit_current_catalog(tactical.list).error.is_empty(): lists.append(tactical.list)
 	return lists
 
 static func awakened_reference() -> Dictionary:
