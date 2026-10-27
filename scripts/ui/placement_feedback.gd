@@ -306,8 +306,8 @@ func _place_destination_marker(camera: Camera3D, bounds: Rect2) -> void:
 		var distance_x := half_bounds.x / absf(ray.x) if absf(ray.x) > 0.001 else INF
 		var distance_y := half_bounds.y / absf(ray.y) if absf(ray.y) > 0.001 else INF
 		point = safe_bounds.get_center() + ray * minf(distance_x, distance_y)
-	var marker_size := marker.custom_minimum_size
-	var max_position := safe_bounds.end - marker_size
+	var marker_size: Vector2 = marker.custom_minimum_size
+	var max_position: Vector2 = safe_bounds.end - marker_size
 	marker.position = Vector2(clampf(point.x - marker_size.x * 0.5, safe_bounds.position.x, max_position.x), clampf(point.y - marker_size.y * 0.5, safe_bounds.position.y, max_position.y))
 	marker.visible = true
 

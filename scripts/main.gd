@@ -6508,7 +6508,7 @@ func _refresh_health_tags() -> void:
 			if ordinal.visible: ordinal.text = ArmyList.model_label(state, model_id)
 		var shocked := tag.get("shocked") as Label3D
 		if shocked != null:
-			var squad_shocked := combat_enabled and live_on_board and state.squads.has(unit.squad) and bool(state.squads[unit.squad].get("battle_shocked", false))
+			var squad_shocked: bool = combat_enabled and live_on_board and state.squads.has(unit.squad) and bool(state.squads[unit.squad].get("battle_shocked", false))
 			shocked.visible = squad_shocked
 		if not tag.root.visible: continue
 		var remaining := maxi(0, int(unit.get("wounds", 0)))

@@ -627,7 +627,7 @@ func _show_group(index: int, reveal: bool, animate_faces: bool = false) -> void:
 				var critical: bool = outcome.get("critical", false)
 				if passed: successful += 1
 				classified += 1
-				var failed_save := group.name == "Saves" and not passed
+				var failed_save: bool = group.name == "Saves" and not passed
 				face_text.text += "★" if critical else ("✓" if passed else "×")
 				face_text.add_theme_color_override("font_color", Color("f2df83") if critical else (Color("96dfb3") if passed else Color("ffb0a6")))
 				if failed_save:

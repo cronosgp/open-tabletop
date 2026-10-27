@@ -167,7 +167,7 @@ func _entry_tooltip(entry: Dictionary) -> String:
 		var text := str(message).strip_edges()
 		if not text.is_empty(): lines.append(text)
 	if lines.is_empty(): lines.append(_entry_preview(entry))
-	var dice_count := entry.get("dice", []).size()
+	var dice_count: int = int(entry.get("dice", []).size())
 	if dice_count > 0: lines.append("%d recorded dice. Open the technical record for the D6 order." % dice_count)
 	return "\n".join(lines)
 
