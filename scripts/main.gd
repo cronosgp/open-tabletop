@@ -496,6 +496,24 @@ func _ready() -> void:
 	_refresh()
 	_update_main_menu_resume_state()
 
+func _ensure_tactical_input_actions() -> void:
+	for action: String in REBINDABLE_ACTIONS:
+		var action_name := StringName(action)
+		if not InputMap.has_action(action_name):
+			InputMap.add_action(action_name)
+		var has_keyboard_binding := false
+		for input_event: InputEvent in InputMap.action_get_events(action_name):
+			if input_event is InputEventKey:
+				has_keyboard_binding = true
+				break
+		if has_keyboard_binding:
+			continue
+		var keycode := int(DEFAULT_CONTROL_BINDINGS[action])
+		var key_event := InputEventKey.new()
+		key_event.physical_keycode = keycode
+		key_event.keycode = keycode
+		InputMap.action_add_event(action_name, key_event)
+
 func _material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
