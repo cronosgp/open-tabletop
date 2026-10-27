@@ -118,7 +118,6 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 	var use_current_templates := current_marine_templates or _current_marine_setup(selections)
 	var state := Battlefield.apply(Combat.initial_state(terrain_layout, Combat.Objectives.TRAINING, 2, manual, varied, use_current_templates))
 	if state.has("error"): return state
-	state.match_manifest.terrain_layout = terrain_layout
 	if core: Combat.Stratagems.enable(state, movement_rerolls, attack_rerolls, save_rerolls, damage_rerolls, hazard_rerolls, count_rerolls, escape_rerolls)
 	if not reports.is_empty():
 		var original := state.duplicate(true)
@@ -249,7 +248,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		"movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls,
 		"save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls,
 		"hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls,
-		"count_rerolls": count_rerolls
+		"count_rerolls": count_rerolls, "terrain_layout": terrain_layout
 	}
 	if options.has("training_scenario_id"):
 		if options.training_scenario_id != Training.Tactical.ID or not Training.Tactical.matches(state): return {"error": "The tactical scenario requires its versioned current Marine formations."}

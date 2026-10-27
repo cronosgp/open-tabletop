@@ -69,7 +69,7 @@ static func clear_path(state: Dictionary, model_id: int, destination: Vector2, m
 			if id == model_id: continue
 			var other: Dictionary = state.units[id]
 			if other.wounds <= 0 or not other.get("on_battlefield", true): continue
-			var is_enemy := other.owner != model.owner
+			var is_enemy: bool = other.owner != model.owner
 			if not is_enemy and not monster_vehicle_move_blocks_large_model(model, other, move_type): continue
 			if is_enemy and monster_vehicle_can_pass_enemy_model(model, other, move_type): continue
 			var other_elevation := float(other.get("elevation", 0.0))

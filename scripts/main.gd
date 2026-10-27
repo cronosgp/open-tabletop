@@ -501,6 +501,24 @@ func _ready() -> void:
 	_refresh()
 	_update_main_menu_resume_state()
 
+func _ensure_tactical_input_actions() -> void:
+	for action: String in REBINDABLE_ACTIONS:
+		var action_name := StringName(action)
+		if not InputMap.has_action(action_name):
+			InputMap.add_action(action_name)
+		var has_keyboard_binding := false
+		for input_event: InputEvent in InputMap.action_get_events(action_name):
+			if input_event is InputEventKey:
+				has_keyboard_binding = true
+				break
+		if has_keyboard_binding:
+			continue
+		var keycode := int(DEFAULT_CONTROL_BINDINGS[action])
+		var key_event := InputEventKey.new()
+		key_event.physical_keycode = keycode
+		key_event.keycode = keycode
+		InputMap.action_add_event(action_name, key_event)
+
 func _material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
@@ -2544,7 +2562,7 @@ func _open_saved_results() -> void:
 
 func _open_saved_matches() -> void:
 	if saved_matches_browser == null: return
-	var local_match_can_save := combat_enabled and mode != "client" and state.get("phase", "") != "army_selection"
+	var local_match_can_save: bool = combat_enabled and mode != "client" and state.get("phase", "") != "army_selection"
 	saved_matches_browser.set_context(not combat_enabled, local_match_can_save, active_save_slot)
 	_show_tactical_screen(saved_matches_browser, "SAVED MATCHES  /  LOCAL SLOTS")
 
@@ -3515,7 +3533,7 @@ func _refresh_contact_flow() -> void:
 		var charge_squad := int(state.units[selected].get("squad", -1)) if state.units.has(selected) else int(state.pending_charge.get("squad", -1))
 		var charge_take_draft := _charge_take_to_skies_draft(charge_squad)
 		var charge_take_pending := not charge_take_draft.is_empty()
-		var charge_take_available := state.units.has(selected) and state.units[selected].owner == _local_player() and state.pending_charge.is_empty() and state.pending_contact.is_empty() and Combat.Terrain.squad_can_fly(state, charge_squad) and Combat.charge_declaration_error(state, _local_player(), selected, state.revision).is_empty()
+		var charge_take_available: bool = state.units.has(selected) and state.units[selected].owner == _local_player() and state.pending_charge.is_empty() and state.pending_contact.is_empty() and Combat.Terrain.squad_can_fly(state, charge_squad) and Combat.charge_declaration_error(state, _local_player(), selected, state.revision).is_empty()
 		if not charge_take_pending and charge_squad != take_to_skies_charge_draft_squad: take_to_skies_charge_choice.set_pressed_no_signal(false)
 		take_to_skies_charge_draft_squad = charge_squad
 		var charge_has_hover := Combat.Terrain.squad_has_hover(state, charge_squad)
@@ -3590,7 +3608,7 @@ func _refresh_contact_flow() -> void:
 	if pending:
 		if state.phase == "charge": stage = 3
 		message = "Select each model, choose its destination height, then right-click. Confirm when every model is placed."
-		var vertical_ignored := (str(state.pending_contact.get("kind", "")) == "charge" and bool(state.pending_contact.get("take_to_skies", false)) and state.units.has(selected) and Combat.Terrain.has_keyword(state.units[selected], ["fly"])) or (state.units.has(selected) and bool(state.squads.get(int(state.units[selected].get("squad", -1)), {}).get("reiver_grapnel_launchers", false)))
+		var vertical_ignored: bool = (str(state.pending_contact.get("kind", "")) == "charge" and bool(state.pending_contact.get("take_to_skies", false)) and state.units.has(selected) and Combat.Terrain.has_keyword(state.units[selected], ["fly"])) or (state.units.has(selected) and bool(state.squads.get(int(state.units[selected].get("squad", -1)), {}).get("reiver_grapnel_launchers", false)))
 		contact_reference.text += "\n\nDESTINATION HEIGHT • " + ("vertical distance is ignored for this model" if vertical_ignored else "vertical distance and supported wall access apply")
 		var error := Combat.ContactActions.final_error(state)
 		confirm_contact_button.disabled = confirm_contact_button.disabled or not error.is_empty()
@@ -4911,8 +4929,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.button_index != MOUSE_BUTTON_RIGHT: return
 	var target_elevation := 0.0
-	var movement_placement := combat_enabled and state.phase == "movement" and state.pending_contact.is_empty() and Combat.UnitActions.pending(state).is_empty() and Combat.Reanimation.pending(state).is_empty()
-	var contact_placement := combat_enabled and not state.pending_contact.is_empty()
+	var movement_placement: bool = combat_enabled and state.phase == "movement" and state.pending_contact.is_empty() and Combat.UnitActions.pending(state).is_empty() and Combat.Reanimation.pending(state).is_empty()
+	var contact_placement: bool = combat_enabled and not state.pending_contact.is_empty()
 	if movement_placement: target_elevation = _selected_movement_elevation()
 	elif contact_placement: target_elevation = _selected_contact_elevation()
 	var hit: Variant = Plane(Vector3.UP, target_elevation).intersects_ray(camera.project_ray_origin(event.position), camera.project_ray_normal(event.position))
@@ -4973,7 +4991,7 @@ func _pick_model_from_screen(screen_position: Vector2) -> int:
 		if not pieces.has(id) or not pieces[id].visible: continue
 		var unit: Dictionary = state.units[id]
 		if unit.get("wounds", 1) <= 0 or not unit.get("on_battlefield", true): continue
-		var world := pieces[id].global_position
+		var world: Vector3 = pieces[id].global_position
 		if camera.is_position_behind(world): continue
 		var center := camera.unproject_position(world)
 		var radius: float = float(unit.get("radius", 0.5))
@@ -5573,7 +5591,7 @@ func _refresh() -> void:
 		if match_was_presented and not previous.is_empty() and int(previous.get("wounds", wounds)) > 0 and wounds == 0:
 			impact_cue = true
 		var feedback_enabled := _board_motion_enabled()
-		var position_changed := not previous.is_empty() and (previous.get("position", display_position) != display_position or absf(float(previous.get("elevation", elevation)) - elevation) > 0.001)
+		var position_changed: bool = not previous.is_empty() and (previous.get("position", display_position) != display_position or absf(float(previous.get("elevation", elevation)) - elevation) > 0.001)
 		if combat_enabled and feedback_enabled and not previous.is_empty():
 			var previous_wounds := int(previous.get("wounds", wounds))
 			var previous_position: Vector2 = previous.get("position", display_position)
@@ -5864,9 +5882,9 @@ func _refresh() -> void:
 		if Combat.MarineEnhancements.singular_will_active(state, consolidation_squad):
 			begin_contact_button.text = "Begin consolidation (Singular Will)"
 			begin_contact_button.tooltip_text += "\n\nSingular Will: this unit can consolidate up to D3+3 inches. The roll is retained if placement is cancelled."
-		var focus_error := Combat.DetachmentStratagems.error(state, _local_player(), consolidation_squad, Combat.DetachmentStratagems.TACTICAL_FOCUS)
+		var focus_error: String = Combat.DetachmentStratagems.error(state, _local_player(), consolidation_squad, Combat.DetachmentStratagems.TACTICAL_FOCUS)
 		if focus_error.is_empty():
-			var focus_roll := Combat.DetachmentStratagems.tactical_focus_roll(state, _local_player(), consolidation_squad)
+			var focus_roll: Dictionary = Combat.DetachmentStratagems.tactical_focus_roll(state, _local_player(), consolidation_squad)
 			tactical_focus_button.visible = combat_enabled and not pending_contact
 			tactical_focus_button.text = "Resume Tactical Focus (roll retained)" if not focus_roll.is_empty() else "Tactical Focus (1 CP) and begin consolidation"
 			tactical_focus_button.tooltip_text = "Tactical Focus costs 1 CP, reduced by an eligible discount. Roll D3+3 inches, then place and confirm this unit's consolidation. A cancelled placement keeps the roll and does not charge CP again."
@@ -5882,7 +5900,7 @@ func _refresh() -> void:
 	if combat_enabled and state.phase == "fight" and state.units.has(selected) and state.units[selected].squad not in Combat.FightQueue.choices(state, _local_player()): begin_contact_button.disabled = true
 	if combat_enabled and state.phase == "charge" and state.pending_charge.get("targets", []).is_empty(): begin_contact_button.disabled = true
 	if combat_enabled and state.phase == "fight" and state.fight_step == "consolidate" and state.units.has(selected):
-		var saved_focus_roll := Combat.DetachmentStratagems.tactical_focus_roll(state, _local_player(), int(state.units[selected].squad))
+		var saved_focus_roll: Dictionary = Combat.DetachmentStratagems.tactical_focus_roll(state, _local_player(), int(state.units[selected].squad))
 		if not saved_focus_roll.is_empty(): begin_contact_button.disabled = true
 	if combat_enabled and state.phase == "fight" and state.fight_step in ["attacks", "consolidation_reaction"] and begin_contact_button.disabled and not pending_contact:
 		begin_contact_button.visible = false
@@ -6829,7 +6847,7 @@ func _refresh_attack_plan() -> void:
 			if option.weapon == previous_weapon.get("weapon", "") and option.profile == previous_weapon.get("profile", ""): plan_weapon.select(index)
 		var choice := _plan_weapon_choice()
 		if not choice.is_empty():
-			var point_blank_preview := not attack_draft.melee and Combat.DetachmentStratagems.point_blank_brutality_available(state, _local_player(), attack_draft.squad)
+			var point_blank_preview: bool = not attack_draft.melee and Combat.DetachmentStratagems.point_blank_brutality_available(state, _local_player(), attack_draft.squad)
 			for target: int in Combat.AttackPlan.legal_targets(state, selected, attack_draft.melee, choice.weapon, choice.profile, attack_draft.get("indirect_shooting", false), point_blank_preview): plan_target.add_item("Target: " + state.squads[target].name, target)
 		var index := plan_target.get_item_index(previous_target)
 		if index >= 0: plan_target.select(index)
@@ -7264,7 +7282,7 @@ func _save_snapshot_to_slot(target_slot: int) -> String:
 	var target_journal_directory := MatchSave.journal_directory(target_slot)
 	var save_checkpoint := journal.checkpoint()
 	var copied_journal_id := ""
-	var source_journal_id := journal.id
+	var source_journal_id: String = journal.id
 	var copied_retired_ids: Array[String] = journal.retired_ids.duplicate()
 	var previous_save: Dictionary = {}
 	if MatchSave.slot_has_file(target_slot):
@@ -7346,7 +7364,7 @@ func _save_current_match_to_slot(slot: int) -> void:
 	autosave_error = error
 	status.text = "Match saved to Slot %d on this computer." % slot if error.is_empty() else "Could not save the match: " + error
 	if saved_matches_browser != null:
-		var local_match_can_save := combat_enabled and mode != "client" and state.get("phase", "") != "army_selection"
+		var local_match_can_save: bool = combat_enabled and mode != "client" and state.get("phase", "") != "army_selection"
 		saved_matches_browser.set_context(not combat_enabled, local_match_can_save, active_save_slot)
 		saved_matches_browser.refresh_slots()
 		saved_matches_browser.show_feedback(status.text, not error.is_empty())
@@ -7886,7 +7904,8 @@ func _show_placement_feedback(model: int, destination: Vector2, error: String, d
 	var mark_destination := not destination.is_equal_approx(state.units[model].position) or absf(target_elevation - current_elevation) > 0.001
 	var fallback_recovery := "Rejected destination marked. Choose another or cancel." if mark_destination else "Review the placement, then retry or reset."
 	placement_feedback.show_reason(model, destination, error, true, mark_destination, target_elevation, error_code, recovery if not recovery.is_empty() else fallback_recovery)
-	var squad_name := str(state.squads.get(int(state.units[model].get("squad", -1)), {}).get("name", "Unit"))
+	var squads: Dictionary = state.get("squads", {})
+	var squad_name := str(squads.get(int(state.units[model].get("squad", -1)), {}).get("name", "Unit"))
 	var model_label := "%s · %s" % [squad_name, ArmyList.model_label(state, model)]
 	placement_reason.text = "%s · %s\n%s\n%s" % [model_label, placement_feedback.heading, error, placement_feedback.recovery]
 	placement_reason.visible = true
@@ -7898,7 +7917,7 @@ func _show_placement_feedback(model: int, destination: Vector2, error: String, d
 			var detail_unit: Dictionary = state.units.get(detail_model, {})
 			if not detail_unit.is_empty():
 				var detail_squad := int(detail_unit.get("squad", -1))
-				var detail_squad_name := str(state.squads.get(detail_squad, {}).get("name", "Unit"))
+				var detail_squad_name := str(squads.get(detail_squad, {}).get("name", "Unit"))
 				detail_text = "%s · %s: %s" % [detail_squad_name, ArmyList.model_label(state, detail_model), str(detail.get("reason", "Additional contact requirement not met."))]
 		else:
 			detail_text = str(detail).strip_edges()

@@ -1408,7 +1408,7 @@ static func finish_contact_move_result(state: Dictionary, player: int, revision:
 		else:
 			var complete_error := _complete_contact_frame(state, cancelled_move)
 			if not complete_error.is_empty(): return _movement_validation_result("movement_continuation_unavailable", complete_error, "Reopen the contact move before continuing.")
-		var tactical_focus_retained := not cancelled_move.get("tactical_focus_roll", {}).is_empty()
+		var tactical_focus_retained: bool = not cancelled_move.get("tactical_focus_roll", {}).is_empty()
 		var cancellation_message := "Contact placement cancelled; positions restored."
 		if tactical_focus_retained: cancellation_message += " Tactical Focus remains paid and its roll is retained."
 		elif str(cancelled_move.get("kind", "")) == "charge": cancellation_message += " Charge dice are retained."
