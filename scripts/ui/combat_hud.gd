@@ -75,6 +75,7 @@ func _build() -> void:
 	round_label = Label.new()
 	round_label.custom_minimum_size = Vector2(72, 0)
 	round_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	round_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	round_label.add_theme_font_size_override("font_size", 14)
 	round_label.add_theme_color_override("font_color", Color("f1ede2"))
 	steps.add_child(round_label)
@@ -172,6 +173,8 @@ func _build() -> void:
 	decision_label = Label.new()
 	decision_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	decision_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	decision_label.max_lines_visible = 4
+	decision_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	decision_label.add_theme_font_size_override("font_size", 16)
 	decision_label.add_theme_color_override("font_color", Color("eee9df"))
 	column.add_child(decision_label)
@@ -188,11 +191,9 @@ func set_steps(phase: String, round_number: int, active_player: int, decision_pl
 	if phase.is_empty():
 		current_index = -1
 	elif current_index < 0:
-		round_label.text = "Setup"
-		round_label.tooltip_text = "Round %d · Player %d active · Player %d decides" % [round_number, active_player, decision_player]
+		_show_turn_owner(round_number, active_player, decision_player, true)
 	else:
-		round_label.text = "R%d  P%d" % [round_number, active_player]
-		round_label.tooltip_text = "Round %d · Player %d active · Player %d decides" % [round_number, active_player, decision_player]
+		_show_turn_owner(round_number, active_player, decision_player, false)
 	for index in STEP_ORDER.size():
 		var step_id: String = STEP_ORDER[index]
 		var chip: Label = step_labels[step_id]
@@ -214,6 +215,15 @@ func set_steps(phase: String, round_number: int, active_player: int, decision_pl
 			background.bg_color = Color("343126")
 		chip.add_theme_stylebox_override("normal", background)
 		chip.add_theme_color_override("font_color", color)
+
+func _show_turn_owner(round_number: int, active_player: int, decision_player: int, setup: bool) -> void:
+	var other_decides := decision_player > 0 and active_player > 0 and decision_player != active_player
+	var caption := "Setup" if setup else "R%d P%d" % [round_number, active_player]
+	if other_decides: caption += " · P%d decides" % decision_player
+	round_label.text = caption
+	round_label.tooltip_text = "Round %d · Player %d's turn · Player %d decides" % [round_number, active_player, decision_player]
+	round_label.custom_minimum_size.x = 156.0 if other_decides else 72.0
+	round_label.add_theme_color_override("font_color", Color("f2df83") if other_decides else Color("f1ede2"))
 
 func set_connection(text: String) -> void:
 	connection_label.text = text

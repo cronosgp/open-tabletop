@@ -27,6 +27,7 @@ func configure(steps: Array[String], active: int, message: String) -> void:
 			strip.add_child(label)
 			labels.append(label)
 	for index in labels.size():
-		labels[index].text = "%s %s" % ["✓" if index < active else str(index + 1), steps[index]]
+		var marker := "✓" if index < active else ("Now" if index == active else str(index + 1))
+		labels[index].text = "%s %s" % [marker, steps[index]]
 		labels[index].add_theme_color_override("font_color", Color("f2df83") if index == active else Color("a5afb5"))
 	instruction.text = message

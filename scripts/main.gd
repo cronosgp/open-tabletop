@@ -373,6 +373,8 @@ var recipient_cards: VBoxContainer
 var recipient_scroll: ScrollContainer
 var placement_feedback = preload("res://scripts/ui/placement_feedback.gd").new()
 var placement_reason: Label
+var placement_reason_row: HBoxContainer
+var placement_reason_icon
 var placement_details_toggle: Button
 var placement_details_label: Label
 var placement_detail_entries: Array[String] = []
@@ -393,6 +395,7 @@ var dice_visual_rolls: HFlowContainer
 var dice_audit_label: Label
 var dice_animation_toggle: CheckButton
 var dice_visual_signature := ""
+var dice_visual_omitted := 0
 var health_overlay_toggle: CheckButton
 var board_feedback_toggle: CheckButton
 var charge_button: Button
@@ -412,7 +415,9 @@ var action_unit_picker: OptionButton
 var contact_flow
 var contact_reference: Label
 var charge_targets: VBoxContainer
+var charge_target_notes: Label
 var charge_target_buttons: Dictionary = {}
+var presented_hazard_key := ""
 var begin_move_button: Button
 var escape_wound_button: Button
 var abandon_move_button: Button
@@ -621,6 +626,16 @@ func _spawn_pieces() -> void:
 		marker_material.emission_energy_multiplier = 0.45
 		marker.material_override = marker_material
 		marker.visible = false
+		var eligible_cue := Label3D.new()
+		eligible_cue.text = "Eligible"
+		eligible_cue.font_size = 28
+		eligible_cue.pixel_size = 0.01
+		eligible_cue.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		eligible_cue.position = Vector3(0, 0.28, 0)
+		eligible_cue.modulate = Color("78e1ac")
+		eligible_cue.outline_size = 8
+		eligible_cue.outline_modulate = Color("10161b")
+		marker.add_child(eligible_cue)
 		piece.add_child(marker)
 		allocation_markers[id] = marker
 		if model_imports != null:
@@ -704,9 +719,34 @@ func _create_health_tag(piece: MeshInstance3D, model_id: int) -> void:
 	label.position.y = 0.31
 	label.text = "Wounds"
 	health_root.add_child(label)
-	health_tags[model_id] = {"root": health_root, "back": back, "fill": fill, "label": label}
+	var ordinal := Label3D.new()
+	ordinal.name = "RosterOrdinal"
+	ordinal.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	ordinal.no_depth_test = true
+	ordinal.pixel_size = 0.01
+	ordinal.font_size = 48
+	ordinal.outline_size = 8
+	ordinal.outline_modulate = Color("10161b")
+	ordinal.modulate = Color("f2df83")
+	ordinal.position = Vector3(0, 1.95, 0)
+	ordinal.visible = false
+	piece.add_child(ordinal)
+	var shocked := Label3D.new()
+	shocked.name = "ShockedCue"
+	shocked.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	shocked.no_depth_test = true
+	shocked.pixel_size = 0.01
+	shocked.font_size = 42
+	shocked.outline_size = 8
+	shocked.outline_modulate = Color("10161b")
+	shocked.modulate = Color("e3ad52")
+	shocked.position = Vector3(0, 2.28, 0)
+	shocked.text = "Shocked"
+	shocked.visible = false
+	piece.add_child(shocked)
+	health_tags[model_id] = {"root": health_root, "back": back, "fill": fill, "label": label, "ordinal": ordinal, "shocked": shocked}
 
-func _show_board_feedback(model_id: int, message: String, tint: Color) -> void:
+func _show_board_feedback(model_id: int, message: String, tint: Color, hold: float = 0.0) -> void:
 	if not pieces.has(model_id): return
 	var label := Label3D.new()
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -724,6 +764,7 @@ func _show_board_feedback(model_id: int, message: String, tint: Color) -> void:
 	var tween := create_tween()
 	board_feedback_effects[effect_id] = {"label": label, "tween": tween}
 	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if hold > 0.0: tween.tween_interval(hold)
 	tween.tween_property(label, "position:y", label.position.y + 0.65, 0.72)
 	var faded := tint
 	faded.a = 0.0
@@ -1542,6 +1583,8 @@ func _build_ui() -> void:
 	first_session_content.add_child(first_session_progress)
 	first_session_guide = Label.new()
 	first_session_guide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	first_session_guide.max_lines_visible = 4
+	first_session_guide.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	first_session_content.add_child(first_session_guide)
 	first_session_boundary = RichTextLabel.new()
 	first_session_boundary.bbcode_enabled = true
@@ -1815,6 +1858,13 @@ func _build_ui() -> void:
 	charge_targets = VBoxContainer.new()
 	charge_targets.visible = false
 	column.add_child(charge_targets)
+	charge_target_notes = Label.new()
+	charge_target_notes.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	charge_target_notes.max_lines_visible = 4
+	charge_target_notes.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	charge_target_notes.add_theme_color_override("font_color", Color("f2b1a0"))
+	charge_target_notes.visible = false
+	charge_targets.add_child(charge_target_notes)
 	begin_contact_button = _button(column, "Begin contact movement", _request_begin_contact)
 	tactical_focus_button = _button(column, "Tactical Focus (1 CP) and begin consolidation", _request_tactical_focus_contact)
 	tactical_focus_button.visible = false
@@ -1908,14 +1958,14 @@ func _build_ui() -> void:
 	column.add_child(result_summary)
 	health_overlay_toggle = CheckButton.new()
 	health_overlay_toggle.text = "Show Wounds and status above models"
-	health_overlay_toggle.tooltip_text = "W means Wounds; each tag shows current/maximum Wounds plus a bar. Green means over 50%, amber means over 25% through 50%, and red means 25% or less. The selected model also shows OC, Battle-shocked and Moved status in text."
+	health_overlay_toggle.tooltip_text = "W means Wounds; each tag shows current/maximum Wounds plus a bar. Green means over 50%, amber means over 25% through 50%, and red means 25% or less. A Battle-shocked model reads Shocked above it even when this overlay is hidden. The selected model also shows OC and Moved status in its wound tag."
 	health_overlay_toggle.button_pressed = true
 	health_overlay_toggle.toggled.connect(func(_enabled: bool): _refresh_health_tags())
 	column.add_child(health_overlay_toggle)
 	board_feedback_toggle = CheckButton.new()
 	board_feedback_toggle.text = "Animate board and camera"
 	board_feedback_toggle.button_pressed = true
-	board_feedback_toggle.tooltip_text = "Animate camera focus, models and resolved attack links. Gold arrows link attacker to target; orange rings mean damage applied, pale cyan means none. These are schematic cues, not projectile paths or visibility checks."
+	board_feedback_toggle.tooltip_text = "Animate camera focus, models and attack links. A gold line marks a pending attack's weapon and target. After the result, a warm line means damage was applied and a cool line means no damage. These are schematic cues, not projectile paths or visibility checks."
 	board_feedback_toggle.toggled.connect(func(enabled: bool):
 		if not enabled:
 			_stop_camera_motion()
@@ -1954,6 +2004,12 @@ func _build_ui() -> void:
 	dice_visual.add_child(dice_explanation)
 	dice_audit_label = Label.new()
 	dice_audit_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dice_audit_label.visible = false
+	var dice_audit_toggle := CheckButton.new()
+	dice_audit_toggle.text = "Show dice record"
+	dice_audit_toggle.tooltip_text = "Show where these faces were recorded. Entry numbers and chain text are not a rule and do not change the result."
+	dice_audit_toggle.toggled.connect(func(expanded: bool): dice_audit_label.visible = expanded)
+	dice_visual.add_child(dice_audit_toggle)
 	dice_visual.add_child(dice_audit_label)
 	dice_animation_toggle = CheckButton.new()
 	dice_animation_toggle.text = "Animate dice reveals"
@@ -1965,7 +2021,10 @@ func _build_ui() -> void:
 	combat_audio_toggle.button_pressed = true
 	combat_audio_toggle.toggled.connect(func(enabled: bool):
 		combat_tray.sound_enabled = enabled
-		if not enabled: combat_tray.sound.stop()
+		if not enabled:
+			combat_tray.sound.stop()
+			combat_tray.confirm_sound.stop()
+			combat_tray.impact_sound.stop()
 	)
 	dice_visual.add_child(combat_audio_toggle)
 	var tray := PanelContainer.new()
@@ -2433,11 +2492,20 @@ func _build_command_panel(layer: CanvasLayer) -> void:
 	tactical_opportunity_label.visible = false
 	tactical_opportunity_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	command_panel_body.add_child(tactical_opportunity_label)
+	placement_reason_row = HBoxContainer.new()
+	placement_reason_row.add_theme_constant_override("separation", 8)
+	placement_reason_row.visible = false
+	placement_reason_icon = CombatSymbol.new()
+	placement_reason_icon.kind = "Blocked footprint"
+	placement_reason_icon.ink = Color("ff766d")
+	placement_reason_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	placement_reason_row.add_child(placement_reason_icon)
 	placement_reason = Label.new()
 	placement_reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	placement_reason.add_theme_color_override("font_color", Color("f2b1a0"))
-	placement_reason.visible = false
-	command_panel_body.add_child(placement_reason)
+	placement_reason.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	placement_reason_row.add_child(placement_reason)
+	command_panel_body.add_child(placement_reason_row)
 	placement_details_toggle = Button.new()
 	placement_details_toggle.text = "Show other affected models"
 	placement_details_toggle.toggle_mode = true
@@ -2777,7 +2845,7 @@ func _build_settings_panel() -> void:
 		settings_content.add_child(toggle)
 		settings_toggles[str(entry.key)] = toggle
 	var audio_note := Label.new()
-	audio_note.text = "Combat cues are optional; dice and outcomes remain visible when muted."
+	audio_note.text = "Combat cues are optional. The confirm tick and the destruction or Hazardous tone use this toggle, and both stay silent when reduced motion is on. Dice and outcomes remain visible when muted."
 	audio_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	audio_note.add_theme_color_override("font_color", Color("9da9b0"))
 	settings_content.add_child(audio_note)
@@ -3155,10 +3223,15 @@ func _build_action_groups(column: VBoxContainer) -> void:
 		group.add_child(heading)
 		var reason := Label.new()
 		reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		reason.max_lines_visible = 4
+		reason.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		reason.add_theme_color_override("font_color", Color("f2b1a0"))
+		reason.visible = false
 		group.add_child(reason)
 		for control: Control in definitions[key].controls:
 			if control.get_parent() == column: control.reparent(group)
 		action_groups[key] = {"container": group, "reason": reason, "controls": definitions[key].controls}
+		if key in ["contact", "objectives"]: group.move_child(reason, -1)
 	action_groups.phase.container.get_child(0).visible = false
 	column.move_child(action_groups.deployment.container, 0)
 	column.move_child(action_groups.reaction.container, 0)
@@ -3285,6 +3358,32 @@ func _refresh_action_groups() -> void:
 		end_button.tooltip_text = KeywordGlossary.describe_phase(str(state.phase), str(state.get("fight_step", "")))
 	else:
 		end_button.tooltip_text = "End the local movement preview turn. Start a combat exercise to use the supported 11e phase flow."
+
+func _promote_primary_actions() -> void:
+	for key: String in action_groups:
+		var group: Dictionary = action_groups[key]
+		var container: VBoxContainer = group.container
+		if not container.visible: continue
+		var chosen: Button = null
+		var fallback: Button = null
+		for control: Control in group.controls:
+			if control is OptionButton or control is CheckBox or control is CheckButton: continue
+			if not control is Button or not control.visible: continue
+			var button := control as Button
+			if fallback == null: fallback = button
+			if not button.disabled:
+				chosen = button
+				break
+		var primary := chosen if chosen != null else fallback
+		if primary == null: continue
+		var anchor: Node = primary
+		while anchor.get_parent() != container and anchor.get_parent() != null:
+			anchor = anchor.get_parent()
+		if anchor.get_parent() != container: continue
+		container.move_child(anchor, mini(1, container.get_child_count() - 1))
+		var reason: Control = group.reason
+		if reason.get_parent() == container:
+			container.move_child(reason, mini(anchor.get_index() + 1, container.get_child_count() - 1))
 
 func _unit_choice_error(model: int) -> String:
 	if state.phase == "charge": return Combat.charge_declaration_error(state, _local_player(), model, state.revision)
@@ -3455,7 +3554,7 @@ func _refresh_movement_choices() -> void:
 		selection_card.get_parent().visible = false
 		begin_move_button.visible = false
 		action_groups.movement.reason.visible = false
-	if own_model: message = "Choose a move, then Begin move. × = unavailable; reasons in Help."
+	if own_model: message = "Choose a move, then Begin move. Unavailable choices list the reason below."
 	if own_model and choosing and not errors.has(""):
 		stage = 0
 		message = "No move available for this selection. Choose another unit or continue."
@@ -3533,6 +3632,7 @@ func _refresh_contact_flow() -> void:
 			message = "%d\" rolled · mark targets, then Begin placement." % int(state.pending_charge.maximum)
 			if not state.pending_charge.targets.is_empty(): stage = 3
 			var seen: Array[int] = []
+			var blocked_targets: Dictionary = {}
 			for model: int in state.units:
 				var unit: Dictionary = state.units[model]
 				if unit.owner == _match_actor() or unit.wounds <= 0 or not unit.get("on_battlefield", true) or int(unit.squad) in seen: continue
@@ -3553,10 +3653,21 @@ func _refresh_contact_flow() -> void:
 				button.text = "%s · #%d" % [state.squads[squad].name, squad]
 				button.set_pressed_no_signal(squad in state.pending_charge.targets)
 				button.tooltip_text = button.text + "\n" + (error if not error.is_empty() else "Toggle this charge target. Final placement still requires validation.")
+				if not error.is_empty():
+					if not blocked_targets.has(error): blocked_targets[error] = []
+					blocked_targets[error].append(state.squads[squad].name)
 				contact_reference.text += "\n\n%s: %s" % [button.text, error if not error.is_empty() else ("Selected" if button.button_pressed else "Available to select")]
 			for squad: int in charge_target_buttons:
 				if squad not in seen: charge_target_buttons[squad].visible = false
+			var target_notes: Array[String] = []
+			for error: String in blocked_targets:
+				target_notes.append("%s · %s" % [", ".join(blocked_targets[error]), error])
+			charge_target_notes.text = "\n".join(target_notes)
+			charge_target_notes.tooltip_text = charge_target_notes.text
+			charge_target_notes.visible = not target_notes.is_empty()
+			charge_targets.move_child(charge_target_notes, -1)
 	else:
+		charge_target_notes.visible = false
 		take_to_skies_charge_choice.visible = false
 		take_to_skies_charge_choice.set_pressed_no_signal(false)
 		take_to_skies_charge_draft_squad = -1
@@ -3697,7 +3808,23 @@ func _layout_ui() -> void:
 func _layout_combat_tray() -> void:
 	if combat_tray == null or not combat_tray.is_inside_tree(): return
 	var viewport_size := get_viewport().get_visible_rect().size
-	var right := command_panel.position.x - 16.0 if command_panel != null and command_panel.visible else viewport_size.x - 16.0
+	var command_open := command_panel != null and command_panel.visible
+	if viewport_size.x < 1280.0 and combat_enabled and command_open:
+		var width := maxf(280.0, viewport_size.x - 32.0)
+		combat_tray.size = Vector2(width, 0)
+		var preferred_height := combat_tray.get_combined_minimum_size().y
+		var available := maxf(220.0, viewport_size.y - _board_top() - 24.0)
+		var tray_height := minf(preferred_height, minf(200.0, available * 0.42))
+		var panel_height := maxf(160.0, minf(260.0, available - tray_height - 8.0))
+		var tray_y := viewport_size.y - tray_height - 16.0
+		combat_tray.size = Vector2(width, tray_height)
+		combat_tray.position = Vector2(16.0, tray_y)
+		command_panel.position = Vector2(16.0, tray_y - panel_height - 8.0)
+		command_panel.size = Vector2(width, panel_height)
+		if army_panel != null and army_panel.visible:
+			army_panel.size.y = maxf(140.0, command_panel.position.y - army_panel.position.y - 12.0)
+		return
+	var right := command_panel.position.x - 16.0 if command_open else viewport_size.x - 16.0
 	var left := army_panel.position.x + army_panel.size.x + 12.0 if army_panel != null and army_panel.visible else 16.0
 	var tray_width := minf(640.0, maxf(280.0, right - left))
 	combat_tray.size = Vector2(tray_width, 0)
@@ -3851,7 +3978,7 @@ func _update_hover_guides() -> void:
 		if world != null: hit = Vector2(world.x, world.z)
 	guides.preview(state, selected, combat_enabled, _local_player(), hit, preview_elevation)
 	guide_label.text = guides.caption + ("\n" + guides.hover_caption if not guides.hover_caption.is_empty() else "")
-	if placement_feedback.pinned and placement_feedback.destination_marker: guide_label.text += "\nRed X marks the rejected destination; off-screen targets move to the nearest visible edge."
+	if placement_feedback.pinned and placement_feedback.destination_marker: guide_label.text += "\nA blocked footprint marks the rejected destination; off-screen targets move to the nearest visible edge."
 	if hit != null and state.units.has(selected):
 		if not guides.hover_error.is_empty():
 			if not placement_feedback.pinned:
@@ -4857,12 +4984,15 @@ func _camera_board_area() -> Rect2:
 	var viewport_size := get_viewport().get_visible_rect().size
 	var left := 16.0
 	var right := viewport_size.x - 16.0
+	var bottom := viewport_size.y - 16.0
 	if sidebar_panel.is_visible_in_tree(): left = sidebar_panel.get_global_rect().end.x + 16.0
 	if army_panel != null and army_panel.is_visible_in_tree(): left = maxf(left, army_panel.get_global_rect().end.x + 16.0)
-	if command_panel != null and command_panel.is_visible_in_tree(): right = command_panel.get_global_rect().position.x - 16.0
+	if command_panel != null and command_panel.is_visible_in_tree():
+		var command_rect := command_panel.get_global_rect()
+		if command_rect.position.y <= _board_top() + 8.0: right = command_rect.position.x - 16.0
+		else: bottom = minf(bottom, command_rect.position.y - 16.0)
 	if guide_panel.is_visible_in_tree(): left = maxf(left, guide_panel.get_global_rect().end.x + 16.0)
-	var bottom := viewport_size.y - 16
-	if combat_tray != null and combat_tray.is_visible_in_tree(): bottom = minf(bottom, combat_tray.position.y - 16)
+	if combat_tray != null and combat_tray.is_visible_in_tree(): bottom = minf(bottom, combat_tray.position.y - 16.0)
 	return Rect2(Vector2(left, _board_top()), Vector2(maxf(0, right - left), maxf(0, bottom - _board_top())))
 
 func _decision_camera_subject() -> Dictionary:
@@ -5268,7 +5398,11 @@ func _refresh_decision() -> void:
 		instruction = "Advance the phase."
 	else:
 		instruction = "Use the options below."
-	var owner_text := "Player %d to act" % actor if actor == int(state.get("active", actor)) else "Player %d's turn · Player %d decides" % [int(state.get("active", actor)), actor]
+	var phase_name := str(state.phase).capitalize()
+	if phase_name == "Fight" and not str(state.get("fight_step", "")).is_empty():
+		phase_name += " · " + str(state.fight_step).capitalize()
+	var active_player := int(state.get("active", actor))
+	var owner_text := "Round %d · %s · Player %d's turn · Player %d decides" % [int(state.get("round", 0)), phase_name, active_player, actor]
 	if mode != "local" and actor != _local_player():
 		owner_text = "Waiting · " + owner_text
 		var subject := str(state.phase).replace("_", " ")
@@ -5282,8 +5416,8 @@ func _refresh_decision() -> void:
 		elif not state.pending_charge.is_empty(): subject = "charge targets"
 		elif not state.pending_move.is_empty(): subject = "movement placement"
 		instruction = "Resolving %s." % subject
-	decision_label.text = "%s · %s" % [owner_text, instruction]
-	decision_label.tooltip_text = "%s\n%s" % [KeywordGlossary.describe_phase(str(state.phase), str(state.get("fight_step", ""))), instruction]
+	decision_label.text = "%s\n%s" % [owner_text, instruction]
+	decision_label.tooltip_text = "%s\n%s\n%s" % [owner_text, KeywordGlossary.describe_phase(str(state.phase), str(state.get("fight_step", ""))), instruction]
 
 func _refresh_first_session_guide() -> void:
 	if first_session_panel == null: return
@@ -5414,7 +5548,7 @@ func _refresh_first_session_guide() -> void:
 	first_session_guide.text = instruction
 	first_session_boundary.text = boundary.replace("CAN DO:", "[color=#8ad9a7]CAN DO:[/color]").replace("WAIT:", "[color=#f2df83]WAIT:[/color]").replace("CANNOT:", "[color=#f08c8c]CANNOT:[/color]").replace("OPTIONAL:", "[color=#8ad9a7]OPTIONAL:[/color]")
 	first_session_boundary.visible = true
-	first_session_guide.tooltip_text = boundary
+	first_session_guide.tooltip_text = instruction + "\n" + boundary
 	# The guide is rebuilt synchronously during each state refresh. Free the
 	# previous keyword cards immediately so repeated headless refreshes do not
 	# accumulate queued controls until the next frame.
@@ -5664,6 +5798,8 @@ func _refresh() -> void:
 		eligible_recipient_models = Combat.Hazard.eligible(state) if hazard_pending else Combat.Allocation.eligible(state)
 	var recipient_highlights: Dictionary = {}
 	for model: int in eligible_recipient_models: recipient_highlights[model] = true
+	var impact_cue := false
+	var match_was_presented := not board_presentation_state.is_empty()
 	for id: int in pieces:
 		var unit: Dictionary = state.units[id]
 		var previews: Dictionary = Combat.Reanimation.pending(state).get("current", {}).get("placements", {}) if combat_enabled else {}
@@ -5684,6 +5820,8 @@ func _refresh() -> void:
 			marker.position.y = 0.06 - base_offset
 			marker.visible = visible and recipient_highlights.has(id)
 		var previous: Dictionary = board_presentation_state.get(id, {})
+		if match_was_presented and not previous.is_empty() and int(previous.get("wounds", wounds)) > 0 and wounds == 0:
+			impact_cue = true
 		var feedback_enabled := _board_motion_enabled()
 		var position_changed: bool = not previous.is_empty() and (previous.get("position", display_position) != display_position or absf(float(previous.get("elevation", elevation)) - elevation) > 0.001)
 		if combat_enabled and feedback_enabled and not previous.is_empty():
@@ -5697,11 +5835,11 @@ func _refresh() -> void:
 				move_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 				move_tween.tween_property(pieces[id], "position", target_position, 0.24)
 			if previous_wounds > wounds and wounds > 0:
-				_show_board_feedback(id, "−%d W" % (previous_wounds - wounds), Color("f17969"))
+				_show_board_feedback(id, "%d → %d" % [previous_wounds, wounds], Color("f17969"))
 			elif previous_wounds < wounds and wounds > 0:
-				_show_board_feedback(id, "+%d W" % (wounds - previous_wounds), Color("82d49c"))
+				_show_board_feedback(id, "%d → %d" % [previous_wounds, wounds], Color("82d49c"))
 			elif previous_wounds > 0 and wounds == 0:
-				_show_board_feedback(id, "Destroyed", Color("f0b46a"))
+				_show_board_feedback(id, "%d → 0 · Destroyed" % previous_wounds, Color("f0b46a"), 0.5)
 				var piece: MeshInstance3D = pieces[id]
 				var resting_scale := piece.scale
 				var removal := create_tween()
@@ -5731,6 +5869,17 @@ func _refresh() -> void:
 		if id == selected: color = Color("f2df83")
 		if previews.has(id): color = Color("a88fea")
 		pieces[id].material_override = _material(color)
+	if combat_enabled and state.has("last_attack"):
+		var hazard: Dictionary = state.last_attack.get("hazardous", {})
+		var hazard_key := str(hazard.get("rolls", [])) if int(hazard.get("total", 0)) > 0 else ""
+		if not match_was_presented:
+			presented_hazard_key = hazard_key
+		elif hazard_key != presented_hazard_key:
+			presented_hazard_key = hazard_key
+			if not hazard_key.is_empty(): impact_cue = true
+	elif presented_hazard_key != "":
+		presented_hazard_key = ""
+	if impact_cue: combat_tray.play_impact()
 	_refresh_health_tags()
 	session_label.text = "Mode: %s | UDP %d | You: %s" % [mode, PORT, "both sides" if mode == "local" else str(_local_player())]
 	_refresh_decision()
@@ -6169,6 +6318,7 @@ func _refresh() -> void:
 		end_button.tooltip_text = "Place any optional Teleport Homers, then choose Finish start-of-battle declarations in the Command panel."
 	if combat_enabled and state.phase == "army_selection": status.visible = false
 	if combat_enabled and (_has_pending_command() or placement_reason.visible): status.visible = false
+	_promote_primary_actions()
 	call_deferred("_refresh_decision_camera")
 	_ui_refresh_depth -= 1
 
@@ -6327,9 +6477,9 @@ func _refresh_result_summary() -> void:
 	if prevented > 0: result_summary.text += "\nFeel No Pain: %d wounds prevented" % prevented
 	if discarded > 0: result_summary.text += "\nExcess damage discarded: %d" % discarded
 	var hazard: Dictionary = last.get("hazardous", {})
+	var hazard_lost := 0
+	var hazard_prevented := 0
 	if int(hazard.get("total", 0)) > 0:
-		var hazard_lost := 0
-		var hazard_prevented := 0
 		for prevention: Dictionary in hazard.get("prevention", []):
 			hazard_lost += int(prevention.get("lost", 0))
 			hazard_prevented += int(prevention.get("prevented", 0))
@@ -6341,8 +6491,9 @@ func _refresh_result_summary() -> void:
 	for target_id: int in targets:
 		var target_name: String = state.squads[target_id].name if state.squads.has(target_id) else "Target"
 		var totals: Dictionary = targets[target_id]
-		compact_lines.append("%s · %d attacks · %d damage · %d models out" % [target_name, totals.attacks, totals.damage, totals.destroyed])
+		compact_lines.append("%s · %d attacks · %d damage · %d destroyed" % [target_name, totals.attacks, totals.damage, totals.destroyed])
 	if prevented > 0: compact_lines.append("Feel No Pain prevented %d wounds" % prevented)
+	if int(hazard.get("total", 0)) > 0: compact_lines.append("Hazardous · %d wounds lost · %d prevented" % [hazard_lost, hazard_prevented])
 	result_summary.text = "\n".join(compact_lines)
 
 func _attack_assignment_lines(last: Dictionary) -> Array[String]:
@@ -6381,6 +6532,7 @@ func _refresh_dice_visual(last: Dictionary) -> void:
 	for child in dice_visual_rolls.get_children():
 		dice_visual_rolls.remove_child(child)
 		child.queue_free()
+	dice_visual_omitted = 0
 	var shown := 0
 	for pool: Dictionary in last.get("pools", []):
 		for record: Dictionary in pool.get("attack_generation", []):
@@ -6419,7 +6571,7 @@ func _refresh_dice_visual(last: Dictionary) -> void:
 			if outcome.is_empty(): shown += _add_die_tile("SAVE", value, Color("526d52"), shown)
 			else:
 				var save_visual := _roll_outcome_visual("save", outcome)
-				shown += _add_die_tile(str(save_visual.label), value, save_visual.color, shown, str(save_visual.symbol))
+				shown += _add_die_tile(str(save_visual.label), value, save_visual.color, shown, str(save_visual.symbol), not bool(outcome.get("success", false)))
 		for record: Dictionary in pool.get("damage_rolls", []):
 			for value: int in record.get("rolls", []):
 				shown += _add_die_tile("D6", value, Color("9a4d45"), shown)
@@ -6449,6 +6601,7 @@ func _refresh_dice_visual(last: Dictionary) -> void:
 				var prevention_visual := _roll_outcome_visual("prevention", outcome)
 				shown += _add_die_tile(str(prevention_visual.label), value, prevention_visual.color, shown, str(prevention_visual.symbol))
 		if not prevention.get("rolls", []).is_empty(): _add_die_note(_prevention_roll_note(prevention))
+	if dice_visual_omitted > 0: _add_die_note("Showing the first %d faces. %d more are in the combat tray." % [shown, dice_visual_omitted])
 	if shown == 0:
 		var none := Label.new()
 		none.text = "No rolled dice in this result (for example, Torrent attacks)."
@@ -6534,13 +6687,17 @@ func _roll_outcome_visual(stage: String, outcome: Dictionary) -> Dictionary:
 	elif stage == "prevention": label = "FNP"
 	return {"label": label, "symbol": "✓" if passed else "×", "color": Color("397d59") if passed else Color("884b4b")}
 
-func _add_die_tile(stage: String, value: int, color: Color, shown: int, marker: String = "") -> int:
-	if shown >= 72: return 0
+func _add_die_tile(stage: String, value: int, color: Color, shown: int, marker: String = "", failed_save: bool = false) -> int:
+	if shown >= 72:
+		dice_visual_omitted += 1
+		return 0
 	var tile := PanelContainer.new()
 	var animate: bool = dice_visual.is_visible_in_tree() and dice_animation_toggle != null and dice_animation_toggle.button_pressed
 	var style := StyleBoxFlat.new()
-	style.bg_color = color
-	style.set_corner_radius_all(0 if marker == "×" else (12 if marker == "★" else 5))
+	style.bg_color = Color("6b3030") if failed_save else color
+	style.border_color = Color("ff766d")
+	style.set_border_width_all(3 if failed_save else 0)
+	style.set_corner_radius_all(2 if failed_save else (0 if marker == "×" else (12 if marker == "★" else 5)))
 	style.content_margin_left = 5
 	style.content_margin_right = 5
 	style.content_margin_top = 3
@@ -6558,15 +6715,17 @@ func _add_die_tile(stage: String, value: int, color: Color, shown: int, marker: 
 	pips.tooltip_text = "D6 face: %d" % value
 	contents.add_child(pips)
 	tile.add_child(contents)
-	tile.custom_minimum_size = Vector2(76, 34)
-	tile.pivot_offset = Vector2(38, 17)
+	tile.custom_minimum_size = Vector2(118, 40) if failed_save else Vector2(76, 34)
+	tile.pivot_offset = Vector2(59, 20) if failed_save else Vector2(38, 17)
+	tile.tooltip_text = "Recorded failed save. The face is already resolved." if failed_save else ""
+	var caption := "FAILED SAVE %d" % value if failed_save else ("%s %s %d" % [marker, stage, value] if not marker.is_empty() else "%s %d" % [stage, value])
 	if animate:
-		face.text = "%s D6" % stage
+		face.text = "SAVE D6" if failed_save else "%s D6" % stage
 		pips.value = 0
 		tile.scale = Vector2(0.88, 0.88)
 		tile.rotation = 0.0
 	else:
-		face.text = "%s %s %d" % [marker, stage, value] if not marker.is_empty() else "%s %d" % [stage, value]
+		face.text = caption
 	dice_visual_rolls.add_child(tile)
 	if animate:
 		var reveal := create_tween()
@@ -6576,7 +6735,7 @@ func _add_die_tile(stage: String, value: int, color: Color, shown: int, marker: 
 		reveal.tween_property(tile, "rotation", 0.0, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		reveal.parallel().tween_property(tile, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		reveal.tween_callback(func():
-			face.text = "%s %s %d" % [marker, stage, value] if not marker.is_empty() else "%s %d" % [stage, value]
+			face.text = caption
 			pips.value = clampi(value, 1, 6)
 			pips.queue_redraw()
 		)
@@ -6590,6 +6749,14 @@ func _refresh_health_tags() -> void:
 		var tag: Dictionary = health_tags[model_id]
 		var live_on_board: bool = int(unit.get("wounds", 0)) > 0 and bool(unit.get("on_battlefield", true))
 		tag.root.visible = combat_enabled and health_overlay_toggle != null and health_overlay_toggle.button_pressed and live_on_board
+		var ordinal := tag.get("ordinal") as Label3D
+		if ordinal != null:
+			ordinal.visible = combat_enabled and model_id == selected and live_on_board
+			if ordinal.visible: ordinal.text = ArmyList.model_label(state, model_id)
+		var shocked := tag.get("shocked") as Label3D
+		if shocked != null:
+			var squad_shocked: bool = combat_enabled and live_on_board and state.squads.has(unit.squad) and bool(state.squads[unit.squad].get("battle_shocked", false))
+			shocked.visible = squad_shocked
 		if not tag.root.visible: continue
 		var remaining := maxi(0, int(unit.get("wounds", 0)))
 		var maximum := maxi(1, int(unit.get("max_wounds", remaining)))
@@ -6669,19 +6836,38 @@ func _refresh_defense_steps(allocating: bool, hazard: bool, eligible_models: Arr
 		defense_picker.set_item_tooltip(defense_picker.item_count - 1, _model_choice_label(model))
 		if model == selected: defense_picker.select(defense_picker.item_count - 1)
 		var card_text := "%s%s · %d/%d wounds" % ["✓ " if model == selected else "", _model_role_label(model), int(state.units[model].wounds), int(state.units[model].max_wounds)]
+		var consequence := ""
+		if model == selected and not hazard and str(state.get("pending_attack", {}).get("current", {}).get("phase", "")) == "damage":
+			consequence = _allocation_consequence(_damage_allocation_preview(model, state.pending_attack.current))
+			if not consequence.is_empty(): card_text += "\n" + consequence
 		var unique_equipment: Array[String] = equipment_hints.get(model, [])
 		if not unique_equipment.is_empty():
 			var visible_equipment: Array[String] = []
 			for index in range(mini(2, unique_equipment.size())): visible_equipment.append(unique_equipment[index])
 			if unique_equipment.size() > visible_equipment.size(): visible_equipment.append("+%d more" % (unique_equipment.size() - visible_equipment.size()))
 			card_text += "\nUnique: " + " · ".join(visible_equipment)
-		var card := _button(recipient_cards, card_text, func():
+		var card_row := HBoxContainer.new()
+		card_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card_row.add_theme_constant_override("separation", 8)
+		recipient_cards.add_child(card_row)
+		var wound_mark := CombatSymbol.new()
+		var wounds_remaining := int(state.units[model].wounds)
+		var wounds_maximum := maxi(1, int(state.units[model].max_wounds))
+		wound_mark.kind = "Wounds remaining"
+		wound_mark.remaining = wounds_remaining
+		wound_mark.maximum = wounds_maximum
+		wound_mark.tooltip_text = "%d of %d wounds remaining." % [wounds_remaining, wounds_maximum]
+		if wounds_maximum > 6: wound_mark.tooltip_text += " The mark shows the proportion; the numbers are exact."
+		wound_mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		card_row.add_child(wound_mark)
+		var card := _button(card_row, card_text, func():
 			selected = model
 			_refresh()
 		)
-		card.custom_minimum_size.y = 60 if not unique_equipment.is_empty() else 44
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.custom_minimum_size.y = (78 if not consequence.is_empty() else 60) if not unique_equipment.is_empty() else (62 if not consequence.is_empty() else 44)
 		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		card.tooltip_text = _model_choice_label(model) + ("\nUnique equipment: " + ", ".join(unique_equipment) if not unique_equipment.is_empty() else "") + "\nSelect this recipient, then confirm allocation."
+		card.tooltip_text = _model_choice_label(model) + ("\nUnique equipment: " + ", ".join(unique_equipment) if not unique_equipment.is_empty() else "") + ("\n" + consequence if not consequence.is_empty() else "") + "\nSelect this recipient, then confirm allocation."
 		card.disabled = _match_actor() != _local_player() or (mode == "host" and guest_id == 0)
 	defense_picker.disabled = _match_actor() != _local_player() or (mode == "host" and guest_id == 0)
 	var stage := "Allocate Hazardous wounds" if hazard else str(state.pending_attack.current.phase)
@@ -6706,12 +6892,21 @@ func _refresh_defense_steps(allocating: bool, hazard: bool, eligible_models: Arr
 	elif stage == "2 • Defense group order": compact_instruction = "Choose the next group before saves."
 	elif hazard: compact_instruction = "Choose a recipient for 1 mortal wound."
 	elif stage == "3 • Allocate damage" and state.pending_attack.current.steps[state.pending_attack.current.cursor].kind == "devastating": compact_instruction = "No save · choose a recipient."
-	defense_steps.text = "%s\nPlayer %d decides · %s" % [compact_stage, _match_actor(), compact_instruction]
+	defense_steps.text = "%s\n%s" % [compact_stage, compact_instruction]
 	if not hazard: defense_steps.text += "\n" + state.squads[state.pending_attack.current.target].name
 	if selected in eligible and not hazard and state.pending_attack.current.phase == "damage":
 		var preview := _damage_allocation_preview(selected, state.pending_attack.current)
 		defense_steps.text += "\n" + preview
 		defense_reference.text += "\n" + preview
+
+func _allocation_consequence(preview: String) -> String:
+	if preview.contains("Feel No Pain"): return "Feel No Pain can still change the wounds."
+	if preview.contains("not yet known") or preview.contains("not determined") or preview.contains("uncertain"): return "Remaining wounds are not settled yet."
+	var preview_at := preview.find("Preview:")
+	if preview_at >= 0: return preview.substr(preview_at).strip_edges()
+	var possible_at := preview.find("Possible remaining")
+	if possible_at >= 0: return preview.substr(possible_at).strip_edges()
+	return ""
 
 func _damage_allocation_preview(model: int, current: Dictionary) -> String:
 	var damage_spec := Combat.Attacks.RandomStat.spec(current.get("damage", 1))
@@ -6768,7 +6963,7 @@ func _refresh_defense_presentation(allocating: bool, hazard: bool) -> void:
 		# The stage instruction and filtered picker already explain this selection prompt.
 		action_groups.defense.reason.visible = false
 	if _match_actor() != _local_player() or (mode == "host" and guest_id == 0):
-		defense_steps.text = "Player %d decides · waiting" % _match_actor()
+		defense_steps.text = "Waiting"
 		action_groups.defense.reason.visible = false
 		defense_picker.visible = false
 		recipient_scroll.visible = false
@@ -7980,6 +8175,7 @@ func _apply_move(player: int, id: int, target: Vector2, revision: int = -1, dest
 func _clear_placement_feedback() -> void:
 	placement_feedback.clear()
 	if placement_reason != null: placement_reason.visible = false
+	if placement_reason_row != null: placement_reason_row.visible = false
 	placement_detail_entries.clear()
 	if placement_details_toggle != null:
 		placement_details_toggle.set_pressed_no_signal(false)
@@ -8004,13 +8200,14 @@ func _show_placement_feedback(model: int, destination: Vector2, error: String, d
 	var current_elevation := float(state.units[model].get("elevation", 0.0))
 	var target_elevation := current_elevation if destination_elevation < 0.0 else destination_elevation
 	var mark_destination := not destination.is_equal_approx(state.units[model].position) or absf(target_elevation - current_elevation) > 0.001
-	var fallback_recovery := "Rejected destination marked ×. Choose another or cancel." if mark_destination else "Review the placement, then retry or reset."
+	var fallback_recovery := "Rejected destination marked. Choose another or cancel." if mark_destination else "Review the placement, then retry or reset."
 	placement_feedback.show_reason(model, destination, error, true, mark_destination, target_elevation, error_code, recovery if not recovery.is_empty() else fallback_recovery)
 	var squads: Dictionary = state.get("squads", {})
 	var squad_name := str(squads.get(int(state.units[model].get("squad", -1)), {}).get("name", "Unit"))
 	var model_label := "%s · %s" % [squad_name, ArmyList.model_label(state, model)]
 	placement_reason.text = "%s · %s\n%s\n%s" % [model_label, placement_feedback.heading, error, placement_feedback.recovery]
 	placement_reason.visible = true
+	if placement_reason_row != null: placement_reason_row.visible = true
 	for detail: Variant in details:
 		var detail_text := ""
 		if detail is Dictionary:
@@ -8148,7 +8345,7 @@ func _refresh_command_reaction() -> void:
 	var names := {"after_hit_roll": "Hits", "after_wound_roll": "Wounds", "after_save_roll": "Saves", "after_damage_roll": "Damage", "after_hazardous_roll": "Hazardous", "after_attack_count_roll": "Attack count", "after_escape_roll": "Desperate Escape hazards", "after_advance_roll": "Advance", "after_charge_roll": "Charge", "before_battle_shock": "Battle-shock"}
 	var title: String = names.get(str(window.kind), "Dice decision")
 	action_groups.reaction.container.get_child(0).text = title
-	reaction_help.text = "Player %d decides · %d CP" % [window.player, state.cp[window.player]]
+	reaction_help.text = "%d CP" % state.cp[window.player]
 	selection_card.get_parent().visible = false
 	if rolling:
 		if window.kind not in ["after_advance_roll", "after_charge_roll"]: reaction_help.text += "\n" + state.squads[window.squad].name
@@ -8938,7 +9135,7 @@ func _refresh_unit_actions() -> void:
 		unit_action_z.visible = false
 		unit_details_button.visible = false
 		unit_choice_reference.visible = false
-		unit_action_help.text = "Player %d decides · continue without this ability." % _local_player()
+		unit_action_help.text = "Continue without this ability."
 		return
 	unit_action_help.text = "Current e11 unit abilities and enabled detachment stratagems. Choose an action; X/Z apply to placement choices. Pending phase/setup decisions must be completed or declined."
 	if battle_start_setup:
@@ -9026,7 +9223,7 @@ func _refresh_unit_actions() -> void:
 	if guided_first_session and not preparing:
 		# The picker may truncate a long unit/stratagem label, including its CP cost.
 		# Repeat the live label in wrapping text before the player confirms it.
-		unit_action_help.text = "Player %d decides\n%s" % [_match_actor(), str(unit_action_picker.get_selected_metadata().label)]
+		unit_action_help.text = str(unit_action_picker.get_selected_metadata().label)
 		if tactical: unit_action_help.text += "\n" + full_help
 	unit_action_button.text = "Confirm mission choice" if Combat.Mission.actor(state) > 0 else "Confirm choice"
 	unit_action_button.disabled = mode == "host" and guest_id == 0

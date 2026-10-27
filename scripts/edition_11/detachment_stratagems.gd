@@ -1795,8 +1795,8 @@ static func armour_error(s: Dictionary, player: int, squad: int, attacker_squad:
 	if s.phase == "shooting":
 		if int(s.active) == player: return "Armour of Contempt is used in your opponent's Shooting phase."
 	elif s.phase != "fight": return "Armour of Contempt requires the opponent's Shooting phase or the Fight phase."
-	for model: int in living(s, squad):
-		if "ADEPTUS ASTARTES" not in s.units[model].get("keywords", []): return "Armour of Contempt targets a friendly ADEPTUS ASTARTES unit."
+	for unit_model: int in living(s, squad):
+		if "ADEPTUS ASTARTES" not in s.units[unit_model].get("keywords", []): return "Armour of Contempt targets a friendly ADEPTUS ASTARTES unit."
 	if attacker_squad < 0 or not s.squads.has(attacker_squad) or int(s.squads[attacker_squad].get("owner", -1)) == player or living(s, attacker_squad).is_empty(): return "An enemy unit must target this unit."
 	if require_window:
 		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
