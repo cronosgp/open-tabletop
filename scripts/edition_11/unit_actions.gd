@@ -12,6 +12,7 @@ const Bladeguard = preload("res://scripts/edition_11/bladeguard.gd")
 const Healing = preload("res://scripts/edition_11/unit_healing.gd")
 const Supports = preload("res://scripts/edition_11/support_attachments.gd")
 const A = preload("res://scripts/edition_11/unit_abilities.gd")
+const MarineLeaderLinks = preload("res://scripts/edition_11/marine_leader_links.gd")
 const G = preload("res://scripts/edition_11/contact_movement.gd")
 const R = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const D = preload("res://scripts/edition_11/deployment.gd")
@@ -797,8 +798,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 				var shield: bool = unit.get("relic_shield", false)
 				result.append(choice("Chaplain %d: equip %s" % [model, "Storm Bolter" if shield else "Relic Shield (+1 W)"], "terminator-chaplain-shield", model, unit.squad, "bolter" if shield else "shield"))
 			var source := A.identity(unit)
-			if source in ["lieutenant-in-phobos-armour", "librarian", "librarian-in-phobos-armour", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "aethon-shaan", "captain-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "iron-father-feirros", "caanok-var", "ancient-in-terminator-armour", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "librarian-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "judiciar", "captain", "chaplain", "chaplain-on-bike", "captain-on-bike", "suboden-khan", "chaplain-with-jump-pack", "lieutenant", "apothecary-biologis", "captain-with-jump-pack", "adrax-agatone", "kaius-konorius", "vulkan-hestan", "overlord", "royal-warden", "roboute-guilliman", "marneus-calgar"] and (source != "cato-sicarius" or not LeaderCatalog.army_has_calgar(state, player)) and (required_warlord == -1 or model == required_warlord): result.append(choice("Warlord: model %d" % model, "warlord", model))
-			if source in ["chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "librarian", "lieutenant-in-phobos-armour", "librarian-in-phobos-armour", "captain-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "iron-father-feirros", "caanok-var", "ancient-in-terminator-armour", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "librarian-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "judiciar", "captain", "chaplain", "chaplain-on-bike", "suboden-khan", "chaplain-with-jump-pack", "lieutenant", "apothecary-biologis", "captain-with-jump-pack", "adrax-agatone", "kaius-konorius", "vulkan-hestan", "royal-warden", "marneus-calgar"] and not unit.has("attachment_role"):
+			if source in ["lieutenant-in-phobos-armour", "librarian", "librarian-in-phobos-armour", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "aethon-shaan", "captain-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "iron-father-feirros", "caanok-var", "ancient-in-terminator-armour", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "librarian-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "judiciar", "captain", "chaplain", "chaplain-on-bike", "captain-on-bike", "suboden-khan", "chaplain-with-jump-pack", "lieutenant", "apothecary-biologis", "captain-with-jump-pack", "adrax-agatone", "kaius-konorius", "vulkan-hestan", "overlord", "royal-warden", "roboute-guilliman", "marneus-calgar", "captain-titus", "techmarine"] and (source != "cato-sicarius" or not LeaderCatalog.army_has_calgar(state, player)) and (required_warlord == -1 or model == required_warlord): result.append(choice("Warlord: model %d" % model, "warlord", model))
+			if (MarineLeaderLinks.TARGETS.has(source) or source in ["overlord", "royal-warden"]) and not unit.has("attachment_role"):
 				for target: int in state.squads:
 					if attachment_allowed(state, model, target): result.append(choice("Attach %s %d to %s" % [source, model, state.squads[target].name], "attach", model, target))
 		for squad: int in state.squads:
@@ -1173,28 +1174,7 @@ static func attachment_allowed(state: Dictionary, model: int, target: int) -> bo
 	if target == source.squad or source.owner != state.squads[target].owner: return false
 	if state.unit_abilities.get("reserves", {}).has(source.squad) or state.unit_abilities.get("reserves", {}).has(target): return false
 	var name := A.identity(source)
-	var allowed := ["bladeguard-veteran-squad", "intercessor-squad", "assault-intercessor-squad", "infernus-squad", "hellblaster-squad", "sternguard-veteran-squad"] if name in ["captain", "chaplain", "lieutenant"] else ["necron-warriors", "immortals"]
-	if name == "captain": allowed.append_array(["company-heroes", "desolation-squad"])
-	if name == "librarian": allowed = ["vanguard-veteran-squad", "assault-intercessor-squad", "infernus-squad", "desolation-squad", "sternguard-veteran-squad", "hellblaster-squad", "intercessor-squad"]
-	if name == "chief-librarian-tigurius": allowed = ["bladeguard-veteran-squad", "infernus-squad", "intercessor-squad", "assault-intercessor-squad", "sternguard-veteran-squad", "desolation-squad"]
-	if name in ["chaplain-on-bike", "captain-on-bike", "suboden-khan"]: allowed = ["outrider-squad"]
-	if name == "librarian-in-phobos-armour": allowed = ["infiltrator-squad", "eliminator-squad", "scout-squad", "incursor-squad", "reiver-squad"]
-	if name == "captain-in-phobos-armour": allowed = ["infiltrator-squad", "eliminator-squad", "scout-squad", "incursor-squad", "reiver-squad"]
-	if name == "lieutenant-in-phobos-armour": allowed = ["infiltrator-squad", "incursor-squad", "reiver-squad"]
-	if name in ["captain-with-jump-pack", "chaplain-with-jump-pack"]: allowed = ["assault-intercessors-with-jump-packs", "vanguard-veteran-squad-with-jump-packs"]
-	if name == "kayvaan-shrike": allowed = ["assault-intercessors-with-jump-packs", "vanguard-veteran-squad-with-jump-packs"]
-	if name == "vulkan-hestan": allowed = ["infernus-squad", "bladeguard-veteran-squad", "eradicator-squad-with-melta-rifles", "company-heroes", "assault-intercessor-squad"]
-	if name == "cato-sicarius": allowed = ["victrix-honour-guard"]
-	if name in ["captain-in-terminator-armour", "chaplain-in-terminator-armour", "librarian-in-terminator-armour"]: allowed = ["terminator-squad"]
-	if name in ["darnath-lysander", "caanok-var"]: allowed = ["terminator-squad", "terminator-assault-squad"]
-	if name == "caanok-var": allowed = ["terminator-squad", "terminator-assault-squad"]
-	if name == "iron-father-feirros": allowed = ["aggressor-squad", "heavy-intercessor-squad", "eradicator-squad-with-heavy-bolters", "eradicator-squad-with-melta-rifles"]
-	if name == "kaius-konorius": allowed = ["sternguard-veteran-squad", "bladeguard-veteran-squad", "assault-intercessor-squad", "victrix-honour-guard"]
-	if name == "captain-in-gravis-armour": allowed = ["aggressor-squad", "heavy-intercessor-squad", "eradicator-squad-with-heavy-bolters", "eradicator-squad-with-melta-rifles"]
-	if name == "tor-garadon": allowed = ["aggressor-squad", "heavy-intercessor-squad", "eradicator-squad-with-heavy-bolters", "eradicator-squad-with-melta-rifles"]
-	if name == "adrax-agatone": allowed = ["intercessor-squad", "assault-intercessor-squad", "infernus-squad", "bladeguard-veteran-squad", "sternguard-veteran-squad", "company-heroes"]
-	if name == "marneus-calgar": allowed = ["bladeguard-veteran-squad", "terminator-assault-squad", "infernus-squad", "vanguard-veteran-squad", "intercessor-squad", "heavy-intercessor-squad", "terminator-squad", "assault-intercessor-squad", "aggressor-squad", "sternguard-veteran-squad", "company-heroes", "victrix-honour-guard", "eradicator-squad-with-heavy-bolters", "eradicator-squad-with-melta-rifles"]
-	if name == "kor-sarro-khan": allowed = ["bladeguard-veteran-squad", "sternguard-veteran-squad", "intercessor-squad", "assault-intercessor-squad", "company-heroes", "vanguard-veteran-squad"]
+	var allowed: Array = MarineLeaderLinks.TARGETS.get(name, ["necron-warriors", "immortals"] if name in ["overlord", "royal-warden"] else [])
 	if name in Supports.BODYGUARDS: allowed = Supports.BODYGUARDS[name]
 	if Supports.CONDITIONAL_BODYGUARDS.has(name): allowed = Supports.CONDITIONAL_BODYGUARDS[name]
 	var found := false

@@ -1,18 +1,56 @@
 {
   "current_source_policy": {
-    "id": "wahapedia-e11-definitive-2026-10-18",
+    "id": "wahapedia-e11-definitive-data-and-rules-2026-10-20",
+    "superseded_policy_id": "wahapedia-e11-gw-cross-check-required-2026-10-20",
     "document": "rules-source-policy.md",
     "authority": "Wahapedia /wh40k11ed/",
     "official_gw_confirmation_required": false,
+    "previous_official_gw_confirmation_required": true,
+    "previous_official_gw_policy_status": "superseded_by_wahapedia_only_user_decision",
     "preferred_ingestion": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
-    "remaining_gate": "Current Wahapedia snapshot reconciliation, complete executable effects and scope/interaction validation; no automatic full-match certification."
+    "remaining_gate": "Current Wahapedia snapshot reconciliation, complete executable effects and scope/interaction validation; no automatic full-match certification. Official GW cross-check is not required."
   },
   "snapshot_id": "space-marines-fixed-profile-reconciliation-2026-10-18",
   "schema_version": 1,
   "edition": 11,
-  "observed_at": "2026-10-19",
+  "observed_at": "2026-10-20",
   "status": "baseline_plus_wahapedia_runtime_followups_full_faction_incomplete",
-  "scope": "The current selectable catalog contains all 85 shared-book Marine identities from the local Wahapedia e11 inventory, including Wardens of Ultramar. The original seven-profile baseline and dated review records remain historical inputs. Local Wahapedia e11 increments and their artifacts are recorded in follow-up entries. No full army legality certification.",
+  "scope": "The runtime exposes 85 profile candidates for the 85-subject shared-book inventory, including Wardens of Ultramar. Their source identities and IDs map one-to-one to the local Wahapedia 11e export. Nineteen profiles now have bounded current source-data test evidence; the earlier six-profile fixed-data comparison remains separately labeled historical. No complete datasheet or army legality scope is certified.",
+  "current_coverage_matrix": {
+    "document": "space-marines-coverage.md",
+    "runtime_profile_candidates": 85,
+    "runtime_profiles_with_source_metadata": 65,
+    "runtime_profiles_missing_source_metadata": 20,
+    "source_identity_mappings_reconciled": 85,
+    "source_identity_name_matches": 84,
+    "source_identity_apostrophe_normalized_matches": 1,
+    "historical_fixed_data_profiles_compared": 6,
+    "profiles_with_bounded_current_source_data_tests": 19,
+    "profile_parity_tests_passed": 10,
+    "copy_cost_profiles_tested": 7,
+    "additional_source_field_only_profiles": 2,
+    "focused_local_scripts_passed": 14,
+    "related_fixture_tests_blocked": 3,
+    "company_heroes_full_test": "blocked_by_missing_manifest",
+    "complete_datasheet_implementations_verified": 0,
+    "complete_datasheet_scope_validated": 0,
+    "network_validation": "deferred_to_final_integration",
+    "vanguard_ambushers": "pending_hidden_movement_end_and_attack_integration"
+  },
+  "source_identity_audit": {
+    "document": "space-marines-source-identity-map.json",
+    "source_book_id": "000000139",
+    "faction_id": "SM",
+    "source_export_updated_at": "2026-10-19 03:47:32",
+    "datasheets_csv_sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+    "verified_snapshot_file_count": 23,
+    "scope": "Name-to-ID identity mapping only; does not reconcile runtime stats, composition, equipment options, rules or legality."
+  },
+  "official_gw_rule_cross_check": {
+    "required_before_supported_rule_claim": false,
+    "status": "not_required_by_current_source_policy",
+    "vanguard_ambushers": "not_a_gate"
+  },
   "sources": {
     "reference": {
       "publisher": "Wahapedia",
@@ -54,7 +92,8 @@
         "cross_checked": "Fixed-profile costs below match the captured official MFM 1.6 snapshot observed after the official downloads hub update on 14 October 2026."
       }
     ],
-    "official_datasheet_status": "not_required_under_wahapedia_definitive_policy"
+    "official_datasheet_status": "Wahapedia e11 is definitive for datasheet data and rules; official GW cross-check is not required",
+    "official_gw_rule_cross_check_required": false
   },
   "review_2026_10_18": {
     "report": "space-marines-fixed-profile-audit.md",
@@ -100,7 +139,7 @@
         "tactical-mainstay"
       ],
       "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
-      "status": "reference_checked_official_codex_locator_pending"
+      "status": "wahapedia_fixed_data_compared_pending_complete_datasheet_scope"
     },
     {
       "id": "space-marines/assault-intercessor-squad",
@@ -130,7 +169,7 @@
         "targeted-intercession"
       ],
       "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
-      "status": "reference_checked_official_codex_locator_pending"
+      "status": "wahapedia_fixed_data_compared_pending_complete_datasheet_scope"
     },
     {
       "id": "space-marines/heavy-intercessor-squad",
@@ -184,7 +223,7 @@
         }
       ],
       "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
-      "status": "reference_checked_official_codex_locator_pending"
+      "status": "wahapedia_fixed_data_compared_pending_complete_datasheet_scope"
     },
     {
       "id": "space-marines/terminator-squad",
@@ -211,7 +250,7 @@
         "Power Fist"
       ],
       "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
-      "status": "reference_checked_official_codex_locator_pending"
+      "status": "wahapedia_fixed_data_compared_pending_complete_datasheet_scope"
     },
     {
       "id": "space-marines/captain",
@@ -237,7 +276,7 @@
         "Master-crafted Power Weapon"
       ],
       "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
-      "status": "reference_checked_official_codex_locator_pending"
+      "status": "wahapedia_fixed_data_compared_pending_complete_datasheet_scope"
     },
     {
       "id": "space-marines/lieutenant",
@@ -262,7 +301,7 @@
         "Ceramite Fists"
       ],
       "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
-      "status": "reference_checked_official_codex_locator_pending"
+      "status": "wahapedia_fixed_data_compared_pending_complete_datasheet_scope"
     },
     {
       "id": "space-marines/roboute-guilliman",

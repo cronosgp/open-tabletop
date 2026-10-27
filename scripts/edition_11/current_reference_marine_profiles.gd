@@ -32,7 +32,7 @@ static func _build_profiles() -> Dictionary:
 	},
 	"victrix-honour-guard": {
 		"name": "Victrix Honour Guard", "source_book_id": "000000139", "source_datasheet_id": "000004185", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-		"points": 135, "points_by_models": {3: 135, 6: 265}, "third_plus_points_by_models": {3: 165, 6: 295}, "models": 3, "base_size_source_mm": 40, "base_radius_inches": 20.0 / 25.4,
+		"points": 120, "points_by_models": {3: 120, 6: 250}, "third_plus_points_by_models": {3: 150, 6: 280}, "models": 3, "base_size_source_mm": 40, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 2, "wounds": 3, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES", "ULTRAMARINES"],
 		"default_loadout_by_role": {"Chapter Ancient": {"Banner of Macragge": 1, "Master-crafted Bolt Carbine": 1, "Master-crafted Power Weapon": 1}, "Chapter Champion": {"Blades of Honour": 1}, "Victrix Honour Guard": {"Master-crafted Bolt Carbine": 1, "Master-crafted Power Weapon": 1}},
@@ -112,7 +112,7 @@ static func _build_profiles() -> Dictionary:
 	},
 	"company-heroes": {
 		"name": "Company Heroes", "source_book_id": "000000139", "source_datasheet_id": "000002772", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-		"points": 125, "points_by_models": {4: 125}, "third_plus_points_by_models": {4: 145}, "models": 4, "base_radius_inches": 40.0 / 25.4,
+		"points": 125, "points_by_models": {4: 125}, "third_plus_points_by_models": {4: 145}, "models": 4, "base_radius_inches": 20.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"default_loadout_by_role": {
@@ -323,7 +323,7 @@ static func _build_profiles() -> Dictionary:
 		"name": "Darnath Lysander", "source_book_id": "000000139", "source_datasheet_id": "000002105", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
 		"points": 160, "points_by_models": {1: 160}, "max_supported_copies": 1, "models": 1, "base_radius_inches": 25.0 / 25.4,
 		"stats": {"movement_inches": 5, "toughness": 6, "save_target": 2, "wounds": 7, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
-		"keywords": ["INFANTRY", "TERMINATOR", "EPIC HERO", "CAPTAIN", "IMPERIUM", "ADEPTUS ASTARTES", "IMPERIAL FISTS"],
+		"keywords": ["INFANTRY", "TERMINATOR", "EPIC HERO", "CHARACTER", "CAPTAIN", "IMPERIUM", "ADEPTUS ASTARTES", "IMPERIAL FISTS"],
 		"ranged": [],
 		"melee": [{"id": "fist-of-dorn", "profiles": {"standard": _weapon("Fist of Dorn", 0.0, 5, 2, 10, -3, 3, {"devastating-wounds": true, "cleave": 1})}}]
 	},
@@ -627,7 +627,7 @@ static func _build_profiles() -> Dictionary:
 	},
 	"assault-intercessors-with-jump-packs": {
 		"name": "Assault Intercessors With Jump Packs", "source_book_id": "000000139", "source_datasheet_id": "000002776", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-		"points": 95, "points_by_models": {5: 95, 10: 190}, "max_supported_copies": 2, "models": 5, "base_radius_inches": 16.0 / 25.4,
+		"points": 95, "points_by_models": {5: 95, 10: 190}, "third_plus_points_by_models": {5: 105, 10: 200}, "max_supported_copies": 2, "models": 5, "base_radius_inches": 16.0 / 25.4,
 		"stats": {"movement_inches": 12, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 		"keywords": ["INFANTRY", "FLY", "JUMP PACK", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES"],
 		"ranged": [{"id": "heavy-bolt-pistol", "profiles": {"standard": _weapon("Heavy Bolt Pistol", 18.0, 1, 3, 5, -1, 1, {"close-quarters": true})}}],

@@ -38,7 +38,7 @@ const RULES := {
 	"infiltrator-squad": ["infiltrators", "omni-scramblers", "helix-gauntlet"],
 	"lieutenant-in-phobos-armour": ["support", "combat-doctrines", "infiltrators", "deep-strike", "tactical-precision", "demi-company-commander"],
 	"lieutenant-with-combi-weapon": ["feel-no-pain-5", "infiltrators", "lone-operative", "stealth", "priority-target-identified", "evade-and-survive"],
-	"techmarine": ["techmarine-lone-operative", "blessings-of-the-omnissiah"],
+	"techmarine": ["leader", "techmarine-lone-operative", "blessings-of-the-omnissiah"],
 	"captain-in-gravis-armour": ["leader", "strategic-acumen", "transhuman-strategist", "refuse-to-yield"],
 	"tor-garadon": ["leader", "combat-doctrines", "transhuman-strategist", "siege-captain", "signum-array"],
 	"darnath-lysander": ["deep-strike", "leader", "combat-doctrines", "transhuman-strategist", "rampart", "icon-of-obstinacy"],
