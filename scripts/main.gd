@@ -7599,8 +7599,8 @@ func _load_match(as_host: bool = false, validate_only: bool = false, saved_overr
 			return
 		for owner in [1, 2]:
 			var configured_override: Variant = configured_primary_overrides.get(owner, configured_primary_overrides.get(str(owner), true))
-			var saved_override: Variant = saved_primary_overrides.get(owner, saved_primary_overrides.get(str(owner), true))
-			if typeof(configured_override) != TYPE_BOOL or typeof(saved_override) != TYPE_BOOL or bool(configured_override) != bool(saved_override):
+			var saved_primary_override: Variant = saved_primary_overrides.get(owner, saved_primary_overrides.get(str(owner), true))
+			if typeof(configured_override) != TYPE_BOOL or typeof(saved_primary_override) != TYPE_BOOL or bool(configured_override) != bool(saved_primary_override):
 				status.text = "The primary selection mode for Player %d does not match the save." % owner
 				return
 		var saved_force_dispositions := Combat.Mission.force_disposition_assignments(saved.state)
