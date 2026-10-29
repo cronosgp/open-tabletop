@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "id": "marine-lion-eljonson-e11-2026-10-28",
+  "source": {
+    "edition": 11,
+    "book_id": "000000023",
+    "datasheet_id": "000002682",
+    "book_name": "Dark Angels",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lion-El-jonson",
+    "checked_at": "2026-10-28",
+    "runtime_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+    "source_revision": "Wahapedia Dark Angels App 2.8.1 / October 2026; Data Export specification revision 20260817b; live page checked 2026-10-28.",
+    "chapter_context": "Dark Angels datasheet; the runtime uses the selected Dark Angels Chapter context or explicit Dark Angels keywords for Chapter-gated effects.",
+    "game_mode": "Standard Warhammer 40,000 11th edition, exercised through the current local match/action runtime; this is not full-match certification.",
+    "snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "slice_manifest_sha256": "36bdfa57f88ea526cfcd0faad83bd160c8d855a00f3b055d4ecc09815b056720",
+      "slice_structurally_valid": true,
+      "parent_validation_error_count": 68,
+      "relevant_file_hashes": [
+        {"filename": "Source.csv", "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"},
+        {"filename": "Last_update.csv", "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"},
+        {"filename": "Datasheets.csv", "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"},
+        {"filename": "Datasheets_models.csv", "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"},
+        {"filename": "Datasheets_models_cost.csv", "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"},
+        {"filename": "Datasheets_unit_composition.csv", "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"},
+        {"filename": "Datasheets_options.csv", "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"},
+        {"filename": "Datasheets_wargear.csv", "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"},
+        {"filename": "Datasheets_keywords.csv", "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"},
+        {"filename": "Abilities.csv", "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"},
+        {"filename": "Datasheets_abilities.csv", "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"}
+      ]
+    }
+  },
+  "fixed_data_comparison": {
+    "status": "passed_source_bounded",
+    "artifact": ".tools/marine-comparison-lion-20261028.json",
+    "sha256": "ff82ab00a357d3485825d90d16867bc73e2365104bbe341c5b99e2658272ef1a",
+    "identity": "lion-eljonson",
+    "source_id": "000002682",
+    "differences": [],
+    "profile_count": 1,
+    "fixed_data_scope_consistent": true,
+    "slice_structurally_valid": true,
+    "parent_source_structurally_valid": false,
+    "parent_source_validation_error_count": 68,
+    "scope": "One-subject verified Dark Angels audit slice; fixed characteristics, weapons and traits, faction-keyword scope, default equipment, composition and point cost. This does not validate executable rules or the unrelated parent-export errors."
+  },
+  "local_scope_validation": {
+    "status": "passed",
+    "test_file": "tests/test_lion_eljonson.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_lion_eljonson --timeout 300",
+    "artifact": ".tools/verification/20261028T133452864654Z/results.json",
+    "sha256": "3628b2f6882c62e520141edf1682feff4ced31202af3d3394ec1524e3c2c1793",
+    "processes": [
+      {"name": "import", "status": "passed", "exit_code": 0},
+      {"name": "python", "status": "passed", "exit_code": 0},
+      {"name": "test_lion_eljonson", "status": "passed", "exit_code": 0}
+    ],
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "source_bounded_local_scope_validated": true
+  },
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_army_legality_certified": false,
+  "source_profile_check": {
+    "source_profile": "Lion El’jonson",
+    "composition": ["1 Lion El’Jonson model"],
+    "fixed_costs": {"1 model": 415},
+    "base_size": "60mm",
+    "characteristics": {
+      "movement": "8\"",
+      "toughness": 10,
+      "save": "2+",
+      "invulnerable_save": "3+",
+      "wounds": 16,
+      "leadership": "5+",
+      "objective_control": 4
+    },
+    "keywords": [
+      "Adeptus Astartes",
+      "Dark Angels",
+      "Epic Hero",
+      "Monster",
+      "Mobile",
+      "Imperium",
+      "Primarch",
+      "Character"
+    ],
+    "equipment_option_rows": [],
+    "fixed_equipment": ["Arma Luminis", "Fealty"],
+    "weapon_profiles": [
+      {"weapon": "Arma Luminis", "mode": "Plasma", "range": "18\"", "attacks": 2, "skill": "2+", "strength": 10, "ap": -3, "damage": "D3", "traits": ["Close-quarters"]},
+      {"weapon": "Arma Luminis", "mode": "Bolt", "range": "18\"", "attacks": 4, "skill": "2+", "strength": 6, "ap": -2, "damage": 2, "traits": ["Close-quarters"]},
+      {"weapon": "Fealty", "mode": "Sweep", "range": "Melee", "attacks": 12, "skill": "2+", "strength": 6, "ap": -3, "damage": 2, "traits": ["Sustained Hits 1", "Cleave 2"]},
+      {"weapon": "Fealty", "mode": "Strike", "range": "Melee", "attacks": 8, "skill": "2+", "strength": 12, "ap": -4, "damage": 4, "traits": ["Lethal Hits"]}
+    ],
+    "ability_records": [
+      "Deep Strike",
+      "Fights First",
+      "Combat Doctrines",
+      "Transhuman Strategist",
+      "Dark Angels Bodyguard",
+      "The Emperor’s Shield",
+      "Primarch of the First Legion",
+      "The Watchers",
+      "Master Strategist",
+      "Mist-wreathed Shadow Realms",
+      "Martial Exemplar",
+      "No Hiding from the Watchers",
+      "Supreme Commander"
+    ]
+  },
+  "scope": [
+    "Closes Lion El’jonson’s source-bounded local datasheet scope and one-copy current-catalog admission.",
+    "Tests all weapon modes, defensive effects, Warlord restriction, selected Primarch abilities, doctrine timing, Dark Angels auras and first-turn own-turn Mist ingress with the reserve cap.",
+    "Does not certify full Dark Angels or Space Marine army legality, network behavior, complete-match behavior or human playtesting."
+  ],
+  "limits": [
+    "The verified Lion slice has no structural validation errors; the parent export contains 68 unrelated errors, which remain open.",
+    "Network validation and full army legality are deferred to final integration.",
+    "Forge World, Legends and alternate modes remain outside the current Space Marine profile inventory."
+  ]
+}

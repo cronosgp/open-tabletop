@@ -1,61 +1,333 @@
 {
-  "id": "terminator-squad-local-audit-2026-10-19-v1",
-  "rules_authority": "Wahapedia 11th-edition local export",
+  "id": "space-marines-terminator-squad-current-e11-scope",
+  "edition": "11th edition",
+  "source_authority": "Wahapedia 11e shared Space Marines datasheet; facts checked against the verified local Data Export snapshot.",
   "source_book_id": "000000139",
   "source_datasheet_id": "000001183",
+  "source_datasheet_name": "Terminator Squad",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
   "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-  "profile_id": "space-marines-e11-fixed-reference-2026-10-19-v50",
-  "profile_digest": "e46176ab71478ad429e1770775233fafea8cc172676eec9c02b3b24bebd9faf1",
-  "comparison_report": ".tools/wahapedia-fixed-data-review-v63.json",
-  "fixed_data_check": {
-    "consistent": true,
-    "numeric_or_identity_differences": 0,
-    "keyword_scope_consistent": true,
-    "weapon_profiles_checked": 9,
-    "default_loadout_consistent": true,
-    "composition_consistent": true,
-    "snapshot_structurally_valid": true
+  "observed_at": "2026-10-28",
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ]
   },
-  "compositions": {
-    "5": {
-      "first_two_cost": 190,
-      "third_plus_cost": 230
+  "implementation": [
+    {
+      "path": "scripts/edition_11/current_reference_marine_profiles.gd",
+      "sha256": "ace0c03075cf1e2deab133f22731ff0b7b333d9ca8154ba880b8c4416169bc0e"
     },
-    "10": {
-      "first_two_cost": 380,
-      "third_plus_cost": 420
+    {
+      "path": "scripts/edition_11/army_capabilities.gd",
+      "sha256": "8d04919e158f0cd949158e31e727f5a0512d45cff8abd035f73a06d090201f84"
+    },
+    {
+      "path": "scripts/edition_11/roster_validation.gd",
+      "sha256": "14f30a3bd4781feaafde312468ee18432147866f46004bf85645cda401b1df96"
+    },
+    {
+      "path": "scripts/edition_11/unit_actions.gd",
+      "sha256": "7a87066e45aa611193d9f9077a4e772d224884fff9cc8f13c212376059963baf"
+    },
+    {
+      "path": "scripts/edition_11/unit_abilities.gd",
+      "sha256": "0172ed93f0df1d385131d8f736a2be49feeb22644afcfe282e78d43d2a22f665"
+    },
+    {
+      "path": "scripts/edition_11/unit_ability_catalog.gd",
+      "sha256": "2e87326d97533478d092b79e81b45361bc8eb5b43e8b4c5fbb73bd47f1cfc62c"
+    },
+    {
+      "path": "scripts/edition_11/attack_plan.gd",
+      "sha256": "0a3bcf2046aec615944e28aaf5299be820f8f6d33f9961d49f9008f0edd59f46"
+    },
+    {
+      "path": "scripts/edition_11/attack_sequence.gd",
+      "sha256": "f8e374ad581ebdd325936ddfde255b48bff4fa1464e74c12fc299491f5499b7d"
+    },
+    {
+      "path": "scripts/edition_11/equipment.gd",
+      "sha256": "a747e67cb4c63c8d00379953f89ebd896a52730d76efeeb9fc2359a184bbec44"
+    },
+    {
+      "path": "scripts/edition_11/marine_leader_links.gd",
+      "sha256": "84cd00c910ff133f136d44a59adfd6c0f271ff2a2efd3be412ac04d574fe4d25"
+    },
+    {
+      "path": "scripts/edition_11/support_attachments.gd",
+      "sha256": "d6e3292412a3b7b10f0fe816b4d6a037028c4ffcbd3412130420e7b00022eb67"
+    },
+    {
+      "path": "scripts/edition_11/capabilities.gd",
+      "sha256": "50f49fb496a52009d6e78fab2d8b8c3dab433b42c3530c4b2678f4e5bb272d49"
+    },
+    {
+      "path": "tests/test_terminator_squad_current.gd",
+      "sha256": "6dbcaacb965dfb7d27df09bccd409dc8f21fde368ca5cf34510bb1084163f799"
+    },
+    {
+      "path": "tests/test_terminator_assault_squad.gd",
+      "sha256": "e93b7a5ddc29f8295de7ea3ea382ab8ac3278d94c036c2a12797cce3874c3500"
+    },
+    {
+      "path": "tests/test_unit_reserves.gd",
+      "sha256": "cd7ee5909e6bfdc69501e50d9881c1a17bc03c3a8e43e3a4a1d5a7a4acfcbb2b"
+    },
+    {
+      "path": "tests/space_marine_datasheet_checks.gd",
+      "sha256": "eb64b310e2614278fc26581ebf6ad0afccef5277a514639b6153ea2e47c274da"
+    },
+    {
+      "path": "tests/public_unit_command.gd",
+      "sha256": "a794f809babcaf677bb42bfbb4d2e10575c2e76b4db0fc136ed864417bf9e75f"
+    },
+    {
+      "path": "tests/all_units_fixture.gd",
+      "sha256": "eeba563cd7ededafa4a878443e801c548fea67cb609dec1178717f3f969d0d41"
+    },
+    {
+      "path": "tools/verify.py",
+      "sha256": "2ad98647d0e58bf288e572e48091e2066faef298aa6eff12bd53d6e07b9f59a6"
     }
-  },
-  "wargear": {
-    "sergeant_power_fist_replacements": [
-      "chainfist",
-      "power-weapon"
-    ],
-    "any_number_regular_power_fists_replaceable_with": "chainfist",
-    "special_ranged_weapons_per_five_starting_models": 1,
-    "special_ranged_choices": [
-      "assault-cannon",
-      "heavy-flamer",
-      "cyclone-missile-launcher"
-    ],
-    "cyclone_retains_storm_bolter": true,
-    "cyclone_cost": 10
-  },
-  "runtime_abilities": [
-    "deep-strike",
-    "fury-of-the-first",
-    "teleport-homer"
   ],
-  "local_tests": [
-    "tests/test_terminator_squad_current.gd",
-    "tests/test_implemented_catalog.gd",
-    "tests/test_army_builder.gd"
-  ],
-  "visual_review": {
-    "capture_1280x800": ".tools/terminator-tiered-price-preview.png",
-    "capture_1024x640_content_viewport": ".tools/terminator-tiered-price-small.png",
-    "before_capture": "Prior .tools/workshop-add-desktop.png is an older synthetic catalog fixture, not an equivalent-data baseline."
+  "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_terminator_squad_current --only test_space_marine_leader_links --only test_unit_reserves --only test_terminator_assault_squad --only test_detachment_stratagems --timeout 300",
+  "validation_artifact": ".tools/verification/20261028T055847733207Z/results.json",
+  "validation_artifact_sha256": "2d63936c3e478b86194ef0782f4417b31ae27660429d6bb2822d4be4f1fce829",
+  "validation_status": "passed; 7/7 processes; network=false; legacy_starter_staged=true; no cleanup diagnostics",
+  "fixed_data_consistent": true,
+  "verified_profile": {
+    "composition": "One Terminator Sergeant and four to nine Terminators; five or ten models.",
+    "points": {
+      "first_two_copies": {
+        "5": 190,
+        "10": 380
+      },
+      "third_plus": {
+        "5": 230,
+        "10": 420
+      },
+      "cyclone_missile_launcher": 10
+    },
+    "base": "40 mm circle",
+    "characteristics": {
+      "movement_inches": 5,
+      "toughness": 6,
+      "save": "2+",
+      "wounds": 3,
+      "leadership": "6+",
+      "objective_control": 1,
+      "invulnerable_save": "4+"
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "IMPERIUM",
+      "INFANTRY",
+      "TERMINATOR"
+    ],
+    "runtime_grouping_tag": "TERMINATOR SQUAD is an internal runtime grouping tag, not an extra source keyword.",
+    "contextual_keyword": "DEATHWING is displayed by the source in Chapter context and is not admitted as an unconditional shared-book keyword.",
+    "default_weapons": {
+      "Terminator Sergeant": [
+        "Storm Bolter",
+        "Power Fist"
+      ],
+      "Terminator": [
+        "Storm Bolter",
+        "Power Fist"
+      ]
+    },
+    "optional_equipment": [
+      "The Terminator Sergeant can replace its Power Fist with a Chainfist or Power Weapon.",
+      "Any number of regular Terminators can each replace their Power Fist with a Chainfist.",
+      "For every five models, one regular Terminator can replace its Storm Bolter with an Assault Cannon or Heavy Flamer, or take a Cyclone Missile Launcher while retaining its Storm Bolter.",
+      "A Cyclone Missile Launcher costs 10 points; the Storm Bolter on that model cannot be replaced."
+    ],
+    "abilities": [
+      "Deep Strike (core ability); Combat Doctrines (army rule).",
+      "Teleport Homer (once per battle, per unit): place a token at battle start; it reduces Rapid Ingress cost by 1 CP, requires set-up within 3 inches of the token and more than 8 inches from enemies, then is removed; an enemy move ending within 1 inch also removes it.",
+      "Fury of the First: the unit’s ranged and melee attacks gain +1 AP against targets within 9 inches of the unit."
+    ]
   },
-  "network_validation": "deferred to final integration",
-  "full_army_legality_certified": false
+  "weapon_profiles_checked": [
+    "Storm Bolter: ranged 24 inches, A2, BS3+, S5, AP -1, D1, Rapid Fire 2.",
+    "Power Fist: melee A3, WS3+, S8, AP -2, D2.",
+    "Assault Cannon: ranged 24 inches, A6, BS3+, S6, AP -2, D1, Sustained Hits 1.",
+    "Heavy Flamer: ranged 12 inches, A3, Torrent, Blast 2, S5, AP -1, D1.",
+    "Cyclone Missile Launcher: Frag A8, Blast 2, S4, AP -1, D1; Krak A2, S10, AP -2, D3+3; both 36 inches.",
+    "Chainfist: Standard A2, WS4+, S8, AP -2, D2; Hunter against MONSTER/VEHICLE A3, WS3+, S12, AP -2, D3.",
+    "Power Weapon: melee A5, WS3+, S5, AP -2, D1."
+  ],
+  "leader_links": [
+    "Caanok Var",
+    "Captain in Terminator Armour",
+    "Chaplain in Terminator Armour",
+    "Darnath Lysander",
+    "Librarian in Terminator Armour",
+    "Marneus Calgar"
+  ],
+  "support_links": [
+    "Ancient in Terminator Armour"
+  ],
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_source_bounded_local_scope_validated": true,
+  "full_army_legality_certified": false,
+  "full_match_certified": false,
+  "known_scope_limits": [
+    "The project MFM 1.6 1,000-point Incursion validator limits this non-BATTLELINE datasheet to two copies; third-plus source costs remain available in custom local construction. Strike Force and complete army legality are not certified. DEATHWING remains Chapter-contextual; Chapter-book variants/links, Forge World, Legends, network behavior, complete-match certification and human playtesting are outside this scope. Network validation is deferred to final integration."
+  ],
+  "current_scope_validation": {
+    "observed_at": "2026-10-28",
+    "profile": "terminator-squad",
+    "test_file": "tests/test_terminator_squad_current.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_terminator_squad_current --only test_space_marine_leader_links --only test_unit_reserves --only test_terminator_assault_squad --only test_detachment_stratagems --timeout 300",
+    "artifact": ".tools/verification/20261028T055847733207Z/results.json",
+    "artifact_sha256": "2d63936c3e478b86194ef0782f4417b31ae27660429d6bb2822d4be4f1fce829",
+    "status": "passed; 7/7 processes; network=false; legacy_starter_staged=true; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Terminator-Squad",
+    "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; pinned local Data Export revision 20260817b; live 11e datasheet page checked 2026-10-28 UTC.",
+    "source_scope_summary": "Complete shared-book scope covers both source unit sizes and copy-cost tiers; exact fixed profile, default and optional weapons through Equipment/AttackPlan; reversible choices, special-weapon cap and Cyclone points; Fury of the First range/attack-type/attached-model effects; Deep Strike and Teleport Homer ingress; common-book Leader/Support links, both-player current catalogs and local Incursion copy admission.",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "implementation_files": [
+      {
+        "path": "scripts/edition_11/current_reference_marine_profiles.gd",
+        "sha256": "ace0c03075cf1e2deab133f22731ff0b7b333d9ca8154ba880b8c4416169bc0e"
+      },
+      {
+        "path": "scripts/edition_11/army_capabilities.gd",
+        "sha256": "8d04919e158f0cd949158e31e727f5a0512d45cff8abd035f73a06d090201f84"
+      },
+      {
+        "path": "scripts/edition_11/roster_validation.gd",
+        "sha256": "14f30a3bd4781feaafde312468ee18432147866f46004bf85645cda401b1df96"
+      },
+      {
+        "path": "scripts/edition_11/unit_actions.gd",
+        "sha256": "7a87066e45aa611193d9f9077a4e772d224884fff9cc8f13c212376059963baf"
+      },
+      {
+        "path": "scripts/edition_11/unit_abilities.gd",
+        "sha256": "0172ed93f0df1d385131d8f736a2be49feeb22644afcfe282e78d43d2a22f665"
+      },
+      {
+        "path": "scripts/edition_11/unit_ability_catalog.gd",
+        "sha256": "2e87326d97533478d092b79e81b45361bc8eb5b43e8b4c5fbb73bd47f1cfc62c"
+      },
+      {
+        "path": "scripts/edition_11/attack_plan.gd",
+        "sha256": "0a3bcf2046aec615944e28aaf5299be820f8f6d33f9961d49f9008f0edd59f46"
+      },
+      {
+        "path": "scripts/edition_11/attack_sequence.gd",
+        "sha256": "f8e374ad581ebdd325936ddfde255b48bff4fa1464e74c12fc299491f5499b7d"
+      },
+      {
+        "path": "scripts/edition_11/equipment.gd",
+        "sha256": "a747e67cb4c63c8d00379953f89ebd896a52730d76efeeb9fc2359a184bbec44"
+      },
+      {
+        "path": "scripts/edition_11/marine_leader_links.gd",
+        "sha256": "84cd00c910ff133f136d44a59adfd6c0f271ff2a2efd3be412ac04d574fe4d25"
+      },
+      {
+        "path": "scripts/edition_11/support_attachments.gd",
+        "sha256": "d6e3292412a3b7b10f0fe816b4d6a037028c4ffcbd3412130420e7b00022eb67"
+      },
+      {
+        "path": "scripts/edition_11/capabilities.gd",
+        "sha256": "50f49fb496a52009d6e78fab2d8b8c3dab433b42c3530c4b2678f4e5bb272d49"
+      },
+      {
+        "path": "tests/test_terminator_squad_current.gd",
+        "sha256": "6dbcaacb965dfb7d27df09bccd409dc8f21fde368ca5cf34510bb1084163f799"
+      },
+      {
+        "path": "tests/test_terminator_assault_squad.gd",
+        "sha256": "e93b7a5ddc29f8295de7ea3ea382ab8ac3278d94c036c2a12797cce3874c3500"
+      },
+      {
+        "path": "tests/test_unit_reserves.gd",
+        "sha256": "cd7ee5909e6bfdc69501e50d9881c1a17bc03c3a8e43e3a4a1d5a7a4acfcbb2b"
+      },
+      {
+        "path": "tests/space_marine_datasheet_checks.gd",
+        "sha256": "eb64b310e2614278fc26581ebf6ad0afccef5277a514639b6153ea2e47c274da"
+      },
+      {
+        "path": "tests/public_unit_command.gd",
+        "sha256": "a794f809babcaf677bb42bfbb4d2e10575c2e76b4db0fc136ed864417bf9e75f"
+      },
+      {
+        "path": "tests/all_units_fixture.gd",
+        "sha256": "eeba563cd7ededafa4a878443e801c548fea67cb609dec1178717f3f969d0d41"
+      },
+      {
+        "path": "tools/verify.py",
+        "sha256": "2ad98647d0e58bf288e572e48091e2066faef298aa6eff12bd53d6e07b9f59a6"
+      }
+    ]
+  },
+  "relation_map_identities": [
+    "Ancient in Terminator Armour",
+    "Caanok Var",
+    "Captain in Terminator Armour",
+    "Chaplain in Terminator Armour",
+    "Darnath Lysander",
+    "Librarian in Terminator Armour",
+    "Marneus Calgar"
+  ]
 }

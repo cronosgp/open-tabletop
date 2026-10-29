@@ -4,9 +4,10 @@ const C = F.C
 static func entry(name: String, models: int = 1) -> Dictionary:
  return {"definition_id":"40kdc:11e:adeptus-astartes:"+name,"models":models,"copies":1}
 static func fixture(attached: bool = true, models: int = 5) -> Dictionary:
- var lists := F.selections()
+ var lists := F.current_marine_selections()
  lists[1].entries=[entry("captain"),entry("eliminator-squad",3),entry("infiltrator-squad",models),entry("lieutenant-in-phobos-armour")]
- var s := F.P.initial_state({"checked_rosters":true,"official_mission":true,"unit_abilities":true,"combat_doctrines":true,"reanimation_protocols":true,"awakened_dynasty":true,"core_stratagems":true,"manual_allocation":false},lists)
+ lists[2].entries=[entry("captain")]
+ var s := F.P.initial_state({"checked_rosters":false,"official_mission":false,"unit_abilities":true,"combat_doctrines":true,"reanimation_protocols":true,"awakened_dynasty":true,"core_stratagems":true,"manual_allocation":false},lists)
  if s.has("error"):return s
  if attached:C.UnitActions.attach(s,700,5)
  s.mission.stage="battle"

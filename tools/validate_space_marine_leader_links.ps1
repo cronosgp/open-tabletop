@@ -1,45 +1,90 @@
-$ErrorActionPreference = "Stop"
+param(
+    [string]$SnapshotPath = ".tools\wahapedia\11e\space-marines\20261021T130623Z",
+    [string]$IdentityAuditPath = "docs\space-marines-source-identity-map.json",
+    [string]$RuntimeLinksPath = "scripts\edition_11\marine_leader_links.gd"
+)
 
-$snapshotPath = ".tools\wahapedia-e11"
-$identityAuditPath = "docs\space-marines-source-identity-map.json"
-$runtimeLinksPath = "scripts\edition_11\marine_leader_links.gd"
-$supportLinksPath = "scripts\edition_11\support_attachments.gd"
+$ErrorActionPreference = "Stop"
 $bookId = "000000139"
 $factionId = "SM"
 
-$audit = Get-Content -Encoding UTF8 $identityAuditPath -Raw | ConvertFrom-Json
+$audit = Get-Content -Encoding UTF8 $IdentityAuditPath -Raw | ConvertFrom-Json
 if ($audit.source -ne "Wahapedia" -or $audit.edition -ne "11th" -or $audit.source_book_id -ne $bookId -or $audit.faction_id -ne $factionId) {
     throw "The identity audit does not match the selected Wahapedia e11 common-book scope."
 }
 
-$manifestPath = Join-Path $snapshotPath "snapshot-manifest.json"
-$leaderPath = Join-Path $snapshotPath "Datasheets_leader.csv"
-if (-not (Test-Path $manifestPath) -or -not (Test-Path $leaderPath)) {
-    throw "The pinned Wahapedia snapshot or its manifest is missing."
+$manifestPath = Join-Path $SnapshotPath "manifest.json"
+if (-not (Test-Path $manifestPath)) { $manifestPath = Join-Path $SnapshotPath "snapshot-manifest.json" }
+$datasheetsPath = Join-Path $SnapshotPath "Datasheets.csv"
+$leaderPath = Join-Path $SnapshotPath "Datasheets_leader.csv"
+if (-not (Test-Path $manifestPath) -or -not (Test-Path $datasheetsPath) -or -not (Test-Path $leaderPath)) {
+    throw "The selected Wahapedia snapshot, datasheets table or manifest is missing."
 }
 $manifest = Get-Content -Encoding UTF8 $manifestPath -Raw | ConvertFrom-Json
-$manifestLeader = $manifest.files | Where-Object { $_.name -eq "Datasheets_leader.csv" }
-if (-not $manifestLeader) {
-    throw "The snapshot manifest does not record Datasheets_leader.csv."
+$manifestFiles = @($manifest.files)
+if ($manifestFiles.Count -eq 0) {
+    throw "The snapshot manifest does not record its source files."
 }
-$leaderHash = (Get-FileHash $leaderPath -Algorithm SHA256).Hash.ToLowerInvariant()
-if ($leaderHash -ne $manifestLeader.sha256) {
-    throw "Datasheets_leader.csv does not match the pinned snapshot hash."
+foreach ($file in $manifestFiles) {
+    $fileName = [string]$file.filename
+    if ([string]::IsNullOrWhiteSpace($fileName)) { $fileName = [string]$file.name }
+    $expectedHash = [string]$file.sha256
+    if ([string]::IsNullOrWhiteSpace($fileName) -or [string]::IsNullOrWhiteSpace($expectedHash)) {
+        throw "The snapshot manifest contains a file without a name or SHA-256."
+    }
+    $filePath = Join-Path $SnapshotPath $fileName
+    if (-not (Test-Path $filePath)) { throw "Snapshot file is missing: $fileName" }
+    $actualHash = (Get-FileHash $filePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actualHash -ne $expectedHash.ToLowerInvariant()) { throw "Snapshot file hash mismatch: $fileName" }
 }
-$updateMarkers = @(
-    (Import-Csv -Delimiter "|" (Join-Path $snapshotPath "Last_update_before.csv")).last_update.Trim(),
-    (Import-Csv -Delimiter "|" (Join-Path $snapshotPath "Last_update_after.csv")).last_update.Trim(),
-    (Import-Csv -Delimiter "|" (Join-Path $snapshotPath "Last_update.csv")).last_update.Trim()
-)
-$manifestMarker = $manifest.last_update_marker.Trim().TrimEnd("|")
-if (@($updateMarkers | Select-Object -Unique).Count -ne 1 -or $updateMarkers[0] -ne $manifestMarker -or $manifestMarker -ne $audit.source_export_updated_at) {
-    throw "The export update markers do not match the pinned identity audit."
+$manifestDateMatch = [regex]::Match([string]$manifest.source_export_updated_at, '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}')
+$manifestMarker = if ($manifestDateMatch.Success) { $manifestDateMatch.Value } else { [string]$manifest.last_update_marker.Trim().TrimEnd("|") }
+$updateMarkers = @()
+foreach ($markerName in @("Last_update_before.csv", "Last_update_after.csv", "Last_update.csv")) {
+    $markerPath = Join-Path $SnapshotPath $markerName
+    if (Test-Path $markerPath) {
+        $markerRows = @(Import-Csv -Delimiter "|" $markerPath)
+        foreach ($row in $markerRows) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$row.last_update)) { $updateMarkers += [string]$row.last_update.Trim() }
+        }
+    }
+}
+if ($updateMarkers.Count -eq 0 -or @($updateMarkers | Select-Object -Unique).Count -ne 1 -or $updateMarkers[0] -ne $manifestMarker) {
+    throw "The export update marker does not match the selected snapshot manifest."
+}
+$snapshotDate = [datetime]::ParseExact($manifestMarker, "yyyy-MM-dd HH:mm:ss", [Globalization.CultureInfo]::InvariantCulture)
+$identityDateText = ([string]$audit.source_export_updated_at).Substring(0, 19)
+$identityDate = [datetime]::ParseExact($identityDateText, "yyyy-MM-dd HH:mm:ss", [Globalization.CultureInfo]::InvariantCulture)
+if ($identityDate -gt $snapshotDate) {
+    throw "The identity map is newer than the selected datasheet snapshot."
 }
 
+$sourceDatasheets = Import-Csv -Delimiter "|" $datasheetsPath
+$sourceById = @{}
+foreach ($row in $sourceDatasheets) {
+    if ($sourceById.ContainsKey([string]$row.id)) { throw "Duplicate datasheet ID in the selected export: $($row.id)" }
+    $sourceById[[string]$row.id] = $row
+}
 $identityById = @{}
 foreach ($mapping in $audit.identity_mappings) {
-    $identityById[[string]$mapping.source_datasheet_id] = [string]$mapping.identity
+    $sourceId = [string]$mapping.source_datasheet_id
+    $identity = [string]$mapping.identity
+    if ([string]::IsNullOrWhiteSpace($sourceId) -or [string]::IsNullOrWhiteSpace($identity) -or $identityById.ContainsKey($sourceId) -or ($identityById.Values -contains $identity)) {
+        throw "The identity map contains an empty or duplicate source ID/runtime identity."
+    }
+    if (-not $sourceById.ContainsKey($sourceId)) { throw "Identity-map datasheet ID is absent from the selected export: $sourceId" }
+    $sourceRow = $sourceById[$sourceId]
+    $sourceName = ([string]$sourceRow.name).Replace("’", "'").Replace("‘", "'").Trim()
+    $mappedName = ([string]$mapping.source_name).Replace("’", "'").Replace("‘", "'").Trim()
+    if ([string]$sourceRow.source_id -ne $bookId -or [string]$sourceRow.faction_id -ne $factionId -or $sourceName -ine $mappedName) {
+        throw "Identity-map source facts differ from the selected export for $sourceId."
+    }
+    $identityById[$sourceId] = $identity
 }
+if ($identityById.Count -ne 85 -or $identityById.Count -ne [int]$audit.source_subject_count) {
+    throw "The identity map covers $($identityById.Count) records, not the expected common-book set."
+}
+
 $expected = @{}
 $sourceLeaderRows = @(Import-Csv -Delimiter "|" $leaderPath | Where-Object {
     $identityById.ContainsKey([string]$_.leader_id)
@@ -91,31 +136,10 @@ function Assert-MapsEqual([hashtable]$ExpectedMap, [hashtable]$ActualMap, [strin
     }
 }
 
-$runtime = Read-TargetMap $runtimeLinksPath 'const TARGETS := \{' '\r?\n\}' "runtime Leader/Support targets"
+$runtime = Read-TargetMap $RuntimeLinksPath 'const TARGETS := \{' '\r?\n\}' "runtime Leader targets"
 Assert-MapsEqual $expected $runtime "Runtime relationship map"
 
-$supports = Read-TargetMap $supportLinksPath 'const BODYGUARDS := \{' '\}\r?\nconst CONDITIONAL_BODYGUARDS' "Support bodyguards"
-foreach ($identity in $supports.Keys) {
-    if (-not $expected.ContainsKey($identity)) {
-        throw "Support map identity $identity has no in-scope source relationships."
-    }
-    $expectedSupportTargets = @($expected[$identity] | Sort-Object)
-    $actualSupportTargets = @($supports[$identity] | Sort-Object)
-    if (($expectedSupportTargets -join "|") -ne ($actualSupportTargets -join "|")) {
-        throw "Support targets differ from the source for $identity."
-    }
-}
-$conditional = Read-TargetMap $supportLinksPath 'const CONDITIONAL_BODYGUARDS := \{' '\}' "conditional Support targets"
-foreach ($identity in $conditional.Keys) {
-    if (-not $expected.ContainsKey($identity)) {
-        throw "Conditional Support identity $identity has no in-scope source relationships."
-    }
-    $expectedConditionalTargets = @($expected[$identity] | Sort-Object)
-    $actualConditionalTargets = @($conditional[$identity] | Sort-Object)
-    if (($expectedConditionalTargets -join "|") -ne ($actualConditionalTargets -join "|")) {
-        throw "Conditional Support targets differ from the source for $identity."
-    }
-}
-
 $externalCount = $sourceLeaderRows.Count - $inScopeRows.Count
-Write-Output "Wahapedia e11 Leader/Support links: $($inScopeRows.Count)/153 exact across $($expected.Count) datasheets; $externalCount out-of-scope targets excluded."
+Write-Output "Wahapedia e11 common-book Leader links: $($inScopeRows.Count)/153 exact across $($expected.Count) datasheets; $externalCount out-of-scope targets excluded."
+Write-Output "Snapshot $($manifest.snapshot_id): $($manifestFiles.Count)/$($manifestFiles.Count) manifest hashes passed; $($identityById.Count) common-book identities matched source ID, name, faction and book. Identity map: $($audit.source_export_updated_at); current export: $manifestMarker."
+Write-Output "Cross-book BODYGUARD/Support attachment mappings are not certified by this common-book Leader audit."

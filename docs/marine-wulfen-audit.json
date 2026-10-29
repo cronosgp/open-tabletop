@@ -1,0 +1,215 @@
+{
+  "id": "marine-wulfen-e11-local-audit-2026-10-29",
+  "rules_authority": "The verified local Wahapedia 11th-edition Data Export supplies datasheet facts; page comparison and network validation are deferred to final integration.",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Space Wolves",
+    "book_id": "000000036",
+    "book_type": "App",
+    "datasheet_id": "000000322",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Thunderwolf-Cavalry",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "export_updated_at": "2026-10-28T17:48:19-03:00",
+    "snapshot_id": "20261029T003124Z",
+    "snapshot_retrieval_window_utc": "2026-10-29T00:31:29.030708Z–2026-10-29T00:32:24.715969Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_manifest_sha256": "f3dedbf36bf9fa30d6db0b22f1a6cc4f95f2dceef136def80846496eaf2fe9d3",
+    "slice_subject_datasheet_ids": [
+      "000000311"
+    ],
+    "external_identity_only_datasheet_ids": [],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "parent_snapshot_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Enhancements.csv": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Detachment_abilities.csv": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c",
+      "Detachments.csv": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "7b35df86ec1bbed9f101a8923cbcca41bafb2533e9a1978ae9c366c8c8267999",
+      "Datasheets.csv": "a67c2015107b3d4e519d36446edb9c3891f9eef9ebe67bd21d92f2155873ac45",
+      "Datasheets_abilities.csv": "de60537d21f9181e7ece95aa3608565b4426732031b4e34fdbc4cd9592a9ac94",
+      "Datasheets_keywords.csv": "6484cbf4c7461a890531f2d6f2be6fe3c0bc97c210140c50c280a995208e7570",
+      "Datasheets_models.csv": "a394aedb2fcfb8745daada61a42a3e3fa290bb8132d861de89e4305dc7fa4fe2",
+      "Datasheets_options.csv": "e911974221a63dfa4723ea5e7eadda214e54fe4872fa3da368081bb773bd5049",
+      "Datasheets_wargear.csv": "157fff5536d49c2df5b761bbcbc6a005b6f1fca5fb691a8ac7e539db42a9e0eb",
+      "Datasheets_unit_composition.csv": "e9915c5ae4b4f01c167edc30ab11875e1261e23bcbf8fba764cf25a30e09a668",
+      "Datasheets_models_cost.csv": "67876c0979c83dbfe7579cfe2a8ba185ad29e8b7e71eca00046dfe2a75b0a8b1",
+      "Datasheets_stratagems.csv": "bc2c7603a1792a1371489e526720390e2f47e9d1b82befa02e9e83435d15ef1e",
+      "Datasheets_enhancements.csv": "5c4ac15961aaf4ba1d39a0ad8bac06ded4fd103c2169283eeda89faf3a78cf8c",
+      "Datasheets_detachment_abilities.csv": "776ba61b0ebc40865ce0564d55215f1f4ae413685ee472aa79560bc2a7e470a0",
+      "Datasheets_leader.csv": "7a547c829682f010c1d3bdda8eed1789ac4d3079c62fd7ad9e6703235fe1b824",
+      "Stratagems.csv": "e0764c06d86d21b48c5991e9c8c532d0a6a5cc75886dfe39c3e96b82bcfa1627",
+      "Abilities.csv": "f1400c45c4dbae2d300afa44330360fb50e551db3e4c683733cc315d0341f604",
+      "Enhancements.csv": "f39526e165b64fee321778006bbc0069c2ae0449e9d7d43fd88763e9c3ef1ee3",
+      "Enhancements_wargear.csv": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a",
+      "Detachment_abilities.csv": "ee8e98722d7e3139ceddf127d56dc3cbf908d4a8d18db9b385b31f75e953ea11",
+      "Detachments.csv": "2f2437e4224d83736d3bb8f2ddeeaa9cc0d91d358fb9a82bc30d53e8fa25f1f7",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "network_validation": "deferred_to_final_integration"
+  },
+  "source_checked_facts": {
+    "composition": {
+      "minimum": "5 Wulfen",
+      "maximum": "10 Wulfen"
+    },
+    "points_by_models": {
+      "5": 90,
+      "10": 180
+    },
+    "third_plus_points_by_models": {
+      "5": 105,
+      "10": 195
+    },
+    "base_size_mm": 40,
+    "characteristics": {
+      "movement_inches": 9,
+      "toughness": 6,
+      "save_target": 4,
+      "wounds": 2,
+      "leadership_target": 7,
+      "objective_control": 0,
+      "invulnerable_target": 0
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "SPACE WOLVES",
+      "IMPERIUM",
+      "INFANTRY",
+      "WULFEN"
+    ],
+    "default_loadout": {
+      "all_models": [
+        "Death Totem",
+        "Wulfen Weapons"
+      ]
+    },
+    "weapon_profiles": {
+      "Wulfen Weapons": {
+        "range_inches": 0,
+        "attacks": 3,
+        "skill": 3,
+        "strength": 6,
+        "ap": -2,
+        "damage": 2,
+        "keywords": [
+          "SUSTAINED HITS 1"
+        ]
+      },
+      "Stormfrag Auto-launcher": {
+        "range_inches": 12,
+        "attacks": 2,
+        "skill": 4,
+        "strength": 4,
+        "ap": -1,
+        "damage": 1,
+        "keywords": [
+          "BLAST 1",
+          "ASSAULT"
+        ]
+      }
+    },
+    "options": [
+      "Each model may replace Death Totem with Stormfrag Auto-launcher at no additional cost or model limit."
+    ],
+    "special_abilities": {
+      "combat_doctrines": true,
+      "savage_frenzy": "Eligible enemy units that Fall Back from engagement with Wulfen must make Desperate Escape tests; if the Wulfen unit is Battle-shocked, apply -1 to its Hazard rolls.",
+      "death_totem": "This unit re-rolls melee Hit rolls of 1 while models retain Death Totem.",
+      "curse_of_the_wulfen": "+1 Objective Control while within 6 inches of a friendly Space Wolves Character (excluding Wulfen) or 12 inches of a friendly Wolf Priest; Battle-shocked units cannot control objectives.",
+      "bestial_forms": "Each Wulfen model counts as two models for transport capacity."
+    },
+    "leader_relations": [],
+    "support_relations": []
+  },
+  "implementation": {
+    "catalog_identity": "wulfen",
+    "implementation_files": [
+      "scripts/edition_11/current_reference_marine_profiles.gd",
+      "scripts/edition_11/army_capabilities.gd",
+      "scripts/edition_11/prepared_training.gd",
+      "scripts/edition_11/unit_actions.gd",
+      "scripts/edition_11/unit_ability_catalog.gd",
+      "scripts/edition_11/unit_abilities.gd",
+      "scripts/edition_11/combat_scenario.gd",
+      "scripts/edition_11/morale.gd",
+      "scripts/edition_11/transport_rules.gd",
+      "scripts/edition_11/attack_plan.gd",
+      "scripts/edition_11/detection_rules.gd",
+      "scripts/edition_11/match_command_service.gd",
+      "scripts/edition_11/capabilities.gd",
+      "tests/test_wulfen.gd",
+      "tests/test_implemented_catalog.gd"
+    ],
+    "local_scope": "source_bounded_local_scope_passed"
+  },
+  "verification": {
+    "focused_profile_run": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_wulfen --timeout 300",
+      "processes_passed": 3,
+      "all_processes_passed": true,
+      "selected_suites": [
+        "test_wulfen"
+      ],
+      "report": ".tools/verification/20261029T031423847780Z/results.json",
+      "report_sha256": "bc5c6ea36466cf39bafccf4cd1df4f83f572b8c81ec716d5b875956f7a24a61",
+      "network": false,
+      "legacy_starter_staged": true,
+      "cleanup_diagnostics": false
+    },
+    "connected_regression": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_wulfen --only test_implemented_catalog --only test_sammael --only test_marine_transport_rules --only test_capabilities --only test_combat_doctrines --only test_fenrisian_wolves --only test_wolf_guard_terminators --only test_thunderwolf_cavalry --only test_roster_validation --only test_space_marine_leader_links --timeout 300",
+      "processes_passed": 13,
+      "all_processes_passed": true,
+      "selected_suites": [
+        "test_wulfen",
+        "test_implemented_catalog",
+        "test_sammael",
+        "test_marine_transport_rules",
+        "test_capabilities",
+        "test_combat_doctrines",
+        "test_fenrisian_wolves",
+        "test_wolf_guard_terminators",
+        "test_thunderwolf_cavalry",
+        "test_roster_validation",
+        "test_space_marine_leader_links"
+      ],
+      "report": ".tools/verification/20261029T031521462605Z/results.json",
+      "report_sha256": "e686b080096aeeca55981dfd5b6ec2adb295a6104d59a8620275e35f87660bf93",
+      "network": false,
+      "legacy_starter_staged": true,
+      "cleanup_diagnostics": false
+    }
+  },
+  "limits": [
+    "The refreshed parent export still has 68 validation findings; only the subject-scoped slice had zero findings.",
+    "Network validation, human playtesting, full Chapter/army legality and complete-match certification are not established."
+  ]
+}

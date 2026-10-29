@@ -1,0 +1,237 @@
+{
+  "id": "marine-fortis-kill-team-e11-local-audit-2026-10-28",
+  "rules_authority": "Wahapedia 11th edition, current faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-28",
+  "source": {
+    "edition": "11e",
+    "chapter": "Deathwatch",
+    "book_id": "000000035",
+    "book_type": "App",
+    "datasheet_id": "000002780",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and other modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Fortis-Kill-Team",
+    "current_page_checked_at": "2026-10-28",
+    "export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b (URL query parameter)",
+    "snapshot_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "815e9a66fe60f16513dcd436fc48835047b9a76febcf09e7cd4ba18b15f39998",
+    "slice_subject_datasheet_ids": [
+      "000002780"
+    ],
+    "slice_external_identity_only_datasheet_ids": [
+      "000000073",
+      "000000140",
+      "000001174",
+      "000001346",
+      "000002266",
+      "000002707",
+      "000002773",
+      "000002775",
+      "000003871",
+      "000003872"
+    ],
+    "slice_validation_error_count": 0,
+    "export_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410",
+      "Enhancements.csv": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f",
+      "Detachment_abilities.csv": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe",
+      "Detachments.csv": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Export-Data-Specs.xlsx": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "6279e45052fc871de8b8d8be1bda9db8f86c4152a67fb514d836a25120a8f340",
+      "Datasheets.csv": "f6f170a8b02331bf6436ceb952c0cfd431976769d9c02d73e2f64c615b463473",
+      "Datasheets_abilities.csv": "eb3e77172d170a53ab2f61f73779513700a4e3cc6781c99f9dfd3d138cffbca8",
+      "Datasheets_keywords.csv": "97687a59afa2a36128ee3f9a06a595b15994ba0a6cbb93d95387fa75720a07ed",
+      "Datasheets_models.csv": "0d20ae5436871d86ca31545e0557ac3a91b570bff469b832bbce82e4b567ec33",
+      "Datasheets_options.csv": "0a197fab7b134d847bcf6f9ea7744bc6fc68e1f0c1f742380d060751c2f4a215",
+      "Datasheets_wargear.csv": "35d9ff9657c8724f2e9d34559a79a5aeec814a349aead77f575b52881ebd0062",
+      "Datasheets_unit_composition.csv": "739bee0bf357aca70c42169c8d2a0088d4d1fb2664c1445273986bde04ac2629",
+      "Datasheets_models_cost.csv": "31291d2155945c54ceadfafb8347123bd8a15999a5fc3638b0a68477979c02ee",
+      "Datasheets_stratagems.csv": "e4dde2ed40e2f80f94bba98615104c1b28b428bcb3da1e8a8cec9170a89bd44e",
+      "Datasheets_enhancements.csv": "468099adff32c2d380515aa2b4a98eaf6979dd15b9699b95b33693159844bbd0",
+      "Datasheets_detachment_abilities.csv": "bc74f1349b7cab9557d4f182140381a88558fda45dcfa079145e99b9f8032786",
+      "Datasheets_leader.csv": "afb65616110c2f125638eec1974beba1cc83ea505d607289ad91c7c278ef919a",
+      "Stratagems.csv": "30b70784a7409aeb609feeab7383ac7cc45b3e105e599457e22259947ad855d3",
+      "Abilities.csv": "5eb9912293c3295c1eafc9b3c0b233694ba7b7eafe24d2d0b35e90de84f13206",
+      "Enhancements.csv": "f39526e165b64fee321778006bbc0069c2ae0449e9d7d43fd88763e9c3ef1ee3",
+      "Enhancements_wargear.csv": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a",
+      "Detachment_abilities.csv": "103d503e5582a7bc4168daac275e1171e818c91bcde4f1d94d77cf144e6e0b6f",
+      "Detachments.csv": "c400e8142ddebaa44ec443fdbca68be9e90d8e0ee6a298d3b439d04c39ee00e0",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+    }
+  },
+  "implementation": {
+    "runtime_profile": "fortis-kill-team",
+    "catalog_validation_status": "source_bounded_local_scope_passed_2026_10_28",
+    "catalog_admitted": true,
+    "rules": [
+      "Combat Doctrines",
+      "Fortis Doctrines"
+    ],
+    "construction": {
+      "models": [
+        10
+      ],
+      "points_by_models": {
+        "10": 210
+      },
+      "third_plus_points_by_models": {
+        "10": 225
+      },
+      "composition": [
+        "1 Kill Team Intercessor with Castellan Launcher and Superfrag Rocket Launcher, plus Knives and Fists",
+        "1 Kill Team Sergeant",
+        "2 Intercessors with Plasma Incinerators",
+        "2 Intercessors with Deathwatch Bolt Rifles",
+        "2 Intercessors with Heavy Bolt Pistols and Chainswords",
+        "2 Intercessors with Pyreblasters"
+      ],
+      "base_size_mm": 32,
+      "copy_limit": 3,
+      "characteristics": {
+        "movement_inches": 6,
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 2,
+        "leadership": "6+",
+        "objective_control": 2,
+        "invulnerable_save": null
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "DEATHWATCH",
+        "INFANTRY",
+        "KILL TEAM",
+        "EXPLOSIVES",
+        "IMPERIUM",
+        "TACTICUS"
+      ]
+    },
+    "weapons": {
+      "ranged": [
+        "Bolt Pistol",
+        "Castellan Launcher",
+        "Deathwatch Bolt Rifle",
+        "Grenade Launcher (Frag and Krak)",
+        "Hand Flamer",
+        "Heavy Bolt Pistol",
+        "Plasma Incinerator (Standard and Supercharge)",
+        "Plasma Pistol (Standard and Supercharge)",
+        "Pyreblaster",
+        "Superfrag Rocket Launcher",
+        "Superkrak Rocket Launcher",
+        "Vengor Launcher"
+      ],
+      "melee": [
+        "Chainsword",
+        "Knives and Fists",
+        "Power Fist",
+        "Power Weapon",
+        "Thunder Hammer"
+      ]
+    },
+    "equipment_rules": [
+      "The Sergeant may replace its melee weapon and Deathwatch Bolt Rifle with the source-listed options, subject to compatible weapon categories.",
+      "One eligible Deathwatch Bolt Rifle carrier per five models may take a Grenade Launcher; the Sergeant must retain its rifle to be eligible.",
+      "One of the two Plasma Incinerator Intercessors may replace its Bolt Pistol with a Plasma Pistol.",
+      "The unique Castellan/Superfrag carrier may replace that launcher with Superkrak or Vengor."
+    ],
+    "abilities": {
+      "fortis_doctrines": "Against a target below Starting Strength, this unit gains +1 to Hit; at or below half-strength it also gains +1 to Wound. Local target strength uses living model count rather than remaining wounds.",
+      "combat_doctrines": "The current Adeptus Astartes faction ability is active through the shared local rules path."
+    },
+    "leader_targets": [
+      {
+        "name": "Captain",
+        "datasheet_id": "000000073"
+      },
+      {
+        "name": "Chaplain",
+        "datasheet_id": "000001174"
+      },
+      {
+        "name": "Librarian",
+        "datasheet_id": "000002266"
+      },
+      {
+        "name": "Techmarine",
+        "datasheet_id": "000000140"
+      },
+      {
+        "name": "Watch Master",
+        "datasheet_id": "000003871"
+      },
+      {
+        "name": "Watch Captain Artemis",
+        "datasheet_id": "000003872"
+      }
+    ],
+    "support_targets": [
+      {
+        "name": "Ancient",
+        "datasheet_id": "000002775"
+      },
+      {
+        "name": "Apothecary",
+        "datasheet_id": "000002773"
+      },
+      {
+        "name": "Judiciar",
+        "datasheet_id": "000002707"
+      },
+      {
+        "name": "Lieutenant",
+        "datasheet_id": "000001346"
+      }
+    ]
+  },
+  "validation": {
+    "artifact": ".tools/verification/20261028T230231390978Z/results.json",
+    "artifact_sha256": "876e1b8ec45263712179e9cb46a36fca342833c7bccae2bb2fcb436a5f8e2995",
+    "verification_profile": "targeted",
+    "suites": [
+      "test_fortis_kill_team",
+      "test_implemented_catalog",
+      "test_capabilities",
+      "test_current_unit_abilities",
+      "test_space_marine_leader_links",
+      "test_contact_actions"
+    ],
+    "process_count": 8,
+    "processes_passed": 8,
+    "result": "passed",
+    "network_validation_performed": false,
+    "legacy_starter_staged": true,
+    "headless_rid_cleanup_diagnostics": false,
+    "full_match_certified": false,
+    "full_army_legality_certified": false,
+    "scope_notes": [
+      "Source-bounded local datasheet scope only; no network validation or human playtest is claimed.",
+      "This does not close the seven remaining Deathwatch profiles, 21 Space Wolves profiles, or full Space Marine army legality.",
+      "Forge World, Legends, Boarding Actions and alternate modes remain separate inventories."
+    ]
+  }
+}

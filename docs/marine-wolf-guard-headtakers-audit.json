@@ -1,0 +1,92 @@
+{
+  "id": "wolf-guard-headtakers-e11-audit-2026-10-29",
+  "status": "partial_source_bounded_local_scope",
+  "observed_at": "2026-10-29",
+  "edition": "11e",
+  "game_mode": "Standard Warhammer 40,000 Chapter App datasheet; alternate modes excluded",
+  "rules_reference": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Wolf-Guard-Headtakers",
+  "data_export_reference": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+  "source": {
+    "source_book_id": "000000036",
+    "source_book_name": "Space Wolves",
+    "datasheet_id": "000004131",
+    "datasheet_name": "Wolf Guard Headtakers",
+    "snapshot_id": "20261029T072022Z-final-integration",
+    "retrieved_at": "2026-10-29",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "parent_manifest_sha256": "772952e313b6772022c68226514eba7cdde00464468fd79c8291d20c24da4801",
+    "parent_validation_findings": 68,
+    "slice_path": ".tools/wahapedia-e11-live-refresh-20261029T072022Z-final-integration/headtakers-slice",
+    "slice_manifest_sha256": "9779a6e90c1690c19179a7eda8a66498d4cce2c6e953e05d3bcd7a644763fe1e",
+    "slice_catalog_sha256": "6468dbcd4dc03b1884b259659592472e4fa63506e4cdcfd64a4d529363f458a1",
+    "slice_validation_findings": 0,
+    "slice_structurally_valid": true,
+    "relevant_slice_file_sha256": {
+      "Datasheets.csv": "eddae62175d8cfee7a35c5c0cdbaa146e990f135a8f377bb10348be6393ff0c5",
+      "Datasheets_models.csv": "1eca25ed1d566ee5b490c6384f461f00638dd84c6db72bb872d375f859a0a7be",
+      "Datasheets_unit_composition.csv": "efc85ea8768f5fac6cea16878cb638833e8f6dc883bbfde905eedc040b525168",
+      "Datasheets_models_cost.csv": "55de8194a9665287b7d83fc2ebe1aca9dd88730cf637426c965a50107c9fdcea",
+      "Datasheets_options.csv": "b58844293cf85876c771e713988e871a4a78e7d4fd846114b7c6685f18373155",
+      "Datasheets_wargear.csv": "38fcd554a8ea79aa51bd0cb97d49b560d9ba1c1c9b31df48a53868346ddb7016",
+      "Datasheets_abilities.csv": "cc7d75b4cf28fafbd4b49b396a644bbcf4ebc48ebdc8253a2d10cc4d0c1c1767",
+      "Datasheets_leader.csv": "3504d9fd63f729f0fdef1eb369bba439a1e92ab5446c62e67d03f5a0e072b6ff"
+    }
+  },
+  "points_reference": {
+    "title": "Warhammer 40,000 Munitorum Field Manual — Space Wolves",
+    "url": "https://mfm.warhammer-community.com/en/space-wolves",
+    "version": "v1.0",
+    "observed_at": "2026-10-29",
+    "rows": [
+      {"models": 3, "headtakers": 3, "hunting_wolves": 0, "first_to_second_points": 85, "third_plus_points": 95, "wahapedia_composition_compatible": false},
+      {"models": 6, "headtakers": 3, "hunting_wolves": 3, "first_to_second_points": 115, "third_plus_points": 125, "wahapedia_composition_compatible": true},
+      {"models": 6, "headtakers": 6, "hunting_wolves": 0, "first_to_second_points": 170, "third_plus_points": 180, "wahapedia_composition_compatible": false},
+      {"models": 12, "headtakers": 6, "hunting_wolves": 6, "first_to_second_points": 230, "third_plus_points": 240, "wahapedia_composition_compatible": true}
+    ],
+    "composition_conflict_note": "The MFM enumerates four exact role mixes: mixed 3+3 and 6+6 are compatible with the Wahapedia composition, while the Headtakers-only rows are not. Wahapedia allows 3-6 of each role, but MFM v1.0 has no explicit points row for other role-count combinations; runtime does not infer costs for them."
+  },
+  "runtime_profile": {
+    "definition_id": "40kdc:11e:adeptus-astartes:wolf-guard-headtakers",
+    "partial": true,
+    "mfm_composition_cost_rows_field": "mfm_composition_cost_rows",
+    "admitted_model_counts": [6, 12],
+    "blocked_compositions": [
+      {"headtakers": 3, "hunting_wolves": 0, "points": 85, "third_plus_points": 95},
+      {"headtakers": 6, "hunting_wolves": 0, "points": 170, "third_plus_points": 180}
+    ],
+    "model_roles": ["wolf-guard-headtaker", "hunting-wolf"],
+    "implemented_abilities": ["Headhunters", "Let Loose the Wolves", "Hunting Hounds", "Storm Shield"],
+    "source_leader_targets": [
+      {"datasheet_id": "000004129", "name": "Wolf Priest"},
+      {"datasheet_id": "000004130", "name": "Wolf Guard Battle Leader"},
+      {"datasheet_id": "000000285", "name": "Ragnar Blackmane"},
+      {"datasheet_id": "000000297", "name": "Ulrik the Slayer"},
+      {"datasheet_id": "000000292", "name": "Njal Stormcaller"},
+      {"datasheet_id": "000000306", "name": "Iron Priest"}
+    ],
+    "unpriced_source_permitted_role_mix_note": "The export permits 3-6 models of each role; MFM v1.0 gives no explicit points row for other combinations beyond the priced 3+3 and 6+6 mixed formations, so those options remain unavailable without inferred cost.",
+    "hunting_wolf_base_proxy": "The source 60 x 35.5 mm oval is represented by a 30 mm circular geometry proxy; shape coverage is approximate."
+  },
+  "verification": {
+    "focused_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_wolf_guard_headtakers --timeout 300",
+    "focused_report": ".tools/verification/20261029T214027644989Z/results.json",
+    "focused_report_sha256": "12FF611601AE39A51319B5EF4BB3C02250A5B2DC8CD56D52017C8AC00F6CE838",
+    "focused_processes_passed": 3,
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "catalog_roster_cost_audit_report": ".tools/space-marine-roster-cost-audit-20261029-mfm-rows.json",
+    "catalog_roster_cost_audit_sha256": "A12345D38A4DA9E95409ADD9AAB8B688247247C5769F24CEB6F94DAEB0AFEBBE",
+    "catalog_roster_cost_profiles_checked": 161,
+    "catalog_construction_choices_checked": 161,
+    "catalog_source_cost_rows_checked": 576,
+    "catalog_cost_mismatches": 0,
+    "connected_regression_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_wolf_guard_headtakers --only test_wolf_scouts --only test_fenrisian_wolves --only test_watch_master --only test_space_marine_leader_links --timeout 300",
+    "connected_regression_report": ".tools/verification/20261029T205134675733Z/results.json",
+    "connected_regression_report_sha256": "991D3C5A5DFB6A60F00350D5E527F33CF1FF48D3B25AC4369CD40E00A76A22BA",
+    "connected_regression_processes_passed": 7,
+    "network_validation": "deferred",
+    "human_playtesting": "not performed",
+    "full_army_legality": "not certified"
+  }
+}

@@ -4,6 +4,7 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Reachability = preload("res://scripts/edition_11/contact_reachability.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
+const AircraftRules = preload("res://scripts/edition_11/aircraft_rules.gd")
 const EPSILON := 0.001
 const VALIDATED := "contact_validation_complete"
 
@@ -11,6 +12,7 @@ static func enemies(state: Dictionary, squad: int, maximum: float = INF) -> Arra
 	var targets: Array[int] = []
 	for enemy: int in state.squads:
 		if state.squads[enemy].owner == state.squads[squad].owner: continue
+		if AircraftRules.is_aircraft(state, enemy) and not AircraftRules.is_flying(state, squad): continue
 		for id: int in Geometry.alive(state, squad):
 			if Geometry.distance_to_target_at_height(state, state.units[id], enemy) <= maximum + EPSILON:
 				targets.append(enemy)

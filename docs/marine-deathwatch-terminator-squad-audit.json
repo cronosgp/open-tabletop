@@ -1,0 +1,207 @@
+{
+  "id": "marine-deathwatch-terminator-squad-e11-local-audit-2026-10-28",
+  "rules_authority": "Wahapedia 11th edition, current faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-28",
+  "source": {
+    "edition": "11e",
+    "chapter": "Deathwatch",
+    "book_id": "000000035",
+    "book_type": "App",
+    "datasheet_id": "000003873",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and other modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Deathwatch-Terminator-Squad",
+    "current_page_checked_at": "2026-10-28",
+    "export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b (URL query parameter)",
+    "snapshot_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "bb1f51192a559283a25ee27ff5d87cb25252f1e99d806d7dca5949e86d51f093",
+    "slice_subject_datasheet_ids": [
+      "000003873"
+    ],
+    "slice_external_identity_only_datasheet_ids": [
+      "000000079",
+      "000000115",
+      "000000135",
+      "000002677"
+    ],
+    "slice_validation_error_count": 0,
+    "export_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410",
+      "Enhancements.csv": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f",
+      "Detachment_abilities.csv": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe",
+      "Detachments.csv": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Export-Data-Specs.xlsx": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "6279e45052fc871de8b8d8be1bda9db8f86c4152a67fb514d836a25120a8f340",
+      "Datasheets.csv": "ae1364d873fa242d3615e00753124820c83095d6f41d5837101308469d17263d",
+      "Datasheets_abilities.csv": "e209a58d900287fe74ad09349b428c5a00c3086b8d3cb21d5d2658e173498393",
+      "Datasheets_keywords.csv": "ce8b398e0c381fbeb3098e7c8feeb4a68b4d4af23bff0c8b4794f4ed3c1ef546",
+      "Datasheets_models.csv": "b46023a15bd572efa31ca315bff34c79d7333e09d04bacd1aadbcf40cd79f476",
+      "Datasheets_options.csv": "e271c616328ea5e2dc1f34b4041599882ca8fcbe5bb09d2e4ca5d3eddf8153fa",
+      "Datasheets_wargear.csv": "757e6b502da369b2bbedc2036df39c692c5ddb2da539d2d9a8e24b55db7003eb",
+      "Datasheets_unit_composition.csv": "1137992a9fa5a77611f5756605cb01ce1216857c8f9db47bcea7ecea679061bf",
+      "Datasheets_models_cost.csv": "6bf4fb9926f3d83e17dce00414c6e98d328a55540d334a483deb74f509118c4a",
+      "Datasheets_stratagems.csv": "6aebeed56a5ca5f8fea3315e1982659ff43a4870f6d66188d74bb84c8e0a5b1c",
+      "Datasheets_enhancements.csv": "e4980c828e812a684d2f9245c24cc8780ec2b92506d01ab39897de658e5f803b",
+      "Datasheets_detachment_abilities.csv": "c67123366e7ba4a9effac580aa433f879fc7141ff2ffaa0826c1118a39b4f5d5",
+      "Datasheets_leader.csv": "0de0c8fdb4d780313a312340d50c86d5dcb801e007a9942e9518411e5b0e7f3b",
+      "Stratagems.csv": "ca1eaedc0d712702ece1698e26e17c4b44341e37d67e62c63625dbaeea6a9884",
+      "Abilities.csv": "465324ebfa6885b86d46baa3f522801576ad661724bdcae2538db18454fed499",
+      "Enhancements.csv": "f39526e165b64fee321778006bbc0069c2ae0449e9d7d43fd88763e9c3ef1ee3",
+      "Enhancements_wargear.csv": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a",
+      "Detachment_abilities.csv": "6a722d22aad67756dfa3e284cad12c48b58c541759f6991f734a43f1bc2a9ea7",
+      "Detachments.csv": "33a0e604a913b244cd67d64861a9e400dcbaba62e684a47717cdf5e504cd5cb1",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+    }
+  },
+  "implementation": {
+    "runtime_profile": "deathwatch-terminator-squad",
+    "catalog_validation_status": "source_bounded_local_scope_passed_2026_10_28",
+    "catalog_admitted": true,
+    "rules": [
+      "Deep Strike",
+      "Combat Doctrines",
+      "Deathwatch Terminatus Assault",
+      "Teleport Homer",
+      "Storm Shield"
+    ],
+    "construction": {
+      "models": [
+        5,
+        10
+      ],
+      "points_by_models": {
+        "5": 190,
+        "10": 380
+      },
+      "third_plus_points_by_models": {
+        "5": 230,
+        "10": 420
+      },
+      "composition": "1 Deathwatch Terminator Sergeant and 4-9 Deathwatch Terminators",
+      "base_size_mm": 40,
+      "copy_limit": 3,
+      "characteristics": {
+        "movement_inches": 5,
+        "toughness": 6,
+        "save": "2+",
+        "wounds": 3,
+        "leadership": "6+",
+        "objective_control": 1,
+        "invulnerable_save": "4+"
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "DEATHWATCH",
+        "INFANTRY",
+        "KILL TEAM",
+        "TERMINATOR",
+        "IMPERIUM"
+      ]
+    },
+    "weapons": {
+      "ranged": [
+        "Assault Cannon",
+        "Cyclone Missile Launcher (Frag)",
+        "Cyclone Missile Launcher (Krak)",
+        "Heavy Flamer",
+        "Plasma Cannon (Standard)",
+        "Plasma Cannon (Supercharge)",
+        "Storm Bolter"
+      ],
+      "melee": [
+        "Chainfist (Standard)",
+        "Chainfist (Hunter: Monster/Vehicle)",
+        "Power Fist",
+        "Power Weapon",
+        "Thunder Hammer",
+        "Twin Lightning Claws"
+      ]
+    },
+    "equipment_rules": [
+      "Each model may replace Power Fist and Storm Bolter with Storm Bolter plus Chainfist, Storm Bolter plus Power Weapon, Thunder Hammer plus Storm Shield, or Twin Lightning Claws.",
+      "Up to three regular Deathwatch Terminators may replace Storm Bolter with Assault Cannon, Heavy Flamer, Plasma Cannon, or Cyclone Missile Launcher plus Storm Bolter; the Sergeant is excluded.",
+      "Storm Shield costs 5 points per bearer and grants +1 Wound; baseline 4+ invulnerable save remains.",
+      "Cyclone Missile Launcher costs 10 points and retains Storm Bolter."
+    ],
+    "abilities": {
+      "deathwatch_terminatus_assault": "Re-roll Charge rolls. After a Charge move, each engaged enemy unit takes a Battle-shock test; apply -1 if it has neither IMPERIUM nor CHAOS. The target controller may use an eligible Leadership re-roll. Kept distinct from the Terminator Assault Squad ability with the same name.",
+      "teleport_homer": "Uses the shared local Teleport Homer token and Rapid Ingress implementation.",
+      "storm_shield": "The equipped bearer gains +1 Wound; the unit retains its 4+ baseline invulnerable save."
+    },
+    "leader_targets": [
+      {
+        "name": "Captain in Terminator Armour",
+        "datasheet_id": "000000079"
+      },
+      {
+        "name": "Chaplain in Terminator Armour",
+        "datasheet_id": "000000115"
+      },
+      {
+        "name": "Librarian in Terminator Armour",
+        "datasheet_id": "000000135"
+      }
+    ],
+    "support_targets": [
+      {
+        "name": "Ancient in Terminator Armour",
+        "datasheet_id": "000002677"
+      }
+    ]
+  },
+  "validation": {
+    "artifact": ".tools/verification/20261028T224509102718Z/results.json",
+    "artifact_sha256": "4a307eb51bd16972cc753ab91c8f6edda513d77d25f3d34dbdeedba260c8e380",
+    "verification_profile": "targeted",
+    "suites": [
+      "test_deathwatch_terminator_squad",
+      "test_deathwatch_veterans",
+      "test_terminator_squad_current",
+      "test_terminator_assault_squad",
+      "test_deathwing_terminator_squad",
+      "test_deathwing_knights",
+      "test_space_marine_leader_links",
+      "test_capabilities",
+      "test_implemented_catalog",
+      "test_current_unit_abilities",
+      "test_contact_actions"
+    ],
+    "process_count": 13,
+    "processes_passed": 13,
+    "result": "passed",
+    "network_validation_performed": false,
+    "legacy_starter_staged": true,
+    "headless_rid_cleanup_diagnostics": false,
+    "full_match_certified": false,
+    "full_army_legality_certified": false,
+    "scope_notes": [
+      "Source-bounded local datasheet scope only; no network validation or human playtest is claimed.",
+      "This does not close the eight remaining Deathwatch profiles, 21 Space Wolves profiles, or full Space Marine army legality.",
+      "Forge World, Legends, Boarding Actions and alternate modes remain separate inventories."
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "datasheet": {
+    "name": "Sword Brethren Squad",
+    "definition_id": "40kdc:11e:adeptus-astartes:sword-brethren-squad",
+    "source_book_id": "000000162",
+    "source_datasheet_id": "000002798",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Sword-Brethren-Squad",
+    "rules_reference_checked_on": "2026-10-28",
+    "validation_status": "source_bounded_local_scope_passed_2026_10_28"
+  },
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "exported_at": "2026-10-21T16:06:23+03:00",
+    "export_specification_revision": "20260817b",
+    "parent_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "space_marines_slice_manifest_sha256": "8a6d9529ae553b06203cdb2b6c8f1edd736f2a737ba1c215d2241bd1cdfb5bbe",
+    "files": {
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_leader.csv": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+    }
+  },
+  "profile": {
+    "composition": "4-10 Sword Brother models",
+    "priced_models": [4, 5, 9, 10],
+    "unpriced_models_blocked": [6, 7, 8],
+    "points_by_models": {"4": 115, "5": 140, "9": 250, "10": 275},
+    "third_plus_points_by_models": {"4": 135, "5": 160, "9": 270, "10": 295},
+    "base_mm": 40,
+    "characteristics": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 3, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
+    "keywords": ["INFANTRY", "EXPLOSIVES", "TACTICUS", "IMPERIUM", "ADEPTUS ASTARTES", "BLACK TEMPLARS"],
+    "fixed_weapons": ["heavy-bolt-pistol", "chainsword"],
+    "optional_weapons": ["hand-flamer", "plasma-pistol", "master-crafted-power-weapon", "thunder-hammer", "twin-lightning-claws"],
+    "equipment_option_count": 5
+  },
+  "local_scope": {
+    "implemented": [
+      "source-priced construction sizes only",
+      "all fixed and optional weapon profiles through the current weapon catalog",
+      "all five source equipment options with per-model loadout selection and independent per-four-model caps",
+      "Combat Doctrines ability registration",
+      "Exploit their Cowardice Fall Back trigger, recorded initial engagement, optional 6-inch Normal Move and validated placement",
+      "existing Black Templars Leader endpoints, including Chaplain Grimaldus"
+    ],
+    "unsupported_or_blocked": [
+      "construction sizes 6, 7 and 8 because the local export has no corresponding point rows",
+      "full Black Templars and Space Marine army legality",
+      "network integration and human playtesting"
+    ]
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_sword_brethren_squad --only test_space_marine_leader_links",
+    "godot_version": "4.7.2",
+    "report": ".tools/verification/20261028T180348989697Z/results.json",
+    "report_sha256": "DD1D23D5E1B1D4F9F527AF51FB5E61D04E7CF190742AA60E9D60372E71D42C16",
+    "processes_passed": 4,
+    "processes_total": 4,
+    "network": false,
+    "legacy_starter_staged": false,
+    "headless_rid_cleanup_diagnostics": false
+  }
+}

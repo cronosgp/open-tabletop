@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "datasheet": {
+    "name": "Chaplain Grimaldus",
+    "definition_id": "40kdc:11e:adeptus-astartes:chaplain-grimaldus",
+    "source_book_id": "000000162",
+    "source_datasheet_id": "000002792",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain-Grimaldus",
+    "rules_reference_checked_on": "2026-10-28",
+    "validation_status": "source_bounded_local_scope_passed_2026_10_28"
+  },
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "exported_at": "2026-10-21T16:06:23+03:00",
+    "export_specification_revision": "20260817b",
+    "parent_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "space_marines_slice_manifest_sha256": "8a6d9529ae553b06203cdb2b6c8f1edd736f2a737ba1c215d2241bd1cdfb5bbe",
+    "files": {
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_leader.csv": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+    }
+  },
+  "profile": {
+    "models": 4,
+    "points_by_models": {
+      "4": 120
+    },
+    "model_roles": [
+      "chaplain",
+      "cenobyte",
+      "cenobyte",
+      "cenobyte"
+    ],
+    "model_characteristics": {
+      "chaplain": {
+        "movement_inches": 6,
+        "toughness": 5,
+        "save_target": 3,
+        "wounds": 5,
+        "leadership_target": 5,
+        "objective_control": 1,
+        "invulnerable_target": 4,
+        "base_mm": 40
+      },
+      "cenobyte_servitor": {
+        "movement_inches": 6,
+        "toughness": 4,
+        "save_target": 3,
+        "wounds": 1,
+        "leadership_target": 8,
+        "objective_control": 1,
+        "invulnerable_target": 4,
+        "base_mm": 28.5
+      }
+    },
+    "weapons": {
+      "plasma_pistol_standard": {
+        "range_inches": 12,
+        "attacks": 1,
+        "skill": 2,
+        "strength": 7,
+        "ap": -2,
+        "damage": 1,
+        "keywords": ["close-quarters"]
+      },
+      "plasma_pistol_supercharge": {
+        "range_inches": 12,
+        "attacks": 1,
+        "skill": 2,
+        "strength": 8,
+        "ap": -3,
+        "damage": 2,
+        "keywords": ["close-quarters", "hazardous"]
+      },
+      "artificer_crozius": {
+        "attacks": 6,
+        "skill": 2,
+        "strength": 6,
+        "ap": -2,
+        "damage": 2
+      },
+      "servitor_close_combat_weapon": {
+        "attacks": 1,
+        "skill": 4,
+        "strength": 3,
+        "ap": 0,
+        "damage": 1
+      }
+    },
+    "source_leader_targets": [
+      "assault-intercessor-squad",
+      "infernus-squad",
+      "intercessor-squad",
+      "crusader-squad",
+      "sword-brethren-squad"
+    ]
+  },
+  "implemented_scope": {
+    "abilities": [
+      "feel-no-pain-5",
+      "combat-doctrines",
+      "temple-relics",
+      "faithful-cenobytes",
+      "litanies-of-the-devout",
+      "leader"
+    ],
+    "temple_relic_choices": [
+      "advance-and-charge",
+      "toughness",
+      "melee-ap"
+    ],
+    "transport_capacity": {
+      "chaplain": 1,
+      "each_cenobyte": 0
+    },
+    "cenobyte_death_cascade": "all surviving Cenobytes are destroyed when Grimaldus is destroyed"
+  },
+  "verification": {
+    "command": "python tools/verify.py --profile focused --only test_chaplain_grimaldus --godot C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe",
+    "status": "passed",
+    "processes": 3,
+    "result_path": ".tools/verification/20261028T174823201312Z/results.json",
+    "result_sha256": "63CF74C6ED6A126FA39E6BBF42470415B12EF78A943CBB33343DA0F520AEFEDC",
+    "network": false,
+    "legacy_starter_staged": false,
+    "expanded_regression_batch": {
+      "command": "python tools/verify.py --profile focused --only test_chaplain_grimaldus --only test_space_marine_leader_links --only test_marine_transport_rules --godot C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe",
+      "status": "passed",
+      "processes": 5,
+      "result_path": ".tools/verification/20261028T174844999345Z/results.json",
+      "result_sha256": "22461A04A142ED38FBBF12059A3A73BFDC646F3C2F06E77DB97F857A320A112E",
+      "network": false,
+      "legacy_starter_staged": false
+    }
+  },
+  "boundaries": [
+    "Full Black Templars or Space Marine roster legality is not certified.",
+    "Network validation is deferred to final integration.",
+    "Human playtesting is not covered.",
+    "Crusader Squad remains partial; Sword Brethren Squad and Execrator remain unintegrated.",
+    "Forge World, Legends and alternate modes are outside this inventory."
+  ]
+}

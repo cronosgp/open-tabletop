@@ -1,0 +1,226 @@
+{
+  "id": "marine-wolf-guard-terminators-e11-local-audit-2026-10-29",
+  "rules_authority": "Wahapedia 11th edition current Space Marines faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Space Wolves",
+    "book_id": "000000036",
+    "book_type": "App",
+    "datasheet_id": "000000318",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Wolf-Guard-Terminators",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "current_page_checked_at": "2026-10-29",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "snapshot_retrieval_window_utc": "2026-10-29T00:31:29.030708Z–2026-10-29T00:32:24.715969Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "457067E2A3AA94F341E020792D56DFAE4A36FE30272D0DAF7EEB1DE6ED2DAB9D",
+    "slice_manifest_sha256": "BBF8E8372AA7A599BEEB7EC92CE309D2C8073C3A638F8A0CA4A52FB4AC78FB1E",
+    "slice_subject_datasheet_ids": [
+      "000000318"
+    ],
+    "external_identity_only_datasheet_ids": [
+      "000000079",
+      "000000115",
+      "000000135",
+      "000000282",
+      "000000317",
+      "000002677"
+    ],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "parent_snapshot_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Enhancements.csv": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Detachment_abilities.csv": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c",
+      "Detachments.csv": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "4d34498c24d51e16bc03db40b57c8fba1abd23939a330d1fb0e5ed79a0495744",
+      "Datasheets.csv": "647b2667dc98655479114d576afeb57e88a3ab13b5174181145a0de9c7ea924a",
+      "Datasheets_abilities.csv": "b50597f0646749708a7bde68fbfab7717c683d5939da96d580e7f6cfc7a67135",
+      "Datasheets_keywords.csv": "a80ce7c5bd56438792200d5967a7f2b92f91a77156ce51c0c78eac251841b309",
+      "Datasheets_models.csv": "9746ce9af1cbf68f701d8189cbd692fab7c346a460049bc6ed802ca46e3dedb7",
+      "Datasheets_options.csv": "09b344dcd9d9062a7b859b73657b35af15ff7ac55643afa5d650212552fc3f89",
+      "Datasheets_wargear.csv": "1af11dada4cf25ce12ce4882fd1fc978b7ec0f7a60ea7f1905b80abb0ef4c45c",
+      "Datasheets_unit_composition.csv": "54f4cc99c3e44209aa641f1009535f439bbc04537bb37d7ca1856c480cca7605",
+      "Datasheets_models_cost.csv": "aa8ad0659023cd185a062a7933e03161de501c9b2822a9e3ae75db44d45f3842",
+      "Datasheets_stratagems.csv": "b674124a308d417c12ab9beb741ff778c505b202875ce7a3a170ffd9bb701e09",
+      "Datasheets_enhancements.csv": "8c93a2962bbbe0fd78835133147810eb45c10477336e576cf05c8355e28a99ee",
+      "Datasheets_detachment_abilities.csv": "83c0cb7ff6a01eafade968bc75ebd5f42350730c5933edc0be1aec2dafe857f3",
+      "Datasheets_leader.csv": "bb9c57bab01bd0d08cf1e815250c32fef907baef4c0a39db42416523cc1e6eb0",
+      "Stratagems.csv": "918a207f65ce55b241c308b81ba4d356aba127207f911cf074ff516919fb155d",
+      "Abilities.csv": "6826b079b3ee6a1ff28dbf03a03465ccc35916388cd548736bdebe4ea5276a69",
+      "Enhancements.csv": "f39526e165b64fee321778006bbc0069c2ae0449e9d7d43fd88763e9c3ef1ee3",
+      "Enhancements_wargear.csv": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a",
+      "Detachment_abilities.csv": "321f03bcb90f983867d77c6fb72f94dc5d02f9f25ce9a017aeb0cc79d0752535",
+      "Detachments.csv": "983b277419f2fe5c1371526dd85d58ecf2a3d9d20d1a6399ba6b8cccb1c0b4f4",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    }
+  },
+  "source_checked_facts": {
+    "composition": {
+      "minimum": "1 Wolf Guard Terminator Pack Leader + 4 Wolf Guard Terminators",
+      "maximum": "1 Wolf Guard Terminator Pack Leader + 9 Wolf Guard Terminators"
+    },
+    "points_by_models": {
+      "5": 180,
+      "10": 365
+    },
+    "third_plus_points_by_models": {
+      "5": 220,
+      "10": 405
+    },
+    "base_size_mm": 40,
+    "characteristics": {
+      "movement_inches": 6,
+      "toughness": 6,
+      "save_target": 2,
+      "wounds": 3,
+      "leadership_target": 6,
+      "objective_control": 1,
+      "invulnerable_target": 4
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "INFANTRY",
+      "IMPERIUM",
+      "SPACE WOLVES",
+      "TERMINATOR"
+    ],
+    "default_loadout": {
+      "all_models": [
+        "Storm Bolter",
+        "Master-crafted Power Weapon"
+      ]
+    },
+    "options": [
+      "Pack Leader replaces Storm Bolter and Master-crafted Power Weapon with Relic Greataxe or Twin Lightning Claws",
+      "Any number of models replace Storm Bolter with Storm Shield; +5 points and +1 Wound per bearer",
+      "One regular model per five replaces Storm Bolter and Master-crafted Power Weapon with Assault Cannon and Power Fist"
+    ],
+    "special_abilities": {
+      "deep_strike": true,
+      "combat_doctrines": true,
+      "rugged_resilience": "Attacks targeting this unit with Strength greater than its Toughness have -1 to wound.",
+      "storm_shield": "Bearer has +1 Wound; per-model cost is 5 points."
+    },
+    "leader_relations": [
+      {
+        "id": "000000115",
+        "identity": "captain-in-terminator-armour",
+        "catalogued": true
+      },
+      {
+        "id": "000000135",
+        "identity": "chaplain-in-terminator-armour",
+        "catalogued": true
+      },
+      {
+        "id": "000000079",
+        "identity": "librarian-in-terminator-armour",
+        "catalogued": true
+      },
+      {
+        "id": "000000317",
+        "identity": "arjac-rockfist",
+        "catalogued": false
+      },
+      {
+        "id": "000000282",
+        "identity": "logan-grimnar",
+        "catalogued": false
+      }
+    ],
+    "support_relations": [
+      {
+        "id": "000002677",
+        "identity": "ancient-in-terminator-armour",
+        "catalogued": true
+      }
+    ]
+  },
+  "implementation": {
+    "catalog_identity": "wolf-guard-terminators",
+    "implementation_files": [
+      "scripts/edition_11/current_reference_marine_profiles.gd",
+      "scripts/edition_11/army_capabilities.gd",
+      "scripts/edition_11/prepared_training.gd",
+      "scripts/edition_11/unit_actions.gd",
+      "scripts/edition_11/unit_ability_catalog.gd",
+      "scripts/edition_11/unit_abilities.gd",
+      "scripts/edition_11/capabilities.gd",
+      "scripts/edition_11/marine_leader_links.gd",
+      "scripts/edition_11/support_attachments.gd",
+      "scripts/edition_11/detection_rules.gd",
+      "scripts/edition_11/match_command_service.gd",
+      "tests/test_wolf_guard_terminators.gd"
+    ],
+    "local_scope": "source_bounded_local_scope_passed"
+  },
+  "verification": {
+    "focused_profile_run": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_wolf_guard_terminators --timeout 300",
+      "processes_passed": 3,
+      "all_processes_passed": true,
+      "selected_suites": [
+        "test_wolf_guard_terminators"
+      ],
+      "report": ".tools/verification/20261029T024114751864Z/results.json",
+      "report_sha256": "9C31A2318624FD6E37CE98DEBBA2E2943FF4444D023027C185D8D82DD465030B",
+      "network": false,
+      "legacy_starter_staged": true,
+      "cleanup_diagnostics": false
+    },
+    "connected_regression": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_wolf_guard_terminators --only test_fenrisian_wolves --only test_blood_claws --only test_grey_hunters --only test_implemented_catalog --only test_capabilities --only test_space_marine_leader_links --only test_deathwatch_terminator_squad --only test_roster_validation --only test_combat_doctrines --timeout 300",
+      "processes_passed": 12,
+      "all_processes_passed": true,
+      "selected_suites": [
+        "test_wolf_guard_terminators",
+        "test_fenrisian_wolves",
+        "test_blood_claws",
+        "test_grey_hunters",
+        "test_implemented_catalog",
+        "test_capabilities",
+        "test_space_marine_leader_links",
+        "test_deathwatch_terminator_squad",
+        "test_roster_validation",
+        "test_combat_doctrines"
+      ],
+      "report": ".tools/verification/20261029T024440783950Z/results.json",
+      "report_sha256": "B302F9565738BA82CF5C926BB636A02C7E120E6FDD863FFE74AEDDF6DC0E3468",
+      "network": false,
+      "legacy_starter_staged": true,
+      "cleanup_diagnostics": false
+    }
+  },
+  "limits": [
+    "Arjac Rockfist and Logan Grimnar are source-listed but their own datasheets are not yet admitted.",
+    "Network validation, human playtesting, full Chapter/army legality and complete-match certification are not established."
+  ]
+}

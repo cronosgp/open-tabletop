@@ -76,5 +76,19 @@
   "limits": [
     "Full faction and army legality are not certified.",
     "Network validation is deferred to final integration."
-  ]
+  ],
+  "latest_scope_validation": {
+    "observed_at": "2026-10-27",
+    "profile": "gladiator-reaper",
+    "test_file": "tests\\test_gladiator_reaper_current.gd",
+    "artifact": ".tools/verification/20261027T104505989012Z/results.json",
+    "artifact_sha256": "c9cca944e5b3db70e96e4c72f517da23bae1a119bbb9ac2a4e2f4d7e6eb12237",
+    "status": "passed; 7/7 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "master_evidence": "space-marines-profile-evidence.json"
+  }
 }

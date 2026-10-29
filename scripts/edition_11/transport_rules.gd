@@ -11,6 +11,8 @@ const Hazardous = preload("res://scripts/edition_11/hazardous.gd")
 const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
 const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
 const EMERGENCY_WINDOW := "transport-emergency"
 const DISEMBARK_WINDOW := "transport-disembark"
 const COMBAT_EMBARKATION_WINDOW := "repulsor-combat-embarkation"
@@ -19,6 +21,12 @@ const IMPULSOR_SYSTEM_NAMES := {"none": "No optional array or Shield Dome", "bel
 
 static func identity(unit: Dictionary) -> String:
 	return str(unit.get("definition_id", "")).get_slice(":", 3)
+
+static func _is_impulsor_identity(identity_id: String) -> bool:
+	return identity_id in ["impulsor", "black-templars-impulsor"]
+
+static func _is_repulsor_identity(identity_id: String) -> bool:
+	return identity_id in ["repulsor", "black-templars-repulsor"]
 
 static func drop_pod_model(state: Dictionary, squad: int) -> int:
 	for model: int in state.units:
@@ -39,7 +47,7 @@ static func _combat_embarkation_candidates(state: Dictionary, defender: int) -> 
 		if bool(state.squads[target_squad].get("set_up_this_turn", false)): continue
 		for transport_model: int in state.units:
 			var transport: Dictionary = state.units[transport_model]
-			if int(transport.get("owner", -1)) != defender or identity(transport) != "repulsor": continue
+			if int(transport.get("owner", -1)) != defender or not _is_repulsor_identity(identity(transport)): continue
 			if not eligibility_error(state, transport_model, target_squad, true).is_empty(): continue
 			result.append({"transport": transport_model, "passenger_squad": target_squad})
 	return result
@@ -115,9 +123,12 @@ static func impulsor_loadout_choices(state: Dictionary, player: int) -> Array[Di
 	if state.phase != "deployment": return result
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or identity(unit) != "impulsor": continue
+		if int(unit.get("owner", -1)) != player or not _is_impulsor_identity(identity(unit)): continue
+		var profile_data := MarineProfiles.profile(identity(unit))
+		var offered_systems: Array = profile_data.get("transport", {}).get("options", {}).get("one_of", [])
 		var current_system := str(unit.get("impulsor_system", "none"))
 		for system: String in IMPULSOR_SYSTEMS:
+			if system != "none" and IMPULSOR_SYSTEM_NAMES[system] not in offered_systems: continue
 			if system == current_system: continue
 			result.append({"label": "Impulsor %d: %s" % [model, IMPULSOR_SYSTEM_NAMES[system]], "action": "impulsor-loadout", "model": model, "target": 0, "value": system})
 		var fragstorm := bool(unit.get("impulsor_fragstorm_launchers", false))
@@ -131,7 +142,7 @@ static func transport_weapon_loadout_choices(state: Dictionary, player: int) -> 
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		var identity_id := identity(unit)
-		if int(unit.get("owner", -1)) != player or identity_id == "impulsor": continue
+		if int(unit.get("owner", -1)) != player or _is_impulsor_identity(identity_id): continue
 		var data := MarineProfiles.profile(identity_id)
 		var choices: Array = data.get("transport", {}).get("options", {}).get("add", [])
 		var selected: Dictionary = unit.get("optional_transport_weapons", {})
@@ -151,13 +162,26 @@ static func transport_weapon_loadout_choices(state: Dictionary, player: int) -> 
 			var next_id := base_id if current_id == replacement_id else replacement_id
 			var next_name := base_name if next_id == base_id else replacement_name
 			result.append({"label": "%s %d: replace %s with %s" % [data.name, model, replacement_name if current_id == replacement_id else base_name, next_name], "action": "transport-weapon-loadout", "model": model, "target": 1, "value": "replace:%s:%s" % [base_id, next_id]})
+		var replacement_groups: Dictionary = data.get("transport", {}).get("options", {}).get("replacement_groups", {})
+		var selected_groups: Dictionary = unit.get("optional_transport_replacement_groups", {})
+		for group_id: String in replacement_groups:
+			var group: Dictionary = replacement_groups[group_id]
+			var equipped := bool(selected_groups.get(group_id, false))
+			var verb := "restore" if equipped else "replace"
+			result.append({"label": "%s %d: %s %s" % [data.name, model, verb, str(group.get("name", group_id))], "action": "transport-weapon-loadout", "model": model, "target": 2, "value": "group:%s:%s" % [group_id, "off" if equipped else "on"]})
 	return result
 
 static func configure_optional_transport_weapon(state: Dictionary, model: int, value: String) -> String:
-	if state.phase != "deployment" or not is_transport(state, model) or identity(state.units[model]) == "impulsor": return "This transport wargear is selected during army preparations."
+	if state.phase != "deployment" or not is_transport(state, model) or _is_impulsor_identity(identity(state.units[model])): return "This transport wargear is selected during army preparations."
 	var parts := value.split(":", false, 2)
 	var profile_data := MarineProfiles.profile(identity(state.units[model]))
-	if parts.size() == 3 and parts[0] == "replace":
+	if parts.size() == 3 and parts[0] == "group":
+		var groups: Dictionary = profile_data.get("transport", {}).get("options", {}).get("replacement_groups", {})
+		if not groups.has(parts[1]) or parts[2] not in ["on", "off"]: return "That grouped weapon replacement is not listed for this transport datasheet."
+		var selected_groups: Dictionary = state.units[model].get("optional_transport_replacement_groups", {}).duplicate(true)
+		selected_groups[parts[1]] = parts[2] == "on"
+		state.units[model].optional_transport_replacement_groups = selected_groups
+	elif parts.size() == 3 and parts[0] == "replace":
 		var base_id: String = parts[1]
 		var next_id: String = parts[2]
 		var replacements: Dictionary = profile_data.get("transport", {}).get("options", {}).get("replacements", {})
@@ -206,6 +230,16 @@ static func _transport_weapon_id(profile_data: Dictionary, weapon_name: String) 
 
 static func _optional_transport_inventory(profile_data: Dictionary, unit: Dictionary) -> Array:
 	var weapons: Array = profile_data.get("ranged", []).duplicate(true)
+	var selected_groups: Dictionary = unit.get("optional_transport_replacement_groups", {})
+	var groups: Dictionary = profile_data.get("transport", {}).get("options", {}).get("replacement_groups", {})
+	for group_id: String in groups:
+		if not bool(selected_groups.get(group_id, false)): continue
+		var group: Dictionary = groups[group_id]
+		var from_ids: Array = group.get("from_ids", [])
+		var to_ids: Array = group.get("to_ids", [])
+		if from_ids.is_empty() or to_ids.is_empty(): continue
+		weapons = weapons.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) not in from_ids)
+		for weapon_id: String in to_ids: _append_impulsor_weapon(weapons, profile_data, weapon_id)
 	var selected_replacements: Dictionary = unit.get("optional_transport_replacements", {})
 	var replacements: Dictionary = profile_data.get("transport", {}).get("options", {}).get("replacements", {})
 	for base_name: String in replacements:
@@ -222,13 +256,15 @@ static func _optional_transport_inventory(profile_data: Dictionary, unit: Dictio
 	return weapons
 
 static func configure_impulsor(state: Dictionary, model: int, category: int, value: String) -> String:
-	if state.phase != "deployment" or not state.units.has(model) or identity(state.units[model]) != "impulsor": return "Impulsor wargear is selected during army preparations."
+	if state.phase != "deployment" or not state.units.has(model) or not _is_impulsor_identity(identity(state.units[model])): return "Impulsor wargear is selected during army preparations."
 	var unit: Dictionary = state.units[model]
-	var profile_data := MarineProfiles.profile("impulsor")
+	var profile_data := MarineProfiles.profile(identity(state.units[model]))
 	if profile_data.is_empty(): return "The local Wahapedia Impulsor profile is missing."
 	match category:
 		0:
 			if value not in IMPULSOR_SYSTEMS: return "Choose one source-listed Impulsor system or no optional system."
+			var offered_systems: Array = profile_data.get("transport", {}).get("options", {}).get("one_of", [])
+			if value != "none" and IMPULSOR_SYSTEM_NAMES.get(value, "") not in offered_systems: return "That array or Shield Dome is not listed for this Impulsor datasheet."
 			var previous := str(unit.get("impulsor_system", "none"))
 			var previous_cost := int(profile_data.get("wargear_costs", {}).get("Orbital Comms Array", 0)) if previous == "orbital-comms-array" else 0
 			var next_cost := int(profile_data.get("wargear_costs", {}).get("Orbital Comms Array", 0)) if value == "orbital-comms-array" else 0
@@ -277,10 +313,12 @@ static func capacity_cost(state: Dictionary, squad: int, profile_data: Dictionar
 	var total := 0
 	var double_space: Array = profile_data.get("double_space", [])
 	for model: int in models(state, squad):
+		if str(state.units[model].get("chaplain_grimaldus_role", "")) == "cenobyte": continue
 		var keywords: Array = state.units[model].get("keywords", [])
 		var doubled := false
 		for keyword: String in double_space:
 			if keyword in keywords: doubled = true
+		if UnitAbilities.has(state, squad, "bestial-forms") and "WULFEN" in keywords: doubled = true
 		total += 2 if doubled else 1
 	return total
 
@@ -1036,7 +1074,9 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		state.units[model].wounds -= int(prevention.lost)
 		window.hazard_allocations.append({"model": model, "prevention": prevention})
 		window.hazard_remaining = int(window.hazard_remaining) - 1
-		if state.units[model].wounds <= 0: DetachmentStratagems.record_destroyed(state, model)
+		if state.units[model].wounds <= 0:
+			DetachmentStratagems.record_destroyed(state, model)
+			for cenobyte: int in ChaplainGrimaldus.destroy_cenobytes(state, model): DetachmentStratagems.record_destroyed(state, cenobyte)
 		if int(window.hazard_remaining) <= 0 or _emergency_mortal_candidates(state, window).is_empty():
 			window.hazard_remaining = 0
 			if window.kind == "emergency": _emergency_hazards_complete(state, window)
@@ -1051,6 +1091,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		state.units[destroyed_model].on_battlefield = false
 		state.units[destroyed_model].erase("embarked_transport")
 		DetachmentStratagems.record_destroyed(state, destroyed_model)
+		for cenobyte: int in ChaplainGrimaldus.destroy_cenobytes(state, destroyed_model): DetachmentStratagems.record_destroyed(state, cenobyte)
 		window.models.erase(destroyed_model)
 		if window.models.is_empty(): _emergency_finish(state, window)
 		return ""

@@ -243,8 +243,9 @@ static func _apply_strategium(s: Dictionary, action: String, model: int, squad: 
 		if not _redeploy_target(s, squad, source) or int(s.squads[squad].owner) != owner: return "This unit is no longer eligible for %s." % source_label
 		var cost := int(s.squads[squad].get("training_cost", 0))
 		if cost <= 0: return "The selected unit has no local reserve points cost."
+		var deep_strike := A.every_model_has(s, squad, "deep-strike")
 		_detach_strategium_unit(s, squad)
-		s.unit_abilities.reserves[squad] = {"cost": cost, "source": source, "bypass_limit": true}
+		s.unit_abilities.reserves[squad] = {"cost": cost, "source": source, "bypass_limit": true, "deep_strike": deep_strike}
 		for id: int in _living_models(s, squad): s.units[id].on_battlefield = false
 		_finish_strategium_unit(s, owner, squad, source)
 		return ""

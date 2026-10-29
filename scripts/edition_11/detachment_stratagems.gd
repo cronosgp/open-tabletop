@@ -14,7 +14,9 @@ const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
-const ID := "gladius-awakened-stratagems-11e-v12"
+const CrusadeAncient = preload("res://scripts/edition_11/crusade_ancient.gd")
+const WatchCaptainArtemis = preload("res://scripts/edition_11/watch_captain_artemis.gd")
+const ID := "gladius-awakened-stratagems-11e-v15-deathwing-knights"
 const ADAPTIVE := "gladius-adaptive-strategy"
 const STORM := "gladius-storm-of-devastation"
 const ARMOUR := "gladius-armour-of-contempt"
@@ -120,6 +122,10 @@ const IN_SACRIFICE := "wrath-of-the-rock-in-sacrifice-victory"
 const INNER_CIRCLE_WRATH_OF_THE_LION := "inner-circle-wrath-of-the-lion"
 const INNER_CIRCLE_DUTY_UNTO_DEATH := "inner-circle-duty-unto-death"
 const INNER_CIRCLE_RELIC_TELEPORTARIUM := "inner-circle-relic-teleportarium"
+const FIST_DOCTRINAL_FLEXIBILITY := "fist-doctrinal-flexibility"
+const FIST_ANGELS_DEFIANT := "fist-angels-defiant"
+const FIST_AVOWED_DESTRUCTION := "fist-avowed-destruction"
+const FIST_PURGE_AND_SANCTIFY := "purge-and-sanctify"
 const DEATHWING_CONDITIONAL_IDENTITIES := ChapterRules.DARK_ANGELS_DEATHWING_IDENTITIES
 const GLADIUS_ABILITIES := [ADAPTIVE, STORM, ARMOUR, MIGHT, WORTHY, TACTICS]
 const ARMOUR_WINDOW := "gladius-armour-of-contempt"
@@ -129,7 +135,7 @@ const TERMINATOR_FORTITUDE_WINDOW := "terminator-tactical-dreadnought-fortitude"
 const TERMINATOR_MERCILESS_WINDOW := "terminator-merciless-veterans"
 const PHOBOS_STRIKE_WINDOW := "phobos-strike-from-the-shadows"
 const LAYERED_CERAMITE_WINDOW := "ironstorm-layered-ceramite-reaction"
-const IRONSTORM_TRANSPORT_IDENTITIES := ["land-raider", "land-raider-crusader", "land-raider-redeemer", "repulsor", "repulsor-executioner"]
+const IRONSTORM_TRANSPORT_IDENTITIES := ["land-raider", "land-raider-crusader", "land-raider-redeemer", "repulsor", "repulsor-executioner", "black-templars-repulsor", "black-templars-repulsor-executioner"]
 const HUNGRY := "protocol-of-the-hungry-void"
 const SUDDEN := "protocol-of-the-sudden-storm"
 const TYRANT := "protocol-of-the-conquering-tyrant"
@@ -140,6 +146,8 @@ const Queue = preload("res://scripts/edition_11/fight_queue.gd")
 const TacticalFluidity = preload("res://scripts/edition_11/tactical_fluidity.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const VowedTarget = preload("res://scripts/edition_11/vowed_target.gd")
+const CrusaderSurge = preload("res://scripts/edition_11/crusader_surge.gd")
+const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
 
 static func enable(s: Dictionary) -> void:
 	if not enabled(s):
@@ -352,6 +360,16 @@ static func enable_vow_sworn(s: Dictionary) -> void:
 	Registry.admit(s, VOW_DEVOUT_PUSH, ID)
 	Registry.admit(s, VOW_HERESY_BEGETS_RETRIBUTION, ID)
 
+static func enable_fist(s: Dictionary) -> void:
+	if not enabled(s): enable(s)
+	if "fist-of-the-god-emperor" not in s.detachment_stratagems.get("modes", []): s.detachment_stratagems.modes.append("fist-of-the-god-emperor")
+	for key in ["avowed_destruction", "angels_defiant"]:
+		if not s.detachment_stratagems.has(key): s.detachment_stratagems[key] = {}
+	for rule in [FIST_DOCTRINAL_FLEXIBILITY, FIST_ANGELS_DEFIANT, FIST_AVOWED_DESTRUCTION]: Registry.admit(s, rule, ID)
+	Registry.admit(s, FIST_PURGE_AND_SANCTIFY, ID)
+	Registry.admit(s, "righteous-fervour", ID)
+	Registry.admit(s, "oathbound-exemplar", ID)
+
 static func enable_blade_of_ultramar(s: Dictionary) -> void:
 	if not enabled(s): enable(s)
 	if "blade-of-ultramar" not in s.detachment_stratagems.get("modes", []): s.detachment_stratagems.modes.append("blade-of-ultramar")
@@ -549,6 +567,7 @@ static func relentless_assault_rule(s: Dictionary, player: int) -> String:
 
 static func point_blank_brutality_error(s: Dictionary, player: int, squad: int, declaration: Dictionary) -> String:
 	var preview := s.duplicate(true)
+	if not preview.get("unit_abilities", null) is Dictionary: preview.unit_abilities = {}
 	preview.unit_abilities.window = {"kind": POINT_BLANK_BRUTALITY_WINDOW, "owners": [player], "squad": squad, "declaration": declaration.duplicate(true)}
 	return error(preview, player, squad, FIRESTORM_POINT_BLANK_BRUTALITY)
 
@@ -689,7 +708,7 @@ static func spoor_of_the_unholy_choices(s: Dictionary, player: int) -> Array[Dic
 	return result
 
 static func open_dread_crusaders_reaction(s: Dictionary, attacker_squad: int, target_squad: int, charge_frame_id: String) -> bool:
-	if charge_frame_id.is_empty() or not s.get("unit_abilities", {}).get("window", {}).is_empty() or not s.squads.has(target_squad): return false
+	if charge_frame_id.is_empty() or not s.has("unit_abilities") or not s.get("unit_abilities", {}).get("window", {}).is_empty() or not s.squads.has(target_squad): return false
 	var player := int(s.squads[target_squad].get("owner", -1))
 	if player not in [1, 2]: return false
 	s.unit_abilities.window = {"kind": DREAD_CRUSADERS_WINDOW, "owners": [player], "squad": target_squad, "attacker_squad": attacker_squad, "phase_key": phase_key(s), "resolution_frame_id": charge_frame_id}
@@ -708,7 +727,7 @@ static func dread_crusaders_choices(s: Dictionary, player: int) -> Array[Diction
 	if not current_result.is_empty():
 		if window.get("owners", []) != [player] or int(window.get("decision_owner", -1)) != player or int(current_result.get("squad", -1)) != attacker_squad: return result
 		result.append({"label": "Keep %s's Dread Crusaders Battle-shock result" % str(s.squads[attacker_squad].get("name", "charging unit")), "action": "dread-crusaders-roll-decision", "model": -1, "target": target_squad, "value": "keep"})
-		if MarineEnhancements.tempered_in_battle_active(s, attacker_squad): result.append({"label": "Tempered in Battle: re-roll both Leadership dice for %s" % str(s.squads[attacker_squad].get("name", "charging unit")), "action": "dread-crusaders-roll-decision", "model": -1, "target": target_squad, "value": "tempered-in-battle"})
+		if MarineEnhancements.leadership_reroll_available(s, attacker_squad): result.append({"label": "%s: re-roll both Leadership dice for %s" % [MarineEnhancements.leadership_reroll_name(s, attacker_squad), str(s.squads[attacker_squad].get("name", "charging unit"))], "action": "dread-crusaders-roll-decision", "model": -1, "target": target_squad, "value": "tempered-in-battle"})
 		return result
 	if window.get("owners", []) != [player] or not error(s, player, target_squad, VOW_DREAD_CRUSADERS, -1, -1, attacker_squad).is_empty(): return result
 	result.append({"label": "Dread Crusaders: %s takes Battle-shock at -1 because it targeted %s (1 CP)" % [str(s.squads[attacker_squad].get("name", "The charging unit")), str(s.squads[target_squad].get("name", "the charge target"))], "action": "detachment-stratagem", "model": -1, "target": target_squad, "value": VOW_DREAD_CRUSADERS, "details": {"enemy_squad": attacker_squad}})
@@ -725,15 +744,15 @@ static func resolve_dread_crusaders_roll_decision(s: Dictionary, player: int, se
 	if charge_frame_id.is_empty(): return {"error": "The saved Charge continuation for Dread Crusaders is missing."}
 	if selected not in dread_crusaders_choices(s, player): return {"error": "Choose whether to keep or re-roll the Dread Crusaders Battle-shock result."}
 	if str(selected.get("value", "")) == "tempered-in-battle":
-		if not MarineEnhancements.tempered_in_battle_active(s, attacker_squad): return {"error": "Tempered in Battle no longer applies to this Leadership roll."}
+		if not MarineEnhancements.leadership_reroll_available(s, attacker_squad): return {"error": "No eligible Leadership re-roll applies to this roll."}
 		var rerolled := Morale.roll_battle_shock(s, attacker_squad, roller, int(current_result.get("modifier", -1)))
 		if not str(rerolled.get("error", "")).is_empty(): return rerolled
 		rerolled["source"] = "Dread Crusaders"
 		rerolled["rerolled_from"] = current_result.get("rolls", []).duplicate()
-		rerolled["reroll_source"] = "tempered-in-battle"
+		rerolled["reroll_source"] = MarineEnhancements.leadership_reroll_name(s, attacker_squad)
 		current_result = rerolled
 	elif str(selected.get("value", "")) != "keep":
-		return {"error": "Choose to keep the current result or use Tempered in Battle."}
+		return {"error": "Choose to keep the current result or use the available Leadership re-roll."}
 	var remained_battle_shocked := bool(window.get("was_battle_shocked", false))
 	s.squads[attacker_squad].battle_shocked = remained_battle_shocked or not bool(current_result.get("passed", false))
 	s.last_morale = [current_result.duplicate(true)]
@@ -792,6 +811,10 @@ static func _ironstorm_squad_for_model(s: Dictionary, model: int) -> int:
 static func enabled(s: Dictionary) -> bool:
 	return s.get("detachment_stratagems", {}).get("implementation", "") == ID
 
+static func fist_enabled(s: Dictionary, player: int) -> bool:
+	var chapters: Dictionary = s.get("marine_chapters", {})
+	return enabled(s) and "fist-of-the-god-emperor" in s.detachment_stratagems.get("modes", []) and Doctrines.enabled(s) and player in s.get("combat_doctrines", {}).get("owners", []) and Doctrines.detachment_for(s, player) == "fist-of-the-god-emperor" and str(chapters.get(player, chapters.get(str(player), ""))) == "BLACK TEMPLARS" and Registry.enabled(s, FIST_PURGE_AND_SANCTIFY)
+
 static func darkflight_enabled(s: Dictionary, player: int) -> bool:
 	if not enabled(s) or "darkflight-pursuit" not in s.detachment_stratagems.get("modes", []): return false
 	if not Doctrines.enabled(s) or player not in s.get("combat_doctrines", {}).get("owners", []) or Doctrines.detachment_for(s, player) != "darkflight-pursuit": return false
@@ -839,8 +862,8 @@ static func adamantine_decision_choices(s: Dictionary, player: int) -> Array[Dic
 	var source := str(pending.get("source", ADAMANTINE_TERROR))
 	var source_name := "Suppression Volleys" if source == GRAVIS_SIEGE_SUPPRESSION_VOLLEYS else "Adamantine Terror"
 	result.append({"label": "Keep %s's current result for %s" % [source_name, s.squads[target].name], "action": "adamantine-terror-decision", "model": -1, "target": target, "value": "keep"})
-	if MarineEnhancements.tempered_in_battle_active(s, target):
-		result.append({"label": "Tempered in Battle: re-roll both Leadership dice for %s (free)" % s.squads[target].name, "action": "adamantine-terror-decision", "model": -1, "target": target, "value": "tempered-in-battle"})
+	if MarineEnhancements.leadership_reroll_available(s, target):
+		result.append({"label": "%s: re-roll both Leadership dice for %s (free)" % [MarineEnhancements.leadership_reroll_name(s, target), s.squads[target].name], "action": "adamantine-terror-decision", "model": -1, "target": target, "value": "tempered-in-battle"})
 	return result
 
 static func _apply_adamantine_result(s: Dictionary, pending: Dictionary, result: Dictionary, was_battle_shocked: bool) -> void:
@@ -864,7 +887,7 @@ static func _pump_adamantine(s: Dictionary, roller: Callable) -> Dictionary:
 		var target := int(pending.targets[0])
 		var result := Morale.roll_battle_shock(s, target, roller, -1)
 		if not result.error.is_empty(): return result
-		if MarineEnhancements.tempered_in_battle_active(s, target):
+		if MarineEnhancements.leadership_reroll_available(s, target):
 			result["source"] = str(pending.get("source", ADAMANTINE_TERROR))
 			result["modified_total"] = int(result.rolls[0]) + int(result.rolls[1]) - 1
 			pending.current_result = result.duplicate(true)
@@ -899,7 +922,7 @@ static func resolve_adamantine_decision(s: Dictionary, player: int, selected: Di
 	var was_battle_shocked := bool(pending.get("was_battle_shocked", false))
 	var result: Dictionary
 	if selected.value == "tempered-in-battle":
-		if not MarineEnhancements.tempered_in_battle_active(s, target): return {"error": "Tempered in Battle does not apply to this Battle-shock roll."}
+		if not MarineEnhancements.leadership_reroll_available(s, target): return {"error": "No eligible Leadership re-roll applies to this Battle-shock roll."}
 		result = Morale.roll_battle_shock(s, target, roller, -1)
 		if not result.error.is_empty(): return result
 		result["rerolled_from"] = current.get("rolls", []).duplicate()
@@ -981,6 +1004,9 @@ static func spearpoint_unit(s: Dictionary, squad: int) -> bool:
 
 static func unit_keywords(s: Dictionary, squad: int) -> Array[String]:
 	return _unit_keywords(s, squad, false)
+
+static func fist_crusader_unit(s: Dictionary, squad: int) -> bool:
+	return s.squads.has(squad) and CrusaderSurge.is_crusader_squad(s, squad)
 
 static func _unit_keywords(s: Dictionary, squad: int, include_destroyed: bool) -> Array[String]:
 	var result: Array[String] = []
@@ -1073,12 +1099,20 @@ static func inner_circle_deathwing_reserve(s: Dictionary, player: int, squad: in
 	return found and "ADEPTUS ASTARTES" in keywords and "DEATHWING" in keywords
 
 static func reserve_unit_has_deep_strike(s: Dictionary, squad: int) -> bool:
+	var reserve_record: Dictionary = s.get("unit_abilities", {}).get("reserves", {}).get(squad, {})
+	if reserve_record.has("deep_strike"): return bool(reserve_record.deep_strike)
 	var found := false
+	var owner := int(s.get("squads", {}).get(squad, {}).get("owner", -1))
+	var thunderhawk_target := int(s.get("unit_abilities", {}).get("thunderhawk_targets", {}).get(owner, -1)) == squad
 	for model: int in s.units:
 		var unit: Dictionary = s.units[model]
 		if int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0: continue
 		found = true
-		if "deep-strike" not in AbilityCatalog.RULES.get(AbilityCatalog.identity(unit), []): return false
+		var identity := AbilityCatalog.identity(unit)
+		var has_deep_strike: bool = "deep-strike" in AbilityCatalog.RULES.get(identity, [])
+		if identity == "reiver-squad" and not bool(s.squads[squad].get("reiver_grav_chutes", false)): has_deep_strike = false
+		if thunderhawk_target: has_deep_strike = true
+		if not has_deep_strike: return false
 	return found
 
 static func spearpoint_mounted(s: Dictionary, squad: int) -> bool:
@@ -1241,6 +1275,30 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		var destroyed_record := _in_sacrifice_record(s, player, squad, model)
 		if destroyed_record.is_empty(): return "In Sacrifice, Victory requires a Deathwing or Ravenwing unit destroyed this phase within objective range."
 		if objective not in _in_sacrifice_objectives(s, destroyed_record, player): return "Choose an objective with no enemy non-Aircraft units in range, or one this unit controlled at the end of the previous phase."
+	elif rule == FIST_DOCTRINAL_FLEXIBILITY:
+		if not Registry.supported(rule) or not Registry.enabled(s, rule) or not A.enabled(s) or not fist_enabled(s, player): return "Doctrinal Flexibility requires current unit abilities, Fist of the God-Emperor and Black Templars Chapter context."
+		if s.phase != "command" or int(s.active) != player: return "Doctrinal Flexibility is used in your Command phase."
+		if not fist_crusader_unit(s, squad): return "Doctrinal Flexibility requires a friendly Crusader Squad."
+		if Doctrines.available(s, player).is_empty(): return "No unused Combat Doctrine is available for this army."
+	elif rule == FIST_ANGELS_DEFIANT:
+		if not Registry.supported(rule) or not Registry.enabled(s, rule) or not A.enabled(s) or not fist_enabled(s, player): return "Angels Defiant requires current unit abilities, Fist of the God-Emperor and Black Templars Chapter context."
+		if not fist_crusader_unit(s, squad): return "Angels Defiant requires the targeted friendly Crusader Squad."
+		var reaction: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var declaration: Dictionary = reaction.get("declaration", {})
+		if reaction.get("kind", "") not in [SHOOTING_REACTION_WINDOW, "mounted-shooting-reaction", "stormlance-hurtling"] or reaction.get("owners", []) != [player] or int(reaction.get("squad", -1)) != squad or declaration.get("kind", "") != "attack" or int(declaration.get("player", player)) == player: return "Angels Defiant requires the enemy unit's current attack declaration against this Crusader Squad."
+		if s.phase == "shooting":
+			if int(s.active) == player or bool(declaration.get("melee", false)): return "Angels Defiant is used against an enemy attack in the opponent's Shooting phase."
+		elif s.phase == "fight":
+			if not bool(declaration.get("melee", false)): return "Angels Defiant is used against an enemy attack in the Fight phase."
+		else: return "Angels Defiant is used in the opponent's Shooting phase or either Fight turn."
+		var is_targeted := false
+		for row: Variant in declaration.get("entries", []):
+			if row is Dictionary and int(row.get("target", -1)) == squad: is_targeted = true
+		if not is_targeted: return "The pending enemy attack does not target this Crusader Squad."
+	elif rule == FIST_AVOWED_DESTRUCTION:
+		if not Registry.supported(rule) or not Registry.enabled(s, rule) or not A.enabled(s) or not fist_enabled(s, player): return "Avowed Destruction requires current unit abilities, Fist of the God-Emperor and Black Templars Chapter context."
+		if not fist_crusader_unit(s, squad): return "Avowed Destruction requires a friendly Crusader Squad."
+		if s.phase != "fight" or int(s.get("fight_actor", -1)) != player or s.get("fight_step", "") not in ["attacks", "consolidation_reaction"] or squad not in Queue.choices(s, player) or bool(s.squads[squad].get("fought", false)): return "Avowed Destruction is used when your Crusader Squad is selected to fight."
 	elif rule == ADAPTIVE:
 		if source_rule == ULTRAMARIAN_ADAPTIVITY:
 			if not blade_ultramar_enabled(s, player) or s.phase != "command" or s.active != player: return "Ultramarian Adaptivity requires your Blade of Ultramar Command phase."
@@ -1744,7 +1802,7 @@ static func mortal_wound_triggered(s: Dictionary, squad: int) -> bool:
 		var packet: Dictionary = demise.packets[int(demise.packet_cursor)]
 		if int(packet.get("target", -1)) == squad and int(packet.get("remaining", 0)) > 0: return true
 	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
-	var mortal_windows := ["explosives", "crushing-impact-mortal", "hammer-of-wrath-mortal", "gravis-armoured-impact-mortal", "inner-circle-wrath-of-the-lion-mortal", "tigurius-telepathic-assault-mortal", "incursor-haywire-mortal", PHOBOS_SHADOW_MORTIS_MORTAL_WINDOW]
+	var mortal_windows := ["explosives", "crushing-impact-mortal", "hammer-of-wrath-mortal", "gravis-armoured-impact-mortal", "inner-circle-wrath-of-the-lion-mortal", "tigurius-telepathic-assault-mortal", "incursor-haywire-mortal", PHOBOS_SHADOW_MORTIS_MORTAL_WINDOW, "black-templars-high-marshal-mortal", "blood-angels-death-visions-mortal"]
 	if str(window.get("kind", "")) in mortal_windows and int(window.get("target", -1)) == squad: return true
 	return false
 
@@ -1776,6 +1834,11 @@ static func vengeful_animus_choices(s: Dictionary, player: int) -> Array:
 static func mortal_wound_stratagem_choices(s: Dictionary, player: int) -> Array:
 	var result := layered_ceramite_choices(s, player)
 	result.append_array(spirits_of_iron_choices(s, player))
+	if A.enabled(s):
+		for squad: int in s.squads:
+			if int(s.squads[squad].get("owner", -1)) != player or not A.has(s, squad, "watcher-in-the-dark") or not mortal_wound_triggered(s, squad): continue
+			if s.get("unit_abilities", {}).get("used", {}).get("watcher:%d" % squad, false): continue
+			result.append({"label": "Watcher in the Dark: summon for %s; gain Feel No Pain 4+ against mortal wounds" % str(s.squads[squad].get("name", "this unit")), "action": "watcher-in-dark", "model": -1, "target": squad, "value": "summon"})
 	return result
 
 static func mortal_wound_reaction_name(s: Dictionary, player: int) -> String:
@@ -1867,6 +1930,7 @@ static func terminator_fortitude_error(s: Dictionary, player: int, squad: int, a
 	elif s.phase != "fight": return "Tactical Dreadnought Fortitude requires your opponent's Shooting phase or the Fight phase."
 	var keywords := unit_keywords(s, squad)
 	if "ADEPTUS ASTARTES" not in keywords or "TERMINATOR" not in keywords: return "Tactical Dreadnought Fortitude requires a friendly Adeptus Astartes Terminator unit."
+	if A.has(s, squad, "inner-circle"): return "Inner Circle prevents this unit from being targeted with Tactical Dreadnought Fortitude."
 	if attacker_squad < 0 or not s.squads.has(attacker_squad) or int(s.squads[attacker_squad].get("owner", -1)) == player or living(s, attacker_squad).is_empty(): return "An enemy unit must target this Terminator unit."
 	if require_window:
 		var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
@@ -1926,6 +1990,24 @@ static func hurtling_active(s: Dictionary, squad: int) -> bool:
 
 static func evasive_active(s: Dictionary, squad: int) -> bool:
 	return enabled(s) and spearpoint_enabled(s, int(s.squads[squad].owner)) and s.detachment_stratagems.get("evasive", {}).get(squad, {}).get("phase_key", "") == phase_key(s)
+
+static func avowed_destruction_active(s: Dictionary, squad: int) -> bool:
+	if not enabled(s) or not s.squads.has(squad) or not Registry.enabled(s, FIST_AVOWED_DESTRUCTION): return false
+	var record: Dictionary = s.get("detachment_stratagems", {}).get("avowed_destruction", {}).get(squad, {})
+	return fist_enabled(s, int(s.squads[squad].get("owner", -1))) and str(record.get("phase_key", "")) == phase_key(s)
+
+static func angels_defiant_wound_modifier(s: Dictionary, attacker: int, target: int, strength: int, toughness: int) -> int:
+	if not enabled(s) or not s.squads.has(target) or not Registry.enabled(s, FIST_ANGELS_DEFIANT): return 0
+	var record: Dictionary = s.get("detachment_stratagems", {}).get("angels_defiant", {}).get(target, {})
+	return -1 if fist_enabled(s, int(s.squads[target].get("owner", -1))) and str(record.get("phase_key", "")) == phase_key(s) and int(record.get("attacker", -1)) == attacker and strength > toughness else 0
+
+static func clear_angels_defiant(s: Dictionary, attacker: int) -> void:
+	if not enabled(s): return
+	var records: Dictionary = s.get("detachment_stratagems", {}).get("angels_defiant", {}).duplicate(true)
+	for target_value: Variant in records.keys():
+		var record: Dictionary = records.get(target_value, {})
+		if int(record.get("attacker", -1)) == attacker: records.erase(target_value)
+	s.detachment_stratagems.angels_defiant = records
 
 static func umbral_evasion_active(s: Dictionary, squad: int) -> bool:
 	if not s.squads.has(squad): return false
@@ -2061,6 +2143,13 @@ static func choices(s: Dictionary, player: int) -> Array:
 	var stand_squads := stand_unyielding_squads(s, player)
 	var gauntlet_storm_squads := gauntlet_storm_and_secure_squads(s, player)
 	for squad: int in s.squads:
+		if error(s, player, squad, FIST_DOCTRINAL_FLEXIBILITY).is_empty():
+			for doctrine: String in Doctrines.available(s, player):
+				result.append({"label": "Doctrinal Flexibility: %s gains %s Doctrine until your next Command phase (1 CP)" % [s.squads[squad].name, Doctrines.NAMES[doctrine]], "action": "detachment-stratagem", "model": -1, "target": squad, "value": FIST_DOCTRINAL_FLEXIBILITY, "stratagem": FIST_DOCTRINAL_FLEXIBILITY, "details": {"doctrine": doctrine}})
+		if error(s, player, squad, FIST_AVOWED_DESTRUCTION).is_empty():
+			var avowed_cost := maxi(0, 1 - A.discount(s, player, squad))
+			result.append({"label": "Avowed Destruction: %s gains Lethal Hits in melee (%d CP)" % [s.squads[squad].name, avowed_cost], "action": "detachment-stratagem", "model": -1, "target": squad, "value": FIST_AVOWED_DESTRUCTION, "stratagem": FIST_AVOWED_DESTRUCTION, "mode": "lethal"})
+			result.append({"label": "Avowed Destruction: %s gains Sustained Hits 1 in melee (%d CP)" % [s.squads[squad].name, avowed_cost], "action": "detachment-stratagem", "model": -1, "target": squad, "value": FIST_AVOWED_DESTRUCTION, "stratagem": FIST_AVOWED_DESTRUCTION, "mode": "sustained"})
 		if error(s, player, squad, ADAPTIVE).is_empty():
 			for doctrine in ["devastator", "tactical", "assault"]:
 				result.append({"label": "Gladius Adaptive Strategy: %s / %s (%d CP, replaces doctrine)" % [s.squads[squad].name, doctrine, maxi(0, 1 - A.discount(s, player, squad))], "action": "detachment-stratagem", "model": -1, "target": squad, "value": doctrine})
@@ -2224,6 +2313,9 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	var suppression_target := int(selected.get("enemy_target", details_value.get("enemy_target", -1))) if rule == GRAVIS_SIEGE_SUPPRESSION_VOLLEYS else -1
 	var failure := error(s, player, selected.target, source_rule, selected.model, objective, enemy_squad, suppression_target)
 	if not failure.is_empty(): return {"error": failure}
+	var fist_doctrine := str(details_value.get("doctrine", "")) if rule == FIST_DOCTRINAL_FLEXIBILITY else ""
+	if rule == FIST_DOCTRINAL_FLEXIBILITY and fist_doctrine not in Doctrines.available(s, player): return {"error": "Choose an unused Combat Doctrine for Doctrinal Flexibility."}
+	if rule == FIST_AVOWED_DESTRUCTION and str(selected.get("mode", "")) not in ["lethal", "sustained"]: return {"error": "Choose Lethal Hits or Sustained Hits 1 for Avowed Destruction."}
 	if rule == TACTICAL_FOCUS and not tactical_focus_roll(s, player, int(selected.target)).is_empty(): return {"error": "Tactical Focus has already been spent; resume its saved consolidation move."}
 	if rule == VOW_DEVOUT_PUSH and not devout_push_roll(s, player, int(selected.target)).is_empty(): return {"error": "Devout Push has already been paid; resume its saved contact placement."}
 	var dread_result: Dictionary = {}
@@ -2250,6 +2342,7 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		s.detachment_stratagems.vengeful = {"player": player, "squad": int(selected.target), "attacker": int(pending_storm.attacker), "phase_key": phase_key(s), "source": STORM_OF_VENGEANCE, "remaining_squads": remaining_squads}
 		return {"error": "", "message": "Storm of Vengeance: %s may shoot the enemy unit that just destroyed a nearby Dark Angels unit." % str(s.squads[int(selected.target)].get("name", "Land Speeder Vengeance"))}
 	if rule in [ADAPTIVE, TACTICAL_MASTERY] and selected.value not in Doctrines.ORDER: return {"error": "Invalid doctrine."}
+	if rule == FIST_DOCTRINAL_FLEXIBILITY and fist_doctrine not in Doctrines.ORDER: return {"error": "Invalid Combat Doctrine."}
 	if rule == MERCY_IS_WEAKNESS and selected.get("mode", "") not in ["lethal", "sustained"]: return {"error": "Choose Lethal Hits or Sustained Hits 1."}
 	if rule == SPEAR_THRUST:
 		var allowed_modes := ["both"] if spearpoint_mounted(s, int(selected.target)) else ["lethal", "lance"]
@@ -2282,7 +2375,19 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	A.consume_discount(s, player, selected.target)
 	var used_rule := source_rule if source_rule in [ASSAULT_ARMOUR, TACTICAL_ARMOUR, DEVASTATOR_ARMOUR, ULTRAMARINES_ARMOUR, ULTRAMARINES_COURAGE, ULTRAMARINES_EXEMPLARY_VIGILANCE, ULTRAMARIAN_ADAPTIVITY, ULTRAMARIAN_PRACTICAL_TACTICS, DUTY_IN_DEATH, INNER_CIRCLE_DUTY_UNTO_DEATH, HAIL_OF_VENGEANCE, STORM_OF_FIRE, FIRESTORM_RELENTLESS_ASSAULT] else rule
 	s.stratagems.uses.append({"player": player, "squad": selected.target, "stratagem": used_rule, "phase_key": phase_key(s), "turn": s.turn})
-	if rule in [ADAPTIVE, TACTICAL_MASTERY]: s.unit_abilities.doctrines[selected.target] = {"doctrine": selected.value}
+	if rule == FIST_DOCTRINAL_FLEXIBILITY:
+		s.unit_abilities.doctrines[selected.target] = {"doctrine": fist_doctrine}
+		Doctrines.record_selection(s, player, fist_doctrine)
+		return {"error": "", "message": "Doctrinal Flexibility: %s gains %s Doctrine until the start of your next Command phase." % [str(s.squads[int(selected.target)].get("name", "Crusader Squad")), Doctrines.NAMES[fist_doctrine]]}
+	elif rule == FIST_AVOWED_DESTRUCTION:
+		s.detachment_stratagems.avowed_destruction[selected.target] = {"phase_key": phase_key(s), "mode": str(selected.mode)}
+		return {"error": "", "message": "Avowed Destruction: %s's melee attacks have %s until the end of this Fight phase." % [str(s.squads[int(selected.target)].get("name", "Crusader Squad")), "Lethal Hits" if selected.mode == "lethal" else "Sustained Hits 1"]}
+	elif rule == FIST_ANGELS_DEFIANT:
+		var angels_window: Dictionary = s.get("unit_abilities", {}).get("window", {})
+		var angels_declaration: Dictionary = angels_window.get("declaration", {})
+		s.detachment_stratagems.angels_defiant[selected.target] = {"phase_key": phase_key(s), "attacker": int(angels_declaration.get("squad", -1))}
+		return {"error": "", "message": "Angels Defiant: attacks from %s with Strength greater than this Crusader Squad's Toughness have -1 to Wound for this attack sequence." % str(s.squads[int(angels_declaration.get("squad", -1))].get("name", "the enemy unit"))}
+	elif rule in [ADAPTIVE, TACTICAL_MASTERY]: s.unit_abilities.doctrines[selected.target] = {"doctrine": selected.value}
 	elif rule == LIONS_WILL: s.detachment_stratagems.lion_will[selected.target] = {"turn": int(s.turn), "owner": player}
 	elif rule == FOR_THE_EMPEROR: s.detachment_stratagems.for_the_emperor[selected.target] = {"turn": int(s.turn), "owner": player}
 	elif rule == INESCAPABLE_JUSTICE: s.detachment_stratagems.inescapable[selected.target] = {"phase_key": phase_key(s)}
@@ -2423,14 +2528,14 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	elif rule == VOW_DREAD_CRUSADERS:
 		dread_result["source"] = "Dread Crusaders"
 		s.last_morale = [dread_result.duplicate(true)]
-		if MarineEnhancements.tempered_in_battle_active(s, enemy_squad):
+		if MarineEnhancements.leadership_reroll_available(s, enemy_squad):
 			var dread_window: Dictionary = s.unit_abilities.window
 			dread_window["current_result"] = dread_result.duplicate(true)
 			dread_window["was_battle_shocked"] = dread_was_battle_shocked
 			dread_window["decision_owner"] = int(s.squads[enemy_squad].get("owner", -1))
 			dread_window["owners"] = [int(s.squads[enemy_squad].get("owner", -1))]
 			s.unit_abilities.window = dread_window
-			return {"error": "", "pending_reroll": true, "message": "Dread Crusaders: %s rolled %s at -1 (%d vs Leadership %d). Its controller can keep the result or re-roll both dice with Tempered in Battle." % [str(s.squads[enemy_squad].get("name", "The charging unit")), str(dread_result.get("rolls", [])), int(dread_result.get("modified_total", 0)), int(dread_result.get("target", 0))]}
+			return {"error": "", "pending_reroll": true, "message": "Dread Crusaders: %s rolled %s at -1 (%d vs Leadership %d). Its controller can keep the result or use an available Leadership re-roll." % [str(s.squads[enemy_squad].get("name", "The charging unit")), str(dread_result.get("rolls", [])), int(dread_result.get("modified_total", 0)), int(dread_result.get("target", 0))]}
 		s.squads[enemy_squad].battle_shocked = dread_was_battle_shocked or not bool(dread_result.get("passed", false))
 		var outcome := "is Battle-shocked" if s.squads[enemy_squad].battle_shocked else "passes the test"
 		var message := "Dread Crusaders: %s rolls %s at -1 (%d vs Leadership %d) and %s." % [str(s.squads[enemy_squad].get("name", "The charging unit")), str(dread_result.get("rolls", [])), int(dread_result.get("modified_total", 0)), int(dread_result.get("target", 0)), outcome]
@@ -2493,19 +2598,19 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	elif rule == WITHDRAW_AND_REGROUP:
 		var cost := int(s.squads[selected.target].get("training_cost", 0))
 		if cost <= 0: return {"error": "This unit has no admitted reserve cost."}
-		s.unit_abilities.reserves[selected.target] = {"cost": cost, "source": WITHDRAW_AND_REGROUP}
+		s.unit_abilities.reserves[selected.target] = {"cost": cost, "source": WITHDRAW_AND_REGROUP, "deep_strike": A.every_model_has(s, int(selected.target), "deep-strike")}
 		for model: int in living(s, selected.target): s.units[model].on_battlefield = false
 		s.deployment.order.erase(selected.target)
 	elif rule == TERMINATOR_GUNSHIP_EXTRACTION:
 		var reserve_cost := int(s.squads[selected.target].get("training_cost", 0))
 		if reserve_cost <= 0: return {"error": "This Terminator unit has no admitted reserve cost."}
-		s.unit_abilities.reserves[selected.target] = {"cost": reserve_cost, "source": TERMINATOR_GUNSHIP_EXTRACTION}
+		s.unit_abilities.reserves[selected.target] = {"cost": reserve_cost, "source": TERMINATOR_GUNSHIP_EXTRACTION, "deep_strike": A.every_model_has(s, int(selected.target), "deep-strike")}
 		for model: int in living(s, selected.target): s.units[model].on_battlefield = false
 		s.deployment.order.erase(selected.target)
 	elif rule == PHOBOS_SHADOW_TACTICAL_WITHDRAWAL:
 		var reserve_cost := int(s.squads[selected.target].get("training_cost", 0))
 		if reserve_cost <= 0: return {"error": "This Phobos/Scout unit has no admitted reserve cost."}
-		s.unit_abilities.reserves[selected.target] = {"cost": reserve_cost, "source": PHOBOS_SHADOW_TACTICAL_WITHDRAWAL}
+		s.unit_abilities.reserves[selected.target] = {"cost": reserve_cost, "source": PHOBOS_SHADOW_TACTICAL_WITHDRAWAL, "deep_strike": A.every_model_has(s, int(selected.target), "deep-strike")}
 		for model: int in living(s, selected.target): s.units[model].on_battlefield = false
 		s.deployment.order.erase(selected.target)
 	elif rule == PHOBOS_SHADOW_MORTIS_SNARES:
@@ -2540,9 +2645,15 @@ static func relics_of_the_dark_age_active(s: Dictionary, squad: int) -> bool:
 	return enabled(s) and s.squads.has(squad) and wrath_of_the_rock_enabled(s, int(s.squads[squad].get("owner", -1))) and s.detachment_stratagems.get("relics", {}).get(squad, {}).get("phase_key", "") == phase_key(s)
 
 static func suppression_hit_modifier(s: Dictionary, squad: int) -> int:
-	if not enabled(s) or not s.squads.has(squad) or Doctrines.detachment_for(s, int(s.squads[squad].get("owner", -1))) != "tactical-brethren" or living(s, squad).is_empty(): return 0
+	if not enabled(s) or not s.squads.has(squad) or living(s, squad).is_empty(): return 0
 	var record: Dictionary = s.detachment_stratagems.get("suppressed", {}).get(squad, {})
-	if not record.is_empty() and int(s.turn) < int(record.get("turn", -2)) + 2: return -1
+	if record.is_empty(): return 0
+	var source := str(record.get("source", ""))
+	var source_owner := int(record.get("owner", -1))
+	var tactical_brethren_suppression := source == DOMINATION_FIRE and Doctrines.detachment_for(s, source_owner) == "tactical-brethren"
+	var wulfen_hammer_blow := source == "wulfen-hammer-blow"
+	if not tactical_brethren_suppression and not wulfen_hammer_blow: return 0
+	if int(s.turn) < int(record.get("turn", -2)) + 2: return -1
 	return 0
 
 static func might_active(s: Dictionary, squad: int) -> bool:
@@ -2648,6 +2759,11 @@ static func weapon(s: Dictionary, squad: int, original: Dictionary, profile: Dic
 		copy = copy.duplicate(true)
 		if "MONSTER" in target_keywords or "VEHICLE" in target_keywords: copy.keywords["lethal-hits"] = true
 		else: copy.keywords["sustained-hits"] = maxi(1, int(copy.keywords.get("sustained-hits", 0)))
+	if melee and avowed_destruction_active(s, squad):
+		copy = copy.duplicate(true)
+		var avowed_record: Dictionary = s.detachment_stratagems.avowed_destruction.get(squad, {})
+		if str(avowed_record.get("mode", "")) == "lethal": copy.keywords["lethal-hits"] = true
+		elif str(avowed_record.get("mode", "")) == "sustained": copy.keywords["sustained-hits"] = maxi(1, int(copy.keywords.get("sustained-hits", 0)))
 	return copy
 
 static func might_ignore_active(s: Dictionary, squad: int) -> bool:
@@ -2700,6 +2816,90 @@ static func hold_destroyed(s: Dictionary, model: int, roller: Callable) -> Dicti
 	if unit.wounds > 0 or unit.get("lingering", false): return {"error": "", "held": false}
 	var current_abilities: Dictionary = s.get("unit_abilities", {})
 	var identity := str(unit.get("definition_id", "")).get_slice(":", 3)
+	var squad := int(unit.get("squad", -1))
+	if current_abilities.get("implementation", "") == A.ID and _has_keyword(unit, "WULFEN") and unit.get("on_battlefield", true) and not unit.get("murder_maker_used", false) and s.phase == "fight" and s.squads.has(squad) and not s.squads[squad].fought and int(s.get("fight_selected", -1)) != squad:
+		var murderfang_nearby := false
+		for source_squad: int in s.squads:
+			if int(s.squads[source_squad].get("owner", -1)) != int(unit.get("owner", -2)) or not A.has(s, source_squad, "murder-maker"): continue
+			for source_model: int in living(s, source_squad):
+				if str(s.units[source_model].get("definition_id", "")).get_slice(":", 3) != "murderfang" or not s.units[source_model].get("on_battlefield", true): continue
+				if G.edge(unit, s.units[source_model]) <= 6.001: murderfang_nearby = true
+		if murderfang_nearby:
+			if not roller.is_valid(): return {"error": "Murder-maker requires the host's D6."}
+			var murder_maker_roll: Variant = roller.call()
+			if not murder_maker_roll is int or murder_maker_roll < 1 or murder_maker_roll > 6: return {"error": "Murder-maker dice must be 1–6."}
+			unit.murder_maker_used = true
+			if murder_maker_roll >= 4:
+				unit.wounds = 1
+				unit.lingering = true
+				unit.murder_maker_lingering = true
+				return {"error": "", "held": true, "rule": "murder-maker", "rule_name": "Murder-maker", "roll": murder_maker_roll, "modifier": 0}
+			record_destroyed(s, model)
+			return {"error": "", "held": false, "rule": "murder-maker", "rule_name": "Murder-maker", "roll": murder_maker_roll, "modifier": 0}
+	if current_abilities.get("implementation", "") == A.ID and _arjac_anvil_source_active(s, squad, model) and s.phase == "fight" and s.squads.has(squad) and not s.squads[squad].fought and int(s.get("fight_selected", -1)) != squad:
+		if not roller.is_valid(): return {"error": "Anvil of Endurance requires the host's D6."}
+		var anvil_roll: Variant = roller.call()
+		if not anvil_roll is int or anvil_roll < 1 or anvil_roll > 6: return {"error": "Anvil of Endurance dice must be 1–6."}
+		if anvil_roll >= 4:
+			unit.wounds = 1
+			unit.lingering = true
+			unit.arjac_anvil_lingering = true
+			return {"error": "", "held": true, "rule": "anvil-of-endurance", "rule_name": "Anvil of Endurance", "roll": anvil_roll, "modifier": 0}
+		record_destroyed(s, model)
+		return {"error": "", "held": false, "rule": "anvil-of-endurance", "rule_name": "Anvil of Endurance", "roll": anvil_roll, "modifier": 0}
+	if current_abilities.get("implementation", "") == A.ID and identity == "astorath" and unit.get("on_battlefield", true) and s.phase == "fight" and s.squads.has(squad) and not s.squads[squad].fought and int(s.get("fight_selected", -1)) != squad:
+		if not roller.is_valid(): return {"error": "Redeemer of the Lost requires the host's D6."}
+		var modifier := 0
+		var own_toughness := int(s.squads[squad].get("stats", {}).get("toughness", 0))
+		for enemy_squad: int in s.squads:
+			if int(s.squads[enemy_squad].get("owner", -1)) == int(unit.get("owner", -2)) or int(s.squads[enemy_squad].get("stats", {}).get("toughness", 0)) < own_toughness: continue
+			for enemy_model: int in living(s, enemy_squad):
+				if G.within_engagement(unit, s.units[enemy_model]):
+					modifier = 1
+					break
+			if modifier > 0: break
+		var redeemer_roll: Variant = roller.call()
+		if not redeemer_roll is int or redeemer_roll < 1 or redeemer_roll > 6: return {"error": "Redeemer of the Lost dice must be 1–6."}
+		if int(redeemer_roll) + modifier >= 4:
+			unit.wounds = 1
+			unit.lingering = true
+			unit.astorath_redeemer_lingering = true
+			return {"error": "", "held": true, "rule": "redeemer-of-the-lost", "rule_name": "Redeemer of the Lost", "roll": redeemer_roll, "modifier": modifier}
+		record_destroyed(s, model)
+		return {"error": "", "held": false, "rule": "redeemer-of-the-lost", "rule_name": "Redeemer of the Lost", "roll": redeemer_roll, "modifier": modifier}
+	if current_abilities.get("implementation", "") == A.ID and identity == "wolf-guard-battle-leader" and unit.get("on_battlefield", true) and s.phase == "fight" and s.squads.has(squad) and not s.squads[squad].fought and int(s.get("fight_selected", -1)) != squad:
+		if not roller.is_valid(): return {"error": "Heroic Last Stand requires the host's D6."}
+		var last_stand_roll: Variant = roller.call()
+		if not last_stand_roll is int or last_stand_roll < 1 or last_stand_roll > 6: return {"error": "Heroic Last Stand dice must be 1–6."}
+		if last_stand_roll >= 2:
+			unit.wounds = 1
+			unit.lingering = true
+			unit.wolf_guard_battle_leader_lingering = true
+			return {"error": "", "held": true, "rule": "heroic-last-stand", "rule_name": "Heroic Last Stand", "roll": last_stand_roll, "modifier": 0}
+		record_destroyed(s, model)
+		return {"error": "", "held": false, "rule": "heroic-last-stand", "rule_name": "Heroic Last Stand", "roll": last_stand_roll, "modifier": 0}
+	if current_abilities.get("implementation", "") == A.ID and identity == "belial" and unit.get("on_battlefield", true) and s.phase == "fight" and s.squads.has(squad) and not s.squads[squad].fought:
+		if not roller.is_valid(): return {"error": "Strikes of Retribution requires the host's D6."}
+		var retribution_roll: Variant = roller.call()
+		if not retribution_roll is int or retribution_roll < 1 or retribution_roll > 6: return {"error": "Strikes of Retribution dice must be 1–6."}
+		if retribution_roll >= 2:
+			unit.wounds = 1
+			unit.lingering = true
+			unit.belial_strikes_lingering = true
+			return {"error": "", "held": true, "rule": "strikes-of-retribution", "rule_name": "Strikes of Retribution", "roll": retribution_roll, "modifier": 0}
+		record_destroyed(s, model)
+		return {"error": "", "held": false, "rule": "strikes-of-retribution", "rule_name": "Strikes of Retribution", "roll": retribution_roll, "modifier": 0}
+	if current_abilities.get("implementation", "") == A.ID and s.phase == "fight" and s.squads.has(squad) and not s.squads[squad].fought and _lazarus_source_active(s, squad, model):
+		if not roller.is_valid(): return {"error": "Intractable Will requires the host's D6."}
+		var intractable_roll: Variant = roller.call()
+		if not intractable_roll is int or intractable_roll < 1 or intractable_roll > 6: return {"error": "Intractable Will dice must be 1–6."}
+		if intractable_roll >= 4:
+			unit.wounds = 1
+			unit.lingering = true
+			unit.lazarus_intractable_lingering = true
+			return {"error": "", "held": true, "rule": "intractable-will", "rule_name": "Intractable Will", "roll": intractable_roll, "modifier": 0}
+		record_destroyed(s, model)
+		return {"error": "", "held": false, "rule": "intractable-will", "rule_name": "Intractable Will", "roll": intractable_roll, "modifier": 0}
 	if current_abilities.get("implementation", "") == A.ID and identity == "captain-titus" and s.phase == "fight" and not s.squads[unit.squad].fought:
 		if not roller.is_valid(): return {"error": "Honour of Ultramar requires the host's D6."}
 		var honour_roll: Variant = roller.call()
@@ -2709,6 +2909,16 @@ static func hold_destroyed(s: Dictionary, model: int, roller: Callable) -> Dicti
 			unit.lingering = true
 			unit.titus_honour_lingering = true
 			return {"error": "", "held": true, "rule": "honour-of-ultramar", "rule_name": "Honour of Ultramar", "roll": honour_roll}
+	if current_abilities.get("implementation", "") == A.ID and s.phase == "fight" and s.squads.has(squad) and not s.squads[squad].fought and int(s.get("fight_selected", -1)) != squad and CrusadeAncient.vengeful_exhortation_active(s, squad):
+		if not roller.is_valid(): return {"error": "Vengeful Exhortation requires the host's D6."}
+		var exhortation_roll: Variant = roller.call()
+		if not exhortation_roll is int or exhortation_roll < 1 or exhortation_roll > 6: return {"error": "Vengeful Exhortation dice must be 1–6."}
+		if exhortation_roll >= 4:
+			unit.wounds = 1
+			unit.lingering = true
+			return {"error": "", "held": true, "rule": "vengeful-exhortation", "rule_name": "Vengeful Exhortation", "roll": exhortation_roll, "modifier": 0}
+		record_destroyed(s, model)
+		return {"error": "", "held": false, "rule": "vengeful-exhortation", "rule_name": "Vengeful Exhortation", "roll": exhortation_roll, "modifier": 0}
 	if not enabled(s): return {"error": "", "held": false}
 	if worthy_active(s, unit.squad):
 		var worthy: Dictionary = s.detachment_stratagems.worthy.get(unit.squad, {})
@@ -2734,17 +2944,66 @@ static func hold_destroyed(s: Dictionary, model: int, roller: Callable) -> Dicti
 static func remove_lingering(s: Dictionary, squad: int = -1) -> void:
 	for model: int in s.units:
 		var unit: Dictionary = s.units[model]
+		if unit.get("murder_maker_lingering", false) and (squad == -1 or unit.squad == squad):
+			unit.wounds = 0
+			unit.erase("murder_maker_lingering")
+			unit.erase("lingering")
+			record_destroyed(s, model)
+		if unit.get("wolf_guard_battle_leader_lingering", false) and (squad == -1 or unit.squad == squad):
+			unit.wounds = 0
+			unit.erase("wolf_guard_battle_leader_lingering")
+			unit.erase("lingering")
+			record_destroyed(s, model)
+		if unit.get("arjac_anvil_lingering", false) and (squad == -1 or unit.squad == squad):
+			unit.wounds = 0
+			unit.erase("arjac_anvil_lingering")
+			unit.erase("lingering")
+			record_destroyed(s, model)
+		if unit.get("astorath_redeemer_lingering", false) and (squad == -1 or unit.squad == squad):
+			unit.wounds = 0
+			unit.erase("astorath_redeemer_lingering")
+			unit.erase("lingering")
+			record_destroyed(s, model)
+		if unit.get("belial_strikes_lingering", false) and (squad == -1 or unit.squad == squad):
+			unit.wounds = 0
+			unit.erase("belial_strikes_lingering")
+			unit.erase("lingering")
+			record_destroyed(s, model)
+		if unit.get("lazarus_intractable_lingering", false) and (squad == -1 or unit.squad == squad):
+			unit.wounds = 0
+			unit.erase("lazarus_intractable_lingering")
+			unit.erase("lingering")
+			record_destroyed(s, model)
 		if unit.get("titus_honour_lingering", false) and (squad == -1 or unit.squad == squad):
 			unit.wounds = 0
 			unit.erase("titus_honour_lingering")
 			unit.erase("lingering")
 			record_destroyed(s, model)
+	for model: int in s.units:
+		if (squad == -1 or int(s.units[model].get("squad", -1)) == squad) and s.units[model].wounds <= 0 and str(s.units[model].get("definition_id", "")).get_slice(":", 3) == "chaplain-grimaldus":
+			for cenobyte: int in ChaplainGrimaldus.destroy_cenobytes(s, model): record_destroyed(s, cenobyte)
 	if not enabled(s): return
 	for model: int in s.units:
 		if s.units[model].get("lingering", false) and (squad == -1 or s.units[model].squad == squad):
 			s.units[model].wounds = 0
 			s.units[model].erase("lingering")
 			record_destroyed(s, model)
+			for cenobyte: int in ChaplainGrimaldus.destroy_cenobytes(s, model): record_destroyed(s, cenobyte)
+
+static func _lazarus_source_active(s: Dictionary, squad: int, destroyed_model: int) -> bool:
+	for source_model: int in s.units:
+		var source: Dictionary = s.units[source_model]
+		if int(source.get("squad", -1)) != squad or str(source.get("definition_id", "")).get_slice(":", 3) != "lazarus": continue
+		if source_model == destroyed_model and source.get("on_battlefield", true): return true
+		if int(source.get("wounds", 0)) > 0 and source.get("on_battlefield", true): return true
+	return false
+
+static func _arjac_anvil_source_active(s: Dictionary, squad: int, destroyed_model: int) -> bool:
+	for source_model: int in s.units:
+		var source: Dictionary = s.units[source_model]
+		if int(source.get("squad", -1)) != squad or str(source.get("definition_id", "")).get_slice(":", 3) != "arjac-rockfist": continue
+		if source.get("on_battlefield", true) and (int(source.get("wounds", 0)) > 0 or source_model == destroyed_model): return true
+	return false
 
 static func record_move(s: Dictionary, squad: int) -> void:
 	if enabled(s) and s.squads.has(squad): s.detachment_stratagems.last_move = {"squad": squad, "owner": s.squads[squad].owner, "phase_key": phase_key(s)}
@@ -2922,10 +3181,19 @@ static func _record_medusa_power_trigger(s: Dictionary, attacker: int, prepared:
 		s.detachment_stratagems.medusa_power_pending = {"phase_key": phase_key(s), "player": reacting_player, "attacker": attacker, "targets": eligible_targets}
 
 static func _dark_angels_unit(s: Dictionary, player: int, squad: int) -> bool:
-	var keywords := unit_keywords(s, squad)
-	if "ADEPTUS ASTARTES" not in keywords: return false
+	if not s.get("squads", {}).has(squad) or int(s.squads[squad].get("owner", -1)) != player: return false
+	var adeptus_astartes := false
+	var explicit_dark_angels := false
+	for model: int in s.get("units", {}):
+		var unit: Dictionary = s.units[model]
+		if int(unit.get("squad", -1)) != squad or int(unit.get("owner", -1)) != player: continue
+		var model_keywords: Array = unit.get("keywords", [])
+		if "ADEPTUS ASTARTES" in model_keywords: adeptus_astartes = true
+		if "DARK ANGELS" in model_keywords: explicit_dark_angels = true
+	if not adeptus_astartes: return false
+	if explicit_dark_angels: return true
 	var chapters: Dictionary = s.get("marine_chapters", {})
-	if "DARK ANGELS" in keywords or str(chapters.get(player, chapters.get(str(player), ""))) == "DARK ANGELS": return true
+	if str(chapters.get(player, chapters.get(str(player), ""))) == "DARK ANGELS": return true
 	for model: int in s.units:
 		if int(s.units[model].get("owner", -1)) == player and "DARK ANGELS" in s.units[model].get("keywords", []): return true
 	return false
@@ -2960,9 +3228,11 @@ static func undying_actor(s: Dictionary) -> int:
 	return -1
 
 static func record_destroyed(s: Dictionary, model: int) -> void:
-	if not enabled(s) or not s.units.has(model): return
+	if not A.enabled(s) or not s.units.has(model): return
 	var unit: Dictionary = s.units[model]
 	if unit.wounds > 0 or unit.get("lingering", false): return
+	WatchCaptainArtemis.record_destroyed(s, model)
+	if not enabled(s): return
 	var squad := int(unit.get("squad", -1))
 	var owner := int(unit.get("owner", -1))
 	if s.squads.has(squad) and living(s, squad).is_empty() and wrath_of_the_rock_enabled(s, owner) and _destroyed_deathwing_or_ravenwing_unit(s, squad, model):

@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "id": "marine-vulkan-hestan-e11-2026-10-27",
+  "source": {
+    "edition": 11,
+    "book_id": "000000139",
+    "datasheet_id": "000002726",
+    "book_name": "App. Space Marines",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Vulkan-He-stan",
+    "checked_at": "2026-10-27",
+    "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; stable Last_update 2026-10-19 03:47:32; live page checked 2026-10-27.",
+    "game_mode": "Standard Warhammer 40,000 11th edition through the local match/action runtime; this is not full-match certification.",
+    "chapter_context": "Shared-book Salamanders Character profile. Chapter roster restrictions and Chapter-specific effects remain outside this local datasheet scope.",
+    "snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851b7c754b4607fa10abac4"
+        }
+      ]
+    }
+  },
+  "fixed_data_comparison": {
+    "status": "passed_profile_comparison",
+    "artifact": ".tools/marine-comparison-20261027-v12.json",
+    "sha256": "30e1b54329013cda755058d3990d397036454346c6c54f2388411f3403021420",
+    "identity": "vulkan-hestan",
+    "source_id": "000002726",
+    "differences": [],
+    "source_option_rows": 0,
+    "profile_full_match_certified": false,
+    "global_full_match_certified": false,
+    "scope": "The per-profile comparison reports no fixed-data differences for identity, numeric profile, keywords, fixed loadout, composition, base and cost. The parent comparator is not globally certified because of unrelated export structural errors; this check does not certify executable rules behavior."
+  },
+  "local_scope_validation": {
+    "status": "passed",
+    "test_file": "tests/test_vulkan_hestan.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_vulkan_hestan --only test_vulkan_hestan_profile_parity --only test_space_marine_leader_links --timeout 300",
+    "artifact": ".tools/verification/20261028T001549947966Z/results.json",
+    "sha256": "179643ff60b9bc543fe662b4420df814cb7e085fd5d49c5101da898570e14564",
+    "processes": [
+      {
+        "name": "import",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "python",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_vulkan_hestan",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_vulkan_hestan_profile_parity",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_space_marine_leader_links",
+        "status": "passed",
+        "exit_code": 0
+      }
+    ],
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "source_bounded_local_scope_validated": true
+  },
+  "scope": [
+    "Exact one-model 105-point profile, source characteristics/keywords, 40 mm base, fixed Bolt Pistol, Gauntlet of the Forge and Spear of Vulkan; verified zero equipment-option rows.",
+    "All three source-listed weapon profiles route through Equipment and AttackPlan, including Close-Quarters, Torrent and Devastating Wounds.",
+    "Both players materialize from current Space Marines catalogs; one-copy admission is checked. All five common-book Leader targets are accepted through the 153-link relation regression; an unlisted Intercessor target is rejected. The Legends Vanguard Veteran pairing is excluded.",
+    "Combat Doctrines and Transhuman Strategist: Warlord selection and once-per-round CP are checked.",
+    "Vulkan has the source Feel No Pain 6+ through the shared prevention resolver; Seeker of the Unfound selects an objective after deployment and conditionally grants OC 10, Leadership 5+ and Feel No Pain 4+ while in objective range, then restores his base profile after leaving.",
+    "Forgefather is selected once in Vulkan’s Shooting phase against one visible enemy within 24 inches. Melta and Torrent attacks gain +2 Strength only against that target for the phase; the test covers visible/range/opaque-terrain rejection, Eradicator Melta and Vulkan’s actual Torrent AttackPlans, and an unmarked target.",
+    "The normalized Seeker deployment decision checks owner and stale-option rejection without mutation and preserves its decision across save/restore."
+  ],
+  "limits": [
+    "The fixed-data comparator reports no Vulkan profile differences, but its global full_match_certified field is false because the parent export has unrelated structural errors; the profile comparison is not a full rules certificate.",
+    "The run is local and offline (network=false); network validation remains deferred to final integration.",
+    "This closes Vulkan’s common-book local datasheet scope only. Salamanders Chapter rules, Vanguard Veteran Legends pairing, cross-sheet list legality, full army legality, complete matches and human playtesting are outside this scope."
+  ],
+  "network_validation": {
+    "status": "deferred_to_final_integration",
+    "passed": false
+  },
+  "full_army_legality_certified": false
+}

@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "datasheet": {
+    "name": "Azrael",
+    "definition_id": "40kdc:11e:adeptus-astartes:azrael",
+    "source_book_id": "000000023",
+    "source_datasheet_id": "000000218",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Azrael",
+    "current_page_checked_at": "2026-10-28",
+    "current_page_revision": "Dark Angels App 2.8.1 (October 2026)",
+    "edition": "11e",
+    "game_mode_scope": "Warhammer 40,000 standard rules; no Boarding Actions or Legends rules",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-28-v93-azrael",
+    "status": "source_bounded_local_scope_passed_2026_10_28"
+  },
+  "source_snapshot": {
+    "provider": "Wahapedia",
+    "edition": "11e",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b",
+    "manifest_path": ".tools/wahapedia/11e/space-marines/20261021T130623Z/manifest.json",
+    "raw_data_committed": false,
+    "files_sha256": {
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_leader.csv": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4",
+      "Abilities.csv": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+    }
+  },
+  "runtime_scope": {
+    "composition": 1,
+    "points_by_models": {"1": 150},
+    "max_supported_copies": 1,
+    "base_size_source_mm": 50,
+    "stats": {
+      "movement_inches": 6,
+      "toughness": 5,
+      "save_target": 2,
+      "wounds": 6,
+      "leadership_target": 6,
+      "objective_control": 1,
+      "invulnerable_target": 4
+    },
+    "keywords": [
+      "INFANTRY", "CHARACTER", "CHAPTER MASTER", "EPIC HERO", "EXPLOSIVES",
+      "DEATHWING", "IMPERIUM", "TACTICUS", "ADEPTUS ASTARTES", "DARK ANGELS"
+    ],
+    "leader_targets": [
+      "assault-intercessor-squad", "bladeguard-veteran-squad", "company-heroes",
+      "hellblaster-squad", "infernus-squad", "intercessor-squad",
+      "sternguard-veteran-squad", "inner-circle-companions"
+    ],
+    "included": [
+      "source profile, fixed Lion's Wrath and Sword of Secrets weapon profiles",
+      "The Lion Helm represented by the 4+ invulnerable save",
+      "Masterful Tactician unit doctrine selection and expiry",
+      "Supreme Grand Master Sustained Hits 1 for the attached unit",
+      "Watcher in the Dark optional use and mortal-wound Feel No Pain 4+",
+      "Combat Doctrines, Transhuman Strategist, current construction catalog and all Leader targets"
+    ],
+    "limits": [
+      "full Dark Angels roster legality is not certified",
+      "full Space Marines army legality is not certified",
+      "network validation is deferred to final integration",
+      "complete-match certification and human playtesting are not included"
+    ]
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_azrael --timeout 300",
+    "report_path": ".tools/verification/20261028T103650933865Z/results.json",
+    "report_sha256": "dd8a31b882ca1f79ddb2d135bfdeac0594157f0b3677764369884c845da0d47",
+    "related_suites": ["test_azrael"],
+    "processes_passed": 3,
+    "network": false,
+    "legacy_starter_staged": false,
+    "headless_rid_cleanup_diagnostics": false
+  },
+  "metadata_verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_capabilities --only test_space_marine_leader_links --timeout 300",
+    "report_path": ".tools/verification/20261028T103807866500Z/results.json",
+    "report_sha256": "fe97346493c612a4ccaf0e9ae51deceb47b88c8196d8eb729b4eb45f828e97d0",
+    "related_suites": ["test_capabilities", "test_space_marine_leader_links"],
+    "processes_passed": 4,
+    "network": false,
+    "legacy_starter_staged": true,
+    "headless_rid_cleanup_diagnostics": false
+  }
+}

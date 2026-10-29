@@ -1,25 +1,133 @@
 {
-  "id": "space-marines-ballistus-dreadnought-e11-audit-2026-10-19",
-  "source_authority": "Wahapedia 11th edition local extraction",
+  "id": "space-marines-ballistus-dreadnought-current-e11-scope",
+  "edition": "11th edition",
+  "source_authority": "Wahapedia 11e shared Space Marines datasheet; facts checked against the verified local Data Export snapshot.",
   "source_book_id": "000000139",
   "source_datasheet_id": "000000091",
+  "source_datasheet_name": "Ballistus Dreadnought",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Ballistus-Dreadnought",
   "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-  "rules_source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Ballistus-Dreadnought",
-  "implementation": "scripts/edition_11/current_reference_marine_profiles.gd; scripts/edition_11/unit_abilities.gd; scripts/edition_11/attack_plan.gd; scripts/edition_11/deadly_demise.gd; scripts/edition_11/core_reactions.gd; scripts/edition_11/combat_scenario.gd; scripts/edition_11/unit_actions.gd; scripts/edition_11/army_capabilities.gd",
-  "validation_artifact": ".tools/verification/20261019T050853510494Z/results.json",
-  "validation_status": "tests_passed_local_targeted",
-  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v25.json",
-  "fixed_data_consistent": true,
-  "implemented_abilities": [
-    "Ballistus Strike: ranged attacks targeting an enemy unit within 24 inches have Sustained Hits 1.",
-    "Damaged 4: while the model has 1–4 wounds remaining, its attacks have -1 to Hit.",
-    "Deadly Demise D3: on a 6 when destroyed, each unit within 6 inches suffers a separately rolled D3 mortal-wound packet; chained Ballistus explosions resolve in sequence."
+  "source_datasheet_export_updated_at": "2026-10-19 03:47:32",
+  "observed_at": "2026-10-27",
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b (URL query parameter)",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ]
+  },
+  "implementation": [
+    "scripts/edition_11/current_reference_marine_profiles.gd",
+    "scripts/edition_11/army_capabilities.gd",
+    "scripts/edition_11/roster_validation.gd",
+    "scripts/edition_11/unit_ability_catalog.gd",
+    "scripts/edition_11/unit_abilities.gd",
+    "scripts/edition_11/attack_plan.gd",
+    "scripts/edition_11/equipment.gd",
+    "scripts/edition_11/deadly_demise.gd",
+    "scripts/edition_11/combat_scenario.gd",
+    "scripts/edition_11/match_command_service.gd",
+    "tests/test_ballistus_dreadnought.gd",
+    "tools/verify.py"
   ],
-  "points": { "first_and_second_copies": 150, "third_plus_copies": 170 },
-  "network_validation": "deferred_not_run",
+  "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_ballistus_dreadnought --only test_ballistus_dreadnought_profile_parity --only test_space_marine_leader_links --timeout 300",
+  "validation_artifact": ".tools/verification/20261027T084333440820Z/results.json",
+  "validation_status": "passed; 5/5 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+  "fixed_data_consistent": true,
+  "weapon_instances_checked": [
+    "Ballistus Lascannon: 48 inches, A2, BS3+, S12, AP-3, D3+3.",
+    "Ballistus Missile Launcher: Frag (48 inches, D6+6, Blast 2, S5, AP-1, D1) and Krak (48 inches, A2, S10, AP-2, D3+3) modes.",
+    "Storm Bolters: 24 inches, A4, BS3+, S5, AP-1, D1, Rapid Fire 4.",
+    "Armoured Feet: melee A5, WS3+, S7, AP0, D1."
+  ],
+  "ability_effects_checked": [
+    "Ballistus Strike adds Sustained Hits 1 to ranged attacks against an enemy unit at or within 24 inches measured base-edge to base-edge, including the calibrated boundary; it ends immediately beyond 24 inches and does not affect melee.",
+    "Damaged 4 applies -1 to Hit at four remaining wounds, ceases at five, and is present in both shooting and melee AttackPlan contexts.",
+    "Deadly Demise D3 checks a roll of 5 versus 6, separately rolled mortal-wound packets for nearby units, defender-owned allocation, chained Ballistus destruction, save/restore of decision/frame identities, and resumption of the suspended attack."
+  ],
+  "construction_checked": {
+    "models": "One Ballistus Dreadnought model.",
+    "base": "90 mm round base.",
+    "first_and_second_copy_points": 150,
+    "third_plus_copy_points": 170,
+    "max_supported_copies": 3,
+    "admission_result": "One copy: 150 points; two: 300; three: 470; a fourth is rejected in the checked local Incursion construction."
+  },
+  "source_options_rows": 0,
+  "current_catalog_for_both_players": true,
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_source_bounded_local_scope_validated": true,
+  "full_army_legality_certified": false,
   "full_match_certified": false,
   "known_scope_limits": [
-    "Full faction and army legality are not certified.",
-    "Full local regression and final network validation remain pending."
-  ]
+    "This closes only the 11th-edition shared-book Ballistus Dreadnought datasheet scope.",
+    "The paired 153-link relation suite checks the shared local Leader/Support map; it does not certify every datasheet or army combination.",
+    "Chapter-book variants, Forge World, Legends, Boarding Actions, full army legality, network behavior, complete-match certification and human playtesting remain outside this result."
+  ],
+  "current_scope_validation": {
+    "observed_at": "2026-10-27",
+    "profile": "ballistus-dreadnought",
+    "test_file": "tests/test_ballistus_dreadnought.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_ballistus_dreadnought --only test_ballistus_dreadnought_profile_parity --only test_space_marine_leader_links --timeout 300",
+    "artifact": ".tools/verification/20261027T084333440820Z/results.json",
+    "status": "passed; 5/5 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "source_scope_summary": "Source identity 000000091 / book 000000139; one model on a 90 mm base, M8/T10/Sv2+/W12/Ld6+/OC4; first-two copies 150 points and third-plus 170; fixed Ballistus Lascannon, Missile Launcher Frag/Krak, Storm Bolters and Armoured Feet; all five weapon modes through Equipment and AttackPlan; Ballistus Strike at/within the measured 24-inch base-edge boundary, stops beyond and excludes melee; Damaged 4 at four/five wounds in actual attack plans; Deadly Demise D3 trigger, separate packets, defender-owned normalized allocation, chained destruction, save/restore and resumed attack; current-catalog construction for both players; local Incursion checks one/two/three copies for 150/300/470 points and rejects a fourth; paired 153-link Leader/Support audit.",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "historical_fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v73.json"
 }

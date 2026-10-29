@@ -1,50 +1,225 @@
 {
-  "id": "outrider-squad-local-audit-2026-10-19-v1",
-  "rules_authority": "Wahapedia 11th-edition local export",
-  "source_book_id": "000000139",
-  "source_datasheet_id": "000002712",
-  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-  "profile_id": "space-marines-e11-fixed-reference-2026-10-19-v51",
-  "profile_digest": "88a05db1fbe13a63462c596fc994965c9e6ac2e79bf477c5fb73df380bc02c87",
-  "roster_digest": "5b30bdf0ddd2004bac07007c0537b7724fcb85d2719b780333a91e487231911f",
-  "comparison_report": ".tools/wahapedia-fixed-data-review-v65.json",
-  "fixed_data_check": {
-    "consistent": true,
-    "numeric_or_identity_differences": 0,
-    "keyword_scope_consistent": true,
-    "weapon_profiles_checked": 7,
-    "default_loadout_consistent": true,
-    "composition_consistent": true,
-    "costs_consistent": true,
-    "snapshot_structurally_valid": true
+  "id": "space-marines-outrider-squad-current-e11-scope",
+  "edition": "11th edition",
+  "source_authority": "Wahapedia 11e shared Space Marines datasheet; checked against the verified local Data Export snapshot and current live datasheet page.",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Outrider-Squad",
+  "observed_at": "2026-10-28",
+  "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; live 11e page checked 2026-10-28; Data Export specification revision 20260817b.",
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b (URL query parameter)",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "relevant_file_hashes": [
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      },
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      }
+    ]
   },
-  "composition": {
-    "models": [3, 6],
-    "points_first_two": {"3": 80, "6": 160},
-    "points_third_plus": {"3": 80, "6": 160},
-    "base_size_source_mm": [90, 52],
-    "base_geometry": "oval",
-    "runtime_geometry": "90mm bounding-circle proxy",
-    "stats": {"M": 12, "T": 6, "Sv": "3+", "W": 4, "Ld": "6+", "OC": 2, "invulnerable": null},
-    "keywords": ["RAVENWING", "MOUNTED", "EXPLOSIVES", "IMPERIUM", "ADEPTUS ASTARTES"]
+  "implementation": [
+    {
+      "path": "scripts/edition_11/current_reference_marine_profiles.gd",
+      "sha256": "49383019550f10314a92fece2b465e81eef2dd9fc46f5dd8b790f3144894513a"
+    },
+    {
+      "path": "scripts/edition_11/army_capabilities.gd",
+      "sha256": "a8bccf1543a4c725a11d0b97eab4885034089ef3e7d9463aa532d9072ab9d377"
+    },
+    {
+      "path": "scripts/edition_11/roster_validation.gd",
+      "sha256": "14f30a3bd4781feaafde312468ee18432147866f46004bf85645cda401b1df96"
+    },
+    {
+      "path": "scripts/edition_11/unit_actions.gd",
+      "sha256": "7a87066e45aa611193d9f9077a4e772d224884fff9cc8f13c212376059963baf"
+    },
+    {
+      "path": "scripts/edition_11/unit_abilities.gd",
+      "sha256": "0172ed93f0df1d385131d8f736a2be49feeb22644afcfe282e78d43d2a22f665"
+    },
+    {
+      "path": "scripts/edition_11/unit_ability_catalog.gd",
+      "sha256": "2e87326d97533478d092b79e81b45361bc8eb5b43e8b4c5fbb73bd47f1cfc62c"
+    },
+    {
+      "path": "scripts/edition_11/attack_plan.gd",
+      "sha256": "0a3bcf2046aec615944e28aaf5299be820f8f6d33f9961d49f9008f0edd59f46"
+    },
+    {
+      "path": "scripts/edition_11/equipment.gd",
+      "sha256": "a747e67cb4c63c8d00379953f89ebd896a52730d76efeeb9fc2359a184bbec44"
+    },
+    {
+      "path": "scripts/edition_11/marine_leader_links.gd",
+      "sha256": "84cd00c910ff133f136d44a59adfd6c0f271ff2a2efd3be412ac04d574fe4d25"
+    },
+    {
+      "path": "scripts/edition_11/support_attachments.gd",
+      "sha256": "d6e3292412a3b7b10f0fe816b4d6a037028c4ffcbd3412130420e7b00022eb67"
+    },
+    {
+      "path": "scripts/edition_11/capabilities.gd",
+      "sha256": "e54ccbae954a5555db4e463d104733c991ff37ed715e4590a0f8d14b89d90f92"
+    },
+    {
+      "path": "tests/test_outrider_squad_current.gd",
+      "sha256": "f6220cf3fde26e124e1e728aff4cd6b7f6b36b15fb6d3f33f6b0df832bd8f146"
+    },
+    {
+      "path": "tests/test_marine_conditional_weapon_traits.gd",
+      "sha256": "f1aefdb80b90bf50c3161c5c949eade3f0ec6fa7d4e966ca117099ff72989ecc"
+    },
+    {
+      "path": "tests/test_space_marine_leader_links.gd",
+      "sha256": "eabe04a92275241e151b3e6d81f43c3287d15c7525443eb517072b74692a79de"
+    },
+    {
+      "path": "tests/space_marine_datasheet_checks.gd",
+      "sha256": "eb64b310e2614278fc26581ebf6ad0afccef5277a514639b6153ea2e47c274da"
+    },
+    {
+      "path": "tests/public_unit_command.gd",
+      "sha256": "a794f809babcaf677bb42bfbb4d2e10575c2e76b4db0fc136ed864417bf9e75f"
+    },
+    {
+      "path": "tests/all_units_fixture.gd",
+      "sha256": "eeba563cd7ededafa4a878443e801c548fea67cb609dec1178717f3f969d0d41"
+    },
+    {
+      "path": "tools/verify.py",
+      "sha256": "01dde7e25f6ed3265c6bc76f5b691af53901ca0fd1de2cb82818476de981d232"
+    }
+  ],
+  "test_file": "tests/test_outrider_squad_current.gd",
+  "scope": "Both source compositions and copy-price tiers; exact profile and every weapon mode; public reversible equipment options and bearer cap; all default and replacement weapon profiles through Equipment/AttackPlan; both Full-throttle Assault branches through prepared melee attacks; contextual Dark Angels Ravenwing; all three shared-book Leader links and public Captain on Bike attachment; both-player current Marine catalogs and local copy admission.",
+  "limits": "The 90 x 52 mm source oval uses a labelled 45 mm bounding-circle proxy. The Dark Angels App Ravenwing Command Squad Support relation is outside this common-book scope. Full faction/army legality, network behavior, complete-match certification and human playtesting remain outside the result; network validation is deferred to final integration.",
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_outrider_squad_current --only test_marine_conditional_weapon_traits --only test_space_marine_leader_links --timeout 300",
+    "result": "passed",
+    "processes": "5/5",
+    "artifact": ".tools/verification/20261028T063311613901Z/results.json",
+    "artifact_sha256": "7447b146a385ff53aba5310c5b5af6c46a33ea2a77564085bbb41cf2f533e12a",
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false
   },
-  "equipment_choices": {
-    "sergeant_melee_replacements": ["Power Weapon", "Thunder Hammer"],
-    "plasma_pistol_replacements": "one model per three unit models; free",
-    "leader_attachments": "not enabled in this increment"
-  },
-  "ability": {
-    "name": "Full-throttle Assault",
-    "charge_condition": "The unit made a Charge move this turn.",
-    "thunder_hammer": "+1 to hit and Sustained Hits 1; no Damage bonus",
-    "other_melee": "+1 Damage and Sustained Hits 1"
-  },
-  "local_validation": {
-    "artifact": ".tools/verification/20261019T093253362330Z/results.json",
-    "passed_processes": 12,
-    "failed_processes": 0,
-    "network_validation": "deferred_not_run",
-    "scope": ["import", "python", "startup", "test_actions", "test_army_builder", "test_attack_plan", "test_capabilities", "test_current_unit_abilities", "test_implemented_catalog", "test_outrider_squad_current", "test_roster_validation", "test_saved_armies"]
-  },
-  "limits": ["Oval-base placement uses a circular proxy.", "Outrider leader attachments are not enabled.", "Full faction and army legality are not certified.", "Network validation is deferred to final integration." ]
+  "verified_profile": {
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002712",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "composition": {
+      "unit": "1 Outrider Sergeant and 2-5 Outriders",
+      "models": [
+        3,
+        6
+      ],
+      "points_first_two": {
+        "3": 80,
+        "6": 160
+      },
+      "points_third_plus": {
+        "3": 80,
+        "6": 160
+      }
+    },
+    "base": {
+      "source_mm": [
+        90,
+        52
+      ],
+      "source_geometry": "oval",
+      "runtime_geometry": "45 mm bounding-circle collision proxy; approximation, not exact oval collision"
+    },
+    "characteristics": {
+      "movement_inches": 12,
+      "toughness": 6,
+      "save": "3+",
+      "wounds": 4,
+      "leadership": "6+",
+      "objective_control": 2,
+      "invulnerable_save": null
+    },
+    "source_keywords": [
+      "MOUNTED",
+      "EXPLOSIVES",
+      "IMPERIUM",
+      "RAVENWING",
+      "ADEPTUS ASTARTES"
+    ],
+    "fixed_weapons": [
+      "Heavy Bolt Pistol",
+      "Twin Bolt Rifle",
+      "Chainsword"
+    ],
+    "options": [
+      {
+        "choice": "Outrider Sergeant replaces Chainsword with Power Weapon or Thunder Hammer",
+        "cost": 0
+      },
+      {
+        "choice": "One model per three unit models replaces Heavy Bolt Pistol with Plasma Pistol",
+        "cost": 0,
+        "plasma_profiles": [
+          "Standard",
+          "Supercharge"
+        ]
+      }
+    ],
+    "ability": {
+      "name": "Full-throttle Assault",
+      "charge_condition": "The unit made a Charge move this turn",
+      "thunder_hammer": "+1 to Hit and Sustained Hits 1; no Damage bonus",
+      "other_melee": "+1 Damage and Sustained Hits 1"
+    },
+    "shared_book_leaders": [
+      "Captain on Bike",
+      "Chaplain on Bike",
+      "Suboden Khan"
+    ],
+    "support": "No common-book Support target. Ravenwing Command Squad is a Dark Angels App relation outside the common 85-sheet catalog.",
+    "contextual_keyword": "RAVENWING is conditional on Dark Angels context."
+  }
 }

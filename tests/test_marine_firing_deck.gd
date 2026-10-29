@@ -16,9 +16,9 @@ func entry(identity: String, models: int = 1) -> Dictionary:
 	return {"definition_id": "40kdc:11e:adeptus-astartes:" + identity, "models": models, "copies": 1}
 
 func make_state() -> Dictionary:
-	var selections := Fixture.selections()
+	var selections := Fixture.current_marine_selections()
 	selections[1].entries = [entry("captain"), entry("rhino"), entry("intercessor-squad", 5), entry("assault-intercessor-squad", 5)]
-	selections[2].entries = [{"definition_id": "40kdc:11e:necrons:necron-warriors", "models": 10, "copies": 1}]
+	selections[2].entries = [entry("intercessor-squad", 5)]
 	var state := Fixture.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, selections)
 	if state.has("error"): return state
 	state.mission.stage = "battle"

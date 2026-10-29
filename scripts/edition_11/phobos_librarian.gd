@@ -1,5 +1,5 @@
 extends RefCounted
-## Librarian in Phobos Armour's pre-attack Shrouding decision and psychic roll.
+## Pre-attack psychic defence choices for Shrouding and Ezekiel's Whispers.
 const A = preload("res://scripts/edition_11/unit_abilities.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
@@ -11,8 +11,17 @@ static func phase_key(state: Dictionary) -> String:
 static func used_key(state: Dictionary, squad: int) -> String:
 	return "librarius:%d:%d" % [squad, state.round]
 
+static func whispers_used_key(state: Dictionary, squad: int) -> String:
+	return "whispers:%d:%s" % [squad, phase_key(state)]
+
 static func available(state: Dictionary, squad: int) -> bool:
+	return shrouding_available(state, squad) or whispers_available(state, squad)
+
+static func shrouding_available(state: Dictionary, squad: int) -> bool:
 	return A.has(state, squad, "shrouding") and not state.squads[squad].battle_shocked and not A.sources(state, squad, "librarius").is_empty() and not state.unit_abilities.used.has(used_key(state, squad))
+
+static func whispers_available(state: Dictionary, squad: int) -> bool:
+	return A.has(state, squad, "whispers-of-the-shadow-forest") and not state.squads[squad].battle_shocked and not state.unit_abilities.used.has(whispers_used_key(state, squad))
 
 static func offer(state: Dictionary, declaration: Dictionary, targets: Array) -> bool:
 	if state.phase not in ["shooting", "fight"]: return false
@@ -31,25 +40,32 @@ static func choices(state: Dictionary, player: int) -> Array:
 	if window.get("kind", "") != "phobos-shrouding" or window.get("owners", [-1])[0] != player or window.get("remaining", []).is_empty(): return result
 	var squad: int = window.remaining[0]
 	if available(state, squad):
-		var librarian: int = A.sources(state, squad, "shrouding")[0]
-		result.append({"label": "Shrouding %d: Psychic roll (-1 to hit against %s this phase)" % [librarian, state.squads[squad].name], "action": "phobos-shrouding", "model": librarian, "target": squad, "value": "use"})
-	result.append({"label": "Decline Shrouding for %s" % state.squads[squad].name, "action": "phobos-shrouding", "model": -1, "target": squad, "value": "pass"})
+		if shrouding_available(state, squad):
+			var librarian: int = A.sources(state, squad, "shrouding")[0]
+			result.append({"label": "Shrouding %d: Psychic roll (-1 to hit against %s this phase)" % [librarian, state.squads[squad].name], "action": "phobos-shrouding", "model": librarian, "target": squad, "value": "use"})
+		elif whispers_available(state, squad):
+			var source: int = A.sources(state, squad, "whispers-of-the-shadow-forest")[0]
+			result.append({"label": "Whispers of the Shadow Forest %d: Psychic roll (-1 to hit against %s this phase)" % [source, state.squads[squad].name], "action": "phobos-shrouding", "model": source, "target": squad, "value": "whispers"})
+	var decline_name := "Shrouding" if A.has(state, squad, "shrouding") else "Whispers of the Shadow Forest"
+	result.append({"label": "Decline %s for %s" % [decline_name, state.squads[squad].name], "action": "phobos-shrouding", "model": -1, "target": squad, "value": "pass"})
 	return result
 
 static func choose(state: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
 	var window: Dictionary = state.unit_abilities.get("window", {})
 	if window.get("kind", "") != "phobos-shrouding" or window.get("owners", [-1])[0] != player or window.get("remaining", []).is_empty(): return {"error": "There is no matching Shrouding trigger."}
 	var squad: int = int(window.remaining[0])
-	if selected.target != squad or selected.value not in ["use", "pass"]: return {"error": "Choose the current Shrouding trigger."}
-	if selected.value == "use":
-		if not available(state, squad) or selected.model not in A.sources(state, squad, "shrouding"): return {"error": "Shrouding is unavailable for this unit."}
+	if selected.target != squad or selected.value not in ["use", "whispers", "pass"]: return {"error": "Choose the current psychic defence trigger."}
+	if selected.value in ["use", "whispers"]:
+		var is_whispers: bool = selected.value == "whispers"
+		var ability := "whispers-of-the-shadow-forest" if is_whispers else "shrouding"
+		if not (whispers_available(state, squad) if is_whispers else shrouding_available(state, squad)) or selected.model not in A.sources(state, squad, ability): return {"error": "This psychic defence is unavailable for the selected unit."}
 		var psychic_roll := RandomStat.roll("D6", roller)
 		if not psychic_roll.error.is_empty(): return psychic_roll
-		state.unit_abilities.used[used_key(state, squad)] = "shrouding"
+		state.unit_abilities.used[whispers_used_key(state, squad) if is_whispers else used_key(state, squad)] = "whispers-of-the-shadow-forest" if is_whispers else "shrouding"
 		if not state.unit_abilities.has("shrouded_targets"): state.unit_abilities.shrouded_targets = {}
 		state.unit_abilities.shrouded_targets[squad] = {"phase_key": phase_key(state), "source": selected.model}
 		if not state.unit_abilities.has("librarius_results"): state.unit_abilities.librarius_results = []
-		state.unit_abilities.librarius_results.append({"squad": squad, "power": "shrouding", "roll": psychic_roll.value, "battle_shocked": psychic_roll.value == 1})
+		state.unit_abilities.librarius_results.append({"squad": squad, "power": "whispers-of-the-shadow-forest" if is_whispers else "shrouding", "roll": psychic_roll.value, "battle_shocked": psychic_roll.value == 1})
 		if psychic_roll.value == 1:
 			state.squads[squad].battle_shocked = true
 			Actions.interrupt(state, squad, "unit became battle-shocked")

@@ -20,9 +20,9 @@ static func choices(state: Dictionary, player: int) -> Array[Dictionary]:
 	var batch := pending(state)
 	var current: Dictionary = batch.get("current_result", {})
 	var squad := int(current.get("squad", -1))
-	if squad < 0 or player != int(batch.get("decision_owner", -1)) or not MarineEnhancements.tempered_in_battle_active(state, squad): return result
+	if squad < 0 or player != int(batch.get("decision_owner", -1)) or not MarineEnhancements.leadership_reroll_available(state, squad): return result
 	result.append({"label": "Keep %s's Battle-shock result" % str(state.squads[squad].get("name", "unit")), "action": "command-battle-shock-decision", "model": -1, "target": squad, "value": "keep"})
-	result.append({"label": "Tempered in Battle: re-roll both Leadership dice for %s" % str(state.squads[squad].get("name", "unit")), "action": "command-battle-shock-decision", "model": -1, "target": squad, "value": "tempered-in-battle"})
+	result.append({"label": "%s: re-roll both Leadership dice for %s" % [MarineEnhancements.leadership_reroll_name(state, squad), str(state.squads[squad].get("name", "unit"))], "action": "command-battle-shock-decision", "model": -1, "target": squad, "value": "tempered-in-battle"})
 	return result
 
 static func pending_decision(state: Dictionary) -> Dictionary:
@@ -59,11 +59,11 @@ static func resolve(state: Dictionary, player: int, selected: Dictionary, revisi
 	if player != int(batch.get("decision_owner", -1)) or player != int(state.squads[squad].get("owner", -1)): return {"error": "This Leadership decision belongs to the tested unit's controller."}
 	if selected not in choices(state, player) or int(selected.get("target", -1)) != squad: return {"error": "Choose a legal option for the current Command Battle-shock result."}
 	if selected.get("value", "") == "tempered-in-battle":
-		if not MarineEnhancements.tempered_in_battle_active(state, squad): return {"error": "Tempered in Battle no longer applies to this Leadership roll."}
+		if not MarineEnhancements.leadership_reroll_available(state, squad): return {"error": "No eligible Leadership re-roll applies to this roll."}
 		var rerolled := Morale.roll_battle_shock(state, squad, roller, int(current.get("modifier", 0)))
 		if not rerolled.get("error", "").is_empty(): return rerolled
 		rerolled["rerolled_from"] = current.get("rolls", []).duplicate()
-		rerolled["reroll_source"] = "tempered-in-battle"
+		rerolled["reroll_source"] = MarineEnhancements.leadership_reroll_name(state, squad)
 		current = rerolled
 	elif selected.get("value", "") == "keep":
 		current["reroll_declined"] = true
@@ -82,7 +82,7 @@ static func _pump(state: Dictionary, roller: Callable) -> Dictionary:
 			continue
 		var result := Morale.roll_battle_shock(state, squad, roller)
 		if not result.get("error", "").is_empty(): return result
-		if MarineEnhancements.tempered_in_battle_active(state, squad):
+		if MarineEnhancements.leadership_reroll_available(state, squad):
 			batch["current_result"] = result
 			batch["decision_owner"] = int(state.squads[squad].get("owner", -1))
 			return {"error": "", "pending": true}

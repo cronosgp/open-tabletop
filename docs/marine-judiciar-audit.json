@@ -1,67 +1,229 @@
 {
-  "id": "marine-judiciar-e11-2026-10-18",
-  "edition": "11e",
-  "source_book_id": "000000139",
-  "datasheet_id": "000002707",
-  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Judiciar",
-  "export_updated_at": "2026-10-16T21:03:46+03:00",
-  "data_comparison": {
-    "status": "passed",
-    "numeric_checks": 24,
-    "errors": [],
-    "source_catalog_sha256": "c88415a35692cb7d70022cf6af1050244c72713f72230c2bffb74d89bcb90c35",
-    "runtime_sha256": "bbdeaae0739ccf0082ee53ff7c449a97ef20af769f3b2a048bc41998a9025ef7",
-    "conditional_save_description": "Against melee attacks only",
-    "float_absolute_tolerance": 1e-12
+  "schema_version": 1,
+  "id": "marine-judiciar-e11-2026-10-27",
+  "source": {
+    "edition": 11,
+    "book_id": "000000139",
+    "datasheet_id": "000002707",
+    "book_name": "App. Space Marines",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Judiciar",
+    "checked_at": "2026-10-27",
+    "runtime_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026 source identity audit; stable Last_update 2026-10-19 03:47:32; live page checked 2026-10-27.",
+    "chapter_context": "Shared-book Adeptus Astartes profile. Black Templars, Dark Angels, Deathwatch and Legends Support targets are outside this local shared-book scope.",
+    "game_mode": "Standard Warhammer 40,000 11th edition, exercised in a 1000-point Incursion training match; Boarding Actions is outside scope.",
+    "snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    }
   },
-  "implementation": {
-    "profiles": "space-marines-e11-fixed-reference-2026-10-18-v11",
-    "unit_abilities": "track-a-current-datasheets-2026-10-v13",
-    "construction": "incursion-fixed-rosters-mfm1.6-2026-10-18-v11"
-  },
-  "local_validation": {
+  "fixed_data_comparison": {
     "status": "passed",
-    "reports": [
+    "artifact": ".tools/marine-comparison-20261027-v12.json",
+    "sha256": "30e1b54329013cda755058d3990d397036454346c6c54f2388411f3403021420",
+    "identity": "judiciar",
+    "differences": [],
+    "weapon_trait_scope_consistent": true,
+    "keyword_scope_consistent": true,
+    "loadout_consistent": true,
+    "composition_consistent": true,
+    "cost_consistent": true,
+    "scope": "Fixed characteristics, conditional melee invulnerable-save field, keywords, fixed weapons and mapped weapon traits, composition, base, and source-listed cost only. Executable ability and Support behavior is covered by the dedicated local suite."
+  },
+  "local_scope_validation": {
+    "status": "passed",
+    "test_file": "tests/test_judiciar.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_judiciar --only test_judiciar_profile_parity --only test_space_marine_leader_links --timeout 300",
+    "artifact": ".tools/verification/20261027T231150548787Z/results.json",
+    "sha256": "1e67c8aa3925cf6e129c9aae80e2559c7a2a2e1f81675da1fc5f8a3c94e6a8fe",
+    "processes": [
       {
-        "report": ".tools/verification/20261018T160139306784Z/results.json",
-        "sha256": "8d7979a096e8c7f185000641e25e9c8c8164a3b4936bbb5249a2e446d89cf889",
+        "name": "import",
         "status": "passed",
-        "processes": 24
+        "exit_code": 0
       },
       {
-        "report": ".tools/verification/20261018T160505630896Z/results.json",
-        "sha256": "c465d2e1aa9961baae86d6a02a148422627e24ea0396aa7e7b71e1d4832981a5",
+        "name": "python",
         "status": "passed",
-        "processes": 6,
-        "scope": "Final alias-format assertion, Judiciar suite, army builder, prepared match and UI startup after conditional-save copy update"
+        "exit_code": 0
+      },
+      {
+        "name": "test_judiciar",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_judiciar_profile_parity",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_space_marine_leader_links",
+        "status": "passed",
+        "exit_code": 0
       }
     ],
-    "python_checks": 30,
-    "broad_godot_suites": 21
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "source_bounded_local_scope_validated": true
   },
+  "scope": [
+    "One-model 50-point profile, 40 mm base, source characteristics, exact non-faction and faction keywords, fixed loadout and no equipment-option rows.",
+    "Absolvor Bolt Pistol and Executioner Relic Blade through Equipment and AttackPlan, including Close-quarters, Precision and Devastating Wounds.",
+    "Consolidated local catalog resolution, fixed one-model cost and current Space Marines rosters materialized for both players.",
+    "Support role, checked-roster requirement to attach, normalized owner-checked attachment, separate Leader slot, and all five common-book Support targets; the shared relation suite checks all 153 common-book Leader/Support links.",
+    "Melee-only 4+ invulnerable save in grouped, automatic and manual allocation paths; preservation of a better universal save; validation of malformed conditional defense; and no sharing to bodyguards.",
+    "Tempormortis grants Fights First while the Judiciar is alive and on the battlefield, stops when the source leaves or is destroyed, respects the current implementation gate, and preserves charge, opposing-player selection and independent Fights First priorities."
+  ],
+  "limits": [
+    "Closes only the Judiciar shared-book local datasheet scope.",
+    "The seven other source-listed Support targets belong to Black Templars, Dark Angels, Deathwatch or Warhammer Legends and are outside the common-book construction catalog.",
+    "Does not certify chapter interactions, full faction/army legality, network behavior, complete matches or human playtesting; network validation remains deferred to final integration."
+  ],
   "network_validation": {
     "status": "deferred_to_final_integration_by_user",
     "passed": false
   },
-  "full_match_certified": false,
-  "full_faction_certified": false,
-  "visual_review": {
-    "kind": "staged admitted-profile attached formation",
-    "viewport": [
-      1600,
-      1000
+  "full_army_legality_certified": false,
+  "source_profile_check": {
+    "source_profile": "Judiciar",
+    "composition": [
+      "1 Judiciar model"
     ],
-    "before": ".tools/judiciar-defense-before.png",
-    "after": ".tools/judiciar-defense-after.png",
-    "before_sha256": "9e8ad50932f98a202e5b0a862c1faff6cdc59c4b16ef49372cd798056fb55e94",
-    "after_sha256": "10d6d55c38a16c114aa338be8e648313349d0917db8ef1dd79778a21ff101ff9",
-    "inspected": true,
-    "matched_framing": true,
-    "other_viewports_checked": false
-  },
-  "limits": [
-    "Shared datasheet and admitted bodyguards only; Bladeguard and chapter/Legends variants remain excluded",
-    "Current unit subset does not establish full army legality",
-    "Network validation deferred"
-  ]
+    "fixed_costs": {
+      "1 model": 50
+    },
+    "equipment_option_rows": [],
+    "fixed_equipment": [
+      "Absolvor Bolt Pistol",
+      "Executioner Relic Blade"
+    ],
+    "support_source_rows": [
+      {
+        "attached_id": "000001606",
+        "name": "Assault Intercessor Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000000071",
+        "name": "Bladeguard Veteran Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000000126",
+        "name": "Infernus Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000001157",
+        "name": "Intercessor Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000002255",
+        "name": "Sternguard Veteran Squad",
+        "source_book_id": "000000139"
+      }
+    ],
+    "excluded_support_source_rows": [
+      {
+        "attached_id": "000002799",
+        "name": "Crusader Squad",
+        "source_book_id": "000000162",
+        "reason": "Black Templars chapter book"
+      },
+      {
+        "attached_id": "000002798",
+        "name": "Sword Brethren Squad",
+        "source_book_id": "000000162",
+        "reason": "Black Templars chapter book"
+      },
+      {
+        "attached_id": "000003698",
+        "name": "Inner Circle Companions",
+        "source_book_id": "000000023",
+        "reason": "Dark Angels chapter book"
+      },
+      {
+        "attached_id": "000002783",
+        "name": "Deathwatch Veterans",
+        "source_book_id": "000000035",
+        "reason": "Deathwatch chapter book"
+      },
+      {
+        "attached_id": "000004175",
+        "name": "Decimus Kill Team",
+        "source_book_id": "000000035",
+        "reason": "Deathwatch chapter book"
+      },
+      {
+        "attached_id": "000002780",
+        "name": "Fortis Kill Team",
+        "source_book_id": "000000035",
+        "reason": "Deathwatch chapter book"
+      },
+      {
+        "attached_id": "000001154",
+        "name": "Vanguard Veteran Squad",
+        "source_book_id": "000000356",
+        "reason": "Warhammer Legends"
+      }
+    ]
+  }
 }

@@ -1,0 +1,137 @@
+{
+  "id": "marine-corvus-blackstar-e11-local-audit-2026-10-29",
+  "rules_authority": "Wahapedia 11th edition current Space Marines faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Deathwatch",
+    "book_id": "000000035",
+    "book_type": "App",
+    "datasheet_id": "000000358",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Corvus-Blackstar",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "current_page_checked_at": "2026-10-29",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "retrieved_at_utc": "2026-10-29T00:31:24Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_manifest_sha256": "fb094a1ec9d55c54de7d19d3b0b61f4d7517c00341bfa3c331b5d32d6109530b",
+    "slice_subject_datasheet_ids": [
+      "000000358"
+    ],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "parent_snapshot_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Abilities.csv": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "d08fd3ae3ac7102238a52b072170af6a663b248f98185b7cf676d4fa464dc14d",
+      "Datasheets.csv": "a16bd9c5e5e36b43aa2ef6ba479f0002210287808b17dedf2c20cc3e2d1011ef",
+      "Datasheets_abilities.csv": "cb4526bb4e6080f9122fb95f4febb11e40f51b0ccf4f0f128ca308fdd1d37782",
+      "Datasheets_keywords.csv": "66f2626d7af9b6bca8ce82c9ec937b3d5c3d0c7871acc781539e8e78cb5a98f0",
+      "Datasheets_models.csv": "5d2fb8383c8ad5740ed2e0b28f43b1809ec57884068c68ae087df9c5c3349d2a",
+      "Datasheets_options.csv": "ec4925d3844a8a65575e8d52b24134f46d5eefb7e57c39da63b0ddeb070c7766",
+      "Datasheets_wargear.csv": "22a62c6965b77cebfd70629daabaa92ca97599b19dcc6abdccd4c2a6debbcf5e",
+      "Datasheets_unit_composition.csv": "6c56ae6aec13c3b15adbe72e371635f70cdd805737413a53e81e739b68ed97c0",
+      "Datasheets_models_cost.csv": "b326d42f42afaf3693f921874d80d972fd8329bcf2e7bf225b0d790dfe867f64",
+      "Abilities.csv": "7d8bdf1e8927a6c68ab543418a7100f335c542e1792c5a6dc81d5a9bacc5894d",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    }
+  },
+  "source_checked_facts": {
+    "points": 180,
+    "models": 1,
+    "characteristics": {
+      "movement_inches": 14,
+      "toughness": 10,
+      "save_target": 3,
+      "wounds": 14,
+      "leadership_target": 6,
+      "objective_control": 0
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "DEATHWATCH",
+      "FLY",
+      "IMPERIUM",
+      "SMOKE",
+      "TRANSPORT",
+      "VEHICLE"
+    ],
+    "hover_retained": true,
+    "aircraft_keyword_absent_after_erratum": true,
+    "transport": {
+      "capacity": 12,
+      "required": [
+        "DEATHWATCH",
+        "INFANTRY"
+      ],
+      "double_space": [
+        "GRAVIS",
+        "JUMP PACK",
+        "TERMINATOR"
+      ]
+    },
+    "abilities": [
+      "Damaged 5",
+      "Deadly Demise D6",
+      "Hover",
+      "Stealth",
+      "Combat Doctrines",
+      "Blackstar Cluster Launcher",
+      "Auspex Array"
+    ]
+  },
+  "runtime_scope": {
+    "identity": "corvus-blackstar",
+    "status": "source_bounded_local_scope_passed_2026_10_29",
+    "implemented": [
+      "fixed characteristics and source cost",
+      "source weapons and loadout choices",
+      "paired replacement of both rocket launchers",
+      "transport capacity and model-space costs",
+      "Hover and Stealth gates",
+      "Damaged 5 and Deadly Demise D6",
+      "Auspex Ignores Cover on all ranged profiles",
+      "optional Blackstar Cluster Launcher rolls and mortal-wound allocation"
+    ],
+    "geometry_limit": "Movement-over detection tests each recorded 2D route segment using a 60 mm bounding-circle proxy for the 120 x 92 mm oval; vertical separation and exact oval footprint are not modeled.",
+    "full_match_certified": false,
+    "network_validation": "deferred"
+  },
+  "verification": {
+    "profile": "targeted",
+    "report": ".tools/verification/20261029T014037131740Z/results.json",
+    "report_sha256": "208952A8F4E703098FD80F8F434288DE8A3D4E7948AAFA390EA7FE5FDB11E24D",
+    "network": false,
+    "selected_suites": [
+      "test_corvus_blackstar",
+      "test_marine_transport_admission",
+      "test_marine_transport_profiles",
+      "test_marine_transport_weapon_options",
+      "test_marine_transport_rules",
+      "test_marine_transport_destruction",
+      "test_core_reactions",
+      "test_implemented_catalog",
+      "test_capabilities"
+    ],
+    "focused_test": "tests/test_corvus_blackstar.gd",
+    "outcome": "passed_11_of_11_processes_locally"
+  }
+}

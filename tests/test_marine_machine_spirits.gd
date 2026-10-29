@@ -15,7 +15,10 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 
 func make_state(identity: String, target_keywords: Array = ["INFANTRY"], target_x: float = 0.0) -> Dictionary:
-	var state := F.fresh()
+	var state := F.P.initial_state({"unit_abilities": true, "reanimation_protocols": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true, "attack_rerolls": true, "manual_allocation": false}, F.current_marine_selections())
+	if state.has("error"):
+		push_error("Current-catalog fixtures could not initialize: " + str(state.error))
+		return state
 	state.units.clear()
 	state.squads.clear()
 	state.phase = "shooting"

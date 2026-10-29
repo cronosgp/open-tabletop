@@ -22,6 +22,12 @@ The planner preserves Extra Attacks assignments when changing the ordinary weapo
 
 Selection traits are checked before pooling identical attack properties. Different ordinary and extra weapons may then share a pool. Their physical instances remain distinct for assignments, attack counts and Hazardous tests. Defender-selected allocation resolves every pool before finishing the unit's single fight activation.
 
+## Conditional attack traits
+
+Anti-X requires the defending unit to have the named keyword; the matching unmodified Wound threshold becomes a Critical Wound. The attack resolver admits Anti-Psyker alongside Anti-Monster and Anti-Vehicle and uses the target's actual keywords. Lazarus's Enmity's Edge Anti-PSYKER 2+ is covered against PSYKER and non-PSYKER targets by the attack-sequence regression and its fixed profile through AttackPlan. Unknown Anti keywords remain explicit validation blockers.
+
+Lance adds 1 to Wound only when the attacking unit made a Charge move this turn. Lance is accepted by weapon import and validation, then applied when building the attack plan; Suboden's Stormtooth test checks the charged condition. This is the core weapon rule, separate from any other ability that grants a weapon Lance.
+
 ## Validation and scope
 
 The implementation follows [Core Rules §§04.01.03, 24.11 and 24.11.01](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/). Weapon selection introduced protocol v18; the current advanced-defense increment uses v21. Both peers need the updated build.

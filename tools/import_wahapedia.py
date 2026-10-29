@@ -135,20 +135,27 @@ def is_wahapedia_e11_manifest(manifest):
 
 
 def load_snapshot(path):
-    """Verify raw hashes before returning captured or explicitly scoped tables."""
+    """Verify hashes from captures, direct local exports, or scoped slices."""
     root = Path(path)
     manifest_bytes = (root / "manifest.json").read_bytes()
     manifest = json.loads(manifest_bytes)
     if not is_wahapedia_e11_manifest(manifest):
         raise ValueError("Expected a Wahapedia e11 snapshot")
-    allow_empty = manifest.get("artifact_type") == "scoped_audit_slice"
+    direct_export = not (root / "raw").is_dir()
+    data_root = root if direct_export else root / "raw"
+    allow_empty = direct_export or manifest.get("artifact_type") == "scoped_audit_slice"
     tables = {}
     for name in HEADERS:
-        data = (root / "raw" / (name + ".csv")).read_bytes()
-        if sha(data) != manifest["files"][name]["sha256"]:
+        data = (data_root / (name + ".csv")).read_bytes()
+        expected_sha = manifest_file_hash(manifest, name)
+        if not expected_sha:
+            raise ValueError(f"Snapshot manifest has no hash for {name}.csv")
+        if sha(data) != expected_sha:
             raise ValueError(f"Changed snapshot file: {name}")
         tables[name] = parse(name, data, allow_empty=allow_empty)
-    if timestamp(tables["Last_update"]) != manifest["export_updated_at"]:
+    actual_export_time = datetime.fromisoformat(timestamp(tables["Last_update"]))
+    expected_export_time = datetime.fromisoformat(manifest["export_updated_at"])
+    if actual_export_time != expected_export_time:
         raise ValueError("Export timestamp disagrees with manifest")
     if "catalog_sha256" in manifest:
         if sha((root / "catalog.json").read_bytes()) != manifest["catalog_sha256"]:

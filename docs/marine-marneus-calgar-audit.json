@@ -1,0 +1,351 @@
+{
+  "identity": "marneus-calgar",
+  "source": {
+    "authority": "Wahapedia 11th-edition local export",
+    "source_book_id": "000000139",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+    "specification_revision": "20260817b",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ],
+    "datasheet_id": "000004246",
+    "runtime_profile_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Marneus-Calgar"
+  },
+  "scope": {
+    "models": 1,
+    "base": "50 mm",
+    "points": 180,
+    "characteristics": {
+      "M": 6,
+      "T": 6,
+      "Sv": "2+",
+      "W": 6,
+      "Ld": "6+",
+      "OC": 1,
+      "invulnerable_save": "4+"
+    },
+    "runtime_keywords": [
+      "ADEPTUS ASTARTES",
+      "ULTRAMARINES",
+      "IMPERIUM",
+      "TERMINATOR",
+      "EPIC HERO",
+      "CHARACTER",
+      "CHAPTER MASTER",
+      "INFANTRY"
+    ],
+    "source_core_abilities": [
+      {
+        "name": "Deep Strike",
+        "parameter": ""
+      },
+      {
+        "name": "Leader",
+        "parameter": ""
+      }
+    ],
+    "source_army_rules": [
+      "Combat Doctrines",
+      "Transhuman Strategist"
+    ],
+    "source_datasheet_abilities": [
+      "Codex Adept",
+      "Master Tactician",
+      "Thunderhawk Insertion"
+    ],
+    "weapons": [
+      "Gauntlets of Ultramar",
+      "Gauntlets of Ultramar",
+      "Gauntlets of Ultramar - Overhead Smash"
+    ],
+    "source_options_rows": 0,
+    "source_leader_rows": 14,
+    "common_book_leader_targets": [
+      {
+        "name": "Heavy Intercessor Squad",
+        "source_book_id": "000000139",
+        "datasheet_id": "000001177"
+      },
+      {
+        "name": "Eradicator Squad with Heavy Bolters",
+        "source_book_id": "000000139",
+        "datasheet_id": "000004231"
+      },
+      {
+        "name": "Terminator Squad",
+        "source_book_id": "000000139",
+        "datasheet_id": "000001183"
+      },
+      {
+        "name": "Assault Intercessor Squad",
+        "source_book_id": "000000139",
+        "datasheet_id": "000001606"
+      },
+      {
+        "name": "Aggressor Squad",
+        "source_book_id": "000000139",
+        "datasheet_id": "000002099"
+      },
+      {
+        "name": "Terminator Assault Squad",
+        "source_book_id": "000000139",
+        "datasheet_id": "000000118"
+      },
+      {
+        "name": "Victrix Honour Guard",
+        "source_book_id": "000000139",
+        "datasheet_id": "000004185"
+      },
+      {
+        "name": "Eradicator Squad with Melta Rifles",
+        "source_book_id": "000000139",
+        "datasheet_id": "000004249"
+      },
+      {
+        "name": "Infernus Squad",
+        "source_book_id": "000000139",
+        "datasheet_id": "000000126"
+      },
+      {
+        "name": "Bladeguard Veteran Squad",
+        "source_book_id": "000000139",
+        "datasheet_id": "000000071"
+      },
+      {
+        "name": "Sternguard Veteran Squad",
+        "source_book_id": "000000139",
+        "datasheet_id": "000002255"
+      },
+      {
+        "name": "Intercessor Squad",
+        "source_book_id": "000000139",
+        "datasheet_id": "000001157"
+      },
+      {
+        "name": "Company Heroes",
+        "source_book_id": "000000139",
+        "datasheet_id": "000002772"
+      }
+    ],
+    "out_of_scope_leader_targets": [
+      {
+        "name": "Vanguard Veteran Squad",
+        "source_book_id": "000000356",
+        "datasheet_id": "000001154"
+      }
+    ],
+    "source_keywords": [
+      {
+        "keyword": "Adeptus Astartes",
+        "is_faction_keyword": true
+      },
+      {
+        "keyword": "Ultramarines",
+        "is_faction_keyword": true
+      },
+      {
+        "keyword": "Imperium",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Terminator",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Epic Hero",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Character",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Chapter Master",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Infantry",
+        "is_faction_keyword": false
+      }
+    ]
+  },
+  "source_weapons": [
+    {
+      "name": "Gauntlets of Ultramar",
+      "type": "Ranged",
+      "range": "18",
+      "attacks": "4",
+      "skill": "2",
+      "strength": "5",
+      "ap": "-2",
+      "damage": "2",
+      "description": "CLOSE-QUARTERS, Twin-linked"
+    },
+    {
+      "name": "Gauntlets of Ultramar",
+      "type": "Melee",
+      "range": "Melee",
+      "attacks": "6",
+      "skill": "2",
+      "strength": "10",
+      "ap": "-3",
+      "damage": "3",
+      "description": "Twin-linked"
+    },
+    {
+      "name": "Gauntlets of Ultramar - Overhead Smash",
+      "type": "Melee",
+      "range": "Melee",
+      "attacks": "1",
+      "skill": "2",
+      "strength": "14",
+      "ap": "-3",
+      "damage": "D3+3",
+      "description": "Extra Attacks, Twin-linked"
+    }
+  ],
+  "source_leader_targets": [
+    {
+      "name": "Heavy Intercessor Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000001177"
+    },
+    {
+      "name": "Eradicator Squad with Heavy Bolters",
+      "source_book_id": "000000139",
+      "datasheet_id": "000004231"
+    },
+    {
+      "name": "Terminator Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000001183"
+    },
+    {
+      "name": "Assault Intercessor Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000001606"
+    },
+    {
+      "name": "Aggressor Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000002099"
+    },
+    {
+      "name": "Terminator Assault Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000000118"
+    },
+    {
+      "name": "Victrix Honour Guard",
+      "source_book_id": "000000139",
+      "datasheet_id": "000004185"
+    },
+    {
+      "name": "Eradicator Squad with Melta Rifles",
+      "source_book_id": "000000139",
+      "datasheet_id": "000004249"
+    },
+    {
+      "name": "Infernus Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000000126"
+    },
+    {
+      "name": "Vanguard Veteran Squad",
+      "source_book_id": "000000356",
+      "datasheet_id": "000001154"
+    },
+    {
+      "name": "Bladeguard Veteran Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000000071"
+    },
+    {
+      "name": "Sternguard Veteran Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000002255"
+    },
+    {
+      "name": "Intercessor Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000001157"
+    },
+    {
+      "name": "Company Heroes",
+      "source_book_id": "000000139",
+      "datasheet_id": "000002772"
+    }
+  ],
+  "local_validation": ".tools/verification/20261027T184013951006Z/results.json",
+  "local_validation_sha256": "fda6d470dc83ef6df9faa13f30c37ae748879ca91526b0b5faba66a546bfde01",
+  "test_files": [
+    "tests\\test_marneus_calgar.gd",
+    "tests\\test_space_marine_leader_links.gd"
+  ],
+  "network_validation": "Deferred to final integration; this focused run used network=false.",
+  "full_match_certified": false,
+  "latest_scope_validation": {
+    "observed_at": "2026-10-27",
+    "status": "passed; 7/7 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "open_limit": "Closes only Marneus Calgar's shared-book local sheet scope. Its linked Victrix target now supports all source-legal compositions and Banner pricing. Ultramarines/Chapter restrictions, full faction/army legality, network behavior, complete matches and human playtesting remain outside this result; network validation is deferred to final integration.",
+    "master_evidence": "space-marines-profile-evidence.json"
+  }
+}

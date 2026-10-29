@@ -133,13 +133,22 @@ static func surfaces(state: Dictionary) -> Array[Dictionary]:
 	var terrain_areas := areas(state)
 	for area_index in range(terrain_areas.size()):
 		var area: Dictionary = terrain_areas[area_index]
-		for value: Variant in area.get("surfaces", []):
+		var area_surfaces: Array = area.get("surfaces", [])
+		for surface_index in range(area_surfaces.size()):
+			var value: Variant = area_surfaces[surface_index]
 			if not value is Dictionary: continue
 			var surface: Dictionary = value.duplicate(true)
 			surface["area_index"] = area_index
+			surface["surface_index"] = surface_index
 			surface["area_category"] = str(area.get("category", ""))
 			result.append(surface)
 	return result
+
+static func same_surface(first: Dictionary, second: Dictionary) -> bool:
+	if first.is_empty() or second.is_empty(): return false
+	return str(first.get("id", "")) == str(second.get("id", "")) \
+		and int(first.get("area_index", -1)) == int(second.get("area_index", -1)) \
+		and int(first.get("surface_index", -1)) == int(second.get("surface_index", -1))
 
 static func can_end_on_surface(model: Dictionary, surface: Dictionary) -> bool:
 	var allowed: Array = surface.get("requires_keywords", [])
@@ -307,7 +316,7 @@ static func path_error(state: Dictionary, model: int, destination: Vector2, dest
 	var destination_surface := surface_at(state, unit, destination, target_elevation)
 	if destination_surface.is_empty(): return "The base must finish wholly on ground level or an eligible terrain surface."
 	if absf(target_elevation - current_elevation) <= EPSILON and current_elevation > EPSILON:
-		if str(origin_surface.get("id", "")) != str(destination_surface.get("id", "")):
+		if not same_surface(origin_surface, destination_surface):
 			return "This movement path cannot cross between disconnected upper floors."
 	var vertical_access_features: Array[Rect2] = []
 	if absf(target_elevation - current_elevation) > EPSILON and not take_to_skies_active(state, model):

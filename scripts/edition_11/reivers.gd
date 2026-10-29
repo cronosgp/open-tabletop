@@ -35,8 +35,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 		var target := int(current_result.get("squad", -1))
 		if int(pending.get("decision_owner", -1)) != player or not state.squads.has(target): return []
 		var decision_options: Array[Dictionary] = [{"label": "Keep the current Fearsome Assault result for %s" % state.squads[target].name, "action": FEARSOME, "model": -1, "target": target, "value": "keep"}]
-		if MarineEnhancements.tempered_in_battle_active(state, target):
-			decision_options.append({"label": "Tempered in Battle: re-roll both Leadership dice for %s (free)" % state.squads[target].name, "action": FEARSOME, "model": -1, "target": target, "value": "tempered-in-battle"})
+		if MarineEnhancements.leadership_reroll_available(state, target):
+			decision_options.append({"label": "%s: re-roll both Leadership dice for %s (free)" % [MarineEnhancements.leadership_reroll_name(state, target), state.squads[target].name], "action": FEARSOME, "model": -1, "target": target, "value": "tempered-in-battle"})
 		return decision_options
 	if int(pending.get("owner", -1)) != player: return []
 	var result: Array[Dictionary] = []
@@ -54,7 +54,7 @@ static func resolve(state: Dictionary, player: int, selected: Dictionary, roller
 	if not current_result.is_empty():
 		was_battle_shocked = bool(state.fearsome_assault.get("was_battle_shocked", false))
 		if selected.value == "tempered-in-battle":
-			if not MarineEnhancements.tempered_in_battle_active(state, target): return {"error": "Tempered in Battle does not apply to this Leadership roll."}
+			if not MarineEnhancements.leadership_reroll_available(state, target): return {"error": "No eligible Leadership re-roll applies to this roll."}
 			result = Morale.roll_battle_shock(state, target, roller, -1)
 			if not result.error.is_empty(): return result
 			result["rerolled_from"] = current_result.get("rolls", []).duplicate()
@@ -65,7 +65,7 @@ static func resolve(state: Dictionary, player: int, selected: Dictionary, roller
 		result = Morale.roll_battle_shock(state, target, roller, -1)
 		if not result.error.is_empty(): return result
 		was_battle_shocked = bool(state.squads[target].battle_shocked)
-		if MarineEnhancements.tempered_in_battle_active(state, target):
+		if MarineEnhancements.leadership_reroll_available(state, target):
 			result["source"] = FEARSOME
 			result["modified_total"] = int(result.rolls[0]) + int(result.rolls[1]) - 1
 			state.fearsome_assault.current_result = result.duplicate(true)

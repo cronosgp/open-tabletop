@@ -6,6 +6,8 @@ const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
+const WeaponChecks = preload("res://tests/space_marine_datasheet_checks.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const TacticalFluidity = preload("res://scripts/edition_11/tactical_fluidity.gd")
 const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
@@ -106,14 +108,19 @@ func run() -> void:
 	var profile := Profiles.profile("suboden-khan")
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000004167" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Suboden uses the local shared-book Wahapedia export")
 	check(profile.points == 105 and profile.stats == {"movement_inches": 12, "toughness": 6, "save_target": 3, "wounds": 8, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 4} and profile.base_size_source_mm == [90, 52], "Suboden cost, characteristics and oval base match the source")
-	check(profile.ranged[1].profiles.standard.attacks == 8 and profile.ranged[1].profiles.standard.keywords == {"devastating-wounds": true}, "Onslaught Gatling Cannon retains its source profile")
-	check(profile.melee[0].profiles.standard.keywords == {"anti-monster": 4, "anti-vehicle": 4, "lance": true} and profile.melee[1].profiles.standard.keywords["extra-attacks"] and profile.melee[1].profiles.standard.target_restricted_traits["sustained-hits"] == ["MONSTER", "VEHICLE"], "Stormtooth and Power Sword source traits are retained")
-	check(Catalog.SPECS.get("suboden-khan", {}).get("current_reference", false) and Roster.POINTS.get("suboden-khan", {}).get("sizes", {}) == {1: 105}, "Suboden is admitted at 105 points")
-	var lists := F.selections()
+	check(profile.ranged[0].id == "heavy-bolt-pistol" and profile.ranged[0].profiles.standard == {"name": "Heavy Bolt Pistol", "range_inches": 18.0, "attacks": 1, "skill": 2, "strength": 5, "ap": -1, "damage": 1, "keywords": {"close-quarters": true}}, "Heavy Bolt Pistol retains its complete source profile")
+	check(profile.ranged.size() == 2 and profile.ranged[1].id == "onslaught-gatling-cannon" and profile.ranged[1].profiles.standard == {"name": "Onslaught gatling cannon", "range_inches": 24.0, "attacks": 8, "skill": 2, "strength": 5, "ap": 0, "damage": 1, "keywords": {"devastating-wounds": true}}, "Onslaught Gatling Cannon retains its complete source profile")
+	check(profile.melee.size() == 2 and profile.melee[0].id == "stormtooth" and profile.melee[0].profiles.standard == {"name": "Stormtooth", "range_inches": 0.0, "attacks": 6, "skill": 2, "strength": 7, "ap": -3, "damage": 2, "keywords": {"anti-monster": 4, "anti-vehicle": 4, "lance": true}}, "Stormtooth retains its complete source profile")
+	check(profile.melee[1].id == "power-sword" and profile.melee[1].profiles.standard == {"name": "Power Sword", "range_inches": 0.0, "attacks": 3, "skill": 2, "strength": 5, "ap": -2, "damage": 1, "keywords": {"sustained-hits": 1, "extra-attacks": true}, "target_restricted_traits": {"sustained-hits": ["MONSTER", "VEHICLE"]}}, "Power Sword retains Extra Attacks and its non-MONSTER/VEHICLE Sustained Hits condition")
+	check(Catalog.SPECS.get("suboden-khan", {}).get("current_reference", false) and int(Catalog.SPECS.get("suboden-khan", {}).get("max_supported_copies", 0)) == 1 and Roster.POINTS.get("suboden-khan", {}).get("sizes", {}) == {1: 105}, "Suboden is selectable as a unique 105-point model")
+	var accepted := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [entry("adeptus-astartes", "suboden-khan", 1)]})
+	var duplicated := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:suboden-khan", "models": 1, "copies": 2}]})
+	check(accepted.get("error", "").is_empty() and accepted.get("total", -1) == 105 and not duplicated.get("error", "").is_empty(), "The current catalog admits one Suboden at 105 points and rejects a second copy")
+	var lists := F.current_marine_selections()
 	lists[1].entries = [entry("adeptus-astartes", "suboden-khan", 1), entry("adeptus-astartes", "outrider-squad", 3), entry("adeptus-astartes", "intercessor-squad", 5)]
-	lists[2].entries = [entry("necrons", "immortals", 5), entry("necrons", "necron-warriors", 10)]
+	lists[2].entries = [entry("adeptus-astartes", "assault-intercessor-squad", 5), entry("adeptus-astartes", "intercessor-squad", 5)]
 	var state: Dictionary = F.P.initial_state({"checked_rosters": false, "official_mission": false, "unit_abilities": true, "combat_doctrines": true, "core_stratagems": true, "reanimation_protocols": true, "awakened_dynasty": true, "manual_allocation": false}, lists)
-	check(not state.has("error"), "Suboden and source-listed units materialize")
+	check(not state.has("error"), "Suboden and both players' source-listed units materialize from the current Marine catalog")
 	if state.has("error"):
 		print(state.error)
 		quit(1)
@@ -137,6 +144,8 @@ func run() -> void:
 	state.round = 1
 	C.UnitActions.start_round(state)
 	check(state.cp[1] == 1, "Transhuman Strategist grants Suboden's Warlord CP")
+	C.UnitActions.start_round(state)
+	check(state.cp[1] == 1, "Transhuman Strategist awards Suboden's Warlord CP only once per battle round")
 	check(C.UnitAbilities.weapon(state, model, -1, profile.ranged[0].profiles.standard, false).keywords.assault, "Spear of Chogoris grants Assault to Suboden's ranged weapons")
 	C.UnitActions.attach(state, model, outriders)
 	check(state.units[model].squad == outriders and state.squads[outriders].attached, "Suboden can attach to the Outrider Squad")
@@ -156,13 +165,51 @@ func run() -> void:
 	check(advance_error.is_empty() and state.pending_move.bonus == 3, "Spear gives no Advance modifier outside Assault Doctrine")
 	state.squads[outriders].advanced = true
 	check(C.Doctrines.charge_error(state, outriders).is_empty(), "Spear of Chogoris permits a charge after Advancing without Assault Doctrine")
-	var enemy := find_squad(state, 2, "immortals")
+	var enemy := find_squad(state, 2, "intercessor-squad")
 	var enemy_model := Geometry.alive(state, enemy)[0]
 	state.units[enemy_model].position = Vector2(8, 0)
+	check(find_squad(state, 2, "assault-intercessor-squad") >= 0, "The opposing roster also materializes from the current local Space Marines catalog")
+	var weapon_failures := WeaponChecks.fixed_weapon_plan_failures(state, profile, model, enemy)
+	check(weapon_failures.is_empty(), "All four source weapons pass Equipment and AttackPlan: %s" % str(weapon_failures))
+	var charged_plan_state := state.duplicate(true)
+	charged_plan_state.pending_move = {}
+	charged_plan_state.resolution_frames = []
+	charged_plan_state.phase = "fight"
+	charged_plan_state.active = 1
+	charged_plan_state.squads[outriders].advanced = false
+	charged_plan_state.squads[outriders].charged = true
+	charged_plan_state.squads[outriders].fight_eligible = true
+	charged_plan_state.units[model].position = Vector2.ZERO
+	for index in range(Geometry.alive(charged_plan_state, enemy).size()):
+		charged_plan_state.units[Geometry.alive(charged_plan_state, enemy)[index]].position = Vector2(1.75, float(index) * 3.0)
+	var stormtooth_attack := AttackPlan.prepare(charged_plan_state, outriders, true, [
+		{"model": model, "target": enemy, "weapon": "stormtooth", "profile": "standard", "amount": 6},
+		{"model": model, "target": enemy, "weapon": "power-sword", "profile": "standard", "amount": 3}
+	], false)
+	var stormtooth_lance_resolved := false
+	for batch: Dictionary in stormtooth_attack.get("batches", []):
+		if "Stormtooth" in batch.get("labels", []) and int(batch.get("context", {}).get("wound_modifier", 0)) == 1: stormtooth_lance_resolved = true
+	check(stormtooth_attack.get("error", "").is_empty() and stormtooth_lance_resolved, "Stormtooth's Lance applies +1 to Wound in Suboden's actual charged AttackPlan: " + str(stormtooth_attack.get("error", "")))
+	var pistol := Equipment.select(state, model, false, "heavy-bolt-pistol", "standard")
+	var gatling := Equipment.select(state, model, false, "onslaught-gatling-cannon", "standard")
+	check(pistol.get("error", "").is_empty() and gatling.get("error", "").is_empty() and pistol.stats == profile.ranged[0].profiles.standard and gatling.stats == profile.ranged[1].profiles.standard, "Equipment exposes both fixed ranged weapons without changing their exported profiles")
+	var power_sword: Dictionary = profile.melee[1].profiles.standard
+	var infantry_sword := C.UnitAbilities.weapon(state, model, enemy, power_sword, true)
+	check(infantry_sword.keywords.get("sustained-hits", 0) == 1, "Power Sword grants Sustained Hits 1 against a non-MONSTER/non-VEHICLE target")
+	for target_model: int in Geometry.alive(state, enemy): state.units[target_model].keywords.append("MONSTER")
+	var monster_sword := C.UnitAbilities.weapon(state, model, enemy, power_sword, true)
+	check(not monster_sword.keywords.has("sustained-hits"), "Power Sword does not grant Sustained Hits against a MONSTER target")
+	for target_model: int in Geometry.alive(state, enemy): state.units[target_model].keywords.erase("MONSTER")
+	for target_model: int in Geometry.alive(state, enemy): state.units[target_model].keywords.append("VEHICLE")
+	var vehicle_sword := C.UnitAbilities.weapon(state, model, enemy, power_sword, true)
+	check(not vehicle_sword.keywords.has("sustained-hits"), "Power Sword does not grant Sustained Hits against a VEHICLE target")
+	for target_model: int in Geometry.alive(state, enemy): state.units[target_model].keywords.erase("VEHICLE")
 	state.phase = "shooting"
 	var pistol_id := str(state.units[model].ranged_weapons[0].id)
 	var after_advance_targets := AttackPlan.legal_targets(state, model, false, pistol_id, "standard")
 	check(enemy in after_advance_targets, "Assault lets Suboden shoot after Advancing")
+	var advanced_pistol_attack := AttackPlan.prepare(state, outriders, false, [{"model": model, "target": enemy, "weapon": pistol_id, "profile": "standard", "amount": 1}], false)
+	check(advanced_pistol_attack.get("error", "").is_empty() and not advanced_pistol_attack.get("batches", []).is_empty(), "Suboden's attached Heavy Bolt Pistol is accepted by the actual post-Advance AttackPlan: " + str(advanced_pistol_attack.get("error", "")))
 	state.combat_doctrines.active[1] = "assault"
 	check(C.Doctrines.advance_bonus(state, outriders) == 1 and C.Doctrines.charge_bonus(state, outriders) == 1, "Assault Doctrine adds one to Suboden's Advance and Charge rolls")
 	var doctrine_state := state.duplicate(true)

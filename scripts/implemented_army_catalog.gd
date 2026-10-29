@@ -37,13 +37,20 @@ func select_edition(value: String) -> String:
 			excluded[identity] = resolved.error
 			continue
 		var options: Array[Dictionary] = []
-		var sizes: Array = profile.points_by_models.keys()
-		sizes.sort()
+		var sizes := Capabilities.construction_model_sizes(identity, profile)
+		if sizes.size() < profile.points_by_models.size():
+			for blocked_size: Variant in profile.points_by_models.keys():
+				if int(blocked_size) not in sizes:
+					excluded["%s/%d-models" % [identity, int(blocked_size)]] = "Source composition and cost rows conflict; this size is blocked pending reconciliation."
 		for models: int in sizes:
 			var option := {"models": models, "cost": profile.points_by_models[models]}
+			if profile.get("second_plus_points_by_models", {}).has(models): option.second_plus_cost = profile.second_plus_points_by_models[models]
 			if profile.get("third_plus_points_by_models", {}).has(models): option.third_plus_cost = profile.third_plus_points_by_models[models]
+			if profile.get("fourth_plus_points_by_models", {}).has(models): option.fourth_plus_cost = profile.fourth_plus_points_by_models[models]
 			options.append(option)
-		units.append({"id": id, "source_id": identity, "name": profile.name, "edition": "11e", "faction": spec.faction, "role": Roster.role(profile.get("keywords", [])), "source_digest": Current.digest(), "options": options, "scope": "Reconciled local runtime profile; complete army legality and final network validation remain outside this catalog."})
+		var scope := "Reconciled local runtime profile; complete army legality and final network validation remain outside this catalog."
+		if sizes.size() < profile.points_by_models.size(): scope = "Partial source reconciliation: only %s-model configuration is selectable; conflicting source size is blocked." % ", ".join(sizes.map(func(size: int) -> String: return str(size)))
+		units.append({"id": id, "source_id": identity, "name": profile.name, "edition": "11e", "faction": spec.faction, "role": Roster.role(profile.get("keywords", [])), "source_digest": Current.digest(), "options": options, "scope": scope})
 	units.sort_custom(func(a: Dictionary, b: Dictionary): return str(a.name).naturalnocasecmp_to(str(b.name)) < 0)
 	var eligible_identities: Array[String] = []
 	for unit: Dictionary in units: eligible_identities.append(str(unit.id))

@@ -113,11 +113,11 @@ class VerificationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "requires at least one --only"):
             verification.select_suites("targeted", ["test_actions"], [], False)
 
-    def test_targeted_profile_allows_data_backed_suites(self):
+    def test_targeted_profile_keeps_machine_spirit_suite_on_current_catalog(self):
         suite = "test_marine_machine_spirits"
-        self.assertTrue(verification.needs_legacy_starter(suite))
+        self.assertFalse(verification.needs_legacy_starter(suite))
         self.assertEqual(verification.select_suites("targeted", [suite], [suite], False), [suite])
-        self.assertTrue(verification.requires_legacy_starter("targeted", [suite]))
+        self.assertFalse(verification.requires_legacy_starter("targeted", [suite]))
 
     def test_targeted_profile_skips_legacy_snapshot_for_independent_suites(self):
         self.assertFalse(verification.requires_legacy_starter("targeted", ["test_phase_progression"]))
@@ -170,9 +170,10 @@ class VerificationTests(unittest.TestCase):
             self.assertEqual(command[-5:], ["discover", "-s", "tests", "-p", "test_*.py"])
 
     def test_focused_profile_rejects_suites_that_need_the_legacy_snapshot(self):
-        self.assertTrue(verification.needs_legacy_starter("test_marine_machine_spirits"))
+        self.assertFalse(verification.needs_legacy_starter("test_marine_machine_spirits"))
         with self.assertRaisesRegex(ValueError, "use --profile targeted or full"):
-            verification.select_suites("focused", ["test_marine_machine_spirits"], ["test_marine_machine_spirits"], False)
+            verification.select_suites("focused", ["test_roster_validation"], ["test_roster_validation"], False)
+        self.assertTrue(verification.needs_legacy_starter("test_roster_validation"))
         self.assertFalse(verification.needs_legacy_starter("test_phase_progression"))
 
     def test_selected_network_suite_requires_network_flag(self):

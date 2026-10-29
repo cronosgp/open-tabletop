@@ -51,7 +51,7 @@ static func execute(state: Dictionary, player: int, command: Dictionary, roller:
 		CHARGE_TARGET: return _apply_dictionary_action(Combat.select_charge_target(state, player, int(command.get("target", -1)), int(command.get("revision", -1))))
 		BEGIN_CONTACT: return _begin_contact(state, player, command, roller)
 		STAGE_CONTACT: return _stage_contact(state, player, command)
-		FINISH_CONTACT: return _finish_contact(state, player, command)
+		FINISH_CONTACT: return _finish_contact(state, player, command, roller)
 		SHOOT: return _apply_dictionary_action(Combat.shoot(state, player, int(command.get("attacker", -1)), int(command.get("target", -1)), int(command.get("revision", -1)), bool(command.get("use_lethal", false)), roller))
 		ATTACK_PLAN: return _attack_plan(state, player, command, roller)
 		FIGHT: return _apply_dictionary_action(Combat.fight(state, player, int(command.get("attacker", -1)), int(command.get("target", -1)), int(command.get("revision", -1)), roller))
@@ -134,14 +134,14 @@ static func _select_unit_choice(state: Dictionary, player: int, command: Diction
 		return _failure("Choose an option from the current decision window.")
 	var point: Vector2 = command.get("point", Vector2.ZERO)
 	var revision := int(command.get("revision", -1))
-	var error := Combat.unit_action(state, player, choice, point, revision, roller)
+	var error := Combat.unit_action(state, player, choice, point, revision, roller, float(command.get("destination_elevation", -1.0)))
 	if not error.is_empty(): return _failure(error)
 	var action := str(choice.get("action", ""))
 	if action == "setup-done":
 		var next_owner := Combat.UnitActions.setup_actor(state)
 		return _success("Player %d's army is ready. Player %d is preparing next." % [player, next_owner] if next_owner > 0 else "Both armies are prepared. Continue to the next match step.")
 	if action.begins_with("mission-"): return _success("Mission choice saved.")
-	if action in ["aggressor-loadout", "inceptor-loadout", "land-speeder-cannon", "intercessor-melee", "intercessor-rifle", "intercessor-grenade-launcher", "heavy-intercessor-bolter", "terminator-melee", "terminator-special-weapon", "terminator-assault-loadout", "outrider-melee", "outrider-plasma-pistol", "eliminator-troopers", "eliminator-sergeant", "ancient-loadout", "jump-pack-captain-loadout", "gravis-captain-loadout", "terminator-captain-gun", "terminator-captain-blade", "captain-ranged-loadout", "captain-melee-loadout", "lieutenant-ranged-loadout", "lieutenant-melee-loadout", "lieutenant-storm-shield", "terminator-chaplain-shield", "captain-loadout", "lieutenant-loadout", "impulsor-loadout", "transport-weapon-loadout", "eliminator-loadout", "phobos-lieutenant-gun", "relic-shield", "apothecary-loadout", "redemptor-loadout", "dreadnought-loadout", "heavy-weapon-loadout"]:
+	if action in ["aggressor-loadout", "inceptor-loadout", "land-speeder-cannon", "intercessor-melee", "intercessor-rifle", "intercessor-grenade-launcher", "heavy-intercessor-bolter", "terminator-melee", "deathwatch-terminator-loadout", "wolf-guard-terminator-loadout", "thunderwolf-cavalry-loadout", "wulfen-loadout", "fortis-sergeant-melee", "fortis-sergeant-ranged", "fortis-grenade-launcher", "fortis-plasma-pistol", "fortis-rocket-launcher", "talonstrike-sergeant-melee", "talonstrike-sergeant-ranged", "talonstrike-intercessor-plasma-pistol", "talonstrike-plasma-exterminator", "indomitor-flamestorm-gauntlets", "indomitor-heavy-bolter", "indomitor-multi-melta", "decimus-gravis-weapon", "decimus-storm-shield", "decimus-plasma-incinerator", "terminator-special-weapon", "terminator-assault-loadout", "outrider-melee", "outrider-plasma-pistol", "eliminator-troopers", "eliminator-sergeant", "ancient-loadout", "jump-pack-captain-loadout", "gravis-captain-loadout", "terminator-captain-gun", "terminator-captain-blade", "captain-ranged-loadout", "captain-melee-loadout", "lieutenant-ranged-loadout", "lieutenant-melee-loadout", "lieutenant-storm-shield", "terminator-chaplain-shield", "captain-loadout", "lieutenant-loadout", "impulsor-loadout", "transport-weapon-loadout", "baal-predator-loadout", "death-company-dreadnought-loadout", "death-company-melee-loadout", "death-company-pistol-loadout", "death-company-grenade-launcher", "eliminator-loadout", "phobos-lieutenant-gun", "relic-shield", "apothecary-loadout", "redemptor-loadout", "dreadnought-loadout", "heavy-weapon-loadout"]:
 		return _success("Equipment updated.")
 	return _success("Unit ability choice saved.")
 
@@ -223,11 +223,11 @@ static func _begin_contact(state: Dictionary, player: int, command: Dictionary, 
 		return _success("Charge placement paused: Player %d must resolve Repulsor Combat Embarkation." % int(owners[0]))
 	return _success("Place individual models with right-click, then confirm contact movement.")
 
-static func _finish_contact(state: Dictionary, player: int, command: Dictionary) -> Dictionary:
+static func _finish_contact(state: Dictionary, player: int, command: Dictionary, roller: Callable) -> Dictionary:
 	var cancel := bool(command.get("cancel", false))
 	var tactical_focus_retained: bool = cancel and not state.get("pending_contact", {}).get("tactical_focus_roll", {}).is_empty()
 	var devout_push_retained: bool = cancel and not state.get("pending_contact", {}).get("devout_push_roll", {}).is_empty()
-	var validation := Combat.finish_contact_move_result(state, player, int(command.get("revision", -1)), cancel)
+	var validation := Combat.finish_contact_move_result(state, player, int(command.get("revision", -1)), cancel, roller)
 	var message := "Contact placement cancelled; positions restored."
 	if cancel and tactical_focus_retained: message += " Tactical Focus remains paid and its D3+3 roll is retained."
 	if cancel and devout_push_retained: message += " Devout Push remains paid and its D3+3 roll is retained."
@@ -374,6 +374,7 @@ static func _command_reaction(state: Dictionary, player: int, command: Dictionar
 	elif kind in ["after_hazardous_roll", "after_transport_hazard_roll"]: error = Combat.resolve_hazard_reaction(state, player, squad, stratagem, revision, die, roller)
 	elif kind in ["after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_attack_count_roll"]: error = Combat.resolve_attack_reaction(state, player, squad, stratagem, revision, die, roller)
 	elif kind in ["before_battle_shock", "after_battle_shock_roll"]: error = Combat.resolve_command_reaction(state, player, squad, stratagem, revision, roller)
+	elif kind == "after_deathwatch_terminatus_battle_shock_roll": error = Combat.resolve_deathwatch_terminatus_reaction(state, player, squad, stratagem, revision, roller)
 	else: error = Combat.resolve_roll_reaction(state, player, squad, stratagem, revision, roller)
 	return _apply_string_action(error, "Command reaction resolved.")
 

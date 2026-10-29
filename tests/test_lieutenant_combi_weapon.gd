@@ -9,6 +9,8 @@ const WoundRolls = preload("res://scripts/edition_11/wound_prevention.gd")
 const Combi = preload("res://scripts/edition_11/combi_lieutenant.gd")
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
 const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
+const DatasheetChecks = preload("res://tests/space_marine_datasheet_checks.gd")
+const LeaderLinks = preload("res://scripts/edition_11/marine_leader_links.gd")
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 var failures := 0
@@ -38,6 +40,11 @@ func run() -> void:
  var profile := Profiles.profile("lieutenant-with-combi-weapon")
  check(profile.get("source_book_id", "") == "000000139" and profile.get("source_datasheet_id", "") == "000000076" and profile.get("source_export_updated_at", "") == "2026-10-16T21:03:46+03:00", "Combi Lieutenant profile points to the selected local Wahapedia sheet and revision")
  check(profile.points_by_models == {1: 85} and profile.base_radius_inches == 20.0 / 25.4 and profile.stats == {"movement_inches": 8, "toughness": 4, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0}, "Fixed characteristics, 40mm base radius and 85-point cost match the extracted sheet")
+ var runtime_keywords: Array = profile.get("keywords", []).duplicate()
+ var expected_keywords: Array = ["ADEPTUS ASTARTES", "PHOBOS", "SMOKE", "EXPLOSIVES", "IMPERIUM", "INFANTRY", "CHARACTER"]
+ runtime_keywords.sort()
+ expected_keywords.sort()
+ check(runtime_keywords == expected_keywords and profile.get("additional_weapon_profiles", {}).is_empty(), "All source keywords are present without extra weapon profiles")
  check(profile.ranged.size() == 1 and profile.ranged[0].id == "combi-weapon" and profile.ranged[0].profiles.bolter.keywords == {"rapid-fire": 1, "assault": true} and profile.ranged[0].profiles.flamer.keywords == {"torrent": true, "assault": true, "blast": 1}, "Combi-weapon alternate profiles and traits match the local extraction")
  check(profile.ranged[0].profiles.bolter.attacks == 2 and profile.ranged[0].profiles.bolter.skill == 2 and profile.ranged[0].profiles.bolter.strength == 5 and profile.ranged[0].profiles.bolter.ap == -1 and profile.ranged[0].profiles.bolter.damage == 2 and profile.ranged[0].profiles.bolter.range_inches == 24.0, "Bolter profile characteristics match the local extraction")
  check(profile.ranged[0].profiles.flamer.attacks == 3 and profile.ranged[0].profiles.flamer.skill == 0 and profile.ranged[0].profiles.flamer.strength == 5 and profile.ranged[0].profiles.flamer.ap == -1 and profile.ranged[0].profiles.flamer.damage == 1 and profile.ranged[0].profiles.flamer.range_inches == 12.0, "Flamer profile characteristics match the local extraction")
@@ -49,23 +56,30 @@ func run() -> void:
  root.add_child(catalog)
  catalog.select_edition("11e")
  check(not catalog.lookup(unit.id).is_empty(), "Admitted datasheet is present in the consolidated local construction catalog")
- var selections := F.selections()
- for entry: Dictionary in selections[1].entries:
-  if entry.definition_id.ends_with(":lieutenant"):
-   entry.definition_id = unit.id
-   entry.models = 1
+ var selections := F.current_marine_selections()
+ selections[1].entries = [
+  {"definition_id": unit.id, "models": 1, "copies": 1},
+  {"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 5, "copies": 1}
+ ]
+ selections[2].entries = [
+  {"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 5, "copies": 1}
+ ]
  var state := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true}, selections)
- check(not state.has("error"), "Admitted Lieutenant materializes in a local match fixture: %s" % state.get("error", ""))
+ check(not state.has("error"), "Admitted Lieutenant materializes with current Marine catalogs for both players: %s" % state.get("error", ""))
  if not state.has("error"):
   var lieutenant := -1
   var enemy := -1
   for model: int in state.units:
    if state.units[model].owner == 1 and Abilities.identity(state.units[model]) == "lieutenant-with-combi-weapon": lieutenant = model
-   if state.units[model].owner == 2 and Abilities.identity(state.units[model]) == "necron-warriors" and enemy < 0: enemy = model
+   if state.units[model].owner == 2 and Abilities.identity(state.units[model]) == "intercessor-squad" and enemy < 0: enemy = model
   check(lieutenant >= 0 and enemy >= 0, "Match contains the Lieutenant and an enemy unit")
   if lieutenant >= 0 and enemy >= 0:
    var squad: int = state.units[lieutenant].squad
-   check(Abilities.has(state, squad, "feel-no-pain-5") and Abilities.has(state, squad, "infiltrators") and Abilities.has(state, squad, "lone-operative") and Abilities.has(state, squad, "stealth"), "Lieutenant's prevention, deployment, targeting and cover abilities are registered")
+   check(Abilities.has(state, squad, "feel-no-pain-5") and Abilities.has(state, squad, "infiltrators") and Abilities.has(state, squad, "lone-operative") and Abilities.has(state, squad, "stealth") and Abilities.has(state, squad, "combat-doctrines"), "Lieutenant's Core, Army, deployment, targeting and cover abilities are registered")
+   check(Detection.infiltrators(state, squad) and Detection.stealth(state, squad), "Lieutenant's Infiltrators and Stealth abilities resolve through shared effect predicates")
+   for failure: String in DatasheetChecks.fixed_weapon_plan_failures(state, profile, lieutenant, int(state.units[enemy].squad)):
+    check(false, "Source weapon profile must pass Equipment and AttackPlan: " + failure)
+   check(LeaderLinks.TARGETS.get("lieutenant-with-combi-weapon", []) == [], "Lieutenant with Combi-weapon has no source-listed Leader bodyguard target")
    check({"target": 5, "against": "any"} in Prevention.rules(state, lieutenant), "Feel No Pain 5+ is assigned to the Lieutenant and consumed by the prevention resolver")
    var fnp_roll := WoundRolls.resolve(1, 4, Prevention.rules(state, lieutenant), "normal", func() -> int: return 5)
    check(fnp_roll.error.is_empty() and fnp_roll.prevented == 1 and fnp_roll.lost == 0, "Lieutenant's Feel No Pain 5+ prevents an allocated wound through the shared resolver")

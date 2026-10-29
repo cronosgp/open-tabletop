@@ -29,5 +29,19 @@
   "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v70.json",
   "local_validation": ".tools/verification/20261019T095857106371Z/results.json",
   "network_validation": "deferred_to_final_integration_by_user",
-  "full_match_certified": false
+  "full_match_certified": false,
+  "latest_scope_validation": {
+    "observed_at": "2026-10-27",
+    "profile": "storm-speeder-hailstrike",
+    "test_file": "tests\\test_storm_speeder_hailstrike.gd",
+    "artifact": ".tools/verification/20261027T104505989012Z/results.json",
+    "artifact_sha256": "c9cca944e5b3db70e96e4c72f517da23bae1a119bbb9ac2a4e2f4d7e6eb12237",
+    "status": "passed; 7/7 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "master_evidence": "space-marines-profile-evidence.json"
+  }
 }

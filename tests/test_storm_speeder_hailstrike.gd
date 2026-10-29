@@ -3,9 +3,16 @@ const F = preload("res://tests/all_units_fixture.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const C = F.C
 const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const WEAPONS := {
+	"fragstorm-grenade-launchers": {"melee": false, "name": "Fragstorm Grenade Launchers", "range_inches": 18.0, "attacks": 6, "skill": 3, "strength": 4, "ap": -1, "damage": 1, "keywords": {"blast": 2, "ignores-cover": true}},
+	"ironhail-heavy-stubber-array": {"melee": false, "name": "Ironhail Heavy Stubber Array", "range_inches": 36.0, "attacks": 6, "skill": 3, "strength": 4, "ap": -1, "damage": 1, "keywords": {"rapid-fire": 6, "ignores-cover": true}},
+	"onslaught-gatling-cannon": {"melee": false, "name": "Onslaught Gatling Cannon", "range_inches": 24.0, "attacks": 8, "skill": 3, "strength": 5, "ap": -1, "damage": 1, "keywords": {"devastating-wounds": true, "ignores-cover": true}, "target_restricted_traits": {"devastating-wounds": ["MONSTER", "VEHICLE"]}},
+	"armoured-impact": {"melee": true, "name": "Armoured Impact", "range_inches": 0.0, "attacks": 3, "skill": 4, "strength": 6, "ap": 0, "damage": 1, "keywords": {}}
+}
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -13,10 +20,40 @@ func check(ok: bool, message: String) -> void:
 		push_error(message)
 		failures += 1
 
-func squad(state: Dictionary, name: String) -> int:
+func squad(state: Dictionary, name: String, owner: int = -1, occurrence: int = 0) -> int:
+	var matches: Array[int] = []
 	for model: int in state.units:
-		if C.UnitAbilities.identity(state.units[model]) == name: return int(state.units[model].squad)
-	return -1
+		if C.UnitAbilities.identity(state.units[model]) != name or (owner >= 0 and int(state.units[model].owner) != owner): continue
+		var candidate := int(state.units[model].squad)
+		if candidate not in matches: matches.append(candidate)
+	return matches[occurrence] if occurrence >= 0 and occurrence < matches.size() else -1
+
+func check_weapon_path(state: Dictionary, squad_id: int, model: int, target: int, weapon_id: String, expected: Dictionary) -> void:
+	var melee: bool = expected.melee
+	var weapons: Array = state.units[model].melee_weapons if melee else state.units[model].ranged_weapons
+	var actual: Dictionary = weapons.filter(func(w: Dictionary) -> bool: return w.id == weapon_id)[0].profiles.standard
+	var selected := Equipment.select(state, model, melee, weapon_id, "standard")
+	var matches := true
+	var selected_stats: Dictionary = selected.get("stats", {})
+	for field: String in ["name", "range_inches", "attacks", "skill", "strength", "ap", "damage", "keywords"]:
+		if actual.get(field) != expected.get(field) or selected_stats.get(field) != expected.get(field): matches = false
+	if actual.get("target_restricted_traits", {}) != expected.get("target_restricted_traits", {}): matches = false
+	check(matches, "%s matches every exported weapon field and trait" % weapon_id)
+	check(str(selected.get("error", "")).is_empty(), "%s is selectable through Equipment" % weapon_id)
+	var old_phase: String = state.phase
+	var old_active: int = int(state.active)
+	var old_positions := {}
+	for member: int in C.living(state, squad_id) + C.living(state, target): old_positions[member] = state.units[member].position
+	state.phase = "fight" if melee else "shooting"
+	state.active = int(state.squads[squad_id].owner)
+	for member: int in C.living(state, squad_id): state.units[member].position = Vector2.ZERO
+	var target_models: Array[int] = C.living(state, target)
+	for index in range(target_models.size()): state.units[target_models[index]].position = Vector2(1, 0) if melee and index == 0 else Vector2(6, index * 3)
+	var plan := C.AttackPlan.prepare(state, squad_id, melee, [{"model": model, "target": target, "amount": int(expected.attacks) if melee else 1, "weapon": weapon_id, "profile": "standard"}], true)
+	check(str(plan.get("error", "")).is_empty() and plan.get("batches", []).size() == 1, "%s routes through AttackPlan" % weapon_id)
+	state.phase = old_phase
+	state.active = old_active
+	for member: int in old_positions: state.units[member].position = old_positions[member]
 
 func entries(state: Dictionary, source: int, target: int, weapon: String, profile: String = "standard") -> Array:
 	var result: Array = []
@@ -41,16 +78,20 @@ func run() -> void:
 	check(profile.get("source_book_id") == "000000139" and profile.get("source_datasheet_id") == "000000124" and profile.get("source_export_updated_at") == "2026-10-16T21:03:46+03:00", "Hailstrike cites its pinned Wahapedia e11 source row")
 	check(profile.get("points_by_models", {}) == {1: 110} and profile.get("third_plus_points_by_models", {}) == {1: 120} and profile.get("max_supported_copies") == 3 and is_equal_approx(profile.get("base_radius_inches", 0.0), 45.0 / 25.4), "One-model size, 90 mm base and tiered costs match source")
 	check(profile.stats == {"movement_inches": 14, "toughness": 9, "save_target": 3, "wounds": 11, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 0} and profile.keywords.has("RAVENWING") and profile.keywords.has("FLY"), "Characteristics and datasheet keywords match local extraction")
+	var keywords: Array = profile.keywords.duplicate(); keywords.sort()
+	var expected_keywords := ["ADEPTUS ASTARTES", "FLY", "FRAME", "IMPERIUM", "RAVENWING", "SPEEDER", "VEHICLE"]; expected_keywords.sort()
+	check(profile.models == 1 and keywords == expected_keywords, "One-model composition and all exported keywords match the source")
 	check(profile.ranged.map(func(w: Dictionary) -> String: return w.id) == ["fragstorm-grenade-launchers", "ironhail-heavy-stubber-array", "onslaught-gatling-cannon"] and profile.melee[0].id == "armoured-impact", "All fixed weapon profiles and traits are represented")
 	check(profile.ranged[0].profiles.standard.keywords == {"blast": 2, "ignores-cover": true} and profile.ranged[1].profiles.standard.keywords == {"rapid-fire": 6, "ignores-cover": true}, "Grenade launcher and Ironhail traits match the source")
 	check(profile.ranged[2].profiles.standard.keywords.get("ignores-cover", false) and profile.ranged[2].profiles.standard.target_restricted_traits == {"devastating-wounds": ["MONSTER", "VEHICLE"]}, "Onslaught Cannon keeps Ignores Cover and target-restricted Devastating Wounds")
 	check(Catalog.SPECS.has("storm-speeder-hailstrike") and Roster.POINTS["storm-speeder-hailstrike"].sizes == {1: 110} and Roster.POINTS["storm-speeder-hailstrike"].third_plus_sizes == {1: 120}, "Local construction catalog publishes Hailstrike's point tiers")
 	var three := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 10000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:storm-speeder-hailstrike", "models": 1, "copies": 3}]})
-	check(three.get("error", "").is_empty() and three.get("total", -1) == 340, "Three Hailstrikes use 110/110/120 source prices")
+	var four := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 10000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:storm-speeder-hailstrike", "models": 1, "copies": 4}]})
+	check(three.get("error", "").is_empty() and three.get("total", -1) == 340 and not four.get("error", "").is_empty(), "Three-copy cap and 110/110/120 source tiers are enforced")
 
-	var lists := F.selections()
-	lists[1].entries.append({"definition_id": "40kdc:11e:adeptus-astartes:storm-speeder-hailstrike", "models": 1, "copies": 1})
-	var state := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
+	var lists := F.current_marine_selections()
+	for owner in [1, 2]: lists[owner].entries.append({"definition_id": "40kdc:11e:adeptus-astartes:storm-speeder-hailstrike", "models": 1, "copies": 1})
+	var state := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
 	check(not state.has("error"), "Hailstrike passes local roster admission and materializes")
 	if state.has("error"):
 		print(state)
@@ -70,10 +111,11 @@ func run() -> void:
 	state.terrain.areas = [{"name": "Cover probe", "category": "exposed", "bounds": Rect2(5, -2, 4, 4), "features": []}]
 	state.stratagems.attack_rerolls = false
 	state.stratagems.hazard_rerolls = false
-	var hailstrike := squad(state, "storm-speeder-hailstrike")
-	var target := squad(state, "necron-warriors")
-	var other := squad(state, "immortals")
-	var intercessors := squad(state, "intercessor-squad")
+	var hailstrike := squad(state, "storm-speeder-hailstrike", 1)
+	var target := squad(state, "intercessor-squad", 2, 0)
+	var other := squad(state, "intercessor-squad", 2, 1)
+	var intercessors := squad(state, "intercessor-squad", 1, 0)
+	check(squad(state, "storm-speeder-hailstrike", 2) >= 0, "The enemy roster also admits the current-catalog Hailstrike")
 	for model: int in state.units:
 		state.units[model].position = Vector2(-20, -15) if state.units[model].owner == 1 else Vector2(20, 15)
 	for friendly: int in [hailstrike, intercessors]:
@@ -81,6 +123,9 @@ func run() -> void:
 	for enemy: int in [target, other]:
 		for model: int in C.living(state, enemy): state.units[model].position = Vector2(7, 0)
 	var model := hailstrike * 100
+	state.mission.stage = "battle"
+	state.deployment.complete = true
+	for weapon_id: String in WEAPONS: check_weapon_path(state, hailstrike, model, target, weapon_id, WEAPONS[weapon_id])
 	check(C.UnitAbilities.has(state, hailstrike, "hailstrike") and C.UnitAbilities.has(state, hailstrike, "deep-strike") and C.UnitAbilities.has(state, hailstrike, "damaged-4") and C.UnitAbilities.has(state, hailstrike, "deadly-demise-d3"), "Hailstrike and shared vehicle abilities are admitted")
 	var cannon: Dictionary = state.units[model].ranged_weapons[2].profiles.standard
 	check(C.UnitAbilities.weapon(state, model, target, cannon, false).keywords.get("devastating-wounds", false), "Onslaught Cannon retains Devastating Wounds against an ordinary target")

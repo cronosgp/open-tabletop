@@ -1,32 +1,211 @@
 {
-  "identity": "land-speeder",
-  "source": {
-    "authority": "Wahapedia 11th-edition local export",
-    "source_book_id": "000000139",
-    "datasheet_id": "000002711",
-    "export_updated_at": "2026-10-16T21:03:46+03:00",
-    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Land-Speeder"
-  },
-  "scope": {
-    "models": 1,
-    "base": "105 x 70 mm oval; 52.5 mm bounding-circle proxy",
-    "points": 105,
-    "max_supported_copies": 3,
-    "weapons": [
-      "Multi-melta (Melta 3)",
-      "Onslaught Gatling Cannon (Devastating Wounds except MONSTER/VEHICLE)",
-      "Stormfury Missile Launcher",
-      "optional Pyrecannon replacement (Torrent, Blast 2)",
-      "Armoured Impact"
-    ],
-    "abilities": [
-      "Combat Doctrines",
-      "Deep Strike",
-      "Purgation Run: after shooting in own Shooting phase, optional Normal Move up to D6; no charge until end of turn"
+  "id": "space-marines-land-speeder-current-e11-scope",
+  "edition": "11th edition",
+  "source_authority": "Wahapedia 11e shared Space Marines datasheet; facts checked against the verified local Data Export snapshot and live datasheet.",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000002711",
+  "source_datasheet_name": "Land Speeder",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Land-Speeder",
+  "observed_at": "2026-10-28",
+  "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; 11e page rechecked 2026-10-28; Data Export specification revision 20260817b.",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
     ]
   },
-  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v78.json",
-  "local_validation": ".tools/verification/20261019T104954638154Z/results.json",
-  "network_validation": "deferred_to_final_integration_by_user",
-  "full_match_certified": false
+  "source_context": {
+    "conditional_keyword": "RAVENWING",
+    "rule_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing",
+    "rule": "In Dark Angels context, VEHICLE units with FLY gain RAVENWING; outside that context, remove the source-projected keyword from the shared-profile instance.",
+    "keyword_context_audit": "docs/wahapedia-keyword-context.json",
+    "keyword_context_id": "wahapedia-marine-keyword-context-2026-10-26-v49",
+    "base_size": "105 x 70 mm",
+    "runtime_geometry": "105 x 70 mm bounding-circle collision proxy; labelled approximation."
+  },
+  "implementation": [
+    {
+      "path": "scripts/edition_11/current_reference_marine_profiles.gd",
+      "sha256": "ace0c03075cf1e2deab133f22731ff0b7b333d9ca8154ba880b8c4416169bc0e"
+    },
+    {
+      "path": "scripts/edition_11/army_capabilities.gd",
+      "sha256": "1c69c869ee4c884ce8c1b7e16f3be05065cca4e509a473829f20cedefc2634a0"
+    },
+    {
+      "path": "scripts/edition_11/roster_validation.gd",
+      "sha256": "14f30a3bd4781feaafde312468ee18432147866f46004bf85645cda401b1df96"
+    },
+    {
+      "path": "scripts/edition_11/unit_actions.gd",
+      "sha256": "7a87066e45aa611193d9f9077a4e772d224884fff9cc8f13c212376059963baf"
+    },
+    {
+      "path": "scripts/edition_11/unit_abilities.gd",
+      "sha256": "0172ed93f0df1d385131d8f736a2be49feeb22644afcfe282e78d43d2a22f665"
+    },
+    {
+      "path": "scripts/edition_11/unit_ability_catalog.gd",
+      "sha256": "2e87326d97533478d092b79e81b45361bc8eb5b43e8b4c5fbb73bd47f1cfc62c"
+    },
+    {
+      "path": "scripts/edition_11/purgation_run.gd",
+      "sha256": "9ed797139159700248d7884df6522f1bccf72561610970ba0d529b794f7124b5"
+    },
+    {
+      "path": "scripts/edition_11/combat_scenario.gd",
+      "sha256": "1d2c1230b91a80ae9bf26cf69de08ed379a6e3f4d8b850422e95ef3059804474"
+    },
+    {
+      "path": "scripts/edition_11/attack_plan.gd",
+      "sha256": "0a3bcf2046aec615944e28aaf5299be820f8f6d33f9961d49f9008f0edd59f46"
+    },
+    {
+      "path": "scripts/edition_11/equipment.gd",
+      "sha256": "a747e67cb4c63c8d00379953f89ebd896a52730d76efeeb9fc2359a184bbec44"
+    },
+    {
+      "path": "scripts/edition_11/marine_leader_links.gd",
+      "sha256": "84cd00c910ff133f136d44a59adfd6c0f271ff2a2efd3be412ac04d574fe4d25"
+    },
+    {
+      "path": "scripts/edition_11/support_attachments.gd",
+      "sha256": "d6e3292412a3b7b10f0fe816b4d6a037028c4ffcbd3412130420e7b00022eb67"
+    },
+    {
+      "path": "scripts/edition_11/capabilities.gd",
+      "sha256": "e54ccbae954a5555db4e463d104733c991ff37ed715e4590a0f8d14b89d90f92"
+    },
+    {
+      "path": "tests/test_land_speeder.gd",
+      "sha256": "3533ab27532446fa23ee4a8d56e7637d6c681472810ad99e4d3394562e5f521a"
+    },
+    {
+      "path": "tests/test_marine_conditional_weapon_traits.gd",
+      "sha256": "f1aefdb80b90bf50c3161c5c949eade3f0ec6fa7d4e966ca117099ff72989ecc"
+    },
+    {
+      "path": "tests/test_space_marine_leader_links.gd",
+      "sha256": "eabe04a92275241e151b3e6d81f43c3287d15c7525443eb517072b74692a79de"
+    },
+    {
+      "path": "tests/space_marine_datasheet_checks.gd",
+      "sha256": "eb64b310e2614278fc26581ebf6ad0afccef5277a514639b6153ea2e47c274da"
+    },
+    {
+      "path": "tests/public_unit_command.gd",
+      "sha256": "a794f809babcaf677bb42bfbb4d2e10575c2e76b4db0fc136ed864417bf9e75f"
+    },
+    {
+      "path": "tests/all_units_fixture.gd",
+      "sha256": "eeba563cd7ededafa4a878443e801c548fea67cb609dec1178717f3f969d0d41"
+    },
+    {
+      "path": "tools/verify.py",
+      "sha256": "415b231070a607be6322b21d77fb53822a68223f65ba1866c735e93ddf5a3ca1"
+    },
+    {
+      "path": "docs/wahapedia-keyword-context.json",
+      "sha256": "f635545c278fe6ceac8a0327b6aab954220c340c26b342423f39cf3f3fbd2e38"
+    }
+  ],
+  "test_file": "tests/test_land_speeder.gd",
+  "scope": "Land Speeder source-bounded shared-book scope: one model, 105 points at every local copy tier, source characteristics, base dimensions and labelled collision proxy; fixed ranged and melee profiles through Equipment/AttackPlan; conditional Onslaught Cannon Devastating Wounds; reversible zero-cost Pyrecannon replacement; public Deep Strike reserve declaration; Purgation Run use/pass, owner validation, persisted attack continuation, D6-limited Normal Move, phase-close gate and end-of-turn Charge restriction; contextual Dark Angels RAVENWING; both-player current Marine catalog materialization and no Leader/Support links.",
+  "limits": "The 105 x 70 mm base uses a labelled bounding-circle proxy. Deep Strike ingress relies on shared reserve validation and was not separately replayed for this sheet. The CA mission fixture stages optional legacy opponent data for Necrons; it does not certify Necron rules. Chapter-book variants, full faction/army legality, network behavior, complete-match certification and human playtesting remain outside scope; network verification is deferred to final integration.",
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_land_speeder --only test_marine_conditional_weapon_traits --only test_space_marine_leader_links --timeout 300",
+    "result": "passed",
+    "processes": "5/5",
+    "artifact": ".tools/verification/20261028T062111243132Z/results.json",
+    "artifact_sha256": "11f7fb3cad930bfb1047eb2719ff7c75228d269a13a6ee6e39562dc1467bc3e8",
+    "network": false,
+    "legacy_starter_staged": true,
+    "cleanup_diagnostics": false
+  },
+  "relation_map_identities": [],
+  "verified_profile": {
+    "composition": "One Land Speeder model.",
+    "points": {
+      "first_and_later_supported_copies": 105
+    },
+    "base_size": {
+      "source_mm": [
+        105,
+        70
+      ],
+      "runtime_geometry": "bounding-circle collision proxy"
+    },
+    "characteristics": {
+      "movement_inches": 14,
+      "toughness": 8,
+      "save": "3+",
+      "wounds": 9,
+      "leadership": "6+",
+      "objective_control": 3,
+      "invulnerable_save": null
+    },
+    "fixed_ranged_weapons": [
+      "Multi-melta",
+      "Onslaught Gatling Cannon",
+      "Stormfury Missile Launcher"
+    ],
+    "fixed_melee_weapon": "Armoured Impact",
+    "option": "Replace Onslaught Gatling Cannon with Pyrecannon; no additional points.",
+    "abilities": [
+      "Deep Strike",
+      "Combat Doctrines",
+      "Purgation Run"
+    ],
+    "conditional_keyword": "RAVENWING in Dark Angels VEHICLE+FLY context"
+  }
 }

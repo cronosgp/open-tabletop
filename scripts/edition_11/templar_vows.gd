@@ -6,7 +6,6 @@ const Contact = preload("res://scripts/edition_11/contact_movement.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
 const ID := "templar-vows-11e-v2"
-const DOCTRINES_ID := "combat-doctrines-11e-gladius-v1"
 const UPHOLD := "uphold-honour"
 const ABHOR := "abhor-the-witch"
 const CHALLENGE := "accept-any-challenge"
@@ -14,7 +13,7 @@ const CHALLENGE := "accept-any-challenge"
 static func enabled_for(state: Dictionary, owner: int) -> bool:
 	if owner not in [1, 2]: return false
 	var doctrine_state: Dictionary = state.get("combat_doctrines", {})
-	if doctrine_state.get("implementation", "") != DOCTRINES_ID: return false
+	if not str(doctrine_state.get("implementation", "")).begins_with("combat-doctrines-11e-"): return false
 	var assignments: Dictionary = doctrine_state.get("detachments", {})
 	var detachment := str(assignments.get(owner, assignments.get(str(owner), doctrine_state.get("detachment", "none"))))
 	if detachment != "vow-sworn-crusaders": return false

@@ -6,13 +6,17 @@ const CurrentMarines = preload("res://scripts/edition_11/current_reference_marin
 const A = preload("res://scripts/edition_11/army_capabilities.gd")
 const R = preload("res://scripts/army_roster.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
-const ID := "incursion-fixed-rosters-mfm1.6-2026-10-25-v34-land-speeder-vengeance"
+const ID := "incursion-fixed-rosters-mfm1.6-2026-10-25-v38-vow-sworn-force-disposition"
 const CURRENT_SOURCE_STATUS := "wahapedia_e11_coverage_partial"
 const CHECKED_MAX_SQUADS := 12
 const SOURCES := {"Space Marines": {"url": "https://mfm.warhammer-community.com/en/space-marines", "version": "1.6", "sha256": "af280e710928f49d6c22775ae48fa9a5fe78de7560cf2c6712eb6d48a885c5e5"}, "Necrons": {"url": "https://mfm.warhammer-community.com/en/necrons", "version": "1.6", "sha256": "8ff758aedca89d8ea98c3912048b572b8d6ae2a5f66477a811973b91e505ee94"}}
 const DETACHMENTS := {
 	"Space Marines": {"id": "gladius-task-force", "name": "Gladius Task Force", "dp": 3, "force_dispositions": ["priority-assets", "take-and-hold"]},
 	"Necrons": {"id": "awakened-dynasty", "name": "Awakened Dynasty", "dp": 3, "force_dispositions": ["take-and-hold", "priority-assets"]}
+}
+const DETACHMENT_PROFILES := {
+	"fist-of-the-god-emperor": {"id": "fist-of-the-god-emperor", "name": "Fist of the God-Emperor", "dp": 1, "force_dispositions": ["take-and-hold"]},
+	"vow-sworn-crusaders": {"id": "vow-sworn-crusaders", "name": "Vow-sworn Crusaders", "dp": 2, "force_dispositions": ["purge-the-foe"], "source_snapshot": "20261021T130623Z", "source_row_id": "000001230", "source_sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"}
 }
 const CAPTURED_REFERENCE_POINTS := {
   "necron-warriors": {
@@ -49,9 +53,14 @@ static func _build_points() -> Dictionary:
 		if result.has(slug):
 			push_error("Duplicate current and captured point authority: " + slug)
 			return {}
-		var record := {"cost": int(profile.points), "models": int(profile.models), "sizes": profile.points_by_models.duplicate(true), "battleline": "BATTLELINE" in profile.keywords, "source": str(profile.get("points_source", "wahapedia-e11-2026-10-19"))}
-		if profile.has("third_plus_points_by_models"): record.third_plus_sizes = profile.third_plus_points_by_models.duplicate(true)
+		var source_costs: Dictionary = profile.get("source_roster_points", profile)
+		var record := {"cost": int(source_costs.get("points", profile.points)), "models": int(profile.models), "sizes": source_costs.get("points_by_models", profile.points_by_models).duplicate(true), "battleline": "BATTLELINE" in profile.keywords, "source": str(profile.get("points_source", "wahapedia-e11-2026-10-19"))}
+		if source_costs.has("third_plus_points_by_models"): record.third_plus_sizes = source_costs.third_plus_points_by_models.duplicate(true)
+		elif profile.has("third_plus_points_by_models"): record.third_plus_sizes = profile.third_plus_points_by_models.duplicate(true)
+		if source_costs.has("second_plus_points_by_models"): record.second_plus_sizes = source_costs.second_plus_points_by_models.duplicate(true)
+		if profile.has("fourth_plus_points_by_models"): record.fourth_plus_sizes = profile.fourth_plus_points_by_models.duplicate(true)
 		if profile.has("wargear_costs"): record.wargear_costs = profile.wargear_costs.duplicate(true)
+		if profile.has("fixed_wargear_costs"): record.fixed_wargear_costs = int(profile.fixed_wargear_costs)
 		if profile.has("max_supported_copies"): record.max_supported_copies = int(profile.max_supported_copies)
 		if "CHARACTER" in profile.keywords: record.character = true
 		if slug in Supports.BODYGUARDS: record.support = true
@@ -59,7 +68,16 @@ static func _build_points() -> Dictionary:
 	return result
 
 static func digest() -> String:
-	return var_to_str({"id": ID, "points": POINTS, "support_links": Supports.BODYGUARDS, "conditional_support_links": Supports.CONDITIONAL_BODYGUARDS, "detachments": DETACHMENTS, "sources": SOURCES, "detachment_stratagems": DetachmentStratagems.ID}).sha256_text()
+	return var_to_str({"id": ID, "points": POINTS, "support_links": Supports.BODYGUARDS, "conditional_support_links": Supports.CONDITIONAL_BODYGUARDS, "detachments": DETACHMENTS, "detachment_profiles": DETACHMENT_PROFILES, "sources": SOURCES, "detachment_stratagems": DetachmentStratagems.ID}).sha256_text()
+
+static func detachment_for(faction: String, selected_id: String = "") -> Dictionary:
+	if not DETACHMENTS.has(faction): return {}
+	if faction == "Space Marines":
+		if selected_id in ["", "none", "gladius", "gladius-task-force"]: return DETACHMENTS[faction].duplicate(true)
+		return DETACHMENT_PROFILES.get(selected_id, {}).duplicate(true)
+	var default_profile: Dictionary = DETACHMENTS[faction]
+	if selected_id in ["", "none", str(default_profile.id)]: return default_profile.duplicate(true)
+	return {}
 
 static func enabled(s: Dictionary) -> bool:
 	return s.get("roster_validation", {}).get("implementation", "") == ID and s.roster_validation.get("digest", "") == digest()
@@ -76,7 +94,7 @@ static func dp_error(detachments: Array, allowance: int = 2) -> String:
 	if total > allowance and not (allowance == 2 and detachments.size() == 1 and total == 3): return "Incursion allows 2 DP, or one 3DP detachment as the only detachment."
 	return ""
 
-static func inspect(list: Variant) -> Dictionary:
+static func inspect(list: Variant, detachment_id: String = "") -> Dictionary:
 	var error := R.validate(list)
 	if not error.is_empty(): return {"error": error}
 	if list.edition != "11e": return {"error": "Checked rosters require edition 11."}
@@ -88,15 +106,19 @@ static func inspect(list: Variant) -> Dictionary:
 		if entry.faction != list.faction: return {"error": "Checked rosters require one faction."}
 		for key in ["enhancements", "wargear", "upgrades"]:
 			if entry.has(key): return {"error": "Unsupported explicit equipment/enhancement selection: " + key}
-		entries.append({"definition_id": A.canonical_id(list.faction, entry.unit_id), "models": entry.models, "copies": entry.copies})
-	var report := admit({"schema_version": 2, "faction": list.faction, "category": list.category, "points_limit": list.points_limit, "entries": entries})
+		var selected := {"definition_id": A.canonical_id(list.faction, entry.unit_id), "models": entry.models, "copies": entry.copies}
+		if entry.has("composition_choice_id"): selected.composition_choice_id = str(entry.composition_choice_id)
+		entries.append(selected)
+	var report := admit({"schema_version": 2, "faction": list.faction, "category": list.category, "points_limit": list.points_limit, "entries": entries}, detachment_id)
 	if report.error.is_empty(): report.saved_reference_points = R.summary(list).points
 	return report
 
-static func admit(selection: Variant) -> Dictionary:
+static func admit(selection: Variant, detachment_id: String = "") -> Dictionary:
 	if not selection is Dictionary or selection.size() != 5 or selection.get("schema_version") != 2: return {"error": "Checked rosters require canonical mixed-list selections."}
 	if selection.get("category") != "incursion" or not R.integer(selection.get("points_limit"), 1000, 1000): return {"error": "Checked rosters currently support 1000-point Incursion only."}
 	if selection.get("faction") not in DETACHMENTS: return {"error": "Checked rosters support Space Marines and Necrons only."}
+	var detachment := detachment_for(str(selection.faction), detachment_id)
+	if detachment.is_empty(): return {"error": "Checked rosters do not support the selected %s detachment." % str(selection.faction)}
 	# Validate and canonicalize known fixed profiles without using historical prices.
 	var unpriced: Dictionary = selection.duplicate(true)
 	unpriced.category = "custom"
@@ -115,22 +137,43 @@ static func admit(selection: Variant) -> Dictionary:
 		var price: Dictionary = POINTS[slug]
 		var sizes: Dictionary = price.get("sizes", {int(price.models): int(price.cost)})
 		if not sizes.has(entry.models): return {"error": "Unsupported current composition: " + slug}
-		sheet_counts[slug] = int(sheet_counts.get(slug, 0)) + int(entry.copies)
+		var previous_sheet_copies := int(sheet_counts.get(slug, 0))
+		sheet_counts[slug] = previous_sheet_copies + int(entry.copies)
 		if sheet_counts[slug] > (4 if price.battleline else 2): return {"error": "Incursion repetition limit exceeded: " + slug + " (2 per datasheet; 4 Battleline)."}
-		var unit_cost: int = sizes[entry.models]
-		var subtotal: int = unit_cost * entry.copies
+		var unit_wargear_cost := 0
+		if slug == "victrix-honour-guard":
+			var profile := CurrentMarines.profile(slug)
+			var choice_id := str(entry.get("composition_choice_id", ""))
+			var choice_found := false
+			for option: Dictionary in profile.get("composition_options", []):
+				if int(option.get("models", -1)) == int(entry.models) and str(option.get("id", "")) == choice_id:
+					unit_wargear_cost = int(option.get("wargear_cost", 0))
+					choice_found = true
+					break
+			if not choice_found: return {"error": "Victrix Honour Guard composition does not match its Banner of Macragge choice."}
+		elif entry.has("composition_choice_id"):
+			return {"error": "This datasheet has no selectable model-role composition."}
+		var unit_cost: int = sizes[entry.models] + unit_wargear_cost
+		var second_sizes: Dictionary = price.get("second_plus_sizes", {})
+		var third_sizes: Dictionary = price.get("third_plus_sizes", {})
+		var fourth_sizes: Dictionary = price.get("fourth_plus_sizes", {})
+		var priced_subtotal := int(R.tiered_cost(sizes[entry.models], third_sizes.get(entry.models), int(entry.copies), previous_sheet_copies, fourth_sizes.get(entry.models), second_sizes.get(entry.models)))
+		var subtotal: int = priced_subtotal + unit_wargear_cost * int(entry.copies)
 		total += subtotal
 		if price.get("character", false): characters += int(entry.copies)
 		report.definitions[entry.definition_id].cost = unit_cost
 		var configuration_key := "%s:%02d:%s" % [entry.definition_id, int(entry.models), str(entry.get("enhancement_id", ""))]
+		if entry.has("composition_choice_id"): configuration_key += ":" + str(entry.composition_choice_id)
 		if not report.configurations.has(configuration_key): return {"error": "Resolved roster configuration is missing: " + configuration_key}
 		report.configurations[configuration_key].cost = unit_cost
-		breakdown.append({"definition_id": entry.definition_id, "models": entry.models, "copies": entry.copies, "unit_cost": unit_cost, "points_source": price.get("source", "official-mfm-1.6-observed-2026-10-17"), "total": subtotal, "wargear_cost": 0})
+		var row := {"definition_id": entry.definition_id, "models": entry.models, "copies": entry.copies, "unit_cost": unit_cost, "points_source": price.get("source", "official-mfm-1.6-observed-2026-10-17"), "total": subtotal, "wargear_cost": unit_wargear_cost * int(entry.copies)}
+		if entry.has("composition_choice_id"): row.composition_choice_id = str(entry.composition_choice_id)
+		breakdown.append(row)
 	if characters == 0: return {"error": "A current roster requires a faction Character as Warlord."}
 	var attachment_error := Supports.matching_error(report.selection.entries)
 	if not attachment_error.is_empty(): return {"error": attachment_error}
 	if total > 1000: return {"error": "The list exceeds the captured MFM 1.6 Incursion reference: %d/1000." % total}
-	var detachments: Array = [DETACHMENTS[selection.faction].duplicate(true)]
+	var detachments: Array = [detachment]
 	var error := dp_error(detachments)
 	if not error.is_empty(): return {"error": error}
 	report.total = total
@@ -150,6 +193,7 @@ static func seal(s: Dictionary, player: int) -> String:
 	if not enabled(s): return ""
 	var model: int = s.unit_abilities.get("warlords", {}).get(player, -1)
 	if not s.units.has(model) or s.units[model].owner != player or "CHARACTER" not in str(s.units[model].keywords).to_upper(): return "Declare a friendly faction Character as Warlord before completing the checked roster."
+	if str(s.units[model].get("definition_id", "")).get_slice(":", 3) == "murderfang": return "Murderfang cannot be selected as your Warlord."
 	var calgar_in_army := false
 	for unit: Dictionary in s.units.values():
 		if unit.owner == player and str(unit.get("definition_id", "")).get_slice(":", 3) == "marneus-calgar": calgar_in_army = true
@@ -164,7 +208,7 @@ static func summary(s: Dictionary) -> String:
 	var parts: Array[String] = []
 	for player in [1, 2]:
 		var army: Dictionary = s.roster_validation.armies[player]
-		parts.append("P%d %d/1000 pts | %s, 3DP exception | formations %s" % [player, army.total, army.detachments[0].name, "checked" if army.formations_verified else "pending"])
+		parts.append("P%d %d/1000 pts | %s (%d DP) | formations %s" % [player, army.total, army.detachments[0].name, int(army.detachments[0].dp), "checked" if army.formations_verified else "pending"])
 	return "MFM 1.6 legacy price snapshot\n" + "\n".join(parts) + "\nWahapedia e11 is the rules source; supported datasheets are partial and full army legality is not certified."
 
 static func preset(faction: String) -> Dictionary:
@@ -174,7 +218,7 @@ static func preset(faction: String) -> Dictionary:
 	list.name = "MFM 1.6 starter (290 pts) - " + faction
 	list.pricing_source = ID
 	list.catalog_digest = digest()
-	list.notes = "Current fixed-loadout construction profile, Incursion 1000-point limit. No enhancements. Gladius/Awakened only. Choose Warlord and Support attachments before deployment. Other rules remain incomplete."
+	list.notes = "Current fixed-loadout construction profile, Incursion 1000-point limit. No enhancements. Gladius or bounded Black Templars Fist / Awakened Dynasty only. Choose Warlord and Support attachments before deployment. Other rules remain incomplete."
 	for slug: String in (["captain", "intercessor-squad", "heavy-intercessor-squad"] if faction == "Space Marines" else ["overlord", "necron-warriors", "immortals", "royal-warden"]):
 		var folder := "adeptus-astartes" if faction == "Space Marines" else "necrons"
 		var resolved := A.resolve(faction, "40kdc:11e:%s:%s" % [folder, slug])

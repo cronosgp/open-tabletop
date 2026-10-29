@@ -2,13 +2,209 @@
   "schema_version": 1,
   "source": "Wahapedia 11th edition local data export",
   "source_book_id": "000000139",
-  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "source_snapshot_id": "20261021T130623Z",
+  "source_retrieved_at_utc": "2026-10-21T19:46:58Z",
+  "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+  "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+  "source_slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+  "source_files": [
+    {
+      "name": "Abilities.csv",
+      "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+    },
+    {
+      "name": "Datasheets.csv",
+      "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+    },
+    {
+      "name": "Datasheets_abilities.csv",
+      "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+    },
+    {
+      "name": "Datasheets_detachment_abilities.csv",
+      "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+    },
+    {
+      "name": "Datasheets_enhancements.csv",
+      "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+    },
+    {
+      "name": "Datasheets_keywords.csv",
+      "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+    },
+    {
+      "name": "Datasheets_leader.csv",
+      "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+    },
+    {
+      "name": "Datasheets_models.csv",
+      "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+    },
+    {
+      "name": "Datasheets_models_cost.csv",
+      "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+    },
+    {
+      "name": "Datasheets_options.csv",
+      "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+    },
+    {
+      "name": "Datasheets_stratagems.csv",
+      "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+    },
+    {
+      "name": "Datasheets_unit_composition.csv",
+      "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+    },
+    {
+      "name": "Datasheets_wargear.csv",
+      "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+    },
+    {
+      "name": "Detachment_abilities.csv",
+      "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+    },
+    {
+      "name": "Detachments.csv",
+      "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+    },
+    {
+      "name": "Detachments_chapter_dp.csv",
+      "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+    },
+    {
+      "name": "Enhancements.csv",
+      "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+    },
+    {
+      "name": "Enhancements_wargear.csv",
+      "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+    },
+    {
+      "name": "Export-Data-Specs.xlsx",
+      "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+    },
+    {
+      "name": "Factions.csv",
+      "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+    },
+    {
+      "name": "Last_update.csv",
+      "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+    },
+    {
+      "name": "Source.csv",
+      "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+    },
+    {
+      "name": "Stratagems.csv",
+      "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+    }
+  ],
   "profiles": {
     "land-raider": {
       "name": "Land Raider",
       "source_book_id": "000000139",
       "source_datasheet_id": "000000065",
-      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "source_snapshot_id": "20261021T130623Z",
+      "source_retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+      "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "source_slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "source_files": [
+        {
+          "name": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "name": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "name": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "name": "Datasheets_detachment_abilities.csv",
+          "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+        },
+        {
+          "name": "Datasheets_enhancements.csv",
+          "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+        },
+        {
+          "name": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "name": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        },
+        {
+          "name": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "name": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "name": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "name": "Datasheets_stratagems.csv",
+          "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+        },
+        {
+          "name": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "name": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "name": "Detachment_abilities.csv",
+          "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+        },
+        {
+          "name": "Detachments.csv",
+          "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+        },
+        {
+          "name": "Detachments_chapter_dp.csv",
+          "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+        },
+        {
+          "name": "Enhancements.csv",
+          "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+        },
+        {
+          "name": "Enhancements_wargear.csv",
+          "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+        },
+        {
+          "name": "Export-Data-Specs.xlsx",
+          "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+        },
+        {
+          "name": "Factions.csv",
+          "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+        },
+        {
+          "name": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "name": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "name": "Stratagems.csv",
+          "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+        }
+      ],
       "points": 245,
       "points_by_models": {
         "1": 245
@@ -19,10 +215,18 @@
       "wargear_costs": {},
       "models": 1,
       "base_size_source": "Use model",
+      "source_cost_sections": {
+        "first": {
+          "1": 245
+        },
+        "second_plus": {
+          "1": 265
+        }
+      },
       "base_size_source_mm": 150,
       "base_geometry": "circular vehicle proxy",
       "base_radius_inches": 2.952755905511811,
-      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "geometry_scope": "Game proxy only; this vehicle's exact source footprint is outside the local geometry model.",
       "damaged_threshold": 0,
       "stats": {
         "movement_inches": 10,
@@ -35,12 +239,12 @@
       },
       "keywords": [
         "ADEPTUS ASTARTES",
+        "TRANSPORT",
+        "IMPERIUM",
         "DEATHWING",
         "VEHICLE",
-        "TRANSPORT",
-        "SMOKE",
-        "IMPERIUM",
-        "FRAME"
+        "FRAME",
+        "SMOKE"
       ],
       "ranged": [
         {
@@ -181,6 +385,18 @@
         ],
         "abilities": [
           {
+            "name": "Damaged",
+            "parameter": "6",
+            "type": "Core",
+            "text": ""
+          },
+          {
+            "name": "Deadly Demise",
+            "parameter": "D6",
+            "type": "Core",
+            "text": ""
+          },
+          {
             "name": "Assault Ramp",
             "text": "In your Movement phase, when this unit ends a normal move, units embarked within this unit can make an assault disembark move."
           },
@@ -196,13 +412,114 @@
             "Storm Bolter"
           ]
         }
+      },
+      "second_plus_points_by_models": {
+        "1": 265
       }
     },
     "land-raider-crusader": {
       "name": "Land Raider Crusader",
       "source_book_id": "000000139",
       "source_datasheet_id": "000000066",
-      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "source_snapshot_id": "20261021T130623Z",
+      "source_retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+      "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "source_slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "source_files": [
+        {
+          "name": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "name": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "name": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "name": "Datasheets_detachment_abilities.csv",
+          "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+        },
+        {
+          "name": "Datasheets_enhancements.csv",
+          "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+        },
+        {
+          "name": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "name": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        },
+        {
+          "name": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "name": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "name": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "name": "Datasheets_stratagems.csv",
+          "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+        },
+        {
+          "name": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "name": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "name": "Detachment_abilities.csv",
+          "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+        },
+        {
+          "name": "Detachments.csv",
+          "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+        },
+        {
+          "name": "Detachments_chapter_dp.csv",
+          "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+        },
+        {
+          "name": "Enhancements.csv",
+          "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+        },
+        {
+          "name": "Enhancements_wargear.csv",
+          "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+        },
+        {
+          "name": "Export-Data-Specs.xlsx",
+          "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+        },
+        {
+          "name": "Factions.csv",
+          "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+        },
+        {
+          "name": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "name": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "name": "Stratagems.csv",
+          "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+        }
+      ],
       "points": 230,
       "points_by_models": {
         "1": 230
@@ -213,10 +530,18 @@
       "wargear_costs": {},
       "models": 1,
       "base_size_source": "Use model",
+      "source_cost_sections": {
+        "first": {
+          "1": 230
+        },
+        "second_plus": {
+          "1": 250
+        }
+      },
       "base_size_source_mm": 150,
       "base_geometry": "circular vehicle proxy",
       "base_radius_inches": 2.952755905511811,
-      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "geometry_scope": "Game proxy only; this vehicle's exact source footprint is outside the local geometry model.",
       "damaged_threshold": 0,
       "stats": {
         "movement_inches": 12,
@@ -229,13 +554,13 @@
       },
       "keywords": [
         "ADEPTUS ASTARTES",
-        "SMOKE",
         "DEATHWING",
-        "IMPERIUM",
         "FRAME",
+        "TRANSPORT",
+        "IMPERIUM",
         "EXPLOSIVES",
         "VEHICLE",
-        "TRANSPORT"
+        "SMOKE"
       ],
       "ranged": [
         {
@@ -381,6 +706,18 @@
         ],
         "abilities": [
           {
+            "name": "Damaged",
+            "parameter": "6",
+            "type": "Core",
+            "text": ""
+          },
+          {
+            "name": "Deadly Demise",
+            "parameter": "D6",
+            "type": "Core",
+            "text": ""
+          },
+          {
             "name": "Assault Ramp",
             "text": "In your Movement phase, when this unit ends a normal move, units embarked within this unit can make an assault disembark move."
           },
@@ -396,27 +733,136 @@
             "Storm Bolter"
           ]
         }
+      },
+      "second_plus_points_by_models": {
+        "1": 250
       }
     },
     "drop-pod": {
       "name": "Drop Pod",
       "source_book_id": "000000139",
       "source_datasheet_id": "000000087",
-      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "source_snapshot_id": "20261021T130623Z",
+      "source_retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+      "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "source_slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "source_files": [
+        {
+          "name": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "name": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "name": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "name": "Datasheets_detachment_abilities.csv",
+          "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+        },
+        {
+          "name": "Datasheets_enhancements.csv",
+          "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+        },
+        {
+          "name": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "name": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        },
+        {
+          "name": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "name": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "name": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "name": "Datasheets_stratagems.csv",
+          "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+        },
+        {
+          "name": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "name": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "name": "Detachment_abilities.csv",
+          "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+        },
+        {
+          "name": "Detachments.csv",
+          "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+        },
+        {
+          "name": "Detachments_chapter_dp.csv",
+          "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+        },
+        {
+          "name": "Enhancements.csv",
+          "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+        },
+        {
+          "name": "Enhancements_wargear.csv",
+          "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+        },
+        {
+          "name": "Export-Data-Specs.xlsx",
+          "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+        },
+        {
+          "name": "Factions.csv",
+          "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+        },
+        {
+          "name": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "name": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "name": "Stratagems.csv",
+          "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+        }
+      ],
       "points": 60,
       "points_by_models": {
         "1": 60
       },
       "third_plus_points_by_models": {
-        "1": 70
+        "1": 60
       },
       "wargear_costs": {},
       "models": 1,
       "base_size_source": "",
+      "source_cost_sections": {
+        "first_third": {
+          "1": 60
+        },
+        "fourth_plus": {
+          "1": 70
+        }
+      },
       "base_size_source_mm": 80,
       "base_geometry": "circular vehicle proxy",
       "base_radius_inches": 1.5748031496062993,
-      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "geometry_scope": "Game proxy only; this vehicle's exact source footprint is outside the local geometry model.",
       "damaged_threshold": 0,
       "stats": {
         "movement_inches": 0,
@@ -429,11 +875,11 @@
       },
       "keywords": [
         "ADEPTUS ASTARTES",
-        "VEHICLE",
-        "DEDICATED TRANSPORT",
-        "FRAME",
+        "TRANSPORT",
         "IMPERIUM",
-        "TRANSPORT"
+        "FRAME",
+        "DEDICATED TRANSPORT",
+        "VEHICLE"
       ],
       "ranged": [],
       "melee": [],
@@ -455,6 +901,18 @@
         "double_space": [],
         "abilities": [
           {
+            "name": "Deadly Demise",
+            "parameter": "1",
+            "type": "Core",
+            "text": ""
+          },
+          {
+            "name": "Deep Strike",
+            "parameter": "",
+            "type": "Core",
+            "text": ""
+          },
+          {
             "name": "Drop Pod Assault",
             "text": "This unit must start the battle in strategic reserves.In your first Movement phase, this unit can make an ingress move.When this unit is set up, all units embarked within this unit must make a disembark/assault disembark move, and those units must be set up more than 8\" away from all enemy units."
           },
@@ -464,13 +922,114 @@
           }
         ],
         "options": {}
+      },
+      "fourth_plus_points_by_models": {
+        "1": 70
       }
     },
     "land-raider-redeemer": {
       "name": "Land Raider Redeemer",
       "source_book_id": "000000139",
       "source_datasheet_id": "000002173",
-      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "source_snapshot_id": "20261021T130623Z",
+      "source_retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+      "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "source_slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "source_files": [
+        {
+          "name": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "name": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "name": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "name": "Datasheets_detachment_abilities.csv",
+          "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+        },
+        {
+          "name": "Datasheets_enhancements.csv",
+          "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+        },
+        {
+          "name": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "name": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        },
+        {
+          "name": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "name": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "name": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "name": "Datasheets_stratagems.csv",
+          "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+        },
+        {
+          "name": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "name": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "name": "Detachment_abilities.csv",
+          "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+        },
+        {
+          "name": "Detachments.csv",
+          "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+        },
+        {
+          "name": "Detachments_chapter_dp.csv",
+          "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+        },
+        {
+          "name": "Enhancements.csv",
+          "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+        },
+        {
+          "name": "Enhancements_wargear.csv",
+          "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+        },
+        {
+          "name": "Export-Data-Specs.xlsx",
+          "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+        },
+        {
+          "name": "Factions.csv",
+          "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+        },
+        {
+          "name": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "name": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "name": "Stratagems.csv",
+          "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+        }
+      ],
       "points": 245,
       "points_by_models": {
         "1": 245
@@ -481,10 +1040,18 @@
       "wargear_costs": {},
       "models": 1,
       "base_size_source": "Use model",
+      "source_cost_sections": {
+        "first": {
+          "1": 245
+        },
+        "second_plus": {
+          "1": 265
+        }
+      },
       "base_size_source_mm": 150,
       "base_geometry": "circular vehicle proxy",
       "base_radius_inches": 2.952755905511811,
-      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "geometry_scope": "Game proxy only; this vehicle's exact source footprint is outside the local geometry model.",
       "damaged_threshold": 0,
       "stats": {
         "movement_inches": 12,
@@ -497,13 +1064,13 @@
       },
       "keywords": [
         "ADEPTUS ASTARTES",
-        "SMOKE",
-        "TRANSPORT",
         "DEATHWING",
+        "SMOKE",
+        "IMPERIUM",
         "VEHICLE",
-        "EXPLOSIVES",
         "FRAME",
-        "IMPERIUM"
+        "TRANSPORT",
+        "EXPLOSIVES"
       ],
       "ranged": [
         {
@@ -649,6 +1216,18 @@
         ],
         "abilities": [
           {
+            "name": "Damaged",
+            "parameter": "6",
+            "type": "Core",
+            "text": ""
+          },
+          {
+            "name": "Deadly Demise",
+            "parameter": "D6",
+            "type": "Core",
+            "text": ""
+          },
+          {
             "name": "Assault Ramp",
             "text": "In your Movement phase, when this unit ends a normal move, units embarked within this unit can make an assault disembark move."
           },
@@ -664,29 +1243,138 @@
             "Storm Bolter"
           ]
         }
+      },
+      "second_plus_points_by_models": {
+        "1": 265
       }
     },
     "impulsor": {
       "name": "Impulsor",
       "source_book_id": "000000139",
       "source_datasheet_id": "000002568",
-      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "source_snapshot_id": "20261021T130623Z",
+      "source_retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+      "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "source_slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "source_files": [
+        {
+          "name": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "name": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "name": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "name": "Datasheets_detachment_abilities.csv",
+          "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+        },
+        {
+          "name": "Datasheets_enhancements.csv",
+          "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+        },
+        {
+          "name": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "name": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        },
+        {
+          "name": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "name": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "name": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "name": "Datasheets_stratagems.csv",
+          "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+        },
+        {
+          "name": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "name": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "name": "Detachment_abilities.csv",
+          "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+        },
+        {
+          "name": "Detachments.csv",
+          "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+        },
+        {
+          "name": "Detachments_chapter_dp.csv",
+          "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+        },
+        {
+          "name": "Enhancements.csv",
+          "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+        },
+        {
+          "name": "Enhancements_wargear.csv",
+          "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+        },
+        {
+          "name": "Export-Data-Specs.xlsx",
+          "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+        },
+        {
+          "name": "Factions.csv",
+          "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+        },
+        {
+          "name": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "name": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "name": "Stratagems.csv",
+          "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+        }
+      ],
       "points": 70,
       "points_by_models": {
         "1": 70
       },
       "third_plus_points_by_models": {
-        "1": 80
+        "1": 70
       },
       "wargear_costs": {
         "Orbital Comms Array": 10
       },
       "models": 1,
       "base_size_source": "100mm",
-      "base_size_source_mm": 100,
-      "base_geometry": "circular vehicle proxy",
+      "source_cost_sections": {
+        "first_third": {
+          "1": 70
+        },
+        "fourth_plus": {
+          "1": 80
+        }
+      },
+      "base_size_source_mm": 100.0,
+      "base_geometry": "circle",
       "base_radius_inches": 1.968503937007874,
-      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "geometry_scope": "Wahapedia specifies a 100 mm diameter circle; runtime uses the corresponding circular footprint.",
       "damaged_threshold": 0,
       "stats": {
         "movement_inches": 12,
@@ -699,10 +1387,10 @@
       },
       "keywords": [
         "ADEPTUS ASTARTES",
-        "TRANSPORT",
-        "DEDICATED TRANSPORT",
         "VEHICLE",
+        "TRANSPORT",
         "IMPERIUM",
+        "DEDICATED TRANSPORT",
         "FRAME"
       ],
       "ranged": [
@@ -850,12 +1538,18 @@
           "GRAVIS"
         ],
         "abilities": [
-        {
-          "name": "Firing Deck",
-          "source_ability_id": "000008334",
-          "parameter": "7",
-          "text": "This ability always takes the form Firing Deck X. In your Shooting phase, each time this TRANSPORT is selected to shoot, if one or more units are embarked within it, select up to X models embarked within this TRANSPORT, excluding models whose units have already been selected to shoot this phase. For each selected model, select one of its ranged weapons, excluding [ONE SHOT] weapons. Until this TRANSPORT has resolved all of its attacks, it has those selected weapons in addition to its other weapons. Until the end of the turn, units embarked within this TRANSPORT are not eligible to shoot."
-        },
+          {
+            "name": "Deadly Demise",
+            "parameter": "D3",
+            "type": "Core",
+            "text": ""
+          },
+          {
+            "name": "Firing Deck",
+            "parameter": "7",
+            "type": "Core",
+            "text": ""
+          },
           {
             "name": "Rapid Disembarkation",
             "text": "In your Movement phase, when this unit ends an advance move, units embarked within this unit can make a shock disembark move."
@@ -886,13 +1580,114 @@
             "Orbital Comms Array": 10
           }
         }
+      },
+      "fourth_plus_points_by_models": {
+        "1": 80
       }
     },
     "repulsor": {
       "name": "Repulsor",
       "source_book_id": "000000139",
       "source_datasheet_id": "000002721",
-      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "source_snapshot_id": "20261021T130623Z",
+      "source_retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+      "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "source_slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "source_files": [
+        {
+          "name": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "name": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "name": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "name": "Datasheets_detachment_abilities.csv",
+          "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+        },
+        {
+          "name": "Datasheets_enhancements.csv",
+          "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+        },
+        {
+          "name": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "name": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        },
+        {
+          "name": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "name": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "name": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "name": "Datasheets_stratagems.csv",
+          "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+        },
+        {
+          "name": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "name": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "name": "Detachment_abilities.csv",
+          "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+        },
+        {
+          "name": "Detachments.csv",
+          "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+        },
+        {
+          "name": "Detachments_chapter_dp.csv",
+          "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+        },
+        {
+          "name": "Enhancements.csv",
+          "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+        },
+        {
+          "name": "Enhancements_wargear.csv",
+          "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+        },
+        {
+          "name": "Export-Data-Specs.xlsx",
+          "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+        },
+        {
+          "name": "Factions.csv",
+          "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+        },
+        {
+          "name": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "name": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "name": "Stratagems.csv",
+          "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+        }
+      ],
       "points": 190,
       "points_by_models": {
         "1": 190
@@ -903,10 +1698,18 @@
       "wargear_costs": {},
       "models": 1,
       "base_size_source": "100mm",
-      "base_size_source_mm": 100,
-      "base_geometry": "circular vehicle proxy",
+      "source_cost_sections": {
+        "first_second": {
+          "1": 190
+        },
+        "third_plus": {
+          "1": 210
+        }
+      },
+      "base_size_source_mm": 100.0,
+      "base_geometry": "circle",
       "base_radius_inches": 1.968503937007874,
-      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "geometry_scope": "Wahapedia specifies a 100 mm diameter circle; runtime uses the corresponding circular footprint.",
       "damaged_threshold": 0,
       "stats": {
         "movement_inches": 10,
@@ -919,12 +1722,12 @@
       },
       "keywords": [
         "ADEPTUS ASTARTES",
-        "DEATHWING",
-        "TRANSPORT",
-        "SMOKE",
+        "IMPERIUM",
         "FRAME",
         "VEHICLE",
-        "IMPERIUM"
+        "SMOKE",
+        "DEATHWING",
+        "TRANSPORT"
       ],
       "ranged": [
         {
@@ -956,6 +1759,16 @@
               "keywords": {
                 "devastating-wounds": true,
                 "sustained-hits": 2
+              },
+              "target_restricted_traits": {
+                "devastating-wounds": [
+                  "MONSTER",
+                  "VEHICLE"
+                ],
+                "sustained-hits": [
+                  "MONSTER",
+                  "VEHICLE"
+                ]
               }
             }
           }
@@ -1067,6 +1880,18 @@
         ],
         "abilities": [
           {
+            "name": "Damaged",
+            "parameter": "6",
+            "type": "Core",
+            "text": ""
+          },
+          {
+            "name": "Deadly Demise",
+            "parameter": "D6",
+            "type": "Core",
+            "text": ""
+          },
+          {
             "name": "Combat Embarkation",
             "text": "In your opponent’s Charge phase, when an enemy unit has selected charge targets, you can select one friendly unengaged ADEPTUS ASTARTES unit that was one of those charge targets and is eligible to embark within this TRANSPORT. If every model in that unit is within 3\" of this TRANSPORT, that unit can embark within this TRANSPORT. That enemy unit can then select new charge targets for that charge move."
           }
@@ -1083,7 +1908,105 @@
       "name": "Repulsor Executioner",
       "source_book_id": "000000139",
       "source_datasheet_id": "000002722",
-      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "source_snapshot_id": "20261021T130623Z",
+      "source_retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+      "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "source_slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "source_files": [
+        {
+          "name": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "name": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "name": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "name": "Datasheets_detachment_abilities.csv",
+          "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+        },
+        {
+          "name": "Datasheets_enhancements.csv",
+          "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+        },
+        {
+          "name": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "name": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        },
+        {
+          "name": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "name": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "name": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "name": "Datasheets_stratagems.csv",
+          "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+        },
+        {
+          "name": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "name": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "name": "Detachment_abilities.csv",
+          "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+        },
+        {
+          "name": "Detachments.csv",
+          "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+        },
+        {
+          "name": "Detachments_chapter_dp.csv",
+          "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+        },
+        {
+          "name": "Enhancements.csv",
+          "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+        },
+        {
+          "name": "Enhancements_wargear.csv",
+          "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+        },
+        {
+          "name": "Export-Data-Specs.xlsx",
+          "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+        },
+        {
+          "name": "Factions.csv",
+          "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+        },
+        {
+          "name": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "name": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "name": "Stratagems.csv",
+          "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+        }
+      ],
       "points": 260,
       "points_by_models": {
         "1": 260
@@ -1096,10 +2019,18 @@
       },
       "models": 1,
       "base_size_source": "100mm",
-      "base_size_source_mm": 100,
-      "base_geometry": "circular vehicle proxy",
+      "source_cost_sections": {
+        "first_second": {
+          "1": 260
+        },
+        "third_plus": {
+          "1": 280
+        }
+      },
+      "base_size_source_mm": 100.0,
+      "base_geometry": "circle",
       "base_radius_inches": 1.968503937007874,
-      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "geometry_scope": "Wahapedia specifies a 100 mm diameter circle; runtime uses the corresponding circular footprint.",
       "damaged_threshold": 0,
       "stats": {
         "movement_inches": 10,
@@ -1112,12 +2043,12 @@
       },
       "keywords": [
         "ADEPTUS ASTARTES",
-        "SMOKE",
-        "VEHICLE",
-        "FRAME",
         "IMPERIUM",
+        "SMOKE",
+        "TRANSPORT",
         "DEATHWING",
-        "TRANSPORT"
+        "VEHICLE",
+        "FRAME"
       ],
       "ranged": [
         {
@@ -1167,6 +2098,16 @@
               "keywords": {
                 "devastating-wounds": true,
                 "sustained-hits": 2
+              },
+              "target_restricted_traits": {
+                "sustained-hits": [
+                  "MONSTER",
+                  "VEHICLE"
+                ],
+                "devastating-wounds": [
+                  "MONSTER",
+                  "VEHICLE"
+                ]
               }
             }
           }
@@ -1258,6 +2199,18 @@
         ],
         "abilities": [
           {
+            "name": "Damaged",
+            "parameter": "6",
+            "type": "Core",
+            "text": ""
+          },
+          {
+            "name": "Deadly Demise",
+            "parameter": "D6",
+            "type": "Core",
+            "text": ""
+          },
+          {
             "name": "Executioner",
             "text": "This unit’s ranged attacks that target a unit not below half-strength have +1 to hit rolls."
           }
@@ -1276,21 +2229,127 @@
       "name": "Rhino",
       "source_book_id": "000000139",
       "source_datasheet_id": "000002723",
-      "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+      "source_snapshot_id": "20261021T130623Z",
+      "source_retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+      "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "source_slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "source_files": [
+        {
+          "name": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "name": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "name": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "name": "Datasheets_detachment_abilities.csv",
+          "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+        },
+        {
+          "name": "Datasheets_enhancements.csv",
+          "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+        },
+        {
+          "name": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "name": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        },
+        {
+          "name": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "name": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "name": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "name": "Datasheets_stratagems.csv",
+          "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+        },
+        {
+          "name": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "name": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "name": "Detachment_abilities.csv",
+          "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+        },
+        {
+          "name": "Detachments.csv",
+          "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+        },
+        {
+          "name": "Detachments_chapter_dp.csv",
+          "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+        },
+        {
+          "name": "Enhancements.csv",
+          "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+        },
+        {
+          "name": "Enhancements_wargear.csv",
+          "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+        },
+        {
+          "name": "Export-Data-Specs.xlsx",
+          "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+        },
+        {
+          "name": "Factions.csv",
+          "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+        },
+        {
+          "name": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "name": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "name": "Stratagems.csv",
+          "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+        }
+      ],
       "points": 70,
       "points_by_models": {
         "1": 70
       },
       "third_plus_points_by_models": {
-        "1": 80
+        "1": 70
       },
       "wargear_costs": {},
       "models": 1,
       "base_size_source": "Use model",
+      "source_cost_sections": {
+        "first_third": {
+          "1": 70
+        },
+        "fourth_plus": {
+          "1": 80
+        }
+      },
       "base_size_source_mm": 120,
       "base_geometry": "circular vehicle proxy",
       "base_radius_inches": 2.362204724409449,
-      "geometry_scope": "Game proxy only; Wahapedia identifies this vehicle as unbased or custom geometry.",
+      "geometry_scope": "Game proxy only; this vehicle's exact source footprint is outside the local geometry model.",
       "damaged_threshold": 0,
       "stats": {
         "movement_inches": 12,
@@ -1303,12 +2362,12 @@
       },
       "keywords": [
         "ADEPTUS ASTARTES",
-        "SMOKE",
-        "IMPERIUM",
-        "TRANSPORT",
         "VEHICLE",
+        "DEDICATED TRANSPORT",
+        "IMPERIUM",
+        "SMOKE",
         "FRAME",
-        "DEDICATED TRANSPORT"
+        "TRANSPORT"
       ],
       "ranged": [
         {
@@ -1382,10 +2441,16 @@
         "double_space": [],
         "abilities": [
           {
+            "name": "Deadly Demise",
+            "parameter": "D3",
+            "type": "Core",
+            "text": ""
+          },
+          {
             "name": "Firing Deck",
-            "source_ability_id": "000008334",
             "parameter": "2",
-            "text": "This ability always takes the form Firing Deck X. In your Shooting phase, each time this TRANSPORT is selected to shoot, if one or more units are embarked within it, select up to X models embarked within this TRANSPORT, excluding models whose units have already been selected to shoot this phase. For each selected model, select one of its ranged weapons, excluding [ONE SHOT] weapons. Until this TRANSPORT has resolved all of its attacks, it has those selected weapons in addition to its other weapons. Until the end of the turn, units embarked within this TRANSPORT are not eligible to shoot."
+            "type": "Core",
+            "text": ""
           },
           {
             "name": "Veiling Smoke (Once per phase, per unit)",
@@ -1397,6 +2462,9 @@
             "Hunter-killer Missile"
           ]
         }
+      },
+      "fourth_plus_points_by_models": {
+        "1": 80
       }
     }
   }

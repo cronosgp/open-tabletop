@@ -1,33 +1,133 @@
 {
-  "identity": "gladiator-valiant",
-  "source": {
-    "authority": "Wahapedia 11th-edition local export",
-    "source_book_id": "000000139",
-    "datasheet_id": "000001825",
-    "export_updated_at": "2026-10-16T21:03:46+03:00",
-    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Gladiator-Valiant"
-  },
-  "scope": {
-    "models": 1,
-    "base": "100 mm circle (50 mm radius proxy)",
-    "points_first_second": 165,
-    "points_third_plus": 185,
-    "max_supported_copies": 3,
-    "weapons": [
-      "Defensive Array (Rapid Fire 6)",
-      "Multi-melta x2 (Melta 3 each)",
-      "Twin Las-talon (Twin-linked)",
-      "Armoured Hull"
-    ],
-    "abilities": [
-      "Combat Doctrines",
-      "Damaged 4",
-      "Deadly Demise D3",
-      "Priority Target Acquisition (+1 Strength to ranged attacks against targets within 12 inches)"
+  "id": "space-marines-gladiator-valiant-current-e11-scope",
+  "edition": "11th edition",
+  "source_authority": "Wahapedia 11e shared Space Marines datasheet; facts checked against the verified local Data Export snapshot.",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000001825",
+  "source_datasheet_name": "Gladiator Valiant",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Gladiator-Valiant",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "source_datasheet_export_updated_at": "2026-10-19 03:47:32",
+  "observed_at": "2026-10-27",
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b (URL query parameter)",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
     ]
   },
-  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v73.json",
-  "local_validation": ".tools/verification/20261019T101548046740Z/results.json",
+  "implementation": [
+    "scripts/edition_11/current_reference_marine_profiles.gd",
+    "scripts/edition_11/army_capabilities.gd",
+    "scripts/edition_11/roster_validation.gd",
+    "scripts/edition_11/unit_ability_catalog.gd",
+    "scripts/edition_11/unit_abilities.gd",
+    "scripts/edition_11/attack_plan.gd",
+    "scripts/edition_11/equipment.gd",
+    "scripts/edition_11/combat_scenario.gd",
+    "scripts/edition_11/contact_movement.gd",
+    "scripts/edition_11/deadly_demise.gd",
+    "tests/test_gladiator_valiant.gd",
+    "tools/verify.py"
+  ],
+  "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_gladiator_valiant --only test_space_marine_leader_links --timeout 300",
+  "validation_artifact": ".tools/verification/20261027T083654769142Z/results.json",
+  "validation_status": "passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+  "fixed_data_consistent": true,
+  "weapon_instances_checked": [
+    "Defensive Array: 24 inches, A6, BS3+, S5, AP-1, D1, Rapid Fire 6",
+    "Multi-melta left and right: each 18 inches, A2, BS3+, S10, AP-3, D3+2, Melta 3",
+    "Twin Las-talon: 36 inches, A2, BS3+, S10, AP-3, D3+3, Twin-linked",
+    "Armoured Hull: A3, WS4+, S6, AP0, D1"
+  ],
+  "ability_effects_checked": [
+    "Priority Target Acquisition: +1 Strength to every ranged profile against the nearest target within 12 inches, including the measured base-edge boundary; excludes melee and stops immediately beyond range",
+    "Damaged 4: -1 to hit at four remaining wounds, not at five",
+    "Deadly Demise D3: no trigger on 5; trigger and nearby target packet on 6"
+  ],
+  "construction_checked": {
+    "models": 1,
+    "base": "100 mm circular base",
+    "first_and_second_copy_points": 165,
+    "third_plus_copy_points": 185,
+    "max_supported_copies": 3,
+    "admission_result": "one copy 165 points; three copies 515 points; fourth copy rejected"
+  },
+  "source_options_rows": 0,
+  "current_catalog_for_both_players": true,
   "network_validation": "deferred_to_final_integration_by_user",
-  "full_match_certified": false
+  "full_source_bounded_local_scope_validated": true,
+  "full_army_legality_certified": false,
+  "full_match_certified": false,
+  "known_scope_limits": [
+    "This closes only the 11th-edition shared-book Gladiator Valiant datasheet scope.",
+    "Combat Doctrines is a shared Adeptus Astartes faction rule and remains under the project's separate faction-rule coverage.",
+    "Full army legality, Chapter-book variants, Forge World, Legends, Boarding Actions, network behavior, complete-match certification and human playtesting remain outside this result."
+  ],
+  "current_scope_validation": {
+    "observed_at": "2026-10-27",
+    "profile": "gladiator-valiant",
+    "test_file": "tests/test_gladiator_valiant.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_gladiator_valiant --only test_space_marine_leader_links --timeout 300",
+    "artifact": ".tools/verification/20261027T083654769142Z/results.json",
+    "status": "passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "source_scope_summary": "Source identity 000001825 / book 000000139; one model on a 100 mm base, M10/T10/Sv3+/W12/Ld6+/OC3; first-two copies 165 points, third-plus 185; fixed Defensive Array, two physically distinct Multi-meltas, Twin Las-talon and Armoured Hull, every profile through Equipment and AttackPlan; Priority Target Acquisition applies +1 Strength to all ranged profiles at and within 12 inches and is excluded for melee and just beyond range; Damaged 4 boundary; Deadly Demise D3 trigger and nearby target packet; current-catalog roster materialization for both players; current construction admits three copies at 515 points and rejects a fourth.",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "historical_fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v76.json"
 }

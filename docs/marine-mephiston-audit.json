@@ -1,0 +1,77 @@
+{
+  "id": "marine-mephiston-e11-local-audit-2026-10-28",
+  "rules_authority": "Wahapedia 11th-edition local export",
+  "observed_at": "2026-10-28",
+  "source": {
+    "book_id": "000000021",
+    "datasheet_id": "000000155",
+    "export_updated_at": "2026-10-21T16:06:23+03:00",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "chapter_slice_manifest_sha256": "74de1b23c1319c395f9071449b47531870067eb0aa9c2de3ff6110ccd9e162c5",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chief-Librarian-Mephiston",
+    "export_file_sha256": {
+      "Last_update.csv": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168e446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_leader.csv": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+    }
+  },
+  "implementation": {
+    "runtime_profile": "mephiston",
+    "rules": [
+      "Feel No Pain 5+",
+      "Fights First",
+      "Lone Operative",
+      "Combat Doctrines",
+      "Transhuman Strategist",
+      "Chief Librarian",
+      "Quickening",
+      "Transfixing Gaze"
+    ],
+    "construction": {
+      "models": [
+        1
+      ],
+      "points": 175,
+      "maximum_supported_copies": 1,
+      "base_size_mm": 40,
+      "psychic_level": 3
+    },
+    "validation_artifact": ".tools/verification/20261028T214559138364Z/results.json",
+    "validation_artifact_sha256": "70204ec555bce39d5a0fc0935288d503188cab032f02518e8c838d1756896078",
+    "validation_status": "source_bounded_local_scope_passed_2026_10_28",
+    "verification_profile": "targeted",
+    "verification_suites": [
+      "test_mephiston",
+      "test_capabilities"
+    ],
+    "network_validation_performed": false,
+    "legacy_starter_staged": true,
+    "full_match_certified": false,
+    "full_army_legality_certified": false,
+    "validation_process_count": 4,
+    "connected_regression_artifact": ".tools/verification/20261028T214139903905Z/results.json",
+    "connected_regression_artifact_sha256": "0d58a49ff54eb4c1c09cf32de564c6232373e53e35ed163aad302e12daa01073",
+    "connected_regression_suites": [
+      "test_implemented_catalog",
+      "test_sanguinor",
+      "test_castellan"
+    ]
+  },
+  "scope_notes": [
+    "Source-bounded profile, all source weapon modes, current-catalog admission and single-copy limit.",
+    "Quickening's Command-phase Psychic test, Battle-shock result, additional Assault Doctrine and expiry are checked locally.",
+    "Transfixing Gaze's start-of-opponent-Movement timing, inclusive 6-inch boundary, Leadership test and re-roll continuation, and failed-test Remain Stationary result are checked locally.",
+    "Network validation, complete Space Marine army legality and human playtesting remain open."
+  ]
+}

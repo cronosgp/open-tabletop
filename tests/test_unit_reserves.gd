@@ -32,6 +32,7 @@ func fresh() -> Dictionary:
 	var before := var_to_bytes(s)
 	check(not act(s, 1, "reserve", -1, 1).is_empty() and before == var_to_bytes(s), "Only eligible Deep Strike units can use this reserve workflow")
 	check(act(s, 1, "reserve", -1, 11).is_empty(), "Terminator unit enters reserves within half-limit")
+	check(s.unit_abilities.reserves.get(11, {}).get("deep_strike", false), "The reserve record preserves the unit's Deep Strike placement method")
 	check(C.living(s, 11).is_empty() and s.units[1100].wounds == 3 and not s.units[1100].on_battlefield and 11 not in s.deployment.order, "Reserves preserve wounds but leave board and deployment order")
 	check(act(s, 1, "setup-done").is_empty() and act(s, 2, "warlord", 600).is_empty() and act(s, 2, "setup-done").is_empty(), "Both preparations complete")
 	s.phase = "start_turn"

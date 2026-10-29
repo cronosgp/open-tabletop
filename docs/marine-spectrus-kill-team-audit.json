@@ -1,0 +1,294 @@
+{
+  "id": "marine-spectrus-kill-team-e11-local-audit-2026-10-29",
+  "rules_authority": "Wahapedia 11th edition current Space Marines faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Deathwatch",
+    "book_id": "000000035",
+    "book_type": "App",
+    "datasheet_id": "000002779",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Spectrus-Kill-Team",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "current_page_checked_at": "2026-10-28",
+    "export_updated_at": "2026-10-21T16:06:23+03:00",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b (URL query parameter)",
+    "snapshot_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "4290befd02adf74ce1500df2c2425f9cb81b87d4d4b62fc0f9a39b17e3f05ade",
+    "slice_subject_datasheet_ids": [
+      "000002779"
+    ],
+    "slice_external_identity_only_datasheet_ids": [
+      "000000119",
+      "000002530",
+      "000002701"
+    ],
+    "snapshot_files": [
+      {
+        "filename": "Factions.csv",
+        "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_stratagems.csv",
+        "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+      },
+      {
+        "filename": "Datasheets_enhancements.csv",
+        "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+      },
+      {
+        "filename": "Datasheets_detachment_abilities.csv",
+        "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      },
+      {
+        "filename": "Stratagems.csv",
+        "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Enhancements.csv",
+        "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+      },
+      {
+        "filename": "Detachment_abilities.csv",
+        "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+      },
+      {
+        "filename": "Detachments.csv",
+        "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+      },
+      {
+        "filename": "Detachments_chapter_dp.csv",
+        "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+      },
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Enhancements_wargear.csv",
+        "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+      },
+      {
+        "filename": "Export-Data-Specs.xlsx",
+        "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+      }
+    ],
+    "slice_files": [
+      {
+        "filename": "Factions.csv",
+        "sha256": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "6279e45052fc871de8b8d8be1bda9db8f86c4152a67fb514d836a25120a8f340"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "ea02f641fe9141e579204dde9142b5b3277dbe86bda4fda071789c5dd79e274e"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "b8d7d9a057fcbdde964d8034639e8683f77884469eda78e69acb36f79e8bc343"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "0ec11f7d5afac7ae6e2d8f8835a9d9b85fc0d0dc6b3f9337c135350998c29aca"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "b52cdc6bcb0d87732a0cb6379e2ae03e5645103001959d3c420b110dbbe74370"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "84e455c20de1212433d05c2caad648e37be4f9ff428433538de70148423c98d0"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "58e0c3c91622cf4017fdeac272ca5d42c424200f2619778ec29f2073e8eaa28c"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "80c82df537d844fa03ac69356659ecde3e2796e4a7343d048b5c98f2c438cec9"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "b6b71521eea59b983a40ed77ec84e7865d55d72a60ca9a7bcdb2d4c3316793d3"
+      },
+      {
+        "filename": "Datasheets_stratagems.csv",
+        "sha256": "3c48dc77844c77dd126e7b1de8646f2f588b97ed60fe92e309d689330cc93cb5"
+      },
+      {
+        "filename": "Datasheets_enhancements.csv",
+        "sha256": "30e6654c92f35603702ef68940c76f0994afcfd3d70277df5a732182869b91d2"
+      },
+      {
+        "filename": "Datasheets_detachment_abilities.csv",
+        "sha256": "25d8666dea323edbac7c960d8ee55a0555932618959b65e4d3f87a348b1a4455"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "554a0a17f86fd1bcba81f6ab84ab0720e4e81bd4281f652e742e38c2ec413ad3"
+      },
+      {
+        "filename": "Stratagems.csv",
+        "sha256": "9f1debede3d9714f84cadfebeaf860bd92fb10e8a027a4519ee24a3cfe3b829e"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "9ad5562ef9c3fb463c4bee0c5ea1ab2d026bfefec884d11f10d1522831766664"
+      },
+      {
+        "filename": "Enhancements.csv",
+        "sha256": "f39526e165b64fee321778006bbc0069c2ae0449e9d7d43fd88763e9c3ef1ee3"
+      },
+      {
+        "filename": "Enhancements_wargear.csv",
+        "sha256": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a"
+      },
+      {
+        "filename": "Detachment_abilities.csv",
+        "sha256": "080289a4ff2019818f6a3f383d7e6dfabf8b0b3b7a49d329e135ff33695eca52"
+      },
+      {
+        "filename": "Detachments.csv",
+        "sha256": "d4c1301a45dd9ed889b4ceb819db7fb89d08706f5e56aff64f27a6a489ff3263"
+      },
+      {
+        "filename": "Detachments_chapter_dp.csv",
+        "sha256": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07"
+      },
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      }
+    ],
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "parent_validation_error_count": 68,
+    "raw_data_git_status": "ignored under .tools; not committed"
+  },
+  "runtime": {
+    "profile_id": "spectrus-kill-team",
+    "local_status": "source_bounded_local_scope_passed_2026_10_29",
+    "current_reference_catalog": true,
+    "composition": {
+      "models": 10,
+      "roles": [
+        {
+          "count": 2,
+          "role": "Sniper Infiltrator"
+        },
+        {
+          "count": 2,
+          "role": "Occulus Infiltrator"
+        },
+        {
+          "count": 2,
+          "role": "Special-issue Infiltrator"
+        },
+        {
+          "count": 4,
+          "role": "Marksman Infiltrator"
+        }
+      ],
+      "points_first_and_second": 185,
+      "points_third_plus": 195,
+      "max_supported_copies": 3,
+      "base_size_mm": 32
+    },
+    "declared_abilities": [
+      "Infiltrators",
+      "Scouts 6",
+      "Combat Doctrines",
+      "Spectrus Doctrines",
+      "Helix Gauntlet"
+    ],
+    "leader_targets": [
+      "Captain in Phobos Armour",
+      "Lieutenant in Phobos Armour",
+      "Librarian in Phobos Armour"
+    ],
+    "limitations": [
+      "No full army legality claim",
+      "No network validation claim",
+      "No human playtest claim",
+      "Other game modes excluded"
+    ]
+  },
+  "verification": {
+    "command": "python tools/verify.py --profile focused --only test_spectrus_kill_team --godot C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe",
+    "result_path": ".tools/verification/20261029T002556320011Z/results.json",
+    "results_sha256": "c73f90bd8be5bdc40c29c5ae645afe54098c6fae38e23d9200fa41a7d4ca2dcf",
+    "process_count": 3,
+    "status": "passed",
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "connected_regression": {
+      "result_path": ".tools/verification/20261029T002716405961Z/results.json",
+      "results_sha256": "bae33ae7070ddf73e30f5cacbc46d458792e816780bc4b6efd7999d4eea20cfe",
+      "process_count": 9,
+      "status": "passed",
+      "network": false,
+      "legacy_starter_staged": true,
+      "cleanup_diagnostics": false,
+      "suites": [
+        "test_spectrus_kill_team",
+        "test_space_marine_leader_links",
+        "test_infiltrator_squad",
+        "test_fortis_kill_team",
+        "test_indomitor_kill_team",
+        "test_unit_reserves",
+        "test_capabilities"
+      ]
+    }
+  }
+}

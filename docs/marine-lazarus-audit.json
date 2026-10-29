@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "datasheet": {
+    "name": "Lazarus",
+    "definition_id": "40kdc:11e:adeptus-astartes:lazarus",
+    "source_book_id": "000000023",
+    "source_datasheet_id": "000002296",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-26-v91-lazarus",
+    "status": "source_bounded_local_scope_passed_2026_10_28"
+  },
+  "source_snapshot": {
+    "provider": "Wahapedia",
+    "edition": "11e",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "manifest_path": ".tools/wahapedia/11e/space-marines/20261021T130623Z/manifest.json",
+    "raw_data_committed": false,
+    "files_sha256": {
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_models.csv": "9cb303097f003f2eaa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_leader.csv": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+    }
+  },
+  "runtime_scope": {
+    "composition": 1,
+    "points_by_models": {"1": 80},
+    "max_supported_copies": 1,
+    "base_size_source_mm": 40,
+    "stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 5, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
+    "included": [
+      "complete fixed Bolt Pistol and Enmity's Edge profiles",
+      "Anti-Psyker 2+ critical wound against PSYKER targets through AttackSequence",
+      "Combat Doctrines and once-per-round Transhuman Strategist Warlord CP",
+      "The Spiritshield Helm Feel No Pain 3+ against psychic and mortal wounds, shared with attached bodyguards",
+      "Intractable Will Fight-phase retention on 4+ before the unit fights, with removal when it fights or the phase closes",
+      "Dark Angels Deathwing keyword context",
+      "all seven source-listed Leader relations, with public attachment to Inner Circle Companions",
+      "current catalog, 80-point cost and EPIC HERO single-copy admission"
+    ],
+    "limits": [
+      "full Dark Angels roster legality is not certified",
+      "full Space Marines army legality is not certified",
+      "the six non-ICC Leader attachment flows are mapped but not individually exercised",
+      "network validation is deferred to final integration",
+      "human playtesting is not included"
+    ]
+  },
+  "verification": {
+    "focused_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_lazarus --only test_attack_sequence --only test_captain_titus --only test_inner_circle_companions --only test_asmodai --only test_chief_librarian_tigurius --timeout 300",
+    "focused_report_path": ".tools/verification/20261028T100238026258Z/results.json",
+    "focused_report_sha256": "4246119a7dc0ad9c103c287e9b45d3df62612aec42c17af5156c7f3034de448a",
+    "focused_processes_passed": 8,
+    "focused_network": false,
+    "focused_legacy_starter_staged": false,
+    "focused_headless_rid_cleanup_diagnostics": false,
+    "weapon_selection_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_weapon_selection --timeout 300",
+    "weapon_selection_report_path": ".tools/verification/20261028T100308716157Z/results.json",
+    "weapon_selection_report_sha256": "4ad6240b98299a0c853c210f30f7db5f44d1f6fa4a36456ea8c2924c44587213",
+    "weapon_selection_processes_passed": 3,
+    "weapon_selection_network": false,
+    "weapon_selection_legacy_starter_staged": true,
+    "weapon_selection_headless_rid_cleanup_diagnostics": false
+  }
+}

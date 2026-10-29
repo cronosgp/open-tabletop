@@ -8,6 +8,8 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const RollWindows = preload("res://scripts/edition_11/attack_roll_window.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
 const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
+const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
+const BloodAngelsCharacters = preload("res://scripts/edition_11/blood_angels_characters.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 
 static func eligible(state: Dictionary) -> Array[int]:
@@ -318,7 +320,7 @@ static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictiona
 	var step: Dictionary = current.steps[current.cursor]
 	var before: int = state.units[model].wounds
 	var special_kind := "psychic" if current.weapon.get("keywords", {}).get("psychic", false) else ""
-	var prevented := Attacks.Prevention.resolve(UnitAbilities.damage(state, model, int(rolled.value)), before, UnitPrevention.rules(state, model), "normal" if step.kind == "normal" else "mortal", roller, special_kind)
+	var prevented := Attacks.Prevention.resolve(UnitAbilities.damage(state, model, int(rolled.value), "normal" if step.kind == "normal" else "mortal"), before, UnitPrevention.rules(state, model), "normal" if step.kind == "normal" else "mortal", roller, special_kind)
 	if not prevented.error.is_empty(): return prevented
 	var applied: int = prevented.lost
 	current.result.prevented_wounds += prevented.prevented
@@ -342,7 +344,14 @@ static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictiona
 			var retention_rolls: Array = current.result.get("casualty_retention_rolls", []).duplicate(true)
 			retention_rolls.append({"model": model, "rule_name": str(held.get("rule_name", "Model retention")), "roll": int(held.roll), "modifier": int(held.get("modifier", 0)), "total": int(held.roll) + int(held.get("modifier", 0)), "kept": bool(held.held)})
 			current.result.casualty_retention_rolls = retention_rolls
-		if not held.held: current.result.models_destroyed += 1
+		if not held.held:
+			current.result.models_destroyed += 1
+			BloodAngelsCharacters.record_death_visions(state, model)
+			DetachmentStratagems.record_destroyed(state, model)
+		if not held.held:
+			var cenobytes_destroyed := ChaplainGrimaldus.destroy_cenobytes(state, model)
+			current.result.models_destroyed += cenobytes_destroyed.size()
+			for cenobyte: int in cenobytes_destroyed: DetachmentStratagems.record_destroyed(state, cenobyte)
 	current.result.allocations.append({"model": model, "kind": step.kind, "save_roll": step.save_roll, "damage": applied, "rolled_damage": rolled.value, "damage_rolls": rolled.rolls, "discarded": prevented.discarded, "prevention": prevented})
 	current.cursor += 1
 	return {"error": ""}

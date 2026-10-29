@@ -25,7 +25,7 @@ static func definition(faction: String) -> Dictionary:
 				return {"error": "", "unit": unit, "models": spec.models, "cost": int(price.cost), "pack_hash": pack.manifest.units_sha256, "template": spec.template}
 	return {"error": "Training profile, size, or cost is unresolved in the local pack."}
 
-static func inspect(list: Variant) -> Dictionary:
+static func inspect(list: Variant, roster_context: Dictionary = {}) -> Dictionary:
 	var error := Roster.validate(list)
 	if not error.is_empty(): return {"error": error}
 	if list.edition != "11e": return {"error": "The training engine only uses the implemented 11th edition pack."}
@@ -41,8 +41,9 @@ static func inspect(list: Variant) -> Dictionary:
 			if entry.faction != list.faction: return {"error": "Mixed factions are unsupported in core-profile training."}
 			var selected := {"definition_id": Capabilities.canonical_id(list.faction, str(entry.unit_id)), "models": int(entry.models), "copies": int(entry.copies)}
 			if entry.get("enhancement_id", "") != "": selected.enhancement_id = str(entry.enhancement_id)
+			if entry.has("composition_choice_id"): selected.composition_choice_id = str(entry.composition_choice_id)
 			entries.append(selected)
-		var report := Capabilities.admit({"schema_version": 2, "faction": list.faction, "entries": entries, "category": list.category, "points_limit": int(list.points_limit)})
+		var report := Capabilities.admit({"schema_version": 2, "faction": list.faction, "entries": entries, "category": list.category, "points_limit": int(list.points_limit)}, Capabilities.MAX_SQUADS, roster_context)
 		if report.error.is_empty(): report.saved_reference_points = Roster.summary(list).points
 		return report
 	var resolved := definition(list.faction)
@@ -61,8 +62,8 @@ static func inspect(list: Variant) -> Dictionary:
 	if report.error.is_empty(): report.saved_reference_points = Roster.summary(list).points
 	return report
 
-static func admit(selection: Variant) -> Dictionary:
-	if selection is Dictionary and selection.get("schema_version") == 2: return Capabilities.admit(selection)
+static func admit(selection: Variant, roster_context: Dictionary = {}) -> Dictionary:
+	if selection is Dictionary and selection.get("schema_version") == 2: return Capabilities.admit(selection, Capabilities.MAX_SQUADS, roster_context)
 	if not selection is Dictionary or selection.size() != 7: return {"error": "Invalid public army selection."}
 	for key: String in ["faction", "definition_id", "category"]:
 		if not selection.get(key) is String: return {"error": "Invalid selection identity."}
@@ -124,9 +125,15 @@ static func reprice(list: Dictionary) -> Dictionary:
 			if resolved.spec.get("current_reference", false):
 				var profile := CurrentMarines.profile(identity.get_slice(":", 3))
 				entry.cost = int(profile.get("points_by_models", {}).get(int(entry.models), resolved.cost))
+				var second_tier: Dictionary = profile.get("second_plus_points_by_models", {})
+				if second_tier.has(int(entry.models)): entry.second_plus_cost = int(second_tier[int(entry.models)])
+				else: entry.erase("second_plus_cost")
 				var tiered: Dictionary = profile.get("third_plus_points_by_models", {})
 				if tiered.has(int(entry.models)): entry.third_plus_cost = int(tiered[int(entry.models)])
 				else: entry.erase("third_plus_cost")
+				var fourth_tier: Dictionary = profile.get("fourth_plus_points_by_models", {})
+				if fourth_tier.has(int(entry.models)): entry.fourth_plus_cost = int(fourth_tier[int(entry.models)])
+				else: entry.erase("fourth_plus_cost")
 			else: entry.cost = resolved.cost
 			entry.source_digest = resolved.pack_hash
 		else:

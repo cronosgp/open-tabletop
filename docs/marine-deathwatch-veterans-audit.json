@@ -1,0 +1,189 @@
+{
+  "id": "marine-deathwatch-veterans-e11-local-audit-2026-10-28",
+  "rules_authority": "Wahapedia 11th edition, checked against its current e11 datasheet page and the verified local 11e Data Export",
+  "observed_at": "2026-10-28",
+  "source": {
+    "edition": "11e",
+    "chapter": "Deathwatch",
+    "book_id": "000000035",
+    "book_type": "App",
+    "datasheet_id": "000002783",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and other modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Deathwatch-Veterans",
+    "current_page_checked_at": "2026-10-28",
+    "export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b (URL query parameter)",
+    "snapshot_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "2ea710d11525e1ac9bb5d38cd5ea4b20f8dbcc36d615cd7c4f485cdf3f77ba58",
+    "slice_subject_datasheet_ids": [
+      "000002783"
+    ],
+    "slice_external_identity_only_datasheet_ids": [
+      "000000073",
+      "000001174",
+      "000001346",
+      "000002266",
+      "000002707",
+      "000002773",
+      "000002775",
+      "000003871",
+      "000003872"
+    ],
+    "slice_validation_error_count": 0,
+    "export_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410",
+      "Enhancements.csv": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f",
+      "Detachment_abilities.csv": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe",
+      "Detachments.csv": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Export-Data-Specs.xlsx": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "6279e45052fc871de8b8d8be1bda9db8f86c4152a67fb514d836a25120a8f340",
+      "Datasheets.csv": "7cd0fab589bbea0a4b89a1df4b5cfcd5fadd0489230793fee7c3b1113461f0c3",
+      "Datasheets_abilities.csv": "220d0e06780cbafeafb0a6c14cd3e7b51c4b5cfaa9c94d23b9a45cc321522d0e",
+      "Datasheets_keywords.csv": "e3d7ddca3dd9b240fb179747ea65338f1355fa68603354bd287ce63aea0ce596",
+      "Datasheets_models.csv": "bb2566cdd1776bfbe6cb415b4e8d4ae7fb0e8e919825765761bbce6a1b84a5ba",
+      "Datasheets_options.csv": "d578883bfafb18dd9674bc1eca4a9e19aa7409feafc9901ebc960dfe22c73de3",
+      "Datasheets_wargear.csv": "d86c0df580c912ad1aae35e02151f7714864f2c1d097e2ebd8e832fcee44eb65",
+      "Datasheets_unit_composition.csv": "48e58ea48706f3c5f49dfcb125a4e618f4a09d1edb76a4f38f44ca572d85f6e1",
+      "Datasheets_models_cost.csv": "4ce9931ead73aa6531d26c25b1ec4bf409d52aa71ae76f71ed78c527c3e19171",
+      "Datasheets_stratagems.csv": "136666a96d282970aa13ac8efaa808ba28f1169b454790728b4f006d9f090523",
+      "Datasheets_enhancements.csv": "e9f125f9292cb7a737e367d07e6f030c8cf12bf69938ccac418f89c12aff5ea9",
+      "Datasheets_detachment_abilities.csv": "c22b22a265dda80e3bb43f5890eb30937acac6b552b26516d11bd979cbf53591",
+      "Datasheets_leader.csv": "b398c8733c5c02643bd66dbf8cfb55e4815d8ad567ad739ab3fc568435bec48c",
+      "Stratagems.csv": "9293042f5141a08fa589bcc32540825bf1c0c3a54b807fb6a170a04d3ec3e4f8",
+      "Abilities.csv": "5eb9912293c3295c1eafc9b3c0b233694ba7b7eafe24d2d0b35e90de84f13206",
+      "Enhancements.csv": "f39526e165b64fee321778006bbc0069c2ae0449e9d7d43fd88763e9c3ef1ee3",
+      "Enhancements_wargear.csv": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a",
+      "Detachment_abilities.csv": "38edc7428e21394c8077d6b205c447dab4cf9a5950d4e5b1f8245a680df1888c",
+      "Detachments.csv": "a9198316e6c5d52f1593c6283c48f19060924268cb35730b7a16ef1f0cc17400",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+    }
+  },
+  "implementation": {
+    "runtime_profile": "deathwatch-veterans",
+    "rules": [
+      "Combat Doctrines",
+      "Death to the Alien",
+      "Storm Shield"
+    ],
+    "construction": {
+      "models": [
+        5,
+        10
+      ],
+      "points_by_models": {
+        "5": 115,
+        "10": 220
+      },
+      "models_composition": "1 Watch Sergeant and 4-9 Deathwatch Veterans",
+      "base_size_mm": 32,
+      "characteristics": {
+        "movement_inches": 6,
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 2,
+        "leadership": "6+",
+        "objective_control": 2
+      },
+      "keywords": [
+        "ADEPTUS ASTARTES",
+        "DEATHWATCH",
+        "BATTLELINE",
+        "INFANTRY",
+        "IMPERIUM",
+        "EXPLOSIVES",
+        "KILL TEAM"
+      ]
+    },
+    "weapons": {
+      "ranged": [
+        "Boltgun",
+        "Combi-weapon: Damnatus",
+        "Combi-weapon: Infernus",
+        "Combi-weapon: Purgatus",
+        "Deathwatch Shotgun",
+        "Frag Cannon",
+        "Infernus Heavy Bolter: Bolt",
+        "Infernus Heavy Bolter: Infernus",
+        "Stalker-pattern Boltgun"
+      ],
+      "melee": [
+        "Black Shield Blades",
+        "Heavy Thunder Hammer",
+        "Knives and Fists",
+        "Power Weapon",
+        "Xenophase Blade"
+      ]
+    },
+    "equipment_rules": [
+      "Watch Sergeant can replace Boltgun with Combi-weapon and Power Weapon with Xenophase Blade independently.",
+      "Per five models: one Stalker-pattern Boltgun, one Infernus Heavy Bolter, one Frag Cannon, up to two Deathwatch Shotguns, and up to two Heavy Thunder Hammers.",
+      "One Veteran may replace both default weapons with Black Shield Blades.",
+      "Per five models, up to two Veterans may exchange both default weapons for either Boltgun plus Storm Shield or Power Weapon plus Storm Shield.",
+      "All selected wargear is zero-cost in the verified source; choices are reversible and enforce the combined shield limit."
+    ],
+    "abilities": {
+      "death_to_the_alien": "The unit and attached models re-roll Hit rolls of 1 against targets with IMPERIUM or CHAOS; otherwise re-roll all Hit rolls, for ranged and melee attacks.",
+      "storm_shield": "A model equipped with either listed shield package gains a 4+ invulnerable save; the save belongs only to that bearer."
+    },
+    "leader_targets": [
+      "Captain",
+      "Chaplain",
+      "Librarian",
+      "Watch Captain Artemis",
+      "Watch Master"
+    ],
+    "support_targets": [
+      "Ancient",
+      "Apothecary",
+      "Judiciar",
+      "Lieutenant"
+    ],
+    "attachment_limit": "Artemis and Watch Master endpoints are source-listed, but their profiles are not yet admitted."
+  },
+  "validation": {
+    "artifact": ".tools/verification/20261028T221637986914Z/results.json",
+    "artifact_sha256": "4b132a8dc0689f6ca3dbeb27a772459ba6975761a8cc50de6b406794b6536a87",
+    "verification_profile": "targeted",
+    "suites": [
+      "test_deathwatch_veterans",
+      "test_space_marine_leader_links",
+      "test_capabilities",
+      "test_implemented_catalog"
+    ],
+    "process_count": 6,
+    "result": "passed",
+    "network_validation_performed": false,
+    "legacy_starter_staged": true,
+    "full_match_certified": false,
+    "full_army_legality_certified": false,
+    "scope_notes": [
+      "Source-bounded local sheet scope only; network checks and human playtesting remain deferred.",
+      "This does not close the other nine Deathwatch profiles, Space Wolves, cross-sheet army restrictions or full Space Marine army legality.",
+      "Forge World, Legends, Boarding Actions and alternate modes remain separate inventories."
+    ]
+  }
+}

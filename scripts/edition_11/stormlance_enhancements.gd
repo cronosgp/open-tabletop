@@ -77,8 +77,10 @@ const MEDUSA_WRATH := "medusa-wrath"
 const PHOBOS_SHOCK := "phobos-shock-force"
 const PHOBOS_SHADOW := "phobos-shadow-force"
 const FIST_OF_THE_GOD_EMPEROR := "fist-of-the-god-emperor"
+const RIGHTEOUS_FERVOUR := "000011176002"
 const Current = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
+const Sanguinor = preload("res://scripts/edition_11/sanguinor.gd")
 const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
 const RECORDS := {
 	SUPERCHARGED: {"id": SUPERCHARGED, "name": "Supercharged Engines", "cost": 10, "detachment": STORMLANCE,
@@ -172,14 +174,14 @@ const RECORDS := {
 		"datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"],
 		"rule": "Adeptus Astartes model only. The bearer has +1 Toughness and Feel No Pain 5+."},
 	TARGET_AUGURY_WEB: {"id": TARGET_AUGURY_WEB, "name": "Target Augury Web", "cost": 30, "detachment": MEDUSA_WRATH, "source_restricted": true,
-		"source_datasheet_ids": ["000000140", "000000306"], "datasheets": [],
+		"source_datasheet_ids": ["000000140", "000000306"], "blocked_source_datasheet_ids": ["000000306"], "datasheets": [],
 		"rule": "Techmarine model only. In your Movement phase, at the start or end of this unit's move, select one friendly Adeptus Astartes Vehicle model within 3 inches of this unit. That Vehicle model's attacks have Lethal Hits until the start of your next Command phase."},
 	MASTER_OF_THE_MACHINE_WAR: {"id": MASTER_OF_THE_MACHINE_WAR, "name": "Master of the Machine War", "cost": 25, "detachment": MEDUSA_WRATH, "source_restricted": true,
 		"source_datasheet_ids": ["000000060", "000000073", "000000076", "000000079", "000000083", "000000094", "000000112", "000000115", "000000119", "000000135", "000000140", "000000158", "000000306", "000001165", "000001172", "000001174", "000001346", "000002266", "000002530", "000002677", "000002701", "000002702", "000002707", "000002748", "000002773", "000002775", "000002793", "000002795", "000002796", "000003831", "000003832", "000003833", "000003871", "000004129", "000004130", "000004135", "000004136"],
 		"datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"],
 		"rule": "Adeptus Astartes model only. In your Movement phase, select one visible friendly Adeptus Astartes Vehicle unit within 6 inches of this model and choose Devastator or Tactical Doctrine. That doctrine is active for that Vehicle unit until the start of your next Command phase."},
 	ADEPT_OF_THE_OMNISSIAH: {"id": ADEPT_OF_THE_OMNISSIAH, "name": "Adept of the Omnissiah", "cost": 25, "detachment": MEDUSA_WRATH, "source_restricted": true,
-		"source_datasheet_ids": ["000000140", "000000306"], "datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"],
+		"source_datasheet_ids": ["000000140", "000000306"], "blocked_source_datasheet_ids": ["000000306"], "datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"],
 		"rule": "Techmarine model only. Once per battle round, per army, when an enemy unit targets a friendly Adeptus Astartes Vehicle unit within 6 inches of this unit, you can give that Vehicle unit Feel No Pain 5+ until that enemy unit has attacked."},
 	CHAMPION_OF_FIRST_COMPANY: {"id": CHAMPION_OF_FIRST_COMPANY, "name": "Champion of the First Company", "cost": 20, "detachment": TERMINATOR_STORM, "source_restricted": true, "source_datasheet_ids": ["000000079", "000000115", "000000135", "000002677"], "datasheets": [], "required_keywords": ["TERMINATOR"], "rule": "Adeptus Astartes Terminator model only. This unit's melee attacks have Lethal Hits."},
 	CORPOREUM_RELIQUARY: {"id": CORPOREUM_RELIQUARY, "name": "Corporeum Reliquary", "cost": 25, "detachment": TERMINATOR_STORM, "source_restricted": true, "source_datasheet_ids": ["000000079", "000000115", "000000135", "000002677"], "datasheets": [], "required_keywords": ["TERMINATOR"], "rule": "Adeptus Astartes Terminator model only. In your first Movement phase, this unit can make an ingress move."},
@@ -199,6 +201,9 @@ const RECORDS := {
 		"source_datasheet_ids": ["000000060", "000000073", "000000076", "000000079", "000000083", "000000112", "000000115", "000000119", "000000135", "000000140", "000000158", "000000306", "000001165", "000001172", "000001174", "000001346", "000002266", "000002530", "000002677", "000002701", "000002707", "000002773", "000002775", "000002793", "000002795", "000002796", "000003831", "000003832", "000003833", "000003871", "000004129", "000004130", "000004135", "000004136"],
 		"datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"], "required_unit_keywords": ["INFANTRY"],
 		"rule": "Adeptus Astartes Infantry unit only. When this unit is selected to make an Advance or Fall Back move, that move does not prevent this unit from being eligible to start an action."},
+	RIGHTEOUS_FERVOUR: {"id": RIGHTEOUS_FERVOUR, "name": "Righteous Fervour", "cost": 15, "detachment": FIST_OF_THE_GOD_EMPEROR, "source_restricted": true,
+		"source_datasheet_ids": ["000002799"], "datasheets": ["crusader-squad"],
+		"rule": "Crusader Squad unit only. This unit can re-roll Advance rolls."},
 	AUGURY_SERVO_HOST: {"id": AUGURY_SERVO_HOST, "name": "Augury Servo-host", "cost": 20, "detachment": "vow-sworn-crusaders", "source_restricted": true,
 		"source_datasheet_ids": ["000000060", "000000073", "000000076", "000000079", "000000083", "000000094", "000000112", "000000115", "000000119", "000000135", "000000140", "000000158", "000000306", "000001165", "000001172", "000001174", "000001346", "000002266", "000002530", "000002677", "000002701", "000002702", "000002707", "000002748", "000002773", "000002775", "000002793", "000002795", "000002796", "000003831", "000003832", "000003833", "000003871", "000004129", "000004130", "000004135", "000004136"], "datasheets": [], "required_keywords": ["ADEPTUS ASTARTES"],
 		"rule": "Adeptus Astartes model only. In your Shooting phase, select one visible enemy unit within 18 inches of this unit. That enemy unit cannot benefit from cover for this phase."},
@@ -263,7 +268,7 @@ static func for_datasheet(identity: String, detachment: String) -> Array[Diction
 		var source_id := str(profile.get("source_datasheet_id", ""))
 		var source_role := str(profile.get("source_role", ""))
 		var required: Array = record.get("required_keywords", [])
-		var source_eligible: bool = source_id in record.get("source_datasheet_ids", [])
+		var source_eligible: bool = source_id in record.get("source_datasheet_ids", []) and source_id not in record.get("blocked_source_datasheet_ids", [])
 		var named_captain := id in [ADEPT_OF_THE_CODEX, STUDENT_OF_THE_CODEX] and str(profile.get("name", "")) == "Captain"
 		var named_ancient := id == STANDARD_OF_THE_EMPEROR_ASCENDANT and str(profile.get("name", "")) in ["Ancient", "Bladeguard Ancient", "Ancient in Terminator Armour"]
 		var eligible: bool = not profile.is_empty() and (source_eligible or not required.is_empty() or named_captain or named_ancient)
@@ -384,11 +389,12 @@ static func damocles_class_uplink_doctrine(state: Dictionary, squad: int) -> Str
 	return doctrine if doctrine in ["devastator", "tactical", "assault"] else ""
 
 static func blocks_snap_shooting(state: Dictionary, squad: int) -> bool:
-	return active(state, squad, PHOBOS_SHOCK_SEAL) or linebreaker_onslaught_active(state, squad)
+	return active(state, squad, PHOBOS_SHOCK_SEAL) or linebreaker_onslaught_active(state, squad) or not state.get("unit_abilities", {}).get("snap_shooting_block_targets", {}).get(squad, {}).is_empty()
 
 static func snap_shooting_block_name(state: Dictionary, squad: int) -> String:
 	if linebreaker_onslaught_active(state, squad): return "Linebreaker Onslaught"
 	if active(state, squad, PHOBOS_SHOCK_SEAL): return "Seal of Shrouding"
+	if not state.get("unit_abilities", {}).get("snap_shooting_block_targets", {}).get(squad, {}).is_empty(): return "Murderous Hurricane"
 	return "This unit's enhancement"
 
 static func additional_doctrines(state: Dictionary, squad: int) -> Array[String]:
@@ -410,6 +416,15 @@ static func master_forged_firearms_bearer(state: Dictionary, model: int) -> bool
 
 static func honour_of_vigilance_active(state: Dictionary, squad: int) -> bool:
 	return active(state, squad, HONOUR_OF_VIGILANCE)
+
+static func righteous_fervour_active(state: Dictionary, squad: int) -> bool:
+	if not active(state, squad, RIGHTEOUS_FERVOUR): return false
+	var chapters: Dictionary = state.get("marine_chapters", {})
+	var owner := int(state.squads[squad].get("owner", -1))
+	if str(chapters.get(owner, chapters.get(str(owner), ""))) != "BLACK TEMPLARS": return false
+	for model: int in Geometry.alive(state, squad):
+		if str(state.units[model].get("definition_id", "")).get_slice(":", 3) == "crusader-squad": return true
+	return false
 
 static func artificer_armour_bearer(state: Dictionary, model: int) -> bool:
 	return model_active(state, model, ARTIFICER_ARMOUR)
@@ -552,6 +567,15 @@ static func tempered_in_battle_active(state: Dictionary, target_squad: int) -> b
 		if not model_active(state, bearer, enhancement_id): continue
 		if Geometry.distance_to_target(state, bearer_unit, target_squad) <= 6.0 + Geometry.EPSILON: return true
 	return false
+
+static func leadership_reroll_available(state: Dictionary, target_squad: int) -> bool:
+	return tempered_in_battle_active(state, target_squad) or Sanguinor.aura_of_fervour_active(state, target_squad)
+
+static func leadership_reroll_name(state: Dictionary, target_squad: int) -> String:
+	var sources: Array[String] = []
+	if Sanguinor.aura_of_fervour_active(state, target_squad): sources.append("Aura of Fervour")
+	if tempered_in_battle_active(state, target_squad): sources.append("Tempered in Battle")
+	return " / ".join(sources)
 
 ## Resolve the enhancement once at the end of its owner's Command phase.
 static func ironstorm_command_healing(state: Dictionary, player: int) -> Array[Dictionary]:

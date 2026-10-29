@@ -22,7 +22,36 @@ def capture_fixture(directory, tables):
     return output
 
 
+def direct_export_fixture(directory, tables):
+    output = Path(directory) / "direct-export"
+    output.mkdir()
+    files = []
+    for name, rows in tables.items():
+        data = blob(name, rows)
+        (output / (name + ".csv")).write_bytes(data)
+        files.append({"filename": name + ".csv", "sha256": w.sha(data)})
+    manifest = {"provider": "wahapedia", "edition": "11e", "source_policy": "fixture",
+                "export_updated_at": "2026-10-16T15:03:46-03:00", "files": files}
+    (output / "manifest.json").write_bytes(w.encode(manifest))
+    return output
+
+
 class WahapediaSliceTests(unittest.TestCase):
+    def test_direct_local_export_layout_can_feed_a_verified_audit_slice(self):
+        with tempfile.TemporaryDirectory() as directory:
+            parent = direct_export_fixture(directory, fixture())
+            loaded_manifest, loaded_tables, parent_hash = w.load_snapshot(parent)
+            self.assertEqual(loaded_manifest["provider"], "wahapedia")
+            self.assertEqual(len(loaded_tables["Datasheets"]), 1)
+            self.assertEqual(len(parent_hash), 64)
+
+            output = Path(directory) / "slice"
+            manifest = slicer.extract(parent, output, "000001")
+            self.assertTrue(manifest["structurally_valid"])
+            self.assertEqual(manifest["parent_files_sha256"]["Datasheets.csv"],
+                             w.manifest_file_hash(loaded_manifest, "Datasheets"))
+            self.assertEqual(manifest["subject_datasheet_ids"], ["000001"])
+
     def test_unrelated_global_error_does_not_block_closed_slice(self):
         tables = fixture()
         unrelated = copy.deepcopy(tables["Datasheets"][0])
@@ -32,6 +61,8 @@ class WahapediaSliceTests(unittest.TestCase):
             parent = capture_fixture(directory, tables)
             manifest = slicer.extract(parent, Path(directory) / "slice", "000001")
             self.assertTrue(manifest["structurally_valid"])
+            self.assertEqual(manifest["parent_files_sha256"]["Datasheets.csv"],
+                             json.loads((parent / "manifest.json").read_text(encoding="utf-8"))["files"]["Datasheets"]["sha256"])
             self.assertEqual(len(manifest["parent_validation_errors"]), 1)
             self.assertEqual(manifest["subject_datasheet_ids"], ["000001"])
             self.assertFalse(manifest["playable"])
@@ -108,15 +139,15 @@ class WahapediaSliceTests(unittest.TestCase):
         sheet = {"id": "000001183", "source_id": "000000139"}
         profile = {"keywords": ["INFANTRY", "TERMINATOR SQUAD"]}
         rows = [{"keyword": k, "model": "", "is_faction_keyword": "false"} for k in ["INFANTRY", "DEATHWING"]]
-        shared = comparator.review_keywords(rows, profile, sheet, "terminator-squad", context["export_updated_at"], "shared", context)
+        shared = comparator.review_keywords(rows, profile, sheet, "terminator-squad", [], "shared", context)
         self.assertTrue(shared["scope_consistent"])
         self.assertEqual(shared["raw_source_only_keywords"], ["DEATHWING"])
         self.assertEqual(shared["internal_identity_tags"], ["TERMINATOR SQUAD"])
         self.assertEqual(len(shared["excluded_chapter_keywords"]), 1)
-        chapter = comparator.review_keywords(rows, profile, sheet, "terminator-squad", context["export_updated_at"], "dark-angels", context)
+        chapter = comparator.review_keywords(rows, profile, sheet, "terminator-squad", [], "dark-angels", context)
         self.assertFalse(chapter["scope_consistent"])
         self.assertEqual(chapter["missing_from_runtime"], ["DEATHWING"])
-        stale = comparator.review_keywords(rows, profile, sheet, "terminator-squad", "new revision", "shared", context)
+        stale = comparator.review_keywords(rows, profile, sheet, "terminator-squad", ["context source hashes do not match"], "shared", context)
         self.assertFalse(stale["scope_consistent"])
         self.assertTrue(stale["context_issues"])
         self.assertNotIn("DEATHWING", profile["keywords"])

@@ -7,7 +7,7 @@ var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: push_error(message); failures += 1
 func fixture() -> Dictionary:
-	var s := F.P.initial_state({"checked_rosters":true,"official_mission":true,"unit_abilities":true,"combat_doctrines":true,"reanimation_protocols":true,"awakened_dynasty":true,"core_stratagems":true},F.selections())
+	var s := F.P.initial_state({"checked_rosters":true,"official_mission":true,"terrain_layout":C.Mission.DEFAULT_TERRAIN_LAYOUT,"unit_abilities":true,"combat_doctrines":true,"reanimation_protocols":true,"awakened_dynasty":true,"core_stratagems":true},F.selections())
 	s.awakened_dynasty.pending = []
 	s.unit_abilities.setup_players = [1,2]
 	s.unit_abilities.battle_players = [1,2]
@@ -439,7 +439,7 @@ func run() -> void:
 	var complete_vengeful := C._complete_attack_resolution_frame(s,"attack:vengeful-test")
 	check(complete_vengeful.is_empty(),"Finishing the original shot opens the reactive shooting continuation")
 	var vengeful_decision := C.UnitActions.pending_decision(s)
-	check(vengeful_decision.get("source","") == "unit-actions" and vengeful_decision.get("timing","") == "shooting:vengeful-reaction" and str(vengeful_decision.get("resume_frame_id","")) == str(C.ResolutionFrames.current(s).get("frame_id","")),"Hail of Vengeance exposes its normalized decision and continuation frame")
+	check(vengeful_decision.get("source","") == "unit-actions" and vengeful_decision.get("timing","") == "shooting:post-shot-reaction" and str(vengeful_decision.get("resume_frame_id","")) == str(C.ResolutionFrames.current(s).get("frame_id","")),"Hail of Vengeance exposes its normalized decision and continuation frame")
 	check(not C.PhaseCloseGate.close_request_error(s,1,s.revision).is_empty(),"The pending Vengeful reaction blocks phase close")
 	var serialized_vengeful: Dictionary = bytes_to_var(var_to_bytes(s))
 	check(str(C.UnitActions.pending_decision(serialized_vengeful).get("resume_frame_id","")) == str(vengeful_decision.get("resume_frame_id","")),"The Vengeful continuation survives state serialization")

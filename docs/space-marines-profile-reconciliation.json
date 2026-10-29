@@ -13,29 +13,54 @@
   "snapshot_id": "space-marines-fixed-profile-reconciliation-2026-10-18",
   "schema_version": 1,
   "edition": 11,
-  "observed_at": "2026-10-20",
-  "status": "baseline_plus_wahapedia_runtime_followups_full_faction_incomplete",
-  "scope": "The runtime exposes 85 profile candidates for the 85-subject shared-book inventory, including Wardens of Ultramar. Their source identities and IDs map one-to-one to the local Wahapedia 11e export. Nineteen profiles now have bounded current source-data test evidence; the earlier six-profile fixed-data comparison remains separately labeled historical. No complete datasheet or army legality scope is certified.",
+  "observed_at": "2026-10-28",
+  "status": "baseline_plus_wahapedia_runtime_followups_all_85_shared_book_scopes_full_faction_incomplete",
+  "scope": "The runtime exposes 85 profile candidates for the 85-subject shared-book inventory, including Wardens of Ultramar. Their source identities and IDs map one-to-one to the verified local Wahapedia 11e export. All 85 profiles now have complete source-bounded local datasheet scopes, with dedicated evidence recorded in the coverage matrix and profile evidence ledger. The fixed-data comparison covers all 85 identities; profile-parity and copy-cost checks are recorded separately. The earlier six-profile comparison remains historical. No full faction/army legality is certified.",
   "current_coverage_matrix": {
     "document": "space-marines-coverage.md",
     "runtime_profile_candidates": 85,
-    "runtime_profiles_with_source_metadata": 65,
-    "runtime_profiles_missing_source_metadata": 20,
+    "runtime_profiles_with_source_metadata": 85,
+    "runtime_profiles_missing_source_metadata": 0,
     "source_identity_mappings_reconciled": 85,
     "source_identity_name_matches": 84,
     "source_identity_apostrophe_normalized_matches": 1,
     "historical_fixed_data_profiles_compared": 6,
-    "profiles_with_bounded_current_source_data_tests": 19,
-    "profile_parity_tests_passed": 10,
+    "profiles_with_bounded_current_source_data_tests": 85,
+    "profile_parity_tests_passed": 12,
     "copy_cost_profiles_tested": 7,
-    "additional_source_field_only_profiles": 2,
-    "focused_local_scripts_passed": 14,
-    "related_fixture_tests_blocked": 3,
-    "company_heroes_full_test": "blocked_by_missing_manifest",
-    "complete_datasheet_implementations_verified": 0,
-    "complete_datasheet_scope_validated": 0,
+    "additional_source_field_only_profiles": 0,
+    "focused_local_scripts_passed": 72,
+    "related_fixture_tests_blocked": 0,
+    "related_fixture_followup_suites_passed": 3,
+    "company_heroes_fixture_followup": "passed_current_catalog; complete_scope_validated_separately",
+    "complete_datasheet_implementations_verified": 85,
+    "complete_datasheet_scope_validated": 85,
     "network_validation": "deferred_to_final_integration",
-    "vanguard_ambushers": "pending_hidden_movement_end_and_attack_integration"
+    "vanguard_ambushers": "pending_hidden_movement_end_and_attack_integration",
+    "option_bearing_datasheets": 41,
+    "complete_option_bearing_datasheets": 41,
+    "remaining_option_bearing_datasheets": 0,
+    "datasheets_without_equipment_options": 44,
+    "complete_datasheets_without_equipment_options": 44,
+    "remaining_datasheets_without_equipment_options": 0,
+    "company_heroes_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "eradicator_heavy_bolters_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "infernus_squad_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "gladiator_lancer_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "gladiator_valiant_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "apothecary_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "apothecary_biologis_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "chaplain_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "drop_pod_scope_validation_followup": "passed_source_bounded_local_scope; fourth-plus tier checked; not_full_army_legality",
+    "captain_phobos_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "kayvaan_shrike_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "full_scope_validated": 85,
+    "suboden_khan_scope_validation_followup": "passed_source_bounded_local_scope; legacy_starter_staged; not_full_army_legality",
+    "vulkan_hestan_scope_validation_followup": "passed_source_bounded_local_scope; network_validation_deferred; not_full_army_legality",
+    "wardens_of_ultramar_scope_validation_followup": "passed_source_bounded_local_scope; network_validation_deferred; not_full_army_legality",
+    "captain_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+    "captain_with_jump_pack_scope_validation_followup": "passed_source_bounded_local_scope; network_validation_deferred; not_full_army_legality",
+    "last_updated": "2026-10-28"
   },
   "source_identity_audit": {
     "document": "space-marines-source-identity-map.json",
@@ -276,7 +301,9 @@
         "Master-crafted Power Weapon"
       ],
       "review_id": "six-selectable-profiles-reference-audit-2026-10-18",
-      "status": "wahapedia_fixed_data_compared_pending_complete_datasheet_scope"
+      "status": "source_bounded_local_scope_passed_2026_10_28",
+      "scope_validation_test": "tests\\test_captain_current.gd",
+      "scope_validation_artifact": ".tools/verification/20261028T005647625078Z/results.json"
     },
     {
       "id": "space-marines/lieutenant",
@@ -476,7 +503,7 @@
         "Rod of Tigurius"
       ],
       "source_delta": "Characteristics, weapons and points transcribed from the local Wahapedia e11 export. Faction keywords ADEPTUS ASTARTES and ULTRAMARINES are retained. Vanguard Veteran Squad is an exact source Leader target but its distinct non-Jump-Pack profile is not currently admitted.",
-      "runtime_admission": "Selectable at 115 points; six exact Leader targets are admitted locally; the unavailable Vanguard Veteran Squad pairing remains unsupported.",
+      "runtime_admission": "Selectable at 115 points; all six common-book Leader targets are admitted locally and checked by the shared relation suite; the source-linked Legends Vanguard Veteran pairing remains unsupported.",
       "ability_ids": [
         "leader",
         "combat-doctrines",
@@ -486,7 +513,7 @@
         "prescience",
         "telepathic-assault"
       ],
-      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed"
+      "status": "wahapedia_e11_local_export_2026_10_16; source_bounded_local_scope_passed_2026_10_27"
     },
     {
       "id": "space-marines/kayvaan-shrike",
@@ -523,7 +550,7 @@
         "trifold-path-of-shadow",
         "echo-of-the-ravenspire"
       ],
-      "status": "wahapedia_e11_local_export_2026_10_16; targeted_local_checks_passed"
+      "status": "source_bounded_local_scope_validated; not_full_army_legality"
     },
     {
       "id": "space-marines/cato-sicarius",
@@ -595,8 +622,8 @@
         "Blades of Honour (Chapter Champion)",
         "Master-crafted Power Weapon"
       ],
-      "source_delta": "Ancient and Champion are modeled as distinct roles with EPIC HERO and role keywords; runtime admits the fixed 3/6-model Ancient+Champion compositions with source-listed weapons and banner cost.",
-      "runtime_admission": "Selectable at banner-inclusive 135/265 points, with 165/295 third-plus tiers, using the fixed Ancient+Champion compositions. Cato’s exact Leader target is now admitted; other legal role combinations are not exposed.",
+      "source_delta": "Ancient and Champion are modeled as distinct roles with EPIC HERO and role keywords; all source-legal 3/6-model Ancient, Champion and Guard compositions are available, with the Banner surcharge applied only when the Ancient is included.",
+      "runtime_admission": "Selectable in all eight source-legal 3/6-model role combinations. Costs are 120/250 before the 15-point Banner surcharge and 150/280 on third-plus copies; an Ancient adds the surcharge. Cato’s exact Leader target is admitted.",
       "ability_ids": [
         "combat-doctrines",
         "glory-of-ultramar",
@@ -810,13 +837,17 @@
   "judiciar_followup": {
     "document": "marine-judiciar.md",
     "audit": "marine-judiciar-audit.json",
-    "observed_at": "2026-10-18",
+    "observed_at": "2026-10-27",
     "new_selectable_identities": [
       "judiciar"
     ],
     "source_book_id": "000000139",
     "network_validation": "deferred_to_final_integration_by_user",
-    "full_match_certified": false
+    "full_match_certified": false,
+    "scope_validation_artifact": ".tools/verification/20261027T231150548787Z/results.json",
+    "scope_validation_artifact_sha256": "1e67c8aa3925cf6e129c9aae80e2559c7a2a2e1f81675da1fc5f8a3c94e6a8fe",
+    "audit_sha256": "c4e7f015953acc16d762e19aa7a05ebbdc35c2ae1251859c182a8827eea08aef",
+    "status": "source_bounded_shared_book_scope_closed"
   },
   "bladeguard_followup": {
     "document": "marine-bladeguard.md",
@@ -844,13 +875,21 @@
   "apothecary_followup": {
     "document": "marine-apothecary.md",
     "audit": "marine-apothecary-audit.json",
-    "observed_at": "2026-10-18",
+    "observed_at": "2026-10-27",
     "new_selectable_identities": [
       "apothecary"
     ],
     "source_book_id": "000000139",
     "network_validation": "deferred_to_final_integration_by_user",
-    "full_match_certified": false
+    "full_match_certified": false,
+    "source_datasheet_id": "000002773",
+    "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_apothecary --only test_apothecary_profile_parity --only test_infiltrator_squad --only test_space_marine_leader_links --timeout 300",
+    "validation_artifact": ".tools/verification/20261027T092025938936Z/results.json",
+    "validation_artifact_sha256": "93354e6693d39eabaf8ccb5edd914d72c0bdc4f7b0432a4db661382408244069",
+    "validation_status": "passed; 6/6 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "current_catalog_for_both_players": true,
+    "full_scope_validated": true,
+    "full_army_legality_certified": false
   },
   "terminator_chaplain_followup": {
     "document": "marine-terminator-chaplain.md",
@@ -940,23 +979,30 @@
   },
   "librarian_profile_followup": {
     "document": "marine-librarian.md",
-    "observed_at": "2026-10-19",
+    "observed_at": "2026-10-27",
     "source_book_id": "000000139",
     "source_datasheet_id": "000002266",
     "source_export_updated_at": "2026-10-16T21:03:46+03:00",
     "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v66",
-    "validation_status": "tests_passed_local_targeted; selectable",
+    "validation_status": "source_bounded_shared_book_scope_closed",
     "implemented_abilities": [
+      "Leader",
+      "Combat Doctrines",
       "Librarius",
       "Psychic Hood",
       "Veil of Time",
       "Force Dome"
     ],
     "validation_artifact": ".tools/verification/20261019T121509900605Z/results.json",
-    "fixed_data_artifact": ".tools/wahapedia-fixed-data-review-v91.json",
+    "fixed_data_artifact": ".tools/marine-comparison-20261027-v12.json",
     "local_profile_check": "tests/test_librarian_current.gd",
     "network_validation": "deferred_to_final_integration_by_user",
-    "full_match_certified": false
+    "full_match_certified": false,
+    "scope_validation_artifact": ".tools/verification/20261027T232136941877Z/results.json",
+    "scope_validation_artifact_sha256": "2df8150f38cd565e9c825d8420d34a94fe77379f352a4dbe00ce29ac7250a971",
+    "fixed_data_sha256": "30e1b54329013cda755058d3990d397036454346c6c54f2388411f3403021420",
+    "audit_artifact": "marine-librarian-audit.json",
+    "audit_sha256": "214a77a76acac2cecbcbdda316e2d54a047d8c5f8a6a0bd34ecbbb8e565fa565"
   },
   "cato_sicarius_followup": {
     "document": "marine-cato-sicarius.md",
@@ -982,19 +1028,19 @@
   },
   "victrix_honour_guard_followup": {
     "document": "marine-victrix-honour-guard.md",
-    "observed_at": "2026-10-19",
+    "observed_at": "2026-10-27",
     "source_book_id": "000000139",
     "source_datasheet_id": "000004185",
     "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v79-marneus-calgar-source-profile",
-    "validation_status": "tests_passed_local_targeted; selectable at 135/265 points",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-26-v88-ravenwing-black-knights",
+    "validation_status": "tests_passed_local_targeted; all source-legal compositions admitted at 120/250 base points with optional 15-point Ancient Banner",
     "implemented_abilities": [
       "Glory of Ultramar",
       "Honour Guard of Macragge",
       "Banner of Macragge",
       "Combat Doctrines"
     ],
-    "validation_artifact": ".tools/verification/20261019T172535463675Z/results.json",
+    "validation_artifact": ".tools/verification/20261027T221923236402Z/results.json",
     "local_profile_check": "tests/test_victrix_honour_guard.gd",
     "network_validation": "deferred_to_final_integration_by_user",
     "full_match_certified": false
@@ -1097,27 +1143,35 @@
   },
   "vulkan_hestan_followup": {
     "document": "marine-vulkan-hestan.md",
-    "observed_at": "2026-10-19",
+    "audit_artifact": "marine-vulkan-hestan-audit.json",
+    "audit_artifact_sha256": "b1733dc26eea7e41eba52f7bfbbc64769d14e0a8185928aa08cfe6fa3e713294",
+    "observed_at": "2026-10-27",
     "source_book_id": "000000139",
     "source_datasheet_id": "000002726",
     "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "verified_snapshot_id": "20261021T130623Z",
     "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v84-vulkan-hestan",
-    "implemented_profile": "105 points, one 40 mm model, exported characteristics, keywords and fixed Bolt Pistol, Gauntlet of the Forge and Spear of Vulkan profiles",
+    "implemented_profile": "105 points, one 40 mm model, fixed Bolt Pistol, Gauntlet of the Forge and Spear of Vulkan; no equipment-option rows.",
     "implemented_abilities": [
+      "Feel No Pain 6+",
       "Leader",
       "Combat Doctrines",
       "Transhuman Strategist",
       "Seeker of the Unfound",
       "Forgefather"
     ],
-    "validation_artifact": ".tools/verification/20261019T184929707752Z/results.json",
-    "local_profile_check": "tests/test_vulkan_hestan.gd",
-    "validation_status": "tests_passed_local_targeted",
+    "validation_artifact": ".tools/verification/20261028T001549947966Z/results.json",
+    "local_scope_test": "tests/test_vulkan_hestan.gd",
+    "parity_test": "tests/test_vulkan_hestan_profile_parity.gd",
+    "validation_status": "source_bounded_local_scope_passed_2026_10_27",
     "catalog_status": "selectable_from_consolidated_local_catalog",
+    "source_fixed_data_comparison": ".tools/marine-comparison-20261027-v12.json",
+    "source_fixed_data_comparison_sha256": "30e1b54329013cda755058d3990d397036454346c6c54f2388411f3403021420",
+    "source_differences": [],
     "network_validation": "deferred_to_final_integration_by_user",
     "full_match_certified": false,
-    "limitations": "Vulkan is admitted with the locally supported source-listed Leader targets. Focused local checks do not certify complete faction composition or full army legality.",
-    "runtime_export_artifact": ".tools/marine-runtime-v109.json"
+    "full_army_legality_certified": false,
+    "limitations": "This closes Vulkan’s source-bounded common-book local datasheet scope only. Salamanders Chapter rules, the Legends Vanguard Veteran pairing, full roster legality, network validation and match certification remain outside scope."
   },
   "rhino_followup": {
     "document": "marine-transports.md",
@@ -1126,7 +1180,11 @@
     "source_datasheet_id": "000002723",
     "source_export_updated_at": "2026-10-16T21:03:46+03:00",
     "implemented_profile": "70 points for one model, 80 points for each copy after the second, extracted characteristics, keywords, default weapon inventory, optional Hunter-killer Missile, 12-model Transport capacity and source restrictions",
-    "implemented_abilities": ["Veiling Smoke", "Transport", "Emergency Disembark"],
+    "implemented_abilities": [
+      "Veiling Smoke",
+      "Transport",
+      "Emergency Disembark"
+    ],
     "validation_artifact": ".tools/verification/20261019T204954010696Z/results.json",
     "local_profile_check": "tests/test_marine_rhino_admission.gd",
     "validation_status": "tests_passed_local_targeted",
@@ -1141,7 +1199,10 @@
     "source_book_id": "000000139",
     "source_ability_id": "000008334",
     "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-    "parameters": {"impulsor": 7, "rhino": 2},
+    "parameters": {
+      "impulsor": 7,
+      "rhino": 2
+    },
     "implemented_scope": "Shooting-phase passenger weapon selection in the transport attack plan; excludes passenger models whose unit already shot and One Shot profiles; enforces one ranged weapon profile per selected passenger model and Firing Deck X; locks embarked units from shooting for the turn when their transport is selected to shoot; resolves the weapons as part of the transport attack activation.",
     "validation_artifact": ".tools/verification/20261019T215152941353Z/results.json",
     "local_profile_check": "tests/test_marine_firing_deck.gd",
@@ -1156,10 +1217,23 @@
     "source_book_id": "000000139",
     "source_export_updated_at": "2026-10-16T21:03:46+03:00",
     "detachment_id": "000000750",
-    "detachment_ability": {"id": "000008355", "name": "Codex Discipline"},
-    "stratagem_ids": ["000008352002", "000008352003", "000008352004", "000008352005", "000008352006", "000008352007"],
+    "detachment_ability": {
+      "id": "000008355",
+      "name": "Codex Discipline"
+    },
+    "stratagem_ids": [
+      "000008352002",
+      "000008352003",
+      "000008352004",
+      "000008352005",
+      "000008352006",
+      "000008352007"
+    ],
     "validation_artifact": ".tools/verification/20261019T215152941353Z/results.json",
-    "local_suites": ["test_combat_doctrines.gd", "test_detachment_stratagems.gd"],
+    "local_suites": [
+      "test_combat_doctrines.gd",
+      "test_detachment_stratagems.gd"
+    ],
     "validation_status": "tests_passed_local_targeted",
     "source_discrepancy": "The local Detachments.csv row lists Priority Assets for Gladius, while the prior page-context review recorded more than one disposition. Mission compatibility is unresolved and remains uncertified.",
     "network_validation": "deferred_to_final_integration_by_user",
@@ -1171,19 +1245,38 @@
     "source_book_id": "000000139",
     "source_export_updated_at": "2026-10-16T21:03:46+03:00",
     "detachment_id": "000000796",
-    "detachment_ability": {"id": "000008485", "name": "Lightning-fast Strike"},
-    "stratagem_ids_implemented": ["000008487002", "000008487003", "000008487004"],
-    "enhancement_ids_implemented_local_validation_pending": ["000008486002", "000008486003"],
+    "detachment_ability": {
+      "id": "000008485",
+      "name": "Lightning-fast Strike"
+    },
+    "stratagem_ids_implemented": [
+      "000008487002",
+      "000008487003",
+      "000008487004"
+    ],
+    "enhancement_ids_implemented_local_validation_pending": [
+      "000008486002",
+      "000008486003"
+    ],
     "implemented_scope": "Declared local detachment selection; +2 inches Movement for friendly Adeptus Astartes Mounted and Speeder units, including Normal, Advance and Fall Back movement allowances; Sudden Onslaught fixed Advance; Wind-Swift Evasion end-Fight movement preview; Hurtling Targets pre-dice defender reaction and ranged -1 to Hit; local catalog/admission and runtime paths for Supercharged Engines and Auspex Triangulation Shrines on the supported eligible profiles.",
     "validation_artifact": ".tools/verification/20261019T220424916822Z/results.json",
-    "local_suites": ["test_combat_doctrines.gd", "test_capabilities.gd"],
+    "local_suites": [
+      "test_combat_doctrines.gd",
+      "test_capabilities.gd"
+    ],
     "validation_status": "tests_passed_local_targeted",
     "network_validation": "deferred_to_final_integration_by_user",
     "mission_compatibility": "not_certified",
     "full_match_certified": false,
     "stratagem_validation_artifact": null,
     "stratagem_validation_status": "tests_passed_local_partial",
-    "stratagem_validation_suites": ["test_combat_doctrines.gd", "test_detachment_stratagems.gd", "test_attack_sequence.gd", "test_movement_rerolls.gd", "test_capabilities.gd"],
+    "stratagem_validation_suites": [
+      "test_combat_doctrines.gd",
+      "test_detachment_stratagems.gd",
+      "test_attack_sequence.gd",
+      "test_movement_rerolls.gd",
+      "test_capabilities.gd"
+    ],
     "limitations": "Wind-Swift obstacle/crowded-base interactions need broader coverage; the two exported enhancements have implementation and authored focused checks but are not locally validated in the current increment. The selected CA mission and checked-roster snapshot remain Gladius-only; no full army legality certification."
   },
   "transport_admission_followup": {
@@ -1212,19 +1305,1572 @@
   },
   "wardens_of_ultramar_followup": {
     "document": "marine-wardens-ultramar.md",
-    "observed_at": "2026-10-19",
+    "audit": "marine-wardens-ultramar-audit.json",
+    "observed_at": "2026-10-27",
     "source_book_id": "000000139",
     "source_datasheet_id": "000004188",
     "source_export_updated_at": "2026-10-16T21:03:46+03:00",
-    "implemented_profile": "six fixed 40 mm models for 115 points; individual defense and weapon profiles retained, including Gaius Silva's 5+ invulnerable save",
-    "implemented_abilities": ["Support", "Combat Doctrines", "Raise the Banner", "Strategium Command"],
-    "strategium_command_scope": "After deployment, select up to three deployed friendly Adeptus Astartes units; redeploy with normal set-up restrictions or place in Strategic Reserves without the normal points cap; resolves before Scouts.",
-    "validation_artifacts": [".tools/verification/20261019T211419295401Z/results.json", ".tools/verification/20261019T212547325101Z/results.json", ".tools/verification/20261019T212717951667Z/results.json"],
+    "implemented_profile": "six models, 115 points, no equipment options; correct per-model base sizes [28.5, 40, 28.5, 28.5, 28.5, 40] mm and Dainal's model-specific PSYKER keyword",
+    "implemented_abilities": [
+      "Support",
+      "Combat Doctrines",
+      "Raise the Banner",
+      "Strategium Command"
+    ],
+    "support_targets_in_common_book_scope": [
+      "Assault Intercessor Squad",
+      "Bladeguard Veteran Squad",
+      "Intercessor Squad",
+      "Sternguard Veteran Squad"
+    ],
+    "legends_support_target_excluded": "Vanguard Veteran Squad",
+    "validation_artifact": ".tools/verification/20261028T003202038856Z/results.json",
+    "validation_artifact_sha256": "a6452e5031358ce0799067ac80ec8ccf91412fed6cf7ad1cfd11eddc953fd932",
     "local_profile_check": "tests/test_marine_wardens_profile.gd",
-    "validation_status": "tests_passed_local_targeted",
+    "validation_status": "passed_source_bounded_local_scope",
     "catalog_status": "selectable_from_consolidated_local_catalog",
+    "network_validation": "deferred_to_final_integration",
+    "full_match_certified": false,
+    "limitations": "Local checks close only the bounded shared-book datasheet scope. Complete faction construction and full army legality remain uncertified."
+  },
+  "lieutenant_scope_validation_followup": {
+    "document": "marine-lieutenant.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001346",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_marine_lieutenant --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T050300064874Z/results.json",
+    "dedicated_validation_status": "passed; 3/3 processes; network=false; legacy_starter_staged=false",
+    "related_dependency_artifact": ".tools/verification/20261027T050337525997Z/results.json",
+    "related_dependency_status": "passed; 8/8 processes; legacy_starter_staged=true",
+    "runtime_source_stamp_note": "The runtime profile retains its original 2026-10-16 source-export stamp. This scope revalidation used the separately identified verified 2026-10-21 snapshot and does not rewrite the older shared source-identity audit.",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "redemptor_scope_validation_followup": {
+    "document": "marine-redemptor-dreadnought.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002717",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Redemptor-Dreadnought",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_redemptor_dreadnought --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T051901469684Z/results.json",
+    "dedicated_validation_status": "passed; 3/3 processes; network=false; legacy_starter_staged=false",
+    "runtime_source_stamp_note": "The runtime profile retains its original source-export stamp. This scope uses the separately identified verified 2026-10-21 snapshot and does not rewrite the older shared source-identity audit.",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "vanguard_scope_validation_followup": {
+    "document": "marine-vanguard-veterans-jump-packs.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000147",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Vanguard-Veteran-Squad-with-Jump-Packs",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_vanguard_veterans --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T053433336440Z/results.json",
+    "dedicated_validation_status": "passed; 3/3 processes; network=false; legacy_starter_staged=false",
+    "runtime_source_stamp_note": "The runtime profile retains its original 2026-10-16 source-export stamp. This scope revalidation uses the separately identified verified 2026-10-21 snapshot and does not rewrite the older shared source-identity audit.",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "aggressor_scope_validation_followup": {
+    "document": "marine-aggressor-squad.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002099",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Aggressor-Squad",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_aggressors --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T054124713809Z/results.json",
+    "dedicated_validation_status": "passed; 3/3 processes; network=false; legacy_starter_staged=false",
+    "runtime_source_stamp_note": "The runtime profile retains its original 2026-10-16 source-export stamp. This scope revalidation uses the separately identified verified 2026-10-21 snapshot and does not rewrite the older shared source-identity audit.",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "firestrike_scope_validation_followup": {
+    "document": "marine-firestrike-servo-turrets.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000086",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Firestrike-Servo-turrets",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_firestrike_servo_turrets --only test_core_reactions --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T055306196988Z/results.json",
+    "dedicated_validation_status": "passed; 4/4 processes; network=false; legacy_starter_staged=false",
+    "scope": "Per-turret Las-talon/Autocannon choices, all weapon routes, exact Sentinel Protocols Overwatch rules and both-direction use independence, local admission.",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "company_heroes_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+  "brutalis_scope_validation_followup": {
+    "document": "marine-brutalis-dreadnought.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000136",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Brutalis-Dreadnought",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_brutalis_dreadnought --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T061109103709Z/results.json",
+    "dedicated_validation_status": "passed; 3/3 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "runtime_correction": "Tank Shock keyword matching now normalizes case, allowing source VEHICLE keywords to pass Crushing Impact eligibility.",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "incursor_scope_validation_followup": {
+    "document": "marine-incursor-squad.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001159",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Incursor-Squad",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_incursor_squad --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T061905870311Z/results.json",
+    "dedicated_validation_status": "passed; 3/3 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "inceptor_scope_validation_followup": {
+    "document": "marine-inceptor-squad.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000125",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Inceptor-Squad",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_inceptor_squad --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T063205977865Z/results.json",
+    "dedicated_validation_status": "passed; 3/3 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "infiltrator_scope_validation_followup": {
+    "document": "marine-infiltrator-squad.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000128",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Infiltrator-Squad",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_infiltrator_squad --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T065849306066Z/results.json",
+    "dedicated_validation_status": "passed; 3/3 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "reiver_scope_validation_followup": {
+    "document": "marine-reiver-squad.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002718",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Reiver-Squad",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_reiver_squad --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T071129977108Z/results.json",
+    "dedicated_validation_status": "dedicated scope passed; 3/3 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "assault_intercessor_scope_validation_followup": {
+    "document": "marine-assault-intercessor-squad.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001606",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Assault-Intercessor-Squad",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_assault_intercessor_current --only test_space_marine_leader_links --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T072248470555Z/results.json",
+    "dedicated_validation_status": "dedicated scope passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "heavy_intercessor_scope_validation_followup": {
+    "document": "marine-heavy-intercessor-squad.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001177",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Heavy-Intercessor-Squad",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_heavy_intercessor_current --only test_space_marine_leader_links --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T073729361442Z/results.json",
+    "dedicated_validation_status": "dedicated scope passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "invictor_scope_validation_followup": {
+    "document": "marine-invictor-tactical-warsuit.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001156",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Invictor-Tactical-Warsuit",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_invictor_tactical_warsuit --only test_space_marine_leader_links --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T074848766922Z/results.json",
+    "dedicated_validation_status": "dedicated scope passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "ancients_scope_validation_followup": {
+    "document": "marine-ancients.md",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_ancients --only test_space_marine_leader_links --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T080140069584Z/results.json",
+    "dedicated_validation_status": "both source-bounded scopes passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "audit": "marine-ancients-audit.json",
+    "source_datasheet_ids": [
+      "000002775",
+      "000001165"
+    ],
+    "validated_profiles": [
+      "ancient",
+      "bladeguard-ancient"
+    ],
+    "source_pages": [
+      "https://wahapedia.ru/wh40k11ed/factions/space-marines/Ancient",
+      "https://wahapedia.ru/wh40k11ed/factions/space-marines/Bladeguard-Ancient"
+    ]
+  },
+  "eradicator_heavy_bolters_scope_validation_followup": {
+    "document": "marine-eradicator-heavy-bolters.md",
+    "audit": "marine-eradicator-heavy-bolters-audit.json",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000004231",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Eradicator-Squad-with-Heavy-Bolters",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_eradicator_heavy_bolters --only test_space_marine_leader_links --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T081515345154Z/results.json",
+    "dedicated_validation_status": "passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "infernus_squad_scope_validation_followup": {
+    "document": "marine-infernus-squad.md",
+    "audit": "marine-infernus-squad-audit.json",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000126",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Infernus-Squad",
+    "source_snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    },
+    "dedicated_validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_infernus_squad_current --only test_space_marine_leader_links --timeout 300",
+    "dedicated_validation_artifact": ".tools/verification/20261027T081932784642Z/results.json",
+    "dedicated_validation_status": "passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "full_scope_certified": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "ballistus_dreadnought_scope_validation_followup": {
+    "document": "marine-ballistus-dreadnought.md",
+    "audit": "marine-ballistus-dreadnought-audit.json",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000091",
+    "source_snapshot_id": "20261021T130623Z",
+    "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_ballistus_dreadnought --only test_ballistus_dreadnought_profile_parity --only test_space_marine_leader_links --timeout 300",
+    "validation_artifact": ".tools/verification/20261027T084333440820Z/results.json",
+    "validation_status": "source-bounded local scope passed; 5/5 processes; current catalog for both players; no legacy starter staging; network=false",
+    "full_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "techmarine_scope_validation_followup": {
+    "document": "marine-techmarine.md",
+    "audit": "marine-techmarine-audit.json",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000140",
+    "source_snapshot_id": "20261021T130623Z",
+    "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_techmarine --only test_techmarine_profile_parity --only test_space_marine_leader_links --timeout 300",
+    "validation_artifact": ".tools/verification/20261027T085333172418Z/results.json",
+    "validation_status": "source-bounded local scope passed; 5/5 processes; current catalog for both players; no legacy starter staging; network=false",
+    "full_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "chaplain_scope_validation_followup": {
+    "document": "marine-chaplain.md",
+    "audit": "marine-chaplain-audit.json",
+    "observed_at": "2026-10-27",
+    "source_snapshot_id": "20261021T130623Z",
+    "test_file": "tests/test_chaplain_current.gd",
+    "artifact": ".tools/verification/20261027T100107251997Z/results.json",
+    "status": "passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_options_rows": 0,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "chaplain_on_bike_scope_validation_followup": {
+    "document": "marine-chaplain-on-bike.md",
+    "audit": "marine-chaplain-on-bike-audit.json",
+    "observed_at": "2026-10-27",
+    "implemented_identity": "chaplain-on-bike",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000094",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "verified_scope_snapshot_id": "20261021T130623Z",
+    "validation_status": "passed_source_bounded_local_scope",
+    "validation_artifact": ".tools/verification/20261027T103130253761Z/results.json",
     "network_validation": "deferred_to_final_integration_by_user",
     "full_match_certified": false,
-    "limitations": "Local checks cover only this bounded profile and implemented interactions. Complete faction construction and full army legality remain uncertified."
+    "full_army_legality_certified": false
+  },
+  "chaplain_with_jump_pack_scope_validation_followup": {
+    "document": "marine-chaplain-with-jump-pack.md",
+    "audit": "marine-chaplain-with-jump-pack-audit.json",
+    "observed_at": "2026-10-27",
+    "implemented_identity": "chaplain-with-jump-pack",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000112",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "verified_scope_snapshot_id": "20261021T130623Z",
+    "validation_status": "passed_source_bounded_local_scope",
+    "validation_artifact": ".tools/verification/20261027T103130253761Z/results.json",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "full_army_legality_certified": false
+  },
+  "space-marines-storm-speeder-gladiator-reaper-scope-followup": {
+    "document": "space-marines-coverage.md",
+    "profile_documents": [
+      "marine-storm-speeder-hammerstrike.md",
+      "marine-storm-speeder-hailstrike.md",
+      "marine-storm-speeder-thunderstrike.md",
+      "marine-gladiator-reaper.md"
+    ],
+    "profiles": [
+      "storm-speeder-hammerstrike",
+      "storm-speeder-hailstrike",
+      "storm-speeder-thunderstrike",
+      "gladiator-reaper"
+    ],
+    "source_snapshot_id": "20261021T130623Z",
+    "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_storm_speeder_hammerstrike --only test_storm_speeder_hailstrike --only test_storm_speeder_thunderstrike --only test_gladiator_reaper_current --only test_space_marine_leader_links --timeout 300",
+    "validation_artifact": ".tools/verification/20261027T104505989012Z/results.json",
+    "validation_artifact_sha256": "c9cca944e5b3db70e96e4c72f517da23bae1a119bbb9ac2a4e2f4d7e6eb12237",
+    "validation_status": "passed; 7/7 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "current_catalog_for_both_players": true,
+    "full_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "captain_phobos_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+  "kayvaan_shrike_scope_validation_followup": "passed_source_bounded_local_scope; not_full_army_legality",
+  "librarian_phobos_scope_validation_followup": {
+    "document": "marine-librarian-phobos.md",
+    "audit": "marine-librarian-phobos-audit.json",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000119",
+    "source_snapshot_id": "20261021T130623Z",
+    "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_librarian_phobos --only test_space_marine_leader_links --timeout 300",
+    "validation_artifact": ".tools/verification/20261027T113940680686Z/results.json",
+    "validation_artifact_sha256": "62eaab9a59a5744aac68bb581911e4b3f4bd6f02a5cac1ef8e53096d19991f46",
+    "validation_status": "passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_options_rows": 0,
+    "full_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "chief_librarian_tigurius_scope_validation_followup": {
+    "checked_at": "2026-10-27",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chief-Librarian-Tigurius",
+    "local_export_snapshot": "20261021T130623Z",
+    "fixed_data_comparison": ".tools/marine-comparison-20261027-v12.json",
+    "fixed_data_comparison_status": "no_profile_differences",
+    "local_scope_status": "passed",
+    "local_scope_artifact": ".tools/verification/20261027T225949381745Z/results.json",
+    "scope": "The shared-book Tigurius datasheet is complete for the declared source-bounded local scope; current Leader links, fixed weapons, Hood of Hellfire, both psychic powers, public choice ownership, mortal allocation, Warlord eligibility and local catalog admission are checked.",
+    "limits": "Ultramarines Chapter behavior, Legends Vanguard Veteran pairing, full faction/army legality and network validation remain outside the result; network validation is deferred to final integration."
+  },
+  "iron_father_feirros_scope_validation_followup": {
+    "checked_at": "2026-10-27",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Iron-Father-Feirros",
+    "local_export_snapshot": "20261021T130623Z",
+    "fixed_data_comparison": ".tools/marine-comparison-20261027-v12.json",
+    "fixed_data_comparison_status": "no_profile_differences",
+    "local_scope_status": "passed",
+    "local_scope_artifact": ".tools/verification/20261027T230433907954Z/results.json",
+    "scope": "The shared-book Feirros datasheet is complete for the declared source-bounded local scope; the fixed profile and weapons, four Leader targets, named abilities, public Warlord choice and Master of the Forge continuation are checked.",
+    "limits": "Iron Hands Chapter behavior, full faction/army legality and network validation remain outside the result; network validation is deferred to final integration."
+  },
+  "librarian_scope_validation_followup": {
+    "document": "marine-librarian.md",
+    "audit": "marine-librarian-audit.json",
+    "observed_at": "2026-10-27",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Librarian",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002266",
+    "scope_validation_artifact": ".tools/verification/20261027T232136941877Z/results.json",
+    "scope_validation_artifact_sha256": "2df8150f38cd565e9c825d8420d34a94fe77379f352a4dbe00ce29ac7250a971",
+    "audit_sha256": "214a77a76acac2cecbcbdda316e2d54a047d8c5f8a6a0bd34ecbbb8e565fa565",
+    "status": "source_bounded_shared_book_scope_closed",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false
+  },
+  "roboute_guilliman_scope_validation_followup": {
+    "document": "marine-guilliman.md",
+    "audit": "marine-guilliman-audit.json",
+    "observed_at": "2026-10-27",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Roboute-Guilliman",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000138",
+    "scope_validation_artifact": ".tools/verification/20261027T233923329274Z/results.json",
+    "scope_validation_artifact_sha256": "b4e5b25c0f995d59ddacb7257727a6ac7d76e80b3da0643be5bc539ffc88eea5",
+    "audit_sha256": "86fc5bfaa367693af83b537bcf6562cf05758d9b808649ad85aa04b5fdd6d81f",
+    "status": "source_bounded_shared_book_scope_closed",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_army_legality_certified": false,
+    "full_match_certified": false,
+    "source_snapshot_id": "20261021T130623Z"
+  },
+  "tor_garadon_scope_validation_followup": {
+    "document": "marine-tor-garadon.md",
+    "audit": "marine-tor-garadon-audit.json",
+    "observed_at": "2026-10-27",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Tor-Garadon",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002473",
+    "source_snapshot_id": "20261021T130623Z",
+    "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_tor_garadon --only test_space_marine_leader_links --timeout 300",
+    "validation_artifact": ".tools/verification/20261027T235102047086Z/results.json",
+    "validation_artifact_sha256": "1638836fda91a6020e9ba5c6bf4c66b73cfbbc4526f88e2a688209f819124848",
+    "validation_status": "passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "scope": "Tor Garadon: exact one-model 90-point profile, 40 mm base, source characteristics/keywords and no equipment-option rows; Artificer Grav-gun and Hand of Defiance through Equipment and ranged/melee AttackPlans; both players' current Marine catalogs; unique-copy construction cap; four source-listed Leader targets through the 153-link suite; Combat Doctrines, Transhuman Strategist Warlord/once-per-round CP; Siege Captain +2 Strength/AP/Damage against Vehicle, Monster and Fortification with normal-target exclusion; and Signum Array public visible-target choice, owner rejection, selected-target-only cover denial, once-per-phase use and Shooting-phase expiry.",
+    "full_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "audit_sha256": "63cb2bf2339a246ecc9a499a32d859664c9a6549987906f98ed53f5ec76680ec"
+  },
+  "suboden_khan_scope_validation_followup": {
+    "status": "passed_source_bounded_local_scope",
+    "audit_artifact": "docs/marine-suboden-khan-audit.json",
+    "audit_artifact_sha256": "c7a95e5120904005bd6c0e2f65b2002f033c32e798d7a65b9d4c630337186c1f",
+    "verification_artifact": ".tools/verification/20261028T000207773070Z/results.json",
+    "verification_artifact_sha256": "b5008fb2acfe074714768f06796b830813c6ea6080f9836d0bc38ad0c9cd65d9",
+    "fixed_data_comparison": ".tools/marine-comparison-20261027-v12.json",
+    "fixed_data_comparison_sha256": "30e1b54329013cda755058d3990d397036454346c6c54f2388411f3403021420",
+    "source_snapshot_id": "20261021T130623Z",
+    "limits": [
+      "legacy_starter_staged",
+      "network_validation_deferred",
+      "not_full_army_legality"
+    ]
+  },
+  "captain_in_gravis_armour_scope_validation_followup": {
+    "document": "marine-captain-gravis.md",
+    "audit": "marine-captain-gravis-audit.json",
+    "observed_at": "2026-10-27",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000001172",
+    "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "implemented_profile": "one model, 90 points, 40 mm base; default and three paired equipment replacements; three-copy local catalog cap",
+    "implemented_abilities": [
+      "Leader",
+      "Strategic Acumen",
+      "Refuse to Yield",
+      "Transhuman Strategist"
+    ],
+    "leader_targets_in_common_book_scope": [
+      "Aggressor Squad",
+      "Eradicator Squad with Heavy Bolters",
+      "Eradicator Squad with Melta Rifles",
+      "Heavy Intercessor Squad"
+    ],
+    "external_leader_target_excluded": "Deathwatch Indomitor Kill Team",
+    "validation_artifact": ".tools/verification/20261028T004022679152Z/results.json",
+    "validation_artifact_sha256": "d3e8554dcc01eefa0836ff41506c2b4aa56b0413e597602451f506f9aa2b4e3d",
+    "local_profile_check": "tests/test_gravis_captain.gd",
+    "validation_status": "passed_source_bounded_local_scope",
+    "catalog_status": "selectable_from_consolidated_local_catalog",
+    "network_validation": "deferred_to_final_integration",
+    "full_match_certified": false,
+    "limitations": "Local checks close only the bounded shared-book datasheet scope. Complete faction construction and full army legality remain uncertified."
+  },
+  "captain_on_bike_scope_validation_followup": {
+    "document": "marine-captain-on-bike.md",
+    "audit": "marine-captain-on-bike-audit.json",
+    "observed_at": "2026-10-28",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-on-Bike",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002702",
+    "source_snapshot_id": "20261021T130623Z",
+    "fixed_data_comparison": ".tools/marine-comparison-20261027-v12.json",
+    "fixed_data_comparison_status": "no_profile_differences",
+    "scope_validation_artifact": ".tools/verification/20261028T010904565443Z/results.json",
+    "scope_validation_artifact_sha256": "c38ff10e4395bb75d08409d6225f904f26102f895b96ea10dff51cb37c9ec758",
+    "audit_sha256": "bfc28c5879d20e2a9d0622a73500ce9ec956818ce53730a4271b1d4eeba00c8b",
+    "status": "source_bounded_shared_book_scope_closed",
+    "scope": "Exact one-model 110-point Captain on Bike profile, source abilities and four legal weapon packages through Equipment/AttackPlan; both-player current catalogs and one-to-three-copy local cap; Outrider Leader attachment; owner-checked Strategic Acumen; Into the Fray charge condition; Warlord choice and Transhuman Strategist CP.",
+    "limits": "Captain on Bike shared-book local scope only. Oval collision remains a bounding-circle proxy; Ravenwing Black Knights are a Dark Angels Chapter-book target; full faction/army legality, network behavior, complete matches and human playtesting remain uncertified. Network validation is deferred to final integration.",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_army_legality_certified": false,
+    "full_match_certified": false
+  },
+  "captain_with_jump_pack_scope_validation_followup": {
+    "document": "marine-captain-with-jump-pack.md",
+    "audit": "marine-captain-with-jump-pack-audit.json",
+    "observed_at": "2026-10-28",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-With-Jump-Pack",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000083",
+    "source_snapshot_id": "20261021T130623Z",
+    "fixed_data_comparison": ".tools/marine-comparison-20261027-v12.json",
+    "fixed_data_comparison_sha256": "30e1b54329013cda755058d3990d397036454346c6c54f2388411f3403021420",
+    "fixed_data_comparison_status": "no_profile_differences",
+    "scope_validation_artifact": ".tools/verification/20261028T011901622074Z/results.json",
+    "scope_validation_artifact_sha256": "eaad69347d993b453fe65ae4582ead8bc413d144bf8941c37a0b4d06168a47db",
+    "audit_sha256": "ca49167c06ed9d5717de09d3e690a526b27b2b5e524b69950dc1566a43b4a4b1",
+    "status": "source_bounded_shared_book_scope_closed",
+    "scope": "Seven legal loadouts and eight weapon modes; exact current catalog, copy limit, common Leader links, attached Deep Strike reserves, actual Advance/Charge modifiers, Strategic Acumen, Warlord CP and bearer-only Relic Shield.",
+    "limits": "Captain With Jump Pack shared-book local scope only. Sanguinary Guard (Blood Angels App) and Talonstrike Kill Team (Deathwatch App) are Leader targets outside the common-book 85. Full Chapter/faction and army legality, network behavior, complete-match certification and human playtesting remain outside this result; network validation is deferred to final integration.",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_army_legality_certified": false,
+    "full_match_certified": false
+  },
+  "lieutenant_in_phobos_armour_scope_validation_followup": {
+    "document": "marine-lieutenant-phobos-armour.md",
+    "audit_artifact": "marine-lieutenant-phobos-armour-audit.json",
+    "audit_artifact_sha256": "2ffef4f7364b4cb3a27d87e3df6bc7351af9c52916c5f5cff19bd511dd4ea4fa",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002530",
+    "source_checked_at": "2026-10-28",
+    "source_snapshot_id": "20261021T130623Z",
+    "local_profile_check": "tests/test_phobos_lieutenant.gd",
+    "validation_artifact": ".tools/verification/20261028T013420957771Z/results.json",
+    "validation_artifact_sha256": "33addbe8eacfaa93ae05c2aaec2d23fa8596365c84a04c9df40c3849e5e5b9ec",
+    "validation_status": "passed_source_bounded_local_scope; 5/5 processes; network=false; legacy_starter_staged=false",
+    "implemented_abilities": [
+      "Deep Strike",
+      "Infiltrators",
+      "Scouts 6",
+      "Support",
+      "Combat Doctrines",
+      "Demi-company Commander",
+      "Tactical Precision"
+    ],
+    "common_book_leader_targets": [
+      "Eliminator Squad",
+      "Incursor Squad",
+      "Infiltrator Squad",
+      "Reiver Squad"
+    ],
+    "external_leader_targets_excluded": [
+      "Spectrus Kill Team (Deathwatch App)",
+      "Wolf Scouts (Space Wolves App)"
+    ],
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_army_legality_certified": false,
+    "full_match_certified": false,
+    "limits": "Closes only the shared-book Lieutenant in Phobos Armour local scope. Spectrus Kill Team (Deathwatch App) and Wolf Scouts (Space Wolves App) are source-listed but outside the common-book catalog. This does not certify Chapter/whole-army legality, network behavior, complete-match behavior or human playtesting; network validation remains deferred to final integration."
+  },
+  "transport_datasheet_scope_closure": {
+    "observed_at": "2026-10-28",
+    "source_book_id": "000000139",
+    "source_context": {
+      "edition": "Warhammer 40,000 11th edition",
+      "source_book": {
+        "id": "000000139",
+        "name": "Space Marines App"
+      },
+      "chapter_filter": "None selected; shared common-book Space Marines datasheet.",
+      "game_mode": "Common 40K datasheet and army-points view; Boarding Actions and other mode-specific lists are outside this scope.",
+      "live_revision": "Space Marines App 2.8.1 / October 2026"
+    },
+    "verified_snapshot_id": "20261021T130623Z",
+    "verified_snapshot_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; live common-book datasheet and source context checked 2026-10-28; local Data Export specification revision 20260817b.",
+    "validation_artifact": ".tools/verification/20261028T072634954983Z/results.json",
+    "validation_artifact_sha256": "96c77d6ec353164a6d3fb07e637c6f99a97ad66602854f9e2fd8cff01909b1ff",
+    "processes": "19/19",
+    "network": false,
+    "legacy_starter_staged": true,
+    "complete_shared_book_scope_count": 85,
+    "remaining_shared_book_scopes": 0,
+    "datasheets": [
+      {
+        "identity": "land-raider",
+        "datasheet_id": "000000065",
+        "catalog_validation_status": "source_bounded_local_scope_passed_2026_10_28",
+        "scope_test": "tests/test_marine_machine_spirits.gd",
+        "audit_artifact": "docs/marine-land-raider-audit.json",
+        "audit_artifact_sha256": "8756688f6c24dcc14645472395971a70071d4f2302d21d9f77d09bfb37fa1054"
+      },
+      {
+        "identity": "land-raider-crusader",
+        "datasheet_id": "000000066",
+        "catalog_validation_status": "source_bounded_local_scope_passed_2026_10_28",
+        "scope_test": "tests/test_marine_machine_spirits.gd",
+        "audit_artifact": "docs/marine-land-raider-crusader-audit.json",
+        "audit_artifact_sha256": "33a75c75aa5fe997a8eac0c0043f75f04a4a0f956824c2c1a4f3cf8e4492ed74"
+      },
+      {
+        "identity": "land-raider-redeemer",
+        "datasheet_id": "000002173",
+        "catalog_validation_status": "source_bounded_local_scope_passed_2026_10_28",
+        "scope_test": "tests/test_marine_machine_spirits.gd",
+        "audit_artifact": "docs/marine-land-raider-redeemer-audit.json",
+        "audit_artifact_sha256": "0f264396b0492c37436a97ad059eb819a9a09be2c28843591c93c353a0127c02"
+      },
+      {
+        "identity": "repulsor",
+        "datasheet_id": "000002721",
+        "catalog_validation_status": "source_bounded_local_scope_passed_2026_10_28",
+        "scope_test": "tests/test_marine_repulsor_combat_embarkation.gd",
+        "audit_artifact": "docs/marine-repulsor-audit.json",
+        "audit_artifact_sha256": "baedc6f71acd9d17cb88de821b394a8d0d43a44a7bd639a577f12cebd05e3280"
+      },
+      {
+        "identity": "repulsor-executioner",
+        "datasheet_id": "000002722",
+        "catalog_validation_status": "source_bounded_local_scope_passed_2026_10_28",
+        "scope_test": "tests/test_marine_executioner.gd",
+        "audit_artifact": "docs/marine-repulsor-executioner-audit.json",
+        "audit_artifact_sha256": "134e371baf2ea20f30abcdd48f09e6c9909d6bcc9952331538d5625a8229cbeb"
+      },
+      {
+        "identity": "rhino",
+        "datasheet_id": "000002723",
+        "catalog_validation_status": "source_bounded_local_scope_passed_2026_10_28",
+        "scope_test": "tests/test_marine_rhino_veiling_smoke.gd",
+        "audit_artifact": "docs/marine-rhino-audit.json",
+        "audit_artifact_sha256": "76844b229a5be2cab4c904ed581f6d91f402537f45fa0759449c32541a457529"
+      }
+    ],
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "limits": "This closes only the shared-book local sheet scope from the pinned Wahapedia 11e export. Copy ceilings are local construction gates, not complete army limits. No full faction or army legality, Chapter-specific profiles, other game modes, network behavior, complete-match certification or human playtesting is implied; network validation remains deferred to final integration."
   }
 }

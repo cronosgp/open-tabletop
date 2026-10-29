@@ -22,10 +22,11 @@ func run() -> void:
 	]
 	for item: Dictionary in cases:
 		var profile: Dictionary = Profiles.profile(item.identity)
+		var source_points: Dictionary = profile.get("source_roster_points", profile)
 		var expected_first := {item.models[0]: item.first[0], item.models[1]: item.first[1]}
 		var expected_third := {item.models[0]: item.third[0], item.models[1]: item.third[1]}
-		check(profile.points_by_models == expected_first, "%s first-two-unit costs match the local export" % item.identity)
-		check(profile.get("third_plus_points_by_models", {}) == expected_third, "%s third-plus costs match the local export" % item.identity)
+		check(source_points.get("points_by_models", profile.points_by_models) == expected_first, "%s first-two-unit costs match the local export" % item.identity)
+		check(source_points.get("third_plus_points_by_models", profile.get("third_plus_points_by_models", {})) == expected_third, "%s third-plus costs match the local export" % item.identity)
 		var catalog := Catalog.current_catalog_choice({
 			"id": "40kdc:11e:adeptus-astartes:" + item.identity,
 			"edition": "11e",

@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "datasheet": {
+    "name": "Ezekiel",
+    "definition_id": "40kdc:11e:adeptus-astartes:ezekiel",
+    "source_book_id": "000000023",
+    "source_datasheet_id": "000000226",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Ezekiel",
+    "current_page_checked_at": "2026-10-28",
+    "current_page_revision": "Dark Angels App 2.8.1 (October 2026)",
+    "edition": "11e",
+    "game_mode_scope": "Warhammer 40,000 standard rules; no Boarding Actions or Legends rules",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-28-v97-ezekiel",
+    "status": "source_bounded_local_scope_passed_2026_10_28"
+  },
+  "source_snapshot": {
+    "provider": "Wahapedia",
+    "edition": "11e",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b",
+    "manifest_path": ".tools/wahapedia/11e/space-marines/20261021T130623Z/manifest.json",
+    "raw_data_committed": false,
+    "slice_manifest_path": ".tools/wahapedia/11e/space-marine-chapter-slices/ezekiel-20261028/manifest.json",
+    "slice_manifest_sha256": "046839346d266661e9c881fd7faf02022715e9868f6708b5450809fbf00b2533",
+    "parent_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_files_sha256": {
+      "Datasheets.csv": "630da10482904e24661f5419b4c31f4237a350985fb219cd6b69eacca6e1c1cf",
+      "Datasheets_abilities.csv": "2d70299a388e51d36f6b0ec5bbb31f9a42b22d35afc508deb565b4d55abdcae9",
+      "Datasheets_keywords.csv": "37f952f6bac0c34b4f5f31f32cdf7fecdacbcd796bd35b50c2edd2dab3626bb5",
+      "Datasheets_models.csv": "791e9b9bc510acb3da3ddae6d812cf57e8680e5ae4fe7f6d37f637237400bf35",
+      "Datasheets_options.csv": "7a32f726f4d7977477962f34bb06098b13ccb859b4e7052de42e57b708ee8bdb",
+      "Datasheets_wargear.csv": "cc0934d9331d8ff76d2c017382094e1af79ea58a48a703f29c7aa6a7e51cb950",
+      "Datasheets_unit_composition.csv": "91462137121cb9cdd99ce4d74bd98964271401faddce32adfdb81faacb5af548",
+      "Datasheets_models_cost.csv": "663c741486ba04cdd1beebc423d7c23f962715295ad08f0fb347a009baa50662",
+      "Datasheets_leader.csv": "67ce752290f89cc54f28d0a57fa82b27ae036564fa10fa813ca7d919c313ebd5"
+    }
+  },
+  "source_slice": {
+    "artifact_type": "scoped_audit_slice",
+    "path": ".tools/wahapedia/11e/space-marine-chapter-slices/ezekiel-20261028",
+    "catalog_sha256": "9f551cb07e5870a3102d9d8ad1a356e800cd6636a76e26bc25f177234f1eda85",
+    "subject_datasheet_ids": ["000000226"],
+    "external_identity_only_datasheet_ids": ["000000071", "000000126", "000001157", "000001606", "000002098", "000002255", "000003698"],
+    "structurally_valid": true,
+    "slice_validation_errors": [],
+    "parent_validation_error_count_outside_slice": 68,
+    "playable": false,
+    "full_match_certified": false
+  },
+  "runtime_scope": {
+    "composition": 1,
+    "points_by_models": {"1": 110},
+    "max_supported_copies": 1,
+    "base_size_source_mm": 25,
+    "stats": {
+      "movement_inches": 6,
+      "toughness": 5,
+      "save_target": 2,
+      "wounds": 5,
+      "leadership_target": 6,
+      "objective_control": 1,
+      "invulnerable_target": 4
+    },
+    "psychic_level": 3,
+    "keywords": ["ADEPTUS ASTARTES", "DARK ANGELS", "INFANTRY", "CHARACTER", "EPIC HERO", "EXPLOSIVES", "PSYKER", "LIBRARIAN", "DEATHWING", "IMPERIUM", "TACTICUS"],
+    "weapon_profiles": [
+      {"name": "Mind Wipe - Focused Witchfire", "range_inches": 12, "attacks": 1, "skill": 2, "strength": 6, "ap": -2, "damage": "D3+3", "keywords": {"devastating-wounds": true, "hazardous": true, "precision": true, "psychic": true, "anti-character": 4, "close-quarters": true}},
+      {"name": "Mind Wipe - Witchfire", "range_inches": 12, "attacks": 1, "skill": 2, "strength": 6, "ap": -2, "damage": "D6", "keywords": {"devastating-wounds": true, "precision": true, "close-quarters": true, "psychic": true}},
+      {"name": "The Deliverer", "range_inches": 12, "attacks": 1, "skill": 2, "strength": 5, "ap": -1, "damage": 2, "keywords": {"precision": true, "close-quarters": true}},
+      {"name": "Traitor's Bane", "range_inches": 0, "attacks": 4, "skill": 2, "strength": 6, "ap": -3, "damage": 2, "keywords": {"precision": true, "psychic": true}}
+    ],
+    "leader_targets": [
+      {"identity": "assault-intercessor-squad", "source_id": "000001606"},
+      {"identity": "bladeguard-veteran-squad", "source_id": "000000071"},
+      {"identity": "hellblaster-squad", "source_id": "000002098"},
+      {"identity": "infernus-squad", "source_id": "000000126"},
+      {"identity": "intercessor-squad", "source_id": "000001157"},
+      {"identity": "sternguard-veteran-squad", "source_id": "000002255"},
+      {"identity": "inner-circle-companions", "source_id": "000003698"}
+    ],
+    "abilities": ["leader", "combat-doctrines", "transhuman-strategist", "book-of-salvation", "chief-librarian", "psychic-hood", "engulfing-fear", "whispers-of-the-shadow-forest"]
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_ezekiel --only test_space_marine_leader_links --timeout 300",
+    "report_path": ".tools/verification/20261028T120027007826Z/results.json",
+    "report_sha256": "174180AE06115085E8BB3E216D2581E8FEF4A068A0409E5D67D2C2504697504A",
+    "processes_passed": 4,
+    "processes_total": 4,
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "related_targeted_report_path": ".tools/verification/20261028T120048353698Z/results.json",
+    "related_targeted_report_sha256": "676A9C49DDDFE5D7C0D0A1917880527AD90700F3FF533043E910F085C422D7AA",
+    "related_targeted_processes_passed": 6,
+    "related_targeted_processes_total": 6
+  },
+  "implementation_limits": [
+    "The 68 validation errors in the parent export are outside the structurally valid Ezekiel slice and are not claimed as passed.",
+    "No complete Dark Angels or Space Marines army legality, network, complete-match or human-playtest certification is claimed.",
+    "Forge World, Legends, Boarding Actions and alternate modes are outside this datasheet scope."
+  ]
+}

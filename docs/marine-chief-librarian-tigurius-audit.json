@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "id": "marine-chief-librarian-tigurius-e11-2026-10-27",
+  "source": {
+    "edition": 11,
+    "book_id": "000000139",
+    "datasheet_id": "000001611",
+    "book_name": "App. Space Marines",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chief-Librarian-Tigurius",
+    "checked_at": "2026-10-27",
+    "runtime_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026 source identity audit; stable Last_update 2026-10-19 03:47:32; live page checked 2026-10-27.",
+    "chapter_context": "Ultramarines faction keyword on the shared-book profile; Chapter detachment and chapter-book interactions are not included in this shared-book scope.",
+    "game_mode": "Standard Warhammer 40,000 11th edition, exercised in a 1000-point Incursion training match; Boarding Actions is outside scope.",
+    "snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    }
+  },
+  "fixed_data_comparison": {
+    "status": "passed",
+    "artifact": ".tools/marine-comparison-20261027-v12.json",
+    "sha256": "30e1b54329013cda755058d3990d397036454346c6c54f2388411f3403021420",
+    "identity": "chief-librarian-tigurius",
+    "differences": [],
+    "weapon_trait_scope_consistent": true,
+    "keyword_scope_consistent": true,
+    "loadout_consistent": true,
+    "composition_consistent": true,
+    "cost_consistent": true,
+    "scope": "Fixed numeric, identity, keyword, default loadout, composition, base, cost and mapped weapon-trait checks. The source option table has no Tigurius rows; executable ability interactions and construction admission are covered by the dedicated local suites."
+  },
+  "local_scope_validation": {
+    "status": "passed",
+    "test_file": "tests/test_chief_librarian_tigurius.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_chief_librarian_tigurius --only test_space_marine_leader_links --timeout 300",
+    "artifact": ".tools/verification/20261027T225949381745Z/results.json",
+    "sha256": "e1def037ecd1863c961da8eca1f8c7b2a55d4ba343ae53c6efd4f8926c7682df",
+    "processes": [
+      {
+        "name": "import",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "python",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_chief_librarian_tigurius",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_space_marine_leader_links",
+        "status": "passed",
+        "exit_code": 0
+      }
+    ],
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "source_bounded_local_scope_validated": true
+  },
+  "scope": [
+    "One-model 115-point profile, one-copy cap, 40 mm base, exact source characteristics and keywords; no equipment-option rows.",
+    "Bolt Pistol, Storm of the Emperor's Wrath and Rod of Tigurius through Equipment and AttackPlan, preserving Close-quarters, Psychic and Blast 1.",
+    "Consolidated local catalog resolution, fixed one-model cost choice and current Marine materialization for both players.",
+    "Leader, Combat Doctrines, Librarius, Chief Librarian psyker level 3, Hood of Hellfire and Transhuman Strategist source ability registration.",
+    "All six available common-book Leader targets through the 153-link relation suite; Heavy Intercessors rejected by the dedicated suite. The source-linked Vanguard Veteran Squad row belongs to Legends and remains outside the common-book catalog.",
+    "Hood of Hellfire Feel No Pain 4+ applies to Tigurius and his attached bodyguards against Psychic attacks and mortal wounds.",
+    "Prescience owner checks, failed psychic test Battle-shock, +1 save duration through the opponent turn and expiry at the start of the next own turn.",
+    "Telepathic Assault 24-inch visible target, failed-roll Battle-shock, 2D3 mortal packet, defender-owned normalized allocation, ownership rejection, save/restore decision identity and shooting phase-close gate.",
+    "Both Tigurius psychic powers, levels 2 and 1, can be used in the same own turn; Warlord eligibility, command ownership and Transhuman Strategist CP."
+  ],
+  "limits": [
+    "Closes only Chief Librarian Tigurius's shared-book local datasheet scope.",
+    "Does not certify Ultramarines Chapter interactions or the Legends Vanguard Veteran pairing.",
+    "Does not certify full faction/army legality, network behavior, complete matches or human playtesting; network validation remains deferred to final integration."
+  ],
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_army_legality_certified": false,
+  "source_profile_check": {
+    "source_profile": "Chief Librarian Tigurius",
+    "composition": [
+      "1 Chief Librarian Tigurius model"
+    ],
+    "fixed_costs": {
+      "1 model": 115
+    },
+    "equipment_option_rows": [],
+    "fixed_equipment": [
+      "Bolt Pistol",
+      "Rod of Tigurius",
+      "Storm of the Emperor's Wrath"
+    ],
+    "leader_source_rows": [
+      {
+        "attached_id": "000000071",
+        "name": "Bladeguard Veteran Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000000126",
+        "name": "Infernus Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000002270",
+        "name": "Desolation Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000002255",
+        "name": "Sternguard Veteran Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000001157",
+        "name": "Intercessor Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000001606",
+        "name": "Assault Intercessor Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000001154",
+        "name": "Vanguard Veteran Squad",
+        "source_book_id": "000000356",
+        "scope": "Legends; excluded from the 85 shared-book catalog"
+      }
+    ]
+  }
+}

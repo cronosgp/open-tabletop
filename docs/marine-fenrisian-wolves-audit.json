@@ -1,0 +1,180 @@
+{
+  "id": "marine-fenrisian-wolves-e11-local-audit-2026-10-29",
+  "rules_authority": "Wahapedia 11th edition current Space Marines faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Space Wolves",
+    "book_id": "000000036",
+    "book_type": "App",
+    "datasheet_id": "000000323",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Fenrisian-Wolves",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "current_page_checked_at": "2026-10-29",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "snapshot_retrieval_window_utc": "2026-10-29T00:31:29.030708Z–2026-10-29T00:32:24.715969Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "457067E2A3AA94F341E020792D56DFAE4A36FE30272D0DAF7EEB1DE6ED2DAB9D",
+    "slice_manifest_sha256": "DD01804235496759470C95A4B73CAFE3E04F924E10B5C62A68E2407B8E720EA1",
+    "slice_subject_datasheet_ids": [
+      "000000323"
+    ],
+    "external_identity_only_datasheet_ids": [],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "parent_snapshot_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Enhancements.csv": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Detachment_abilities.csv": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c",
+      "Detachments.csv": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "7b35df86ec1bbed9f101a8923cbcca41bafb2533e9a1978ae9c366c8c8267999",
+      "Datasheets.csv": "587043ed2a7886f985b7d05b536ab65b59fad891862b1f70987d8b594aeedebd",
+      "Datasheets_abilities.csv": "15312df328206fc3b7bc3dd2277e8cbb3b6001b77f503759cd7f3d8b8c3c0a83",
+      "Datasheets_keywords.csv": "1e433ee0dfbddc2100bb6e43c3b48dc7bd2449d6b1e542f8f6a93f572b4c4707",
+      "Datasheets_models.csv": "52bebe2b2b22d66e187baac7f5ff5cf701197dd70ce5d1096af88e77ceda7c93",
+      "Datasheets_options.csv": "7a32f726f4d7977477962f34bb06098b13ccb859b4e7052de42e57b708ee8bdb",
+      "Datasheets_wargear.csv": "02fb516b0494b9fb7cbbb8271b7f7d06a9300ac2726b8265c50554f3d7c020f8",
+      "Datasheets_unit_composition.csv": "3456638f078c5fd476410630328a6225106c27a5deceebcb4593fcdaf2179587",
+      "Datasheets_models_cost.csv": "9d6f2e984fd5867db5d84513a10c968f97a090484499f20431b20e016653097f",
+      "Datasheets_stratagems.csv": "0a11d6f483c01ff0678ef706ba4303fbe4cb003c0684425574a576026c1b5dc5",
+      "Datasheets_enhancements.csv": "706aba5f1abf97fbae09634be1f3deef8cf5703a2a692f604df0c1f79c810305",
+      "Datasheets_detachment_abilities.csv": "9cadf993c7c2a5c9da7c751a55fabf3cbe103094b4f8b24357590e04baf00d8f",
+      "Datasheets_leader.csv": "7a547c829682f010c1d3bdda8eed1789ac4d3079c62fd7ad9e6703235fe1b824",
+      "Stratagems.csv": "ef077dc969861cfb9d132829dd853ac853b937632e265aa033933b51333e17b9",
+      "Abilities.csv": "3ba65e907c342a3cc2ad68b78ecc9583f5f9d79a62a38a7decf7ba9cff740d4e",
+      "Enhancements.csv": "12aa57be799c6284332b0c3c641e75955e6bd74f055a4c862089410fbd35f036",
+      "Enhancements_wargear.csv": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a",
+      "Detachment_abilities.csv": "c73f595ca857bbfd49eb1de5f79cb34c87049179d25859b33b9af52ff3c60d55",
+      "Detachments.csv": "f40fb30b39ce36946e6cb26a61cbf0ee168e0389b3a68cc34df9c682f28a8c7f",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    }
+  },
+  "source_checked_facts": {
+    "composition": {
+      "minimum": "5 Fenrisian Wolves",
+      "maximum": "10 Fenrisian Wolves"
+    },
+    "points_by_models": {
+      "5": 45,
+      "10": 75
+    },
+    "third_plus_points_by_models": {
+      "5": 50,
+      "10": 80
+    },
+    "base_size_mm": 40,
+    "characteristics": {
+      "movement_inches": 10,
+      "toughness": 4,
+      "save_target": 6,
+      "wounds": 1,
+      "leadership_target": 8,
+      "objective_control": 0,
+      "invulnerable_target": 0
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "SPACE WOLVES",
+      "BEASTS",
+      "IMPERIUM"
+    ],
+    "default_loadout": [
+      "Teeth and Claws"
+    ],
+    "melee_profile": {
+      "attacks": 3,
+      "skill": 4,
+      "strength": 4,
+      "ap": 0,
+      "damage": 1
+    },
+    "special_abilities": {
+      "combat_doctrines": true,
+      "predatory_instinct": "After an enemy move ends within 8 inches, optionally roll D6 and make a Normal Move of that distance; once per battle round.",
+      "hunting_hounds": "Add 1 OC within 6 inches of a friendly Space Wolves Character, excluding Wulfen Characters; Battle-shock suppresses the bonus."
+    }
+  },
+  "implementation": {
+    "catalog_identity": "fenrisian-wolves",
+    "implementation_files": [
+      "scripts/edition_11/current_reference_marine_profiles.gd",
+      "scripts/edition_11/army_capabilities.gd",
+      "scripts/edition_11/unit_ability_catalog.gd",
+      "scripts/edition_11/fenrisian_wolves.gd",
+      "scripts/edition_11/morale.gd",
+      "scripts/edition_11/unit_actions.gd",
+      "tests/test_fenrisian_wolves.gd"
+    ],
+    "local_scope": "source_bounded_local_scope_passed"
+  },
+  "verification": {
+    "focused_profile_run": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_fenrisian_wolves --only test_implemented_catalog --only test_capabilities --only test_cato_sicarius --only test_roster_validation --timeout 300",
+      "processes_passed": 7,
+      "all_processes_passed": true,
+      "selected_suites": [
+        "test_fenrisian_wolves",
+        "test_implemented_catalog",
+        "test_capabilities",
+        "test_cato_sicarius",
+        "test_roster_validation"
+      ],
+      "report": ".tools/verification/20261029T022800555605Z/results.json",
+      "report_sha256": "A99D14E7CAED0F2758274242ABBF7273132AF58DE20B28E61BC463503B9AC84A",
+      "network": false,
+      "legacy_starter_staged": true,
+      "cleanup_diagnostics": false
+    },
+    "connected_regression": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_wolf_guard_terminators --only test_fenrisian_wolves --only test_blood_claws --only test_grey_hunters --only test_implemented_catalog --only test_capabilities --only test_space_marine_leader_links --only test_deathwatch_terminator_squad --only test_roster_validation --only test_combat_doctrines --timeout 300",
+      "processes_passed": 12,
+      "all_processes_passed": true,
+      "selected_suites": [
+        "test_wolf_guard_terminators",
+        "test_fenrisian_wolves",
+        "test_blood_claws",
+        "test_grey_hunters",
+        "test_implemented_catalog",
+        "test_capabilities",
+        "test_space_marine_leader_links",
+        "test_deathwatch_terminator_squad",
+        "test_roster_validation",
+        "test_combat_doctrines"
+      ],
+      "report": ".tools/verification/20261029T024440783950Z/results.json",
+      "report_sha256": "B302F9565738BA82CF5C926BB636A02C7E120E6FDD863FFE74AEDDF6DC0E3468",
+      "network": false,
+      "legacy_starter_staged": true,
+      "cleanup_diagnostics": false
+    }
+  },
+  "limits": [
+    "Network validation, human playtesting, full Chapter/army legality and complete-match certification are not established."
+  ]
+}

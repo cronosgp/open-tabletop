@@ -1,0 +1,174 @@
+{
+  "id": "space-marines-assault-intercessors-with-jump-packs-e11-audit-2026-10-28",
+  "source_authority": "Wahapedia 11th-edition Space Marines App page and verified local export snapshot",
+  "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Assault-Intercessors-With-Jump-Packs",
+  "source_app_revision": "Space Marines App 2.8.1 / October 2026; stable Last_update 2026-10-19 03:47:32",
+  "source_checked_at_utc": "2026-10-28",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000002776",
+  "profile_source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "implementation": [
+    "scripts/edition_11/current_reference_marine_profiles.gd",
+    "scripts/edition_11/unit_actions.gd",
+    "scripts/edition_11/unit_ability_catalog.gd",
+    "scripts/edition_11/unit_abilities.gd",
+    "scripts/edition_11/hammer_of_wrath.gd",
+    "scripts/edition_11/equipment.gd",
+    "scripts/edition_11/attack_plan.gd",
+    "scripts/edition_11/army_capabilities.gd",
+    "scripts/edition_11/marine_leader_links.gd"
+  ],
+  "source_profile": {
+    "composition": [
+      "1 Assault Intercessor Sergeant with Jump Pack",
+      "4-9 Assault Intercessor with Jump Pack models"
+    ],
+    "model_sizes": [
+      5,
+      10
+    ],
+    "base_size_mm": 32,
+    "characteristics": {
+      "M": "12\"",
+      "T": 5,
+      "Sv": "3+",
+      "W": 2,
+      "Ld": "6+",
+      "OC": 1
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "EXPLOSIVES",
+      "FLY",
+      "IMPERIUM",
+      "INFANTRY",
+      "JUMP PACK",
+      "TACTICUS"
+    ],
+    "first_and_second_copy_costs": {
+      "5": 95,
+      "10": 190
+    },
+    "third_plus_copy_costs": {
+      "5": 105,
+      "10": 200
+    },
+    "options": [
+      "Sergeant Heavy Bolt Pistol replaced by Hand Flamer or Plasma Pistol",
+      "Sergeant Chainsword replaced by Power Fist or Power Weapon",
+      "For every five models, one ordinary model may replace its Heavy Bolt Pistol with a Plasma Pistol"
+    ],
+    "abilities": [
+      "Deep Strike",
+      "Hammer of Wrath"
+    ],
+    "shared_book_leader_targets": [
+      "Captain With Jump Pack",
+      "Chaplain With Jump Pack",
+      "Kayvaan Shrike"
+    ],
+    "external_leader_target_excluded": "Commander Dante, Blood Angels App"
+  },
+  "scope_validation": {
+    "status": "passed",
+    "test_file": "tests/test_assault_intercessors_with_jump_packs.gd",
+    "scope": "Exact profile and composition; source costs and catalog options; both-player current catalog materialization; public pistol/melee selections; all fixed and optional weapon profiles through Equipment and AttackPlan; ordinary Plasma Pistol cap for five and ten models; Deep Strike/Hammer of Wrath registration; all three common-book Leader attachments; unsupported size and third-copy admission boundaries.",
+    "limits": "Admission currently caps this identity at two copies because copy-index-aware third-plus pricing is not implemented, even though both third-plus prices remain in the source profile and catalog choice data. Commander Dante is external to the common 85. Hammer of Wrath effect behavior has a separate legacy-fixture regression run; network validation, full Chapter/army legality, all Leader combinations, full matches and playtesting are not certified.",
+    "command": "python tools/verify.py --godot C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_assault_intercessors_with_jump_packs --only test_space_marine_leader_links --only test_captain_with_jump_pack --only test_kayvaan_shrike --timeout 300",
+    "artifact": ".tools/verification/20261028T014923681819Z/results.json",
+    "artifact_sha256": "9c1f697cbea55dbc578df376dee60fdecad7481977fb9304368b929e2d4f0faa",
+    "processes": 6,
+    "network": false,
+    "legacy_starter_staged": false,
+    "headless_rid_cleanup_diagnostics": false
+  },
+  "hammer_of_wrath_behavior_regression": {
+    "test_file": "tests/test_hammer_of_wrath.gd",
+    "command": "python tools/verify.py --godot C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_hammer_of_wrath --timeout 300",
+    "artifact": ".tools/verification/20261028T014532504875Z/results.json",
+    "artifact_sha256": "20bcec476b1f747895e86c94288ef52f5f6ece19411418b02c296ba2943efcb3",
+    "status": "passed",
+    "processes": 3,
+    "network": false,
+    "legacy_starter_staged": true,
+    "fixture_limit": "This existing mechanics suite uses the historical legacy-solid-v1 training constructor; it is separate from the current-catalog sheet-scope verification."
+  },
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_match_certified": false,
+  "full_army_legality_certified": false,
+  "observed_at": "2026-10-28",
+  "current_scope_document": "marine-assault-intercessors-with-jump-packs.md",
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ]
+  },
+  "broader_regression_run": {
+    "command": "python tools/verify.py --godot C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_assault_intercessors_with_jump_packs --only test_space_marine_copy_cost_parity --only test_space_marine_leader_links --only test_captain_with_jump_pack --only test_chaplain_with_jump_pack --only test_kayvaan_shrike --timeout 300",
+    "artifact": ".tools/verification/20261028T014453977946Z/results.json",
+    "artifact_sha256": "0a2e3b132b02ee9d6033f0bacd401b795a6b4a4532fb900e0422f6193e949edb",
+    "status": "passed",
+    "processes": 8,
+    "network": false,
+    "legacy_starter_staged": true,
+    "selected_regressions": [
+      "test_space_marine_copy_cost_parity",
+      "test_chaplain_with_jump_pack"
+    ],
+    "dependency_note": "The verification preflight stages the local historical starter for the generic copy-cost and Chaplain suites; the main datasheet scope run remains separate and uses current catalogs. No network access was used."
+  }
+}

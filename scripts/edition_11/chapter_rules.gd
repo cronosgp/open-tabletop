@@ -3,8 +3,31 @@ extends RefCounted
 const CurrentMarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
-const ID := "space-marine-conditional-chapter-keywords-v1"
+const ID := "space-marine-conditional-chapter-keywords-v8-deathwing-terminator-squad"
+const DETACHMENT_CHAPTERS := {
+	"wrath-of-the-rock": "DARK ANGELS",
+	"darkflight-pursuit": "DARK ANGELS",
+	"inner-circle-task-force": "DARK ANGELS",
+	"fist-of-the-god-emperor": "BLACK TEMPLARS",
+	"vow-sworn-crusaders": "BLACK TEMPLARS",
+	"spearpoint-task-force": "WHITE SCARS",
+}
+const DETACHMENT_NAMES := {
+	"wrath-of-the-rock": "Wrath of the Rock",
+	"darkflight-pursuit": "Darkflight Pursuit",
+	"inner-circle-task-force": "Inner Circle Task Force",
+	"fist-of-the-god-emperor": "Fist of the God-Emperor",
+	"vow-sworn-crusaders": "Vow-sworn Crusaders",
+	"spearpoint-task-force": "Spearpoint Task Force",
+}
 const DARK_ANGELS_DEATHWING_IDENTITIES := [
+	"inner-circle-companions",
+	"asmodai",
+	"lazarus",
+	"azrael",
+	"belial",
+	"deathwing-knights",
+	"deathwing-terminator-squad",
 	"bladeguard-ancient",
 	"bladeguard-veteran-squad",
 	"sternguard-veteran-squad",
@@ -34,6 +57,18 @@ static func has_current_reference_marines(state: Dictionary) -> bool:
 		if not profile.is_empty() and "ADEPTUS ASTARTES" in profile.get("keywords", []):
 			return true
 	return false
+
+
+static func required_chapter_for_detachment(detachment: String) -> String:
+	return str(DETACHMENT_CHAPTERS.get(detachment, ""))
+
+
+static func detachment_name(detachment: String) -> String:
+	return str(DETACHMENT_NAMES.get(detachment, "Space Marine detachment"))
+
+
+static func requires_chapter_context(detachment: String) -> bool:
+	return DETACHMENT_CHAPTERS.has(detachment)
 
 
 static func resolve_and_apply(state: Dictionary, detachment_assignments: Dictionary, requested_value: Variant) -> Dictionary:
@@ -75,25 +110,11 @@ static func resolve_and_apply(state: Dictionary, detachment_assignments: Diction
 		if chapter.is_empty() and not represented.is_empty():
 			chapter = represented[0]
 		var detachment := str(detachment_assignments.get(owner, detachment_assignments.get(str(owner), "none")))
-		var required_chapter := ""
-		if detachment in ["wrath-of-the-rock", "darkflight-pursuit", "inner-circle-task-force"]:
-			required_chapter = "DARK ANGELS"
-		elif detachment == "fist-of-the-god-emperor":
-			required_chapter = "BLACK TEMPLARS"
-		elif detachment == "vow-sworn-crusaders":
-			required_chapter = "BLACK TEMPLARS"
-		elif detachment == "spearpoint-task-force":
-			required_chapter = "WHITE SCARS"
-		elif detachment == "medusa-wrath":
-			required_chapter = "IRON HANDS"
-		elif detachment == "blade-of-ultramar":
-			required_chapter = "ULTRAMARINES"
+		var required_chapter := required_chapter_for_detachment(detachment)
 		if chapter.is_empty() and not required_chapter.is_empty():
 			chapter = required_chapter
 		elif not required_chapter.is_empty() and chapter != required_chapter:
-			var detachment_names := {"blade-of-ultramar": "Blade of Ultramar", "medusa-wrath": "Medusa's Wrath", "wrath-of-the-rock": "Wrath of the Rock", "darkflight-pursuit": "Darkflight Pursuit", "inner-circle-task-force": "Inner Circle Task Force", "fist-of-the-god-emperor": "Fist of the God-Emperor", "vow-sworn-crusaders": "Vow-sworn Crusaders", "spearpoint-task-force": "Spearpoint Task Force"}
-			var detachment_name := str(detachment_names.get(detachment, "Space Marine detachment"))
-			return {"error": "%s requires %s Chapter context for Player %d." % [detachment_name, CurrentMarineProfiles.chapter_name(required_chapter), owner]}
+			return {"error": "%s requires %s Chapter context for Player %d." % [detachment_name(detachment), CurrentMarineProfiles.chapter_name(required_chapter), owner]}
 		if not chapter.is_empty() and not has_current_adeptus_astartes:
 			return {"error": "Player %d's Chapter context requires a current-reference Adeptus Astartes roster." % owner}
 		resolved[owner] = chapter

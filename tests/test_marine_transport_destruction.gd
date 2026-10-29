@@ -121,8 +121,22 @@ func run() -> void:
 			break
 	var confirmed := submit_transport_choice(state, 2, confirm_index)
 	check(str(confirmed.get("error", "")).is_empty(), "Emergency Disembark confirms through the normalized command and resumes the attack: " + str(confirmed))
-	check(state.pending_deadly_demise.is_empty() and state.units[100].get("on_battlefield", true) == false, "The transport is removed only after passengers finish, then the destruction queue resumes")
-	check(state.squads[2].battle_shocked and state.squads[2].get("cannot_charge_until_turn", -1) == 1 and state.units[survivors[0]].on_battlefield, "Emergency survivors are Battle-shocked, cannot charge this turn and return to the battlefield")
+	check(not state.pending_deadly_demise.is_empty() and state.units[100].get("on_battlefield", true) == false, "The destroyed transport is removed after Emergency Disembark and opens its Deadly Demise packet")
+	var demise_allocations := 0
+	while not state.pending_deadly_demise.is_empty() and demise_allocations < 8:
+		var demise_options: Array = PendingDecisions.current(state, ["unit-actions"]).get("legal_options", [])
+		var demise_index := -1
+		for option_index in range(demise_options.size()):
+			if str(demise_options[option_index].get("action", "")) == "deadly-demise-allocate":
+				demise_index = option_index
+				break
+		check(demise_index >= 0, "Deadly Demise exposes the next mortal-wound allocation choice")
+		if demise_index < 0: break
+		var allocated := submit_transport_choice(state, 1, demise_index)
+		check(str(allocated.get("error", "")).is_empty(), "Deadly Demise allocation resolves through the normalized command: " + str(allocated))
+		demise_allocations += 1
+	check(demise_allocations == 3 and state.pending_deadly_demise.is_empty(), "The source-rolled D3 Deadly Demise packet allocates three mortal wounds and completes")
+	check(state.squads[2].battle_shocked and state.squads[2].get("cannot_charge_until_turn", -1) == 1 and not Transport.models(state, 2).is_empty(), "Emergency survivors are Battle-shocked, cannot charge this turn and retain living models after the explosion")
 	check(ResolutionFrames.current(state).is_empty(), "Completing Emergency Disembark settles the suspended attack frame after its destruction effects")
 	print("Marine transport destruction: %d failures" % failures)
 	quit(1 if failures else 0)

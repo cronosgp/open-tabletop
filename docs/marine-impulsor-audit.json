@@ -1,0 +1,460 @@
+{
+  "id": "space-marines-impulsor-current-e11-scope",
+  "edition": "11th edition",
+  "source_authority": "Wahapedia 11e shared Space Marines datasheet, checked against the verified local Data Export snapshot and current live datasheet page.",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Impulsor",
+  "observed_at": "2026-10-28",
+  "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; live 11e datasheet checked 2026-10-28; Data Export specification revision 20260817b.",
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+    "specification_revision": "20260817b (URL query parameter)",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "relevant_file_hashes": [
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_detachment_abilities.csv",
+        "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+      },
+      {
+        "filename": "Datasheets_enhancements.csv",
+        "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_stratagems.csv",
+        "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Detachment_abilities.csv",
+        "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+      },
+      {
+        "filename": "Detachments.csv",
+        "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+      },
+      {
+        "filename": "Detachments_chapter_dp.csv",
+        "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+      },
+      {
+        "filename": "Enhancements.csv",
+        "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+      },
+      {
+        "filename": "Enhancements_wargear.csv",
+        "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+      },
+      {
+        "filename": "Export-Data-Specs.xlsx",
+        "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+      },
+      {
+        "filename": "Factions.csv",
+        "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+      },
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Stratagems.csv",
+        "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+      }
+    ]
+  },
+  "implementation": [
+    {
+      "path": "data/edition_11/space_marines_transport_profiles.json",
+      "sha256": "d0ba3c618044b499cf6d4056920240070ec9f991aa52877124fc5a15fe60fef3"
+    },
+    {
+      "path": "tools/build_space_marine_transport_profiles.py",
+      "sha256": "76a55bf5b454afabd80fffc00b603453efef2fdf80ec2e03950e5543f3437c9a"
+    },
+    {
+      "path": "scripts/edition_11/current_reference_marine_profiles.gd",
+      "sha256": "8932af8e21333313ed330c7d20bf6f94d6cfc4404b85b85b2cb06794dbc3427e"
+    },
+    {
+      "path": "scripts/edition_11/army_capabilities.gd",
+      "sha256": "09e1b141275b8e955699af226ed7c71c729c3d0f5d70db43ea854cd7813a9381"
+    },
+    {
+      "path": "scripts/edition_11/transport_rules.gd",
+      "sha256": "523530e33f2319d8930c4ba97508224f7beae091f587d67a36bc86b0ee8e8775"
+    },
+    {
+      "path": "scripts/edition_11/unit_abilities.gd",
+      "sha256": "0172ed93f0df1d385131d8f736a2be49feeb22644afcfe282e78d43d2a22f665"
+    },
+    {
+      "path": "scripts/edition_11/unit_ability_catalog.gd",
+      "sha256": "2e87326d97533478d092b79e81b45361bc8eb5b43e8b4c5fbb73bd47f1cfc62c"
+    },
+    {
+      "path": "scripts/edition_11/firing_deck.gd",
+      "sha256": "1d64efe8a3845f8bd04c750be598b3dc89ce2cd99dd41b8be758f4a38d699e4e"
+    },
+    {
+      "path": "scripts/edition_11/equipment.gd",
+      "sha256": "a747e67cb4c63c8d00379953f89ebd896a52730d76efeeb9fc2359a184bbec44"
+    },
+    {
+      "path": "scripts/edition_11/attack_plan.gd",
+      "sha256": "0a3bcf2046aec615944e28aaf5299be820f8f6d33f9961d49f9008f0edd59f46"
+    },
+    {
+      "path": "scripts/edition_11/unit_actions.gd",
+      "sha256": "7a87066e45aa611193d9f9077a4e772d224884fff9cc8f13c212376059963baf"
+    },
+    {
+      "path": "scripts/edition_11/deadly_demise.gd",
+      "sha256": "5f71caf1bfeaba4397203436b1d74ab5f2a282658baade13e4b58e6bfeec1ec0"
+    },
+    {
+      "path": "scripts/edition_11/combat_scenario.gd",
+      "sha256": "1d2c1230b91a80ae9bf26cf69de08ed379a6e3f4d8b850422e95ef3059804474"
+    },
+    {
+      "path": "scripts/edition_11/roster_validation.gd",
+      "sha256": "14f30a3bd4781feaafde312468ee18432147866f46004bf85645cda401b1df96"
+    },
+    {
+      "path": "tests/test_marine_impulsor_options.gd",
+      "sha256": "9922d4904343485d1a5fc1e43e460c1ad2d849183c68968b54e68df9ae8e316a"
+    },
+    {
+      "path": "tests/test_marine_transport_profiles.gd",
+      "sha256": "dd14e6f713dcd8b08a5b8fccd57422eb106e537bafe4ca7df759d083054af200"
+    },
+    {
+      "path": "tests/test_marine_transport_admission.gd",
+      "sha256": "5bf83c1b0bb0a7c0d6da133f5d2f554d4a0cbd7a68ec224bf9449e67ff6772ea"
+    },
+    {
+      "path": "tests/test_marine_transport_rules.gd",
+      "sha256": "06a375226643a9785310b544d670066f716d00e05b3b375d807f9e9c9923c8a6"
+    },
+    {
+      "path": "tests/test_marine_transport_weapon_options.gd",
+      "sha256": "dc4a965d3b98e2e44314e75160728cdfdaf40b2a4b3e1b0130705390fe4b0a4c"
+    },
+    {
+      "path": "tests/test_marine_transport_destruction.gd",
+      "sha256": "065985aa34ce5019651a0c23c7bcc1a98aca8d5e10beae949db200269cabd5d1"
+    },
+    {
+      "path": "tests/test_marine_firing_deck.gd",
+      "sha256": "e8b6b8a1034c219c465f6bdd38010a74dbbf7552a17fe60fa7c64d70e0ce5cc7"
+    },
+    {
+      "path": "tests/test_marine_conditional_weapon_traits.gd",
+      "sha256": "f1aefdb80b90bf50c3161c5c949eade3f0ec6fa7d4e966ca117099ff72989ecc"
+    },
+    {
+      "path": "tests/test_space_marine_leader_links.gd",
+      "sha256": "eabe04a92275241e151b3e6d81f43c3287d15c7525443eb517072b74692a79de"
+    },
+    {
+      "path": "tests/public_unit_command.gd",
+      "sha256": "a794f809babcaf677bb42bfbb4d2e10575c2e76b4db0fc136ed864417bf9e75f"
+    },
+    {
+      "path": "tests/all_units_fixture.gd",
+      "sha256": "eeba563cd7ededafa4a878443e801c548fea67cb609dec1178717f3f969d0d41"
+    },
+    {
+      "path": "tools/verify.py",
+      "sha256": "0286e9d7a8758e4cde84b822eba96dd06e90d79397d00f07a7423b40b2320761"
+    }
+  ],
+  "test_file": "tests/test_marine_impulsor_options.gd",
+  "scope": "Source-bounded Impulsor scope: exact one-model composition, first-to-third and fourth-plus source price tiers, exact 100 mm circular base and characteristics; complete source keywords and fixed weapon profiles; all one-of systems, Storm Bolters replacement and Heavy Stubber option with reversible public choices, owner/stale rejection and Orbital Comms surcharge; Orbital Comms Scouts 6 and Shield Dome 5+ invulnerable effects; transport capacity and model exclusions; Rapid Disembarkation after Advance; Core Deadly Demise D3 and Firing Deck 7 source parameters; current-catalog admission for both players. Shared transport suites cover Firing Deck attack planning and the Emergency Disembark to Deadly Demise allocation continuation using a Rhino fixture.",
+  "limits": "The common-book export and current Wahapedia page are the source boundary. The local construction catalog currently limits Impulsor to three copies while retaining the source fourth-plus cost tier; this is a local catalog gate, not a full army-legality claim. The source lists no common-book Leader or Support relation for Impulsor. Firing Deck 7 and Deadly Demise D3 are checked as Impulsor source bindings, while shared resolution behavior is exercised through the transport suites. Chapter-book content, full faction/army legality, network behavior, complete-match certification and human playtesting remain outside this result; network validation is deferred to final integration.",
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_marine_impulsor_options --only test_marine_transport_profiles --only test_marine_transport_admission --only test_marine_transport_rules --only test_marine_transport_weapon_options --only test_marine_transport_destruction --only test_marine_firing_deck --only test_marine_conditional_weapon_traits --only test_space_marine_leader_links --timeout 300",
+    "result": "passed",
+    "processes": "11/11",
+    "artifact": ".tools\\verification\\20261028T065001931427Z\\results.json",
+    "artifact_sha256": "8536f6797ede5752f52de62ce73d432a33c868f6f7ea49188fab17677acb2782",
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false
+  },
+  "verified_profile": {
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002568",
+    "source_snapshot_id": "20261021T130623Z",
+    "composition": {
+      "unit": "1 Impulsor model",
+      "models": [
+        1
+      ],
+      "points_first_to_third": {
+        "1": 70
+      },
+      "points_fourth_plus": {
+        "1": 80
+      },
+      "local_catalog_copy_ceiling": 3
+    },
+    "base": {
+      "source": "100mm",
+      "source_mm": 100,
+      "source_geometry": "circle",
+      "runtime_geometry": "Wahapedia specifies a 100 mm diameter circle; runtime uses the corresponding circular footprint."
+    },
+    "characteristics": {
+      "movement_inches": 12,
+      "toughness": 9,
+      "save": "3+",
+      "wounds": 11,
+      "leadership": "6+",
+      "objective_control": 2,
+      "invulnerable_save": null
+    },
+    "source_keywords": [
+      "ADEPTUS ASTARTES",
+      "VEHICLE",
+      "TRANSPORT",
+      "IMPERIUM",
+      "DEDICATED TRANSPORT",
+      "FRAME"
+    ],
+    "fixed_weapons": [
+      "Storm Bolters",
+      "Armoured Hull"
+    ],
+    "source_weapon_profiles": {
+      "ranged": [
+        {
+          "id": "storm-bolters",
+          "profiles": {
+            "standard": {
+              "name": "Storm Bolters",
+              "range_inches": 24,
+              "attacks": 4,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "rapid-fire": 4
+              }
+            }
+          }
+        },
+        {
+          "id": "ironhail-heavy-stubber",
+          "profiles": {
+            "standard": {
+              "name": "Ironhail Heavy Stubber",
+              "range_inches": 36,
+              "attacks": 3,
+              "skill": 3,
+              "strength": 4,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "rapid-fire": 3
+              }
+            }
+          }
+        },
+        {
+          "id": "fragstorm-grenade-launchers",
+          "profiles": {
+            "standard": {
+              "name": "Fragstorm Grenade Launchers",
+              "range_inches": 18,
+              "attacks": 6,
+              "skill": 3,
+              "strength": 4,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "blast": 2
+              }
+            }
+          }
+        },
+        {
+          "id": "bellicatus-missile-array",
+          "profiles": {
+            "frag": {
+              "name": "Bellicatus Missile Array - Frag",
+              "range_inches": 48,
+              "attacks": 4,
+              "skill": 3,
+              "strength": 4,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "blast": 1
+              }
+            },
+            "icarus": {
+              "name": "Bellicatus Missile Array - Icarus",
+              "range_inches": 48,
+              "attacks": 3,
+              "skill": 3,
+              "strength": 6,
+              "ap": "-1",
+              "damage": 2,
+              "keywords": {
+                "anti-fly": 2
+              }
+            },
+            "krak": {
+              "name": "Bellicatus Missile Array - Krak",
+              "range_inches": 48,
+              "attacks": 1,
+              "skill": 3,
+              "strength": 10,
+              "ap": "-2",
+              "damage": "D3+3",
+              "keywords": {}
+            }
+          }
+        },
+        {
+          "id": "ironhail-skytalon-array",
+          "profiles": {
+            "standard": {
+              "name": "Ironhail Skytalon Array",
+              "range_inches": 36,
+              "attacks": 6,
+              "skill": 3,
+              "strength": 4,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "rapid-fire": 6
+              }
+            }
+          }
+        }
+      ],
+      "melee": [
+        {
+          "id": "armoured-hull",
+          "profiles": {
+            "standard": {
+              "name": "Armoured Hull",
+              "range_inches": "Melee",
+              "attacks": 3,
+              "skill": 4,
+              "strength": 6,
+              "ap": 0,
+              "damage": 1,
+              "keywords": {}
+            }
+          }
+        }
+      ]
+    },
+    "options": {
+      "one_of": [
+        "Bellicatus Missile Array",
+        "Orbital Comms Array",
+        "Ironhail Skytalon Array",
+        "Shield Dome"
+      ],
+      "replacement": {
+        "Storm Bolters": "Fragstorm Grenade Launchers"
+      },
+      "add": [
+        "Ironhail Heavy Stubber"
+      ],
+      "wargear_costs": {
+        "Orbital Comms Array": 10
+      }
+    },
+    "abilities": {
+      "core": [
+        {
+          "name": "Deadly Demise",
+          "parameter": "D3"
+        },
+        {
+          "name": "Firing Deck",
+          "parameter": "7"
+        }
+      ],
+      "datasheet": [
+        {
+          "name": "Rapid Disembarkation",
+          "text": "In your Movement phase, when this unit ends an advance move, units embarked within this unit can make a shock disembark move."
+        },
+        {
+          "name": "Orbital Comms Array",
+          "text": "This unit has Scouts 6\"."
+        },
+        {
+          "name": "Shield Dome",
+          "text": "This unit has 5+ InSv."
+        }
+      ],
+      "transport": {
+        "capacity": 7,
+        "required": [
+          "ADEPTUS ASTARTES",
+          "INFANTRY"
+        ],
+        "forbidden": [
+          "TERMINATOR",
+          "JUMP PACK"
+        ],
+        "double_space": [
+          "GRAVIS"
+        ]
+      }
+    },
+    "common_book_leader_support_links": []
+  }
+}

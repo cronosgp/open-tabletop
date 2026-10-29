@@ -1,0 +1,263 @@
+{
+  "id": "marine-ragnar-blackmane-e11-local-audit-2026-10-29",
+  "rules_authority": "The verified local Wahapedia 11th-edition Data Export supplies datasheet facts. Page comparison and network validation are deferred to final integration.",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Space Wolves",
+    "book_id": "000000036",
+    "book_type": "App",
+    "datasheet_id": "000000285",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Ragnar-Blackmane",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "snapshot_retrieval_window_utc": "2026-10-29T00:31:29.030708Z–2026-10-29T00:32:24.715969Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_manifest_sha256": "5286c01de5055f9d64992c43612387119baa3f0f48851f284250a079626b18c2",
+    "slice_catalog_sha256": "332b713efc6dcec0901151f9c77f1e025e5c21f8f8efd084ec3262bdde913212",
+    "slice_subject_datasheet_ids": [
+      "000000285"
+    ],
+    "external_identity_only_datasheet_ids": [
+      "000000303",
+      "000004131"
+    ],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "parent_snapshot_file_sha256": {
+      "Factions": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Factions.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Factions.csv",
+        "retrieved_at": "2026-10-29T00:31:29.971401+00:00",
+        "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+        "bytes": 1876
+      },
+      "Source": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Source.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Source.csv",
+        "retrieved_at": "2026-10-29T00:31:31.698428+00:00",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+        "bytes": 7608
+      },
+      "Datasheets": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets.csv",
+        "retrieved_at": "2026-10-29T00:31:36.964516+00:00",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+        "bytes": 799121
+      },
+      "Datasheets_abilities": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_abilities.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_abilities.csv",
+        "retrieved_at": "2026-10-29T00:31:39.100995+00:00",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+        "bytes": 875338
+      },
+      "Datasheets_keywords": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_keywords.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_keywords.csv",
+        "retrieved_at": "2026-10-29T00:31:42.566046+00:00",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+        "bytes": 381825
+      },
+      "Datasheets_models": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_models.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_models.csv",
+        "retrieved_at": "2026-10-29T00:31:44.683196+00:00",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+        "bytes": 101847
+      },
+      "Datasheets_options": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_options.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_options.csv",
+        "retrieved_at": "2026-10-29T00:31:46.541883+00:00",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+        "bytes": 310151
+      },
+      "Datasheets_wargear": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_wargear.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_wargear.csv",
+        "retrieved_at": "2026-10-29T00:31:50.427291+00:00",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+        "bytes": 551713
+      },
+      "Datasheets_unit_composition": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_unit_composition.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_unit_composition.csv",
+        "retrieved_at": "2026-10-29T00:31:52.864090+00:00",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+        "bytes": 77941
+      },
+      "Datasheets_models_cost": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_models_cost.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_models_cost.csv",
+        "retrieved_at": "2026-10-29T00:31:54.505820+00:00",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+        "bytes": 166328
+      },
+      "Datasheets_stratagems": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_stratagems.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_stratagems.csv",
+        "retrieved_at": "2026-10-29T00:31:59.146475+00:00",
+        "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+        "bytes": 1383331
+      },
+      "Datasheets_enhancements": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_enhancements.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_enhancements.csv",
+        "retrieved_at": "2026-10-29T00:32:02.088329+00:00",
+        "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+        "bytes": 182733
+      },
+      "Datasheets_detachment_abilities": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_detachment_abilities.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_detachment_abilities.csv",
+        "retrieved_at": "2026-10-29T00:32:05.308121+00:00",
+        "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+        "bytes": 192980
+      },
+      "Datasheets_leader": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Datasheets_leader.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Datasheets_leader.csv",
+        "retrieved_at": "2026-10-29T00:32:07.059407+00:00",
+        "sha256": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+        "bytes": 27505
+      },
+      "Stratagems": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Stratagems.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Stratagems.csv",
+        "retrieved_at": "2026-10-29T00:32:10.192731+00:00",
+        "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+        "bytes": 1039230
+      },
+      "Abilities": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Abilities.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Abilities.csv",
+        "retrieved_at": "2026-10-29T00:32:14.273564+00:00",
+        "sha256": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+        "bytes": 205188
+      },
+      "Enhancements": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Enhancements.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Enhancements.csv",
+        "retrieved_at": "2026-10-29T00:32:16.178531+00:00",
+        "sha256": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c",
+        "bytes": 425559
+      },
+      "Enhancements_wargear": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Enhancements_wargear.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Enhancements_wargear.csv",
+        "retrieved_at": "2026-10-29T00:32:17.686797+00:00",
+        "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+        "bytes": 777
+      },
+      "Detachment_abilities": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Detachment_abilities.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Detachment_abilities.csv",
+        "retrieved_at": "2026-10-29T00:32:21.100863+00:00",
+        "sha256": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c",
+        "bytes": 289870
+      },
+      "Detachments": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Detachments.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Detachments.csv",
+        "retrieved_at": "2026-10-29T00:32:22.743714+00:00",
+        "sha256": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536",
+        "bytes": 127731
+      },
+      "Detachments_chapter_dp": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Detachments_chapter_dp.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Detachments_chapter_dp.csv",
+        "retrieved_at": "2026-10-29T00:32:24.715969+00:00",
+        "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+        "bytes": 111
+      },
+      "Last_update": {
+        "requested_url": "https://wahapedia.ru/wh40k11ed/Last_update.csv",
+        "final_url": "https://wahapedia.ru/wh40k11ed/Last_update.csv",
+        "retrieved_at": "2026-10-29T00:31:29.030708+00:00",
+        "sha256": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2",
+        "bytes": 39
+      }
+    }
+  },
+  "source_checked_facts": {
+    "composition": {
+      "1": [
+        "1 Ragnar Blackmane"
+      ]
+    },
+    "points_by_models": {
+      "1": 100
+    },
+    "third_plus_points_by_models": {},
+    "max_supported_copies": 1,
+    "model_profiles": {
+      "Ragnar Blackmane": {
+        "movement_inches": 7,
+        "toughness": 5,
+        "save_target": 3,
+        "wounds": 5,
+        "leadership_target": 6,
+        "objective_control": 1,
+        "invulnerable_target": 4,
+        "base_size_mm": 40,
+        "weapons": [
+          "Bolt Pistol: 12 inches, A1, BS2+, S5, AP-1, D1; Close-quarters",
+          "Frostfang: A8, WS2+, S6, AP-3, D2; Sustained Hits 1"
+        ]
+      }
+    },
+    "options": [],
+    "abilities": [
+      "Leader: Wolf Guard Headtakers (000004131) or Blood Claws (000000303); Headtakers is selectable at its admitted mixed 6/12-model sizes; its Wahapedia-incompatible Headtakers-only rows remain blocked.",
+      "Combat Doctrines.",
+      "Transhuman Strategist.",
+      "Battle-lust: if Ragnar's unit made a Charge move this turn, add 2 Attacks to Ragnar's melee weapons.",
+      "War Howl: while leading Blood Claws, the unit's melee weapons gain +1 Strength and Sustained Hits 1; while leading Wolf Guard Headtakers, the unit remains eligible to declare a Charge after Advancing."
+    ],
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "CAPTAIN",
+      "CHARACTER",
+      "EPIC HERO",
+      "EXPLOSIVES",
+      "IMPERIUM",
+      "INFANTRY",
+      "SPACE WOLVES",
+      "TACTICUS"
+    ],
+    "leader_datasheet_ids": [
+      "000004131",
+      "000000303"
+    ]
+  },
+  "local_scope_validation": {
+    "status": "source_bounded_local_scope_passed_2026_10_29",
+    "focused_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_ragnar_blackmane --timeout 300",
+    "focused_report": ".tools/verification/20261029T045912823587Z/results.json",
+    "focused_report_sha256": "91f1c764a35e8dcdbc0566bf89421ccef6e6ae5ffacb7be2818bf7abd69a37b5",
+    "focused_processes_passed": 3,
+    "connected_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_ragnar_blackmane --only test_implemented_catalog --only test_capabilities --only test_space_marine_leader_links --only test_blood_claws --only test_combat_doctrines --only test_roster_validation --only test_current_unit_abilities --only test_current_unit_combat --timeout 300",
+    "connected_report": ".tools/verification/20261029T045942252555Z/results.json",
+    "connected_report_sha256": "21306d8e72bf2f845048d0defe6c3f7480bbd48f3183af6b00fe0fda1847d7b9",
+    "connected_processes_passed": 11,
+    "focused_legacy_starter_staged": false,
+    "connected_legacy_starter_staged": true,
+    "network_validation": "deferred_to_final_integration",
+    "human_playtesting": "not_completed",
+    "full_army_legality": "not_certified"
+  },
+  "implementation_limits": [
+    "The verified local Ragnar subject slice has zero structural findings; the parent export has 68 unrelated findings that remain open.",
+    "Ragnar's source-listed Wolf Guard Headtakers Leader endpoint is selectable for the admitted mixed 6/12-model profile; its Headtakers-only MFM rows remain blocked by Wahapedia's selected minimum composition.",
+    "Network/page comparison and human playtesting are deferred to final integration. Local scope checks do not certify complete Space Wolves restrictions or full army legality."
+  ],
+  "playable": false,
+  "full_match_certified": false
+}

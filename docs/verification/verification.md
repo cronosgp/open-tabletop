@@ -73,6 +73,22 @@ Add `--tactical-profile-test` to both role commands for Fire and Manoeuvre versu
 
 Allow UDP port 24560 between the two computers. The exercise admits the mirrored 550-point training lists, completes setup and deployment, saves, disconnects and reclaims the guest seat during deployment and during a pending Fire Overwatch decision, synchronizes a legal ranged attack, plays the bounded five-round match, and verifies the host's completed save and journal. Each process prints a role-specific `CURRENT-REFERENCE HOST: PASS` or `CURRENT-REFERENCE CLIENT: PASS` line. A successful loopback run is not evidence for this cross-machine gate; record both machines, Godot version, LAN path, role outputs and result before updating the support matrix.
 
+## Source-backed Space Marine audits
+
+With a previously captured timestamp-bracketed Wahapedia 11e export, run the source-cost audit offline:
+
+```text
+python tools/validate_space_marine_roster_costs.py --snapshot .tools/wahapedia-e11-live-refresh-<snapshot-id> --godot /path/to/Godot_v4.7.2-stable_win64_console.exe --output .tools/current-space-marine-roster-cost-audit.json
+```
+
+The audit checks every manifest file hash, compares source-priced model sizes and first/second/third/fourth-plus copy tiers against runtime profiles and published construction choices, and rejects unrecognized source conflicts. Known composition conflicts stay explicit: the Decimus five-model row and Wolf Guard Headtakers' incompatible/unpriced role combinations are withheld from construction, while only source-priced compatible Headtakers sizes are compared with the selectable catalog. The audit does not certify all army legality or every roster combination. The related attachment-map audit checks source IDs, Leader/Support links, static Support identities and manifest hashes:
+
+```text
+& .\tools\validate_space_marine_chapter_links.ps1 -SnapshotPath .tools/wahapedia-e11-live-refresh-<snapshot-id>
+```
+
+Run those audits only against a verified local export; they do not download third-party data or use the legacy starter snapshot.
+
 ## Legacy optional combat snapshot (not the authoritative source)
 
 The current full test profile still consumes the old 40kdc-data starter snapshot pinned by `data/starter.lock.json`. This is retained only for compatibility and historical exercise tests; it is **not** a Wahapedia export, must not be used to validate current datasheet facts, and is not a fallback for a missing local export. The Wahapedia ingestion migration remains pending.

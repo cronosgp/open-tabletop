@@ -160,6 +160,8 @@ var official_layout_preview_status: Label
 var unit_abilities := false
 var unit_abilities_choice: CheckBox
 var unit_action_picker: OptionButton
+var unit_action_surface_choice: OptionButton
+var unit_action_surface_model := -1
 var doctrine_action_panel: VBoxContainer
 var unit_action_x: SpinBox
 var unit_action_z: SpinBox
@@ -1055,7 +1057,7 @@ func _build_ui() -> void:
 	advanced.add_child(equipment_choice)
 	checked_rosters_choice = CheckBox.new()
 	checked_rosters_choice.text = "Next prepared match: saved Incursion rosters (legacy prices)"
-	checked_rosters_choice.tooltip_text = "Saved Gladius/Awakened rosters retain their MFM 1.6 price snapshot from 17 October and fixed loadouts. Wahapedia 11e is the rules source; implemented datasheets and effects remain partial, and full army legality is not certified."
+	checked_rosters_choice.tooltip_text = "Checked Incursion setup supports Gladius or the bounded Black Templars Fist profile against Awakened Dynasty; Fist offers Take and Hold only. Existing saved rosters retain their MFM 1.6 price snapshot from 17 October and fixed loadouts. Wahapedia 11e is the rules source; implemented datasheets and effects remain partial, and full army legality is not certified."
 	advanced.add_child(checked_rosters_choice)
 	checked_rosters_choice.toggled.connect(func(active: bool):
 		if active:
@@ -1073,11 +1075,12 @@ func _build_ui() -> void:
 		_refresh_official_layout_controls())
 	official_mission_choice = CheckBox.new()
 	official_mission_choice.text = "Next prepared match: Chapter Approved 2026-27 mission"
-	official_mission_choice.tooltip_text = "11th-edition mission with one supported primary per player, Hammer and Anvil, selected Event Companion terrain and a fixed secondary pair. For the checked Gladius vs Awakened Dynasty rosters, each player can choose Take and Hold or Priority Assets; primary cards default from the matchup and can be overridden directly. In local play with both defaults on, players lock choices one at a time and reveal the matchup after both lock; direct overrides and LAN setup remain visible. Ten current primary cards are implemented; current abilities are required, and reference points do not certify army legality."
+	official_mission_choice.tooltip_text = "11th-edition mission with one supported primary per player, Hammer and Anvil, selected Event Companion terrain and a fixed secondary pair. Checked rosters support Gladius or the bounded Black Templars Fist profile against Awakened Dynasty: Fist offers Take and Hold only; Gladius and Awakened Dynasty offer Take and Hold or Priority Assets. Primary cards default from the matchup and can be overridden directly. In local play with both defaults on, players lock choices one at a time and reveal the matchup after both lock; direct overrides and LAN setup remain visible. Ten current primary cards are implemented; current abilities are required, and reference points do not certify army legality."
 	advanced.add_child(official_mission_choice)
 	official_mission_choice.toggled.connect(func(active: bool):
 		if active: unit_abilities_choice.button_pressed = true
 		if active: _apply_official_primary_matchup_defaults()
+		_refresh_setup_option_controls()
 		_refresh_official_layout_controls()
 		_review_saved_armies())
 	official_force_disposition_heading = Label.new()
@@ -1224,6 +1227,7 @@ func _build_ui() -> void:
 			combat_doctrines_choice.button_pressed = true
 			awakened_dynasty_choice.button_pressed = true
 			stratagem_choice.button_pressed = true
+		_refresh_setup_option_controls()
 		_review_saved_armies())
 	awakened_dynasty_choice = CheckBox.new()
 	awakened_dynasty_choice.text = "Next prepared match: 11e Awakened Dynasty"
@@ -1296,11 +1300,16 @@ func _build_ui() -> void:
 	marine_detachment_choice.tooltip_text += " Phobos Shadow Force is partial. After a friendly PHOBOS or SCOUT SQUAD shoots in its own Shooting phase, Shadow Masters offers Hidden preservation for the turn or a Normal Move up to D6 inches that blocks Charge until turn end. Strike from the Shadows (1 CP) grants hidden PHOBOS attacks +1 Strength and Lethal Hits; Tactical Withdrawal (1 CP) can place an unengaged PHOBOS or SCOUT SQUAD in Strategic Reserves at the opponent's Fight-phase end; Mortis Snares (1 CP) arms controlled objectives at Movement-phase end and can inflict D6 mortal wounds when an enemy move ends within range and the owner's roll is 2+. Venator Omni-auspex (15 points) grants Wound rerolls against fully hidden targets, with successful natural 2s optional in Assault Doctrine; Execute and Redeploy (25 points) offers an unengaged post-shot Normal Move up to 6 inches and blocks Charge until turn end. Both enhancements are limited to four export-linked PHOBOS bearers. Shadow Masters remains limited to the owner's Shooting phase. Focused checks, network validation and full army legality remain pending."
 	marine_detachment_choice.tooltip_text += " Fist of the God-Emperor is partial: Oathbound Exemplar (10 points) is selectable for source-linked Adeptus Astartes Infantry units. It removes only the Advance/Fall Back restriction from starting an otherwise eligible action. Purge and Sanctify, Righteous Fervour and the three detachment stratagems remain unavailable; current checks, network validation and full army legality remain pending."
 	marine_detachment_choice.tooltip_text += " Vow-sworn Crusaders is partial: at the start of the first battle round, choose one of three Vows. Abhor the Witch grants Precision and Lance to current-reference Adeptus Astartes melee attacks against Psykers; Accept Any Challenge adds +1 to Wound when the target's Toughness exceeds the weapon's Strength; Uphold secures objectives controlled by current-reference Adeptus Astartes Infantry and lets those units start otherwise eligible actions after Advancing. Consecrating Aura (20 points) is selectable for 23 export-linked current-catalog bearer profiles and gives its unit a 5+ invulnerable save while preserving better existing saves. Incendiary Animus (25 points) is selectable for five export-linked Chaplain or Judiciar profiles and gives its unit +1 Strength on melee attacks. Zealous Vanguard (25 points) gives 23 source-linked bearer profiles' units Scouts 6 through the shared pre-battle move or Reserve set-up. Augury Servo-host (20 points) lets the unit select one visible enemy within 18 inches that cannot benefit from cover for the phase. Pious Enmity (1 CP) is offered when a friendly Chaplain/Judiciar unit is selected to fight; choose melee Hit rerolls of 1, or Hit and Wound rerolls of 1 against MONSTER/VEHICLE targets. The other five stratagems and 2 DP Force Disposition enforcement remain unavailable or pending; focused checks, network validation and full army legality also remain pending. Current unit abilities and Black Templars Chapter context are required."
+	marine_detachment_choice.tooltip_text += " The selected detachment applies only when Combat Doctrines is enabled."
 	advanced.add_child(marine_detachment_choice)
 	marine_detachment_choice.item_selected.connect(func(_index: int):
 		marine_detachment = _selected_marine_detachment()
 		marine_detachments = _selected_marine_detachments()
 		if marine_detachment in ["spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "fist-of-the-god-emperor", "vow-sworn-crusaders"] and unit_abilities_choice != null: unit_abilities_choice.button_pressed = true
+		_refresh_setup_option_controls()
+		_populate_official_force_disposition_choice(official_force_disposition_choice_p1, 1)
+		_apply_official_primary_matchup_defaults()
+		_refresh_force_disposition_help()
 		_review_saved_armies())
 	var marine_detachment_heading_p2 := Label.new()
 	marine_detachment_heading_p2.text = "Player 2 Space Marine detachment"
@@ -1319,11 +1328,13 @@ func _build_ui() -> void:
 	marine_detachment_choice_p2.tooltip_text += " Phobos Shadow Force is partial. Shadow Masters offers Hidden preservation or a D6-inch Normal Move after an eligible unit shoots, and the 15-point Venator Omni-auspex plus 25-point Execute and Redeploy enhancements are selectable for four export-linked PHOBOS bearers. Strike from the Shadows, Tactical Withdrawal and Mortis Snares have bounded local paths. Shadow Masters remains limited to the owner's Shooting phase; focused checks, network validation and full army legality remain pending."
 	marine_detachment_choice_p2.tooltip_text += " Fist of the God-Emperor is partial: Oathbound Exemplar (10 points) is selectable for source-linked Adeptus Astartes Infantry units. It removes only the Advance/Fall Back restriction from starting an otherwise eligible action. Purge and Sanctify, Righteous Fervour and the three detachment stratagems remain unavailable; current checks, network validation and full army legality remain pending."
 	marine_detachment_choice_p2.tooltip_text += " Vow-sworn Crusaders is partial: at the start of the first battle round, choose one of three Vows. Abhor the Witch grants Precision and Lance to current-reference Adeptus Astartes melee attacks against Psykers; Accept Any Challenge adds +1 to Wound when the target's Toughness exceeds the weapon's Strength; Uphold secures objectives controlled by current-reference Adeptus Astartes Infantry and lets those units start otherwise eligible actions after Advancing. Consecrating Aura (20 points) is selectable for 23 export-linked current-catalog bearer profiles and gives its unit a 5+ invulnerable save while preserving better existing saves. Incendiary Animus (25 points) is selectable for five export-linked Chaplain or Judiciar profiles and gives its unit +1 Strength on melee attacks. Zealous Vanguard (25 points) gives 23 source-linked bearer profiles' units Scouts 6 through the shared pre-battle move or Reserve set-up. Augury Servo-host (20 points) lets the unit select one visible enemy within 18 inches that cannot benefit from cover for the phase. Pious Enmity (1 CP) is offered when a friendly Chaplain/Judiciar unit is selected to fight; choose melee Hit rerolls of 1, or Hit and Wound rerolls of 1 against MONSTER/VEHICLE targets. The other five stratagems and 2 DP Force Disposition enforcement remain unavailable or pending; focused checks, network validation and full army legality also remain pending. Current unit abilities and Black Templars Chapter context are required."
+	marine_detachment_choice_p2.tooltip_text += " The selected detachment applies only when Combat Doctrines is enabled."
 	advanced.add_child(marine_detachment_choice_p2)
 	marine_detachment_choice_p2.item_selected.connect(func(_index: int):
 		marine_detachment_p2 = _selected_marine_detachment_for(marine_detachment_choice_p2)
 		marine_detachments = _selected_marine_detachments()
 		if marine_detachment_p2 in ["spearpoint-task-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "fist-of-the-god-emperor", "vow-sworn-crusaders"] and unit_abilities_choice != null: unit_abilities_choice.button_pressed = true
+		_refresh_setup_option_controls()
 		_review_saved_armies())
 	var marine_chapter_heading_p1 := Label.new()
 	marine_chapter_heading_p1.text = "Player 1 Chapter context"
@@ -1332,6 +1343,7 @@ func _build_ui() -> void:
 	_populate_marine_chapter_choice(marine_chapter_choice_p1)
 	marine_chapter_choice_p1.tooltip_text = "Choose the Chapter for generic current-reference Adeptus Astartes profiles, or infer it from named Chapter profiles and the selected detachment. Dark Angels grants the conditional DEATHWING and RAVENWING keywords. Conflicting roster or detachment contexts are rejected. Both LAN players must use matching selections."
 	advanced.add_child(marine_chapter_choice_p1)
+	marine_chapter_choice_p1.tooltip_text += " Chapter context applies only when implemented unit abilities are enabled."
 	marine_chapter_choice_p1.item_selected.connect(func(_index: int):
 		marine_chapters = _selected_marine_chapters()
 		_review_saved_armies())
@@ -1348,7 +1360,8 @@ func _build_ui() -> void:
 	combat_doctrines_choice.toggled.connect(func(active: bool):
 		marine_detachment = _selected_marine_detachment() if active else "none"
 		marine_detachments = _selected_marine_detachments() if active else {1: "none", 2: "none"}
-		_review_saved_armies())
+		_review_saved_armies()
+		_refresh_setup_option_controls())
 	reanimation_protocols_choice = CheckBox.new()
 	reanimation_protocols_choice.text = "Next prepared match: Reanimation Protocols"
 	reanimation_protocols_choice.tooltip_text = "September 2026 faction rule, limited to Warriors/Immortals, living Overlords and admitted Overlord attachments. End of own Command: roll D3 per living unit, preview returned troop models, then confirm. Heal surviving models first, then return troops. Slain Characters are unsupported. Resurrection Orb and other datasheet abilities require the current unit abilities option. Both LAN players must agree."
@@ -1655,6 +1668,10 @@ func _build_ui() -> void:
 	unit_action_picker.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	unit_action_picker.item_selected.connect(func(_index: int): _refresh_unit_actions())
 	column.add_child(unit_action_picker)
+	unit_action_surface_choice = OptionButton.new()
+	unit_action_surface_choice.tooltip_text = "Choose the destination surface for this Surge placement. Vertical travel counts unless this model's rules ignore it."
+	unit_action_surface_choice.item_selected.connect(func(_index: int): _refresh())
+	column.add_child(unit_action_surface_choice)
 	doctrine_action_panel = preload("res://scripts/ui/doctrine_choice.gd").new()
 	doctrine_action_panel.visible = false
 	column.add_child(doctrine_action_panel)
@@ -3200,7 +3217,7 @@ func _build_action_groups(column: VBoxContainer) -> void:
 		"army_selection": {"title": "Choose your army", "controls": [network_army_status, network_army_picker, network_army_submit]},
 		"reanimation": {"title": "Reanimation Protocols", "controls": [reanimation_help, reanimation_squad, reanimation_roll, reanimation_model, reanimation_x, reanimation_z, reanimation_place, reanimation_suggest, reanimation_failure, reanimation_reset, reanimation_confirm]},
 		"awakened": {"title": "Awakened Dynasty • Overlord assignment", "controls": [awakened_help, awakened_target, awakened_confirm]},
-		"unit": {"title": "Army preparation / unit abilities", "controls": [setup_preparation_status, setup_required_status, setup_feedback_status, setup_finish_button, setup_decisions_heading, setup_equipment_toggle, setup_equipment_list, unit_action_help, unit_decline_button, doctrine_action_panel, unit_action_picker, unit_action_x, unit_action_z, unit_action_button, unit_details_button]},
+		"unit": {"title": "Army preparation / unit abilities", "controls": [setup_preparation_status, setup_required_status, setup_feedback_status, setup_finish_button, setup_decisions_heading, setup_equipment_toggle, setup_equipment_list, unit_action_help, unit_decline_button, doctrine_action_panel, unit_action_picker, unit_action_surface_choice, unit_action_x, unit_action_z, unit_action_button, unit_details_button]},
 		"doctrine": {"title": "Combat Doctrines • 11e Gladius", "controls": [doctrine_help, doctrine_choice, doctrine_confirm]},
 		"oath": {"title": "Oath of Moment • June 2026", "controls": [oath_help, oath_target, oath_confirm]},
 		"reaction": {"title": "Decision window", "controls": [reaction_help, reaction_roll, reaction_use_row, reaction_use, reaction_sudden_row, reaction_sudden, reaction_dice_hint, reaction_dice, reaction_squad]},
@@ -3450,6 +3467,43 @@ func _selected_contact_elevation() -> float:
 		var value: Variant = contact_elevation_choice.get_item_metadata(contact_elevation_choice.selected)
 		if value is int or value is float: return float(value)
 	return float(state.units[selected].get("elevation", 0.0)) if state.units.has(selected) else 0.0
+
+func _selected_unit_action_elevation(model: int) -> float:
+	if not state.get("units", {}).has(model): return 0.0
+	if unit_action_surface_choice != null and unit_action_surface_model == model and unit_action_surface_choice.selected >= 0:
+		var value: Variant = unit_action_surface_choice.get_item_metadata(unit_action_surface_choice.selected)
+		if value is int or value is float: return float(value)
+	return float(state.units[model].get("elevation", 0.0))
+
+func _refresh_unit_action_surface_options() -> void:
+	if unit_action_surface_choice == null: return
+	var previous_model := unit_action_surface_model
+	var previous_elevation := -1.0
+	if unit_action_surface_choice.selected >= 0:
+		var previous_value: Variant = unit_action_surface_choice.get_item_metadata(unit_action_surface_choice.selected)
+		if previous_value is int or previous_value is float: previous_elevation = float(previous_value)
+	unit_action_surface_choice.clear()
+	unit_action_surface_choice.visible = false
+	unit_action_surface_model = -1
+	if not combat_enabled or unit_action_picker.selected < 0: return
+	var choice: Variant = unit_action_picker.get_selected_metadata()
+	if not choice is Dictionary or str(choice.get("action", "")) not in ["heresy-retribution-place", "crusader-surge-place"]: return
+	var model := int(choice.get("model", -1))
+	if not state.get("units", {}).has(model): return
+	var preferred := float(state.units[model].get("elevation", 0.0))
+	if previous_model == model and previous_elevation >= 0.0: preferred = previous_elevation
+	var options: Array[Dictionary] = Combat.Terrain.movement_surface_options(state, state.units[model])
+	var selected_index := 0
+	for option: Dictionary in options:
+		unit_action_surface_choice.add_item("Destination surface: %s · %s in" % [str(option.get("name", "Surface")), _stat_text(option.get("elevation", 0.0))])
+		var index := unit_action_surface_choice.item_count - 1
+		unit_action_surface_choice.set_item_metadata(index, float(option.get("elevation", 0.0)))
+		unit_action_surface_choice.set_item_tooltip(index, "Preview this model's Surge destination on %s. Vertical distance counts unless its movement rules ignore it." % str(option.get("name", "surface")))
+		if absf(float(option.get("elevation", 0.0)) - preferred) <= 0.001: selected_index = index
+	unit_action_surface_choice.select(selected_index)
+	unit_action_surface_choice.visible = options.size() > 1 and int(state.units[model].get("owner", -1)) == _local_player()
+	unit_action_surface_choice.disabled = _match_actor() != _local_player() or (mode == "host" and guest_id == 0)
+	unit_action_surface_model = model
 
 func _refresh_contact_elevation_options() -> void:
 	if contact_elevation_choice == null: return
@@ -4079,36 +4133,48 @@ func _mission_force_disposition_reveal_pending() -> bool:
 
 func _sealed_force_disposition_reveal_available() -> bool:
 	if _mission_force_disposition_reveal_pending(): return true
+	if _selected_marine_detachment() == "vow-sworn-crusaders": return false
 	return not combat_enabled and mode == "local" and official_mission_choice != null and official_mission_choice.button_pressed and checked_rosters_choice != null and checked_rosters_choice.button_pressed and official_primary_matchup_default_p1 != null and official_primary_matchup_default_p2 != null and official_primary_matchup_default_p1.button_pressed and official_primary_matchup_default_p2.button_pressed
 
 func _populate_official_force_disposition_choice(picker: OptionButton, player: int) -> void:
 	if picker == null: return
 	picker.clear()
 	var faction := "Space Marines" if player == 1 else "Necrons"
-	var detachment: Dictionary = Combat.RosterValidation.DETACHMENTS.get(faction, {})
+	var selected_detachment := _selected_marine_detachment() if player == 1 else ""
+	var detachment: Dictionary = Combat.RosterValidation.detachment_for(faction, selected_detachment)
 	for disposition_id: String in detachment.get("force_dispositions", []):
 		if not Combat.Mission.FORCE_DISPOSITIONS.has(disposition_id): continue
 		picker.add_item(str(Combat.Mission.FORCE_DISPOSITIONS[disposition_id]))
 		picker.set_item_metadata(picker.item_count - 1, disposition_id)
 	var default_id := str(official_force_disposition_choices.get(player, "take-and-hold"))
 	var selected_index := 0
+	var found_default := false
 	for index in picker.item_count:
 		if str(picker.get_item_metadata(index)) == default_id:
 			selected_index = index
+			found_default = true
 			break
-	if picker.item_count > 0: picker.select(selected_index)
+	if picker.item_count > 0:
+		picker.select(selected_index)
+		if not found_default: default_id = str(picker.get_item_metadata(selected_index))
+		official_force_disposition_choices[player] = default_id
 
 func _select_official_force_dispositions(force_dispositions: Dictionary) -> void:
 	for player in [1, 2]:
 		var selected_id := str(force_dispositions.get(player, force_dispositions.get(str(player), "take-and-hold")))
 		if not Combat.Mission.FORCE_DISPOSITIONS.has(selected_id): selected_id = "take-and-hold"
-		official_force_disposition_choices[player] = selected_id
 		var picker: OptionButton = official_force_disposition_choice_p1 if player == 1 else official_force_disposition_choice_p2
 		if picker == null: continue
+		var selected_index := -1
 		for index in picker.item_count:
 			if str(picker.get_item_metadata(index)) == selected_id:
-				picker.select(index)
+				selected_index = index
 				break
+		if selected_index < 0 and picker.item_count > 0: selected_index = 0
+		if selected_index >= 0:
+			picker.select(selected_index)
+			selected_id = str(picker.get_item_metadata(selected_index))
+		official_force_disposition_choices[player] = selected_id
 	_refresh_force_disposition_help()
 	_refresh_primary_mission_help(1)
 	_refresh_primary_mission_help(2)
@@ -4126,12 +4192,20 @@ func _select_official_primary_overrides(primary_overrides: Dictionary) -> void:
 func _apply_official_primary_matchup_defaults() -> void:
 	var force_dispositions := _selected_official_force_dispositions()
 	if force_dispositions.size() != 2: return
+	var defaults_supported := true
 	for player in [1, 2]:
-		if not bool(official_primary_matchup_defaults.get(player, false)): continue
 		var own_disposition := str(force_dispositions.get(player, force_dispositions.get(str(player), "")))
 		var opponent_disposition := str(force_dispositions.get(3 - player, force_dispositions.get(str(3 - player), "")))
 		var default_primary := Combat.Mission.default_primary_mission(own_disposition, opponent_disposition)
-		if not default_primary.is_empty(): _select_official_primary_mission(default_primary, player)
+		if default_primary.is_empty():
+			defaults_supported = false
+		elif bool(official_primary_matchup_defaults.get(player, false)):
+			_select_official_primary_mission(default_primary, player)
+	if not defaults_supported:
+		for player in [1, 2]:
+			official_primary_matchup_defaults[player] = false
+			var checkbox: CheckBox = official_primary_matchup_default_p1 if player == 1 else official_primary_matchup_default_p2
+			if checkbox != null: checkbox.set_pressed_no_signal(false)
 
 func _refresh_force_disposition_help() -> void:
 	if official_force_disposition_help == null: return
@@ -4142,7 +4216,7 @@ func _refresh_force_disposition_help() -> void:
 		official_force_disposition_help.text = "In local play, each player locks a Force Disposition after the match starts. The matchup and primary cards appear only after both choices are locked. Direct primary overrides use the visible setup controls instead."
 		return
 	if checked_rosters_choice == null or not checked_rosters_choice.button_pressed:
-		official_force_disposition_help.text = "Force Disposition choices are available for the checked Gladius vs Awakened Dynasty roster profile. Without that profile, use the direct primary selections below."
+		official_force_disposition_help.text = "Force Dispositions are available for checked Gladius, Black Templars Fist and Vow-sworn profiles against Awakened Dynasty. Fist offers Take and Hold only; Vow-sworn offers Purge the Foe and requires direct primary selections. Without a checked roster, use the direct primary selections below."
 		return
 	var p1_disposition := str(Combat.Mission.FORCE_DISPOSITIONS.get(_selected_official_force_disposition(1), "Unknown"))
 	var p2_disposition := str(Combat.Mission.FORCE_DISPOSITIONS.get(_selected_official_force_disposition(2), "Unknown"))
@@ -4152,7 +4226,20 @@ func _refresh_force_disposition_help() -> void:
 	var p2_default_name := str(Combat.Mission.PRIMARY_MISSIONS.get(p2_default, {}).get("name", "Unsupported pairing"))
 	var p1_mode := "matchup default" if bool(official_primary_matchup_defaults.get(1, true)) else "direct override"
 	var p2_mode := "matchup default" if bool(official_primary_matchup_defaults.get(2, true)) else "direct override"
-	official_force_disposition_help.text = "Each selected 3 DP detachment offers Take and Hold and Priority Assets. Choices: P1 %s; P2 %s. Matchup defaults: P1 %s; P2 %s. Current primary modes: P1 %s; P2 %s. Turn each default checkbox off to override or back on to restore the matchup card." % [p1_disposition, p2_disposition, p1_default_name, p2_default_name, p1_mode, p2_mode]
+	var p1_detachment: Dictionary = Combat.RosterValidation.detachment_for("Space Marines", _selected_marine_detachment())
+	var p2_detachment: Dictionary = Combat.RosterValidation.detachment_for("Necrons")
+	var p1_detachment_name := str(p1_detachment.get("name", "unsupported detachment"))
+	var p2_detachment_name := str(p2_detachment.get("name", "unsupported detachment"))
+	var p1_available_names: Array[String] = []
+	var p2_available_names: Array[String] = []
+	for disposition_id: Variant in p1_detachment.get("force_dispositions", []):
+		p1_available_names.append(str(Combat.Mission.FORCE_DISPOSITIONS.get(str(disposition_id), disposition_id)))
+	for disposition_id: Variant in p2_detachment.get("force_dispositions", []):
+		p2_available_names.append(str(Combat.Mission.FORCE_DISPOSITIONS.get(str(disposition_id), disposition_id)))
+	if p1_default.is_empty() or p2_default.is_empty():
+		official_force_disposition_help.text = "Available from selected detachments — P1 %s: %s; P2 %s: %s. Purge the Foe has no supported matchup-default mapping here; choose a primary mission directly for each player. The checked roster profile records Force Disposition availability but does not certify army legality." % [p1_detachment_name, ", ".join(PackedStringArray(p1_available_names)), p2_detachment_name, ", ".join(PackedStringArray(p2_available_names))]
+		return
+	official_force_disposition_help.text = "Available from selected detachments — P1 %s: %s; P2 %s: %s. Choices: P1 %s; P2 %s. Matchup defaults: P1 %s; P2 %s. Current primary modes: P1 %s; P2 %s. Turn each default checkbox off to override or back on to restore the matchup card." % [p1_detachment_name, ", ".join(PackedStringArray(p1_available_names)), p2_detachment_name, ", ".join(PackedStringArray(p2_available_names)), p1_disposition, p2_disposition, p1_default_name, p2_default_name, p1_mode, p2_mode]
 
 func _selected_official_secondary_pair() -> String:
 	if official_secondary_choice == null or official_secondary_choice.selected < 0: return Combat.Mission.DEFAULT_SECONDARY_PAIR
@@ -5158,8 +5245,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	var target_elevation := 0.0
 	var movement_placement: bool = combat_enabled and state.phase == "movement" and state.pending_contact.is_empty() and Combat.UnitActions.pending(state).is_empty() and Combat.Reanimation.pending(state).is_empty()
 	var contact_placement: bool = combat_enabled and not state.pending_contact.is_empty()
+	var surge_surface_model := -1
+	if combat_enabled and Combat.UnitAbilities.enabled(state) and unit_action_picker.is_visible_in_tree() and selected >= 0:
+		var pending_kind := str(Combat.UnitActions.pending(state).get("kind", ""))
+		if pending_kind in [Combat.UnitActions.HeresyRetribution.WINDOW, Combat.UnitActions.CrusaderSurge.WINDOW, Combat.UnitActions.CrusaderSurge.TARGET_WINDOW, Combat.UnitActions.CrusaderSurge.PLACEMENT]:
+			for placement_choice: Dictionary in _available_unit_choices(_local_player()):
+				if placement_choice.get("action", "") in ["heresy-retribution-place", "crusader-surge-place"] and int(placement_choice.get("model", -1)) == selected:
+					surge_surface_model = selected
+					break
 	if movement_placement: target_elevation = _selected_movement_elevation()
 	elif contact_placement: target_elevation = _selected_contact_elevation()
+	elif surge_surface_model >= 0: target_elevation = _selected_unit_action_elevation(surge_surface_model)
 	var hit: Variant = Plane(Vector3.UP, target_elevation).intersects_ray(camera.project_ray_origin(event.position), camera.project_ray_normal(event.position))
 	if hit == null:
 		return
@@ -5173,11 +5269,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			if Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW:
 				for choice: Dictionary in _available_unit_choices(_local_player()):
 					if choice.action == "heresy-retribution-place" and choice.model == selected: ability = choice
-			if ability.action in ["ingress-place", "scout-place", "homer", "heal-revive", "heal-place", "purgation-place", "transport-disembark-place", "heresy-retribution-place"]:
+			if Combat.UnitActions.pending(state).get("kind", "") in [Combat.UnitActions.CrusaderSurge.WINDOW, Combat.UnitActions.CrusaderSurge.TARGET_WINDOW, Combat.UnitActions.CrusaderSurge.PLACEMENT]:
+				for choice: Dictionary in _available_unit_choices(_local_player()):
+					if choice.action == "crusader-surge-place" and choice.model == selected: ability = choice
+			if ability.action in ["ingress-place", "scout-place", "homer", "heal-revive", "heal-place", "purgation-place", "transport-disembark-place", "heresy-retribution-place", "crusader-surge-place"]:
 				unit_action_x.value = target.x
 				unit_action_z.value = target.y
-				if mode == "client": request_unit_action.rpc_id(1, ability, target, state.revision)
-				else: _apply_unit_action(_local_player(), ability, target, state.revision)
+				var destination_elevation := _selected_unit_action_elevation(int(ability.get("model", -1))) if ability.action in ["heresy-retribution-place", "crusader-surge-place"] else -1.0
+				if mode == "client": request_unit_action.rpc_id(1, ability, target, state.revision, destination_elevation)
+				else: _apply_unit_action(_local_player(), ability, target, state.revision, destination_elevation)
 				return
 		if combat_enabled and not Combat.Reanimation.pending(state).is_empty():
 			reanimation_x.value = target.x
@@ -5345,6 +5445,9 @@ func _refresh_decision() -> void:
 		elif Combat.UnitActions.pending(state).get("kind", "") in ["healing", "healing-order"]: instruction = "Unit healing: resolve wounds and confirm returned-model previews."
 		elif Combat.UnitActions.pending(state).get("kind", "") == "ingress": instruction = "Required: preview every arriving model, then confirm the coherent unit or cancel ingress."
 		elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW: instruction = "Heresy Begets Retribution: preview every model's Surge move, follow the selected target's movement rules, then confirm."
+		elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.CrusaderSurge.WINDOW: instruction = "Righteous Zeal: choose to make a D6+1-inch Surge move or pass."
+		elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.CrusaderSurge.TARGET_WINDOW: instruction = "Righteous Zeal: select a closest enemy target, or a closest objective with Purge and Sanctify."
+		elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.CrusaderSurge.PLACEMENT: instruction = "Righteous Zeal: preview every model within the rolled distance, preserve coherency and the target end-position rules, then confirm."
 		elif Combat.UnitActions.pending(state).get("kind", "") == "bladeguard": instruction = "Bladeguard: choose a stance or decline. Attack dice wait."
 		elif Combat.UnitActions.pending(state).get("kind", "") == "wound": instruction = "Implacable Eradication: choose free wound rerolls, then keep the remaining dice to continue to saves."
 		else: instruction = "Required: resolve or decline the current unit ability window."
@@ -5773,6 +5876,13 @@ func _refresh_for_selection() -> void:
 	_refresh()
 	_selection_refresh = false
 
+func _refresh_setup_option_controls() -> void:
+	var local_setup := mode == "local"
+	if marine_detachment_choice != null: marine_detachment_choice.disabled = not local_setup
+	if marine_detachment_choice_p2 != null: marine_detachment_choice_p2.disabled = not local_setup
+	if marine_chapter_choice_p1 != null: marine_chapter_choice_p1.disabled = not local_setup
+	if marine_chapter_choice_p2 != null: marine_chapter_choice_p2.disabled = not local_setup
+
 func _refresh() -> void:
 	_ui_refresh_depth += 1
 	if _ui_refresh_depth == 1:
@@ -5803,12 +5913,15 @@ func _refresh() -> void:
 	for id: int in pieces:
 		var unit: Dictionary = state.units[id]
 		var previews: Dictionary = Combat.Reanimation.pending(state).get("current", {}).get("placements", {}) if combat_enabled else {}
+		var preview_elevations: Dictionary = {}
 		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == "ingress": previews = Combat.UnitActions.pending(state).positions
 		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == "healing": previews = Combat.UnitActions.pending(state).placements
-		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.HeresyRetribution.WINDOW: previews = Combat.UnitActions.pending(state).positions
+		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") in [Combat.UnitActions.HeresyRetribution.WINDOW, Combat.UnitActions.CrusaderSurge.PLACEMENT]:
+			previews = Combat.UnitActions.pending(state).positions
+			preview_elevations = Combat.UnitActions.pending(state).get("elevations", {})
 		if combat_enabled and not state.get("unit_abilities", {}).get("transport_window", {}).is_empty(): previews = state.unit_abilities.transport_window.placements
 		var display_position: Vector2 = previews.get(id, unit.position)
-		var elevation := float(unit.get("elevation", 0.0))
+		var elevation := float(preview_elevations.get(id, unit.get("elevation", 0.0)))
 		var wounds := int(unit.get("wounds", 1))
 		var on_battlefield := bool(unit.get("on_battlefield", true))
 		var alive := wounds > 0 and on_battlefield
@@ -6025,10 +6138,7 @@ func _refresh() -> void:
 	oath_of_moment_choice.disabled = mode != "local"
 	reanimation_protocols_choice.disabled = mode != "local"
 	combat_doctrines_choice.disabled = mode != "local"
-	marine_detachment_choice.disabled = mode != "local" or not combat_doctrines_choice.button_pressed
-	marine_detachment_choice_p2.disabled = mode != "local" or not combat_doctrines_choice.button_pressed
-	marine_chapter_choice_p1.disabled = mode != "local" or not unit_abilities_choice.button_pressed
-	marine_chapter_choice_p2.disabled = mode != "local" or not unit_abilities_choice.button_pressed
+	_refresh_setup_option_controls()
 	checked_rosters_choice.disabled = mode != "local"
 	official_mission_choice.disabled = mode != "local"
 	official_primary_matchup_default_p1.disabled = mode != "local" or not official_mission_choice.button_pressed
@@ -6265,6 +6375,7 @@ func _refresh() -> void:
 	_refresh_reanimation()
 	_refresh_awakened()
 	_refresh_unit_actions()
+	_refresh_unit_action_surface_options()
 	if combat_enabled and Combat.UnitAbilities.enabled(state):
 		lethal_choice.button_pressed = true
 		lethal_choice.disabled = true
@@ -8276,7 +8387,7 @@ func _refresh_command_reaction() -> void:
 	reaction_use_row.visible = not window.is_empty()
 	reaction_use_icon.visible = not window.is_empty() and window.get("kind", "") != "before_battle_shock"
 	if reaction_sudden != null:
-		reaction_sudden.visible = window.get("valour", false) or window.get("master_shadows", false) or (window.get("kind", "") == "after_advance_roll" and (window.get("sudden", false) or window.get("supercharged", false) or window.get("honour_vigilance", false) or window.get("wrath_chapter", false) or window.get("stormseers_wisdom", false)))
+		reaction_sudden.visible = window.get("valour", false) or window.get("master_shadows", false) or (window.get("kind", "") == "after_advance_roll" and (window.get("sudden", false) or window.get("supercharged", false) or window.get("honour_vigilance", false) or window.get("wrath_chapter", false) or window.get("stormseers_wisdom", false) or window.get("righteous_fervour", false)))
 		reaction_sudden_row.visible = reaction_sudden.visible
 		reaction_sudden_icon.visible = reaction_sudden.visible
 		reaction_sudden.text = _free_movement_reroll_label(window)
@@ -8378,6 +8489,7 @@ func _refresh_command_reaction() -> void:
 func _free_movement_reroll_label(window: Dictionary) -> String:
 	if window.get("valour", false): return "Unstoppable Valour: re-roll Charge · 0 CP"
 	if window.get("master_shadows", false): return "Master of Shadows: re-roll Charge · 0 CP"
+	if window.get("righteous_fervour", false): return "Righteous Fervour: re-roll Advance · 0 CP"
 	if window.get("supercharged", false): return "Supercharged Engines: re-roll Advance · 0 CP"
 	if window.get("stormseers_wisdom", false): return "Stormseer's Wisdom: re-roll Advance · 0 CP"
 	if window.get("honour_vigilance", false): return "Honour of Vigilance: re-roll Advance · 0 CP"
@@ -8751,7 +8863,7 @@ func request_finish_contact(revision: int, cancel: bool) -> void:
 
 func _apply_finish_contact(player: int, revision: int, cancel: bool) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.FINISH_CONTACT, "revision": revision, "cancel": cancel})
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.FINISH_CONTACT, "revision": revision, "cancel": cancel}, _d6)
 	var feedback_model := selected
 	var pending_contact: Dictionary = state.get("pending_contact", {})
 	var primary_model := int(result.get("primary_model", -1))
@@ -9101,6 +9213,13 @@ func _refresh_unit_actions() -> void:
 		if picker_choices[index] == previous_choice:
 			selected_index = index
 			break
+	var previous_action := str(previous_choice.get("action", "")) if previous_choice is Dictionary else ""
+	if selected >= 0 and previous_action in ["heresy-retribution-place", "crusader-surge-place"]:
+		for index in range(picker_choices.size()):
+			var row: Dictionary = picker_choices[index]
+			if str(row.get("action", "")) == previous_action and int(row.get("model", -1)) == selected:
+				selected_index = index
+				break
 	if picker_choices.is_empty():
 		unit_action_picker.select(-1)
 	else:
@@ -9195,6 +9314,16 @@ func _refresh_unit_actions() -> void:
 		var heresy_target := int(heresy_window.get("surge_target", -1))
 		unit_action_help.text = "Heresy Begets Retribution: D6 = %d. Preview each model with X/Z or right-click. Every model moves closer; models that can reach Engagement Range must engage the selected closest enemy, and models that cannot must end as close as possible. Keep coherency and avoid engaging any other enemy, then confirm. Reset keeps the spent CP and roll." % [int(heresy_window.get("distance", 0))]
 		if state.squads.has(heresy_target): unit_action_help.text += "\nSurge target: %s." % str(state.squads[heresy_target].get("name", "enemy unit"))
+	elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.CrusaderSurge.WINDOW:
+		unit_action_help.text = "Righteous Zeal: after this Crusader Squad loses a model to enemy Shooting, it can Surge once this phase. Choose to roll D6+1 inches or pass."
+	elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.CrusaderSurge.TARGET_WINDOW:
+		unit_action_help.text = "Righteous Zeal: roll = %d; Surge up to %d inches. Select one closest enemy, or use Purge and Sanctify to select one closest objective. Ties are selectable." % [int(Combat.UnitActions.pending(state).get("roll", {}).get("value", 0)), int(Combat.UnitActions.pending(state).get("distance", 0))]
+	elif Combat.UnitActions.pending(state).get("kind", "") == Combat.UnitActions.CrusaderSurge.PLACEMENT:
+		var crusader_window: Dictionary = Combat.UnitActions.pending(state)
+		var crusader_target := int(crusader_window.get("surge_target", -1))
+		var crusader_objective := int(crusader_window.get("objective", -1))
+		var crusader_destination := str(state.squads[crusader_target].get("name", "enemy unit")) if crusader_window.get("target_type", "") == "enemy" and state.squads.has(crusader_target) else "Objective %d" % (crusader_objective + 1)
+		unit_action_help.text = "Righteous Zeal: D6 = %d; move each model up to %d inches toward %s. Preview with X/Z or right-click. Preserve coherency. Engage the selected enemy if possible; otherwise end as close as possible and avoid other enemies. For an objective, enter range when possible and stay in range if already there. Confirm to finish; reset keeps the roll." % [int(crusader_window.get("roll", {}).get("value", 0)), int(crusader_window.get("distance", 0)), crusader_destination]
 	elif Combat.UnitActions.pending(state).get("kind", "") in ["evade-and-survive", "evade-placement"]:
 		unit_action_help.text = "Evade and Survive: during the opponent's Movement phase, after an enemy ends a move within 8 inches, an unengaged Lieutenant can make one normal move of D3+3 inches. Preview and confirm; the move must end unengaged."
 	elif Combat.UnitActions.pending(state).get("kind", "") in ["tactical-fluidity", "tactical-fluidity-placement"]:
@@ -9218,7 +9347,7 @@ func _refresh_unit_actions() -> void:
 	if not unit_action_help.tooltip_text.is_empty(): full_help += "\n" + unit_action_help.tooltip_text
 	unit_choice_reference.text = "CURRENT CHOICE\n" + str(unit_action_picker.get_selected_metadata().label) + "\n\n" + full_help
 	unit_action_help.tooltip_text = full_help
-	var tactical: bool = str(Combat.UnitActions.pending(state).get("kind", "")) in ["healing", "healing-order", "ingress", "bladeguard", "wound", "evade-and-survive", "evade-placement", "tactical-fluidity", "tactical-fluidity-placement", Combat.DetachmentStratagems.UNSTOPPABLE_WINDOW, Combat.UnitActions.TargetAuguryWeb.WINDOW, Combat.UnitActions.HeresyRetribution.WINDOW] or not optics.is_empty() or not state.get("unit_abilities", {}).get("transport_window", {}).is_empty()
+	var tactical: bool = str(Combat.UnitActions.pending(state).get("kind", "")) in ["healing", "healing-order", "ingress", "bladeguard", "wound", "evade-and-survive", "evade-placement", "tactical-fluidity", "tactical-fluidity-placement", Combat.DetachmentStratagems.UNSTOPPABLE_WINDOW, Combat.UnitActions.TargetAuguryWeb.WINDOW, Combat.UnitActions.HeresyRetribution.WINDOW, Combat.UnitActions.CrusaderSurge.WINDOW, Combat.UnitActions.CrusaderSurge.TARGET_WINDOW, Combat.UnitActions.CrusaderSurge.PLACEMENT] or not optics.is_empty() or not state.get("unit_abilities", {}).get("transport_window", {}).is_empty()
 	if not tactical and not battle_start_setup: unit_action_help.text = "Choose an option, then Confirm choice."
 	if guided_first_session and not preparing:
 		# The picker may truncate a long unit/stratagem label, including its CP cost.
@@ -9239,6 +9368,7 @@ func _refresh_unit_actions() -> void:
 				unit_action_button.text = doctrine_action_panel.confirmation_text
 				unit_choice_reference.text = doctrine_action_panel.explanation.text
 				unit_details_button.visible = false
+	_refresh_unit_action_surface_options()
 
 func _refresh_unit_decline_choice(choices: Array) -> void:
 	var decision := _pending_ui_decision(["unit-actions"])
@@ -9260,7 +9390,7 @@ func _is_setup_equipment_choice(choice: Dictionary) -> bool:
 		"aggressor-loadout", "inceptor-loadout", "land-speeder-cannon", "land-speeder-vengeance-cannon", "intercessor-melee", "intercessor-rifle",
 		"intercessor-grenade-launcher", "heavy-intercessor-bolter", "terminator-melee", "terminator-special-weapon",
 		"terminator-assault-loadout", "outrider-melee", "outrider-plasma-pistol", "eliminator-troopers", "eliminator-sergeant",
-		"ancient-loadout", "jump-pack-captain-loadout", "gravis-captain-loadout", "terminator-captain-gun", "terminator-captain-blade",
+		"ancient-loadout", "eradicator-melta", "jump-pack-captain-loadout", "gravis-captain-loadout", "terminator-captain-gun", "terminator-captain-blade",
 		"captain-ranged-loadout", "captain-melee-loadout", "lieutenant-ranged-loadout", "lieutenant-melee-loadout",
 		"lieutenant-storm-shield", "terminator-chaplain-shield", "captain-loadout", "lieutenant-loadout",
 		"impulsor-loadout", "transport-weapon-loadout", "eliminator-loadout", "phobos-lieutenant-gun", "relic-shield",
@@ -9340,6 +9470,17 @@ func _build_setup_equipment_rows(choices: Array[Dictionary]) -> void:
 func _setup_equipment_model_name(model_id: int) -> String:
 	if model_id < 0: return "Unit option"
 	var unit: Dictionary = state.units.get(model_id, {})
+	if Combat.UnitAbilities.identity(unit) == "eradicator-squad-with-melta-rifles": return Combat.UnitActions.eradicator_model_label(state, model_id)
+	if Combat.UnitAbilities.identity(unit) == "eliminator-squad":
+		if unit.get("sergeant", false): return "Eliminator Sergeant"
+		var squad_id := int(unit.get("squad", -1))
+		var eliminators: Array[int] = []
+		for candidate: int in state.units:
+			var member: Dictionary = state.units[candidate]
+			if int(member.get("squad", -1)) == squad_id and int(member.get("wounds", 0)) > 0 and member.get("on_battlefield", true) and Combat.UnitAbilities.identity(member) == "eliminator-squad" and not member.get("sergeant", false):
+				eliminators.append(candidate)
+		eliminators.sort()
+		return "Eliminator %d" % (eliminators.find(model_id) + 1)
 	var name := str(unit.get("name", ""))
 	if not name.is_empty(): return name
 	var squad_id := int(unit.get("squad", -1))
@@ -9354,6 +9495,7 @@ func _setup_equipment_slot(action: String) -> String:
 	if action in ["terminator-special-weapon", "intercessor-rifle", "intercessor-grenade-launcher", "heavy-intercessor-bolter", "terminator-captain-gun", "captain-ranged-loadout", "lieutenant-ranged-loadout", "transport-weapon-loadout"]: return "Ranged weapon"
 	if action in ["terminator-assault-loadout", "terminator-chaplain-shield", "lieutenant-storm-shield", "relic-shield"]: return "Wargear"
 	if action in ["eliminator-troopers", "eliminator-sergeant"]: return "Weapon loadout"
+	if action == "eradicator-melta": return "Ranged weapon"
 	if action in ["jump-pack-captain-loadout", "gravis-captain-loadout", "captain-loadout", "lieutenant-loadout", "apothecary-loadout"]: return "Model loadout"
 	return "Equipment"
 
@@ -9361,6 +9503,12 @@ func _setup_current_equipment(choice: Dictionary) -> String:
 	var model_id := int(choice.get("model", -1))
 	var action := str(choice.get("action", ""))
 	var unit: Dictionary = state.units.get(model_id, {})
+	if action in ["eliminator-troopers", "eliminator-sergeant"]:
+		if unit.get("ranged_weapons", []).is_empty(): return "No ranged weapon"
+		return str({"bolt-sniper-rifle": "Bolt Sniper Rifle", "las-fusil": "Las Fusil", "instigator-bolt-carbine": "Instigator Bolt Carbine"}.get(str(unit.ranged_weapons[0].get("id", "")), "Current datasheet loadout"))
+	if action == "eradicator-melta":
+		if unit.get("ranged_weapons", []).is_empty(): return "No ranged weapon"
+		return "Multi-melta" if str(unit.ranged_weapons[0].get("id", "")) == "multi-melta" else "Melta Rifle"
 	match action:
 		"terminator-melee":
 			return str(unit.get("terminator_melee_choice", "power-fist")).capitalize().replace("-", " ")
@@ -9423,8 +9571,9 @@ func _request_unit_action() -> void:
 	var choice: Dictionary = unit_action_picker.get_selected_metadata()
 	var submitted_choice := _unit_choice_payload(choice)
 	var point := Vector2(unit_action_x.value, unit_action_z.value)
-	if mode == "client": request_unit_action.rpc_id(1, submitted_choice, point, state.revision)
-	else: _apply_unit_action(_local_player(), submitted_choice, point, state.revision)
+	var destination_elevation := _selected_unit_action_elevation(int(choice.get("model", -1))) if str(choice.get("action", "")) in ["heresy-retribution-place", "crusader-surge-place"] else -1.0
+	if mode == "client": request_unit_action.rpc_id(1, submitted_choice, point, state.revision, destination_elevation)
+	else: _apply_unit_action(_local_player(), submitted_choice, point, state.revision, destination_elevation)
 
 func _request_decline_unit_choice() -> void:
 	if unit_decline_choice.is_empty(): return
@@ -9447,13 +9596,13 @@ func _unit_choice_payload(choice: Dictionary) -> Dictionary:
 	return {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.decision_id), "option_id": option_id, "choice": choice.duplicate(true)}
 
 @rpc("any_peer", "call_remote", "reliable")
-func request_unit_action(choice: Dictionary, point: Vector2, revision: int) -> void:
+func request_unit_action(choice: Dictionary, point: Vector2, revision: int, destination_elevation: float = -1.0) -> void:
 	var sender_id := multiplayer.get_remote_sender_id()
-	if mode == "host" and match_session.accepts_guest_command(sender_id): _apply_unit_action(2, choice, point, revision)
+	if mode == "host" and match_session.accepts_guest_command(sender_id): _apply_unit_action(2, choice, point, revision, destination_elevation)
 
-func _apply_unit_action(player: int, choice: Dictionary, point: Vector2, revision: int) -> void:
+func _apply_unit_action(player: int, choice: Dictionary, point: Vector2, revision: int, destination_elevation: float = -1.0) -> void:
 	if not combat_enabled or (mode == "host" and guest_id == 0): return
-	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "choice": choice, "point": point, "revision": revision}, _d6)
+	var result := MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "choice": choice, "point": point, "destination_elevation": destination_elevation, "revision": revision}, _d6)
 	if not result.error.is_empty(): _feedback(player, result.error); return
 	_broadcast()
 	_feedback(player, result.message)
@@ -9498,7 +9647,7 @@ func _update_unit_placement_controls() -> void:
 		var selected_option: Variant = unit_action_picker.get_selected_metadata()
 		if selected_option is Dictionary:
 			selected_action = str(selected_option.get("action", ""))
-			placement = selected_action in ["homer", "ingress-place", "scout-place", "heal-revive", "heal-place", "evade-place", "fluidity-place", "heresy-retribution-place"]
+			placement = selected_action in ["homer", "ingress-place", "scout-place", "heal-revive", "heal-place", "evade-place", "fluidity-place", "heresy-retribution-place", "crusader-surge-place"]
 	unit_action_x.visible = placement
 	unit_action_z.visible = placement
 	var homer_position := selected_action == "homer"

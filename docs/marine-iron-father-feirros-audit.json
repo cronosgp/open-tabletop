@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "id": "marine-iron-father-feirros-e11-2026-10-27",
+  "source": {
+    "edition": 11,
+    "book_id": "000000139",
+    "datasheet_id": "000000127",
+    "book_name": "App. Space Marines",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Iron-Father-Feirros",
+    "checked_at": "2026-10-27",
+    "runtime_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026 source identity audit; stable Last_update 2026-10-19 03:47:32; live page checked 2026-10-27.",
+    "chapter_context": "Iron Hands faction keyword on the shared-book profile; Chapter detachment and chapter-book interactions are not included in this shared-book scope.",
+    "game_mode": "Standard Warhammer 40,000 11th edition, exercised in a 1000-point Incursion training match; Boarding Actions is outside scope.",
+    "snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    }
+  },
+  "fixed_data_comparison": {
+    "status": "passed",
+    "artifact": ".tools/marine-comparison-20261027-v12.json",
+    "sha256": "30e1b54329013cda755058d3990d397036454346c6c54f2388411f3403021420",
+    "identity": "iron-father-feirros",
+    "differences": [],
+    "weapon_trait_scope_consistent": true,
+    "keyword_scope_consistent": true,
+    "loadout_consistent": true,
+    "composition_consistent": true,
+    "cost_consistent": true,
+    "scope": "Fixed numeric, identity, keyword, default loadout, composition, base, cost and mapped weapon-trait checks. The source option table has no Feirros rows; executable ability interactions and construction admission are covered by the dedicated local suite."
+  },
+  "local_scope_validation": {
+    "status": "passed",
+    "test_file": "tests/test_iron_father_feirros.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_iron_father_feirros --only test_space_marine_leader_links --timeout 300",
+    "artifact": ".tools/verification/20261027T230433907954Z/results.json",
+    "sha256": "c9a59d264d04518c00a01d07a66b40b7df83514c24314d1f89b43f5aba4528a6",
+    "processes": [
+      {
+        "name": "import",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "python",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_iron_father_feirros",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_space_marine_leader_links",
+        "status": "passed",
+        "exit_code": 0
+      }
+    ],
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "source_bounded_local_scope_validated": true
+  },
+  "scope": [
+    "One-model 85-point profile, one-copy cap, 40 mm base, exact source characteristics/keywords and no equipment-option rows.",
+    "All four fixed weapons through Equipment and AttackPlan; Bolt Pistol Close-quarters, Gorgon's Wrath Rapid Fire 2/Sustained Hits 2 and Medusan Manipuli Extra Attacks are preserved.",
+    "Consolidated local catalog resolution, fixed one-model cost choice and current Marine materialization for both players.",
+    "Feel No Pain 5+, Leader, Combat Doctrines, Transhuman Strategist, Master of the Forge, Rites of Tempering and Iron Father are registered.",
+    "All four source-listed common-book Leader targets are allowed; an unlisted Vehicle is rejected. The shared relation suite checks all 153 common-book Leader/Support links.",
+    "Feel No Pain 5+ applies to Feirros. Rites of Tempering changes wound rolls only when incoming attack Strength is strictly greater than Feirros unit Toughness, and remains active on attached Aggressors.",
+    "Iron Father grants Lone Operative while Feirros is within 3 inches of a friendly Adeptus Astartes Vehicle; the protection is absent beyond 3 inches and while Feirros belongs to an Attached unit.",
+    "Warlord eligibility and public owner-checked declaration; Transhuman Strategist's once-per-round CP.",
+    "Master of the Forge's owner-checked Movement trigger; defer at the start of Feirros's move, repair at its end, heal exactly 3 wounds, ignore BS/Hit/Wound modifiers until the next own Movement phase, and expire at that timing boundary."
+  ],
+  "limits": [
+    "Closes only Iron Father Feirros's shared-book local datasheet scope.",
+    "Does not certify Iron Hands Chapter interactions.",
+    "Does not certify full faction/army legality, network behavior, complete matches or human playtesting; network validation remains deferred to final integration."
+  ],
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_army_legality_certified": false,
+  "source_profile_check": {
+    "source_profile": "Iron Father Feirros",
+    "composition": [
+      "1 Iron Father Feirros model"
+    ],
+    "fixed_costs": {
+      "1 model": 85
+    },
+    "equipment_option_rows": [],
+    "fixed_equipment": [
+      "Bolt Pistol",
+      "Gorgon's Wrath",
+      "Harrowhand",
+      "Medusan Manipuli"
+    ],
+    "leader_source_rows": [
+      {
+        "attached_id": "000002099",
+        "name": "Aggressor Squad",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000004231",
+        "name": "Eradicator Squad with Heavy Bolters",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000004249",
+        "name": "Eradicator Squad with Melta Rifles",
+        "source_book_id": "000000139"
+      },
+      {
+        "attached_id": "000001177",
+        "name": "Heavy Intercessor Squad",
+        "source_book_id": "000000139"
+      }
+    ]
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "id": "marine-suboden-khan-e11-2026-10-27",
+  "source": {
+    "edition": 11,
+    "book_id": "000000139",
+    "datasheet_id": "000004167",
+    "book_name": "App. Space Marines",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Suboden-Khan",
+    "checked_at": "2026-10-27",
+    "runtime_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; stable Last_update 2026-10-19 03:47:32; live page checked 2026-10-27.",
+    "chapter_context": "Shared-book White Scars profile. Chapter roster restrictions and Chapter-specific effects are outside this local datasheet scope.",
+    "game_mode": "Standard Warhammer 40,000 11th edition through the local match/action runtime; this is not full-match certification.",
+    "snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    }
+  },
+  "fixed_data_comparison": {
+    "status": "passed_profile_comparison",
+    "artifact": ".tools/marine-comparison-20261027-v12.json",
+    "sha256": "30e1b54329013cda755058d3990d397036454346c6c54f2388411f3403021420",
+    "identity": "suboden-khan",
+    "source_id": "000004167",
+    "differences": [],
+    "source_option_rows": 0,
+    "scope": "Bounded fixed-data comparison of source identity, numeric profile, keywords, default loadout, composition, base and cost. The profile has no fixed-data differences; the comparator does not certify full rules behavior or playability."
+  },
+  "local_scope_validation": {
+    "status": "passed",
+    "test_file": "tests/test_suboden_khan.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_suboden_khan --only test_space_marine_leader_links --only test_marine_conditional_weapon_traits --only test_attack_sequence --only test_weapon_selection --timeout 300",
+    "artifact": ".tools/verification/20261028T000207773070Z/results.json",
+    "sha256": "b5008fb2acfe074714768f06796b830813c6ea6080f9836d0bc38ad0c9cd65d9",
+    "processes": [
+      {
+        "name": "import",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "python",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_suboden_khan",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_space_marine_leader_links",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_marine_conditional_weapon_traits",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_attack_sequence",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_weapon_selection",
+        "status": "passed",
+        "exit_code": 0
+      }
+    ],
+    "network": false,
+    "legacy_starter_staged": true,
+    "cleanup_diagnostics": false,
+    "source_bounded_local_scope_validated": true
+  },
+  "scope": [
+    "Exact one-model profile: 105 points, source characteristics and keywords, 90 x 52 mm oval base, and no equipment-option rows.",
+    "All four fixed weapons route through Equipment and AttackPlan with source profiles: Heavy Bolt Pistol, Onslaught Gatling Cannon, Stormtooth and Power Sword.",
+    "Current Space Marines catalogs materialize for both players; unique-copy admission accepts one Suboden and rejects a duplicate.",
+    "The only source-listed Leader target is Outrider Squad; listed target admission and an unlisted Vehicle rejection are covered by the shared relation regression.",
+    "Combat Doctrines and Transhuman Strategist, including owner/Warlord checks and once-per-round CP timing.",
+    "Spear of Chogoris: Assault on ranged attacks, charge eligibility after Advance, and +1 Advance/+1 Charge only while Assault Doctrine is active.",
+    "Skilled Riders: Mobile is shared with the attached unit.",
+    "Power Sword Sustained Hits 1 applies only against non-MONSTER/non-VEHICLE targets; Extra Attacks is preserved.",
+    "Stormtooth Anti-MONSTER 4+ and Anti-VEHICLE 4+ produce target-keyword critical wounds; Lance adds 1 to Wound after the attacking unit made a Charge move."
+  ],
+  "limits": [
+    "The fixed-data comparator reports no Suboden profile differences, but its global full_match_certified field is false because the parent export has unrelated structural errors.",
+    "The focused verification is local only and records legacy_starter_staged=true; do not treat it as clean-checkout demo evidence.",
+    "No network or LAN behavior was tested; network validation remains deferred to final integration.",
+    "This closes only Suboden's common-book local datasheet scope. White Scars roster legality, Chapter-specific effects, cross-sheet list legality and full army legality are not certified."
+  ],
+  "network_validation": {
+    "status": "deferred_to_final_integration",
+    "passed": false
+  },
+  "full_army_legality_certified": false
+}

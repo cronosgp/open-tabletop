@@ -4,7 +4,7 @@ extends RefCounted
 
 const RULES_VERSION := "Warhammer 40,000 11th edition Core Rules (June 2026)"
 const RULES_URL := "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/"
-const ANTI_KEYWORDS := ["anti-fly", "anti-vehicle", "anti-infantry", "anti-character", "anti-non-monster-vehicle"]
+const ANTI_KEYWORDS := ["anti-fly", "anti-monster", "anti-vehicle", "anti-infantry", "anti-character", "anti-psyker", "anti-non-monster-vehicle"]
 
 const PHASES := {
 	"start_turn": {"name": "Start of Turn", "summary": "Resolve rules triggered at the start of this turn before Command.", "ref": "§07.02"},
@@ -19,9 +19,11 @@ const PHASES := {
 const DEFINITIONS := {
 	"assault": {"name": "Assault", "rule": "A unit that Advanced can use Assault Shooting if it has an Assault weapon; that shooting can select only Assault weapons.", "ref": "§§10.05, 24.04"},
 	"anti-fly": {"name": "Anti-Fly X+", "rule": "Against a target with the FLY keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "Core Rules — Anti-X"},
+	"anti-monster": {"name": "Anti-Monster X+", "rule": "Against a target with the MONSTER keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "§24.03"},
 	"anti-vehicle": {"name": "Anti-Vehicle X+", "rule": "Against a target with the VEHICLE keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "Core Rules — Anti-X"},
 	"anti-infantry": {"name": "Anti-Infantry X+", "rule": "Against a target with the INFANTRY keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "§24.03"},
 	"anti-character": {"name": "Anti-Character X+", "rule": "Against a target with the CHARACTER keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "§24.03"},
+	"anti-psyker": {"name": "Anti-Psyker X+", "rule": "Against a target with the PSYKER keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "Core Rules — Anti-X"},
 	"anti-non-monster-vehicle": {"name": "Anti-NON-MONSTER/VEHICLE X+", "rule": "Against a target with neither the MONSTER nor VEHICLE keyword, an unmodified Wound roll of X+ is a Critical Wound.", "ref": "§24.03"},
 	"blast": {"name": "Blast", "rule": "Adds attack dice for each five models the target had when selected (round down). Blast X adds X dice per five. It cannot target an engaged unit.", "ref": "§24.05"},
 	"cleave": {"name": "Cleave X", "rule": "If all attacks with this weapon target only one enemy unit, add X attack dice for every five models that unit had when targets were selected (round down).", "ref": "§24.06"},

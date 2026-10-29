@@ -3,6 +3,7 @@ const F = preload("res://tests/all_units_fixture.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Morale = preload("res://scripts/edition_11/morale.gd")
+const DatasheetChecks = preload("res://tests/space_marine_datasheet_checks.gd")
 const A = F.C.UnitAbilities
 const U = F.C.UnitActions
 var failures := 0
@@ -20,28 +21,24 @@ func find_unit(state: Dictionary, owner: int, identity: String) -> int:
 func run() -> void:
 	var profile := Profiles.profile("adrax-agatone")
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000002100" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Adrax cites the pinned local Wahapedia 11e extraction")
-	check(profile.points_by_models == {1: 90} and profile.max_supported_copies == 1 and profile.stats == {"movement_inches": 6, "toughness": 5, "save_target": 2, "wounds": 5, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4}, "Adrax's characteristics, 40 mm base and 90 point cost match the export")
-	check(profile.keywords.has("SALAMANDERS") and profile.keywords.has("EPIC HERO") and profile.ranged[0].profiles.standard.keywords == {"torrent": true, "close-quarters": true} and profile.ranged[0].profiles.standard.attacks == "D6+3", "Adrax's exported keywords and Drakkis match")
+	check(profile.points_by_models == {1: 90} and profile.max_supported_copies == 1 and profile.base_radius_inches == 20.0 / 25.4 and profile.stats == {"movement_inches": 6, "toughness": 5, "save_target": 2, "wounds": 5, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4}, "Adrax's characteristics, 40 mm base and 90 point cost match the export")
+	check(profile.keywords == ["INFANTRY", "CAPTAIN", "CHARACTER", "EPIC HERO", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "SALAMANDERS", "ADEPTUS ASTARTES"] and profile.ranged[0].profiles.standard.keywords == {"torrent": true, "close-quarters": true} and profile.ranged[0].profiles.standard.attacks == "D6+3", "Adrax's exported keyword set and Drakkis match")
 	check(profile.melee[0].profiles.standard.attacks == 5 and profile.melee[0].profiles.standard.strength == 10 and profile.melee[0].profiles.standard.keywords.get("devastating-wounds", false), "Malleus Noctum's source profile matches")
 	var catalog := Catalog.current_catalog_choice({"id": "40kdc:11e:adeptus-astartes:adrax-agatone", "edition": "11e", "faction": "Space Marines"})
 	check(catalog.get("options", []) == [{"models": 1, "cost": 90, "third_plus_cost": 90}], "Adrax is selectable at the source cost")
-	var selections := F.selections()
-	var own_entries: Array = []
-	for entry: Dictionary in selections[1].entries:
-		if str(entry.definition_id).ends_with(":captain") or str(entry.definition_id).ends_with(":terminator-squad"): continue
-		own_entries.append(entry)
-	selections[1].entries = own_entries
+	var selections := F.current_marine_selections()
 	selections[1].entries.append({"definition_id": "40kdc:11e:adeptus-astartes:adrax-agatone", "models": 1, "copies": 1})
-	selections[1].entries.append({"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 5, "copies": 1})
 	var state: Dictionary = F.P.initial_state({"unit_abilities": true, "reanimation_protocols": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true, "attack_rerolls": true, "manual_allocation": false}, selections)
-	check(not state.has("error"), "Adrax and Intercessors materialize from the local catalog")
+	check(not state.has("error"), "Both players' current Space Marines rosters materialize from the local catalog")
 	if not state.has("error"):
 		var adrax := find_unit(state, 1, "adrax-agatone")
 		var intercessors := find_unit(state, 1, "intercessor-squad")
-		var enemy := find_unit(state, 2, "necron-warriors")
-		check(adrax > 0 and intercessors > 0 and enemy > 0 and A.has(state, int(state.units[adrax].squad), "lord-of-the-pyroclasts") and A.has(state, int(state.units[adrax].squad), "unto-the-anvil"), "Adrax's current datasheet abilities load")
+		var enemy := find_unit(state, 2, "intercessor-squad")
+		check(adrax > 0 and intercessors > 0 and enemy > 0 and A.has(state, int(state.units[adrax].squad), "combat-doctrines") and A.has(state, int(state.units[adrax].squad), "lord-of-the-pyroclasts") and A.has(state, int(state.units[adrax].squad), "unto-the-anvil") and A.has(state, int(state.units[adrax].squad), "transhuman-strategist"), "Adrax's current Core, Army Rules and datasheet abilities are present")
 		check(U.attachment_allowed(state, adrax, int(state.units[intercessors].squad)) and not U.attachment_allowed(state, adrax, int(state.units[enemy].squad)), "Only source-listed, locally admitted bodyguards are allowed")
 		if adrax > 0 and intercessors > 0 and enemy > 0:
+			for failure: String in DatasheetChecks.fixed_weapon_plan_failures(state, profile, adrax, int(state.units[enemy].squad)):
+				check(false, "Adrax weapon plan: " + failure)
 			state.phase = "deployment"
 			state.awakened_dynasty.pending = []
 			var applied := U.apply(state, 1, {"action": "attach", "model": adrax, "target": state.units[intercessors].squad}, Vector2.ZERO, func() -> int: return 1)

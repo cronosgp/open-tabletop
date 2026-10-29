@@ -38,7 +38,7 @@ static func import_keywords(entries: Array) -> Dictionary:
 	var result: Dictionary = {}
 	for item: Dictionary in entries:
 		var keyword: String = item.get("keyword_id", "")
-		var allowed := ["target_keyword"] if keyword == "hunter" else (["value"] if keyword in ["rapid-fire", "sustained-hits", "blast", "anti-fly", "anti-vehicle", "anti-infantry", "anti-character", "anti-non-monster-vehicle"] else [])
+		var allowed := ["target_keyword"] if keyword == "hunter" else (["value"] if keyword in ["rapid-fire", "sustained-hits", "blast", "anti-fly", "anti-monster", "anti-vehicle", "anti-infantry", "anti-character", "anti-psyker", "anti-non-monster-vehicle"] else [])
 		for parameter: String in item.get("parameters", {}):
 			if parameter not in allowed: result["unsupported-parameters:" + keyword] = true
 		if keyword == "hunter":
@@ -47,7 +47,7 @@ static func import_keywords(entries: Array) -> Dictionary:
 			if not target is String or target.strip_edges().is_empty(): result[keyword] = null
 			elif result[keyword] is Array and target not in result[keyword]: result[keyword].append(target)
 		else:
-			result[keyword] = item.get("parameters", {}).get("value", true) if keyword in ["rapid-fire", "sustained-hits", "blast", "anti-fly", "anti-vehicle", "anti-infantry", "anti-character", "anti-non-monster-vehicle"] else true
+			result[keyword] = item.get("parameters", {}).get("value", true) if keyword in ["rapid-fire", "sustained-hits", "blast", "anti-fly", "anti-monster", "anti-vehicle", "anti-infantry", "anti-character", "anti-psyker", "anti-non-monster-vehicle"] else true
 	return result
 
 static func import_profile(profile: Dictionary) -> Dictionary:

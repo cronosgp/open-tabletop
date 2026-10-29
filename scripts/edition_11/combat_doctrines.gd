@@ -1,15 +1,18 @@
 extends RefCounted
 const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
+const RagnarBlackmane = preload("res://scripts/edition_11/ragnar_blackmane.gd")
+const Mephiston = preload("res://scripts/edition_11/mephiston.gd")
 const LeaderCatalog = preload("res://scripts/edition_11/leader_catalog.gd")
 ## Current 11e army rule plus the explicitly declared Space Marine detachment effects.
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const Marines = preload("res://scripts/edition_11/oath_of_moment.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const ChapterRules = preload("res://scripts/edition_11/chapter_rules.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
-const ID := "combat-doctrines-11e-gladius-v1"
+const ID := "combat-doctrines-11e-fist-of-the-god-emperor-v2"
 const DETACHMENTS := ["none", "gladius", "stormlance", "ironclad-champions", "gauntlet-task-force", "assault-brethren", "tactical-brethren", "devastator-brethren", "terminator-storm-force", "tacticus-firestorm-force", "tacticus-attack-force", "gravis-linebreaker-force", "gravis-siege-force", "wrath-of-the-rock", "spearpoint-task-force", "ironstorm-spearhead", "phobos-shock-force", "phobos-shadow-force", "darkflight-pursuit", "inner-circle-task-force", "medusa-wrath", "blade-of-ultramar", "fist-of-the-god-emperor", "vow-sworn-crusaders"]
 const REFERENCE := "https://wahapedia.ru/wh40k11ed/factions/space-marines/#Combat-Doctrines"
 const NAMES := {"none": "No doctrine this turn", "devastator": "Devastator: shoot after Advance", "tactical": "Tactical: shoot and charge after Fall Back", "assault": "Assault: charge after Advance"}
@@ -52,6 +55,11 @@ static func enable(state: Dictionary, detachment: Variant = "gladius") -> void:
 			Capabilities.admit(state, "consecrating-aura", ID)
 			Capabilities.admit(state, "incendiary-animus", ID)
 			Capabilities.admit(state, "zealous-vanguard", ID)
+		if selected_detachment == "fist-of-the-god-emperor":
+			Capabilities.admit(state, "purge-and-sanctify", ID)
+			Capabilities.admit(state, "fist-doctrinal-flexibility", ID)
+			Capabilities.admit(state, "fist-angels-defiant", ID)
+			Capabilities.admit(state, "fist-avowed-destruction", ID)
 		if selected_detachment == "phobos-shock-force":
 			Capabilities.admit(state, "vanguard-ambushers", ID)
 			Capabilities.admit(state, "phobos-shock-seal-of-shrouding", ID)
@@ -101,15 +109,21 @@ static func enable(state: Dictionary, detachment: Variant = "gladius") -> void:
 			Capabilities.admit(state, capability, ID)
 	for squad: int in state.squads:
 		if state.squads[squad].owner in owners: Capabilities.admit_squad(state, squad, "combat-doctrines")
+	apply_detachment_roster_keywords(state)
+
+static func apply_detachment_roster_keywords(state: Dictionary) -> void:
+	if not enabled(state): return
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		var owner := int(unit.get("owner", -1))
-		if detachment_for(state, owner) != "darkflight-pursuit": continue
 		var identity := AbilityCatalog.identity(unit)
 		var profile := MarineProfiles.profile(identity)
-		if identity != "outrider-squad" or profile.is_empty() or "ADEPTUS ASTARTES" not in profile.get("keywords", []): continue
+		if profile.is_empty(): continue
+		var grants := MarineProfiles.detachment_keyword_grants(identity, detachment_for(state, owner), profile.get("keywords", []))
+		if grants.is_empty(): continue
 		var keywords: Array = unit.get("keywords", []).duplicate()
-		if "BATTLELINE" not in keywords: keywords.append("BATTLELINE")
+		for keyword: String in grants:
+			if keyword not in keywords: keywords.append(keyword)
 		unit.keywords = keywords
 		state.units[model] = unit
 
@@ -127,37 +141,14 @@ static func blade_mastered_doctrines_active(state: Dictionary, player: int) -> b
 	return detachment_for(state, player) == "blade-of-ultramar" and LeaderCatalog.army_has_calgar(state, player)
 
 static func chapter_restriction_error(state: Dictionary, detachment: String, player: int = -1) -> String:
-	var allowed_chapter := ""
-	var detachment_name := ""
-	match detachment:
-		"spearpoint-task-force":
-			allowed_chapter = "WHITE SCARS"
-			detachment_name = "Spearpoint Task Force"
-		"wrath-of-the-rock":
-			allowed_chapter = "DARK ANGELS"
-			detachment_name = "Wrath of the Rock"
-		"darkflight-pursuit":
-			allowed_chapter = "DARK ANGELS"
-			detachment_name = "Darkflight Pursuit"
-		"inner-circle-task-force":
-			allowed_chapter = "DARK ANGELS"
-			detachment_name = "Inner Circle Task Force"
-		"medusa-wrath":
-			allowed_chapter = "IRON HANDS"
-			detachment_name = "Medusa's Wrath"
-		"blade-of-ultramar":
-			allowed_chapter = "ULTRAMARINES"
-			detachment_name = "Blade of Ultramar"
-		"vow-sworn-crusaders":
-			allowed_chapter = "BLACK TEMPLARS"
-			detachment_name = "Vow-sworn Crusaders"
-		_:
-			return ""
+	var allowed_chapter := ChapterRules.required_chapter_for_detachment(detachment)
+	if allowed_chapter.is_empty(): return ""
+	var selected_detachment_name := ChapterRules.detachment_name(detachment)
 	if player >= 0:
 		var selected_context: Dictionary = state.get("marine_chapters", {})
 		var chapter := str(selected_context.get(player, selected_context.get(str(player), "")))
 		if not chapter.is_empty() and chapter != allowed_chapter:
-			return "%s requires %s Chapter context for Player %d." % [detachment_name, MarineProfiles.chapter_name(allowed_chapter), player]
+			return "%s requires %s Chapter context for Player %d." % [selected_detachment_name, MarineProfiles.chapter_name(allowed_chapter), player]
 	var profile_cache: Dictionary = {}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
@@ -170,7 +161,7 @@ static func chapter_restriction_error(state: Dictionary, detachment: String, pla
 		if "ADEPTUS ASTARTES" not in keywords: continue
 		for chapter: String in MarineProfiles.chapter_keywords_for(keywords):
 			if chapter != allowed_chapter:
-				return "%s cannot include Adeptus Astartes units from %s." % [detachment_name, chapter]
+				return "%s cannot include Adeptus Astartes units from %s." % [selected_detachment_name, chapter]
 	return ""
 
 static func available(state: Dictionary, player: int) -> Array[String]:
@@ -240,6 +231,8 @@ static func active_doctrines_for(state: Dictionary, squad: int) -> Array[String]
 		if doctrine in ORDER and doctrine not in result: result.append(doctrine)
 	for doctrine: String in MarineEnhancements.additional_doctrines(state, squad):
 		if doctrine in ORDER and doctrine not in result: result.append(doctrine)
+	for doctrine: String in Mephiston.quickening_additional_doctrine(state, squad):
+		if doctrine in ORDER and doctrine not in result: result.append(doctrine)
 	if AbilityCatalog.has(state, squad, "codex-adept"):
 		for doctrine: String in ORDER:
 			if doctrine not in result: result.append(doctrine)
@@ -284,12 +277,14 @@ static func darkflight_ravenwing_fly_unit(state: Dictionary, squad: int) -> bool
 
 static func shoot_after_fallback(state: Dictionary, squad: int) -> bool:
 	var mobile_lethality: Dictionary = state.get("detachment_stratagems", {}).get("mobile_lethality", {}).get(squad, {})
-	var mobile_lethality_active: bool = state.get("detachment_stratagems", {}).get("implementation", "") == "gladius-awakened-stratagems-11e-v5" and int(mobile_lethality.get("turn", -1)) == int(state.get("turn", -2))
-	return has_doctrine(state, squad, "tactical") or AbilityCatalog.has(state, squad, "adaptive-strategy") or mobile_lethality_active
+	var detachment_implementation := str(state.get("detachment_stratagems", {}).get("implementation", ""))
+	var current_detachment_state := detachment_implementation.begins_with("gladius-awakened-stratagems-11e-v")
+	var mobile_lethality_active: bool = current_detachment_state and int(mobile_lethality.get("turn", -1)) == int(state.get("turn", -2))
+	return has_doctrine(state, squad, "tactical") or AbilityCatalog.has(state, squad, "adaptive-strategy") or AbilityCatalog.has(state, squad, "strategic-knowledge") or mobile_lethality_active
 
 static func charge_error(state: Dictionary, squad: int) -> String:
-	if state.squads[squad].advanced and not has_doctrine(state, squad, "assault") and not AbilityCatalog.has(state, squad, "spear-of-chogoris"): return "A unit that Advanced needs Assault Doctrine to declare a charge."
-	if state.squads[squad].fell_back and not has_doctrine(state, squad, "tactical") and not AbilityCatalog.has(state, squad, "adaptive-strategy"): return "A unit that Fell Back needs Tactical Doctrine to declare a charge."
+	if state.squads[squad].advanced and not has_doctrine(state, squad, "assault") and not AbilityCatalog.has(state, squad, "spear-of-chogoris") and not AbilityCatalog.has(state, squad, "remorseless-persecution") and not AbilityCatalog.has(state, squad, "berserk-charge") and not AbilityCatalog.has(state, squad, "strategic-knowledge") and not RagnarBlackmane.headtakers_war_howl_active(state, squad): return "A unit that Advanced needs Assault Doctrine to declare a charge."
+	if state.squads[squad].fell_back and not has_doctrine(state, squad, "tactical") and not AbilityCatalog.has(state, squad, "adaptive-strategy") and not AbilityCatalog.has(state, squad, "strategic-knowledge"): return "A unit that Fell Back needs Tactical Doctrine to declare a charge."
 	return ""
 
 static func advance_bonus(state: Dictionary, squad: int) -> int:

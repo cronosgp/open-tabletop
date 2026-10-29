@@ -1,0 +1,113 @@
+{
+  "identity": "captain-in-phobos-armour",
+  "source": {
+    "authority": "Wahapedia 11th-edition local export",
+    "source_book_id": "000000139",
+    "export_snapshot_id": "20261021T130623Z",
+    "export_updated_at": "2026-10-21T16:06:23+03:00",
+    "source_checked_at": "2026-10-27",
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+    "datasheet_id": "000002701",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-In-Phobos-Armour",
+    "export_retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b",
+    "manifest_file_count": 23,
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ]
+  },
+  "scope": {
+    "models": 1,
+    "base": "40 mm",
+    "points": 75,
+    "weapons": [
+      "Instigator Bolt Carbine",
+      "Bolt Pistol",
+      "Combat Knife"
+    ],
+    "abilities": [
+      "Deep Strike",
+      "Infiltrators",
+      "Leader",
+      "Scouts 6",
+      "Stealth",
+      "Combat Doctrines",
+      "Transhuman Strategist",
+      "Strategic Acumen",
+      "Tactical Fluidity"
+    ],
+    "leader_targets": [
+      "Eliminator Squad",
+      "Incursor Squad",
+      "Infiltrator Squad",
+      "Reiver Squad",
+      "Scout Squad"
+    ],
+    "current_catalog_both_players": true,
+    "full_army_legality_certified": false
+  },
+  "local_validation": ".tools/verification/20261027T111545655265Z/results.json",
+  "local_validation_sha256": "98758d7d9fe92b6f05cf6c934a69f875f0457786c1fc1f94a18ee35fd4c13ca2",
+  "test_file": "tests\\test_captain_phobos.gd",
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_match_certified": false,
+  "latest_scope_validation": {
+    "observed_at": "2026-10-27",
+    "status": "passed; 5/5 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "open_limit": "Spectrus Kill Team and Wolf Scouts Chapter-specific Leader links remain outside the shared-book scope.",
+    "master_evidence": "space-marines-profile-evidence.json"
+  }
+}

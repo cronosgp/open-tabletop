@@ -9,6 +9,10 @@ const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
 const AttackSequence = preload("res://scripts/edition_11/attack_sequence.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const LeaderLinks = preload("res://scripts/edition_11/marine_leader_links.gd")
+const DatasheetChecks = preload("res://tests/space_marine_datasheet_checks.gd")
+const UnitPrevention = preload("res://scripts/edition_11/unit_prevention.gd")
+const WoundPrevention = preload("res://scripts/edition_11/wound_prevention.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -55,24 +59,46 @@ func run() -> void:
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000004187" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Titus is sourced from the local Wahapedia e11 export")
 	check(profile.points_by_models == {1: 115} and profile.max_supported_copies == 1 and profile.base_size_source_mm == 40, "Titus source cost, unique Epic Hero composition and base match")
 	check(profile.stats == {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 6, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4}, "Titus characteristics match the export")
+	check(profile.keywords == ["INFANTRY", "CHARACTER", "EPIC HERO", "CAPTAIN", "TACTICUS", "IMPERIUM", "EXPLOSIVES", "ADEPTUS ASTARTES", "ULTRAMARINES"] and profile.get("additional_weapon_profiles", {}).is_empty(), "Titus retains the exact exported keywords and has no equipment options")
+	check(profile.ranged[0].profiles.standard == {"name": "Bolt Pistol", "range_inches": 12.0, "attacks": 1, "skill": 2, "strength": 5, "ap": -1, "damage": 1, "keywords": {"close-quarters": true}}, "Titus Bolt Pistol matches the source profile")
 	check(profile.ranged[1].profiles.standard == {"name": "Master-crafted Bolter", "range_inches": 24.0, "attacks": 2, "skill": 2, "strength": 5, "ap": -1, "damage": 2, "keywords": {"assault": true, "rapid-fire": 1, "heavy": true}}, "Titus bolter retains its source profile")
-	check(profile.melee[0].profiles.standard.keywords == {"anti-non-monster-vehicle": 2}, "Titus chainsword uses Anti 2+ against targets without Monster or Vehicle")
+	check(profile.melee[0].profiles.standard == {"name": "Master-crafted Chainsword", "range_inches": 0.0, "attacks": 8, "skill": 2, "strength": 5, "ap": -1, "damage": 2, "keywords": {"anti-non-monster-vehicle": 2}}, "Titus chainsword's full source profile and Anti gate match")
 	check(Catalog.SPECS.get("captain-titus", {}).get("current_reference", false) and Roster.POINTS.get("captain-titus", {}).get("sizes", {}) == {1: 115}, "Titus is admitted at the extracted 115 points")
+	check(LeaderLinks.TARGETS.get("captain-titus", []) == ["bladeguard-veteran-squad", "hellblaster-squad", "intercessor-squad", "sternguard-veteran-squad", "assault-intercessor-squad", "infernus-squad"], "Titus retains all six shared-book Leader links")
 
-	var lists := F.selections()
-	lists[1].entries = [entry("adeptus-astartes", "captain-titus", 1)]
-	lists[2].entries = [entry("necrons", "necron-warriors", 10)]
+	var lists := F.current_marine_selections()
+	lists[1].entries.append(entry("adeptus-astartes", "captain-titus", 1))
 	var state: Dictionary = F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "core_stratagems": true, "reanimation_protocols": true, "awakened_dynasty": true, "manual_allocation": false}, lists)
-	check(not state.has("error"), "Captain Titus and an infantry target materialize")
+	check(not state.has("error"), "Captain Titus and both current Marine rosters materialize")
 	if state.has("error"):
 		print(state.error)
 		quit(1)
 		return
 	var model := find_model(state, 1, "captain-titus")
 	var squad := find_squad(state, 1, "captain-titus")
-	var target := find_squad(state, 2, "necron-warriors")
+	var friendly_bodyguard := find_squad(state, 1, "intercessor-squad")
+	var target := find_squad(state, 2, "intercessor-squad")
 	var target_model := Geometry.alive(state, target)[0]
+	for failure: String in DatasheetChecks.fixed_weapon_plan_failures(state, profile, model, target):
+		check(false, "Captain Titus weapon plan: " + failure)
+	check(C.UnitActions.attachment_allowed(state, model, friendly_bodyguard), "Titus can attach to a current source-listed bodyguard")
 	check(C.UnitAbilities.has(state, squad, "press-the-attack") and C.UnitAbilities.has(state, squad, "righteous-fury") and C.UnitAbilities.has(state, squad, "honour-of-ultramar") and C.UnitAbilities.has(state, squad, "feel-no-pain-5"), "Titus datasheet and core abilities register")
+	check(UnitPrevention.rules(state, model) == [{"target": 5, "against": "any"}], "Feel No Pain 5+ is attached to Titus's current unit profile")
+	var fnp := WoundPrevention.resolve(1, 1, UnitPrevention.rules(state, model), "normal", func() -> int: return 5)
+	check(fnp.error.is_empty() and fnp.prevented == 1 and fnp.lost == 0, "Titus's Feel No Pain 5+ prevents a wound on a 5")
+	state.phase = "deployment"
+	state.awakened_dynasty.pending = []
+	var warlord: Dictionary = {}
+	for option: Dictionary in C.UnitActions.choices(state, 1):
+		if option.action == "warlord" and option.model == model: warlord = option
+	check(not warlord.is_empty(), "Titus is eligible to be selected as Warlord")
+	if not warlord.is_empty():
+		var warlord_result := C.UnitActions.apply(state, 1, warlord, Vector2.ZERO, func() -> int: return 1)
+		state.active = 1
+		state.round = 1
+		state.cp[1] = 0
+		C.UnitActions.start_round(state)
+		check(warlord_result.get("error", "").is_empty() and state.cp[1] == 1, "Transhuman Strategist grants its Warlord CP at battle-round start")
 	state.phase = "fight"
 	state.fight_step = "attacks"
 	state.fight_actor = 1
@@ -102,6 +128,14 @@ func run() -> void:
 	target_vehicle.combat_doctrines.active[1] = "assault"
 	vehicle_weapon = C.UnitAbilities.weapon(target_vehicle, model, target, chainsword, true)
 	check(vehicle_weapon.keywords.get("sustained-hits", 0) == 1, "Assault Doctrine grants Press the Attack Sustained Hits against Monster/Vehicle targets")
+	var target_monster := state.duplicate(true)
+	for enemy: int in Geometry.alive(target_monster, target):
+		if "MONSTER" not in target_monster.units[enemy].keywords: target_monster.units[enemy].keywords.append("MONSTER")
+	var monster_weapon := C.UnitAbilities.weapon(target_monster, model, target, chainsword, true)
+	check(not monster_weapon.keywords.has("sustained-hits"), "Press the Attack excludes Monsters outside Assault Doctrine")
+	target_monster.combat_doctrines.active[1] = "assault"
+	monster_weapon = C.UnitAbilities.weapon(target_monster, model, target, chainsword, true)
+	check(monster_weapon.keywords.get("sustained-hits", 0) == 1, "Assault Doctrine extends Press the Attack Sustained Hits to Monsters")
 
 	state.units[model].wounds = 2
 	var committed := C._commit_finished_attack(state, squad, 1, [], true, {"targets": [target]}, {"killed": 1, "damage": 0, "pools": []}, func() -> int: return 6)

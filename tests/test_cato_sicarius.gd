@@ -2,12 +2,15 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
+const Roster = preload("res://scripts/edition_11/roster_validation.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
 const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const DatasheetChecks = preload("res://tests/space_marine_datasheet_checks.gd")
 
 var failures := 0
 
@@ -40,31 +43,14 @@ func submit_choice(state: Dictionary, player: int, action_id: String, target: in
 	if choice.is_empty(): return {"error": "UnitActions no longer offers the projected Cato choice."}
 	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "point": point, "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": choice}})
 
+func entry(identity: String, models: int = 1) -> Dictionary:
+	return {"definition_id": "40kdc:11e:adeptus-astartes:%s" % identity, "models": models, "copies": 1}
+
 func make_state() -> Dictionary:
-	var lists := F.selections()
-	lists[1].entries = [{"definition_id": "40kdc:11e:adeptus-astartes:captain", "models": 1, "copies": 1}]
-	lists[2].entries = [
-		{"definition_id": "40kdc:11e:necrons:immortals", "models": 5, "copies": 1},
-		{"definition_id": "40kdc:11e:necrons:necron-warriors", "models": 10, "copies": 1}]
+	var lists := F.current_marine_selections()
+	lists[1].entries.append(entry("cato-sicarius"))
 	var state: Dictionary = F.P.initial_state({"checked_rosters": false, "official_mission": false, "unit_abilities": true, "combat_doctrines": true, "core_stratagems": true, "reanimation_protocols": true, "awakened_dynasty": true, "manual_allocation": false}, lists)
 	if state.has("error"): return state
-	var cato := -1
-	for model: int in state.units:
-		if state.units[model].owner == 1: cato = model; break
-	var profile := Profiles.profile("cato-sicarius")
-	state.units[cato].definition_id = "40kdc:11e:adeptus-astartes:cato-sicarius"
-	state.units[cato].keywords = profile.keywords.duplicate()
-	state.units[cato].ranged_weapons = profile.ranged.duplicate(true)
-	state.units[cato].melee_weapons = profile.melee.duplicate(true)
-	state.units[cato].movement_inches = profile.stats.movement_inches
-	state.units[cato].toughness = profile.stats.toughness
-	state.units[cato].save_target = profile.stats.save_target
-	state.units[cato].invulnerable_target = profile.stats.invulnerable_target
-	state.units[cato].wounds = profile.stats.wounds
-	state.units[cato].max_wounds = profile.stats.wounds
-	state.units[cato].leadership_target = profile.stats.leadership_target
-	state.units[cato].objective_control = profile.stats.objective_control
-	Abilities.enable(state)
 	state.awakened_dynasty.pending = []
 	state.unit_abilities.setup_players = []
 	state.mission.stage = "battle"
@@ -75,11 +61,13 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var profile := Profiles.profile("cato-sicarius")
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000004184" and profile.points == 115 and profile.base_size_source_mm == 40, "Cato profile identifies the shared-book source, points and base")
+	check(profile.get("additional_weapon_profiles", {}).is_empty(), "Cato has no equipment-option rows in the current source export")
 	check(profile.stats == {"movement_inches": 6, "toughness": 5, "save_target": 2, "wounds": 5, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4}, "Cato characteristics match the local Wahapedia export")
 	check(profile.ranged[0].profiles.standard.name == "Artisan Plasma Pistol" and profile.ranged[0].profiles.standard.strength == 8 and profile.melee.size() == 3, "Cato's plasma pistol and all three Tempest Blade profiles are represented")
 	check(profile.melee[0].profiles.standard.keywords == {"devastating-wounds": true} and profile.melee[1].profiles.standard.keywords == {"precision": true} and profile.melee[2].profiles.standard.keywords == {"sustained-hits": 1}, "Tempest Blade profiles retain source attack traits")
+	check(Catalog.SPECS.get("cato-sicarius", {}).get("current_reference", false) and Roster.POINTS.get("cato-sicarius", {}).get("sizes", {}) == {1: 115}, "Cato is admitted to the current catalog at the source cost")
 	var state := make_state()
-	check(not state.has("error"), "Cato fixture materializes")
+	check(not state.has("error"), "Cato and both current Marine rosters materialize from the consolidated catalog")
 	if state.has("error"):
 		print(state.error)
 		quit(1)
@@ -87,10 +75,26 @@ func run() -> void:
 	var cato_squad := find_squad(state, 1, "cato-sicarius")
 	var cato := Geometry.alive(state, cato_squad)[0]
 	var cato_start: Vector2 = state.units[cato].position
-	var enemy := find_squad(state, 2, "immortals")
+	var enemy := find_squad(state, 2, "intercessor-squad")
 	var enemy_model := Geometry.alive(state, enemy)[0]
+	for failure: String in DatasheetChecks.fixed_weapon_plan_failures(state, profile, cato, enemy):
+		check(false, "Cato fixed weapon plan: " + failure)
 	check(Abilities.has(state, cato_squad, "leader") and Abilities.has(state, cato_squad, "knight-champion-of-macragge") and Abilities.has(state, cato_squad, "honour-or-death"), "Cato's Leader and datasheet abilities register")
-	check(not action(state, 1, "warlord").is_empty(), "Cato can be selected as the army's Warlord")
+	check(Abilities.has(state, cato_squad, "combat-doctrines") and Abilities.has(state, cato_squad, "transhuman-strategist"), "Cato receives both exported army rules")
+	var warlord_state: Dictionary = state.duplicate(true)
+	warlord_state.phase = "deployment"
+	var cato_warlord: Dictionary = {}
+	for option: Dictionary in C.UnitActions.choices(warlord_state, 1):
+		if option.action == "warlord" and int(option.model) == cato: cato_warlord = option
+	check(not cato_warlord.is_empty(), "Cato can be selected as the army's Warlord")
+	if not cato_warlord.is_empty():
+		var cp_before := int(warlord_state.cp[1])
+		var warlord_result := C.UnitActions.apply(warlord_state, 1, cato_warlord, Vector2.ZERO, func() -> int: return 1)
+		warlord_state.active = int(warlord_state.get("first_player", 1))
+		warlord_state.round = 1
+		C.UnitActions.start_round(warlord_state)
+		C.UnitActions.start_round(warlord_state)
+		check(warlord_result.get("error", "").is_empty() and warlord_state.cp[1] == cp_before + 1, "Transhuman Strategist grants Cato's Warlord CP once per battle round")
 	check(not C.UnitActions.attachment_allowed(state, cato, cato_squad), "Cato cannot attach to his own unit")
 	check(CoreReactions.cost_of(state, 1, cato_squad, CoreReactions.HEROIC) == 0 and CoreReactions.cost_of(state, 1, cato_squad, CoreReactions.FRAY) == 1 and CoreReactions.cost_of(state, 1, cato_squad, CoreReactions.OVERWATCH) == 1, "Honour or Death discounts Heroic Intervention only and preserves the additional Into the Fray cost")
 	var enemy_models := Geometry.alive(state, enemy)

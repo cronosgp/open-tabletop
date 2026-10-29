@@ -1,0 +1,58 @@
+{
+  "id": "marine-death-company-dreadnought-e11-local-audit-2026-10-28",
+  "rules_authority": "Wahapedia 11th-edition local export",
+  "observed_at": "2026-10-28",
+  "source": {
+    "book_id": "000000021",
+    "datasheet_id": "000000166",
+    "export_updated_at": "2026-10-21T16:06:23+03:00",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at": "2026-10-21T19:46:58Z",
+    "snapshot_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "chapter_slice_manifest_sha256": "74de1b23c1319c395f9071449b47531870067eb0aa9c2de3ff6110ccd9e162c5",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Death-Company-Dreadnought",
+    "core_rules_url": "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+    "core_rule": "Surge Moves"
+  },
+  "implementation": {
+    "runtime_profile": "death-company-dreadnought",
+    "rules": [
+      "Damaged 4",
+      "Deadly Demise D3",
+      "Combat Doctrines",
+      "Feel No Pain 6+",
+      "Black Rage",
+      "Driven by Fury"
+    ],
+    "construction": {
+      "first_second_copy_points": 165,
+      "third_plus_copy_points": 185,
+      "maximum_supported_copies": 3,
+      "local_wargear_choices": [
+        "Replace Twin Heavy Bolter with Twin Multi-melta",
+        "Replace Blood Fist Bolt Rifles and Blood Fists with Blood Talons"
+      ]
+    },
+    "validation_artifact": ".tools/verification/20261028T194021499437Z/results.json",
+    "validation_artifact_sha256": "3B263606A2821852AA4FE90C4C547996C7B563958A60C58BBD8C5A724A3A5A9A",
+    "validation_status": "source_bounded_local_scope_passed_2026_10_28",
+    "verification_profile": "targeted",
+    "verification_suites": [
+      "test_death_company_dreadnought",
+      "test_implemented_catalog",
+      "test_capabilities"
+    ],
+    "network_validation_performed": false,
+    "legacy_starter_staged": true,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_match_certified": false,
+    "full_army_legality_certified": false
+  },
+  "scope_notes": [
+    "Source-bounded local profile, equipment, ability and construction checks only.",
+    "Black Rage support requires both source-listed aura ranges to avoid the restriction.",
+    "Driven by Fury uses the shared bounded local movement-path search.",
+    "The shared Deadly Demise chain-destruction scope remains pending.",
+    "Network validation has not been performed."
+  ]
+}

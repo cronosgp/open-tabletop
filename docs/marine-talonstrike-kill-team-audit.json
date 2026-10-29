@@ -1,0 +1,311 @@
+{
+  "id": "marine-talonstrike-kill-team-e11-local-audit-2026-10-29",
+  "status": "source_bounded_local_scope_passed",
+  "observed_at": "2026-10-29",
+  "rules_authority": "Wahapedia 11th edition current Space Marines faction page checked against the verified local Data Export",
+  "source": {
+    "edition": "11e",
+    "chapter": "Deathwatch",
+    "book_id": "000000035",
+    "book_type": "App",
+    "datasheet_id": "000003874",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; alternate modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Talonstrike-Kill-Team",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "current_page_checked_at": "2026-10-29",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T072022Z-final-integration",
+    "retrieval_window_utc": "2026-10-29T07:20:41.585070Z–2026-10-29T07:21:44.550982Z",
+    "timestamp_bracket_checked": true,
+    "specification_revision": "20260817b",
+    "specification_url": "https://wahapedia.ru/wh40k11ed/Export%20Data%20Specs.xlsx?v=20260817b",
+    "snapshot_manifest_sha256": "772952e313b6772022c68226514eba7cdde00464468fd79c8291d20c24da4801",
+    "slice_manifest_sha256": "14091c1c687942cffa668a3cab4deaf007562f9a4c40c94a7d15893394e85d26",
+    "slice_parent_manifest_sha256": "772952e313b6772022c68226514eba7cdde00464468fd79c8291d20c24da4801",
+    "slice_subject_datasheet_ids": [
+      "000003874"
+    ],
+    "slice_external_identity_only_datasheet_ids": [
+      "000000083",
+      "000000112"
+    ],
+    "snapshot_files": [
+      {
+        "filename": "Factions.csv",
+        "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_stratagems.csv",
+        "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+      },
+      {
+        "filename": "Datasheets_enhancements.csv",
+        "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+      },
+      {
+        "filename": "Datasheets_detachment_abilities.csv",
+        "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180"
+      },
+      {
+        "filename": "Stratagems.csv",
+        "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16"
+      },
+      {
+        "filename": "Enhancements.csv",
+        "sha256": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c"
+      },
+      {
+        "filename": "Enhancements_wargear.csv",
+        "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+      },
+      {
+        "filename": "Detachment_abilities.csv",
+        "sha256": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c"
+      },
+      {
+        "filename": "Detachments.csv",
+        "sha256": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536"
+      },
+      {
+        "filename": "Detachments_chapter_dp.csv",
+        "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+      },
+      {
+        "filename": "Last_update.csv",
+        "sha256": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+      }
+    ],
+    "slice_files": [
+      {
+        "filename": "Factions.csv",
+        "sha256": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "6279e45052fc871de8b8d8be1bda9db8f86c4152a67fb514d836a25120a8f340"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "3b90ca4febf217d8bdbe580f63c953153519ece37ac8c43e6a6dc956cd4fb4d3"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "8b268ddd67992f6ee7ffacb08eae99e36932afbe5590bde42cee9253b59f4dcb"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "be362cf32aea2f7f5df07c5fcc50473c992a6230f3a84c7c02a259eefe451065"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "345d3a5f522561da6f2e111f01d068714e56e18152539bbc4a9cbad2ec9ad4e2"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "202ff63b4e2b157b6732c3c18b8d93230ea313b2e67123ee7cae2d65c6127f11"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "bcc256c71a4be77f379f21e5d1c561f69f81c7e68917df813ad4f9713b133f37"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "a31a1fbebe763e2337bad2cf985922da03c45fc6d8d3f0e0c30edd1c2a7b46da"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "62fbc37a1a9b33d926f7a667f4c3f5c1dc81003d5197b1a2e175c9a3dab92bca"
+      },
+      {
+        "filename": "Datasheets_stratagems.csv",
+        "sha256": "c9882506e169de58900e26ded381e56d0eca051d173f931cf87bda768cb11e61"
+      },
+      {
+        "filename": "Datasheets_enhancements.csv",
+        "sha256": "707961522ee01d7f2becfc79937650715b3d69740adaf69193b80a8829a8be95"
+      },
+      {
+        "filename": "Datasheets_detachment_abilities.csv",
+        "sha256": "da917449f2b7b73e36e97e39de10dec3dfc8e340650312a520ad3f10cd7e3718"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "b93f7d93b7101c5b08fc7add9867dc1aa86edaf625f4b167059d0d465cc15d1e"
+      },
+      {
+        "filename": "Stratagems.csv",
+        "sha256": "e66a7817ddfc71fd63575f795c31ae028fb21daa8dfdda4f847d78aed025b1bd"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "6826b079b3ee6a1ff28dbf03a03465ccc35916388cd548736bdebe4ea5276a69"
+      },
+      {
+        "filename": "Enhancements.csv",
+        "sha256": "6bef30dc54774bc91c7feef84cdca100b322864bf7a63259ea8b4818e655c214"
+      },
+      {
+        "filename": "Enhancements_wargear.csv",
+        "sha256": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a"
+      },
+      {
+        "filename": "Detachment_abilities.csv",
+        "sha256": "5c0f1f1b348a06b1ebd58d2d856ceeabba123b8a2588dd56c634f8442aca8f58"
+      },
+      {
+        "filename": "Detachments.csv",
+        "sha256": "2f6e43d55fe60044f29690c431f8566b45b5814cedd2ad91e8e18a7ea9b9a053"
+      },
+      {
+        "filename": "Detachments_chapter_dp.csv",
+        "sha256": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07"
+      },
+      {
+        "filename": "Last_update.csv",
+        "sha256": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+      }
+    ],
+    "snapshot_storage": "Raw export and slice are retained locally under ignored .tools/ and are not committed or distributed."
+  },
+  "source_reconciliation": {
+    "previous_blocker": "Earlier page/export capture appeared to assign M10/T6/W3 to the Sergeant heading rather than the Heavy Intercessor.",
+    "current_page_and_export_agree": true,
+    "result": "The 29 October current Wahapedia page and timestamp-bracketed local export agree: the Sergeant and Intercessors are M12/T5/W2; Heavy Intercessors are M10/T6/W3. The earlier blocker is resolved for this capture.",
+    "subject_slice_validation_errors": 0,
+    "parent_export_validation_findings": 68
+  },
+  "profile": {
+    "composition": [
+      "1 Kill Team Sergeant with Jump Pack",
+      "4 Kill Team Heavy Intercessors with Jump Packs",
+      "5 Kill Team Intercessors with Jump Packs"
+    ],
+    "characteristics": {
+      "sergeant_and_intercessors": {
+        "M": "12\"",
+        "T": 5,
+        "Sv": "3+",
+        "W": 2,
+        "Ld": "6+",
+        "OC": 1,
+        "base_mm": 32
+      },
+      "heavy_intercessors": {
+        "M": "10\"",
+        "T": 6,
+        "Sv": "3+",
+        "W": 3,
+        "Ld": "6+",
+        "OC": 1,
+        "base_mm": 40
+      }
+    },
+    "points": {
+      "models": 10,
+      "first_and_second_copy": 280,
+      "third_plus_copy": 300,
+      "max_supported_copies": 3
+    },
+    "abilities": [
+      "Deep Strike",
+      "Combat Doctrines",
+      "Talonstrike Doctrines"
+    ],
+    "talonstrike_doctrines": "In the turn the unit is set up on the battlefield, its attacks gain +1 AP; melee attacks also gain Lance.",
+    "leader_targets": [
+      {
+        "name": "Captain With Jump Pack",
+        "datasheet_id": "000000083"
+      },
+      {
+        "name": "Chaplain With Jump Pack",
+        "datasheet_id": "000000112"
+      }
+    ],
+    "options": [
+      "Sergeant Chainsword may be replaced with a Power Fist or Power Weapon.",
+      "Sergeant Heavy Bolt Pistol may be replaced with a Hand Flamer or Plasma Pistol.",
+      "One Intercessor per five models may replace its Heavy Bolt Pistol with a Plasma Pistol.",
+      "Any number of Heavy Intercessors may replace Assault Bolters with Plasma Exterminators."
+    ]
+  },
+  "validation": {
+    "artifact": ".tools/verification/20261029T074509411414Z/results.json",
+    "artifact_sha256": "94e5f7933cfe3878bdaacf2a8dceec891e23ef906b8c9f0e91d6bfc256ecc6dd",
+    "verification_profile": "targeted",
+    "suites": [
+      "test_talonstrike_kill_team",
+      "test_implemented_catalog",
+      "test_capabilities",
+      "test_current_unit_abilities",
+      "test_space_marine_leader_links"
+    ],
+    "process_names": [
+      "import",
+      "python",
+      "test_talonstrike_kill_team",
+      "test_implemented_catalog",
+      "test_capabilities",
+      "test_current_unit_abilities",
+      "test_space_marine_leader_links"
+    ],
+    "process_count": 7,
+    "processes_passed": 7,
+    "result": "passed",
+    "network_validation_performed": false,
+    "legacy_starter_staged": true,
+    "headless_rid_cleanup_diagnostics": false,
+    "full_match_certified": false,
+    "full_army_legality_certified": false,
+    "scope_notes": [
+      "Source-bounded local datasheet scope only; catalog-wide network validation and human playtesting are not claimed.",
+      "The parent export has 68 unrelated structural findings; the Talonstrike subject slice has zero.",
+      "This does not close the remaining Wolf Guard Headtakers source blocker or partial Crusader Squad scope.",
+      "Forge World, Legends, Boarding Actions and alternate modes remain separate inventories."
+    ]
+  }
+}

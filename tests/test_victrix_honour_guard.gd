@@ -2,6 +2,8 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const ArmyRoster = preload("res://scripts/army_roster.gd")
+const ArmyCapabilities = preload("res://scripts/edition_11/army_capabilities.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const A = preload("res://scripts/edition_11/unit_abilities.gd")
 const Victrix = preload("res://scripts/edition_11/victrix_honour_guard.gd")
@@ -31,9 +33,11 @@ func find_role(state: Dictionary, squad: int, role: String) -> int:
 		if state.units[model].get("victrix_honour_guard_role", "") == role: return model
 	return -1
 
-func fixture(count: int = 3) -> Dictionary:
-	var lists := F.selections()
-	lists[1].entries = [entry("cato-sicarius"), entry("victrix-honour-guard", count), entry("assault-intercessor-squad", 5)]
+func fixture(count: int = 3, composition_choice_id: String = "") -> Dictionary:
+	var lists := F.current_marine_selections()
+	var guard_entry := entry("victrix-honour-guard", count)
+	if not composition_choice_id.is_empty(): guard_entry.composition_choice_id = composition_choice_id
+	lists[1].entries = [entry("cato-sicarius"), guard_entry, entry("assault-intercessor-squad", 5)]
 	var state: Dictionary = F.P.initial_state({"checked_rosters": false, "official_mission": false, "unit_abilities": true, "combat_doctrines": true, "core_stratagems": true, "reanimation_protocols": true, "awakened_dynasty": true, "manual_allocation": false}, lists)
 	if state.has("error"): return state
 	state.awakened_dynasty.pending = []
@@ -72,6 +76,33 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var profile := Profiles.profile("victrix-honour-guard")
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000004185" and profile.points_by_models == {3: 135, 6: 265} and profile.third_plus_points_by_models == {3: 165, 6: 295}, "Victrix identity and banner-inclusive points match the local source export")
+	check(profile.composition_options.size() == 8 and profile.source_roster_points.points_by_models == {3: 120, 6: 250} and profile.wargear_costs == {"banner-of-macragge": 15}, "The sheet exposes all legal 3/6-model role combinations with the source's separate Banner cost")
+	for option: Dictionary in profile.composition_options:
+		var admission := ArmyCapabilities.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 100000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:victrix-honour-guard", "models": option.models, "copies": 1, "composition_choice_id": option.id}]})
+		var expected_cost := int(profile.source_roster_points.points_by_models[option.models]) + int(option.wargear_cost)
+		var configuration_key := "40kdc:11e:adeptus-astartes:victrix-honour-guard:%02d::%s" % [int(option.models), str(option.id)]
+		var resolved: Dictionary = admission.get("configurations", {}).get(configuration_key, {})
+		check(admission.get("error", "").is_empty() and admission.get("total", -1) == expected_cost and resolved.get("victrix_roles", []) == option.roles, "%s/%d resolves its exact roles and %d-point Banner cost" % [str(option.id), int(option.models), int(option.wargear_cost)])
+	var invalid_roles := ArmyCapabilities.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 100000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:victrix-honour-guard", "models": 3, "copies": 1, "composition_choice_id": "ancient-without-a-guard"}]})
+	check(not invalid_roles.get("error", "").is_empty(), "Roster admission rejects a model-role configuration absent from the source composition")
+	var builder_unit := ArmyCapabilities.current_catalog_choice({"id": "40kdc:11e:adeptus-astartes:victrix-honour-guard", "name": "Victrix Honour Guard", "edition": "11e", "faction": "Space Marines", "role": "Other units", "options": [], "source_digest": "local"})
+	var three_option_index := -1
+	for option_index in builder_unit.options.size():
+		if int(builder_unit.options[option_index].models) == 3: three_option_index = option_index
+	var guards_choice: Dictionary = {}
+	var ancient_choice: Dictionary = {}
+	for option: Dictionary in builder_unit.composition_options:
+		if int(option.models) != 3: continue
+		if option.id == "guards-only": guards_choice = option
+		if option.id == "ancient-champion": ancient_choice = option
+	var no_banner_list := ArmyRoster.new_list("11e", "Space Marines", "custom", 1000)
+	no_banner_list.entries.append(ArmyRoster.entry(builder_unit, three_option_index, 1, guards_choice))
+	var banner_list := ArmyRoster.new_list("11e", "Space Marines", "custom", 1000)
+	banner_list.entries.append(ArmyRoster.entry(builder_unit, three_option_index, 1, ancient_choice))
+	check(ArmyRoster.validate(no_banner_list).is_empty() and ArmyRoster.summary(no_banner_list).points == 120 and ArmyRoster.entry_cost(no_banner_list.entries, 0) == 120 and ArmyRoster.summary(banner_list).points == 135, "Army-builder pricing adds the Banner only to compositions that include the Ancient")
+	var checked_without_banner := C.RosterValidation.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [entry("captain"), {"definition_id": "40kdc:11e:adeptus-astartes:victrix-honour-guard", "models": 3, "copies": 1, "composition_choice_id": "guards-only"}]})
+	var checked_with_banner := C.RosterValidation.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [entry("captain"), {"definition_id": "40kdc:11e:adeptus-astartes:victrix-honour-guard", "models": 3, "copies": 1, "composition_choice_id": "ancient-champion"}]})
+	check(checked_without_banner.get("error", "").is_empty() and checked_with_banner.get("error", "").is_empty() and checked_with_banner.total - checked_without_banner.total == 15 and checked_without_banner.construction.breakdown[1].wargear_cost == 0 and checked_with_banner.construction.breakdown[1].wargear_cost == 15, "Checked-roster prices separately apply the 15-point Banner option")
 	check(profile.stats == {"movement_inches": 6, "toughness": 5, "save_target": 2, "wounds": 3, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0}, "All three Victrix roles share the extracted characteristics")
 	check(profile.model_loadouts.size() == 3 and profile.model_loadouts[0].keywords.has("EPIC HERO") and profile.model_loadouts[0].keywords.has("ANCIENT") and profile.model_loadouts[1].keywords.has("CHAMPION") and not profile.model_loadouts[2].keywords.has("EPIC HERO"), "Ancient, Champion and ordinary Guard keywords remain role-specific")
 	var ancient: Dictionary = profile.model_loadouts[0]
@@ -83,6 +114,14 @@ func run() -> void:
 	var six_models := fixture(6)
 	var six_squad := find_squad(six_models, 1, "victrix-honour-guard")
 	check(not six_models.has("error") and six_models.training_points[1] == 465 and six_squad >= 0 and find_role(six_models, six_squad, "chapter-ancient") >= 0 and find_role(six_models, six_squad, "chapter-champion") >= 0 and Geometry.alive(six_models, six_squad).size() == 6, "The six-model configuration materializes its required role composition")
+	var guard_only := fixture(3, "guards-only")
+	var guard_only_squad := find_squad(guard_only, 1, "victrix-honour-guard")
+	var guard_only_roles: Array[String] = []
+	for member: int in Geometry.alive(guard_only, guard_only_squad): guard_only_roles.append(str(guard_only.units[member].get("victrix_honour_guard_role", "")))
+	check(not guard_only.has("error") and guard_only.training_points[1] == 320 and guard_only_roles == ["victrix-honour-guard", "victrix-honour-guard", "victrix-honour-guard"], "The bannerless Guard-only 3-model composition materializes at 120 points")
+	var champion_only := fixture(3, "champion")
+	var champion_only_squad := find_squad(champion_only, 1, "victrix-honour-guard")
+	check(not champion_only.has("error") and find_role(champion_only, champion_only_squad, "chapter-ancient") < 0 and find_role(champion_only, champion_only_squad, "chapter-champion") >= 0 and champion_only.training_points[1] == 320, "The Champion-only composition preserves its Blades of Honour without charging for the Banner")
 	var state := fixture()
 	check(not state.has("error"), "Three-model Victrix fixture materializes")
 	if state.has("error"):
@@ -128,7 +167,7 @@ func run() -> void:
 	state.unit_abilities.banner_active = {}
 	state.phase = "shooting"
 	state.active = 2
-	var shooter := find_squad(state, 2, "immortals")
+	var shooter := find_squad(state, 2, "intercessor-squad")
 	Victrix.open_after_enemy_shot(state, shooter, [])
 	check(state.unit_abilities.window.is_empty(), "Glory does not trigger without a casualty from the completed attack")
 	Victrix.open_after_enemy_shot(state, shooter, [{"target_squad": guard_squad, "models_destroyed": 1, "allocations": [{"model": champion_model}]}])

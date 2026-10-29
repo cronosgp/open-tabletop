@@ -2590,8 +2590,8 @@
       ],
       "definition_status": "implemented_and_locally_validated_in_admitted_scope",
       "implementation_document": "marine-victrix-honour-guard.md",
-      "validation_artifact": ".tools/verification/20261019T172535463675Z/results.json",
-      "composition_limit": "Current admission exposes only the fixed Ancient+Champion compositions at 3 and 6 total models; other source-legal role mixes are not selectable."
+      "validation_artifact": ".tools/verification/20261027T221923236402Z/results.json",
+      "composition_limit": "All eight source-legal 3/6-model role combinations are admitted. The 15-point Banner surcharge applies only to choices that include the Chapter Ancient."
     },
     {
       "id": "space-marines/victrix-honour-guard/honour-guard-of-macragge",
@@ -2611,8 +2611,8 @@
       ],
       "definition_status": "implemented_and_locally_validated_in_admitted_scope",
       "implementation_document": "marine-victrix-honour-guard.md",
-      "validation_artifact": ".tools/verification/20261019T172535463675Z/results.json",
-      "composition_limit": "Current admission exposes only the fixed Ancient+Champion compositions at 3 and 6 total models; other source-legal role mixes are not selectable."
+      "validation_artifact": ".tools/verification/20261027T221923236402Z/results.json",
+      "composition_limit": "All eight source-legal 3/6-model role combinations are admitted. The 15-point Banner surcharge applies only to choices that include the Chapter Ancient."
     },
     {
       "id": "space-marines/victrix-honour-guard/banner-of-macragge",
@@ -2633,8 +2633,8 @@
       ],
       "definition_status": "implemented_and_locally_validated_in_admitted_scope",
       "implementation_document": "marine-victrix-honour-guard.md",
-      "validation_artifact": ".tools/verification/20261019T172535463675Z/results.json",
-      "composition_limit": "Current admission exposes only the fixed Ancient+Champion compositions at 3 and 6 total models; other source-legal role mixes are not selectable."
+      "validation_artifact": ".tools/verification/20261027T221923236402Z/results.json",
+      "composition_limit": "All eight source-legal 3/6-model role combinations are admitted. The 15-point Banner surcharge applies only to choices that include the Chapter Ancient."
     },
     {
       "id": "space-marines/kor-sarro-khan/trophy-taker",
@@ -3148,6 +3148,23 @@
       "ability_id": "000011158",
       "implementation_status": "implemented_and_locally_validated_in_admitted_scope",
       "runtime_identity": "captain-titus"
+    },
+    {
+      "datasheet_id": "space-marines/captain-with-jump-pack",
+      "abilities": [
+        {
+          "id": "core/deep-strike-24-09"
+        },
+        {
+          "id": "core/leader-24-22"
+        },
+        {
+          "id": "space-marines/combat-doctrines"
+        },
+        {
+          "id": "space-marines/transhuman-strategist"
+        }
+      ]
     }
   ],
   "implementation_followup": {
@@ -3553,12 +3570,12 @@
     "document": "marine-victrix-honour-guard.md",
     "source_book_id": "000000139",
     "source_datasheet_id": "000004185",
-    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-19-v78-victrix-honour-guard-source-profile",
-    "validation_artifact": ".tools/verification/20261019T172535463675Z/results.json",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-26-v88-ravenwing-black-knights",
+    "validation_artifact": ".tools/verification/20261027T221923236402Z/results.json",
     "definition_status": "implemented_and_locally_validated_in_admitted_scope",
     "network_validation": "deferred_to_final_integration_by_user",
     "full_match_certified": false,
-    "composition_limit": "Currently admitted: fixed Chapter Ancient + Chapter Champion compositions at 3 or 6 models; other legal role combinations are not exposed."
+    "composition_limit": "All eight source-legal 3/6-model role combinations are admitted. The 15-point Banner surcharge applies only to choices that include the Chapter Ancient."
   },
   "marneus_calgar_followup": {
     "document": "marine-marneus-calgar.md",

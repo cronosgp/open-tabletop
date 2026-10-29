@@ -10,7 +10,7 @@ const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const ID := "ca-2026-27-dominance-hammer-fixed-v1"
 const DEFAULT_TERRAIN_LAYOUT := "ca-2026-27-take-and-hold-mirror-a-v1"
 const DEFAULT_SECONDARY_PAIR := "engage-assassination"
-const FORCE_DISPOSITIONS := {"take-and-hold": "Take and Hold", "priority-assets": "Priority Assets"}
+const FORCE_DISPOSITIONS := {"take-and-hold": "Take and Hold", "priority-assets": "Priority Assets", "purge-the-foe": "Purge the Foe"}
 const FORCE_DISPOSITION_PRIMARY_DEFAULTS := {
 	"take-and-hold": {"take-and-hold": "battlefield-dominance", "priority-assets": "inescapable-dominion"},
 	"priority-assets": {"take-and-hold": "secure-asset", "priority-assets": "sabotage"}
@@ -66,6 +66,22 @@ static func enabled(s: Dictionary) -> bool:
 static func default_primary_mission(force_disposition: String, opponent_force_disposition: String) -> String:
 	var row: Dictionary = FORCE_DISPOSITION_PRIMARY_DEFAULTS.get(force_disposition, {})
 	return str(row.get(opponent_force_disposition, ""))
+
+static func available_force_dispositions(s: Dictionary, player: int) -> Array:
+	var validation: Variant = s.get("roster_validation", {})
+	var armies: Variant = validation.get("armies", {}) if validation is Dictionary else {}
+	if not armies is Dictionary: return ["take-and-hold", "priority-assets"]
+	var army: Variant = armies.get(player, armies.get(str(player), null))
+	if not army is Dictionary: return ["take-and-hold", "priority-assets"]
+	var construction: Variant = army.get("construction", army)
+	var detachments: Variant = construction.get("detachments", []) if construction is Dictionary else []
+	if not detachments is Array or detachments.is_empty(): return ["take-and-hold", "priority-assets"]
+	var available: Array = []
+	for detachment: Variant in detachments:
+		if not detachment is Dictionary: continue
+		for disposition: Variant in detachment.get("force_dispositions", []):
+			if FORCE_DISPOSITIONS.has(str(disposition)) and str(disposition) not in available: available.append(str(disposition))
+	return available
 
 static func enable(s: Dictionary, terrain_layout: String = DEFAULT_TERRAIN_LAYOUT, primary_id: String = "battlefield-dominance", secondary_pair_id: String = DEFAULT_SECONDARY_PAIR, primary_ids: Dictionary = {}, force_disposition_ids: Dictionary = {}, primary_overrides: Dictionary = {}, sealed_force_disposition_reveal: bool = false) -> void:
 	if not T.is_event_layout(terrain_layout): terrain_layout = DEFAULT_TERRAIN_LAYOUT
@@ -194,7 +210,7 @@ static func choices(s: Dictionary, player: int) -> Array:
 	match s.mission.stage:
 		"force-disposition-p1", "force-disposition-p2":
 			var options: Array = []
-			for disposition_id: String in ["take-and-hold", "priority-assets"]:
+			for disposition_id: String in available_force_dispositions(s, player):
 				options.append(choice("Seal %s" % str(FORCE_DISPOSITIONS[disposition_id]), "mission-force-disposition", -1, disposition_id))
 			return options
 		"terrain": return [choice("Roll central objective configuration (D6)", "mission-terrain")]
@@ -265,14 +281,14 @@ static func sealed_force_disposition_state_error(s: Dictionary) -> String:
 		elif sealed_choices.size() != 1 or (not sealed_choices.has(1) and not sealed_choices.has("1")):
 			return "Cannot continue while sealed Force Disposition state is invalid."
 		var player_one_choice := str(sealed_choices.get(1, sealed_choices.get("1", "")))
-		if stage == "force-disposition-p2" and not FORCE_DISPOSITIONS.has(player_one_choice):
+		if stage == "force-disposition-p2" and player_one_choice not in available_force_dispositions(s, 1):
 			return "Cannot continue while sealed Force Disposition state is invalid."
 		return ""
 	if not sealed_choices.is_empty() or assignments.size() != 2 or str(mission.get("primary_selection_mode", "")) != "force-disposition-default":
 		return "Cannot continue while sealed Force Disposition state is invalid."
 	for player in [1, 2]:
 		var disposition := str(assignments.get(player, assignments.get(str(player), "")))
-		if not FORCE_DISPOSITIONS.has(disposition): return "Cannot continue while sealed Force Disposition state is invalid."
+		if disposition not in available_force_dispositions(s, player): return "Cannot continue while sealed Force Disposition state is invalid."
 	return ""
 
 static func _ensure_tracking(m: Dictionary) -> void:
@@ -348,8 +364,8 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		"mission-force-disposition":
 			if not bool(m.get("sealed_force_disposition_reveal", false)) or m.stage not in ["force-disposition-p1", "force-disposition-p2"]: return "Sealed Force Disposition selection is not active."
 			var selected_disposition := str(selected.get("value", ""))
-			if not FORCE_DISPOSITIONS.has(selected_disposition): return "Choose an available Force Disposition."
 			var selecting_player := 1 if m.stage == "force-disposition-p1" else 2
+			if selected_disposition not in available_force_dispositions(s, selecting_player): return "Choose an available Force Disposition from this roster's detachment."
 			if player != selecting_player: return "This sealed choice belongs to Player %d." % selecting_player
 			if not m.get("sealed_force_disposition_choices", null) is Dictionary: m.sealed_force_disposition_choices = {}
 			m.sealed_force_disposition_choices[selecting_player] = selected_disposition
@@ -511,7 +527,7 @@ static func _reveal_force_disposition_defaults(s: Dictionary, selected_dispositi
 	var actions: Array[String] = []
 	for player in [1, 2]:
 		var disposition := str(selected_dispositions.get(player, selected_dispositions.get(str(player), "")))
-		if not FORCE_DISPOSITIONS.has(disposition): return "Choose an available Force Disposition for both players."
+		if disposition not in available_force_dispositions(s, player): return "Choose an available Force Disposition for both players' selected detachments."
 		dispositions[player] = disposition
 		disposition_names[player] = str(FORCE_DISPOSITIONS[disposition])
 	for player in [1, 2]:

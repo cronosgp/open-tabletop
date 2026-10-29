@@ -53,24 +53,39 @@ static func new_list(edition: String, faction: String, category: String = "incur
 	return {"id": "", "name": "My Army", "edition": edition, "faction": faction, "category": category,
 		"points_limit": limit, "allow_allies": false, "entries": [], "notes": "", "catalog_digest": ""}
 
-static func entry(unit: Dictionary, option: int, copies: int = 1) -> Dictionary:
+static func entry(unit: Dictionary, option: int, copies: int = 1, composition_choice: Dictionary = {}) -> Dictionary:
 	var result := {"unit_id": unit.id, "name": unit.name, "edition": unit.edition, "faction": unit.faction, "role": unit.role,
 		"models": unit.options[option].models, "cost": unit.options[option].cost, "copies": copies, "source_digest": unit.source_digest}
+	if unit.options[option].has("second_plus_cost"): result.second_plus_cost = unit.options[option].second_plus_cost
 	if unit.options[option].has("third_plus_cost"): result.third_plus_cost = unit.options[option].third_plus_cost
+	if unit.options[option].has("fourth_plus_cost"): result.fourth_plus_cost = unit.options[option].fourth_plus_cost
 	if unit.options[option].has("enhancement_id"): result.enhancement_id = str(unit.options[option].enhancement_id)
+	if not composition_choice.is_empty():
+		result.composition_choice_id = str(composition_choice.get("id", ""))
+		result.wargear_cost = int(composition_choice.get("wargear_cost", 0))
 	return result
 
-static func tiered_cost(cost: Variant, third_plus_cost: Variant, copies: int, already_counted: int = 0) -> Variant:
+static func tiered_cost(cost: Variant, third_plus_cost: Variant, copies: int, already_counted: int = 0, fourth_plus_cost: Variant = null, second_plus_cost: Variant = null) -> Variant:
 	if cost == null: return null
-	var later_cost: int = int(third_plus_cost) if integer(third_plus_cost, 1) else int(cost)
-	var first_two := mini(copies, maxi(0, 2 - already_counted))
-	return first_two * int(cost) + (copies - first_two) * later_cost
+	var second_cost := int(second_plus_cost) if integer(second_plus_cost, 1) else int(cost)
+	var third_cost := int(third_plus_cost) if integer(third_plus_cost, 1) else int(cost)
+	if not integer(third_plus_cost, 1): third_cost = second_cost
+	var fourth_cost := int(fourth_plus_cost) if integer(fourth_plus_cost, 1) else third_cost
+	var total := 0
+	for offset in range(copies):
+		var copy_number := already_counted + offset + 1
+		if copy_number == 1: total += int(cost)
+		elif copy_number == 2: total += second_cost
+		elif copy_number == 3: total += third_cost
+		else: total += fourth_cost
+	return total
 
-static func addition_cost(list: Dictionary, unit_id: String, option: Dictionary, copies: int) -> Variant:
+static func addition_cost(list: Dictionary, unit_id: String, option: Dictionary, copies: int, wargear_cost_per_unit: int = 0) -> Variant:
 	var already_counted := 0
 	for item: Dictionary in list.get("entries", []):
 		if item.get("unit_id", "") == unit_id: already_counted += int(item.get("copies", 0))
-	return tiered_cost(option.get("cost"), option.get("third_plus_cost"), copies, already_counted)
+	var base: Variant = tiered_cost(option.get("cost"), option.get("third_plus_cost"), copies, already_counted, option.get("fourth_plus_cost"), option.get("second_plus_cost"))
+	return null if base == null else int(base) + wargear_cost_per_unit * copies
 
 static func entry_cost(entries: Array, index: int) -> Variant:
 	if index < 0 or index >= entries.size(): return null
@@ -78,7 +93,8 @@ static func entry_cost(entries: Array, index: int) -> Variant:
 	var already_counted := 0
 	for previous in range(index):
 		if entries[previous].get("unit_id", "") == item.get("unit_id", ""): already_counted += int(entries[previous].get("copies", 0))
-	var result: Variant = tiered_cost(item.get("cost"), item.get("third_plus_cost"), int(item.get("copies", 0)), already_counted)
+	var result: Variant = tiered_cost(item.get("cost"), item.get("third_plus_cost"), int(item.get("copies", 0)), already_counted, item.get("fourth_plus_cost"), item.get("second_plus_cost"))
+	if result != null: result = int(result) + int(item.get("wargear_cost", 0)) * int(item.get("copies", 0))
 	if result != null and item.get("enhancement_id", "") != "": result = int(result) + enhancement_cost(str(item.enhancement_id))
 	return result
 
@@ -94,7 +110,8 @@ static func summary(list: Dictionary) -> Dictionary:
 		var copies := int(item.copies)
 		units += copies
 		if item.cost == null: unknown += copies
-		else: points += int(tiered_cost(item.cost, item.get("third_plus_cost"), copies, int(already_counted.get(item.unit_id, 0))))
+		else: points += int(tiered_cost(item.cost, item.get("third_plus_cost"), copies, int(already_counted.get(item.unit_id, 0)), item.get("fourth_plus_cost"), item.get("second_plus_cost")))
+		points += int(item.get("wargear_cost", 0)) * copies
 		if item.get("enhancement_id", "") != "": points += enhancement_cost(str(item.enhancement_id))
 		already_counted[item.unit_id] = int(already_counted.get(item.unit_id, 0)) + copies
 	return {"points": points, "unknown": unknown, "units": units, "remaining": int(list.points_limit) - points,
@@ -118,6 +135,10 @@ static func validate(list: Variant) -> String:
 		if not integer(item.get("models"), 0, 1000) or not integer(item.get("copies"), 1, 20): return "Invalid unit/model count."
 		if not item.has("cost") or (item.cost != null and not integer(item.cost, 1)): return "Invalid cost."
 		if item.has("third_plus_cost") and not integer(item.third_plus_cost, 1): return "Invalid third-plus unit cost."
+		if item.has("fourth_plus_cost") and not integer(item.fourth_plus_cost, 1): return "Invalid fourth-plus unit cost."
+		if item.has("composition_choice_id") and (not item.composition_choice_id is String or item.composition_choice_id.is_empty() or item.composition_choice_id.length() > 64): return "Invalid unit composition choice."
+		if item.has("wargear_cost") and not integer(item.wargear_cost, 0, 10000): return "Invalid optional wargear cost."
+		if item.has("wargear_cost") != item.has("composition_choice_id"): return "A composition choice and its optional wargear cost must be saved together."
 		if item.has("enhancement_id") and (not item.enhancement_id is String or item.enhancement_id.is_empty() or int(item.copies) != 1): return "An enhancement must be assigned to exactly one unit entry."
 		if item.has("visual_variants"):
 			if not item.visual_variants is Array or item.visual_variants.size() != int(item.models) * int(item.copies): return "Invalid local miniature appearance assignments."
@@ -137,7 +158,15 @@ static func reprice(list: Dictionary, catalog: Dictionary) -> Dictionary:
 		for choice in range(unit.options.size()):
 			if unit.options[choice].models == old.models: option = choice
 		if option < 0: return {"error": "Composition changed in the catalog: " + old.name}
-		var refreshed := entry(unit, option, int(old.copies))
+		var composition_choice: Dictionary = {}
+		if unit.has("composition_options"):
+			var choice_id := str(old.get("composition_choice_id", "ancient-champion"))
+			for candidate: Dictionary in unit.composition_options:
+				if int(candidate.get("models", -1)) == int(old.models) and str(candidate.get("id", "")) == choice_id:
+					composition_choice = candidate
+					break
+			if composition_choice.is_empty(): return {"error": "Unit composition changed in the catalog: " + old.name}
+		var refreshed := entry(unit, option, int(old.copies), composition_choice)
 		if old.has("visual_variants"): refreshed.visual_variants = old.visual_variants.duplicate(true)
 		if old.has("enhancement_id"): refreshed.enhancement_id = old.enhancement_id
 		updated.entries[index] = refreshed
@@ -184,6 +213,8 @@ static func catalog_error(catalog: Variant) -> String:
 		for option: Variant in unit.options:
 			if not option is Dictionary or not integer(option.get("models"), 0, 1000) or not option.has("cost") or (option.cost != null and not integer(option.cost, 1)): return "Invalid cost/composition in catalog."
 			if option.has("third_plus_cost") and not integer(option.third_plus_cost, 1): return "Invalid third-plus cost/composition in catalog."
+			if option.has("second_plus_cost") and not integer(option.second_plus_cost, 1): return "Invalid second-plus cost/composition in catalog."
+			if option.has("fourth_plus_cost") and not integer(option.fourth_plus_cost, 1): return "Invalid fourth-plus cost/composition in catalog."
 	if catalog_digest(catalog.units, catalog.get("enhancements", [])) != catalog.digest: return "Catalog integrity check failed."
 	return ""
 
@@ -194,7 +225,9 @@ static func catalog_digest(units: Array, enhancements: Array = []) -> String:
 		for option: Dictionary in unit.options:
 			option.models = int(option.models)
 			if option.cost != null: option.cost = int(option.cost)
+			if option.has("second_plus_cost"): option.second_plus_cost = int(option.second_plus_cost)
 			if option.has("third_plus_cost"): option.third_plus_cost = int(option.third_plus_cost)
+			if option.has("fourth_plus_cost"): option.fourth_plus_cost = int(option.fourth_plus_cost)
 	return JSON.stringify({"units": canonical, "enhancements": enhancements}).sha256_text()
 
 static func write_json(path: String, data: Dictionary, maximum: int = 16777216) -> String:

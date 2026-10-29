@@ -1,0 +1,194 @@
+{
+  "id": "marine-watch-captain-artemis-e11-local-audit-2026-10-29",
+  "rules_authority": "Wahapedia 11th edition current Space Marines faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Deathwatch",
+    "book_id": "000000035",
+    "book_type": "App",
+    "datasheet_id": "000003872",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Watch-Captain-Artemis",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "current_page_checked_at": "2026-10-29",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "retrieved_at_utc": "2026-10-29T00:31:29Z",
+    "specification_revision": "20260817b (URL query parameter)",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_manifest_sha256": "eb17311be3c05709b6f91c747dee5e7e8ec91b9a90c2555c3232ba9dfbdfbfca",
+    "slice_subject_datasheet_ids": [
+      "000003872"
+    ],
+    "slice_external_identity_only_datasheet_ids": [
+      "000002780",
+      "000002783",
+      "000004175"
+    ],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "snapshot_file_sha256": {
+      "Factions": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+      "Stratagems": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Enhancements": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c",
+      "Enhancements_wargear": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Detachment_abilities": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c",
+      "Detachments": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536",
+      "Detachments_chapter_dp": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source": "d08fd3ae3ac7102238a52b072170af6a663b248f98185b7cf676d4fa464dc14d",
+      "Datasheets": "b0e4972a194d45ea284e1581d0fb11c48a703223009df02f4689c4a3aa31ce23",
+      "Datasheets_abilities": "6e4c3aa7222e6edbc1d30f33510203ece89c97501cee1639bd02f92ed119db78",
+      "Datasheets_keywords": "6590af47bcd8be67eb141eb5e65acf9fa810c6973e6c0cc1ad1815bec8d7933e",
+      "Datasheets_models": "13d3ffeae45047d0fafc865ba32879ef3983853abec527f2635b26b1308bf352",
+      "Datasheets_options": "7a32f726f4d7977477962f34bb06098b13ccb859b4e7052de42e57b708ee8bdb",
+      "Datasheets_wargear": "bd9523aefdcd2b3dc83b0c2c6eec0b4c415461eeb74c25ce633d6a0030dfa8ae",
+      "Datasheets_unit_composition": "aa390069018cd2fd7b2ed025ada0c945a2dfd41566bb5a2acceb7031a379e8b0",
+      "Datasheets_models_cost": "93b6fe0f008456adfa365a4617d373110e3885284f0839e467771b19b6793983",
+      "Datasheets_stratagems": "fbd322469d8faf3f3e5a9315b861deda3a0bb918b0b0822bfbdaf727b5649c05",
+      "Datasheets_enhancements": "706aba5f1abf97fbae09634be1f3deef8cf5703a2a692f604df0c1f79c810305",
+      "Datasheets_detachment_abilities": "0f08f33cb5314bb3b246819320873ce586df9bc9224af9682e33f3f9e02c073f",
+      "Datasheets_leader": "edc14c465f3f6b8e517db8b24384b6f34bd53f1518e31b9c027842338cc389bd",
+      "Stratagems": "4d6562363832acde407ba75bac9da9eceb0dff4bc98ca33aded13d084468ed74",
+      "Abilities": "a2e630204153704fe72812fa7d0f912519d5c8498fd58c5ab6724796bbafbce1",
+      "Enhancements": "12aa57be799c6284332b0c3c641e75955e6bd74f055a4c862089410fbd35f036",
+      "Enhancements_wargear": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a",
+      "Detachment_abilities": "140ffed73c253d1b0af4a902368daf29b8b50b543826b4a7e04eec1d85a99778",
+      "Detachments": "037809453c6014cb53da0f090ad5a2ebd63fc35ddc6606528340af070cd89ab4",
+      "Detachments_chapter_dp": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    }
+  },
+  "source_profile": {
+    "points": 75,
+    "model_count": 1,
+    "base_mm": 32,
+    "characteristics": {
+      "movement": "6\"",
+      "toughness": 5,
+      "save": "3+",
+      "invulnerable_save": "4+",
+      "wounds": 4,
+      "leadership": "6+",
+      "objective_control": 1
+    },
+    "keywords": [
+      "Infantry",
+      "Captain",
+      "Character",
+      "Epic Hero",
+      "Kill Team",
+      "Explosives",
+      "Imperium",
+      "Adeptus Astartes",
+      "Deathwatch"
+    ],
+    "ranged_weapon": {
+      "name": "Hellfire Extremis",
+      "range": "12\"",
+      "attacks": 3,
+      "skill": "- (Torrent)",
+      "strength": 4,
+      "ap": -1,
+      "damage": 1,
+      "keywords": [
+        "Torrent",
+        "Ignores Cover",
+        "Devastating Wounds",
+        "Anti-Infantry 4+"
+      ]
+    },
+    "melee_weapon": {
+      "name": "Master-crafted Power Weapon",
+      "attacks": 6,
+      "skill": "2+",
+      "strength": 6,
+      "ap": -2,
+      "damage": 2
+    },
+    "abilities": [
+      "Feel No Pain 6+",
+      "Leader",
+      "Combat Doctrines",
+      "Transhuman Strategist",
+      "Tactical Instinct",
+      "Unstoppable Champion"
+    ],
+    "leader_targets": [
+      "000002783",
+      "000002780",
+      "000004175"
+    ]
+  },
+  "runtime_scope": {
+    "current_reference_catalog": true,
+    "source_bounded_local_scope": "passed",
+    "effects": [
+      "Artemis model only: Feel No Pain 6+.",
+      "While attached, the unit gains Sustained Hits 1 for all its attacks through AttackPlan.",
+      "Once per battle per army, at the end of the phase in which Artemis was destroyed, roll one D6; on 2+ return her with 3 wounds at the closest legal unengaged position."
+    ],
+    "choice_command": "normalized UnitActions end-of-phase decision and placement continuation",
+    "destruction_coverage": "On-battlefield destruction paths currently observed by the local combat model.",
+    "full_army_legality_certified": false,
+    "network_validated": false,
+    "human_playtested": false
+  },
+  "verification": {
+    "command": "python tools/verify.py --profile focused --only test_watch_captain_artemis --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe",
+    "result_path": ".tools/verification/20261029T011058690940Z/results.json",
+    "result_sha256": "a155e992d4ae7e8723742c47dad793e2c039fe30640c1246b826e66c5c6895fe",
+    "processes_passed": 3,
+    "network": false,
+    "legacy_starter_staged": false,
+    "headless_rid_cleanup_diagnostics": false,
+    "suite_stems": [
+      "test_watch_captain_artemis"
+    ],
+    "scope_note": "Checks source profile, catalog admission and Epic Hero copy limit, Leader endpoints, personal Feel No Pain, unit-wide Sustained Hits 1, end-of-phase destruction qualification, both D6 outcomes, nearest legal placement and once-per-army use.",
+    "related_regression": {
+      "command": "python tools/verify.py --profile targeted --only test_watch_captain_artemis --only test_deathwatch_veterans --only test_fortis_kill_team --only test_decimus_kill_team --only test_space_marine_leader_links --only test_combat_doctrines --only test_capabilities --only test_implemented_catalog --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --timeout 300",
+      "result_path": ".tools/verification/20261029T011706897051Z/results.json",
+      "result_sha256": "de3809fe4cbf7d6e3019042e0ecd87556912cd0d431c3e9540476455a0d3c6ac",
+      "processes_passed": 10,
+      "network": false,
+      "legacy_starter_staged": true,
+      "headless_rid_cleanup_diagnostics": false,
+      "suite_stems": [
+        "test_watch_captain_artemis",
+        "test_deathwatch_veterans",
+        "test_fortis_kill_team",
+        "test_decimus_kill_team",
+        "test_space_marine_leader_links",
+        "test_combat_doctrines",
+        "test_capabilities",
+        "test_implemented_catalog"
+      ],
+      "note": "The current construction catalog publishes 85 shared-book identities and 53 Chapter runtime profiles."
+    }
+  },
+  "limits": [
+    "On-battlefield local destruction paths are covered; off-board or transport destruction pathways are not certified.",
+    "The parent export has 68 validation errors; the source facts used here come from a structurally valid scoped slice with zero errors.",
+    "This result does not certify Deathwatch or whole-army legality, network behavior, human playtesting, complete matches or alternate game modes."
+  ]
+}

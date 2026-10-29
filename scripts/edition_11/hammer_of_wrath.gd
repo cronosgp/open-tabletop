@@ -27,7 +27,7 @@ static func eligible_targets(state: Dictionary, squad: int) -> Array[int]:
 	return result
 
 static func charge_completed(state: Dictionary, player: int, squad: int) -> bool:
-	if state.squads[squad].owner != player: return false
+	if not state.has("unit_abilities") or not state.squads.has(squad) or state.squads[squad].owner != player: return false
 	var ability_targets := eligible_targets(state, squad)
 	state.unit_abilities.window = {"kind": ID, "owners": [player], "squad": squad, "targets": ability_targets, "armoured_impact_targets": [], "wrath_targets": []}
 	var impact_targets: Array[int] = []

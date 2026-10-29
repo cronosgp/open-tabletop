@@ -16,7 +16,7 @@ static func choices(state: Dictionary, model: int, melee: bool) -> Array[Diction
 	for weapon: Dictionary in inventory(state, model, melee):
 		for profile: String in weapon.profiles:
 			var stats: Dictionary = weapon.profiles[profile]
-			if melee and UnitAbilities.enabled(state) and UnitAbilities.identity(state.units[model]) == "captain" and state.unit_abilities.used.get("finest-active:%d" % model, -1) == state.turn:
+			if melee and UnitAbilities.has(state, int(state.units[model].squad), "finest-hour") and state.unit_abilities.used.get("finest-active:%d" % model, -1) == state.turn:
 				stats = stats.duplicate(true)
 				stats.attacks = int(stats.attacks) + 3
 				stats.keywords["devastating-wounds"] = true

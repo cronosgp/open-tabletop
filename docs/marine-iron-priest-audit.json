@@ -1,0 +1,178 @@
+{
+  "id": "marine-iron-priest-e11-local-audit-2026-10-29",
+  "rules_authority": "The verified local Wahapedia 11th-edition Data Export supplies datasheet facts. Page comparison and network validation are deferred to final integration.",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Space Wolves",
+    "book_id": "000000036",
+    "book_type": "App",
+    "datasheet_id": "000000306",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Iron-Priest",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "snapshot_retrieval_window_utc": "2026-10-29T00:31:29.030708Z–2026-10-29T00:32:24.715969Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_batch": "remaining-space-wolves-slice",
+    "slice_manifest_sha256": "d7e1cd38ee48ed72c881e42652e3cf185056736f1e373f625411e1e250dda764",
+    "slice_catalog_sha256": "5d2041467eb03ecc5cdcd508ccf49f9063c871e39d379fa9fb9e2e6ba2581c3e",
+    "slice_batch_subject_datasheet_ids": [
+      "000000285",
+      "000000297",
+      "000000302",
+      "000000306",
+      "000000314",
+      "000002801",
+      "000004129",
+      "000004130",
+      "000004131",
+      "000004133"
+    ],
+    "subject_datasheet_ids": [
+      "000000306"
+    ],
+    "external_identity_only_datasheet_ids": [
+      "000001157",
+      "000004131",
+      "000000303",
+      "000001606",
+      "000000305"
+    ],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "parent_snapshot_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Enhancements.csv": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Detachment_abilities.csv": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c",
+      "Detachments.csv": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "4d34498c24d51e16bc03db40b57c8fba1abd23939a330d1fb0e5ed79a0495744",
+      "Datasheets.csv": "831542ea8497ba719b537c1844cf05ff40492cf6e0a5f194461c82fdec4132bc",
+      "Datasheets_abilities.csv": "1b2b5307b60c5adc706ea6d0491d709e6092819858edd089164b2bfb03681973",
+      "Datasheets_keywords.csv": "9e90fb94efaf0e25be996458e6a71d16a5175714cf86160314846a02f3699c52",
+      "Datasheets_models.csv": "1e326dc5abb9f42bc759b0399973403a3494e8d3f9bc8125340e431d2f83f10a",
+      "Datasheets_options.csv": "3984b359f0b15df4f02e758008f0157fd6e9282af8c3981958048e1921037db8",
+      "Datasheets_wargear.csv": "dc5a12f2b00bc5ed0d4a02f688a3190a7453c6aacfa137d611d200f63ab6386e",
+      "Datasheets_unit_composition.csv": "5ec0269c7288645244b1093a1966579ebdfac6b9d6acb42a024b077865548568",
+      "Datasheets_models_cost.csv": "220a39089f272be9ac88ccfc2782600005cbd46d0d5a929801e75b1441d282f1",
+      "Datasheets_stratagems.csv": "5a6d2a8ec82be6086335a4fcb42bf9b6c5be275d2b50c8313ee9f36c8d08f059",
+      "Datasheets_enhancements.csv": "d1b080d4088386edf8f69798ec100fa9200c3eca89848a5015adacb5016945e7",
+      "Datasheets_detachment_abilities.csv": "5c60f87a600a39a1c9acce14eb605a36daecae5aac9b0cf62d335041850560e0",
+      "Datasheets_leader.csv": "9a7db571bc48ed70390cf06ed49342671d9e85993cf5814425916c3765bae59a",
+      "Stratagems.csv": "36e21c26532d18c7e13db55dee8ee3e5e2b162470e22b238b1b8ef5d10fba3c8",
+      "Abilities.csv": "6aff18981d44bf0fe4c8160bcedbc13f1e3ebe344c4fd6d0ee1c6d5c86964d05",
+      "Enhancements.csv": "f8959c1ae7209ba716da022278f46f1188551e443507b43c9ad0831a5ffc15ac",
+      "Enhancements_wargear.csv": "16812f613c4672ef90983f64854e64d740afc7589a2ecb12de6357f07074e0d5",
+      "Detachment_abilities.csv": "6e1f8a2500e51a1365dddf75fb7d925414032eeebc5c7f36485c9100f247a3b0",
+      "Detachments.csv": "57c78ed0be34bdc5133a5c0259c0961b60bb68f699ba39adddfcbbb36a676549",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    }
+  },
+  "source_checked_facts": {
+    "composition": {
+      "1": [
+        "1 Iron Priest"
+      ]
+    },
+    "points_by_models": {
+      "1": 60
+    },
+    "third_plus_points_by_models": {},
+    "max_supported_copies": 3,
+    "model_profiles": {
+      "Iron Priest": {
+        "movement_inches": 7,
+        "toughness": 5,
+        "save_target": 2,
+        "wounds": 4,
+        "leadership_target": 6,
+        "objective_control": 1,
+        "invulnerable_target": 0,
+        "base_size_mm": 32,
+        "weapons": [
+          "Helfrost Pistol - Dispersed: 12 inches, A3, Torrent (no BS), S4, AP -1, D1; Close-quarters",
+          "Helfrost Pistol - Focused: 12 inches, A1, BS2+, S6, AP -3, D3; Close-quarters",
+          "Tempest Hammer and Servo-arm: A4, WS4+, S8, AP -2, D3"
+        ]
+      }
+    },
+    "options": [],
+    "abilities": [
+      "Leader: Intercessor Squad (000001157), Wolf Guard Headtakers (000004131), Blood Claws (000000303), Assault Intercessor Squad (000001606), Grey Hunters (000000305). Wolf Guard Headtakers is selectable in its admitted mixed configurations; its incompatible standalone rows remain blocked.",
+      "Combat Doctrines.",
+      "Transhuman Strategist.",
+      "Gift of the Iron Wolf: in your Movement phase, at the start or end of this unit’s move, select up to one friendly Space Wolves Vehicle model within 3 inches. It heals D3 wounds and its attacks can ignore modifiers to Hit rolls and Wound rolls until the start of your next Movement phase. The same Vehicle model cannot be selected more than once per phase.",
+      "Iron Priest: this model has Lone Operative while within 3 inches of a friendly Space Wolves Vehicle unit.",
+      "Judgement of the Omnissiah: this model’s attacks targeting an enemy unit engaged with a friendly Space Wolves Vehicle can re-roll Wound rolls."
+    ],
+    "keywords": [
+      "SPACE WOLVES",
+      "ADEPTUS ASTARTES",
+      "IMPERIUM",
+      "TECHMARINE",
+      "CHARACTER",
+      "INFANTRY"
+    ],
+    "leader_datasheet_ids": [
+      "000001157",
+      "000004131",
+      "000000303",
+      "000001606",
+      "000000305"
+    ]
+  },
+  "local_scope_validation": {
+    "status": "source_bounded_local_scope_passed_2026_10_29",
+    "focused_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_iron_priest --timeout 300",
+    "focused_report": ".tools/verification/20261029T053730053780Z/results.json",
+    "focused_report_sha256": "f71058c36ecf7e3de6fb40d17fc62d9ced4aade9036934b03ac2d0e80918210a",
+    "focused_suites_passed": 1,
+    "focused_processes_passed": 3,
+    "focused_legacy_starter_staged": false,
+    "connected_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_iron_priest --only test_stormlance_enhancements --only test_implemented_catalog --only test_capabilities --only test_space_marine_leader_links --only test_techmarine --only test_attack_sequence --timeout 300",
+    "connected_report": ".tools/verification/20261029T053805849424Z/results.json",
+    "connected_report_sha256": "7120a94977c8808c263a832a5d931295b9d5b7292edd066ffba0374bab0223a6",
+    "connected_suites_passed": 7,
+    "connected_processes_passed": 9,
+    "connected_legacy_starter_staged": true,
+    "network_validation": "deferred_to_final_integration",
+    "human_playtesting": "not_completed",
+    "full_army_legality": "not_certified"
+  },
+  "implementation_limits": [
+    "The batch slice containing the subject is structurally valid with zero findings; the parent export has 68 unrelated validation findings.",
+    "The test fixture temporarily adds SPACE WOLVES to a common Ballistus Dreadnought because the current catalog has no selectable Space Wolves Vehicle. This checks keyword-gated behavior but does not certify a playable Space Wolves Vehicle profile.",
+    "The existing runtime interpretation suppresses the model-only Lone Operative protection while the Iron Priest is Leader-attached.",
+    "Wolf Guard Headtakers is a selectable partial Leader endpoint for its admitted mixed 6/12-model configurations; its MFM-mapped Headtakers-only rows remain blocked by Wahapedia's selected minimum composition.",
+    "Network/page comparison, human playtesting, full Space Wolves restrictions and full army legality remain uncertified.",
+    "Two source-linked enhancement rows are explicitly blocked for Iron Priest because their handlers are Techmarine-only; the enhancement admission and capability checks passed in the connected regression."
+  ],
+  "playable": false,
+  "full_match_certified": false
+}

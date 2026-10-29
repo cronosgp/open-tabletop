@@ -5,6 +5,10 @@ const Mission = preload("res://scripts/edition_11/chapter_approved.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const Reivers = preload("res://scripts/edition_11/reivers.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const CrusadeAncient = preload("res://scripts/edition_11/crusade_ancient.gd")
+const Execrator = preload("res://scripts/edition_11/execrator.gd")
+const SwordBrethren = preload("res://scripts/edition_11/sword_brethren.gd")
+const WulfenStormShields = preload("res://scripts/edition_11/wulfen_storm_shields.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
 const AdeptOfTheOmnissiah = preload("res://scripts/edition_11/adept_of_the_omnissiah.gd")
 ## Restricted integration exercise, not a complete official 11e match.
@@ -24,6 +28,7 @@ const HailOfBolts = preload("res://scripts/edition_11/hail_of_bolts.gd")
 const Awakened = preload("res://scripts/edition_11/awakened_dynasty.gd")
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
+const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
 const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const OathOfMoment = preload("res://scripts/edition_11/oath_of_moment.gd")
 const VowedTarget = preload("res://scripts/edition_11/vowed_target.gd")
@@ -46,6 +51,8 @@ const PhaseProgression = preload("res://scripts/edition_11/phase_progression.gd"
 const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 const PhaseResolution = preload("res://scripts/edition_11/phase_resolution.gd")
 const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
+const AircraftRules = preload("res://scripts/edition_11/aircraft_rules.gd")
+const StasisBomb = preload("res://scripts/edition_11/stasis_bomb.gd")
 const RulesetIdentity = preload("res://scripts/edition_11/ruleset_identity.gd")
 const MatchActor = preload("res://scripts/edition_11/match_actor.gd")
 const TacticalFluidity = preload("res://scripts/edition_11/tactical_fluidity.gd")
@@ -53,6 +60,10 @@ const PurgationRun = preload("res://scripts/edition_11/purgation_run.gd")
 const PhobosShadowMasters = preload("res://scripts/edition_11/phobos_shadow_masters.gd")
 const PhobosExecuteRedeploy = preload("res://scripts/edition_11/phobos_execute_redeploy.gd")
 const VictrixHonourGuard = preload("res://scripts/edition_11/victrix_honour_guard.gd")
+const CrusaderSurge = preload("res://scripts/edition_11/crusader_surge.gd")
+const DeathCompanyDreadnought = preload("res://scripts/edition_11/death_company_dreadnought.gd")
+const DeathwatchTerminatusAssault = preload("res://scripts/edition_11/deathwatch_terminatus_assault.gd")
+const Mephiston = preload("res://scripts/edition_11/mephiston.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
 const FiringDeck = preload("res://scripts/edition_11/firing_deck.gd")
 const PACK_ID := RulesetIdentity.PACK_ID
@@ -303,7 +314,7 @@ static func _settle_vengeful_frame(state: Dictionary) -> void:
 		ResolutionFrames.complete(state, str(frame.frame_id))
 
 static func _settle_phase_start_frame(state: Dictionary) -> void:
-	var pending_choice: bool = Doctrines.needs_choice(state) or OathOfMoment.needs_choice(state) or VowedTarget.needs_choice(state) or not UnitActions.phase_decision(state).is_empty() or not state.get("fearsome_assault", {}).is_empty() or not DetachmentStratagems.adamantine_pending(state).is_empty()
+	var pending_choice: bool = Doctrines.needs_choice(state) or OathOfMoment.needs_choice(state) or VowedTarget.needs_choice(state) or not UnitActions.phase_decision(state).is_empty() or not state.get("fearsome_assault", {}).is_empty() or not state.get("feared-interrogator", {}).is_empty() or not state.get("death-mask-of-sanguinius", {}).is_empty() or not DetachmentStratagems.adamantine_pending(state).is_empty()
 	var action_id := _phase_start_action_id(state)
 	var frame := ResolutionFrames.current(state)
 	if not frame.is_empty() and (str(frame.get("kind", "")) != "phase-start" or str(frame.get("action_id", "")) != action_id): return
@@ -344,11 +355,11 @@ static func resolve_command_reaction(state: Dictionary, player: int, squad: int,
 	if pending_kind == "after_battle_shock_roll":
 		var current_result: Dictionary = Stratagems.pending(state).get("current_result", {}).duplicate(true)
 		if stratagem == "tempered-in-battle":
-			if not MarineEnhancements.tempered_in_battle_active(state, squad): return "Tempered in Battle does not apply to this Leadership roll."
+			if not MarineEnhancements.leadership_reroll_available(state, squad): return "No eligible Leadership re-roll applies to this roll."
 			var rerolled := Morale.roll_battle_shock(state, squad, roller, int(current_result.get("modifier", 0)))
 			if not rerolled.error.is_empty(): return rerolled.error
 			rerolled["rerolled_from"] = current_result.rolls.duplicate()
-			rerolled["reroll_source"] = "tempered-in-battle"
+			rerolled["reroll_source"] = MarineEnhancements.leadership_reroll_name(state, squad)
 			current_result = rerolled
 		elif not stratagem.is_empty():
 			return "Choose an available Leadership reroll or accept the current result."
@@ -364,12 +375,12 @@ static func resolve_command_reaction(state: Dictionary, player: int, squad: int,
 	if stratagem.is_empty():
 		result = Morale.roll_battle_shock(state, squad, roller)
 		if not result.error.is_empty(): return result.error
-		if MarineEnhancements.tempered_in_battle_active(state, squad):
+		if MarineEnhancements.leadership_reroll_available(state, squad):
 			var staged := state.duplicate(true)
 			staged.stratagems.pending.kind = "after_battle_shock_roll"
 			staged.stratagems.pending.squad = squad
 			staged.stratagems.pending.current_result = result.duplicate(true)
-			_event(staged, "%s rolled Leadership %s vs %d. Choose whether to re-roll with Tempered in Battle or keep the result." % [staged.squads[squad].name, str(result.rolls), int(result.target)])
+			_event(staged, "%s rolled Leadership %s vs %d. Choose whether to use the available Leadership re-roll or keep the result." % [staged.squads[squad].name, str(result.rolls), int(result.target)])
 			state.clear()
 			state.merge(staged, true)
 			return ""
@@ -383,20 +394,36 @@ static func resolve_command_reaction(state: Dictionary, player: int, squad: int,
 	state.merge(working, true)
 	return ""
 
+static func resolve_deathwatch_terminatus_reaction(state: Dictionary, player: int, squad: int, decision: String, revision: int, roller: Callable = Callable()) -> String:
+	var window := Stratagems.pending(state)
+	if window.get("kind", "") != DeathwatchTerminatusAssault.BATTLE_SHOCK_WINDOW:
+		return "There is no pending Deathwatch Terminatus Assault Battle-shock decision."
+	var error := Stratagems.choice_error(state, player, squad, revision)
+	if not error.is_empty(): return error
+	var working := state.duplicate(true)
+	var outcome := DeathwatchTerminatusAssault.resolve_pending(working, player, squad, decision, roller)
+	if not str(outcome.get("error", "")).is_empty(): return str(outcome.error)
+	if not bool(outcome.get("pending", false)):
+		error = _complete_charge_post_move_followups(working, int(outcome.get("charge_player", -1)), int(outcome.get("charge_squad", -1)), bool(outcome.get("resume_heroic", false)))
+		if not error.is_empty(): return error
+	state.clear()
+	state.merge(working, true)
+	return ""
+
 static func resolve_escape_morale_reaction(state: Dictionary, player: int, squad: int, stratagem: String, revision: int, roller: Callable = Callable()) -> String:
 	if Stratagems.pending(state).get("kind", "") != "after_escape_battle_shock_roll": return "There is no pending Desperate Escape Leadership decision."
 	var error := Stratagems.choice_error(state, player, squad, revision)
 	if not error.is_empty(): return error
 	var current_result: Dictionary = Stratagems.pending(state).get("current_result", {}).duplicate(true)
 	if stratagem == "tempered-in-battle":
-		if not MarineEnhancements.tempered_in_battle_active(state, squad): return "Tempered in Battle does not apply to this Leadership roll."
+		if not MarineEnhancements.leadership_reroll_available(state, squad): return "No eligible Leadership re-roll applies to this roll."
 		var rerolled := Morale.roll_battle_shock(state, squad, roller, int(current_result.get("modifier", 0)))
 		if not rerolled.error.is_empty(): return rerolled.error
 		rerolled["rerolled_from"] = current_result.rolls.duplicate()
-		rerolled["reroll_source"] = "tempered-in-battle"
+		rerolled["reroll_source"] = MarineEnhancements.leadership_reroll_name(state, squad)
 		current_result = rerolled
 	elif not stratagem.is_empty():
-		return "Choose Tempered in Battle or accept the current Leadership result."
+		return "Choose the available Leadership re-roll or accept the current result."
 	else:
 		current_result["reroll_declined"] = true
 	var working := state.duplicate(true)
@@ -418,7 +445,7 @@ static func _finish_command_battle_shock_roll(state: Dictionary, player: int, sq
 	if result.get("stratagem", "") == "insane-bravery":
 		_event(working, "%s: Insane Bravery • 1 CP • Battle-shock passed automatically." % working.squads[squad].name)
 	else:
-		var result_source := " after Tempered in Battle's Leadership re-roll" if result.get("reroll_source", "") == "tempered-in-battle" else ""
+		var result_source := " after a Leadership re-roll" if result.get("rerolled_from", []).size() > 0 else ""
 		_event(working, "%s battle-shock%s: %s vs %d — %s." % [working.squads[squad].name, result_source, str(result.get("rolls", [])), int(result.get("target", 0)), "passed" if result.get("passed", false) else "battle-shocked"])
 	window.erase("squad")
 	window.erase("current_result")
@@ -444,6 +471,15 @@ static func _engaged(state: Dictionary, squad: int) -> bool:
 			if Contact.within_engagement(state.units[id], state.units[enemy]): return true
 	return false
 
+static func _engaged_for_normal_advance(state: Dictionary, squad: int) -> bool:
+	for id: int in living(state, squad):
+		for enemy: int in state.units:
+			if state.units[enemy].owner == state.units[id].owner or state.units[enemy].wounds <= 0 or not state.units[enemy].get("on_battlefield", true): continue
+			var enemy_squad := int(state.units[enemy].get("squad", -1))
+			if AircraftRules.is_aircraft(state, enemy_squad): continue
+			if Contact.within_engagement(state.units[id], state.units[enemy]): return true
+	return false
+
 static func movement_remaining(state: Dictionary, id: int) -> float:
 	if not state.units.has(id): return 0.0
 	var unit: Dictionary = state.units[id]
@@ -456,10 +492,21 @@ static func movement_remaining(state: Dictionary, id: int) -> float:
 		bonus = float(state.pending_move.get("bonus", 0))
 		take_to_skies_penalty = float(state.pending_move.get("take_to_skies_penalty", 0.0))
 	var characteristic_bonus := 0.0 if DetachmentStratagems.might_ignore_active(state, int(unit.squad)) else Doctrines.movement_bonus(state, int(unit.squad)) + AncientFury.movement_bonus(state, int(unit.squad))
-	return maxf(0.0, float(unit.movement) + bonus + characteristic_bonus - take_to_skies_penalty - spent)
+	var stasis_penalty := StasisBomb.movement_penalty(state, int(unit.squad))
+	return maxf(0.0, float(unit.movement) + bonus + characteristic_bonus - take_to_skies_penalty - stasis_penalty - spent)
 
 static func movement_choice_error(state: Dictionary, player: int, model: int, move_type: String, revision: int) -> String:
-	var error := _command_error(state, player, revision)
+	var continuation_action_id := ""
+	if state.units.has(model):
+		var unit: Dictionary = state.units[model]
+		var movement_id := _movement_action_id(state, int(unit.squad))
+		var frame := ResolutionFrames.current(state)
+		if str(frame.get("kind", "")) == "unit-action" \
+		and str(frame.get("action_id", "")) == movement_id \
+		and str(frame.get("status", "")) == "suspended" \
+		and str(frame.get("resume_point", "")) == "stasis-bomb-damage":
+			continuation_action_id = movement_id
+	var error := _command_error(state, player, revision, continuation_action_id)
 	return movement_choice_error_after_command(state, player, model, move_type, error)
 
 ## Reuse the shared command precondition when a presentation layer checks every
@@ -475,9 +522,14 @@ static func movement_choice_error_after_command(state: Dictionary, player: int, 
 	if state.squads[squad].moved: return "This squad has already resolved its move."
 	if move_type not in ["normal", "advance", "ordered_retreat", "desperate_escape", "stationary"]:
 		return "Unsupported movement type."
+	var aircraft_error := AircraftRules.movement_type_error(state, squad, move_type)
+	if not aircraft_error.is_empty(): return aircraft_error
 	var engaged := _engaged(state, squad)
-	if move_type in ["normal", "advance"] and engaged: return "Engaged squads must Fall Back or remain stationary."
+	if move_type in ["normal", "advance"] and _engaged_for_normal_advance(state, squad): return "Engaged squads must Fall Back or remain stationary."
 	if move_type in ["ordered_retreat", "desperate_escape"] and not engaged: return "Only engaged squads can Fall Back."
+	if move_type in ["ordered_retreat", "desperate_escape"] and UnitAbilities.black_rage_restricted(state, squad): return "Black Rage prevents this unit from Falling Back unless it is within 6 inches of a Blood Angels Character and within 12 inches of a Chaplain."
+	if move_type == "ordered_retreat" and UnitAbilities.sammael_forces_desperate_escape(state, squad): return "Cut Off Their Escape forces this unit to use Desperate Escape while engaged with Sammael."
+	if move_type == "ordered_retreat" and UnitAbilities.savage_frenzy_forces_desperate_escape(state, squad): return "Savage Frenzy forces this unit to use Desperate Escape while engaged with Wulfen."
 	if move_type == "ordered_retreat" and state.squads[squad].battle_shocked: return "Battle-shocked squads must use Desperate Escape to Fall Back."
 	return ""
 
@@ -485,12 +537,18 @@ static func _movement_draft(state: Dictionary, squad: int, move_type: String, ta
 	var origins: Dictionary = {}
 	var origin_elevations: Dictionary = {}
 	var prior_flags: Dictionary = {}
+	var paths: Dictionary = {}
 	for member: int in living(state, squad):
 		origins[member] = state.units[member].position
 		origin_elevations[member] = float(state.units[member].get("elevation", 0.0))
 		prior_flags[member] = state.units[member].moved
+		paths[member] = []
 	var take_to_skies_penalty := Terrain.take_to_skies_penalty(state, squad, take_to_skies)
-	return {"squad": squad, "move_type": move_type, "origins": origins, "origin_elevations": origin_elevations, "prior_flags": prior_flags, "spent": {}, "bonus": 0, "hazard_remaining": 0, "hazard_rolls": [], "locked": move_type != "normal", "take_to_skies": take_to_skies, "take_to_skies_penalty": take_to_skies_penalty}
+	var sword_brethren_reactions: Array[int] = []
+	if move_type in ["ordered_retreat", "desperate_escape"]:
+		for reaction_squad: Variant in SwordBrethren.fall_back_reaction_squads(state, squad):
+			sword_brethren_reactions.append(int(reaction_squad))
+	return {"squad": squad, "move_type": move_type, "origins": origins, "origin_elevations": origin_elevations, "prior_flags": prior_flags, "paths": paths, "spent": {}, "bonus": 0, "hazard_remaining": 0, "hazard_rolls": [], "hazard_modifiers": [], "locked": move_type != "normal", "take_to_skies": take_to_skies, "take_to_skies_penalty": take_to_skies_penalty, "sword_brethren_reaction_squads": sword_brethren_reactions}
 
 static func _movement_action_id(state: Dictionary, squad: int) -> String:
 	return "movement:%d:%d:%s" % [int(state.get("turn", 0)), squad, str(state.get("phase", ""))]
@@ -585,7 +643,7 @@ static func _complete_contact_frame(state: Dictionary, move: Dictionary) -> Stri
 static func _settle_charge_frame_after_reaction(state: Dictionary) -> String:
 	var frame := ResolutionFrames.current(state)
 	if frame.is_empty() or str(frame.get("kind", "")) != "unit-action" or not str(frame.get("action_id", "")).begins_with("charge:") or str(frame.get("resume_point", "")) not in ["charge-post-move-reaction", "charge-failed-reaction"]: return ""
-	if not UnitActions.pending(state).is_empty() or not state.get("pending_charge", {}).is_empty() or not state.get("pending_contact", {}).is_empty() or not state.get("pending_attack", {}).is_empty() or not state.get("pending_hazard", {}).is_empty(): return ""
+	if not UnitActions.pending(state).is_empty() or not Stratagems.pending(state).is_empty() or not state.get("pending_charge", {}).is_empty() or not state.get("pending_contact", {}).is_empty() or not state.get("pending_attack", {}).is_empty() or not state.get("pending_hazard", {}).is_empty(): return ""
 	return ResolutionFrames.complete(state, str(frame.frame_id))
 
 static func _new_attack_resolution_action_id(state: Dictionary, squad: int) -> String:
@@ -668,8 +726,8 @@ static func _post_attack_reaction_window(window: Dictionary, depth: int) -> bool
 	if kind == "tactics" and str(window.get("source", "")) == DetachmentStratagems.WE_ARE_VENGEANCE: return true
 	if kind in [TacticalFluidity.WINDOW, TacticalFluidity.PLACEMENT,
 		PurgationRun.WINDOW, PurgationRun.PLACEMENT,
-		PhobosShadowMasters.WINDOW, PhobosExecuteRedeploy.WINDOW,
-		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, "forward-assault-mark"]: return true
+		PhobosShadowMasters.WINDOW, PhobosExecuteRedeploy.WINDOW, CrusadeAncient.MARTIAL_HONOUR_WINDOW,
+		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, DeathCompanyDreadnought.WINDOW, DeathCompanyDreadnought.TARGET_WINDOW, DeathCompanyDreadnought.PLACEMENT, "forward-assault-mark"]: return true
 	var resume_window: Variant = window.get("resume_window", {})
 	return _post_attack_reaction_window(resume_window, depth + 1) if typeof(resume_window) == TYPE_DICTIONARY else false
 
@@ -679,6 +737,39 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 	var squad: int = state.units[model].squad
 	if take_to_skies and move_type not in ["normal", "advance", "ordered_retreat", "desperate_escape"]: return "Take to the Skies is available only for a Normal Move, Advance or Fall Back."
 	if take_to_skies and not Terrain.squad_can_fly(state, squad): return "Take to the Skies requires a FLYING unit."
+	if move_type in ["ordered_retreat", "desperate_escape"] and not Mephiston.fallback_resolved(state, squad):
+		var gaze_sources := Mephiston.transfixing_gaze_sources(state, squad)
+		if not gaze_sources.is_empty():
+			var leadership_test := Morale.roll_leadership_test(state, squad, roller)
+			if not str(leadership_test.get("error", "")).is_empty(): return str(leadership_test.error)
+			var movement_declaration := {"player": player, "model": model, "move_type": move_type, "use_sudden_onslaught": use_sudden_onslaught, "take_to_skies": take_to_skies}
+			if MarineEnhancements.leadership_reroll_available(state, squad):
+				if _begin_movement_frame(state, squad, "mephiston-fallback-leadership-decision").is_empty(): return "Could not open the Mephiston Leadership continuation frame."
+				Mephiston.open_fallback_reroll(state, player, squad, gaze_sources[0], movement_declaration, leadership_test)
+				var gaze_suspend_error := _suspend_movement_frame(state, squad, "mephiston-fallback-leadership-decision")
+				if not gaze_suspend_error.is_empty(): return gaze_suspend_error
+				_event(state, "%s rolled Leadership %s vs %d under Transfixing Gaze. Choose an eligible re-roll or keep the result." % [state.squads[squad].name, str(leadership_test.rolls), int(leadership_test.target)])
+				return ""
+			Mephiston.record_fallback_test(state, squad, leadership_test)
+			if not bool(leadership_test.get("passed", false)):
+				state.squads[squad].moved = true
+				state.squads[squad].move_type = "stationary"
+				state.squads[squad].fell_back = false
+				for member: int in living(state, squad): state.units[member].moved = true
+				_event(state, "%s failed its Leadership test under Transfixing Gaze and must Remain Stationary." % state.squads[squad].name)
+				return ""
+	if StasisBomb.should_resolve_movement(state, player, squad, move_type):
+		var continuation := {"model": model, "move_type": move_type, "use_sudden_onslaught": use_sudden_onslaught, "take_to_skies": take_to_skies}
+		var stasis := StasisBomb.resolve_movement(state, player, squad, model, move_type, roller, continuation)
+		if not str(stasis.get("error", "")).is_empty(): return str(stasis.error)
+		if bool(stasis.get("pending", false)):
+			if _begin_movement_frame(state, squad, "stasis-bomb-damage").is_empty(): return "Could not open the Stasis Bomb movement continuation."
+			var record: Dictionary = stasis.record
+			StasisBomb.open_mortal_window(state, record)
+			var suspend_error := _suspend_movement_frame(state, squad, "stasis-bomb-damage")
+			if not suspend_error.is_empty(): return suspend_error
+			_event(state, "%s is slowed by Stasis Bomb: roll %s caused %d mortal wound%s and -%d inches to M; allocate before moving." % [state.squads[squad].name, str(record.rolls), int(record.remaining), "" if int(record.remaining) == 1 else "s", int(record.penalty)])
+			return ""
 	var mobile_choice_available := not unstoppable_resolved and move_type != "stationary" and not use_sudden_onslaught and (DetachmentStratagems.mobile_declaration_available(state, player, squad, DetachmentStratagems.UNSTOPPABLE_ADVANCE) or DetachmentStratagems.mobile_declaration_available(state, player, squad, DetachmentStratagems.KNIGHTS_OF_IRON) or DetachmentStratagems.mobile_declaration_available(state, player, squad, DetachmentStratagems.FLAWLESS_RIDERS) or DetachmentStratagems.mobile_declaration_available(state, player, squad, DetachmentStratagems.MOBILE_LETHALITY, move_type))
 	if mobile_choice_available:
 		if _begin_movement_frame(state, squad, "movement-stratagem-decision").is_empty(): return "Could not open the movement resolution frame."
@@ -697,6 +788,9 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 		_event(state, "%s remained stationary." % state.squads[squad].name)
 		return ""
 	var draft := _movement_draft(state, squad, move_type, take_to_skies)
+	if move_type == "advance" and UnitAbilities.has(state, squad, "wind-walker"):
+		if use_sudden_onslaught: return "Wind Walker already changes this Advance roll to 6."
+		draft.wind_walker_to_six = true
 	if move_type == "advance" and state.get("unit_abilities", {}).get("veil_of_time_pending", {}).has(squad):
 		if use_sudden_onslaught: return "Sudden Onslaught cannot be used after Veil of Time fixed this Advance to 6."
 		draft.veil_of_time_to_six = true
@@ -712,7 +806,8 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 				draft.hazard_rolls.append(dice.d6())
 		if not dice.error.is_empty(): return dice.error
 		if move_type == "desperate_escape":
-			var initial_hazard := Hazard.from_rolls(state, squad, draft.hazard_rolls)
+			draft.hazard_modifiers = UnitAbilities.forced_escape_hazard_modifiers(state, squad, draft.hazard_rolls.size())
+			var initial_hazard := Hazard.from_rolls(state, squad, draft.hazard_rolls, draft.hazard_modifiers)
 			if not str(initial_hazard.get("error", "")).is_empty(): return str(initial_hazard.error)
 			draft.hazard_remaining = int(initial_hazard.total)
 	if _begin_movement_frame(state, squad, "movement-roll").is_empty(): return "Could not open the movement resolution frame."
@@ -733,11 +828,24 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 		if opened:
 			var suspend_error := _suspend_movement_frame(state, squad, "advance-roll-decision")
 			if not suspend_error.is_empty(): return suspend_error
-			_event(state, "%s: Advance D6 = %d. Accept%s before moving." % [state.squads[squad].name, draft.bonus, ", re-roll with Sudden Storm" if state.stratagems.pending.get("sudden", false) else " or use Command Re-roll"])
+			var reroll_options := PackedStringArray()
+			if state.stratagems.pending.get("overcharged_engines", false): reroll_options.append("Overcharged Engines")
+			if state.stratagems.pending.get("sudden", false): reroll_options.append("Sudden Storm")
+			if state.stratagems.pending.get("supercharged", false): reroll_options.append("Supercharged Engines")
+			if state.stratagems.pending.get("honour_vigilance", false): reroll_options.append("Honour of Vigilance")
+			if state.stratagems.pending.get("wrath_chapter", false): reroll_options.append("Wrath of the Chapter")
+			if state.stratagems.pending.get("stormseers_wisdom", false): reroll_options.append("Stormseer's Wisdom")
+			if state.stratagems.pending.get("righteous_fervour", false): reroll_options.append("Righteous Fervour")
+			if Stratagems.use_error(state, player, squad, "command-re-roll", int(state.get("revision", -1))).is_empty(): reroll_options.append("Command Re-roll")
+			var reroll_label := ""
+			for index in range(reroll_options.size()):
+				if index > 0: reroll_label += " or "
+				reroll_label += reroll_options[index]
+			_event(state, "%s: Advance D6 = %d. Accept%s before moving." % [state.squads[squad].name, draft.bonus, " or re-roll with " + reroll_label if not reroll_options.is_empty() else ""])
 			return ""
 		draft.raw_bonus = draft.bonus
 		var advance_modifier := UnitAbilities.advance_modifier(state, squad) + Doctrines.advance_bonus(state, squad)
-		draft.bonus = (6 if draft.get("veil_of_time_to_six", false) else draft.raw_bonus) + advance_modifier
+		draft.bonus = (6 if draft.get("veil_of_time_to_six", false) or draft.get("wind_walker_to_six", false) else draft.raw_bonus) + advance_modifier
 	state.pending_move = draft
 	var frame := _begin_movement_frame(state, squad, "movement-placement")
 	if frame.is_empty(): return "Could not resume the movement resolution frame."
@@ -745,7 +853,7 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 	UnitActions.TargetAuguryWeb.open_for_move(state, squad, "start")
 	if move_type == "desperate_escape" and state.get("stratagems", {}).get("escape_rerolls", false):
 		# Recalculate from the final pool after an optional Command Re-roll.
-		var rerolled_hazard := Hazard.from_rolls(state, squad, draft.hazard_rolls)
+		var rerolled_hazard := Hazard.from_rolls(state, squad, draft.hazard_rolls, draft.get("hazard_modifiers", []))
 		if not str(rerolled_hazard.get("error", "")).is_empty(): return str(rerolled_hazard.error)
 		state.pending_move.hazard_remaining = int(rerolled_hazard.total)
 		if Stratagems.eligibility_error(state, player, squad, "command-re-roll").is_empty():
@@ -782,7 +890,7 @@ static func resolve_escape_reaction(state: Dictionary, player: int, squad: int, 
 		rolls[die] = dice.d6()
 		if not dice.error.is_empty(): return dice.error
 	var working := state.duplicate(true)
-	var hazard := Hazard.from_rolls(working, squad, rolls)
+	var hazard := Hazard.from_rolls(working, squad, rolls, working.get("pending_move", {}).get("hazard_modifiers", []))
 	if not hazard.error.is_empty(): return hazard.error
 	if not stratagem.is_empty(): Stratagems.consume(working, player, squad, stratagem)
 	working.stratagems.pending = {}
@@ -793,7 +901,7 @@ static func resolve_escape_reaction(state: Dictionary, player: int, squad: int, 
 	if hazard.total > 0:
 		var suspend_error := _suspend_movement_frame(working, squad, "escape-wound-allocation")
 		if not suspend_error.is_empty(): return suspend_error
-	working.last_command_roll = {"kind": window.kind, "squad": squad, "original_rolls": window.rolls.duplicate(), "rolls": rolls.duplicate(), "rerolled": not stratagem.is_empty(), "die": die, "mortal_wounds": hazard.total}
+	working.last_command_roll = {"kind": window.kind, "squad": squad, "original_rolls": window.rolls.duplicate(), "rolls": rolls.duplicate(), "rerolled": not stratagem.is_empty(), "die": die, "hazard_modifiers": hazard.modifiers.duplicate(), "effective_rolls": hazard.effective_rolls.duplicate(), "mortal_wounds": hazard.total}
 	_event(working, "%s: final Desperate Escape hazards %s; %d mortal wounds before movement.%s" % [working.squads[squad].name, str(rolls), hazard.total, " Command Re-roll: 1 CP." if not stratagem.is_empty() else " Result accepted."])
 	state.clear()
 	state.merge(working, true)
@@ -834,6 +942,8 @@ static func allocate_escape_wound(state: Dictionary, player: int, model: int, re
 	var prevention := Attacks.Prevention.resolve(1, state.units[model].wounds, UnitPrevention.rules(state, model), "mortal", roller)
 	if not prevention.error.is_empty(): return prevention.error
 	state.units[model].wounds -= prevention.lost
+	if state.units[model].wounds <= 0: DetachmentStratagems.record_destroyed(state, model)
+	for cenobyte: int in ChaplainGrimaldus.destroy_cenobytes(state, model): DetachmentStratagems.record_destroyed(state, cenobyte)
 	state.last_escape_prevention = prevention
 	state.pending_move.hazard_remaining -= 1
 	if living(state, squad).is_empty():
@@ -915,6 +1025,11 @@ static func move_result(state: Dictionary, player: int, id: int, destination: Ve
 	var current_elevation := float(state.units[id].get("elevation", 0.0))
 	var target_elevation := current_elevation if destination_elevation < 0.0 else destination_elevation
 	var distance := Terrain.movement_distance(state.units[id].position, current_elevation, destination, target_elevation, Terrain.ignores_vertical_movement(state, id))
+	var pending_paths: Dictionary = state.pending_move.get("paths", {}).duplicate(true)
+	var path: Array = pending_paths.get(id, [])
+	path.append({"from": state.units[id].position, "to": destination, "from_elevation": current_elevation, "to_elevation": target_elevation})
+	pending_paths[id] = path
+	state.pending_move.paths = pending_paths
 	state.pending_move.spent[id] = float(state.pending_move.spent.get(id, 0.0)) + distance
 	state.units[id].position = destination
 	state.units[id].elevation = target_elevation
@@ -958,9 +1073,9 @@ static func finish_movement_result(state: Dictionary, player: int, revision: int
 	if move_type == "desperate_escape" and not state.squads[squad].battle_shocked:
 		var result: Dictionary = state.pending_move.get("morale_result", {}).duplicate(true)
 		if result.is_empty():
-			var tempered_applies := MarineEnhancements.tempered_in_battle_active(state, squad)
+			var tempered_applies := MarineEnhancements.leadership_reroll_available(state, squad)
 			if tempered_applies and (not state.has("stratagems") or str(state.stratagems.get("implementation", "")).is_empty() or not Stratagems.pending(state).is_empty()):
-				return _movement_validation_result("pending_unit_ability", "Tempered in Battle's Leadership decision is unavailable in this match profile.", "Use a match profile that supports this decision before resolving Desperate Escape.")
+				return _movement_validation_result("pending_unit_ability", "The Leadership re-roll decision is unavailable in this match profile.", "Use a match profile that supports this decision before resolving Desperate Escape.")
 			result = Morale.roll_battle_shock(state, squad, roller)
 			if not result.error.is_empty(): return _movement_validation_result("movement_resolution_failed", str(result.error), "Review the Battle-shock result and reopen the move if needed.")
 			if tempered_applies:
@@ -970,7 +1085,7 @@ static func finish_movement_result(state: Dictionary, player: int, revision: int
 				staged.stratagems.pending = {"kind": "after_escape_battle_shock_roll", "player": player, "squad": squad, "phase_key": Stratagems.phase_key(staged), "current_result": result.duplicate(true)}
 				var suspend_error := _suspend_movement_frame(staged, squad, "desperate-escape-leadership-decision")
 				if not suspend_error.is_empty(): return _movement_validation_result("movement_continuation_unavailable", suspend_error, "Reopen the movement decision before continuing.")
-				_event(staged, "%s rolled Leadership %s vs %d after Desperate Escape. Choose Tempered in Battle or keep the result." % [staged.squads[squad].name, str(result.rolls), int(result.target)])
+				_event(staged, "%s rolled Leadership %s vs %d after Desperate Escape. Choose the available Leadership re-roll or keep the result." % [staged.squads[squad].name, str(result.rolls), int(result.target)])
 				state.clear()
 				state.merge(staged, true)
 				return _movement_validation_result("valid")
@@ -992,8 +1107,10 @@ static func finish_movement_result(state: Dictionary, player: int, revision: int
 	if move_type == "normal":
 		state.squads[squad].normal_moved_this_turn = true
 		TacticalFluidity.mark_normal_move_used_this_phase(state, squad)
+	var sword_brethren_reactions: Array[int] = state.pending_move.get("sword_brethren_reaction_squads", [])
+	var movement_paths: Dictionary = state.pending_move.get("paths", {}).duplicate(true)
 	state.pending_move = {}
-	UnitActions.end_move(state, squad)
+	UnitActions.end_move(state, squad, move_type, sword_brethren_reactions, movement_paths)
 	UnitActions.open_mortis_snares_after_move(state, squad, move_type)
 	var frame_error := ""
 	if UnitActions.movement_reaction_squad(state) == squad:
@@ -1018,6 +1135,7 @@ static func charge_declaration_error(state: Dictionary, player: int, model: int,
 	if not state.units.has(model) or state.units[model].wounds <= 0 or not state.units[model].get("on_battlefield", true) or state.units[model].owner != player:
 		return "Select a living model in your squad."
 	var squad: int = state.units[model].squad
+	if AircraftRules.is_aircraft(state, squad): return "AIRCRAFT units are not eligible to declare a Charge."
 	error = Doctrines.charge_error(state, squad)
 	if not error.is_empty(): return error
 	if Actions.charge_blocked(state, squad): return "Starting an action prevents charges until the turn ends."
@@ -1067,7 +1185,7 @@ static func declare_charge(state: Dictionary, player: int, model: int, revision:
 	if opened:
 		var suspend_error := _suspend_charge_frame(state, squad, "charge-roll-decision")
 		if not suspend_error.is_empty(): return {"error": suspend_error}
-		var reroll_source := " with Unstoppable Valour, 0 CP" if state.stratagems.pending.get("valour", false) else (" with Master of Shadows, 0 CP" if state.stratagems.pending.get("master_shadows", false) else (" with Lord of the Ravenwing, 0 CP" if state.stratagems.pending.get("lord_of_the_ravenwing", false) else (" with Linebreaker Onslaught, 0 CP" if state.stratagems.pending.get("linebreaker_onslaught", false) else " with Command Re-roll")))
+		var reroll_source := " with Unstoppable Valour, 0 CP" if state.stratagems.pending.get("valour", false) else (" with Master of Shadows, 0 CP" if state.stratagems.pending.get("master_shadows", false) else (" with Lord of the Ravenwing, 0 CP" if state.stratagems.pending.get("lord_of_the_ravenwing", false) else (" with Linebreaker Onslaught, 0 CP" if state.stratagems.pending.get("linebreaker_onslaught", false) else (" with Deathwatch Terminatus Assault, 0 CP" if state.stratagems.pending.get("deathwatch_terminatus_assault", false) else " with Command Re-roll"))))
 		var notice := "%s: Charge %s = %d." % [state.squads[squad].name, str(rolls), maximum]
 		if take_to_skies: notice += " Take to the Skies declared%s." % (" with no movement reduction (HOVER)" if take_to_skies_penalty == 0.0 else "; maximum distance reduced by 2 inches")
 		notice += " Accept or re-roll both dice%s." % reroll_source
@@ -1109,16 +1227,22 @@ static func resolve_roll_reaction(state: Dictionary, player: int, squad: int, st
 	if window.get("kind") not in ["after_advance_roll", "after_charge_roll"]: return "No Advance or Charge roll is waiting for a decision."
 	var error := Stratagems.choice_error(state, player, squad, revision)
 	if not error.is_empty(): return error
-	if stratagem not in ["", "command-re-roll", "sudden-storm", "unstoppable-valour", "master-shadows", "lord-of-the-ravenwing", "linebreaker-onslaught", "supercharged-engines", "honour-of-vigilance", "wrath-of-the-chapter", "stormseers-wisdom"]: return "Stratagem unavailable for this roll."
+	if stratagem not in ["", "command-re-roll", "overcharged-engines", "sudden-storm", "unstoppable-valour", "master-shadows", "lord-of-the-ravenwing", "linebreaker-onslaught", "deathwatch-terminatus-assault", "supercharged-engines", "honour-of-vigilance", "wrath-of-the-chapter", "stormseers-wisdom", "righteous-fervour", "bestial-fury"]: return "Stratagem unavailable for this roll."
+	if stratagem == "bestial-fury" and (not window.get("bestial_fury", false) or not UnitAbilities.has(state, squad, "bestial-fury")): return "Bestial Fury is not available for this roll."
+	if stratagem == "overcharged-engines":
+		error = Stratagems.use_error(state, player, squad, stratagem, revision)
+		if not error.is_empty(): return error
 	if stratagem == "unstoppable-valour" and (window.kind != "after_charge_roll" or not window.get("valour", false) or not UnitAbilities.has(state, squad, "unstoppable-valour")): return "Unstoppable Valour is not available for this charge."
 	if stratagem == "master-shadows" and (window.kind != "after_charge_roll" or not window.get("master_shadows", false)): return "Master of Shadows is not available for this charge."
 	if stratagem == "lord-of-the-ravenwing" and (window.kind != "after_charge_roll" or not window.get("lord_of_the_ravenwing", false) or not MarineEnhancements.lord_of_the_ravenwing_active(state, squad)): return "Lord of the Ravenwing is not available for this charge."
 	if stratagem == "linebreaker-onslaught" and (window.kind != "after_charge_roll" or not window.get("linebreaker_onslaught", false) or not MarineEnhancements.linebreaker_onslaught_active(state, squad)): return "Linebreaker Onslaught is not available for this charge."
+	if stratagem == "deathwatch-terminatus-assault" and (window.kind != "after_charge_roll" or not window.get("deathwatch_terminatus_assault", false) or not UnitAbilities.has(state, squad, "deathwatch-terminatus-assault")): return "Deathwatch Terminatus Assault is not available for this Charge roll."
 	if stratagem == "sudden-storm" and (window.kind != "after_advance_roll" or not window.get("sudden", false)): return "Sudden Storm Advance re-roll is not available."
 	if stratagem == "supercharged-engines" and (window.kind != "after_advance_roll" or not window.get("supercharged", false)): return "Supercharged Engines Advance re-roll is not available."
 	if stratagem == "honour-of-vigilance" and (window.kind != "after_advance_roll" or not window.get("honour_vigilance", false)): return "Honour of Vigilance Advance re-roll is not available."
 	if stratagem == "wrath-of-the-chapter" and (window.kind != "after_advance_roll" or not window.get("wrath_chapter", false)): return "Wrath of the Chapter Advance re-roll is not available."
 	if stratagem == "stormseers-wisdom" and (window.kind != "after_advance_roll" or not window.get("stormseers_wisdom", false)): return "Stormseer's Wisdom Advance re-roll is not available."
+	if stratagem == "righteous-fervour" and (window.kind != "after_advance_roll" or not window.get("righteous_fervour", false) or not MarineEnhancements.righteous_fervour_active(state, squad)): return "Righteous Fervour Advance re-roll is not available."
 	var rolls: Array = window.rolls.duplicate()
 	if not stratagem.is_empty():
 		if stratagem == "command-re-roll":
@@ -1138,9 +1262,10 @@ static func resolve_roll_reaction(state: Dictionary, player: int, squad: int, st
 		if frame.is_empty(): return "Could not resume the movement resolution frame."
 		working.pending_move.raw_bonus = rolls[0]
 		var advance_modifier := UnitAbilities.advance_modifier(working, squad) + Doctrines.advance_bonus(working, squad)
-		working.pending_move.bonus = (6 if working.pending_move.get("veil_of_time_to_six", false) else rolls[0]) + advance_modifier
+		working.pending_move.bonus = (6 if working.pending_move.get("veil_of_time_to_six", false) or working.pending_move.get("wind_walker_to_six", false) else rolls[0]) + advance_modifier
 		if UnitAbilities.enabled(working): UnitActions.Techmarine.open_for_move(working, squad, "start")
-		var source_label := "Supercharged Engines re-roll, 0 CP" if stratagem == "supercharged-engines" else ("Stormseer's Wisdom re-roll, 0 CP" if stratagem == "stormseers-wisdom" else ("Honour of Vigilance re-roll, 0 CP" if stratagem == "honour-of-vigilance" else ("Wrath of the Chapter re-roll, 0 CP" if stratagem == "wrath-of-the-chapter" else ("Sudden Storm re-roll" if stratagem == "sudden-storm" else ("Command Re-roll, 1 CP" if stratagem == "command-re-roll" else "result accepted")))))
+		var source_labels := {"overcharged-engines": "Overcharged Engines re-roll, 0 CP", "righteous-fervour": "Righteous Fervour re-roll, 0 CP", "supercharged-engines": "Supercharged Engines re-roll, 0 CP", "stormseers-wisdom": "Stormseer's Wisdom re-roll, 0 CP", "honour-of-vigilance": "Honour of Vigilance re-roll, 0 CP", "wrath-of-the-chapter": "Wrath of the Chapter re-roll, 0 CP", "sudden-storm": "Sudden Storm re-roll", "bestial-fury": "Bestial Fury re-roll, 0 CP", "command-re-roll": "Command Re-roll, 1 CP"}
+		var source_label := str(source_labels.get(stratagem, "result accepted"))
 		_event(working, "%s: final Advance %s = %d%s inches%s. Movement can begin." % [working.squads[squad].name, str(rolls), working.pending_move.bonus, " (+%d modifier)" % advance_modifier if advance_modifier > 0 else "", " • " + source_label])
 	else:
 		if _begin_charge_frame(working, squad, "charge-roll").is_empty(): return "Could not resume the charge resolution frame."
@@ -1150,7 +1275,7 @@ static func resolve_roll_reaction(state: Dictionary, player: int, squad: int, st
 		if take_to_skies_penalty < 0.0: take_to_skies_penalty = Terrain.take_to_skies_penalty(working, squad, take_to_skies)
 		var result := _accept_charge_roll(working, squad, rolls, take_to_skies, take_to_skies_penalty)
 		if not result.error.is_empty(): return result.error
-		if not stratagem.is_empty(): working.events[-1].message += " %s: %s → %s." % ["Unstoppable Valour, 0 CP" if stratagem == "unstoppable-valour" else ("Master of Shadows, 0 CP" if stratagem == "master-shadows" else ("Lord of the Ravenwing, 0 CP" if stratagem == "lord-of-the-ravenwing" else ("Linebreaker Onslaught, 0 CP" if stratagem == "linebreaker-onslaught" else "Command Re-roll, 1 CP"))), str(window.rolls), str(rolls)]
+		if not stratagem.is_empty(): working.events[-1].message += " %s: %s → %s." % ["Unstoppable Valour, 0 CP" if stratagem == "unstoppable-valour" else ("Master of Shadows, 0 CP" if stratagem == "master-shadows" else ("Lord of the Ravenwing, 0 CP" if stratagem == "lord-of-the-ravenwing" else ("Linebreaker Onslaught, 0 CP" if stratagem == "linebreaker-onslaught" else ("Deathwatch Terminatus Assault, 0 CP" if stratagem == "deathwatch-terminatus-assault" else ("Bestial Fury, 0 CP" if stratagem == "bestial-fury" else "Command Re-roll, 1 CP"))))), str(window.rolls), str(rolls)]
 	state.clear()
 	state.merge(working, true)
 	return ""
@@ -1191,6 +1316,7 @@ static func charge_target_error(state: Dictionary, player: int, target: int, rev
 		return "Choose a living enemy target after the charge roll."
 	var squad: int = state.pending_charge.squad
 	var enemy: int = state.units[target].squad
+	if not AircraftRules.may_charge_target(state, squad, enemy): return "Only FLYING units can select an AIRCRAFT unit as a Charge target."
 	var nearest := INF
 	for id: int in living(state, squad): nearest = minf(nearest, Contact.distance_to_target(state, state.units[id], enemy))
 	if nearest > minf(12.0, state.pending_charge.maximum): return "Target must be within 12 inches and the full rolled distance."
@@ -1442,10 +1568,24 @@ static func stage_contact_move_result(state: Dictionary, player: int, model: int
 static func stage_contact_move(state: Dictionary, player: int, model: int, destination: Vector2, revision: int, destination_elevation: float = -1.0) -> String:
 	return str(stage_contact_move_result(state, player, model, destination, revision, destination_elevation).get("reason", "Contact movement could not be completed."))
 
-static func finish_contact_move(state: Dictionary, player: int, revision: int, cancel: bool = false) -> String:
-	return str(finish_contact_move_result(state, player, revision, cancel).get("reason", "Contact movement could not be completed."))
+static func finish_contact_move(state: Dictionary, player: int, revision: int, cancel: bool = false, roller: Callable = Callable()) -> String:
+	return str(finish_contact_move_result(state, player, revision, cancel, roller).get("reason", "Contact movement could not be completed."))
 
-static func finish_contact_move_result(state: Dictionary, player: int, revision: int, cancel: bool = false) -> Dictionary:
+static func finish_contact_move_result(state: Dictionary, player: int, revision: int, cancel: bool = false, roller: Callable = Callable()) -> Dictionary:
+	var pending_move: Dictionary = state.get("pending_contact", {})
+	var charge_squad := int(pending_move.get("squad", -1))
+	var needs_staging := not cancel and str(pending_move.get("kind", "")) == "charge" and UnitAbilities.has(state, charge_squad, "deathwatch-terminatus-assault")
+	if not needs_staging: return _finish_contact_move_result_in_place(state, player, revision, cancel, roller)
+	# Stage this mandatory dice-backed charge completion so an invalid host roll
+	# cannot leave the Deathwatch charge half-committed.
+	var staged := state.duplicate(true)
+	var result := _finish_contact_move_result_in_place(staged, player, revision, cancel, roller)
+	if bool(result.get("valid", false)):
+		state.clear()
+		state.merge(staged, true)
+	return result
+
+static func _finish_contact_move_result_in_place(state: Dictionary, player: int, revision: int, cancel: bool, roller: Callable) -> Dictionary:
 	var continuation_action_id := _pending_contact_action_id(state)
 	if continuation_action_id.is_empty(): continuation_action_id = _pending_charge_action_id(state)
 	var error := _command_error(state, player, revision, continuation_action_id)
@@ -1493,16 +1633,20 @@ static func finish_contact_move_result(state: Dictionary, player: int, revision:
 		state.pending_charge = {}
 		var was_heroic_intervention := CoreReactions.heroic_charger(state, player, squad)
 		if was_heroic_intervention: CoreReactions.clear_heroic(state)
-		if not Hammer.charge_completed(state, player, squad): CoreReactions.charge_completed(state, player, squad)
-		if was_heroic_intervention and state.get("unit_abilities", {}).get("window", {}).is_empty(): CoreReactions.reopen_heroic_choices(state)
-		UnitActions.open_mortis_snares_after_move(state, squad, move.kind)
-		if not UnitActions.pending(state).is_empty():
+		var deathwatch_result: Dictionary = {"error": "", "pending": {}}
+		if UnitAbilities.has(state, squad, "deathwatch-terminatus-assault"):
+			deathwatch_result = DeathwatchTerminatusAssault.begin_charge(state, squad, player, roller, was_heroic_intervention)
+			if not str(deathwatch_result.get("error", "")).is_empty(): return _movement_validation_result("charge_effect_unavailable", str(deathwatch_result.error), "Retry contact confirmation with the host's dice provider.")
+		var deathwatch_pending: Dictionary = deathwatch_result.get("pending", {})
+		if not deathwatch_pending.is_empty():
+			if not state.has("stratagems"): state.stratagems = {"pending": {}, "uses": [], "command_done_turn": -1}
+			state.stratagems.pending = deathwatch_pending
 			var suspend_error := _suspend_charge_frame(state, squad, "charge-post-move-reaction")
 			if not suspend_error.is_empty(): return _movement_validation_result("movement_continuation_unavailable", suspend_error, "Reopen the Charge decision before continuing.")
+			_event(state, "%s charge confirmed; resolve Deathwatch Terminatus Assault before other post-charge effects." % state.squads[squad].name)
 		else:
-			var frame_error := _complete_charge_frame(state, squad)
-			if not frame_error.is_empty(): return _movement_validation_result("movement_continuation_unavailable", frame_error, "Reopen the Charge decision before continuing.")
-		_event(state, "%s charge confirmed; Fights First until this turn ends." % state.squads[squad].name)
+			var followup_error := _complete_charge_post_move_followups(state, player, squad, was_heroic_intervention)
+			if not followup_error.is_empty(): return _movement_validation_result("movement_continuation_unavailable", followup_error, "Reopen the Charge decision before continuing.")
 	elif move.kind == "overrun":
 		state.squads[squad].overrun_used = true
 		state.fight_selected = squad
@@ -1539,7 +1683,20 @@ static func finish_contact_move_result(state: Dictionary, player: int, revision:
 		cached_push_rolls.erase(str(move.devout_push_roll_key))
 	return _movement_validation_result("valid")
 
-static func charge(state: Dictionary, player: int, target: int, revision: int) -> Dictionary:
+static func _complete_charge_post_move_followups(state: Dictionary, player: int, squad: int, was_heroic_intervention: bool) -> String:
+	if not Hammer.charge_completed(state, player, squad): CoreReactions.charge_completed(state, player, squad)
+	if was_heroic_intervention and state.get("unit_abilities", {}).get("window", {}).is_empty(): CoreReactions.reopen_heroic_choices(state)
+	UnitActions.open_mortis_snares_after_move(state, squad, "charge")
+	if not UnitActions.pending(state).is_empty() or not Stratagems.pending(state).is_empty():
+		var suspend_error := _suspend_charge_frame(state, squad, "charge-post-move-reaction")
+		if not suspend_error.is_empty(): return suspend_error
+	else:
+		var frame_error := _complete_charge_frame(state, squad)
+		if not frame_error.is_empty(): return frame_error
+	_event(state, "%s charge confirmed; Fights First until this turn ends." % state.squads[squad].name)
+	return ""
+
+static func charge(state: Dictionary, player: int, target: int, revision: int, roller: Callable = Callable()) -> Dictionary:
 	# Optional straight-line assist retained for existing fixtures. All proposals
 	# pass the same final validator; normal UI/network commands use manual paths.
 	var working: Dictionary = state.duplicate(true)
@@ -1553,7 +1710,7 @@ static func charge(state: Dictionary, player: int, target: int, revision: int) -
 	for id: int in plan.positions:
 		error = stage_contact_move(working, player, id, plan.positions[id], working.revision)
 		if not error.is_empty(): return {"error": error}
-	error = finish_contact_move(working, player, working.revision)
+	error = finish_contact_move(working, player, working.revision, false, roller)
 	if not error.is_empty(): return {"error": error}
 	state.units = working.units
 	state.squads = working.squads
@@ -1647,6 +1804,8 @@ static func _advance_fight(state: Dictionary, player: int, moved: bool = false, 
 
 static func _finish_empty_fight(state: Dictionary, player: int, squad: int) -> void:
 	if state.get("unit_abilities", {}).get("banner_active", {}).has(squad): state.unit_abilities.banner_active.erase(squad)
+	if state.get("unit_abilities", {}).get("used", {}).has("vehement-aggression:%d" % squad): state.unit_abilities.used.erase("vehement-aggression:%d" % squad)
+	if state.get("unit_abilities", {}).get("pious_fervour", {}).has(squad): state.unit_abilities.pious_fervour.erase(squad)
 	state.squads[squad].fought = true
 	DetachmentStratagems.remove_lingering(state, squad)
 	if state.fight_step == "consolidation_reaction": _resume_consolidation(state)
@@ -1752,12 +1911,22 @@ static func _continue_attack_declaration(state: Dictionary, declaration: Diction
 		if UnitActions.PhobosLibrarian.offer(waiting, declaration, prepared.targets):
 			var frame_error := _suspend_attack_declaration(waiting, declaration, "attack-phobos-shrouding")
 			if not frame_error.is_empty(): return {"error": frame_error}
-			var message := "Attack declared; the targeted Phobos Librarian may use Shrouding before dice are rolled."
+			var message := "Attack declared; an eligible Phobos Librarian may use Shrouding, or Ezekiel may use Whispers of the Shadow Forest, before dice are rolled."
 			_event(waiting, message)
 			state.clear()
 			state.merge(waiting, true)
 			return {"error": "", "message": message, "pools": []}
 		index = 2
+	if not bool(declaration.get("njal_storm_caller_checked", false)):
+		declaration.njal_storm_caller_checked = true
+		if UnitActions.NjalStormcaller.offer(waiting, declaration, prepared.targets):
+			var frame_error := _suspend_attack_declaration(waiting, declaration, "attack-njal-storm-caller")
+			if not frame_error.is_empty(): return {"error": frame_error}
+			var message := "Attack declared; Njal may invoke Storm Caller before dice are rolled."
+			_event(waiting, message)
+			state.clear()
+			state.merge(waiting, true)
+			return {"error": "", "message": message, "pools": []}
 	if index <= 2:
 		declaration.reaction_index = 3
 		if UnitActions.Bladeguard.offer(waiting, declaration, prepared.targets):
@@ -1777,6 +1946,8 @@ static func _continue_attack_declaration(state: Dictionary, declaration: Diction
 			declaration.armour_target_cursor = cursor + 1
 			cursor += 1
 			var defender := int(state.squads[target].owner)
+			var ability_state: Variant = state.get("unit_abilities", {})
+			if not ability_state is Dictionary or not ability_state.has("window"): continue
 			var previous_window: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
 			state.unit_abilities.window = {"kind": DetachmentStratagems.ARMOUR_WINDOW, "owners": [defender], "squad": target, "attacker_squad": int(declaration.squad), "declaration": declaration.duplicate(true)}
 			var can_armour := DetachmentStratagems.armour_error(state, defender, target, int(declaration.squad)).is_empty()
@@ -1836,18 +2007,20 @@ static func _continue_attack_declaration(state: Dictionary, declaration: Diction
 				duty_cursor += 1
 				var defender := int(state.squads[target].owner)
 				var worthy_rule := DetachmentStratagems.worthy_stratagem(state, defender)
-				if worthy_rule.is_empty(): continue
+				var can_offer_exhortation := CrusadeAncient.can_offer_vengeful_exhortation(state, target)
+				if worthy_rule.is_empty() and not can_offer_exhortation: continue
 				var prior_window: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
 				state.unit_abilities.window = {"kind": DetachmentStratagems.WORTHY_WINDOW, "owners": [defender], "squad": target, "attacker_squad": int(declaration.squad), "stratagem": worthy_rule, "declaration": declaration.duplicate(true)}
-				var can_use_worthy := DetachmentStratagems.error(state, defender, target, worthy_rule).is_empty()
+				var can_use_worthy := not worthy_rule.is_empty() and DetachmentStratagems.error(state, defender, target, worthy_rule).is_empty()
 				state.unit_abilities.window = prior_window
-				if not can_use_worthy: continue
+				if not can_use_worthy and not can_offer_exhortation: continue
 				declaration.reaction_index = 3
 				var frame_error := _suspend_attack_declaration(state, declaration, "attack-worthy-death-reaction")
 				if not frame_error.is_empty(): return {"error": frame_error}
 				state.unit_abilities.window = {"kind": DetachmentStratagems.WORTHY_WINDOW, "owners": [defender], "squad": target, "attacker_squad": int(declaration.squad), "stratagem": worthy_rule, "declaration": declaration.duplicate(true)}
 				var worthy_name := "Duty Unto Death" if worthy_rule == DetachmentStratagems.INNER_CIRCLE_DUTY_UNTO_DEATH else "Duty in Death" if worthy_rule == DetachmentStratagems.DUTY_IN_DEATH else "A Worthy Death"
-				var message := "Attack declared; %s may use %s before attack dice are rolled." % [str(state.squads[target].get("name", "the targeted unit")), worthy_name]
+				var offered_reaction := "Vengeful Exhortation" if worthy_rule.is_empty() else "%s or Vengeful Exhortation" % worthy_name if can_offer_exhortation else worthy_name
+				var message := "Attack declared; %s may choose %s before attack dice are rolled." % [str(state.squads[target].get("name", "the targeted unit")), offered_reaction]
 				_event(state, message)
 				return {"error": "", "message": message, "pools": []}
 		if UnitAbilities.enabled(state) and not declaration.get("adept_of_the_omnissiah_checked", false):
@@ -1864,13 +2037,14 @@ static func _continue_attack_declaration(state: Dictionary, declaration: Diction
 				return {"error": "", "message": message, "pools": []}
 		declaration.reaction_index = 4
 		index = 4
-	if index <= 4 and UnitAbilities.enabled(state) and not declaration.get("defensive_reaction_checked", declaration.get("mounted_reaction_checked", false)) and not bool(declaration.melee):
+	if index <= 4 and UnitAbilities.enabled(state) and not declaration.get("defensive_reaction_checked", declaration.get("mounted_reaction_checked", false)):
 		var umbral_targets: Array[int] = []
-		for phobos_target: int in prepared.targets:
-			var target_window: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
-			state.unit_abilities.window = {"kind": DetachmentStratagems.SHOOTING_REACTION_WINDOW, "owners": [int(state.squads[phobos_target].owner)], "squad": phobos_target, "declaration": declaration.duplicate(true)}
-			if DetachmentStratagems.error(state, int(state.squads[phobos_target].owner), phobos_target, DetachmentStratagems.PHOBOS_UMBRAL_EVASION).is_empty(): umbral_targets.append(phobos_target)
-			state.unit_abilities.window = target_window
+		if not bool(declaration.melee):
+			for phobos_target: int in prepared.targets:
+				var target_window: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
+				state.unit_abilities.window = {"kind": DetachmentStratagems.SHOOTING_REACTION_WINDOW, "owners": [int(state.squads[phobos_target].owner)], "squad": phobos_target, "declaration": declaration.duplicate(true)}
+				if DetachmentStratagems.error(state, int(state.squads[phobos_target].owner), phobos_target, DetachmentStratagems.PHOBOS_UMBRAL_EVASION).is_empty(): umbral_targets.append(phobos_target)
+				state.unit_abilities.window = target_window
 		for target: int in prepared.targets:
 			var defender := int(state.squads[target].owner)
 			var prior_window: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
@@ -1878,13 +2052,14 @@ static func _continue_attack_declaration(state: Dictionary, declaration: Diction
 			var can_hurtling := DetachmentStratagems.error(state, defender, target, DetachmentStratagems.HURTLING_TARGETS).is_empty()
 			var can_evasive := DetachmentStratagems.error(state, defender, target, DetachmentStratagems.EVASIVE_MANOEUVRES).is_empty()
 			var can_umbral := DetachmentStratagems.error(state, defender, target, DetachmentStratagems.PHOBOS_UMBRAL_EVASION).is_empty()
+			var can_angels_defiant := DetachmentStratagems.error(state, defender, target, DetachmentStratagems.FIST_ANGELS_DEFIANT).is_empty()
 			state.unit_abilities.window = prior_window
-			if can_hurtling or can_evasive or can_umbral:
+			if can_hurtling or can_evasive or can_umbral or can_angels_defiant:
 				declaration.defensive_reaction_checked = true
 				declaration.reaction_index = 5
 				var frame_error := _suspend_attack_declaration(state, declaration, "attack-mounted-defence")
 				if not frame_error.is_empty(): return {"error": frame_error}
-				state.unit_abilities.window = {"kind": DetachmentStratagems.SHOOTING_REACTION_WINDOW, "owners": [defender], "squad": target, "declaration": declaration.duplicate(true), "can_hurtling": can_hurtling, "can_evasive": can_evasive, "can_umbral": can_umbral, "umbral_targets": umbral_targets.duplicate()}
+				state.unit_abilities.window = {"kind": DetachmentStratagems.SHOOTING_REACTION_WINDOW, "owners": [defender], "squad": target, "declaration": declaration.duplicate(true), "can_hurtling": can_hurtling, "can_evasive": can_evasive, "can_umbral": can_umbral, "can_angels_defiant": can_angels_defiant, "umbral_targets": umbral_targets.duplicate()}
 				var message := "Attack declared; the targeted unit may use a defensive stratagem before dice are rolled."
 				_event(state, message)
 				return {"error": "", "message": message, "pools": []}
@@ -2090,7 +2265,7 @@ static func _execute_attack_plan(state: Dictionary, player: int, attacker: int, 
 	var ability_window := false
 	for batch: Dictionary in prepared.batches:
 		if batch.weapon.keywords.get("precision", false): precision = true
-		if batch.context.get("martial_paragon", false) or batch.context.get("free_wound_reroll", false) or batch.context.get("free_damage_reroll", false) or batch.context.get("machine_spirit_power", false) or batch.context.get("armoured_wrath", false): ability_window = true
+		if batch.context.get("martial_paragon", false) or batch.context.get("free_wound_reroll", false) or batch.context.get("free_damage_reroll", false) or batch.context.get("machine_spirit_power", false) or batch.context.get("armoured_wrath", false) or batch.context.get("nightforged_attack_count", false): ability_window = true
 		var target_squad := int(batch.get("target", -1))
 		if AdeptOfTheOmnissiah.active_for_attack(state, squad, target_squad): ability_window = true
 		if batch.weapon.keywords.get("devastating-wounds", false) and state.squads.has(target_squad):
@@ -2196,6 +2371,8 @@ static func _commit_finished_attack(state: Dictionary, squad: int, player: int, 
 		if unit_abilities.get("banner_active", {}).has(squad): unit_abilities.banner_active.erase(squad)
 		state.squads[squad].fought = true
 		state.squads[squad].fight_eligible = true
+		unit_abilities.get("used", {}).erase("vehement-aggression:%d" % squad)
+		unit_abilities.get("pious_fervour", {}).erase(squad)
 		DetachmentStratagems.remove_lingering(state, squad)
 		if UnitAbilities.enabled(state) and unit_abilities.get("used", {}).get("righteous-active:%d" % squad, false):
 			var heal_roll := RandomStat.roll("2D3" if int(resolved.get("killed", 0)) > 0 else "D3", roller)
@@ -2222,17 +2399,27 @@ static func _commit_finished_attack(state: Dictionary, squad: int, player: int, 
 		if DetachmentStratagems.reactive_shooting_shooter(state, squad): DetachmentStratagems.clear_reactive_shooting(state, squad)
 	if not melee and UnitAbilities.enabled(state) and state.unit_abilities.get("optics", {}).get("squad", -1) == squad: state.unit_abilities.erase("optics")
 	DetachmentStratagems.after_attacks(state, squad, prepared.targets, int(resolved.killed), prepared, resolved, melee)
+	DetachmentStratagems.clear_angels_defiant(state, squad)
 	UnitAbilities.offer_cover_target(state, squad, prepared, resolved, melee)
+	if melee: CrusadeAncient.open_martial_honour(state, squad, prepared.targets, int(resolved.get("killed", 0)))
 	UnitAbilities.open_destroyed_mark_replacements(state)
+	var execrator_result := Execrator.after_fight_kill(state, squad, melee, int(resolved.get("killed", 0)), roller)
+	if not str(execrator_result.get("error", "")).is_empty(): return execrator_result
+	if melee and UnitAbilities.enabled(state): UnitActions.open_death_visions(state, squad)
 	if not melee and state.phase == "shooting" and state.active == player and UnitAbilities.enabled(state):
 		TacticalFluidity.open_after_shot(state, squad)
 		PurgationRun.open_after_shot(state, squad)
 		PhobosShadowMasters.open_after_shot(state, squad)
 	if not melee and state.phase == "shooting" and state.active == player and UnitAbilities.enabled(state):
 		VictrixHonourGuard.open_after_enemy_shot(state, squad, resolved.pools)
+		CrusaderSurge.open_after_enemy_shot(state, squad, resolved.pools)
+		DeathCompanyDreadnought.open_after_enemy_shot(state, squad, resolved.pools)
+	if melee: WulfenStormShields.offer_after_fight(state, squad, resolved, melee)
 	var names: Array[String] = []
 	for target: int in prepared.targets: names.append(state.squads[target].name)
 	var message := "%s%s → %s: %d damage, %d models destroyed." % [state.squads[squad].name, " melee" if melee else "", ", ".join(names), resolved.damage, resolved.killed]
+	var execrator_message := str(execrator_result.get("message", ""))
+	if not execrator_message.is_empty(): message += " " + execrator_message
 	if melee and not state.get("unit_abilities", {}).get("window", {}).is_empty() and state.unit_abilities.window.get("kind", "") == "counter":
 		var reaction_owner := int(state.unit_abilities.window.get("owners", [3 - player])[0])
 		if not DetachmentStratagems.transhuman_swiftness_choices(state, reaction_owner).is_empty(): message += " Player %d may use an eligible Fight reaction or decline." % reaction_owner
@@ -2242,6 +2429,7 @@ static func _commit_finished_attack(state: Dictionary, squad: int, player: int, 
 		state.test_winner = -1 if living_owner(state, 1).is_empty() and living_owner(state, 2).is_empty() else (2 if living_owner(state, 1).is_empty() else 1)
 		message += " Elimination exercise finished."
 	state.last_attack = {"completion_revision": int(state.revision) + 1, "message": message, "pools": resolved.pools, "assignments": entries.duplicate(true), "targets": prepared.targets.duplicate()}
+	if not execrator_result.get("results", []).is_empty(): state.last_attack.execrator_condemnatory_annihilation = execrator_result.results.duplicate(true)
 	state.last_attack.hazardous = resolved.get("hazardous", {})
 	if prepared.has("hail_of_bolts"):
 		state.last_attack.hail_of_bolts = prepared.hail_of_bolts.duplicate(true)
@@ -2480,6 +2668,8 @@ static func allocate_hazard(state: Dictionary, player: int, model: int, revision
 	var prevention := Attacks.Prevention.resolve(1, state.units[model].wounds, UnitPrevention.rules(state, model), "mortal", roller)
 	if not prevention.error.is_empty(): return prevention.error
 	state.units[model].wounds -= prevention.lost
+	if state.units[model].wounds <= 0: DetachmentStratagems.record_destroyed(state, model)
+	for cenobyte: int in ChaplainGrimaldus.destroy_cenobytes(state, model): DetachmentStratagems.record_destroyed(state, cenobyte)
 	pending.remaining -= 1
 	pending.resolved.hazardous.allocations.append(model)
 	if not pending.resolved.hazardous.has("prevention"): pending.resolved.hazardous.prevention = []
@@ -2570,7 +2760,7 @@ static func unit_choices(state: Dictionary, player: int) -> Array:
 	if Mission.actor(state) > 0: return Mission.choices(state, player)
 	return UnitActions.choices(state, player)
 
-static func unit_action(state: Dictionary, player: int, selected: Dictionary, point: Vector2, revision: int, roller: Callable = Callable()) -> String:
+static func unit_action(state: Dictionary, player: int, selected: Dictionary, point: Vector2, revision: int, roller: Callable = Callable(), destination_elevation: float = -1.0) -> String:
 	if revision != state.get("revision", -1): return "State changed; synchronize before choosing an ability."
 	if selected not in unit_choices(state, player): return "This unit ability choice is no longer legal."
 	var working := state.duplicate(true)
@@ -2591,7 +2781,7 @@ static func unit_action(state: Dictionary, player: int, selected: Dictionary, po
 	var reanimation_kind_before_choice := str(Reanimation.pending(working).get("kind", ""))
 	var was_reanimation := not reanimation_kind_before_choice.is_empty()
 	var phase_start_frame_id := ""
-	if not UnitActions.phase_decision(working).is_empty() or not working.get("fearsome_assault", {}).is_empty() or not DetachmentStratagems.adamantine_pending(working).is_empty():
+	if not UnitActions.phase_decision(working).is_empty() or not working.get("fearsome_assault", {}).is_empty() or not working.get("feared-interrogator", {}).is_empty() or not working.get("death-mask-of-sanguinius", {}).is_empty() or not DetachmentStratagems.adamantine_pending(working).is_empty():
 		var action_id := _phase_start_action_id(working)
 		var current_frame := ResolutionFrames.current(working)
 		if current_frame.is_empty() or (str(current_frame.get("kind", "")) == "phase-start" and str(current_frame.get("action_id", "")) == action_id):
@@ -2647,7 +2837,7 @@ static func unit_action(state: Dictionary, player: int, selected: Dictionary, po
 		var frame := ResolutionFrames.begin(working, "fight", action_id, "resume-empty-fight-choice")
 		if frame.is_empty(): return "Could not resume the unengaged Fight continuation frame."
 		empty_fight_frame_id = str(frame.frame_id)
-	var result := UnitActions.apply(working, player, selected, point, roller)
+	var result := UnitActions.apply(working, player, selected, point, roller, destination_elevation)
 	if not result.get("error", "").is_empty(): return result.error
 	if result.get("resolve_nightforged_hazard", false):
 		var hazard_message := str(result.get("message", ""))
@@ -2675,6 +2865,44 @@ static func unit_action(state: Dictionary, player: int, selected: Dictionary, po
 		if not movement_frame_error.is_empty(): return movement_frame_error
 	if Mission.enabled(working) and selected.action == "setup-done" and working.unit_abilities.get("setup_players", []).size() == 2:
 		Mission.preview(working)
+	if result.has("resume_stasis_movement"):
+		var stasis_move: Dictionary = result.resume_stasis_movement
+		var selected_model := int(stasis_move.get("model", -1))
+		if not working.units.has(selected_model): return "The saved Stasis Bomb movement model is missing."
+		var stasis_squad := int(working.units[selected_model].get("squad", -1))
+		var surviving_models := living(working, stasis_squad)
+		if surviving_models.is_empty():
+			working.squads[stasis_squad].moved = true
+			working.squads[stasis_squad].move_type = str(stasis_move.get("move_type", "normal"))
+			var completed_stasis_frame := _complete_movement_frame(working, stasis_squad)
+			if not completed_stasis_frame.is_empty(): return completed_stasis_frame
+			_event(working, "%s was destroyed by Stasis Bomb before it could move." % str(working.squads[stasis_squad].get("name", "The unit")))
+		else:
+			if selected_model not in surviving_models: selected_model = surviving_models[0]
+			var resumed_move_error := begin_movement(working, player, selected_model, str(stasis_move.get("move_type", "normal")), working.revision, roller, bool(stasis_move.get("use_sudden_onslaught", false)), false, bool(stasis_move.get("take_to_skies", false)))
+			if not resumed_move_error.is_empty(): return resumed_move_error
+		state.clear()
+		state.merge(working, true)
+		return ""
+	if result.has("resume_mephiston_fallback"):
+		var fallback_movement: Dictionary = result.resume_mephiston_fallback
+		var fallback_model := int(fallback_movement.get("model", -1))
+		if not working.units.has(fallback_model): return "The saved Transfixing Gaze movement model is missing."
+		var fallback_squad := int(working.units[fallback_model].get("squad", -1))
+		var fallback_frame_error := _complete_movement_frame(working, fallback_squad)
+		if not fallback_frame_error.is_empty(): return fallback_frame_error
+		_event(working, str(result.get("message", "Transfixing Gaze Leadership test resolved.")))
+		if bool(result.get("fallback_passed", false)):
+			var fallback_error := begin_movement(working, int(fallback_movement.get("player", -1)), fallback_model, str(fallback_movement.get("move_type", "ordered_retreat")), int(working.get("revision", -1)), roller, bool(fallback_movement.get("use_sudden_onslaught", false)), false, bool(fallback_movement.get("take_to_skies", false)))
+			if not fallback_error.is_empty(): return fallback_error
+		else:
+			working.squads[fallback_squad].moved = true
+			working.squads[fallback_squad].move_type = "stationary"
+			working.squads[fallback_squad].fell_back = false
+			for member: int in living(working, fallback_squad): working.units[member].moved = true
+		state.clear()
+		state.merge(working, true)
+		return ""
 	if result.get("resume_fight", false):
 		if str(result.get("resume_fight_step", "attacks")) == "consolidation_reaction": _resume_consolidation(working)
 		else: _select_fighter(working, int(result.get("resume_cursor", working.active)))

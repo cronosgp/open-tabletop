@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "id": "marine-darnath-lysander-e11-2026-10-27",
+  "source": {
+    "edition": 11,
+    "book_id": "000000139",
+    "datasheet_id": "000002105",
+    "book_name": "App. Space Marines",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Darnath-Lysander",
+    "checked_at": "2026-10-27",
+    "runtime_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    }
+  },
+  "fixed_data_comparison": {
+    "status": "passed",
+    "artifact": ".tools/marine-comparison-20261027-v12.json",
+    "sha256": "30e1b54329013cda755058d3990d397036454346c6c54f2388411f3403021420",
+    "identity": "darnath-lysander",
+    "differences": [],
+    "weapon_trait_scope_consistent": true,
+    "keyword_scope_consistent": true,
+    "loadout_consistent": true,
+    "composition_consistent": true,
+    "cost_consistent": true,
+    "scope": "Fixed numeric, identity, keyword, loadout, composition, base, cost and mapped weapon-trait checks; executable ability interactions are covered separately by the dedicated local suite."
+  },
+  "local_scope_validation": {
+    "status": "passed",
+    "test_file": "tests/test_darnath_lysander.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_darnath_lysander --timeout 300",
+    "artifact": ".tools/verification/20261027T223627402745Z/results.json",
+    "sha256": "d34865fc6d9280c34ce515a74cc6e1e756ea9fb3075859277cbc5edb90440a9b",
+    "processes": [
+      {
+        "name": "import",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "python",
+        "status": "passed",
+        "exit_code": 0
+      },
+      {
+        "name": "test_darnath_lysander",
+        "status": "passed",
+        "exit_code": 0
+      }
+    ],
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "source_bounded_local_scope_validated": true
+  },
+  "scope": [
+    "One-model 160-point profile, one-copy cap, 50 mm base, characteristics, all eight keywords and no equipment-option rows.",
+    "Fist of Dorn through Equipment and AttackPlan, including Devastating Wounds and Cleave 1 profile data.",
+    "Current consolidated catalog resolution and current Marine materialization on both sides.",
+    "Deep Strike, Leader, Combat Doctrines, Transhuman Strategist, Rampart and Icon of Obstinacy registration.",
+    "Both source-listed Terminator Leader targets, a rejected non-listed Intercessor target, Warlord selection and once-per-round CP.",
+    "Rampart at a non-Shooting phase start, 2+ invulnerable save for that phase, once-per-battle use and phase-end expiry.",
+    "Icon of Obstinacy for ranged and melee Hit modifiers and the incoming ranged AttackPlan context."
+  ],
+  "limits": [
+    "Closes only the common-book Darnath Lysander local datasheet scope.",
+    "Does not certify Imperial Fists Chapter rules, full army legality, complete matches, network behavior or human playtesting.",
+    "Network validation remains deferred to final integration by user decision."
+  ],
+  "network_validation": {
+    "status": "deferred_to_final_integration_by_user",
+    "passed": false
+  },
+  "full_army_legality_certified": false
+}

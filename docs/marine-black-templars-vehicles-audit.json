@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "audit": {
+    "name": "Black Templars vehicle datasheets",
+    "edition": "11e",
+    "source_book_id": "000000162",
+    "page_revision_checked_at": "2026-10-28",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-28-v101-black-templars-vehicles",
+    "status": "source_bounded_local_scope_passed_2026_10_28",
+    "full_army_legality_certified": false
+  },
+  "datasheets": [
+    {"identity": "black-templars-gladiator-lancer", "source_datasheet_id": "000002787", "name": "Gladiator Lancer", "first_points": 165, "third_plus_points": 185, "wargear_costs": {"Multi-melta": 10}},
+    {"identity": "black-templars-gladiator-reaper", "source_datasheet_id": "000002789", "name": "Gladiator Reaper", "first_points": 165, "third_plus_points": 185, "wargear_costs": {"Multi-melta": 10}},
+    {"identity": "black-templars-gladiator-valiant", "source_datasheet_id": "000002788", "name": "Gladiator Valiant", "first_points": 145, "third_plus_points": 165, "wargear_costs": {"Multi-melta": 10}},
+    {"identity": "black-templars-impulsor", "source_datasheet_id": "000002786", "name": "Impulsor", "first_points": 70, "third_plus_points": 70, "fourth_plus_points": 80, "wargear_costs": {"Multi-melta": 10, "Orbital Comms Array": 10}, "excluded_option": "Ironhail Skytalon Array"},
+    {"identity": "black-templars-repulsor", "source_datasheet_id": "000002791", "name": "Repulsor", "first_points": 190, "third_plus_points": 210, "wargear_costs": {"Multi-melta": 10}, "registered_rules": ["Combat Embarkation"]},
+    {"identity": "black-templars-repulsor-executioner", "source_datasheet_id": "000002790", "name": "Repulsor Executioner", "first_points": 265, "third_plus_points": 285, "wargear_costs": {"Multi-melta": 10}, "registered_rules": ["Executioner"]}
+  ],
+  "source_snapshot": {
+    "provider": "Wahapedia",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b",
+    "manifest_path": ".tools/wahapedia/11e/space-marines/20261021T130623Z/manifest.json",
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_path": ".tools/wahapedia/11e/space-marine-chapter-slices/black-templars-20261028/manifest.json",
+    "slice_manifest_sha256": "8a6d9529ae553b06203cdb2b6c8f1edd736f2a737ba1c215d2241bd1cdfb5bbe",
+    "slice_catalog_sha256": "a3f5ca78fb12c38e6a5ca80e446befca7370b36dd5a017dd97e54ea6c00483c9",
+    "datasheets_csv_sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+    "raw_export_committed": false,
+    "parent_validation_errors_outside_slice": 68
+  },
+  "fixed_data_comparison": {
+    "status": "passed_source_bounded",
+    "artifact": ".tools/marine-comparison-black-templars-vehicles-20261028-scoped.json",
+    "sha256": "3f6267a70569f8bbd11f9eba182352f241aa478f3b0d9d4e871aec7ef9da43a7",
+    "profile_count": 7,
+    "source_consistent_profiles": 7,
+    "numeric_or_identity_differences": 0,
+    "slice_structurally_valid": true,
+    "parent_source_structurally_valid": false,
+    "parent_source_validation_error_count": 68,
+    "scope": "Six Black Templars vehicle sheets plus Emperor’s Champion; fixed characteristics, weapons and traits, keywords, default equipment, composition and source cost tiers. Executable rule behavior is checked separately."
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_black_templars_vehicles --only test_marine_repulsor_combat_embarkation",
+    "report_path": ".tools/verification/20261028T141659297789Z/results.json",
+    "report_sha256": "6d547667746d34c4731eedc946511ef911a71281b676a4334caab4a856111c52",
+    "processes_passed": 4,
+    "processes_total": 4,
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false
+  },
+  "limits": [
+    "The parent export has 68 validation errors outside the structurally valid Black Templars slice; these are not counted as passed.",
+    "Crusader Squad remains partial and Sword Brethren is not yet integrated as a Leader target.",
+    "No full army legality, network, complete-match or human-playtest certification is claimed.",
+    "Forge World, Legends and alternate modes are outside this Chapter-book inventory."
+  ]
+}

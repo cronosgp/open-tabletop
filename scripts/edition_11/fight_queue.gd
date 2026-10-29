@@ -15,7 +15,8 @@ static func first(state: Dictionary, squad: int) -> bool:
 static func engaged(state: Dictionary, squad: int) -> bool:
 	for id: int in Geometry.alive(state, squad):
 		for other: int in state.units:
-			if state.units[other].wounds > 0 and state.units[other].get("on_battlefield", true) and state.units[other].owner != state.squads[squad].owner and Geometry.within_engagement(state.units[id], state.units[other]): return true
+			if state.units[other].wounds <= 0 or not state.units[other].get("on_battlefield", true) or state.units[other].owner == state.squads[squad].owner: continue
+			if Geometry.within_engagement(state.units[id], state.units[other]): return true
 	return false
 
 static func eligible(state: Dictionary, squad: int) -> bool:

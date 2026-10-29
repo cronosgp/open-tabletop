@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "datasheet": {
+    "name": "Ravenwing Dark Talon",
+    "definition_id": "40kdc:11e:adeptus-astartes:ravenwing-dark-talon",
+    "source_book_id": "000000023",
+    "source_datasheet_id": "000000240",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Ravenwing-Dark-Talon",
+    "current_page_checked_at": "2026-10-28",
+    "current_page_revision": "Dark Angels App 2.8.1 (October 2026)",
+    "edition": "11e",
+    "game_mode_scope": "Warhammer 40,000 standard rules; no Boarding Actions or Legends rules",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-28-v98-sammael-ravenwing-command-squad",
+    "status": "source_bounded_local_scope_passed_2026_10_28"
+  },
+  "source_snapshot": {
+    "provider": "Wahapedia",
+    "edition": "11e",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b",
+    "manifest_path": ".tools/wahapedia/11e/space-marines/20261021T130623Z/manifest.json",
+    "raw_data_committed": false,
+    "parent_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "scoped_slice_manifest_path": ".tools/wahapedia/11e/space-marine-chapter-slices/nephilim-dark-talon-20261028/manifest.json",
+    "scoped_slice_manifest_sha256": "C0AACCCC8B2151CE3C9C07CDC9E10772350CC60CBA08E6146EEB5F759691B6CB",
+    "source_files_sha256": {
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Abilities.csv": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+    }
+  },
+  "source_slice": {
+    "artifact_type": "scoped_audit_slice",
+    "path": ".tools/wahapedia/11e/space-marine-chapter-slices/nephilim-dark-talon-20261028",
+    "catalog_sha256": "bd1671e264bae7be7b0591f93ea51fcd501bcfdf8298e0d7c884a32f19bc4dae",
+    "subject_datasheet_ids": ["000000239", "000000240"],
+    "structurally_valid": true,
+    "slice_validation_errors": [],
+    "parent_validation_error_count_outside_slice": 68,
+    "playable": false,
+    "full_match_certified": false
+  },
+  "runtime_scope": {
+    "composition": 1,
+    "points_by_models": {"1": 190},
+    "max_supported_copies": 3,
+    "source_base_dimensions_mm": [120, 92],
+    "base_geometry": "oval; runtime uses a provisional 60 mm bounding-circle proxy",
+    "stats": {"movement_inches": 0, "toughness": 8, "save_target": 3, "wounds": 11, "leadership_target": 6, "objective_control": 0, "invulnerable_target": 5},
+    "keywords": ["ADEPTUS ASTARTES", "DARK ANGELS", "VEHICLE", "AIRCRAFT", "RAVENWING", "FLY", "IMPERIUM"],
+    "weapons": [
+      {"name": "Rift Cannon", "range_inches": 18, "attacks": "D3+1", "skill": 3, "strength": 16, "ap": -4, "damage": 3, "keywords": {"devastating-wounds": true, "blast": 1}},
+      {"name": "Hurricane Bolter", "range_inches": 24, "attacks": 6, "skill": 3, "strength": 5, "ap": -1, "damage": 1, "keywords": {"rapid-fire": 6, "twin-linked": true}, "physical_copies": 2},
+      {"name": "Armoured Hull", "range_inches": 0, "attacks": 3, "skill": 4, "strength": 6, "ap": 0, "damage": 1, "keywords": {}}
+    ],
+    "checked": ["fixed profile and weapon data", "Damaged 3 threshold", "Stasis Bomb timing and target restrictions", "both Stasis result branches and stationary exception", "low-result shared mortal allocation and saved-movement continuation", "mark expiry", "shared Aircraft interactions in Nephilim suite", "local points, copy cap and catalog admission"],
+    "not_exercised": ["Aircraft-specific Deadly Demise trigger", "Combat Doctrine effects", "Plunging Fire targeting", "exact oval-base geometry", "full army legality", "network behavior", "human playtesting"]
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_nephilim_jetfighter --only test_ravenwing_dark_talon --timeout 300",
+    "report_path": ".tools/verification/20261028T130615559370Z/results.json",
+    "report_sha256": "08537FEBF4151D7AB8F7E91638DEEB1DB8E7E05928375BB5F6819A2E761771B2",
+    "related_suites": ["test_nephilim_jetfighter", "test_ravenwing_dark_talon"],
+    "processes_passed": 4,
+    "processes_total": 4,
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false
+  },
+  "metadata_verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_capabilities --timeout 300",
+    "report_path": ".tools/verification/20261028T131114410346Z/results.json",
+    "report_sha256": "B53289C06BFEF6A1712929CEBE1F7BC1D27E5B79E72BCC4225201BC0241CEB64",
+    "processes_passed": 3,
+    "network": false,
+    "legacy_starter_staged": true,
+    "cleanup_diagnostics": false
+  },
+  "limits": ["The parent export has 68 validation errors outside the structurally valid subject slice; those are not claimed as passed.", "No complete Dark Angels or Space Marines army legality, network, complete-match or human-playtest certification is claimed.", "Forge World, Legends, Boarding Actions and alternate modes are outside this sheet scope."]
+}
