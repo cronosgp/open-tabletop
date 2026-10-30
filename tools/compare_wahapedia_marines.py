@@ -236,10 +236,10 @@ def review_keywords(rows, profile, sheet, identity, context_issues, chapter, con
         # Compare the shared profile after removing chapter-only projections. The
         # actual ChapterRules behavior is checked separately by its focused tests.
         applicable.discard(rule["keyword"])
-        runtime.discard(rule["keyword"])
         if rule["requires_chapter"] == chapter:
             applicable.add(rule["keyword"])
-            runtime.add(rule["keyword"])
+        else:
+            runtime.discard(rule["keyword"])
     missing = sorted(applicable - runtime)
     missing_faction = sorted(faction - runtime - internal)
     extra = sorted(runtime - raw - faction - internal)
