@@ -55,6 +55,17 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	check(P.initial_state().pack_hash == P.initial_state({"combat_doctrines": false}).pack_hash, "Disabled setup identity is unchanged")
 	check(P.initial_state().pack_hash != P.initial_state({"combat_doctrines": true}).pack_hash and P.initial_state({"combat_doctrines": 1}).has("error"), "Explicit 11e manifest and strict boolean option")
+	var chapter_locked_detachments := {"wrath-of-the-rock": "DARK ANGELS", "darkflight-pursuit": "DARK ANGELS", "inner-circle-task-force": "DARK ANGELS", "fist-of-the-god-emperor": "BLACK TEMPLARS", "vow-sworn-crusaders": "BLACK TEMPLARS", "spearpoint-task-force": "WHITE SCARS"}
+	for detachment_id: String in chapter_locked_detachments:
+		var required_chapter: String = chapter_locked_detachments[detachment_id]
+		check(P.ChapterRules.requires_chapter_context(detachment_id) and P.ChapterRules.required_chapter_for_detachment(detachment_id) == required_chapter and not P.ChapterRules.detachment_name(detachment_id).is_empty(), "%s shares one declared Chapter restriction across setup paths" % detachment_id)
+		var wrong_chapter := "BLACK TEMPLARS" if required_chapter == "ULTRAMARINES" else "ULTRAMARINES"
+		var wrong_chapter_error := D.chapter_restriction_error({"marine_chapters": {1: wrong_chapter}, "units": {}}, detachment_id, 1)
+		check(not wrong_chapter_error.is_empty(), "%s directly rejects a conflicting Chapter context" % detachment_id)
+		var matching_chapter := {"marine_chapters": {1: required_chapter}, "units": {}}
+		check(D.chapter_restriction_error(matching_chapter, detachment_id, 1).is_empty(), "%s accepts its declared Chapter context" % detachment_id)
+	check(not P.ChapterRules.requires_chapter_context("gladius") and not P.ChapterRules.requires_chapter_context("medusa-wrath") and not P.ChapterRules.requires_chapter_context("blade-of-ultramar"), "Generic and Chapter-associated detachments without a source restriction do not force Chapter context")
+	check(D.chapter_restriction_error({"marine_chapters": {1: "ULTRAMARINES"}, "units": {}}, "medusa-wrath", 1).is_empty() and D.chapter_restriction_error({"marine_chapters": {1: "IRON HANDS"}, "units": {}}, "blade-of-ultramar", 1).is_empty(), "Chapter grouping alone does not add an unprinted detachment restriction")
 	check(P.initial_state({"combat_doctrines": true}).pack_hash == P.initial_state({"combat_doctrines": true, "marine_detachment": "gladius"}).pack_hash, "Gladius remains the default identity for older setup records")
 	check(P.initial_state({"combat_doctrines": true, "marine_detachment": "stormlance"}).match_manifest.marine_detachment == "stormlance", "Stormlance selection is sealed into match identity")
 	var configured_stormlance := P.initial_state({"combat_doctrines": true, "marine_detachment": "stormlance", "unit_abilities": true, "core_stratagems": true})
@@ -191,7 +202,7 @@ func run() -> void:
 		attack_entries = [{"model": 200, "target": 1, "amount": int(ranged.stats.attacks), "weapon": str(ranged.weapon), "profile": str(ranged.profile)}]
 		var declared := C.resolve_attack_plan(reaction_state, 2, 200, attack_entries, reaction_state.revision, false, true, func() -> int: return 6)
 		hurtling_declaration_error = str(declared.get("error", ""))
-		hurtling_reaction_opened = declared.error.is_empty() and reaction_state.unit_abilities.window.get("kind", "") == "stormlance-hurtling" and reaction_state.cp[1] == 1
+		hurtling_reaction_opened = declared.error.is_empty() and reaction_state.unit_abilities.window.get("kind", "") == C.DetachmentStratagems.SHOOTING_REACTION_WINDOW and reaction_state.cp[1] == 1
 	check(hurtling_reaction_opened, "Hurtling Targets opens a defender decision before ranged attack resolution: " + hurtling_declaration_error + " / " + str(reaction_state.unit_abilities.window))
 	var hurtling_decision := C.UnitActions.pending_decision(reaction_state)
 	var hurtling_frame := ResolutionFrames.current(reaction_state)
@@ -411,16 +422,21 @@ func run() -> void:
 	check(game.state == saved_state and game.state.combat_doctrines.used[1] == ["assault"], "Active effect and spent-use record survive save")
 	game._start_objectives()
 	game._save_match()
-	var old := Save.read()
+	var old := Save.read(game.match_save_path)
+	check(not old.has("error"), "Current match save is available for compatibility checks")
 	old.config.erase("combat_doctrines")
-	Save.write(old.state, old.config, old.rng_state, old.attack_draft, Save.PATH, old.session, old.journal)
+	var old_save_error := Save.write(old.state, old.config, old.rng_state, old.attack_draft, game.match_save_path, old.session, old.journal)
+	check(old_save_error.is_empty(), "Legacy-option save fixture writes: " + old_save_error)
 	game._load_match()
 	check(not game.combat_doctrines and not game.state.has("combat_doctrines"), "Old saves default to disabled")
 	old.config.combat_doctrines = true
-	Save.write(old.state, old.config, old.rng_state, old.attack_draft, Save.PATH, old.session, old.journal)
+	var conflict_save_error := Save.write(old.state, old.config, old.rng_state, old.attack_draft, game.match_save_path, old.session, old.journal)
+	check(conflict_save_error.is_empty(), "Conflicting-option save fixture writes: " + conflict_save_error)
 	before = var_to_bytes(game.state)
 	game._load_match()
-	check(before == var_to_bytes(game.state) and "Combat Doctrines" in game.status.text, "Conflicting save option rejected")
+	var conflict_state_unchanged := before == var_to_bytes(game.state)
+	var conflict_status := str(game.status.text)
+	check(conflict_state_unchanged and "Combat Doctrines" in conflict_status, "Conflicting save option rejected (unchanged=%s; status=%s)" % [str(conflict_state_unchanged), conflict_status])
 	game.queue_free()
 	await process_frame
 	print("11E COMBAT DOCTRINES: %d failures" % failures)

@@ -1,4 +1,6 @@
 extends RefCounted
+
+const AircraftRules = preload("res://scripts/edition_11/aircraft_rules.gd")
 ## Original demonstration rules. No official edition is implemented yet.
 const PACK_ID := "prototype-movement-v1"
 const Pack = preload("res://scripts/data_pack.gd")
@@ -54,9 +56,14 @@ static func validate_move_result(state: Dictionary, player: int, id: int, target
 	for other_id: int in state.units:
 		if other_id == id:
 			continue
-		var other_position: Vector2 = state.units[other_id].position
+		var other: Dictionary = state.units[other_id]
+		var other_position: Vector2 = other.position
+		if AircraftRules.is_aircraft(state, int(other.get("squad", -1))):
+			if target.distance_to(other_position) < radius + float(other.radius):
+				return _movement_validation_result("destination_overlap", "A model cannot end its move overlapping an AIRCRAFT base.", "Choose a free destination beyond the AIRCRAFT base.")
+			continue
 		var closest := Geometry2D.get_closest_point_to_segment(other_position, origin, target)
-		if closest.distance_to(other_position) < radius + float(state.units[other_id].radius):
+		if closest.distance_to(other_position) < radius + float(other.radius):
 			return _movement_validation_result("base_blocks_path", "Another base blocks this move.", "Choose a clear route around the other base.")
 	return _movement_validation_result("valid")
 

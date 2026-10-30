@@ -8,6 +8,8 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const RollWindows = preload("res://scripts/edition_11/attack_roll_window.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
 const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
+const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
+const BloodAngelsCharacters = preload("res://scripts/edition_11/blood_angels_characters.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 
 static func eligible(state: Dictionary) -> Array[int]:
@@ -169,6 +171,7 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 			var candidates := Groups.precision_candidates(state, batch)
 			pending.current = {"target": batch.target, "failed_rolls": [], "steps": [], "cursor": 0, "damage": batch.weapon.damage, "weapon": batch.weapon,
 				"free_damage_reroll": batch.context.get("free_damage_reroll", false), "aquilon_optics": batch.context.get("aquilon_optics", false),
+				"annihilator_damage_reroll": batch.context.get("annihilator_damage_reroll", false), "total_obliteration_damage_reroll": batch.context.get("total_obliteration_damage_reroll", false),
 				"armoured_wrath": batch.context.get("armoured_wrath", false), "armoured_wrath_full": batch.context.get("armoured_wrath_full", false),
 				"result": rolled, "groups": Groups.groups(state, batch.target, pending.melee), "order": [], "precision": -1, "precision_candidates": candidates,
 				"phase": "precision" if not candidates.is_empty() and rolled.wounds > 0 and pending.precision_prompt else "order"}
@@ -284,8 +287,10 @@ static func apply(state: Dictionary, model: int, roller: Callable) -> Dictionary
 	if not pending.aquilon_used.has(aquilon_key): pending.aquilon_used[aquilon_key] = {}
 	var aquilon_available: bool = not current.get("aquilon_optics", false) or not pending.aquilon_used[aquilon_key].get("damage", false)
 	var reroll_sources: Array[String] = []
-	if current.get("free_damage_reroll", false) and aquilon_available and not rolled.rolls.is_empty() and not current.get("damage_reroll_offered", false):
-		reroll_sources.append("Aquilon Optics" if current.get("aquilon_optics", false) else "Total Obliteration")
+	if current.get("free_damage_reroll", false) and not rolled.rolls.is_empty() and not current.get("damage_reroll_offered", false):
+		if current.get("aquilon_optics", false) and aquilon_available: reroll_sources.append("Aquilon Optics")
+		if current.get("annihilator_damage_reroll", false): reroll_sources.append("Annihilator")
+		if current.get("total_obliteration_damage_reroll", false): reroll_sources.append("Total Obliteration")
 	var armoured_context := {"armoured_wrath": current.get("armoured_wrath", false), "armoured_wrath_full": current.get("armoured_wrath_full", false)}
 	if not rolled.rolls.is_empty() and armoured_wrath_available(pending, armoured_context, "damage"):
 		reroll_sources.append("Armoured Wrath")
@@ -318,7 +323,7 @@ static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictiona
 	var step: Dictionary = current.steps[current.cursor]
 	var before: int = state.units[model].wounds
 	var special_kind := "psychic" if current.weapon.get("keywords", {}).get("psychic", false) else ""
-	var prevented := Attacks.Prevention.resolve(UnitAbilities.damage(state, model, int(rolled.value)), before, UnitPrevention.rules(state, model), "normal" if step.kind == "normal" else "mortal", roller, special_kind)
+	var prevented := Attacks.Prevention.resolve(UnitAbilities.damage(state, model, int(rolled.value), "normal" if step.kind == "normal" else "mortal"), before, UnitPrevention.rules(state, model), "normal" if step.kind == "normal" else "mortal", roller, special_kind)
 	if not prevented.error.is_empty(): return prevented
 	var applied: int = prevented.lost
 	current.result.prevented_wounds += prevented.prevented
@@ -342,7 +347,14 @@ static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictiona
 			var retention_rolls: Array = current.result.get("casualty_retention_rolls", []).duplicate(true)
 			retention_rolls.append({"model": model, "rule_name": str(held.get("rule_name", "Model retention")), "roll": int(held.roll), "modifier": int(held.get("modifier", 0)), "total": int(held.roll) + int(held.get("modifier", 0)), "kept": bool(held.held)})
 			current.result.casualty_retention_rolls = retention_rolls
-		if not held.held: current.result.models_destroyed += 1
+		if not held.held:
+			current.result.models_destroyed += 1
+			BloodAngelsCharacters.record_death_visions(state, model)
+			DetachmentStratagems.record_destroyed(state, model)
+		if not held.held:
+			var cenobytes_destroyed := ChaplainGrimaldus.destroy_cenobytes(state, model)
+			current.result.models_destroyed += cenobytes_destroyed.size()
+			for cenobyte: int in cenobytes_destroyed: DetachmentStratagems.record_destroyed(state, cenobyte)
 	current.result.allocations.append({"model": model, "kind": step.kind, "save_roll": step.save_roll, "damage": applied, "rolled_damage": rolled.value, "damage_rolls": rolled.rolls, "discarded": prevented.discarded, "prevention": prevented})
 	current.cursor += 1
 	return {"error": ""}

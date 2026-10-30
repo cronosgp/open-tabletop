@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "title": "Lieutenant in Phobos Armour datasheet audit",
+  "profile": {
+    "runtime_identity": "lieutenant-in-phobos-armour",
+    "name": "Lieutenant in Phobos Armour",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002530",
+    "runtime_source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "models": 1,
+    "points": 40,
+    "base": "40 mm round",
+    "characteristics": {
+      "movement_inches": 8,
+      "toughness": 4,
+      "save": "3+",
+      "wounds": 4,
+      "leadership": "6+",
+      "objective_control": 1,
+      "invulnerable_save": null
+    },
+    "keywords": [
+      "INFANTRY",
+      "CHARACTER",
+      "EXPLOSIVES",
+      "IMPERIUM",
+      "PHOBOS",
+      "SMOKE",
+      "ADEPTUS ASTARTES"
+    ],
+    "option_rows": 1,
+    "option": "Replace the Special-issue Bolt Pistol with one Master-crafted Bolt Carbine."
+  },
+  "source": {
+    "authority": "Wahapedia 11th edition, Space Marines App",
+    "edition": 11,
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000002530",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant-In-Phobos-Armour",
+    "live_page_checked_at": "2026-10-28",
+    "source_revision": "Space Marines App 2.8.1 / October 2026; stable source marker 2026-10-19 03:47:32; live page checked 2026-10-28.",
+    "local_export": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    }
+  },
+  "fixed_weapons": [
+    {
+      "name": "Special-issue Bolt Pistol",
+      "range_inches": 12,
+      "attacks": 1,
+      "skill": "2+",
+      "strength": 5,
+      "ap": -2,
+      "damage": 2,
+      "keywords": [
+        "Precision",
+        "CLOSE-QUARTERS"
+      ],
+      "loadout": "default"
+    },
+    {
+      "name": "Master-crafted bolt carbine",
+      "range_inches": 24,
+      "attacks": 2,
+      "skill": "2+",
+      "strength": 4,
+      "ap": 0,
+      "damage": 2,
+      "keywords": [],
+      "loadout": "pistol replacement"
+    },
+    {
+      "name": "Monomolecular Combat Blades",
+      "range": "Melee",
+      "attacks": 6,
+      "skill": "2+",
+      "strength": 5,
+      "ap": -1,
+      "damage": 1,
+      "keywords": [
+        "Sustained Hits 1",
+        "Precision"
+      ],
+      "loadout": "both"
+    }
+  ],
+  "abilities": [
+    {
+      "name": "Deep Strike",
+      "source_group": "Core"
+    },
+    {
+      "name": "Infiltrators",
+      "source_group": "Core"
+    },
+    {
+      "name": "Scouts 6 inches",
+      "source_group": "Core"
+    },
+    {
+      "name": "Support",
+      "source_group": "Core"
+    },
+    {
+      "name": "Combat Doctrines",
+      "source_group": "Faction"
+    },
+    {
+      "name": "Demi-company Commander",
+      "source_group": "Datasheet",
+      "frequency": "Once per turn per unit",
+      "trigger": "A friendly Captain uses Strategic Acumen",
+      "duration": "Until the start of the owner's next Command phase"
+    },
+    {
+      "name": "Tactical Precision",
+      "source_group": "Datasheet",
+      "effect": "Lethal Hits against targets without MONSTER or VEHICLE"
+    }
+  ],
+  "leader_targets": [
+    {
+      "datasheet_id": "000001668",
+      "name": "Eliminator Squad",
+      "scope": "shared App"
+    },
+    {
+      "datasheet_id": "000001159",
+      "name": "Incursor Squad",
+      "scope": "shared App"
+    },
+    {
+      "datasheet_id": "000000128",
+      "name": "Infiltrator Squad",
+      "scope": "shared App"
+    },
+    {
+      "datasheet_id": "000002779",
+      "name": "Reiver Squad",
+      "scope": "shared App"
+    },
+    {
+      "datasheet_id": "000002718",
+      "name": "Spectrus Kill Team",
+      "scope": "Deathwatch App; excluded"
+    },
+    {
+      "datasheet_id": "000004182",
+      "name": "Wolf Scouts",
+      "scope": "Space Wolves App; excluded"
+    }
+  ],
+  "scope": "Lieutenant in Phobos Armour: exact one-model 40-point/40 mm profile, characteristics, keywords and source option; default pistol and replacement carbine plus retained combat blades through Equipment and AttackPlan; current-catalog admission/materialization for both players and three-copy ceiling; Support role, four common-book Leader targets and the 153-link regression; Deep Strike, Infiltrators, Scouts 6 and Combat Doctrines metadata; Tactical Precision Lethal Hits exclusions; reversible weapon swap while attached; mixed-unit Deep Strike/Scouts/Stealth and reserve restrictions; and public-command Demi-company Commander response to a Captain's Strategic Acumen.",
+  "verification": {
+    "status": "passed_source_bounded_local_scope",
+    "command": "python tools/verify.py --godot C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_phobos_lieutenant --only test_infiltrator_squad --only test_space_marine_leader_links --timeout 300",
+    "artifact": ".tools/verification/20261028T013420957771Z/results.json",
+    "artifact_sha256": "33addbe8eacfaa93ae05c2aaec2d23fa8596365c84a04c9df40c3849e5e5b9ec",
+    "processes_passed": 5,
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "selected_suites": [
+      "test_phobos_lieutenant",
+      "test_infiltrator_squad",
+      "test_space_marine_leader_links"
+    ]
+  },
+  "limits": [
+    "Closes only the shared-book Lieutenant in Phobos Armour local scope. Spectrus Kill Team (Deathwatch App) and Wolf Scouts (Space Wolves App) are source-listed but outside the common-book catalog. This does not certify Chapter/whole-army legality, network behavior, complete-match behavior or human playtesting; network validation remains deferred to final integration."
+  ]
+}

@@ -3,6 +3,8 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Army = preload("res://scripts/edition_11/army_capabilities.gd")
+const WeaponChecks = preload("res://tests/space_marine_datasheet_checks.gd")
 const U = preload("res://scripts/edition_11/unit_prevention.gd")
 const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
@@ -17,10 +19,16 @@ func four() -> int: return 4
 func three() -> int: return 3
 func entry(name: String, models: int = 1) -> Dictionary:
  return {"definition_id": "40kdc:11e:adeptus-astartes:" + name, "models": models, "copies": 1}
+func model_for(state: Dictionary, owner: int, identity: String) -> int:
+ for model: int in state.units:
+  var unit: Dictionary = state.units[model]
+  if int(unit.get("owner", -1)) == owner and C.UnitAbilities.identity(unit) == identity: return model
+ return -1
 func fixture(attached: bool = true) -> Dictionary:
- var lists := F.selections()
+ var lists := F.current_marine_selections()
  lists[1].entries = [entry("chaplain-in-terminator-armour"), entry("intercessor-squad", 5), entry("terminator-squad", 5)]
- var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
+ lists[2].entries = [entry("chaplain-in-terminator-armour"), entry("intercessor-squad", 5), entry("terminator-squad", 5)]
+ var s := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
  if s.has("error"): return s
  if attached: C.UnitActions.attach(s, 100, 5)
  s.mission.stage = "battle"
@@ -91,11 +99,26 @@ func attack(s: Dictionary, mortal: bool) -> Dictionary:
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
  var s := fixture()
- check(not s.has("error"), "Terminator Chaplain admission failed")
+ check(not s.has("error"), "Terminator Chaplain admission failed: %s" % str(s.get("error", "")))
  if s.has("error"):
   print(s)
   quit(1)
   return
+ var profile: Dictionary = P.profile("chaplain-in-terminator-armour")
+ check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000000115" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Chaplain preserves its local Wahapedia source identity")
+ check(profile.models == 1 and is_equal_approx(profile.base_radius_inches, 25.0/25.4) and profile.points_by_models == {1: 75} and profile.stats == {"movement_inches": 5, "toughness": 6, "wounds": 5, "save_target": 2, "leadership_target": 5, "objective_control": 1, "invulnerable_target": 4}, "Chaplain's one-model profile, base, characteristics and price match the local export")
+ check(profile.keywords == ["INFANTRY", "CHAPLAIN", "CHARACTER", "IMPERIUM", "TERMINATOR", "ADEPTUS ASTARTES"] and "DEATHWING" not in profile.keywords, "Chaplain retains unconditional keywords and excludes chapter-conditional Deathwing")
+ var resolution := Army.resolve("Space Marines", "40kdc:11e:adeptus-astartes:chaplain-in-terminator-armour")
+ check(resolution.get("error", "").is_empty() and int(resolution.get("cost", -1)) == 75 and resolution.get("unsupported_abilities", []).is_empty(), "Chaplain resolves from the consolidated local catalog with no blocked abilities")
+ var admitted := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [entry("chaplain-in-terminator-armour")]})
+ check(admitted.error.is_empty() and admitted.total == 75, "Chaplain is admitted at the local 75-point cost")
+ for owner in [1, 2]:
+  var owner_model := model_for(s, owner, "chaplain-in-terminator-armour")
+  check(owner_model >= 0 and s.units[owner_model].max_wounds == 5, "Player %d materializes the current Terminator Chaplain profile" % owner)
+ for ability: String in ["leader", "deep-strike", "combat-doctrines", "litany-of-hate", "zealous-fortitude"]:
+  check(C.UnitAbilities.has(s, 5, ability), "Chaplain retains source ability %s" % ability)
+ var weapon_failures := WeaponChecks.fixed_weapon_plan_failures(s, profile, 100, 2)
+ check(weapon_failures.is_empty(), "Storm Bolter and Crozius Arcanum pass Equipment and AttackPlan: %s" % str(weapon_failures))
  check(s.training_points[1] == 350 and s.units[100].max_wounds == 5 and is_equal_approx(s.units[100].radius, 25.0/25.4), "Terminator Chaplain stats/price/base incorrect")
  check(s.units[100].attachment_role == "leader" and C.UnitAbilities.has(s, 5, "deep-strike"), "Terminator Chaplain lost Leader/Deep Strike")
  check(not C.UnitAbilities.has(s, 5, "spiritual-leader") and "DEATHWING" not in s.units[100].keywords, "Ordinary Chaplain or chapter rules leaked")

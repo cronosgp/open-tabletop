@@ -2,9 +2,20 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
+const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const Tech = preload("res://scripts/edition_11/techmarine.gd")
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
+const TECHMARINE_ID := "40kdc:11e:adeptus-astartes:techmarine"
+const BALLISTUS_ID := "40kdc:11e:adeptus-astartes:ballistus-dreadnought"
+const INTERCESSOR_ID := "40kdc:11e:adeptus-astartes:intercessor-squad"
+const WEAPONS := [
+ {"id": "forge-bolter", "profile": "standard", "melee": false, "name": "Forge Bolter", "range_inches": 24.0, "attacks": 3, "skill": 2, "strength": 5, "ap": -1, "damage": 2, "keywords": {"sustained-hits": 1}},
+ {"id": "grav-pistol", "profile": "standard", "melee": false, "name": "Grav-pistol", "range_inches": 12.0, "attacks": 2, "skill": 2, "strength": 2, "ap": -1, "damage": 3, "keywords": {"anti-vehicle": 2, "close-quarters": true}},
+ {"id": "omnissian-power-axe-and-servo-arm", "profile": "standard", "melee": true, "name": "Omnissian Power Axe and Servo-arm", "range_inches": 0.0, "attacks": 5, "skill": 3, "strength": 6, "ap": -2, "damage": 2, "keywords": {}}
+]
 var failures := 0
 func check(ok: bool, message: String) -> void:
  if not ok:
@@ -14,17 +25,11 @@ func six() -> int: return 6
 func entry(name: String, models: int = 1) -> Dictionary:
  return {"definition_id": "40kdc:11e:adeptus-astartes:" + name, "models": models, "copies": 1}
 func fixture() -> Dictionary:
- var lists := F.selections()
- lists[1].entries = [entry("captain"), entry("ballistus-dreadnought"), entry("intercessor-squad", 5)]
+ var lists := F.current_marine_selections()
+ lists[1].entries = [entry("techmarine"), entry("ballistus-dreadnought"), entry("intercessor-squad", 5)]
+ lists[2].entries = [entry("intercessor-squad", 5), entry("redemptor-dreadnought")]
  var state := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
  if state.has("error"): return state
- var captain := find(state, "captain")
- if captain > 0:
-  state.units[captain].definition_id = "40kdc:11e:adeptus-astartes:techmarine"
-  state.units[captain].keywords = Profiles.profile("techmarine").keywords.duplicate()
-  state.units[captain].max_wounds = 4
-  state.units[captain].wounds = 4
-  state.units[captain].radius = Profiles.profile("techmarine").base_radius_inches
  for model: int in state.units:
   state.units[model].on_battlefield = true
   state.units[model].position = Vector2(-18, 16) if state.units[model].owner == 1 else Vector2(18, 16)
@@ -38,9 +43,9 @@ func fixture() -> Dictionary:
  state.combat_doctrines.selected_turn[1] = 3
  state.awakened_dynasty.pending = []
  return state
-func find(state: Dictionary, identity: String) -> int:
+func find(state: Dictionary, identity: String, owner: int = 1) -> int:
  for model: int in state.units:
-  if Tech.identity(state.units[model]) == identity: return model
+  if int(state.units[model].get("owner", -1)) == owner and Tech.identity(state.units[model]) == identity: return model
  return -1
 func select(state: Dictionary, action: String) -> Dictionary:
  for option: Dictionary in C.unit_choices(state, 1):
@@ -58,11 +63,54 @@ func submit_choice(state: Dictionary, player: int, selected: Dictionary, roller:
   if projected.is_empty(): return {"error": "The current decision does not project the submitted Techmarine choice."}
   payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
  return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "choice": payload}, roller)
+
+func weapon_plan(state: Dictionary, squad: int, model: int, target: int, expected: Dictionary) -> Dictionary:
+ var previous_phase := str(state.phase)
+ var previous_active := int(state.active)
+ var previous_positions := {}
+ for member: int in C.living(state, squad) + C.living(state, target): previous_positions[member] = state.units[member].position
+ state.phase = "fight" if bool(expected.melee) else "shooting"
+ state.active = int(state.squads[squad].owner)
+ state.units[model].position = Vector2.ZERO
+ for target_model: int in C.living(state, target):
+  var base_edge_distance := 0.9 if bool(expected.melee) or expected.keywords.has("close-quarters") else 6.0
+  var center_distance := float(state.units[model].radius) + float(state.units[target_model].radius) + base_edge_distance
+  state.units[target_model].position = Vector2(center_distance, 0)
+ var result := C.AttackPlan.prepare(state, squad, bool(expected.melee), [{
+  "model": model, "target": target, "amount": int(expected.attacks) if bool(expected.melee) else 1,
+  "weapon": str(expected.id), "profile": str(expected.profile)
+ }], true)
+ state.phase = previous_phase
+ state.active = previous_active
+ for member: int in previous_positions: state.units[member].position = previous_positions[member]
+ return result
+
+func check_weapon(state: Dictionary, squad: int, model: int, target: int, expected: Dictionary) -> void:
+ var selected := Equipment.select(state, model, bool(expected.melee), str(expected.id), str(expected.profile))
+ check(str(selected.get("error", "")).is_empty(), "%s is selectable through Equipment" % expected.id)
+ if not str(selected.get("error", "")).is_empty(): return
+ for field: String in ["name", "range_inches", "attacks", "skill", "strength", "ap", "damage", "keywords"]:
+  check(selected.stats.get(field) == expected[field], "%s %s matches the local export" % [expected.id, field])
+ var plan := weapon_plan(state, squad, model, target, expected)
+ check(str(plan.get("error", "")).is_empty() and plan.get("batches", []).size() == 1,
+  "%s enters AttackPlan: %s" % [expected.id, plan.get("error", "")])
+ if str(plan.get("error", "")).is_empty() and plan.get("batches", []).size() == 1:
+  var planned: Dictionary = plan.batches[0].weapon
+  var planned_keywords: Dictionary = expected.keywords.duplicate(true)
+  planned_keywords.erase("close-quarters")
+  check(planned.get("name") == expected.name and planned.get("strength") == expected.strength
+   and planned.get("ap") == expected.ap and planned.get("damage") == expected.damage and planned.get("keywords", {}) == planned_keywords,
+   "%s preserves its source name and weapon traits in AttackPlan (name=%s traits=%s expected=%s)" % [expected.id, str(planned.get("name", "")), var_to_str(planned.get("keywords", {})), var_to_str(expected.keywords)])
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
  var profile := Profiles.profile("techmarine")
- check(profile.points == 55 and profile.stats.toughness == 5 and profile.stats.save_target == 2, "Techmarine profile does not match local Wahapedia export")
- check(profile.ranged.size() == 2 and profile.melee[0].profiles.standard.attacks == 5, "Techmarine weapons do not match local Wahapedia export")
+ check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000000140" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Techmarine cites the local Space Marines 11e export")
+ check(profile.points == 55 and profile.points_by_models == {1: 55} and profile.models == 1 and is_equal_approx(profile.base_radius_inches, 20.0 / 25.4), "Techmarine cost, one-model composition and 40 mm base match the local export")
+ check(profile.stats == {"movement_inches": 6, "toughness": 5, "save_target": 2, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0}, "Techmarine characteristics match the local export")
+ check(profile.keywords == ["INFANTRY", "CHARACTER", "TACTICUS", "EXPLOSIVES", "IMPERIUM", "ADEPTUS ASTARTES"], "Techmarine preserves all exported keywords")
+ check(profile.ranged.size() == 2 and profile.melee.size() == 1 and profile.get("additional_weapon_profiles", {}).is_empty(), "The fixed sheet has two ranged weapons, one melee weapon and no equipment options")
+ check(AbilityCatalog.RULES.get("techmarine", []) == ["leader", "techmarine-lone-operative", "blessings-of-the-omnissiah"], "All source-linked Techmarine abilities are registered")
+ check(Catalog.current_catalog_choice({"id": TECHMARINE_ID, "edition": "11e", "faction": "Space Marines"}).get("options", []) == [{"models": 1, "cost": 55}], "Current construction exposes the source's fixed Techmarine composition and cost")
  var s := fixture()
  check(not s.has("error"), "Techmarine fixture could not be admitted")
  if s.has("error"):
@@ -72,15 +120,34 @@ func run() -> void:
  var tech := find(s, "techmarine")
  var tank := find(s, "ballistus-dreadnought")
  check(tech > 0 and tank > 0, "Techmarine or Astartes Vehicle absent")
+ check(C.UnitAbilities.has(s, int(s.units[tech].squad), "leader") and C.UnitAbilities.has(s, int(s.units[tech].squad), "techmarine-lone-operative") and C.UnitAbilities.has(s, int(s.units[tech].squad), "blessings-of-the-omnissiah"), "The current-catalog Techmarine materializes its Leader and both datasheet abilities")
+ var enemy_intercessor := find(s, "intercessor-squad", 2)
+ check(enemy_intercessor > 0, "The second current Marine catalog provides the opposing target squad")
+ if enemy_intercessor > 0:
+  for expected: Dictionary in WEAPONS: check_weapon(s, int(s.units[tech].squad), tech, int(s.units[enemy_intercessor].squad), expected)
  s.units[tech].position = Vector2(0, 0)
  s.units[tank].position = Vector2(2.5, 0)
  check(C.UnitAbilities.lone_operative_active(s, tech), "Techmarine did not gain Lone Operative within 3 inches of friendly Vehicle")
- var enemy_shooter := find(s, "necron-warriors")
+ var enemy_shooter := find(s, "intercessor-squad", 2)
  var tech_squad_id: int = int(s.units[tech].squad)
  s.units[enemy_shooter].position = Vector2(20, 0)
  check(not C.AttackPlan.legal_targets(s, enemy_shooter, false).has(tech_squad_id), "Lone Operative allowed an enemy ranged target beyond 12 inches")
- s.units[enemy_shooter].position = Vector2(12.5, 0)
- check(C.AttackPlan.legal_targets(s, enemy_shooter, false).has(tech_squad_id), "Lone Operative blocked an enemy ranged target within 12 inches")
+ var range_center: float = 12.0 + float(s.units[enemy_shooter].radius) + float(s.units[tech].radius)
+ s.units[enemy_shooter].position = Vector2(range_center, 0)
+ var exact_lone_operative_distance: float = float(C.Terrain.targeting(s, enemy_shooter, tech_squad_id).distance)
+ for attempt in range(4):
+  if exact_lone_operative_distance <= 12.0: break
+  range_center -= 0.0001
+  s.units[enemy_shooter].position = Vector2(range_center, 0)
+  exact_lone_operative_distance = float(C.Terrain.targeting(s, enemy_shooter, tech_squad_id).distance)
+ check(absf(exact_lone_operative_distance - 12.0) <= 0.0002 and C.AttackPlan.legal_targets(s, enemy_shooter, false).has(tech_squad_id), "Lone Operative allows targeting at the calibrated 12-inch base-edge boundary")
+ s.units[enemy_shooter].position = Vector2(range_center + 0.01, 0)
+ check(not C.AttackPlan.legal_targets(s, enemy_shooter, false).has(tech_squad_id), "Lone Operative blocks ranged targeting immediately beyond 12 inches")
+ var exact_vehicle_boundary: float = 3.0 + float(s.units[tech].radius) + float(s.units[tank].radius)
+ s.units[tank].position = Vector2(exact_vehicle_boundary, 0)
+ check(absf(Tech.Geometry.edge(s.units[tech], s.units[tank]) - 3.0) <= 0.0002 and Tech.vehicle_targets(s, tech).has(tank), "Techmarine abilities include a friendly Astartes Vehicle at the 3-inch base-edge boundary")
+ s.units[tank].position = Vector2(exact_vehicle_boundary + 0.01, 0)
+ check(not Tech.vehicle_targets(s, tech).has(tank) and not C.UnitAbilities.lone_operative_active(s, tech), "Techmarine abilities stop selecting the Vehicle immediately beyond 3 inches")
  s.units[tank].position = Vector2(7, 0)
  check(not C.UnitAbilities.lone_operative_active(s, tech), "Techmarine retained Lone Operative outside 3 inches")
  s.units[tank].position = Vector2(2.5, 0)
@@ -150,15 +217,12 @@ func run() -> void:
  s = fixture()
  tech = find(s, "techmarine")
  tank = find(s, "ballistus-dreadnought")
- var target := find(s, "necron-warriors")
+ var target := find(s, "redemptor-dreadnought", 2)
  s.phase = "shooting"
  s.active = 1
  s.units[tank].wounds = 4
  s.units[tank].position = Vector2(0, 0)
  s.units[target].position = Vector2(12, 0)
- for defender_model: int in C.living(s, int(s.units[target].squad)):
-  s.units[defender_model].definition_id = "40kdc:11e:adeptus-astartes:redemptor-dreadnought"
-  s.units[defender_model].keywords = Profiles.profile("redemptor-dreadnought").keywords.duplicate()
  var attack_rows: Array = [{"model": tank, "target": s.units[target].squad, "amount": 1}]
  var unbuffed := C.AttackPlan.prepare(s, int(s.units[tank].squad), false, attack_rows, false)
  check(unbuffed.error.is_empty() and unbuffed.batches[0].context.hit_modifier == -1 and unbuffed.batches[0].context.wound_modifier == -1, "Damaged attacker / Duty Eternal defender did not generate attack modifiers")

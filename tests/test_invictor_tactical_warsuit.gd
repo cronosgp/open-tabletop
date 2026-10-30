@@ -11,6 +11,19 @@ const F = preload("res://tests/all_units_fixture.gd")
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
+const Terrain = preload("res://scripts/edition_11/terrain.gd")
+const DeadlyDemise = preload("res://scripts/edition_11/deadly_demise.gd")
+const C = F.C
+const INVICTOR_ID := "40kdc:11e:adeptus-astartes:invictor-tactical-warsuit"
+const WEAPONS := {
+	"fragstorm-grenade-launcher": {"melee": false, "profile": "standard", "range_inches": 18.0, "attacks": 3, "skill": 3, "strength": 4, "ap": -1, "damage": 1, "keywords": {"blast": 1}},
+	"heavy-bolter": {"melee": false, "profile": "standard", "range_inches": 36.0, "attacks": 3, "skill": 3, "strength": 5, "ap": -1, "damage": 2, "keywords": {"sustained-hits": 1, "rapid-fire": 2}},
+	"incendium-cannon": {"melee": false, "profile": "standard", "range_inches": 12.0, "attacks": 4, "skill": 0, "strength": 6, "ap": -1, "damage": 2, "keywords": {"torrent": true, "blast": 2}},
+	"ironhail-heavy-stubbers": {"melee": false, "profile": "standard", "range_inches": 36.0, "attacks": 6, "skill": 3, "strength": 4, "ap": -1, "damage": 1, "keywords": {"rapid-fire": 6}},
+	"twin-ironhail-autocannon": {"melee": false, "profile": "standard", "range_inches": 48.0, "attacks": 4, "skill": 3, "strength": 9, "ap": -1, "damage": 3, "keywords": {"twin-linked": true}},
+	"invictor-fist": {"melee": true, "profile": "standard", "range_inches": 0.0, "attacks": 5, "skill": 3, "strength": 12, "ap": -2, "damage": 3, "keywords": {}}
+}
 var failures := 0
 var dice: Array[int] = []
 
@@ -20,8 +33,13 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 
 func selection(copies: int = 1) -> Dictionary:
-	return {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000,
-		"entries": [{"definition_id": "40kdc:11e:adeptus-astartes:invictor-tactical-warsuit", "models": 1, "copies": copies}]}
+	return {"schema_version": 2, "faction": "Space Marines", "category": "strike_force", "points_limit": 2000,
+		"entries": [{"definition_id": INVICTOR_ID, "models": 1, "copies": copies}]}
+
+func scenario_selections() -> Dictionary:
+	var result := F.current_marine_selections()
+	result[1].entries = [{"definition_id": INVICTOR_ID, "models": 1, "copies": 1}]
+	return result
 
 func first_model(state: Dictionary, identity: String, owner: int) -> int:
 	for model: int in state.units:
@@ -30,6 +48,40 @@ func first_model(state: Dictionary, identity: String, owner: int) -> int:
 
 func roll_die() -> int:
 	return dice.pop_front() if not dice.is_empty() else 1
+
+func check_weapon_profile(state: Dictionary, squad: int, model: int, target_squad: int, weapon_id: String) -> Dictionary:
+	var expected: Dictionary = WEAPONS[weapon_id]
+	var selected := Equipment.select(state, model, bool(expected.melee), weapon_id, str(expected.profile))
+	check(str(selected.get("error", "")).is_empty(), "%s is selectable through Equipment" % weapon_id)
+	if not str(selected.get("error", "")).is_empty(): return {}
+	for field: String in ["range_inches", "attacks", "skill", "strength", "ap", "damage"]:
+		check(selected.stats.get(field) == expected[field], "%s %s matches the pinned source profile" % [weapon_id, field])
+	check(selected.stats.get("keywords", {}) == expected.keywords, "%s keeps every source weapon trait" % weapon_id)
+	var prior_phase: String = str(state.phase)
+	var prior_active: int = int(state.active)
+	var target_models: Array[int] = C.living(state, target_squad)
+	if target_models.is_empty():
+		check(false, "The weapon plan has a living target model")
+		return {}
+	var target_model: int = target_models[0]
+	var old_positions := {}
+	for member: int in C.living(state, squad) + target_models: old_positions[member] = state.units[member].position
+	state.units[model].position = Vector2.ZERO
+	var target_distance := 1.0 if expected.melee else 5.0
+	for index in range(target_models.size()):
+		var member: int = target_models[index]
+		state.units[member].position = Vector2(target_distance, 0) if member == target_model else Vector2(target_distance, 4 + index * 3)
+	state.phase = "fight" if expected.melee else "shooting"
+	state.active = int(state.squads[squad].owner)
+	var plan: Dictionary = AttackPlan.prepare(state, squad, bool(expected.melee), [{"model": model, "target": target_squad, "amount": int(selected.stats.attacks) if expected.melee else 1, "weapon": weapon_id, "profile": str(expected.profile)}], false)
+	state.phase = prior_phase
+	state.active = prior_active
+	for member: int in old_positions: state.units[member].position = old_positions[member]
+	check(str(plan.get("error", "")).is_empty() and plan.get("batches", []).size() == 1, "%s routes through AttackPlan: %s" % [weapon_id, plan.get("error", "")])
+	if plan.get("error", "").is_empty() and plan.get("batches", []).size() == 1:
+		var sources: Array = plan.batches[0].context.get("attack_sources", [])
+		check(not sources.is_empty() and str(sources[0].get("weapon", "")) == weapon_id, "AttackPlan preserves %s as the attack source" % weapon_id)
+	return plan
 
 func submit_choice(state: Dictionary, player: int, selected: Dictionary, point: Vector2 = Vector2.ZERO, roller: Callable = Callable()) -> Dictionary:
 	var decision := PendingDecisions.current(state, ["unit-actions"])
@@ -51,39 +103,63 @@ func run() -> void:
 	var profile := Profiles.profile("invictor-tactical-warsuit")
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000001156" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Invictor identity matches the selected local Space Marines export")
 	check(profile.points_by_models == {1: 135} and profile.third_plus_points_by_models == {1: 150} and profile.max_supported_copies == 3, "Invictor first/second and third-plus copy costs and limit match export")
-	check(profile.stats == {"movement_inches": 10, "toughness": 9, "save_target": 3, "wounds": 12, "leadership_target": 6, "objective_control": 4, "invulnerable_target": 0} and profile.damaged_threshold == 4 and profile.base_radius_inches == 45.0 / 25.4, "Invictor characteristics, Damaged 4 and 90mm base match export")
+	check(profile.stats == {"movement_inches": 10, "toughness": 9, "save_target": 3, "wounds": 12, "leadership_target": 6, "objective_control": 4, "invulnerable_target": 0} and profile.damaged_threshold == 4 and profile.base_radius_inches == 45.0 / 25.4, "Invictor characteristics, Damaged 4 and 90mm circular base match export")
+	var expected_keywords := ["ADEPTUS ASTARTES", "IMPERIUM", "PHOBOS", "VEHICLE", "WALKER"]
+	var actual_keywords: Array = profile.keywords.duplicate()
+	actual_keywords.sort()
+	expected_keywords.sort()
+	check(actual_keywords == expected_keywords, "All five source datasheet keywords are retained")
 	check(profile.ranged.size() == 4 and profile.ranged[0].id == "fragstorm-grenade-launcher" and profile.ranged[1].id == "heavy-bolter" and profile.ranged[2].id == "incendium-cannon" and profile.ranged[3].id == "ironhail-heavy-stubbers" and profile.melee[0].id == "invictor-fist", "Invictor default weapons match the local sheet")
 	check(profile.ranged[0].profiles.standard.keywords == {"blast": 1} and profile.ranged[1].profiles.standard.keywords == {"sustained-hits": 1, "rapid-fire": 2} and profile.ranged[2].profiles.standard.skill == 0 and profile.ranged[2].profiles.standard.keywords == {"torrent": true, "blast": 2} and profile.ranged[3].profiles.standard.keywords == {"rapid-fire": 6}, "Invictor default weapon traits and automatic hit profile match export")
 	var autocannon := Profiles.invictor_weapons(true)
 	check(autocannon.size() == 4 and autocannon[2].id == "twin-ironhail-autocannon" and autocannon[2].profiles.standard.keywords == {"twin-linked": true}, "Optional Twin Ironhail Autocannon replaces the Incendium Cannon")
 	check(Army.SPECS["invictor-tactical-warsuit"].current_reference and Army.SPECS["invictor-tactical-warsuit"].max_supported_copies == 3, "Invictor admission remains tied to this current profile and copy limit")
+	var catalog_choice := Army.current_catalog_choice({"id": INVICTOR_ID, "edition": "11e", "faction": "Space Marines"})
+	check(catalog_choice.get("options", []) == [{"models": 1, "cost": 135, "third_plus_cost": 150}], "Current construction exposes the source model count and both copy tiers")
 	var admitted := Army.admit(selection())
 	var three := Army.admit(selection(3))
 	var four := Army.admit(selection(4))
 	check(admitted.error.is_empty() and admitted.total == 135 and three.error.is_empty() and three.total == 420 and not four.error.is_empty(), "Local construction uses source costs and rejects a fourth Invictor: %s / %d; %s / %d; %s" % [admitted.get("error", ""), admitted.get("total", -1), three.get("error", ""), three.get("total", -1), four.get("error", "")])
+	var demise_state := {"units": {100: {"definition_id": INVICTOR_ID, "owner": 1, "squad": 1, "wounds": 0, "max_wounds": 12, "position": Vector2.ZERO, "radius": 45.0 / 25.4}, 200: {"definition_id": "intercessor-squad", "owner": 2, "squad": 2, "wounds": 5, "max_wounds": 5, "position": Vector2(5, 0), "radius": 0.0}}, "squads": {1: {"owner": 1, "name": "Invictor"}, 2: {"owner": 2, "name": "Intercessors"}}, "unit_abilities": {"implementation": Abilities.ID, "window": {}}, "pending_attack": {}, "awakened_dynasty": {"owners": []}, "detachment_stratagems": {"destroyed": [], "revived": []}}
+	dice = [5]
+	var quiet_demise := DeadlyDemise.begin(demise_state, [100], roll_die)
+	var triggered_state: Dictionary = demise_state.duplicate(true)
+	dice = [6, 1]
+	var triggered_demise := DeadlyDemise.begin(triggered_state, [100], roll_die)
+	var demise_packet: Dictionary = triggered_state.get("pending_deadly_demise", {}).get("packets", [{}])[0]
+	check(quiet_demise.get("error", "").is_empty() and quiet_demise.complete and demise_state.last_deadly_demise.events[0].expression == "D3" and not demise_state.last_deadly_demise.events[0].triggered and demise_state.last_deadly_demise.events[0].targets.is_empty(), "Invictor resolves the exported Deadly Demise D3 check without triggering on 5")
+	check(triggered_demise.get("error", "").is_empty() and not triggered_demise.complete and triggered_state.pending_deadly_demise.events[0].triggered and demise_packet.get("owner", -1) == 2 and demise_packet.get("target", -1) == 2 and demise_packet.get("remaining", -1) == 1, "Invictor Deadly Demise D3 triggers on a 6 and opens the target player's mortal-wound allocation")
 
-	var selections := F.selections()
-	for index in range(selections[1].entries.size() - 1, -1, -1):
-		var entry: Dictionary = selections[1].entries[index]
-		if entry.definition_id.ends_with(":terminator-squad"):
-			selections[1].entries.remove_at(index)
-		elif entry.definition_id.ends_with(":assault-intercessor-squad"):
-			entry.definition_id = "40kdc:11e:adeptus-astartes:invictor-tactical-warsuit"
-			entry.models = 1
-		elif entry.definition_id.ends_with(":heavy-intercessor-squad"):
-			entry.definition_id = "40kdc:11e:adeptus-astartes:redemptor-dreadnought"
-			entry.models = 1
+	var selections := scenario_selections()
 	var state := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true}, selections)
-	check(not state.has("error"), "Invictor and vehicle reference profiles materialize from the local catalog: %s" % state.get("error", ""))
+	check(not state.has("error"), "Invictor materializes from the consolidated current Space Marines catalog: %s" % state.get("error", ""))
 	if not state.has("error"):
 		var invictor := first_model(state, "invictor-tactical-warsuit", 1)
-		var warriors := first_model(state, "necron-warriors", 2)
-		var immortals := first_model(state, "immortals", 2)
-		check(invictor >= 0 and warriors >= 0 and immortals >= 0, "Battle includes Invictor and two enemy units for mark transitions")
-		if invictor >= 0 and warriors >= 0 and immortals >= 0:
+		var enemy_models: Array[int] = []
+		var enemy_squads: Array[int] = []
+		for model: int in state.units:
+			var unit: Dictionary = state.units[model]
+			if unit.owner != 2 or Abilities.identity(unit) != "intercessor-squad": continue
+			if int(unit.squad) not in enemy_squads:
+				enemy_squads.append(int(unit.squad))
+				enemy_models.append(model)
+		enemy_squads.sort()
+		var marked_model := first_model(state, "intercessor-squad", 2)
+		var marked_squad := int(state.units[marked_model].squad) if marked_model >= 0 else -1
+		var replacement_model := -1
+		for model: int in enemy_models:
+			if state.units[model].squad != marked_squad: replacement_model = model; break
+		var replacement_squad := int(state.units[replacement_model].squad) if replacement_model >= 0 else -1
+		check(invictor >= 0 and marked_model >= 0 and replacement_model >= 0 and enemy_squads.size() == 2, "Current-catalog match includes the Invictor and two enemy target units")
+		if invictor >= 0 and marked_model >= 0 and replacement_model >= 0:
 			var inv_squad: int = state.units[invictor].squad
-			var warrior_squad: int = state.units[warriors].squad
-			var immortal_squad: int = state.units[immortals].squad
+			var warrior_squad: int = marked_squad
+			var immortal_squad: int = replacement_squad
+			check(state.units[invictor].ranged_weapons.size() == 4 and state.units[invictor].melee_weapons.size() == 1 and state.squads[inv_squad].training_cost == 135, "The materialized Invictor has its five source-listed default weapons and 135-point cost")
+			for keyword: String in expected_keywords: check(Terrain.has_keyword(state.units[invictor], [keyword.to_lower()]), "The model carries the %s source keyword" % keyword)
+			check(int(state.units[invictor].max_wounds) == 12 and int(state.squads[inv_squad].stats.toughness) == 9 and int(state.squads[inv_squad].stats.save_target) == 3, "Materialized model and squad characteristics retain T9, Sv3+ and 12 wounds")
+			for weapon_id: String in ["fragstorm-grenade-launcher", "heavy-bolter", "incendium-cannon", "ironhail-heavy-stubbers", "invictor-fist"]:
+				check_weapon_profile(state, inv_squad, invictor, warrior_squad, weapon_id)
 			state.awakened_dynasty.pending = []
 			var reserve_choice: Dictionary = {}
 			for option: Dictionary in UnitActions.choices(state, 1):
@@ -94,8 +170,26 @@ func run() -> void:
 				if option.action == "invictor-gun" and option.model == invictor and option.value == "autocannon": equipment = option
 			check(not equipment.is_empty(), "Deployment exposes the Invictor autocannon replacement")
 			if not equipment.is_empty():
-				var equipment_error := PublicUnitCommand.error(state, 1, equipment)
-				check(equipment_error.is_empty() and state.units[invictor].ranged_weapons[2].id == "twin-ironhail-autocannon", "Selecting the optional autocannon changes the equipped weapon")
+				var before_rejected_equipment := var_to_bytes(state)
+				var wrong_owner_equipment := PublicUnitCommand.submit(state, 2, equipment)
+				var decision := PendingDecisions.current(state, ["unit-actions"])
+				var stale_equipment := PublicUnitCommand.submit(state, 1, equipment, Vector2.ZERO, Callable(), str(decision.get("decision_id", "stale-decision")), "stale-option-id")
+				check(not str(wrong_owner_equipment.get("error", "")).is_empty() and not str(stale_equipment.get("error", "")).is_empty() and before_rejected_equipment == var_to_bytes(state), "Wrong-owner and stale autocannon choices are rejected without changing the loadout")
+				var equipment_result := PublicUnitCommand.submit(state, 1, equipment)
+				check(str(equipment_result.get("error", "")).is_empty() and state.units[invictor].ranged_weapons[2].id == "twin-ironhail-autocannon", "The public deployment command equips the optional autocannon")
+				check_weapon_profile(state, inv_squad, invictor, warrior_squad, "twin-ironhail-autocannon")
+				var restore_equipment: Dictionary = {}
+				for option: Dictionary in UnitActions.choices(state, 1):
+					if option.action == "invictor-gun" and option.model == invictor and option.value == "incendium": restore_equipment = option
+				var restore_result := PublicUnitCommand.submit(state, 1, restore_equipment)
+				check(not restore_equipment.is_empty() and str(restore_result.get("error", "")).is_empty() and state.units[invictor].ranged_weapons[2].id == "incendium-cannon", "The public choice restores the Incendium Cannon")
+				check_weapon_profile(state, inv_squad, invictor, warrior_squad, "incendium-cannon")
+			var healthy_plan := AttackPlan.prepare(state, inv_squad, false, [{"model": invictor, "target": warrior_squad, "amount": 1, "weapon": "heavy-bolter", "profile": "standard"}], false)
+			var starting_wounds: int = int(state.units[invictor].wounds)
+			state.units[invictor].wounds = 4
+			var damaged_plan := AttackPlan.prepare(state, inv_squad, false, [{"model": invictor, "target": warrior_squad, "amount": 1, "weapon": "heavy-bolter", "profile": "standard"}], false)
+			state.units[invictor].wounds = starting_wounds
+			check(healthy_plan.get("error", "").is_empty() and healthy_plan.batches[0].context.hit_modifier == 0 and damaged_plan.get("error", "").is_empty() and damaged_plan.batches[0].context.hit_modifier == -1, "Damaged 4 applies a -1 Hit modifier in the Invictor's actual attack plan at four remaining wounds")
 			check(Abilities.scout_distance(state, inv_squad) == 8, "The exported Scouts 8-inch ability is registered for this Invictor")
 			state.phase = "start_turn"
 			state.turn = 1
@@ -112,8 +206,8 @@ func run() -> void:
 				var mark_result := submit_choice(state, 1, mark_choice)
 				check(str(mark_result.get("error", "")).is_empty() and Abilities.forward_assault_mark(state, inv_squad) == warrior_squad, "Forward Assault stores the selected enemy mark through the normalized command")
 			state.units[invictor].position = Vector2(6, 0)
-			state.units[warriors].position = Vector2(12, 0)
-			state.units[immortals].position = Vector2(13, 0)
+			state.units[marked_model].position = Vector2(12, 0)
+			state.units[replacement_model].position = Vector2(13, 0)
 			var scout_probe := state.duplicate(true)
 			scout_probe.terrain = {"id": "terrain-11e-v1", "areas": []}
 			scout_probe.unit_abilities.window = {"kind": "scouts", "squad": inv_squad, "reserved": false, "setup": false,
@@ -126,15 +220,15 @@ func run() -> void:
 			check(marked_plan.error.is_empty() and marked_plan.batches[0].context.get("wound_reroll", "") == "ones", "Invictor attacks against its current mark re-roll Wound rolls of 1")
 			check(unmarked_plan.error.is_empty() and unmarked_plan.batches[0].context.get("wound_reroll", "none") == "none", "Forward Assault does not grant re-rolls against an unmarked unit")
 			for target_model: int in state.units:
-				if state.units[target_model].squad == warrior_squad and target_model != warriors: state.units[target_model].wounds = 0
-			state.units[warriors].wounds = 1
+				if state.units[target_model].squad == warrior_squad and target_model != marked_model: state.units[target_model].wounds = 0
+			state.units[marked_model].wounds = 1
 			state.phase = "shooting"
 			state.active = 1
 			state.squads[inv_squad].shot = false
 			dice = [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1]
 			var attack := F.C.resolve_attack_plan(state, 1, invictor, [{"model": invictor, "target": warrior_squad, "amount": 1, "weapon": "heavy-bolter", "profile": "standard"}], state.revision, false, false, roll_die)
-			var allocation_error := F.C.allocate_damage(state, 2, warriors, state.revision, roll_die)
-			check(attack.get("error", "").is_empty() and allocation_error.is_empty() and state.units[warriors].wounds == 0 and state.unit_abilities.window.get("kind", "") == "forward-assault-mark", "Destroying the marked enemy through a resolved attack opens the replacement choice: attack=%s allocation=%s" % [attack.get("error", ""), allocation_error])
+			var allocation_error := F.C.allocate_damage(state, 2, marked_model, state.revision, roll_die)
+			check(attack.get("error", "").is_empty() and allocation_error.is_empty() and state.units[marked_model].wounds == 0 and state.unit_abilities.window.get("kind", "") == "forward-assault-mark", "Destroying the marked enemy through a resolved attack opens the replacement choice: attack=%s allocation=%s" % [attack.get("error", ""), allocation_error])
 			var post_attack_frame := ResolutionFrames.current(state)
 			var post_attack_decision := UnitActions.pending_decision(state)
 			check(post_attack_frame.get("kind", "") == "attack" and post_attack_frame.get("status", "") == "suspended" and post_attack_frame.get("resume_point", "") == "attack-mark-replacement", "Invictor mark replacement suspends the in-progress attack frame")

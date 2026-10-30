@@ -2,6 +2,8 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Army = preload("res://scripts/edition_11/army_capabilities.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
 const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
@@ -49,29 +51,49 @@ func submit_choice(state: Dictionary, player: int, action_id: String, target: in
 	return MatchCommandService.execute(state, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(option_projection.get("id", "")), "choice": choice}})
 
 func make_state(attach_shrike: bool = true) -> Dictionary:
-	var lists := F.selections()
-	lists[1].entries = [entry("captain"), entry("assault-intercessors-with-jump-packs", 5), entry("vanguard-veteran-squad-with-jump-packs", 5), entry("intercessor-squad", 5)]
-	lists[2].entries = [
-		{"definition_id": "40kdc:11e:necrons:immortals", "models": 5, "copies": 1},
-		{"definition_id": "40kdc:11e:necrons:necron-warriors", "models": 10, "copies": 1}]
+	var lists := F.current_marine_selections()
+	for owner in [1, 2]:
+		lists[owner].entries = [entry("kayvaan-shrike"), entry("assault-intercessors-with-jump-packs", 5), entry("vanguard-veteran-squad-with-jump-packs", 5), entry("intercessor-squad", 5)]
 	var state: Dictionary = F.P.initial_state({"checked_rosters": false, "official_mission": false, "unit_abilities": true, "combat_doctrines": true, "core_stratagems": true, "reanimation_protocols": true, "awakened_dynasty": true, "manual_allocation": false}, lists)
 	if state.has("error"): return state
-	var model := find_model(state, 1, "captain")
-	var profile := Profiles.profile("kayvaan-shrike")
-	state.units[model].definition_id = "40kdc:11e:adeptus-astartes:kayvaan-shrike"
-	state.units[model].keywords = profile.keywords.duplicate()
-	state.units[model].ranged_weapons = profile.ranged.duplicate(true)
-	state.units[model].melee_weapons = profile.melee.duplicate(true)
-	state.units[model].invulnerable_target = profile.stats.invulnerable_target
-	state.units[model].wounds = profile.stats.wounds
-	state.units[model].max_wounds = profile.stats.wounds
-	Abilities.enable(state)
 	state.awakened_dynasty.pending = []
 	state.unit_abilities.setup_players = []
+	var model := find_model(state, 1, "kayvaan-shrike")
 	var veterans := find_squad(state, 1, "vanguard-veteran-squad-with-jump-packs")
 	if attach_shrike and veterans >= 0: C.UnitActions.attach(state, model, veterans)
 	state.mission.stage = "battle"
 	return state
+
+func check_weapon_plan(state: Dictionary, weapon: Dictionary, melee: bool) -> void:
+	var model := find_model(state, 1, "kayvaan-shrike")
+	var squad := find_squad(state, 1, "kayvaan-shrike")
+	var target_squad := find_squad(state, 2, "intercessor-squad")
+	var target_models: Array[int] = Geometry.alive(state, target_squad)
+	if model < 0 or squad < 0 or target_squad < 0 or target_models.is_empty():
+		check(false, "Shrike's %s attack has current-catalog attacker and target units" % str(weapon.get("id", "weapon")))
+		return
+	var target_model: int = target_models[0]
+	var old_phase: String = str(state.phase)
+	var old_active: int = int(state.active)
+	var old_attacker_position: Vector2 = state.units[model].position
+	var old_target_position: Vector2 = state.units[target_model].position
+	state.units[model].position = Vector2.ZERO
+	state.units[target_model].position = Vector2(1.75, 0.0) if melee else Vector2(10.0, 0.0)
+	state.phase = "fight" if melee else "shooting"
+	state.active = 1
+	var weapon_id := str(weapon.get("id", ""))
+	var expected: Dictionary = weapon.get("profiles", {}).get("standard", {})
+	var selected: Dictionary = Equipment.select(state, model, melee, weapon_id, "standard")
+	check(str(selected.get("error", "")).is_empty() and selected.get("stats", {}) == expected, "%s enters Equipment with its exact source profile: %s" % [weapon_id, str(selected.get("error", ""))])
+	if str(selected.get("error", "")).is_empty():
+		var amount := int(expected.get("attacks", 1)) if melee else 1
+		var plan: Dictionary = C.AttackPlan.prepare(state, squad, melee, [{"model": model, "target": target_squad, "amount": amount, "weapon": weapon_id, "profile": "standard"}], true)
+		check(str(plan.get("error", "")).is_empty() and plan.get("batches", []).size() == 1, "%s routes through AttackPlan: %s" % [weapon_id, str(plan.get("error", ""))])
+	state.phase = old_phase
+	state.active = old_active
+	state.unit_abilities.phase_key = C.UnitActions.key(state)
+	state.units[model].position = old_attacker_position
+	state.units[target_model].position = old_target_position
 
 func _initialize() -> void: call_deferred("run")
 
@@ -79,6 +101,11 @@ func run() -> void:
 	var profile := Profiles.profile("kayvaan-shrike")
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000002708" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Shrike profile identifies the local shared-book Wahapedia record")
 	check(profile.points == 95 and profile.models == 1 and profile.base_size_source_mm == 40 and profile.stats == {"movement_inches": 12, "toughness": 4, "save_target": 3, "wounds": 5, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4}, "Shrike points, base and characteristics match the local export")
+	var catalog_resolution: Dictionary = Army.resolve("Space Marines", "40kdc:11e:adeptus-astartes:kayvaan-shrike")
+	check(catalog_resolution.get("error", "").is_empty() and int(catalog_resolution.get("cost", -1)) == 95 and catalog_resolution.get("unsupported_abilities", []).is_empty(), "Shrike resolves from the current local catalog at source cost with no blocked abilities")
+	var one_shrike := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:kayvaan-shrike", "models": 1, "copies": 1}]})
+	var two_shrikes := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:kayvaan-shrike", "models": 1, "copies": 2}]})
+	check(one_shrike.get("error", "").is_empty() and int(one_shrike.get("total", -1)) == 95 and not str(two_shrikes.get("error", "")).is_empty(), "One Epic Hero Shrike is admitted and a duplicate is rejected")
 	check(profile.ranged[0].profiles.standard.range_inches == 18.0 and profile.ranged[0].profiles.standard.keywords == {"precision": true, "close-quarters": true} and profile.melee[0].profiles.standard.attacks == 7 and profile.melee[0].profiles.standard.keywords == {"precision": true, "twin-linked": true}, "Blackout and Raven's Talons retain their exported weapon traits")
 	check(profile.keywords == ["INFANTRY", "CHARACTER", "CAPTAIN", "EPIC HERO", "PHOBOS", "SMOKE", "JUMP PACK", "IMPERIUM", "FLY", "EXPLOSIVES", "ADEPTUS ASTARTES", "RAVEN GUARD"], "Shrike profile retains all exported keywords")
 	var state := make_state()
@@ -89,6 +116,18 @@ func run() -> void:
 		return
 	var model := find_model(state, 1, "kayvaan-shrike")
 	var squad: int = state.units[model].squad
+	for owner in [1, 2]:
+		var owner_model := find_model(state, owner, "kayvaan-shrike")
+		check(owner_model >= 0, "Player %d materializes Shrike from the current Space Marines catalog" % owner)
+		if owner_model >= 0:
+			var owner_squad: int = int(state.units[owner_model].squad)
+			var owner_unit: Dictionary = state.units[owner_model]
+			var owner_stats: Dictionary = state.squads[owner_squad].get("stats", {}).duplicate(true)
+			if owner_unit.has("attachment_role"):
+				var defense: Dictionary = owner_unit.get("defense", {})
+				owner_stats = {"movement_inches": owner_unit.get("movement", -1), "toughness": defense.get("toughness", -1), "save_target": defense.get("save_target", -1), "wounds": owner_unit.get("max_wounds", -1), "leadership_target": owner_unit.get("leadership_target", -1), "objective_control": owner_unit.get("objective_control", -1), "invulnerable_target": defense.get("invulnerable_target", -1)}
+			check(owner_stats == profile.stats and owner_unit.get("keywords", []) == profile.keywords, "Player %d receives Shrike's source profile and keywords" % owner)
+			check(Abilities.has(state, owner_squad, "deep-strike") and Abilities.has(state, owner_squad, "lone-operative") and Abilities.has(state, owner_squad, "echo-of-the-ravenspire"), "Player %d receives Shrike's current ability mapping" % owner)
 	var jump_veterans := find_squad(state, 1, "vanguard-veteran-squad-with-jump-packs")
 	var jump_intercessors := find_squad(state, 1, "assault-intercessors-with-jump-packs")
 	var intercessors := find_squad(state, 1, "intercessor-squad")
@@ -104,6 +143,8 @@ func run() -> void:
 	check(not Abilities.lone_operative_active(state, model), "Lone Operative is disabled while Shrike leads an attached unit")
 	check(Abilities.has(state, squad, "transhuman-strategist"), "Shrike has Transhuman Strategist")
 	check(Abilities.lone_operative_active(standalone, standalone_model), "Shrike has Lone Operative while he is not attached")
+	for weapon: Dictionary in profile.get("ranged", []): check_weapon_plan(standalone, weapon, false)
+	for weapon: Dictionary in profile.get("melee", []): check_weapon_plan(standalone, weapon, true)
 	var warlord_choice := action(standalone, 1, "warlord")
 	check(not warlord_choice.is_empty() and warlord_choice.model == standalone_model, "Shrike is eligible to be declared Warlord")
 	if not warlord_choice.is_empty():
@@ -149,7 +190,7 @@ func run() -> void:
 	var engaged := make_state()
 	var engaged_model := find_model(engaged, 1, "kayvaan-shrike")
 	var engaged_squad: int = engaged.units[engaged_model].squad
-	var enemy_model := Geometry.alive(engaged, find_squad(engaged, 2, "immortals"))[0]
+	var enemy_model := Geometry.alive(engaged, find_squad(engaged, 2, "intercessor-squad"))[0]
 	engaged.units[enemy_model].position = engaged.units[engaged_model].position
 	engaged.phase = "fight"
 	engaged.active = 2

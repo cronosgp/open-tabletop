@@ -3,6 +3,7 @@ extends RefCounted
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
+const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
 const ID := "incursor-squad"
 const DIVINATOR_WINDOW := "incursor-divinator"
 const MINE_WINDOW := "incursor-haywire-mortal"
@@ -25,6 +26,35 @@ static func _targets(state: Dictionary, model: int, max_range: float) -> Array[i
 		if state.squads[squad].owner == state.units[model].owner or Geometry.alive(state, squad).is_empty(): continue
 		var sight := Terrain.targeting(state, model, squad)
 		if sight.visible and sight.distance <= max_range + 0.001: result.append(squad)
+	result.sort()
+	return result
+
+static func _mine_models(state: Dictionary, squad: int) -> Array[int]:
+	var result: Array[int] = []
+	if not AbilityCatalog.has(state, squad, "haywire-mine"): return result
+	for model: int in Geometry.alive(state, squad):
+		var unit: Dictionary = state.units[model]
+		if not unit.get("on_battlefield", true): continue
+		var identity := AbilityCatalog.identity(unit)
+		if identity == ID:
+			result.append(model)
+		elif identity == "wolf-scouts" and bool(unit.get("wolf_scouts_haywire_mine", false)):
+			for weapon: Dictionary in unit.get("ranged_weapons", []):
+				if str(weapon.get("id", "")) == "plasma-pistol":
+					result.append(model)
+					break
+	return result
+
+static func _mine_targets(state: Dictionary, squad: int, max_range: float) -> Array[int]:
+	var result: Array[int] = []
+	for target: int in state.squads:
+		if int(state.squads[target].get("owner", -1)) == int(state.squads[squad].get("owner", -2)) or Geometry.alive(state, target).is_empty(): continue
+		for model: int in Geometry.alive(state, squad):
+			if not state.units[model].get("on_battlefield", true): continue
+			var sight := Terrain.targeting(state, model, target)
+			if sight.visible and sight.distance <= max_range + 0.001:
+				result.append(target)
+				break
 	result.sort()
 	return result
 
@@ -88,17 +118,17 @@ static func choose(state: Dictionary, player: int, selected: Dictionary) -> Dict
 	return {"error": "", "resume_declaration": declaration}
 
 static func haywire_available(state: Dictionary, squad: int) -> bool:
-	return state.phase == "shooting" and state.active == state.squads[squad].owner and not _models(state, squad).is_empty() and not state.unit_abilities.get("used", {}).get("haywire:%d" % squad, false)
+	return state.get("phase", "") == "shooting" and state.get("squads", {}).has(squad) and state.get("active", -1) == state.squads[squad].owner and not _mine_models(state, squad).is_empty() and not state.get("unit_abilities", {}).get("used", {}).get("haywire:%d" % squad, false)
 
 static func haywire_choices(state: Dictionary, player: int) -> Array:
 	if state.phase != "shooting" or state.active != player: return []
 	var result: Array = []
 	for squad: int in state.squads:
 		if state.squads[squad].owner != player: continue
-		var models := _models(state, squad)
+		var models := _mine_models(state, squad)
 		if models.is_empty() or not haywire_available(state, squad): continue
 		var source: int = models[0]
-		for target: int in _targets(state, source, 6.0):
+		for target: int in _mine_targets(state, squad, 6.0):
 			result.append({"label": "Haywire Mine %d: target %s (once per battle)" % [source, state.squads[target].name], "action": "haywire-mine", "model": source, "target": target, "value": "use"})
 	return result
 
@@ -110,7 +140,7 @@ static func haywire(state: Dictionary, player: int, selected: Dictionary, roller
 	var target: int = int(selected.target)
 	var activation := RandomStat.roll("D6", roller)
 	if not activation.error.is_empty(): return activation
-	var record := {"squad": squad, "model": source, "target": target, "activation": activation, "vehicle": false, "damage": {}, "mortal_wounds": 0, "remaining": 0, "allocations": [], "discarded": 0}
+	var record := {"squad": squad, "model": source, "datasheet": AbilityCatalog.identity(state.units[source]), "target": target, "activation": activation, "vehicle": false, "damage": {}, "mortal_wounds": 0, "remaining": 0, "allocations": [], "discarded": 0}
 	state.unit_abilities.used["haywire:%d" % squad] = true
 	if activation.value >= 2:
 		var vehicle := false

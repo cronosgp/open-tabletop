@@ -62,6 +62,12 @@ func run() -> void:
 	add_passengers(impulsor, 2, ["ADEPTUS ASTARTES", "INFANTRY", "GRAVIS"])
 	check(Transport.capacity_cost(impulsor, 2, impulsor.units[100].transport_profile) == 10, "Impulsor occupancy counts each Gravis model as two spaces")
 	check(not Transport.eligibility_error(impulsor, 100, 2).is_empty(), "Impulsor rejects a Gravis unit that exceeds its seven-space capacity")
+	var impulsor_terminators := make_state("impulsor")
+	add_passengers(impulsor_terminators, 2, ["ADEPTUS ASTARTES", "INFANTRY", "TERMINATOR"])
+	check(Transport.eligibility_error(impulsor_terminators, 100, 2).contains("cannot carry TERMINATOR"), "Impulsor enforces its Terminator exclusion")
+	var impulsor_jump_pack := make_state("impulsor")
+	add_passengers(impulsor_jump_pack, 2, ["ADEPTUS ASTARTES", "INFANTRY", "JUMP PACK"])
+	check(Transport.eligibility_error(impulsor_jump_pack, 100, 2).contains("cannot carry JUMP PACK"), "Impulsor enforces its Jump Pack exclusion")
 
 	var land_raider := make_state("land-raider")
 	add_passengers(land_raider, 2, ["ADEPTUS ASTARTES", "INFANTRY", "TERMINATOR"])
@@ -93,9 +99,10 @@ func run() -> void:
 	disembark.squads[1].move_type = "normal"
 	check(Transport.disembark_choices(disembark, 1).size() == 1 and Transport.disembark_choices(disembark, 1)[0].value == "rapid", "A transport that made a Normal move requires Rapid Disembark")
 	var rapid_choice := Transport.disembark_choices(disembark, 1)[0]
-	check(Transport.apply(disembark, 1, rapid_choice, Vector2.ZERO, func() -> int: return 6).is_empty(), "Rapid Disembark resolves its mandatory Hazard rolls and opens a placement window")
+	check(Transport.apply(disembark, 1, rapid_choice, Vector2.ZERO, func() -> int: return 6).is_empty(), "Rapid Disembark opens its placement continuation")
+	check(disembark.unit_abilities.transport_window.get("hazard_rolls", []).is_empty(), "Rapid Disembark does not use Emergency Disembark's Hazard step")
 	var disembark_frame := ResolutionFrames.current(disembark)
-	check(disembark_frame.get("kind", "") == "transport-disembark" and disembark_frame.get("status", "") == "suspended", "A normal disembarkation suspends a persisted continuation while Hazard and placement steps remain")
+	check(disembark_frame.get("kind", "") == "transport-disembark" and disembark_frame.get("status", "") == "suspended", "A normal disembarkation suspends a persisted continuation while placement remains")
 	var disembark_decision := PendingDecisions.current(disembark, ["unit-actions"])
 	check(disembark.unit_abilities.window.get("kind", "") == Transport.DISEMBARK_WINDOW and disembark_decision.get("priority_player_id", -1) == 1 and disembark_decision.get("resume_frame_id", "") == disembark_frame.get("frame_id", ""), "A no-failure disembark placement has a normalized owner decision linked to its continuation")
 	check(not PhaseCloseGate.close_request_error(disembark, 1, disembark.revision).is_empty(), "A pending disembark placement blocks phase close until its models are placed")
@@ -113,35 +120,6 @@ func run() -> void:
 	check(str(confirm_result.get("error", "")).is_empty(), "Disembark confirmation restores every model through the normalized command")
 	check(ResolutionFrames.current(disembark).is_empty(), "Confirming a normal disembarkation completes its continuation frame")
 	check(disembark.units[200].on_battlefield and not disembark.units[200].has("embarked_transport") and disembark.squads[2].get("disembarked_turn", -1) == 1 and disembark.squads[2].moved and Actions.charge_blocked(disembark, 2), "Rapid Disembark sets up the unit, prevents charging this turn and consumes its move")
-	var hazard_disembark := make_state("rhino")
-	hazard_disembark["unit_abilities"] = {"transport_window": {}, "window": {}}
-	add_passengers(hazard_disembark, 2, ["ADEPTUS ASTARTES", "INFANTRY", "TACTICUS"])
-	check(Transport.embark(hazard_disembark, 1, 100, 2).is_empty(), "Hazard test unit embarks")
-	hazard_disembark.squads[2].embarked_this_turn = 0
-	var hazard_start := Transport.apply(hazard_disembark, 1, Transport.disembark_choices(hazard_disembark, 1)[0], Vector2.ZERO, func() -> int: return 1)
-	check(hazard_start.is_empty() and hazard_disembark.unit_abilities.transport_window.hazard_rolls == [1, 1, 1, 1, 1] and hazard_disembark.unit_abilities.transport_window.stage == "hazard", "Disembark makes one mandatory Hazard roll per passenger model before placement")
-	for _index in range(5):
-		var hazard_choices := Transport.choices(hazard_disembark, 1)
-		if hazard_choices.is_empty(): break
-		check(Transport.apply(hazard_disembark, 1, hazard_choices[0], Vector2.ZERO).is_empty(), "Failed disembark Hazard roll allocates a mortal wound")
-	check(hazard_disembark.unit_abilities.transport_window.get("stage", "") == "placement", "Disembark placement starts after all failed Hazard rolls are allocated")
-	var hazard_survivors := Transport.models(hazard_disembark, 2)
-	for index in range(hazard_survivors.size()):
-		check(Transport.apply(hazard_disembark, 1, {"action": "transport-disembark-place", "model": hazard_survivors[index]}, Vector2(1.4 + index * 0.25, 0)).is_empty(), "Survivors can be placed after disembark Hazard")
-	check(Transport.apply(hazard_disembark, 1, {"action": "transport-disembark-confirm"}, Vector2.ZERO).is_empty() and hazard_disembark.unit_abilities.window.is_empty(), "Normal Disembark closes its Hazard actor window after confirmation")
-	var doomed_disembark := make_state("rhino")
-	doomed_disembark["unit_abilities"] = {"transport_window": {}, "window": {}}
-	add_passengers(doomed_disembark, 2, ["ADEPTUS ASTARTES", "INFANTRY", "TACTICUS"])
-	for model in [200, 201, 202, 203, 204]: doomed_disembark.units[model].wounds = 1
-	check(Transport.embark(doomed_disembark, 1, 100, 2).is_empty(), "Passenger unit embarks before testing an all-casualties Hazard outcome")
-	doomed_disembark.squads[2].embarked_this_turn = 0
-	doomed_disembark.squads[1].move_type = "normal"
-	check(Transport.apply(doomed_disembark, 1, Transport.disembark_choices(doomed_disembark, 1)[0], Vector2.ZERO, func() -> int: return 1).is_empty(), "A disembarkation with failed Hazard rolls opens its framed allocation step")
-	for _index in range(5):
-		var doomed_choices := Transport.choices(doomed_disembark, 1)
-		if doomed_choices.is_empty(): break
-		check(Transport.apply(doomed_disembark, 1, doomed_choices[0], Vector2.ZERO).is_empty(), "Hazard casualties resolve until the passenger unit is destroyed")
-	check(doomed_disembark.unit_abilities.transport_window.is_empty() and ResolutionFrames.current(doomed_disembark).is_empty(), "When Hazard destroys every passenger, the no-choice path closes its transport frame automatically")
 	var combat_disembark := make_state("rhino")
 	combat_disembark["board_size"] = Vector2(48, 36)
 	combat_disembark["terrain"] = {"id": "blocked-tactical-zone", "areas": [{"name": "Transport enclosure", "category": "ruin", "bounds": Rect2(-4, -4, 8, 8), "features": [{"bounds": Rect2(-4, -4, 8, 8), "height": 4.0, "blocks_end": true}]}]}
@@ -155,6 +133,7 @@ func run() -> void:
 	check(combat_choices.size() == 1 and combat_choices[0].value == "combat", "When Tactical setup is impossible, Combat Disembark is mandatory")
 	check(Transport.apply(combat_disembark, 1, combat_choices[0], Vector2.ZERO, func() -> int: return 6).is_empty(), "Combat Disembark starts after the mandatory Hazard rolls")
 	var combat_window: Dictionary = combat_disembark.unit_abilities.transport_window
+	check(combat_window.get("hazard_rolls", []) == [6, 6, 6, 6, 6], "Combat Disembark records one Hazard roll per passenger model")
 	check(Transport._position_error(combat_disembark, combat_window, 200, Vector2(4.9, 0)).is_empty(), "Combat Disembark may engage an enemy already engaged with its transport")
 	var combat_positions: Array[Vector2] = [Vector2(4.9, 0), Vector2(5.15, 0), Vector2(5.4, 0), Vector2(5.65, 0), Vector2(5.9, 0)]
 	for index in range(5):
@@ -183,6 +162,7 @@ func run() -> void:
 	var shock_modes := Transport.disembark_choices(impulsor_shock, 1)
 	check(shock_modes.size() == 1 and shock_modes[0].value == "shock", "Impulsor offers Shock Disembark after Advance")
 	check(Transport.apply(impulsor_shock, 1, shock_modes[0], Vector2.ZERO, func() -> int: return 6).is_empty(), "Shock Disembark is allowed after the Impulsor Advances")
+	check(impulsor_shock.unit_abilities.transport_window.get("hazard_rolls", []).is_empty(), "Impulsor Shock Disembark does not use Emergency Disembark's Hazard step")
 	for index in range(5):
 		check(Transport.apply(impulsor_shock, 1, {"action": "transport-disembark-place", "model": 200 + index}, Vector2(1.0 + index * 0.25, 0)).is_empty(), "Shock Disembark model position is legal")
 	check(Transport.apply(impulsor_shock, 1, {"action": "transport-disembark-confirm"}, Vector2.ZERO).is_empty() and Actions.charge_blocked(impulsor_shock, 2), "Shock Disembark prevents charges for the rest of the turn")

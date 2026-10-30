@@ -11,10 +11,11 @@ const Prevention = preload("res://scripts/edition_11/wound_prevention.gd")
 const Actions = preload("res://scripts/edition_11/actions.gd")
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const Detachments = preload("res://scripts/edition_11/detachment_stratagems.gd")
+const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const DeadlyDemise = preload("res://scripts/edition_11/deadly_demise.gd")
 const DefenderGroups = preload("res://scripts/edition_11/defender_groups.gd")
-const ID := "core-reaction-stratagems-2026-10-tank-shock-v1"
+const ID := "core-reaction-stratagems-2026-10-high-marshal-helbrecht-v3-defensive-array"
 const SMOKE := "smokescreen"
 const EXPLOSIVES := "explosives"
 const OVERWATCH := "fire-overwatch"
@@ -28,6 +29,10 @@ const GRAVIS_ARMOURED_IMPACT_MORTAL := "gravis-armoured-impact-mortal"
 const WRATH_OF_THE_LION_MORTAL := "inner-circle-wrath-of-the-lion-mortal"
 const TIGURIUS_MORTAL := "tigurius-telepathic-assault-mortal"
 const PHOBOS_MORTIS_SNARES_MORTAL := "phobos-shadow-mortis-mortal"
+const STASIS_BOMB_MORTAL := "ravenwing-stasis-bomb-mortal"
+const HIGH_MARSHAL_MORTAL := "black-templars-high-marshal-mortal"
+const DEATH_VISIONS_MORTAL := "blood-angels-death-visions-mortal"
+const CORVUS_CLUSTER_MORTAL := "corvus-blackstar-cluster-launcher-mortal"
 const BRUTALIS_CHARGE := "brutalis-charge"
 
 static func enable(s: Dictionary) -> void:
@@ -48,7 +53,7 @@ static func living(s: Dictionary, squad: int) -> Array[int]:
 static func keyword(s: Dictionary, squad: int, word: String) -> bool:
 	for model: int in living(s, squad):
 		for item: Variant in s.units[model].get("keywords", []):
-			if str(item).strip_edges().to_upper() == word: return true
+			if str(item).strip_edges().to_upper() == word.strip_edges().to_upper(): return true
 	return false
 
 static func actor(s: Dictionary) -> int:
@@ -123,12 +128,13 @@ static func overwatch_targets(s: Dictionary, squad: int) -> Array[int]:
 	return result
 
 static func cost_of(s: Dictionary, player: int, squad: int, rule: String) -> int:
+	if rule == OVERWATCH and (A.has(s, squad, "sentry-programming") or A.has(s, squad, "defensive-array")): return 0
 	if rule == CRUSHING and A.has(s, squad, BRUTALIS_CHARGE): return 0
 	if rule == SMOKE and A.has(s, squad, "veiling-smoke"): return 0
 	var extra := 1 if rule == FRAY else 0
 	var base := 2 if rule == COUNTER else 1
 	var discount := maxi(A.discount(s, player, squad), MarineEnhancements.laurels_vigilance_discount(s, player, squad, "heroic-intervention" if rule == FRAY else rule))
-	if rule in [HEROIC, FRAY] and A.has(s, squad, "honour-or-death"): discount = maxi(discount, 1)
+	if rule in [HEROIC, FRAY] and (A.has(s, squad, "honour-or-death") or A.has(s, squad, "ravenwing-honour-or-death")): discount = maxi(discount, 1)
 	var price := maxi(0, base - discount) + extra
 	if rule in [HEROIC, FRAY] and A.has(s, squad, "blackwing-mantle") and s.get("unit_abilities", {}).get("used", {}).get("blackwing:%d" % player, "") != phase_key(s): price = maxi(0, price - 1)
 	return price
@@ -202,14 +208,15 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		var current_veiling_smoke: bool = rule == SMOKE and A.has(s, squad, "veiling-smoke")
 		var previous_veiling_smoke: bool = used == SMOKE and s.squads.has(int(use.squad)) and A.has(s, int(use.squad), "veiling-smoke")
 		var smoke_cross_use_exception: bool = rule == SMOKE and used == SMOKE and int(use.squad) != squad and (current_veiling_smoke or previous_veiling_smoke)
-		var sentinel_extra_overwatch := rule == OVERWATCH and A.has(s, squad, "sentinel-protocols") and int(use.squad) != squad
+		var extra_overwatch_use := rule == OVERWATCH and (A.has(s, squad, "sentinel-overwatch-extra-use") or A.has(s, squad, "sentry-programming") or A.has(s, squad, "defensive-array")) and int(use.squad) != squad
+		var prior_extra_overwatch_does_not_consume_use: bool = rule == OVERWATCH and used == OVERWATCH and s.squads.has(int(use.squad)) and (A.has(s, int(use.squad), "sentinel-overwatch-extra-use") or A.has(s, int(use.squad), "sentry-programming")) and int(use.squad) != squad
 		var blackwing_heroic_exception := blackwing and rule in [HEROIC, FRAY] and used in [HEROIC, FRAY]
 		if rule == CRUSHING and used == CRUSHING:
 			var new_use_is_brutalis: bool = A.has(s, squad, BRUTALIS_CHARGE)
 			var prior_use_is_brutalis: bool = s.squads.has(int(use.squad)) and A.has(s, int(use.squad), BRUTALIS_CHARGE)
 			if not new_use_is_brutalis and not prior_use_is_brutalis: return "Tank Shock has already been used this phase."
 			if new_use_is_brutalis and int(use.squad) == squad: return "This Brutalis unit has already used Tank Shock this phase."
-		elif ((used == rule and not sentinel_extra_overwatch and not smoke_cross_use_exception) or (rule == EXPLOSIVES and used == "grenades") or (rule in [HEROIC, FRAY] and used in [HEROIC, FRAY])) and not blackwing_heroic_exception: return "This stratagem has already been used this phase."
+		elif ((used == rule and not extra_overwatch_use and not prior_extra_overwatch_does_not_consume_use and not smoke_cross_use_exception) or (rule == EXPLOSIVES and used == "grenades") or (rule in [HEROIC, FRAY] and used in [HEROIC, FRAY])) and not blackwing_heroic_exception: return "This stratagem has already been used this phase."
 		if int(use.squad) == squad and not (blackwing and used in [HEROIC, FRAY]): return "This unit has already been targeted by another stratagem this phase."
 	return ""
 
@@ -311,6 +318,8 @@ static func throw_explosives(s: Dictionary, player: int, selected: Dictionary, r
 	s.cp[player] -= cost_of(s, player, squad, EXPLOSIVES)
 	A.consume_discount(s, player, squad)
 	s.stratagems.uses.append({"player": player, "squad": squad, "stratagem": EXPLOSIVES, "phase_key": phase_key(s), "turn": s.turn})
+	var orbital_error := A.resolve_orbital_comms_array(s, player, squad, EXPLOSIVES, roller)
+	if not orbital_error.is_empty(): return {"error": orbital_error}
 	s.last_explosives = {"model": selected.model, "squad": squad, "target": selected.target, "rolls": rolls, "mortal_wounds": wounds, "remaining": wounds, "allocations": [], "discarded": 0}
 	if wounds > 0: s.unit_abilities.window = {"kind": EXPLOSIVES, "owners": [s.squads[selected.target].owner], "target": selected.target}
 	return {"error": ""}
@@ -371,6 +380,22 @@ static func mortal_allocations(s: Dictionary, player: int, kind: String) -> Arra
 		else:
 			if stage != "target" or int(window.get("target", -1)) != int(record.get("target", -1)): return []
 			if not s.squads.has(int(record.get("target", -1))) or int(s.squads[int(record.target)].get("owner", -1)) != player: return []
+	if kind == STASIS_BOMB_MORTAL:
+		var expected_target := int(record.get("target", -1))
+		if int(record.get("owner", -1)) != player or int(window.get("target", -1)) != expected_target: return []
+		if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
+	if kind == HIGH_MARSHAL_MORTAL:
+		var expected_target := int(record.get("target", -1))
+		if int(record.get("owner", -1)) != player or int(window.get("target", -1)) != expected_target: return []
+		if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
+	if kind == DEATH_VISIONS_MORTAL:
+		var expected_target := int(record.get("target", -1))
+		if int(record.get("owner", -1)) != player or int(window.get("target", -1)) != expected_target: return []
+		if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
+	if kind == CORVUS_CLUSTER_MORTAL:
+		var expected_target := int(record.get("target", -1))
+		if int(record.get("owner", -1)) == player or int(window.get("target", -1)) != expected_target: return []
+		if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
 	var result: Array = []
 	var packet_name := _mortal_name(kind)
 	if kind == CRUSHING_MORTAL:
@@ -389,7 +414,9 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 	var prevention := Prevention.resolve(1, unit.wounds, UnitPrevention.rules(s, selected.model), "mortal", roller)
 	if not prevention.error.is_empty(): return prevention
 	unit.wounds -= prevention.lost
-	if unit.wounds == 0: Detachments.record_destroyed(s, selected.model)
+	if unit.wounds == 0:
+		Detachments.record_destroyed(s, selected.model)
+		for cenobyte: int in ChaplainGrimaldus.destroy_cenobytes(s, selected.model): Detachments.record_destroyed(s, cenobyte)
 	var record := _mortal_record(s, kind)
 	var allocation := {"model": selected.model, "prevention": prevention}
 	var window: Dictionary = s.unit_abilities.window
@@ -410,7 +437,7 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 			record.discarded = record.remaining
 			record.remaining = 0
 			record.stage = "complete"
-			s.unit_abilities.window = window.get("resume_window", {}) if kind == PHOBOS_MORTIS_SNARES_MORTAL else {}
+			s.unit_abilities.window = window.get("resume_window", {}) if kind in [PHOBOS_MORTIS_SNARES_MORTAL, STASIS_BOMB_MORTAL, HIGH_MARSHAL_MORTAL, DEATH_VISIONS_MORTAL, CORVUS_CLUSTER_MORTAL] else {}
 	if kind == EXPLOSIVES: s.last_explosives = record
 	elif kind == "incursor-haywire-mortal": s.last_incursor_haywire_mine = record
 	elif kind == CRUSHING_MORTAL: s.last_crushing_impact = record
@@ -418,6 +445,10 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 	elif kind == WRATH_OF_THE_LION_MORTAL: s.last_wrath_of_the_lion = record
 	elif kind == TIGURIUS_MORTAL: s.last_tigurius_telepathic_assault = record
 	elif kind == PHOBOS_MORTIS_SNARES_MORTAL: s.last_mortis_snares = record
+	elif kind == STASIS_BOMB_MORTAL: s.last_stasis_bomb = record
+	elif kind == HIGH_MARSHAL_MORTAL: s.last_high_marshal = record
+	elif kind == DEATH_VISIONS_MORTAL: s.last_death_visions = record
+	elif kind == CORVUS_CLUSTER_MORTAL: s.last_corvus_cluster_launcher = record
 	else: s.last_hammer_of_wrath = record
 	if had_wounds > 0 and unit.wounds <= 0:
 		var demise := DeadlyDemise.begin(s, [int(selected.model)], roller)
@@ -440,6 +471,10 @@ static func _mortal_record(s: Dictionary, kind: String) -> Dictionary:
 		CRUSHING_MORTAL: return s.get("last_crushing_impact", {})
 		TIGURIUS_MORTAL: return s.get("last_tigurius_telepathic_assault", {})
 		PHOBOS_MORTIS_SNARES_MORTAL: return s.get("last_mortis_snares", {})
+		STASIS_BOMB_MORTAL: return s.get("last_stasis_bomb", {})
+		HIGH_MARSHAL_MORTAL: return s.get("last_high_marshal", {})
+		DEATH_VISIONS_MORTAL: return s.get("last_death_visions", {})
+		CORVUS_CLUSTER_MORTAL: return s.get("last_corvus_cluster_launcher", {})
 	return {}
 
 static func _mortal_name(kind: String) -> String:
@@ -450,6 +485,10 @@ static func _mortal_name(kind: String) -> String:
 	if kind == WRATH_OF_THE_LION_MORTAL: return "Wrath of the Lion"
 	if kind == TIGURIUS_MORTAL: return "Telepathic Assault"
 	if kind == PHOBOS_MORTIS_SNARES_MORTAL: return "Mortis Snares"
+	if kind == STASIS_BOMB_MORTAL: return "Stasis Bomb"
+	if kind == HIGH_MARSHAL_MORTAL: return "High Marshal"
+	if kind == DEATH_VISIONS_MORTAL: return "Death Visions of Sanguinius"
+	if kind == CORVUS_CLUSTER_MORTAL: return "Blackstar Cluster Launcher"
 	return "Hammer of Wrath"
 
 static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Callable = Callable()) -> Dictionary:
@@ -465,6 +504,8 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	var recorded := HEROIC if rule == FRAY else rule
 	if blackwing: s.unit_abilities.used["blackwing:%d" % player] = phase_key(s)
 	else: s.stratagems.uses.append({"player": player, "squad": selected.target, "stratagem": recorded, "phase_key": phase_key(s), "turn": s.turn})
+	var orbital_error := A.resolve_orbital_comms_array(s, player, int(selected.target), recorded, roller)
+	if not orbital_error.is_empty(): return {"error": orbital_error}
 	if rule == SMOKE:
 		var smoke_records: Variant = s.core_reactions.get("smoke", {})
 		if not smoke_records is Array:
@@ -513,6 +554,8 @@ static func apply_crushing(s: Dictionary, player: int, selected: Dictionary, rol
 	s.cp[player] -= cost
 	if cost > 0: A.consume_discount(s, player, squad)
 	s.stratagems.uses.append({"player": player, "squad": squad, "stratagem": CRUSHING, "phase_key": phase_key(s), "turn": s.turn, "brutalis_charge": A.has(s, squad, BRUTALIS_CHARGE)})
+	var orbital_error := A.resolve_orbital_comms_array(s, player, squad, CRUSHING, roller)
+	if not orbital_error.is_empty(): return {"error": orbital_error}
 	s.last_crushing_impact = {"model": model, "squad": squad, "target": int(selected.target), "toughness": toughness,
 		"rolls": rolls, "self_mortal_wounds": self_mortal_wounds, "target_mortal_wounds": target_mortal_wounds,
 		"mortal_wounds": target_mortal_wounds, "remaining": 0, "stage": "pending", "self_allocations": [],

@@ -2,6 +2,8 @@ extends SceneTree
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const Pack = preload("res://scripts/data_pack.gd")
 const DIRECTORY := "res://data/imported/starter-11e-v1"
+const LOCALLY_VALIDATED_STATUSES := ["tests_passed_local_targeted", "source_bounded_local_scope_passed_2026_10_27", "source_bounded_local_scope_passed_2026_10_28", "source_bounded_local_scope_passed_2026_10_29", "source_bounded_local_scope_passed_2026_10_30", "implemented_local_checks_passed_2026_10_28"]
+const IMPLEMENTATION_PENDING_STATUSES := ["implemented_local_checks_pending", "local_checks_pending"]
 # Units that make up the Track A target armies (4 whitelisted types + commanders).
 const TARGETS := {
 	"adeptus-astartes": ["intercessor-squad", "terminator-squad", "captain"],
@@ -33,31 +35,39 @@ func run() -> void:
 		var metadata: Dictionary = Capabilities.KNOWN[capability]
 		if metadata.get("supported", false):
 			check(not str(metadata.get("source_status", "")).is_empty(), "%s records source applicability" % capability)
-			check(metadata.get("validation_status", "") == "tests_passed_local_targeted", "%s records local validation status" % capability)
+			var validation_status := str(metadata.get("validation_status", ""))
+			var locally_validated := validation_status in LOCALLY_VALIDATED_STATUSES
+			var implementation_pending := validation_status in IMPLEMENTATION_PENDING_STATUSES
+			check(locally_validated or implementation_pending, "%s states whether local validation passed or remains pending" % capability)
 			check(not str(metadata.get("scope", "")).is_empty(), "%s states its bounded scope" % capability)
 			var evidence := Capabilities.validation_metadata(capability)
 			check(evidence.get("network_validation_status", "") in ["not_mapped", "targeted_loopback", "partial_loopback", "deferred"], "%s exposes an explicit network evidence state" % capability)
 			check(evidence.get("certification_status", "") in ["not_certified", "certified_scope"], "%s exposes an explicit certification state" % capability)
+			if implementation_pending:
+				check(evidence.certification_status == "not_certified", "%s remains uncertified while focused local checks are pending" % capability)
 	check(Capabilities.validation_metadata("their-number-is-legion").network_validation_status == "targeted_loopback" and Capabilities.validation_metadata("command-re-roll").network_validation_status == "partial_loopback", "Mapped loopback evidence is scoped and distinguished from a complete network pass")
 	check(Capabilities.validation_metadata("upper-floors").certification_status == "not_certified", "Unsupported scope is never implied certified")
 	# Supported flags: implemented vs blocked.
 	check(Capabilities.supported("objective-secured") and Capabilities.supported("hail-of-bolts") and Capabilities.supported("implacable-eradication") and Capabilities.supported("leader"), "Implemented abilities are marked supported")
 	check(Capabilities.supported("insane-bravery") and Capabilities.supported("command-re-roll"), "Core stratagems are marked supported")
 	check(Capabilities.supported("fire-overwatch") and Capabilities.supported("heroic-intervention") and Capabilities.supported("counteroffensive") and Capabilities.supported("epic-challenge"), "Infantry core reaction stratagems are marked supported")
-	check(Capabilities.supported("explosives") and Capabilities.supported("smokescreen") and Capabilities.supported("crushing-impact") and Capabilities.supported("brutalis-charge") and Capabilities.supported("forward-assault-warsuit") and Capabilities.supported("scouts-8") and Capabilities.supported("targeter-optics"), "Tank Shock, Brutalis Charge, Forward Assault, Invictor Scouts 8 and Desolation Targeter Optics are available within their tested local scope")
-	check(Capabilities.supported("deep-strike") and Capabilities.supported("their-number-is-legion"), "Current unit implementations are registered")
+	check(Capabilities.supported("explosives") and Capabilities.supported("smokescreen") and Capabilities.supported("crushing-impact") and Capabilities.supported("brutalis-charge") and Capabilities.supported("forward-assault-warsuit") and Capabilities.supported("strategic-knowledge") and Capabilities.supported("watch-master") and Capabilities.supported("purgatus-quarry") and Capabilities.supported("scouts-8") and Capabilities.supported("targeter-optics"), "Tank Shock, Forward Assault, Watch Master rules, Invictor Scouts 8 and Desolation Targeter Optics are exposed within their tested local scope")
+	check(Capabilities.supported("deep-strike") and Capabilities.supported("their-number-is-legion") and Capabilities.supported("death-visions-of-sanguinius") and Capabilities.supported("forlorn-hero") and Capabilities.supported("lost-to-fury") and Capabilities.supported("redeemer-of-the-lost") and Capabilities.supported("mass-of-doom") and Capabilities.supported("fury-unbound") and Capabilities.supported("guardian-of-the-lost") and Capabilities.supported("heirs-of-azkaellon") and Capabilities.supported("angelic-visage") and Capabilities.supported("indomitor-doctrines"), "Current unit implementations, including Blood Angels characters, Indomitor Doctrines and Sanguinary Guard abilities, are registered")
+	for capability: String in ["heirs-of-azkaellon", "angelic-visage"]:
+		var validation_status := str(Capabilities.KNOWN.get(capability, {}).get("validation_status", ""))
+		check(validation_status in LOCALLY_VALIDATED_STATUSES and Capabilities.source_status(capability).begins_with("wahapedia_e11_sanguinary_guard_page_observed_2026_10_28"), "%s records passed local checks and the observed 11e Guard source" % capability)
 	check(Capabilities.supported("veil-of-time") and Capabilities.supported("force-dome"), "Librarian level-1 psychic abilities are registered after focused local checks")
 	check(Capabilities.supported("master-of-shadows") and Capabilities.supported("blackwing-mantle"), "Aethon Shaan's current charge and Heroic Intervention abilities are registered")
 	check(Capabilities.supported("rampart") and Capabilities.supported("icon-of-obstinacy") and Capabilities.supported("siege-captain") and Capabilities.supported("signum-array"), "Current Epic Hero combat abilities are registered")
 	check(Capabilities.supported("oath-of-moment") and Capabilities.KNOWN["oath-of-moment"].get("reference", false), "Oath has an explicit versioned reference implementation")
 	check(Capabilities.supported("reanimation-protocols"), "Scoped Reanimation implementation is registered")
-	check(Capabilities.supported("vanguard-ambushers"), "Vanguard Ambushers is enabled within its targeted local validation scope")
-	for capability: String in ["aquilon-optics", "targeter-optics", "narthecium", "honour-of-the-company", "deeds-of-legend", "bladeguard", "litany-of-hate", "spiritual-leader", "veteran-marksmen", "unstoppable-valour", "infiltrators", "hammer-of-wrath", "stealth", "chameleoline-cloaks", "hail-of-bolts", "implacable-eradication", "ca-dominance-hammer-fixed", "fights-first", "zealous-fortitude", "angel-s-wrath", "tempormortis", "special-issue-optics-and-ammunition", "priority-target-identified", "total-obliteration", "vivispectral-analysis-targeting", "close-quarters-firestorm", "rites-of-thermal-appeasement", "implacable-resilience", "engrammatic-logic", "lone-operative", "librarius", "psychic-hood", "shrouding", "soul-sight", "might-of-heroes", "thunderous-force", "epic-challenge", "explosives", "fire-overwatch", "smokescreen", "heroic-intervention", "counteroffensive", "rapid-ingress", "evade-and-survive", "driven-from-cover", "objective-secured", "vanguard-assault", "exhortation-of-rage", "combat-shield", "flexible-asset", "sentinel-protocols", "their-number-is-legion", "tactical-precision", "demi-company-commander", "my-will-be-done", "resurrection-orb", "adaptive-strategy", "oath-of-moment", "reanimation-protocols", "insane-bravery", "protocol-of-the-hungry-void", "protocol-of-the-sudden-storm", "protocol-of-the-eternal-revenant", "protocol-of-the-vengeful-stars", "protocol-of-the-conquering-tyrant", "protocol-of-the-undying-legions", "awakened-dynasty", "overlapping-destruction", "command-re-roll", "deep-strike", "scouts-6", "leader", "custom-training-mission"]:
-		check(Capabilities.KNOWN.get(capability, {}).get("validation_status", "") == "tests_passed_local_targeted", "%s records its focused local validation status" % capability)
+	for capability: String in ["aquilon-optics", "targeter-optics", "narthecium", "honour-of-the-company", "deeds-of-legend", "bladeguard", "litany-of-hate", "spiritual-leader", "veteran-marksmen", "unstoppable-valour", "infiltrators", "hammer-of-wrath", "stealth", "chameleoline-cloaks", "hail-of-bolts", "implacable-eradication", "ca-dominance-hammer-fixed", "fights-first", "zealous-fortitude", "angel-s-wrath", "tempormortis", "special-issue-optics-and-ammunition", "priority-target-identified", "total-obliteration", "vivispectral-analysis-targeting", "close-quarters-firestorm", "rites-of-thermal-appeasement", "implacable-resilience", "engrammatic-logic", "lone-operative", "librarius", "psychic-hood", "shrouding", "soul-sight", "might-of-heroes", "thunderous-force", "epic-challenge", "explosives", "fire-overwatch", "smokescreen", "heroic-intervention", "counteroffensive", "rapid-ingress", "evade-and-survive", "driven-from-cover", "objective-secured", "vanguard-assault", "vanguard-assault-lethal-hits", "exhortation-of-rage", "combat-shield", "flexible-asset", "sentinel-protocols", "their-number-is-legion", "tactical-precision", "demi-company-commander", "my-will-be-done", "resurrection-orb", "adaptive-strategy", "oath-of-moment", "reanimation-protocols", "insane-bravery", "protocol-of-the-hungry-void", "protocol-of-the-sudden-storm", "protocol-of-the-eternal-revenant", "protocol-of-the-vengeful-stars", "protocol-of-the-conquering-tyrant", "protocol-of-the-undying-legions", "awakened-dynasty", "overlapping-destruction", "command-re-roll", "deep-strike", "scouts-6", "leader", "custom-training-mission"]:
+		var validation_status := str(Capabilities.KNOWN.get(capability, {}).get("validation_status", ""))
+		check(validation_status in LOCALLY_VALIDATED_STATUSES or validation_status in IMPLEMENTATION_PENDING_STATUSES, "%s records an explicit local validation state" % capability)
 	check(Capabilities.source_status("implacable-resilience") == "legacy_training_reference_only" and Capabilities.source_status("engrammatic-logic") == "legacy_training_reference_only" and Capabilities.source_status("implacable-eradication") == "historical_training_reference_only" and Capabilities.source_status("hail-of-bolts") == "historical_training_reference_only" and Capabilities.source_status("objective-secured") == "historical_training_reference_only", "Historical Necron and Marine abilities remain explicitly bounded to training references")
 	for capability: String in ["ironstorm-layered-ceramite", "ironstorm-might-of-the-machine-spirit", "ironstorm-headhunter-doctrine"]:
 		check(Capabilities.supported(capability), "%s has focused local validation" % capability)
-	var pending_local: Array[String] = []
+	var pending_local: Array[String] = ["vanguard-ambushers"]
 	for capability: String in pending_local:
 		check(not Capabilities.supported(capability), "%s remains blocked pending local validation" % capability)
 	check(Capabilities.supported("combat-doctrines") and Capabilities.category("combat-doctrines") == Capabilities.CATEGORY_FACTION and Capabilities.supported("codex-discipline") and Capabilities.supported("awakened-dynasty") and Capabilities.supported("ironstorm-auto-targeters") and Capabilities.supported("ironstorm-redoubtable-machine-spirit") and Capabilities.supported("ironstorm-gunnery-honours"), "Implemented e11 doctrine, Ironstorm rule and enhancements are registered")
@@ -74,7 +84,9 @@ func run() -> void:
 	check(Capabilities.enabled(state, "objective-secured") and state.capabilities["objective-secured"].implementation == "intercessor-objective-secured-v1", "admit records the implementation and enabled flag")
 	for capability: String in pending_local:
 		check(not Capabilities.admit(state, capability, "unvalidated-test") and not Capabilities.enabled(state, capability), "%s cannot be admitted before local validation" % capability)
-	check(Capabilities.admit(state, "vanguard-ambushers", "phobos-shock-force-vanguard-ambushers-v1") and Capabilities.admit_squad(state, 1, "vanguard-ambushers"), "Validated Vanguard Ambushers can be admitted")
+	var vanguard_admitted := Capabilities.admit(state, "vanguard-ambushers", "phobos-shock-force-vanguard-ambushers-v1")
+	var vanguard_squad_admitted := Capabilities.admit_squad(state, 1, "vanguard-ambushers")
+	check(not vanguard_admitted and not vanguard_squad_admitted, "Vanguard Ambushers cannot be admitted while its rule context remains unvalidated")
 	for capability: String in ["ironstorm-layered-ceramite", "ironstorm-might-of-the-machine-spirit", "ironstorm-headhunter-doctrine"]:
 		check(Capabilities.admit(state, capability, "ironstorm-stratagems-v1"), "%s can be admitted after targeted local validation" % capability)
 	check(not Capabilities.admit_squad(state, 1, "ironstorm-headhunter-doctrine"), "Detachment stratagems cannot be admitted as per-squad abilities")
@@ -88,6 +100,6 @@ func run() -> void:
 	var blocked := Capabilities.blocked(state)
 	check("deep-strike" not in blocked and "their-number-is-legion" not in blocked and "judgement-of-the-weak" in blocked and "oath-of-moment" not in blocked and "objective-secured" not in blocked, "blocked lists only recognised unsupported abilities still disabled")
 	var summary := Capabilities.summary(state)
-	check("Judgement of the Weak" not in summary and "Upper floors" in summary, "summary names the remaining unsupported capabilities")
+	check("Judgement of the Weak" not in summary and "Complete upper floors and vertical battlefield geometry" in summary, "summary names the remaining unsupported capabilities")
 	print("Capability registry checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

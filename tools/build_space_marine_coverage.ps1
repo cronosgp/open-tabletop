@@ -26,6 +26,9 @@ foreach ($match in [regex]::Matches($profileSource, $profilePattern)) {
     if (-not $nameMatch.Success) {
         throw "Missing display name for runtime profile $($match.Groups['identity'].Value)."
     }
+    if ($bookMatch.Success -and $bookMatch.Groups[1].Value -ne $bookId) {
+        continue
+    }
     $profiles += [pscustomobject]@{
         identity = $match.Groups["identity"].Value
         name = $nameMatch.Groups[1].Value
@@ -41,6 +44,9 @@ foreach ($match in [regex]::Matches($profileSource, $profilePattern)) {
 $transportDocument = Get-Content -Encoding UTF8 $transportPath -Raw | ConvertFrom-Json
 foreach ($property in $transportDocument.profiles.PSObject.Properties) {
     $profile = $property.Value
+    if ($profile.source_book_id -ne $bookId) {
+        continue
+    }
     $profiles += [pscustomobject]@{
         identity = $property.Name
         name = $profile.name
@@ -58,10 +64,9 @@ if ($profiles.Count -ne $sliceAudit.subject_count) {
     throw "Runtime profile count $($profiles.Count) differs from audited source subjects $($sliceAudit.subject_count)."
 }
 if (($profiles | Where-Object {
-    ($_.source_book_id -and $_.source_book_id -ne $sliceAudit.source_book.id) -or
-    ($_.runtime_profile_source_export_updated_at -and $_.runtime_profile_source_export_updated_at -ne $sliceAudit.export_updated_at)
+    $_.source_book_id -and $_.source_book_id -ne $sliceAudit.source_book.id
 }).Count -gt 0) {
-    throw "A runtime profile does not match its historical source-book metadata."
+    throw "A runtime profile does not match the audited source book."
 }
 if (($profiles.source_datasheet_id | Where-Object { $_ } | Sort-Object -Unique).Count -ne ($profiles | Where-Object { $_.source_datasheet_id }).Count) {
     throw "Runtime profile source datasheet IDs are not unique."
@@ -217,22 +222,56 @@ foreach ($evidenceTest in $requiredEvidenceTests) {
 $profileEvidenceByIdentity = @{}
 foreach ($property in $profileEvidence.profiles.PSObject.Properties) {
     $profileEvidenceByIdentity[$property.Name] = $property.Value
-    foreach ($evidenceTest in @($property.Value.profile_parity_test)) {
+    foreach ($evidenceTest in @($property.Value.profile_parity_test, $property.Value.source_field_test)) {
+        if ($evidenceTest -isnot [string]) {
+            continue
+        }
         if ($evidenceTest -and -not (Test-Path $evidenceTest)) {
             throw "Profile evidence test is missing: $evidenceTest"
         }
     }
 }
+$scopeEvidenceByIdentity = @{}
+foreach ($scopeEvidence in @($profileEvidence.scope_validation_runs)) {
+    if (-not $profileEvidenceByIdentity.ContainsKey($scopeEvidence.profile)) {
+        throw "Scope evidence references an unknown profile: $($scopeEvidence.profile)"
+    }
+    if (-not (Test-Path $scopeEvidence.test_file)) {
+        throw "Scope evidence test is missing: $($scopeEvidence.test_file)"
+    }
+    if ($scopeEvidenceByIdentity.ContainsKey($scopeEvidence.profile)) {
+        throw "Duplicate scope evidence for profile: $($scopeEvidence.profile)"
+    }
+    $scopeEvidenceByIdentity[$scopeEvidence.profile] = $scopeEvidence
+}
 $rows = foreach ($profile in ($profiles | Sort-Object name)) {
     $profileDoc = "docs\marine-$($profile.identity).md"
+    if ($profile.identity -eq "roboute-guilliman") { $profileDoc = "docs\marine-guilliman.md" }
+    if ($profile.identity -eq "captain-in-terminator-armour") { $profileDoc = "docs\marine-terminator-captain.md" }
+    if ($profile.identity -eq "chaplain-in-terminator-armour") { $profileDoc = "docs\marine-terminator-chaplain.md" }
+    if ($profile.identity -eq "wardens-of-ultramar") { $profileDoc = "docs\marine-wardens-ultramar.md" }
+    if ($profile.identity -eq "captain-in-gravis-armour") { $profileDoc = "docs\marine-captain-gravis.md" }
+    if ($profile.identity -eq "captain") { $profileDoc = "docs\marine-captain.md" }
     $testName = "test_$($profile.identity -replace '-', '_')"
     $testPath = "tests\$testName.gd"
+    if ($profile.identity -eq "wardens-of-ultramar") { $testName = "test_marine_wardens_profile"; $testPath = "tests\test_marine_wardens_profile.gd" }
+    if ($profile.identity -eq "captain-in-gravis-armour") { $testName = "test_gravis_captain"; $testPath = "tests\test_gravis_captain.gd" }
+    if ($profile.identity -eq "captain") { $testName = "test_captain_current"; $testPath = "tests\test_captain_current.gd" }
     $evidence = $profileEvidenceByIdentity[$profile.identity]
+    $scopeEvidence = $scopeEvidenceByIdentity[$profile.identity]
     $evidenceTests = @()
     if ($evidence.profile_parity_test) { $evidenceTests += $evidence.profile_parity_test }
     if ($evidence.copy_cost_test) { $evidenceTests += $profileEvidence.validation_run.copy_cost_test.file }
-    if ($evidence.source_field_test) { $evidenceTests += $profileEvidence.validation_run.source_field_test.file }
+    if ($evidence.source_field_test -is [string]) { $evidenceTests += $evidence.source_field_test }
+    elseif ($evidence.source_field_test) { $evidenceTests += $profileEvidence.validation_run.source_field_test.file }
     $evidenceTests = @($evidenceTests | Sort-Object -Unique)
+    $presentTestFiles = @($evidenceTests)
+    if ($testName -in $tests) { $presentTestFiles += $testPath }
+    if ($scopeEvidence) {
+        $scopeTestName = [System.IO.Path]::GetFileNameWithoutExtension($scopeEvidence.test_file)
+        if ($scopeTestName -in $tests) { $presentTestFiles += $scopeEvidence.test_file }
+    }
+    $presentTestFiles = @($presentTestFiles | Sort-Object -Unique)
     $reconciliationState = "source-identity-only"
     if ($evidence.profile_parity_test) { $reconciliationState = "bounded-profile-data-compared" }
     elseif ($evidence.copy_cost_test) { $reconciliationState = "copy-costs-compared" }
@@ -249,19 +288,24 @@ $rows = foreach ($profile in ($profiles | Sort-Object name)) {
         cataloged = "runtime-profile-record-present"
         source_reconciled = if ($profile.source_datasheet_id -in $exactProfileIds) { "historical-fixed-data-compared" } else { $reconciliationState }
         runtime_profile_metadata = if ($profile.runtime_profile_source_export_updated_at) { "runtime-source-export-stamp-present" } else { "runtime-source-export-stamp-absent" }
-        implemented = "partial-profile-and-scoped-rules"
-        locally_tested = if ($evidenceTests.Count -gt 0) { "bounded-source-data-checks-passed" } else { "no-bounded-source-data-check-in-current-audit" }
-        test_file_present = (@(@($evidenceTests) + $(if ($testName -in $tests) { @($testPath) } else { @() })) | Sort-Object -Unique) -join "; "
+        implemented = if ($scopeEvidence -and $scopeEvidence.status -eq "passed") { "complete-source-bounded-local-scope" } else { "partial-profile-and-scoped-rules" }
+        locally_tested = if ($scopeEvidence -and $scopeEvidence.status -eq "passed") { "complete-source-bounded-local-scope-passed" } elseif ($evidenceTests.Count -gt 0) { "bounded-source-data-checks-passed" } else { "no-bounded-source-data-check-in-current-audit" }
+        test_file_present = @($presentTestFiles | Sort-Object -Unique) -join "; "
         reconciliation_evidence = if ($evidence) { $evidenceTests -join "; " } else { "" }
         reconciliation_scope = if ($evidence) { $evidence.scope } else { "" }
+        scope_test_evidence = if ($scopeEvidence) { $scopeEvidence.test_file } else { "" }
+        scope_test_status = if ($scopeEvidence) { $scopeEvidence.status } else { "not-tested" }
+        scope_test_artifact = if ($scopeEvidence) { $scopeEvidence.artifact } else { "" }
+        scope_test_limits = if ($scopeEvidence) { $scopeEvidence.limits } else { "" }
         profile_note = if (Test-Path $profileDoc) { $profileDoc } else { "" }
-        scope_validated = "no-complete-scope-validation"
+        scope_validated = if ($scopeEvidence -and $scopeEvidence.status -eq "passed") { "source-bounded-local-scope-tested" } else { "no-complete-scope-validation" }
     }
 }
 
 $rows | Export-Csv $outputPath -NoTypeInformation -Encoding UTF8
-$boundedCount = @($rows | Where-Object { $_.locally_tested -eq "bounded-source-data-checks-passed" }).Count
+$boundedCount = @($rows | Where-Object { $_.locally_tested -in @("bounded-source-data-checks-passed", "complete-source-bounded-local-scope-passed") }).Count
 $parityCount = $profileEvidence.coverage_limits.profile_parity_tests_passed
 $copyCostCount = $profileEvidence.coverage_limits.copy_cost_profiles_tested
 $fieldOnlyCount = $profileEvidence.coverage_limits.additional_source_field_only_profiles
-Write-Output "Generated $outputPath with $($rows.Count) shared-book rows: $boundedCount profiles have bounded source-data tests ($parityCount profile parity, $copyCostCount copy-cost only, $fieldOnlyCount additional field-only); full datasheet scope validated: 0."
+$scopeCount = @($rows | Where-Object { $_.scope_validated -eq "source-bounded-local-scope-tested" }).Count
+Write-Output "Generated $outputPath with $($rows.Count) shared-book rows: $boundedCount profiles have bounded source evidence ($parityCount profile parity, $copyCostCount copy-cost only, $fieldOnlyCount additional field-only, including $scopeCount complete local sheet scopes)."

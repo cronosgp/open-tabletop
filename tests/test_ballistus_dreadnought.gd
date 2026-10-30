@@ -2,12 +2,23 @@ extends SceneTree
 const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
 const Demise = preload("res://scripts/edition_11/deadly_demise.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
+const BALLISTUS_ID := "40kdc:11e:adeptus-astartes:ballistus-dreadnought"
+const INTERCESSOR_ID := "40kdc:11e:adeptus-astartes:intercessor-squad"
+const WEAPONS := [
+	{"id": "ballistus-lascannon", "profile": "standard", "melee": false, "name": "Ballistus Lascannon", "range_inches": 48.0, "attacks": 2, "skill": 3, "strength": 12, "ap": -3, "damage": "D3+3", "keywords": {}},
+	{"id": "ballistus-missile-launcher", "profile": "frag", "melee": false, "name": "Ballistus Missile Launcher - Frag", "range_inches": 48.0, "attacks": "D6+6", "skill": 3, "strength": 5, "ap": -1, "damage": 1, "keywords": {"blast": 2}},
+	{"id": "ballistus-missile-launcher", "profile": "krak", "melee": false, "name": "Ballistus Missile Launcher - Krak", "range_inches": 48.0, "attacks": 2, "skill": 3, "strength": 10, "ap": -2, "damage": "D3+3", "keywords": {}},
+	{"id": "storm-bolters", "profile": "standard", "melee": false, "name": "Storm Bolters", "range_inches": 24.0, "attacks": 4, "skill": 3, "strength": 5, "ap": -1, "damage": 1, "keywords": {"rapid-fire": 4}},
+	{"id": "armoured-feet", "profile": "standard", "melee": true, "name": "Armoured Feet", "range_inches": 0.0, "attacks": 5, "skill": 3, "strength": 7, "ap": 0, "damage": 1, "keywords": {}}
+]
 var failures := 0
 var dice_values: Array[int] = []
 
@@ -31,34 +42,88 @@ func submit_unit_choice(state: Dictionary, player: int, selected: Dictionary, ro
 	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "choice": payload}, roller)
 
 func selections() -> Dictionary:
-	var result := F.selections()
-	for entry: Dictionary in result[1].entries:
-		if entry.definition_id.ends_with(":assault-intercessor-squad"):
-			entry.definition_id = "40kdc:11e:adeptus-astartes:ballistus-dreadnought"
-			entry.models = 1
-	result[2].faction = "Space Marines"
-	result[2].entries = [{"definition_id": "40kdc:11e:adeptus-astartes:ballistus-dreadnought", "models": 1, "copies": 1}]
+	var result := F.current_marine_selections()
+	for owner in [1, 2]:
+		result[owner].entries = [
+			{"definition_id": BALLISTUS_ID, "models": 1, "copies": 1},
+			{"definition_id": INTERCESSOR_ID, "models": 5, "copies": 1}]
 	return result
+
+func selection(copies: int) -> Dictionary:
+	return {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000,
+		"entries": [{"definition_id": BALLISTUS_ID, "models": 1, "copies": copies}]}
+
+func find_squad(state: Dictionary, owner: int, identity: String) -> int:
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) == owner and C.UnitAbilities.identity(unit) == identity:
+			return int(unit.get("squad", -1))
+	return -1
+
+func prepare_attack_plan(state: Dictionary, squad: int, model: int, target: int, expected: Dictionary) -> Dictionary:
+	var previous_phase := str(state.phase)
+	var previous_active := int(state.active)
+	var previous_positions := {}
+	var members: Array[int] = C.living(state, squad) + C.living(state, target)
+	for member: int in members: previous_positions[member] = state.units[member].position
+	state.phase = "fight" if bool(expected.melee) else "shooting"
+	state.active = int(state.squads[squad].owner)
+	state.units[model].position = Vector2.ZERO
+	for target_model: int in C.living(state, target):
+		state.units[target_model].position = Vector2(1, 0) if bool(expected.melee) else Vector2(6, 0)
+	var plan := C.AttackPlan.prepare(state, squad, bool(expected.melee), [{
+		"model": model,
+		"target": target,
+		"amount": int(expected.attacks) if bool(expected.melee) else 1,
+		"weapon": str(expected.id),
+		"profile": str(expected.profile)
+	}], true)
+	state.phase = previous_phase
+	state.active = previous_active
+	for member: int in previous_positions: state.units[member].position = previous_positions[member]
+	return plan
+
+func check_weapon_profile(state: Dictionary, squad: int, model: int, target: int, expected: Dictionary) -> void:
+	var selected := Equipment.select(state, model, bool(expected.melee), str(expected.id), str(expected.profile))
+	check(str(selected.get("error", "")).is_empty(), "%s/%s is selectable through Equipment" % [expected.id, expected.profile])
+	if not str(selected.get("error", "")).is_empty(): return
+	for field: String in ["name", "range_inches", "attacks", "skill", "strength", "ap", "damage", "keywords"]:
+		check(selected.stats.get(field) == expected[field], "%s/%s %s matches the verified export" % [expected.id, expected.profile, field])
+	var plan := prepare_attack_plan(state, squad, model, target, expected)
+	check(str(plan.get("error", "")).is_empty() and plan.get("batches", []).size() == 1,
+		"%s/%s routes through AttackPlan: %s" % [expected.id, expected.profile, plan.get("error", "")])
+	if str(plan.get("error", "")).is_empty() and plan.get("batches", []).size() == 1:
+		var planned: Dictionary = plan.batches[0].weapon
+		var has_ballistus_sustained := int(planned.get("keywords", {}).get("sustained-hits", 0)) == 1
+		check(planned.get("name") == expected.name and planned.get("strength") == expected.strength
+			and has_ballistus_sustained == not bool(expected.melee),
+			"%s/%s keeps its exported profile and applies Ballistus Strike to ranged attacks only" % [expected.id, expected.profile])
 
 func run() -> void:
 	var p := P.profile("ballistus-dreadnought")
 	check(p.source_book_id == "000000139" and p.source_datasheet_id == "000000091" and p.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Profile cites the local Space Marines 11e export")
-	check(p.points == 150 and p.points_by_models == {1: 150} and p.third_plus_points_by_models == {1: 170} and p.models == 1 and p.stats == {"movement_inches": 8, "toughness": 10, "save_target": 2, "wounds": 12, "leadership_target": 6, "objective_control": 4, "invulnerable_target": 0}, "Ballistus characteristics, two first unit costs and third-plus cost match the extracted sheet")
+	check(p.points == 150 and p.points_by_models == {1: 150} and p.third_plus_points_by_models == {1: 170} and p.models == 1 and is_equal_approx(p.base_radius_inches, 45.0 / 25.4) and p.stats == {"movement_inches": 8, "toughness": 10, "save_target": 2, "wounds": 12, "leadership_target": 6, "objective_control": 4, "invulnerable_target": 0}, "Ballistus characteristics, 90 mm base, first-two and third-plus costs match the extracted sheet")
+	check(p.keywords == ["DREADNOUGHT", "IMPERIUM", "WALKER", "DEATHWING", "VEHICLE", "ADEPTUS ASTARTES"], "All exported Ballistus keywords are retained")
 	check(p.ranged.size() == 3 and p.ranged[1].profiles.has("frag") and p.ranged[1].profiles.has("krak") and p.ranged[1].profiles.frag.attacks == "D6+6" and p.ranged[1].profiles.frag.keywords.blast == 2 and p.ranged[1].profiles.krak.damage == "D3+3" and p.melee[0].profiles.standard.name == "Armoured Feet", "All default ranged modes and melee weapon match the extraction")
-	check(Army.SPECS["ballistus-dreadnought"].validation_status == "tests_passed_local_targeted", "The complete local profile and all source abilities pass targeted validation")
-	var admitted := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:ballistus-dreadnought", "models": 1, "copies": 1}]})
+	check(p.get("additional_weapon_profiles", {}).is_empty(), "The current source sheet lists no selectable equipment options")
+	check(AbilityCatalog.RULES.get("ballistus-dreadnought", []) == ["ballistus-strike", "damaged-4", "deadly-demise-d3"], "All source-linked Ballistus abilities are registered")
+	check(Army.SPECS["ballistus-dreadnought"].validation_status == "tests_passed_local_targeted" and Army.SPECS["ballistus-dreadnought"].get("current_reference", false), "The Ballistus has a source-backed current catalog entry")
+	check(Army.current_catalog_choice({"id": BALLISTUS_ID, "edition": "11e", "faction": "Space Marines"}).get("options", []) == [{"models": 1, "cost": 150, "third_plus_cost": 170}], "The current catalog exposes the source cost tiers and fixed composition")
+	var admitted := Army.admit(selection(1))
 	check(admitted.error.is_empty() and admitted.total == 150, "Ballistus enters local construction at its extracted cost")
-	var two := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:ballistus-dreadnought", "models": 1, "copies": 2}]})
+	var two := Army.admit(selection(2))
 	check(two.error.is_empty() and two.total == 300, "First two Ballistus copies use the extracted 150-point cost")
-	var three := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:ballistus-dreadnought", "models": 1, "copies": 3}]})
-	check(three.error.is_empty() and three.total == 470, "Third Ballistus uses the extracted third-plus price")
+	var three := Army.admit(selection(3))
+	check(not three.error.is_empty() and three.error.contains("Core-profile repetition limit exceeded"), "Incursion roster admission rejects a third Ballistus copy")
+	var four := Army.admit(selection(4))
+	check(not four.error.is_empty(), "Current construction rejects a fourth Ballistus copy")
 	var wounded := {"unit_abilities": {"implementation": Abilities.ID}, "units": {
 		100: {"definition_id": "40kdc:11e:adeptus-astartes:ballistus-dreadnought", "wounds": 5},
 		101: {"definition_id": "40kdc:11e:adeptus-astartes:ballistus-dreadnought", "wounds": 4},
 		102: {"definition_id": "40kdc:11e:adeptus-astartes:captain", "wounds": 4}}}
 	check(Abilities.damaged_attack_penalty(wounded, 100) == 0 and Abilities.damaged_attack_penalty(wounded, 101) == -1 and Abilities.damaged_attack_penalty(wounded, 102) == 0, "Damaged 4 applies -1 to Hit at the threshold, to Ballistus attacks only")
 	var state := {"units": {
-		100: {"definition_id": "40kdc:11e:adeptus-astartes:ballistus-dreadnought", "squad": 1, "owner": 1, "wounds": 0, "max_wounds": 12, "position": Vector2.ZERO, "radius": 0.1, "on_battlefield": true, "keywords": ["VEHICLE"]},
+		100: {"definition_id": BALLISTUS_ID, "squad": 1, "owner": 1, "wounds": 0, "max_wounds": 12, "position": Vector2.ZERO, "radius": 0.1, "on_battlefield": true, "keywords": ["VEHICLE"]},
 		200: {"definition_id": "fixture:enemy", "squad": 2, "owner": 2, "wounds": 6, "max_wounds": 6, "position": Vector2(5, 0), "radius": 0.1, "on_battlefield": true, "keywords": []},
 		300: {"definition_id": "fixture:friendly", "squad": 3, "owner": 1, "wounds": 6, "max_wounds": 6, "position": Vector2(5.5, 0), "radius": 0.1, "on_battlefield": true, "keywords": []},
 		400: {"definition_id": "fixture:outside", "squad": 4, "owner": 2, "wounds": 6, "max_wounds": 6, "position": Vector2(7, 0), "radius": 0.1, "on_battlefield": true, "keywords": []}},
@@ -82,7 +147,7 @@ func run() -> void:
 		check(guard > 0, "Deadly Demise queue completes without an allocation loop")
 		check(state.units[200].wounds == 5 and state.units[300].wounds == 3 and state.units[400].wounds == 6, "Only units in range lose their separately rolled mortal wounds")
 	var chain_state: Dictionary = state.duplicate(true)
-	chain_state.units[200].definition_id = "40kdc:11e:adeptus-astartes:ballistus-dreadnought"
+	chain_state.units[200].definition_id = BALLISTUS_ID
 	chain_state.units[200].wounds = 1
 	chain_state.units[200].max_wounds = 12
 	chain_state.pending_attack = {"deadly_demise_checked": true}
@@ -113,26 +178,37 @@ func run() -> void:
 		battle.unit_abilities.setup_players = [1, 2]
 		var shooter := -1
 		var target_model := -1
+		var range_target_model := -1
 		for model: int in battle.units:
 			if C.UnitAbilities.identity(battle.units[model]) == "ballistus-dreadnought" and battle.units[model].owner == 1: shooter = model
-			elif battle.units[model].owner == 2 and target_model < 0: target_model = model
-		if shooter >= 0 and target_model >= 0:
+			elif C.UnitAbilities.identity(battle.units[model]) == "ballistus-dreadnought" and battle.units[model].owner == 2: target_model = model
+			elif C.UnitAbilities.identity(battle.units[model]) == "intercessor-squad" and battle.units[model].owner == 2 and range_target_model < 0: range_target_model = model
+		if shooter >= 0 and target_model >= 0 and range_target_model >= 0:
 			var squad: int = battle.units[shooter].squad
 			var target_squad: int = battle.units[target_model].squad
+			var range_target_squad: int = battle.units[range_target_model].squad
+			check(C.UnitAbilities.has(battle, squad, "ballistus-strike") and C.UnitAbilities.has(battle, squad, "damaged-4") and C.UnitAbilities.has(battle, squad, "deadly-demise-d3"), "The current-catalog unit materializes all three supported ability paths")
+			for expected: Dictionary in WEAPONS: check_weapon_profile(battle, squad, shooter, range_target_squad, expected)
 			battle.units[shooter].position = Vector2.ZERO
-			for model: int in C.living(battle, target_squad): battle.units[model].position = Vector2(20, 0)
-			var declaration := [{"model": shooter, "target": target_squad, "amount": 1, "weapon": "ballistus-lascannon", "profile": "standard"}]
+			for model: int in C.living(battle, range_target_squad): battle.units[model].position = Vector2(20, 0)
+			var declaration := [{"model": shooter, "target": range_target_squad, "amount": 1, "weapon": "ballistus-lascannon", "profile": "standard"}]
 			var attack := C.AttackPlan.prepare(battle, squad, false, declaration, true)
 			check(attack.get("error", "").is_empty() and attack.batches[0].weapon.keywords.get("sustained-hits", 0) == 1, "Ballistus Strike adds Sustained Hits 1 in a legal ranged attack inside 24 inches")
 			battle.units[shooter].wounds = 4
 			attack = C.AttackPlan.prepare(battle, squad, false, declaration, true)
 			check(attack.get("error", "").is_empty() and attack.batches[0].context.hit_modifier == -1, "Damaged 4 changes the actual attack plan's Hit modifier")
-			var edge_of_24: float = 24.0 + float(battle.units[shooter].radius) + float(battle.units[target_model].radius)
-			for model: int in C.living(battle, target_squad): battle.units[model].position = Vector2(edge_of_24, 0)
+			var edge_of_24: float = 24.0 + float(battle.units[shooter].radius) + float(battle.units[range_target_model].radius)
+			for model: int in C.living(battle, range_target_squad): battle.units[model].position = Vector2(edge_of_24, 0)
+			var exact_distance: float = float(C.Terrain.targeting(battle, shooter, range_target_squad).distance)
+			for attempt in range(4):
+				if exact_distance <= 24.0: break
+				edge_of_24 -= 0.0001
+				for model: int in C.living(battle, range_target_squad): battle.units[model].position = Vector2(edge_of_24, 0)
+				exact_distance = C.Terrain.targeting(battle, shooter, range_target_squad).distance
 			battle.units[shooter].wounds = 5
 			attack = C.AttackPlan.prepare(battle, squad, false, declaration, true)
-			check(attack.get("error", "").is_empty() and attack.batches[0].weapon.keywords.get("sustained-hits", 0) == 1 and attack.batches[0].context.hit_modifier == 0, "Ballistus Strike includes the exact 24-inch boundary, while Damaged 4 stops at 5 wounds")
-			for model: int in C.living(battle, target_squad): battle.units[model].position = Vector2(edge_of_24 + 0.01, 0)
+			check(absf(exact_distance - 24.0) <= 0.0002 and attack.get("error", "").is_empty() and attack.batches[0].weapon.keywords.get("sustained-hits", 0) == 1 and attack.batches[0].context.hit_modifier == 0, "Ballistus Strike includes the calibrated 24-inch boundary, while Damaged 4 stops at 5 wounds")
+			for model: int in C.living(battle, range_target_squad): battle.units[model].position = Vector2(edge_of_24 + 0.01, 0)
 			attack = C.AttackPlan.prepare(battle, squad, false, declaration, true)
 			check(attack.get("error", "").is_empty() and not attack.batches[0].weapon.keywords.has("sustained-hits"), "Ballistus Strike ends beyond exactly 24 inches")
 			battle.units[shooter].wounds = 5
@@ -164,5 +240,7 @@ func run() -> void:
 					check(not str(wrong_owner_result.get("error", "")).is_empty() and var_to_bytes(battle) == before_wrong_owner, "The opponent cannot submit or mutate the Deadly Demise allocation")
 					var resolved := submit_unit_choice(battle, 1, mortal_choices[0], roll_die)
 					check(str(resolved.get("error", "")).is_empty() and battle.pending_deadly_demise.is_empty() and battle.pending_attack.is_empty() and battle.units[shooter].wounds == 4, "Resolving the normalized mortal packet resumes and completes the attack transaction")
+		check(find_squad(battle, 2, "ballistus-dreadnought") >= 0 and find_squad(battle, 2, "intercessor-squad") >= 0,
+			"The second player materializes the Ballistus and target unit from the consolidated current catalog")
 	print("Ballistus Dreadnought checks: %d failures" % failures)
 	quit(1 if failures else 0)

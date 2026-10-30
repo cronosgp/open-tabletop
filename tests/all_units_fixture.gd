@@ -11,6 +11,16 @@ static func selections() -> Dictionary:
 			entries.append({"definition_id": "40kdc:11e:%s:%s" % ["adeptus-astartes" if owner == 1 else "necrons", name], "models": 10 if name == "necron-warriors" else 1 if name in ["captain", "lieutenant", "overlord", "royal-warden"] else 5, "copies": 1})
 		result[owner] = {"schema_version": 2, "faction": "Space Marines" if owner == 1 else "Necrons", "category": "incursion", "points_limit": 1000, "entries": entries}
 	return result
+
+static func current_marine_selections() -> Dictionary:
+	var result := {}
+	for owner in [1, 2]:
+		var entries := [
+			{"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 5, "copies": 1},
+			{"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 10, "copies": 1}]
+		if owner == 1: entries.append({"definition_id": "40kdc:11e:adeptus-astartes:captain", "models": 1, "copies": 1})
+		result[owner] = {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": entries}
+	return result
 static func fresh() -> Dictionary:
 	return P.initial_state({"unit_abilities": true, "reanimation_protocols": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true, "attack_rerolls": true, "manual_allocation": false}, selections())
 static func populate(game, owner: int) -> void:

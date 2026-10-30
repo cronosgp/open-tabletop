@@ -1,6 +1,8 @@
 extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
+const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
+const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const R = preload("res://scripts/edition_11/core_reactions.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
@@ -11,7 +13,19 @@ var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok: push_error(message); failures += 1
 func fixture() -> Dictionary:
-	var s := F.P.initial_state({"checked_rosters":true,"official_mission":true,"unit_abilities":true,"combat_doctrines":true,"reanimation_protocols":true,"awakened_dynasty":true,"core_stratagems":true},F.selections())
+	var selections := F.current_marine_selections()
+	selections[1].entries = [
+		{"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 5, "copies": 1},
+		{"definition_id": "40kdc:11e:adeptus-astartes:captain", "models": 1, "copies": 1},
+		{"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 10, "copies": 1}]
+	selections[2].entries = [
+		{"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 5, "copies": 1},
+		{"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 10, "copies": 1},
+		{"definition_id": "40kdc:11e:adeptus-astartes:captain", "models": 1, "copies": 1}]
+	var s := F.P.initial_state({"unit_abilities":true,"combat_doctrines":true,"reanimation_protocols":true,"awakened_dynasty":true,"core_stratagems":true}, selections)
+	if s.has("error"):
+		print("Core reaction fixture admission failed: ", s.error)
+		return s
 	s.awakened_dynasty.pending = []
 	s.unit_abilities.setup_players = [1,2]
 	s.unit_abilities.battle_players = [1,2]
@@ -60,7 +74,11 @@ func run() -> void:
 	var snap_miss := Attacks.roll_pool({"skill": 2, "strength": 4, "ap": 0, "damage": 1, "attacks": 4, "keywords": {}}, {"toughness": 4, "save_target": 7, "invulnerable_target": 0, "wounds_per_model": 1, "remaining_wounds": [1]}, {"weapon_count": 1, "heavy_eligible": false, "snap_shooting": true}, func() -> int: return 5)
 	check(snap_miss.error.is_empty() and snap_miss.hits == 0, "Unmodified 5s miss when snap shooting")
 	var s := fixture()
-	check(R.enabled(s) and C.Capabilities.supported("fire-overwatch") and C.Capabilities.enabled(s, "fire-overwatch"), "Checked matches enable the infantry core reactions")
+	if s.has("error"):
+		print("Core reaction test stopped: current-catalog fixture was not admitted.")
+		quit(1)
+		return
+	check(R.enabled(s) and Capabilities.supported("fire-overwatch") and Capabilities.enabled(s, "fire-overwatch"), "Current matches enable the core reaction capabilities")
 	for model: int in C.living(s, 1): s.units[model].position = Vector2(0, 0)
 	for model: int in C.living(s, 4): s.units[model].position = Vector2(8, 0)
 	var fire_overwatch_close_error := C.advance_phase(s, 1, int(s.revision))
@@ -223,12 +241,21 @@ func run() -> void:
 	s.fight_actor = 1
 	s.fight_selected = -1
 	s.unit_abilities.phase_key = C.UnitActions.key(s)
-	s.squads[3].was_engaged = true
-	s.squads[3].fought = false
-	check(not find_choice(s, 1, 3, R.EPIC).is_empty(), "Epic Challenge is offered for a Character unit selected to fight")
-	check(use(s, 1, 3, R.EPIC).is_empty() and s.cp[1] == 2 and s.fight_selected == 3, "Epic Challenge spends 1 CP and locks the Character unit")
-	var melee: Dictionary = s.squads[3].melee_weapon.duplicate(true)
-	var boosted := R.weapon(s, 300, melee, true)
-	check(boosted.keywords.get("precision", false) and not R.weapon(s, 300, melee, false).keywords.get("precision", false), "Epic Challenge grants melee Precision only to the chosen Character model")
+	var epic_squad := -1
+	var epic_model := -1
+	for model: int in s.units:
+		if int(s.units[model].owner) == 1 and Groups.character(s.units[model]):
+			epic_squad = int(s.units[model].squad)
+			epic_model = model
+			break
+	if epic_squad >= 0:
+		s.squads[epic_squad].was_engaged = true
+		s.squads[epic_squad].fought = false
+	check(epic_squad >= 0 and not find_choice(s, 1, epic_squad, R.EPIC).is_empty(), "Epic Challenge is offered for a current Character unit selected to fight")
+	check(epic_squad >= 0 and use(s, 1, epic_squad, R.EPIC).is_empty() and s.cp[1] == 2 and s.fight_selected == epic_squad, "Epic Challenge spends 1 CP and locks the selected Character unit")
+	if epic_squad >= 0:
+		var melee: Dictionary = s.squads[epic_squad].melee_weapon.duplicate(true)
+		var boosted := R.weapon(s, epic_model, melee, true)
+		check(boosted.keywords.get("precision", false) and not R.weapon(s, epic_model, melee, false).keywords.get("precision", false), "Epic Challenge grants melee Precision only to the chosen Character model")
 	print("Core reaction stratagem checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

@@ -1,0 +1,280 @@
+{
+  "id": "marine-indomitor-kill-team-e11-local-audit-2026-10-28",
+  "rules_authority": "Wahapedia 11th edition, current faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-28",
+  "source": {
+    "edition": "11e",
+    "chapter": "Deathwatch",
+    "book_id": "000000035",
+    "book_type": "App",
+    "datasheet_id": "000002781",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and other modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Indomitor-Kill-Team",
+    "current_page_checked_at": "2026-10-28",
+    "export_updated_at": "2026-10-21T16:06:23+03:00",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b (URL query parameter)",
+    "snapshot_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "d52d0ec3d53cf0a24bce0b7c9a89afe7612ea3d4868a8baa8bd46bbb1ce0f08d",
+    "slice_subject_datasheet_ids": [
+      "000002781"
+    ],
+    "slice_external_identity_only_datasheet_ids": [
+      "000000060",
+      "000001172"
+    ],
+    "snapshot_files": [
+      {
+        "filename": "Factions.csv",
+        "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_stratagems.csv",
+        "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+      },
+      {
+        "filename": "Datasheets_enhancements.csv",
+        "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+      },
+      {
+        "filename": "Datasheets_detachment_abilities.csv",
+        "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      },
+      {
+        "filename": "Stratagems.csv",
+        "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Enhancements.csv",
+        "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+      },
+      {
+        "filename": "Detachment_abilities.csv",
+        "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+      },
+      {
+        "filename": "Detachments.csv",
+        "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+      },
+      {
+        "filename": "Detachments_chapter_dp.csv",
+        "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+      },
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Enhancements_wargear.csv",
+        "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+      },
+      {
+        "filename": "Export-Data-Specs.xlsx",
+        "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+      }
+    ],
+    "slice_files": [
+      {
+        "filename": "Factions.csv",
+        "sha256": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "6279e45052fc871de8b8d8be1bda9db8f86c4152a67fb514d836a25120a8f340"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "b08c5617a14f48665397573f3d7bbb513fc5e492e90c85e92e97fe80eac1b1a7"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "60ba62bb54b701a41c894e75c3a7f5a300871fb23230ca47a77d325f6519077d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "e73a077571e3f27dd5d30587bc01ddc3dd651e50e47f0e33914c77467bf76c28"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "d261757f9ae0a56c4fe8b8036a24a2dc3ae0a6561ada4cefc671d27a0daa81f3"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "c08a733190b296bbd1aef0120b3357945f572b159ddfb3cb42e8c54cfca1380e"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "9517c75cb794a2a553529650a3339883db4422538f2be59a1c58c8dcfbf7aa2c"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "d31d87568c9d8d999f00074464ccc25ecedcbcde4b3c381965cba542a348c6c3"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "6591d6280bfbc204f61afcebd02d6ce96401f567527bc033534961088f039acf"
+      },
+      {
+        "filename": "Datasheets_stratagems.csv",
+        "sha256": "63ab97ae9b66bead9c2c51f568304e764358bf362147aa7698fb7e75549e4551"
+      },
+      {
+        "filename": "Datasheets_enhancements.csv",
+        "sha256": "0fbe94a8d451d185e252398e9694d44ca7ba974c0ae706129089f4e2b4548b25"
+      },
+      {
+        "filename": "Datasheets_detachment_abilities.csv",
+        "sha256": "0493f2fe45d5b17023964c61deeeee7a77b0571662fc2a781cc5cee7b6143e59"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "e1070129f67ecb7a1c279fd8338dc835b80beb2211072a57b11801f82a9fbb6c"
+      },
+      {
+        "filename": "Stratagems.csv",
+        "sha256": "f8003401c402c2b393edbc4d3f74718940a7ccb1468efa955a8fbb63413da4e3"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "5eb9912293c3295c1eafc9b3c0b233694ba7b7eafe24d2d0b35e90de84f13206"
+      },
+      {
+        "filename": "Enhancements.csv",
+        "sha256": "6bef30dc54774bc91c7feef84cdca100b322864bf7a63259ea8b4818e655c214"
+      },
+      {
+        "filename": "Enhancements_wargear.csv",
+        "sha256": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a"
+      },
+      {
+        "filename": "Detachment_abilities.csv",
+        "sha256": "5b38d67448d51337c1a475ef3dcb8e9b400fbaecc395163e5853c2f3e1be54fc"
+      },
+      {
+        "filename": "Detachments.csv",
+        "sha256": "2f9917104f450c315400144a141fbf448e10868f01a10643af29423f90c9607b"
+      },
+      {
+        "filename": "Detachments_chapter_dp.csv",
+        "sha256": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07"
+      },
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      }
+    ],
+    "slice_validation_error_count": 0
+  },
+  "runtime": {
+    "profile_id": "indomitor-kill-team",
+    "local_status": "source_bounded_local_scope_passed_2026_10_28",
+    "composition": {
+      "model_count": 10,
+      "models": [
+        {
+          "count": 3,
+          "role": "Aggressor",
+          "ranged": [
+            "Flamestorm Gauntlets"
+          ],
+          "melee": [
+            "Twin Power Fists"
+          ]
+        },
+        {
+          "count": 3,
+          "role": "Eradicator",
+          "ranged": [
+            "Melta Rifle",
+            "Bolt Pistol"
+          ],
+          "melee": [
+            "Ceramite Fists"
+          ]
+        },
+        {
+          "count": 4,
+          "role": "Heavy Intercessor",
+          "ranged": [
+            "Deathwatch Heavy Bolt Rifle"
+          ],
+          "melee": [
+            "Ceramite Fists"
+          ]
+        }
+      ]
+    },
+    "points_by_copy_index": {
+      "1": 280,
+      "2": 280,
+      "3+": 300
+    },
+    "implemented_scope": [
+      "Fixed ten-model mixed Gravis composition, model-specific characteristics, 40 mm bases, source keywords and weapon profiles.",
+      "Preparation options replace up to two Heavy Bolt Rifles with Deathwatch Heavy Bolters, any Flamestorm Gauntlet loadout with Auto Boltstorm Gauntlets and a Fragstorm Grenade Launcher, and one Melta Rifle with a Multi-melta.",
+      "Indomitor Doctrines add 1 Strength to ranged attacks against the closest eligible enemy unit for each attacking model and selected weapon profile, and 1 Strength to melee attacks after the unit has charged this turn.",
+      "Hunter weapon eligibility is included in legal-target selection for the closest-target comparison.",
+      "Captain in Gravis Armour Leader and Apothecary Biologis Support endpoints."
+    ],
+    "known_limits": [
+      "Network validation was disabled for the focused run.",
+      "This local datasheet scope does not certify full roster or army legality, complete-match behavior, or human playability.",
+      "Forge World, Legends, Boarding Actions, other game modes, and un-inventoried source books are outside this profile."
+    ]
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_indomitor_kill_team --only test_implemented_catalog --only test_capabilities --only test_space_marine_leader_links --only test_biologis --only test_space_marine_copy_cost_parity --only test_fortis_kill_team --only test_decimus_kill_team --timeout 300",
+    "result_path": ".tools/verification/20261028T234416623535Z/results.json",
+    "results_sha256": "9dc322eaa1081639415af6205fb89f3040a9945faab56f8808a2b462eefbe2a0",
+    "process_count": 10,
+    "status": "passed",
+    "network": false,
+    "legacy_starter_staged": true,
+    "cleanup_diagnostics": false
+  }
+}

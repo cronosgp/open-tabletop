@@ -1,0 +1,106 @@
+{
+  "id": "marine-vindicator-e11-local-audit-2026-10-30",
+  "rules_authority": "Wahapedia 11th edition and its verified local Data Export; current official Warhammer material used to confirm Legends game-mode guidance",
+  "observed_at": "2026-10-30",
+  "source": {
+    "edition": "11e",
+    "faction": "Space Marines",
+    "chapter": "Space Marines (Warhammer Legends)",
+    "book_id": "000000356",
+    "book_type": "App",
+    "book_edition": "11",
+    "datasheet_id": "000001188",
+    "game_mode": "Standard Warhammer 40,000 datasheet; Boarding Actions and other alternate modes are outside this profile audit",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Vindicator",
+    "current_page_checked_at": "2026-10-30",
+    "games_workshop_legends_guidance_url": "https://www.warhammer-community.com/en-gb/articles/bbnskauh/big-space-marines-news/",
+    "games_workshop_legends_guidance_checked_at": "2026-10-30",
+    "snapshot": {
+      "provider": "Wahapedia Data Export",
+      "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+      "retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00",
+      "export_updated_at": "2026-10-28T23:48:19+03:00",
+      "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+      "slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+      "slice_catalog_sha256": "193f0e7f424660db0936131ec003de11aa626cf5a36d3054ad9443cdbfbdb3e3",
+      "slice_validation_findings": 0,
+      "parent_validation_findings": 68,
+      "raw_slice_path": ".tools/marine-full-space-readiness-20261030/space-marines-legends/raw",
+      "source_slice_check": {
+        "command": "python tools/audit_space_marine_extended_slice.py --slice-root .tools/marine-full-space-readiness-20261030/space-marines-legends --expected-book-id 000000356 --expected-count 56 --output .tools/verification/vindicator-legends-slice-audit.json",
+        "result_path": ".tools/verification/vindicator-legends-slice-audit.json",
+        "result_sha256": "43f8e7fe7d54d29ccc148aa9d97f5caf954003b418b9e350fb284768b6e910eb",
+        "slice_manifest_file_sha256": "ad907cea26b5118f408b89b4847e145aa074c70a8be7d406b8dcdbec40f7cadb",
+        "subjects_including_linked_source_dependencies": 56,
+        "structurally_valid": true,
+        "slice_validation_error_count": 0
+      },
+      "source_files": [
+        {"filename": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+        {"filename": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+        {"filename": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"},
+        {"filename": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+        {"filename": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+        {"filename": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+        {"filename": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+        {"filename": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+        {"filename": "Datasheets_leader.csv", "sha256": "18243d3fe8bfb7786f5293ab8b611a52eec8d0941172c6ee991c5a7ed5fbd06d"}
+      ],
+      "source_leader_links": 0
+    },
+    "rules_authority_scope": "Current Wahapedia /wh40k11ed/ pages and the matching verified local 11e export. No earlier-edition rules were substituted.",
+    "reconciliation": "The current page and export identify the same Warhammer Legends book and datasheet. Composition is one Vindicator; the first two units cost 185 points each, and third-plus units cost 200."
+  },
+  "implemented_scope": {
+    "runtime_profile": "scripts/edition_11/current_reference_marine_profiles.gd",
+    "army_admission": "scripts/edition_11/army_capabilities.gd",
+    "ability_registration": "scripts/edition_11/unit_ability_catalog.gd",
+    "preparation_choices": "scripts/edition_11/unit_actions.gd",
+    "attack_and_target_legality": "scripts/edition_11/attack_plan.gd",
+    "composition": "One Vindicator model; model characteristics and default equipment match the current export.",
+    "points_by_models": {"1": 185},
+    "third_plus_points_by_models": {"1": 200},
+    "max_supported_copies": 3,
+    "base_size_source": "Use model",
+    "geometry_proxy": "60 mm circular footprint; exact source footprint is unspecified and physical clearance is not certified.",
+    "special_rules": ["Combat Doctrines", "Deadly Demise D3", "Damaged 4", "Siege Shield"],
+    "weapons": {
+      "ranged_default": ["Demolisher Cannon"],
+      "ranged_optional": ["Hunter-killer Missile (One Shot)", "Storm Bolter (Rapid Fire 2)"],
+      "melee": ["Armoured Tracks"],
+      "both_optional_weapons_can_be_added_together": true
+    },
+    "siege_shield": "Owner's Shooting phase while engaged and using close-quarters shooting; attacks targeting an enemy engaged with the Vindicator may ignore BS/Hit modifiers. The Demolisher Cannon may be selected without BLAST and then may target an enemy not engaged with another friendly unit. Runtime elects to ignore all applicable BS/Hit modifiers.",
+    "copy_limit": {"incursion": 2, "strike_force": 3},
+    "leader_links": []
+  },
+  "runtime": {
+    "profile_status": "source_bounded_local_scope_passed_2026_10_30",
+    "construction_catalog_size_after_admission": 167,
+    "legends_label_and_event_condition_shown": true,
+    "competitive_event_condition": "Requires the event organiser's permission.",
+    "unsupported_configurations": "No source-listed alternate model count. Exact physical footprint is unspecified by the source and uses a labelled local proxy."
+  },
+  "verification": {
+    "dedicated_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 300 --only test_vindicator",
+    "dedicated_result_path": ".tools/verification/20261030T063440784565Z/results.json",
+    "dedicated_result_sha256": "cab14d966319953ea91b8d2d9d1b2e100185b5945f6dd948807e049d2c25e790",
+    "focused_regression_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_vindicator --only test_ballistus_dreadnought --only test_redemptor_dreadnought --only test_brutalis_dreadnought --only test_death_company_dreadnought --only test_gladiator_lancer --only test_gladiator_reaper_current --only test_gladiator_valiant --only test_storm_speeder_hammerstrike --only test_storm_speeder_hailstrike --only test_storm_speeder_thunderstrike --only test_baal_predator",
+    "focused_result_path": ".tools/verification/20261030T063731391958Z/results.json",
+    "focused_result_sha256": "82dd67dea1d954eb01ad3d3a4929c0cb31118eb5054543402e051a44e9258dfa",
+    "process_count": 14,
+    "status": "passed",
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false
+  },
+  "certification_limits": {
+    "datasheet_scope": "Local source-bounded profile, listed wargear, roster prices/admission and the declared rules behavior only.",
+    "full_army_legality_certified": false,
+    "full_match_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "human_playtesting": "not_performed",
+    "exact_model_footprint": "not provided in the source; local 60 mm circular proxy is not a physical-base certification",
+    "parent_export_findings": "The parent export retains 68 unrelated validation findings; the scoped Space Marines Legends slice has zero findings."
+  }
+}

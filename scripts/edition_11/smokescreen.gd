@@ -1,7 +1,7 @@
 extends RefCounted
 ## Core 15.10 coverage in the existing ground-level cylindrical proxy.
 const Abilities = preload("res://scripts/edition_11/detection_rules.gd")
-const IMPLEMENTATION_ID := "core-reaction-stratagems-v3"
+const IMPLEMENTATION_ID := "core-reaction-stratagems-2026-10-high-marshal-helbrecht-v3-defensive-array"
 const EPSILON := 0.001
 const SIGHT_RADIUS := 0.5 / 25.4
 

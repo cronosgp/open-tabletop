@@ -6,9 +6,9 @@ extends RefCounted
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
 const Prevention = preload("res://scripts/edition_11/wound_prevention.gd")
-const IMPLEMENTATION := "11e-identical-attacks-v8-anti-exclusions"
-const SUPPORTED_KEYWORDS := ["lethal-hits", "rapid-fire", "sustained-hits", "torrent", "heavy", "twin-linked", "assault", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "devastating-wounds", "precision", "cleave", "melta", "psychic", "anti-fly", "anti-vehicle", "anti-infantry", "anti-character", "anti-non-monster-vehicle", "indirect-fire", "one-shot"]
-const ANTI_KEYWORDS := ["anti-fly", "anti-vehicle", "anti-infantry", "anti-character", "anti-non-monster-vehicle"]
+const IMPLEMENTATION := "11e-identical-attacks-v11-anti-psyker"
+const SUPPORTED_KEYWORDS := ["lethal-hits", "rapid-fire", "sustained-hits", "torrent", "heavy", "twin-linked", "assault", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "devastating-wounds", "precision", "cleave", "melta", "psychic", "lance", "anti-fly", "anti-monster", "anti-vehicle", "anti-infantry", "anti-character", "anti-psyker", "anti-non-monster-vehicle", "indirect-fire", "one-shot"]
+const ANTI_KEYWORDS := ["anti-fly", "anti-monster", "anti-vehicle", "anti-infantry", "anti-character", "anti-psyker", "anti-non-monster-vehicle"]
 
 class Dice:
 	extends RefCounted
@@ -117,8 +117,8 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 		if maximum > 1000: return "Attack pool exceeds prototype limit."
 	if not context.get("unresolved_effects", []) is Array or not context.get("unresolved_effects", []).is_empty():
 		return "Unresolved effects must be implemented before resolving this attack."
-	if context.get("wound_reroll", "none") not in ["none", "ones", "failed", "ones_twos", "ones_twos_or_failed"]: return "Unsupported wound re-roll mode."
-	if context.get("hit_reroll", "none") not in ["none", "failed", "ones"]: return "Unsupported hit re-roll mode."
+	if context.get("wound_reroll", "none") not in ["none", "ones", "failed", "all", "ones_twos", "ones_twos_or_failed"]: return "Unsupported wound re-roll mode."
+	if context.get("hit_reroll", "none") not in ["none", "failed", "ones", "all"]: return "Unsupported hit re-roll mode."
 	if not context.get("indirect_fire", false) is bool: return "Indirect Fire context must be a boolean."
 	if context.get("indirect_fire", false):
 		if not keywords.get("indirect-fire", false): return "Indirect Fire context requires an Indirect Fire weapon."
@@ -324,6 +324,7 @@ static func reroll_wound(value: int, target: int, modifier: int, weapon: Diction
 	# Generic rerolls preserve successful rolls; explicit natural-face effects may reroll a successful 2.
 	var failed := not successful_roll(value, target, modifier) and not anti_critical(value, weapon, context)
 	var mode: String = context.get("wound_reroll", "none")
+	if mode == "all": return true
 	var natural_face := (mode in ["ones", "ones_twos", "ones_twos_or_failed"] and value == 1) or (mode == "ones_twos" and value == 2 and failed)
 	return natural_face or (failed and (mode in ["failed", "ones_twos_or_failed"] or (weapon.get("keywords", {}).get("twin-linked", false) and context.get("use_twin_linked", true))))
 
@@ -331,8 +332,8 @@ static func reroll_hit_pool(values: Array, skill: int, modifier: int, context: D
 	var changes: Array = []
 	if context.get("snap_shooting", false): return changes
 	var mode: String = context.get("hit_reroll", "none")
-	if mode not in ["failed", "ones"]: return changes
-	# Training policy keeps successes; replacement dice cannot be rerolled again.
+	if mode not in ["failed", "ones", "all"]: return changes
+	# Replacement dice cannot be re-rolled again; an all-roll effect may replace successes.
 	for index in range(values.size()):
 		if mode == "ones" and values[index] != 1: continue
 		if mode == "failed" and successful_roll(values[index], skill, modifier): continue

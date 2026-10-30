@@ -1,22 +1,209 @@
 {
-  "id": "wahapedia-marine-lieutenant-combi-local-admission-2026-10-19-v2",
-  "rules_authority": "Wahapedia 11th-edition local extraction",
+  "identity": "lieutenant-with-combi-weapon",
   "source": {
-    "book_id": "000000139",
-    "book_name": "Space Marines",
+    "authority": "Wahapedia 11th-edition local export",
+    "source_book_id": "000000139",
+    "export_snapshot_id": "20261021T130623Z",
+    "export_updated_at": "2026-10-21T16:06:23+03:00",
+    "export_retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+    "source_checked_at": "2026-10-27",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ],
     "datasheet_id": "000000076",
-    "datasheet_name": "Lieutenant with Combi-weapon",
-    "export_updated_at": "2026-10-16T21:03:46+03:00"
+    "runtime_profile_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Lieutenant-with-Combi-weapon"
   },
-  "scope": "Fixed characteristics, default weapons, profiles, weapon traits, cost, Feel No Pain 5+, Infiltrators, Lone Operative, Stealth, Priority Target Identified, and Evade and Survive locally implemented and targeted-tested.",
-  "local_data_test": "tests/test_lieutenant_combi_weapon.gd",
-  "local_data_test_status": "passed_with_behavior_checks",
-  "fixed_data_comparison": ".tools/wahapedia-fixed-data-review-v41.json",
-  "profile_export_id": "space-marines-e11-fixed-reference-2026-10-19-v36",
-  "validation_artifact": ".tools/verification/20261019T065023692405Z/results.json",
-  "wahapedia_import_comparison_python_tests": "25_passed",
-  "local_validation": "passed_targeted",
-  "construction_catalog_status": "admitted_local_catalog",
-  "network_validation": "deferred_to_final_integration",
-  "full_match_certified": false
+  "scope": {
+    "models": 1,
+    "base": "40 mm",
+    "points": 85,
+    "characteristics": {
+      "M": 8,
+      "T": 4,
+      "Sv": "3+",
+      "W": 4,
+      "Ld": "6+",
+      "OC": 1,
+      "invulnerable_save": null
+    },
+    "runtime_keywords": [
+      "ADEPTUS ASTARTES",
+      "PHOBOS",
+      "SMOKE",
+      "EXPLOSIVES",
+      "IMPERIUM",
+      "INFANTRY",
+      "CHARACTER"
+    ],
+    "source_core_abilities": [
+      {
+        "name": "Feel No Pain",
+        "parameter": "5+"
+      },
+      {
+        "name": "Infiltrators",
+        "parameter": ""
+      },
+      {
+        "name": "Lone Operative",
+        "parameter": ""
+      },
+      {
+        "name": "Stealth",
+        "parameter": ""
+      }
+    ],
+    "source_army_rules": [
+      "Combat Doctrines"
+    ],
+    "source_datasheet_abilities": [
+      "Priority Target Identified (Once per battle, per unit)",
+      "Evade and Survive (Once per phase, per unit)"
+    ],
+    "weapons": [
+      "Combi-weapon - Bolter",
+      "Combi-weapon - Flamer",
+      "Paired Combat Blades"
+    ],
+    "source_options_rows": 0,
+    "source_leader_rows": 0,
+    "common_book_leader_targets": [],
+    "out_of_scope_leader_targets": [],
+    "source_keywords": [
+      {
+        "keyword": "Adeptus Astartes",
+        "is_faction_keyword": true
+      },
+      {
+        "keyword": "Phobos",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Smoke",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Explosives",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Imperium",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Infantry",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Character",
+        "is_faction_keyword": false
+      }
+    ]
+  },
+  "source_weapons": [
+    {
+      "name": "Combi-weapon - Bolter",
+      "type": "Ranged",
+      "range": "24",
+      "attacks": "2",
+      "skill": "2",
+      "strength": "5",
+      "ap": "-1",
+      "damage": "2",
+      "description": "Rapid Fire 1, ASSAULT"
+    },
+    {
+      "name": "Combi-weapon - Flamer",
+      "type": "Ranged",
+      "range": "12",
+      "attacks": "3",
+      "skill": "-",
+      "strength": "5",
+      "ap": "-1",
+      "damage": "1",
+      "description": "Torrent, ASSAULT, BLAST 1"
+    },
+    {
+      "name": "Paired Combat Blades",
+      "type": "Melee",
+      "range": "Melee",
+      "attacks": "6",
+      "skill": "2",
+      "strength": "5",
+      "ap": "-1",
+      "damage": "1",
+      "description": "Sustained Hits 1"
+    }
+  ],
+  "source_leader_targets": [],
+  "local_validation": ".tools/verification/20261027T220101252638Z/results.json",
+  "local_validation_sha256": "bcd89f1dfdeb59a6c2bd4ac424ef88eb50e8224c0bda03e9cf99bf29516e2b47",
+  "test_files": [
+    "tests\\test_lieutenant_combi_weapon.gd"
+  ],
+  "network_validation": "Deferred to final integration; this focused run used network=false.",
+  "full_match_certified": false,
+  "latest_scope_validation": {
+    "observed_at": "2026-10-27",
+    "status": "passed; 3/3 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "open_limit": "Closes only the Lieutenant with Combi-weapon shared-book local sheet scope. The test verifies Infiltrators and Stealth eligibility through the shared effect predicates; it does not expand their generic deployment/detection semantics beyond the other shared-system tests. Chapter restrictions, full faction/army legality, network behavior, complete matches and human playtesting remain outside this result; network validation is deferred to final integration.",
+    "master_evidence": "space-marines-profile-evidence.json"
+  }
 }

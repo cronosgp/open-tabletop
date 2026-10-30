@@ -13,12 +13,12 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 
 func make_state(identity: String, model: int) -> Dictionary:
-	var state := F.fresh()
+	var state := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, F.current_marine_selections())
+	if state.has("error"): return state
 	state.units.clear()
 	state.squads.clear()
 	state.phase = "deployment"
 	state.active = 1
-	state.awakened_dynasty.pending = []
 	state.unit_abilities.window = {}
 	state.unit_abilities.setup_players = []
 	var profile := Profiles.profile(identity)

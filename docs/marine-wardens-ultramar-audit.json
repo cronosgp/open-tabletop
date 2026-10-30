@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "id": "marine-wardens-ultramar-e11-2026-10-27",
+  "source": {
+    "edition": 11,
+    "book_id": "000000139",
+    "datasheet_id": "000004188",
+    "book_name": "App. Space Marines",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Wardens-of-Ultramar-1",
+    "checked_at": "2026-10-27",
+    "runtime_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; stable Last_update 2026-10-19 03:47:32; live page checked 2026-10-27.",
+    "chapter_context": "Shared-book Space Marines profile with the source-listed ULTRAMARINES keyword. Chapter roster restrictions and Chapter-specific effects are outside this local datasheet scope.",
+    "game_mode": "Standard Warhammer 40,000 11th edition through the local match/action runtime; this is not full-match certification.",
+    "snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "relevant_file_hashes": [
+        {
+          "filename": "Last_update.csv",
+          "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+        },
+        {
+          "filename": "Source.csv",
+          "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+        },
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+        },
+        {
+          "filename": "Abilities.csv",
+          "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+        },
+        {
+          "filename": "Datasheets_leader.csv",
+          "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+        }
+      ]
+    }
+  },
+  "fixed_data_comparison": {
+    "status": "passed_profile_comparison",
+    "artifact": ".tools/marine-comparison-20261027-v12.json",
+    "identity": "wardens-of-ultramar",
+    "source_id": "000004188",
+    "differences": [],
+    "limit": "The comparator does not validate per-model base sizes; those were independently checked against Datasheets_models.csv in the pinned local export."
+  },
+  "profile": {
+    "model_count": 6,
+    "points": 115,
+    "max_supported_copies": 1,
+    "equipment_options": [],
+    "model_base_sizes_mm": [
+      {
+        "model": "Aemelia Minervas",
+        "base_mm": 28.5
+      },
+      {
+        "model": "Ancient Gadriel",
+        "base_mm": 40
+      },
+      {
+        "model": "Dainal Kornelius",
+        "characteristics_table_spelling": "Dainal Komelius",
+        "base_mm": 28.5,
+        "model_keyword": "PSYKER"
+      },
+      {
+        "model": "Gaius Silva",
+        "base_mm": 28.5,
+        "invulnerable_save": "5+"
+      },
+      {
+        "model": "Lucia Vestha",
+        "base_mm": 28.5
+      },
+      {
+        "model": "Veteran Sergeant Metaurus",
+        "base_mm": 40,
+        "invulnerable_save": "4+"
+      }
+    ]
+  },
+  "scope": [
+    "Exact six-model, 115-point EPIC HERO profile; no equipment-option rows; one-copy local construction cap.",
+    "Every model's characteristics and base geometry are source-matched. Aemelia Minervas 28.5 mm; Ancient Gadriel 40 mm; Dainal Kornelius 28.5 mm; Gaius Silva 28.5 mm; Lucia Vestha 28.5 mm; Veteran Sergeant Metaurus 40 mm.",
+    "Model-specific defense and keywords: Ancient Gadriel has OC 2; Gaius Silva has a 5+ invulnerable save; Metaurus has T5, Sv 3+, W4 and a 4+ invulnerable save; Dainal alone has the PSYKER keyword. The source spells Dainal's surname Komelius in the characteristics table and Kornelius in the loadout/composition text.",
+    "All nine distinct fixed weapon profiles, including both Bolt Rifle profiles, match the pinned export and pass Equipment/AttackPlan materialization for the model carrying them.",
+    "Both players materialize from current Space Marines catalogs; all four source-listed abilities register; duplicate Wardens are rejected.",
+    "Support map matches the four shared-book targets: Assault Intercessor Squad, Bladeguard Veteran Squad, Intercessor Squad and Sternguard Veteran Squad. The separate Vanguard Veteran Squad target on Wahapedia is a Legends datasheet and remains outside the common-book 85.",
+    "Raise the Banner secures an objective controlled by Wardens at the end of their own Movement phase and does not trigger at the opponent's Movement-phase end.",
+    "Strategium Command starts after deployment and before Scouts; validates ownership and normal battlefield redeployment restrictions; confirms legal redeployment; moves a selected unit to Strategic Reserves with its points-cap exception; and stops after three distinct units."
+  ],
+  "verification": {
+    "status": "passed",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_marine_wardens_profile --timeout 300",
+    "artifact": ".tools/verification/20261028T003202038856Z/results.json",
+    "artifact_sha256": "a6452e5031358ce0799067ac80ec8ccf91412fed6cf7ad1cfd11eddc953fd932",
+    "processes_passed": [
+      "import",
+      "python",
+      "test_marine_wardens_profile"
+    ],
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "supplementary_regression": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_marine_wardens_profile --only test_space_marine_leader_links --only test_ancients --only test_company_heroes_current --only test_implemented_catalog --timeout 300",
+      "artifact": ".tools/verification/20261028T002515748628Z/results.json",
+      "artifact_sha256": "ea9d3f2c67aaebd4cb448c7975bfb0353ae756801be8c6b5e6390a67272cef9d",
+      "processes_passed": 7,
+      "network": false,
+      "legacy_starter_staged": true,
+      "note": "Shared Leader/Support links, Ancients, Company Heroes and catalog regression passed. This broader run staged the optional legacy starter, so clean current-catalog evidence is taken from the focused run above."
+    }
+  },
+  "limits": [
+    "Closes only Wardens of Ultramar's common-book local datasheet scope.",
+    "The fixed-data comparator's per-profile match is not a full rules certificate.",
+    "The export snapshot is dated 2026-10-21 and the page was checked live on 2026-10-27; later source changes require reconciliation.",
+    "The Legends Vanguard Veteran Squad target, complete Chapter roster restrictions, full faction/army legality, network behavior, complete-match certification and human playtesting remain outside this closure.",
+    "Network validation remains deferred to final integration."
+  ]
+}

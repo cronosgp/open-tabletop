@@ -60,9 +60,120 @@
     "kind": "actual Godot staged fixture; fixed healing budget",
     "pre_change_capture": false
   },
-  "network_validation": {
-    "status": "deferred_to_final_integration_by_user",
-    "passed": false
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_match_certified": false,
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b (URL query parameter)",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ]
   },
-  "full_match_certified": false
+  "current_scope_validation": {
+    "observed_at": "2026-10-27",
+    "profile": "apothecary",
+    "test_file": "tests/test_apothecary.gd",
+    "profile_parity_test": "tests/test_apothecary_profile_parity.gd",
+    "related_shared_healing_test": "tests/test_infiltrator_squad.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_apothecary --only test_apothecary_profile_parity --only test_infiltrator_squad --only test_space_marine_leader_links --timeout 300",
+    "artifact": ".tools/verification/20261027T092025938936Z/results.json",
+    "artifact_sha256": "93354e6693d39eabaf8ccb5edd914d72c0bdc4f7b0432a4db661382408244069",
+    "status": "passed; 6/6 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "source_scope_summary": "One Apothecary, 45 points, 40 mm base, M6/T5/Sv3+/W4/Ld6+/OC1, fixed loadout and no equipment options; all three weapons, current catalog on both sides, all eight shared-book bodyguards, Apothecary/Lieutenant pairing, Narthecium D3+1 healing, Core 02.02.04 wound priority and non-Character return, legal placement, same-roll reset, Character exclusion, Command-phase timing, save/restore, battle-shock and public-command rejection checked.",
+    "current_catalog_for_both_players": true,
+    "source_options_rows": 0,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_apothecary --only test_apothecary_profile_parity --only test_infiltrator_squad --only test_space_marine_leader_links --timeout 300",
+  "validation_artifact": ".tools/verification/20261027T092025938936Z/results.json",
+  "validation_artifact_sha256": "93354e6693d39eabaf8ccb5edd914d72c0bdc4f7b0432a4db661382408244069",
+  "validation_status": "passed; 6/6 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+  "source_options_rows": 0,
+  "weapon_profiles_checked": [
+    "Absolvor Bolt Pistol: 18 inches, A1, BS3+, S5, AP-2, D2, Close-quarters.",
+    "Reductor Pistol: melee A1, WS3+, S5, AP-4, D2, Extra Attacks.",
+    "Servo-armature: melee A4, WS3+, S5, AP0, D1."
+  ],
+  "ability_effects_checked": [
+    "Narthecium in the Apothecary owner’s Command phase, one D3+1 unit-healing budget per turn.",
+    "Core Rules 02.02.04 survivor-first unit healing and eligible destroyed non-Character returns; returned models can receive later wounds from the same budget.",
+    "Transactional choice, preview placement, same-roll reset, excess accounting, Character exclusion, Battle-shock eligibility, Command-close suspension, save/restore and normalized owner/revision rejection."
+  ],
+  "support_links_checked": [
+    "assault-intercessor-squad",
+    "bladeguard-veteran-squad",
+    "company-heroes",
+    "desolation-squad",
+    "hellblaster-squad",
+    "infernus-squad",
+    "intercessor-squad",
+    "sternguard-veteran-squad"
+  ],
+  "construction_checked": {
+    "models": "One Apothecary model.",
+    "base": "40 mm round base.",
+    "points": 45,
+    "equipment_option_rows": 0,
+    "admission_result": "Selectable from the consolidated local catalog; both players use current Space Marines catalogs. All eight shared-book bodyguards materialize and accept the Support attachment."
+  },
+  "current_catalog_for_both_players": true,
+  "full_source_bounded_local_scope_validated": true,
+  "full_army_legality_certified": false,
+  "known_scope_limits": [
+    "This closes only the 11th-edition shared-book Apothecary scope. Six additional Leader relation rows in the complete export belong to Chapter or Deathwatch source books outside this scope. Whole-army legality, Chapter-book variants, Forge World, Legends, Boarding Actions, network behavior, complete-match certification and human playtesting remain outside this result."
+  ]
 }

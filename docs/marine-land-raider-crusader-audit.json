@@ -1,0 +1,576 @@
+{
+  "id": "space-marines-land-raider-crusader-current-e11-scope",
+  "edition": "11th edition",
+  "source_authority": "Wahapedia 11e shared Space Marines datasheet, checked against the verified local Data Export snapshot and current live datasheet page.",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Land-Raider-Crusader",
+  "observed_at": "2026-10-28",
+  "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; live common-book datasheet and source context checked 2026-10-28; local Data Export specification revision 20260817b.",
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+    "specification_revision": "20260817b (URL query parameter)",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "relevant_file_hashes": [
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_detachment_abilities.csv",
+        "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+      },
+      {
+        "filename": "Datasheets_enhancements.csv",
+        "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_stratagems.csv",
+        "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Detachment_abilities.csv",
+        "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+      },
+      {
+        "filename": "Detachments.csv",
+        "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+      },
+      {
+        "filename": "Detachments_chapter_dp.csv",
+        "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+      },
+      {
+        "filename": "Enhancements.csv",
+        "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+      },
+      {
+        "filename": "Enhancements_wargear.csv",
+        "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+      },
+      {
+        "filename": "Export-Data-Specs.xlsx",
+        "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+      },
+      {
+        "filename": "Factions.csv",
+        "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+      },
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Stratagems.csv",
+        "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+      }
+    ]
+  },
+  "implementation": [
+    {
+      "path": "data/edition_11/space_marines_transport_profiles.json",
+      "sha256": "4384601b3cf4af218f2d12d4fec9661df0e01c68bbfcc497a0f971f66efdf469"
+    },
+    {
+      "path": "tools/build_space_marine_transport_profiles.py",
+      "sha256": "fcb79871cf72fd39556c68ad1e49ef6fd3a13019f3734600620b8075da207b1f"
+    },
+    {
+      "path": "scripts/edition_11/current_reference_marine_profiles.gd",
+      "sha256": "4a86e5dfaefdcb9288b2a911e132a03c3dc60f7a5c5056a9a05114fc46d8b5ee"
+    },
+    {
+      "path": "scripts/edition_11/army_capabilities.gd",
+      "sha256": "584a0207256b512b7b801679417db73aee1383b6a2168844fd6df5f3c49043e8"
+    },
+    {
+      "path": "scripts/army_roster.gd",
+      "sha256": "94ca57a5ffa34619c641aa60ea43ec63c8bde417059470518a219f55d54c0747"
+    },
+    {
+      "path": "scripts/edition_11/roster_validation.gd",
+      "sha256": "bfb171dc6a04dddfb04ebb926774fc20ca53d27321409c60b6d2ea7457aed607"
+    },
+    {
+      "path": "scripts/army_builder_panel.gd",
+      "sha256": "dcaacd59343c96682bd8accb24fa66600e27da72d9d5343ad32dfeb499ce690d"
+    },
+    {
+      "path": "scripts/edition_11/transport_rules.gd",
+      "sha256": "523530e33f2319d8930c4ba97508224f7beae091f587d67a36bc86b0ee8e8775"
+    },
+    {
+      "path": "scripts/edition_11/unit_abilities.gd",
+      "sha256": "0172ed93f0df1d385131d8f736a2be49feeb22644afcfe282e78d43d2a22f665"
+    },
+    {
+      "path": "scripts/edition_11/unit_ability_catalog.gd",
+      "sha256": "2e87326d97533478d092b79e81b45361bc8eb5b43e8b4c5fbb73bd47f1cfc62c"
+    },
+    {
+      "path": "scripts/edition_11/firing_deck.gd",
+      "sha256": "1d64efe8a3845f8bd04c750be598b3dc89ce2cd99dd41b8be758f4a38d699e4e"
+    },
+    {
+      "path": "scripts/edition_11/attack_plan.gd",
+      "sha256": "0a3bcf2046aec615944e28aaf5299be820f8f6d33f9961d49f9008f0edd59f46"
+    },
+    {
+      "path": "scripts/edition_11/combat_scenario.gd",
+      "sha256": "1d2c1230b91a80ae9bf26cf69de08ed379a6e3f4d8b850422e95ef3059804474"
+    },
+    {
+      "path": "tests/test_marine_transport_profiles.gd",
+      "sha256": "66f59cc3915ada5536819e6dbdffeb89a535bdaeedfacd7c70f875fb2c9a70c9"
+    },
+    {
+      "path": "tests/test_marine_transport_admission.gd",
+      "sha256": "db3d5250350aa7a454aba23711d66c8e0dd840bab2dd0abb62d69b1e33fb9e3f"
+    },
+    {
+      "path": "tests/test_marine_transport_weapon_options.gd",
+      "sha256": "dc4a965d3b98e2e44314e75160728cdfdaf40b2a4b3e1b0130705390fe4b0a4c"
+    },
+    {
+      "path": "tests/test_marine_transport_rules.gd",
+      "sha256": "06a375226643a9785310b544d670066f716d00e05b3b375d807f9e9c9923c8a6"
+    },
+    {
+      "path": "tests/test_marine_transport_destruction.gd",
+      "sha256": "065985aa34ce5019651a0c23c7bcc1a98aca8d5e10beae949db200269cabd5d1"
+    },
+    {
+      "path": "tests/test_marine_machine_spirits.gd",
+      "sha256": "8e6a2ae50b63bddf69ceca958f9f82da740def160776ef344c9f46f9f49a715d"
+    },
+    {
+      "path": "tests/test_marine_rhino_admission.gd",
+      "sha256": "c0e9e55ac6ba5a67305f55d8cd8d99a082f6ed6ab390c7a65d396d26845632ed"
+    },
+    {
+      "path": "tests/test_marine_repulsor_combat_embarkation.gd",
+      "sha256": "ebaf6b99b95c3216a74813d45096405a59ddc4d89ffbb1eece7e51b6727a80f5"
+    },
+    {
+      "path": "tests/test_marine_executioner.gd",
+      "sha256": "7d64fdaa9844252c45b06dca099607bcd0967ea6d5432ff31b6b9ee4edb35fee"
+    },
+    {
+      "path": "tests/test_marine_repulsor_loadouts.gd",
+      "sha256": "df5773730fb6e274bdfcf70a88cbfc6ef619934795e47067ecbde7c6dad4f724"
+    },
+    {
+      "path": "tests/test_marine_rhino_veiling_smoke.gd",
+      "sha256": "54ddbfe3f7b15a1bd975b6239cfb7db567ac8c4b33ec54bdd5f168474e27db20"
+    },
+    {
+      "path": "tests/test_marine_impulsor_options.gd",
+      "sha256": "9922d4904343485d1a5fc1e43e460c1ad2d849183c68968b54e68df9ae8e316a"
+    },
+    {
+      "path": "tests/test_marine_firing_deck.gd",
+      "sha256": "e8b6b8a1034c219c465f6bdd38010a74dbbf7552a17fe60fa7c64d70e0ce5cc7"
+    },
+    {
+      "path": "tests/test_marine_conditional_weapon_traits.gd",
+      "sha256": "f1aefdb80b90bf50c3161c5c949eade3f0ec6fa7d4e966ca117099ff72989ecc"
+    },
+    {
+      "path": "tests/test_roster_validation.gd",
+      "sha256": "1b629333a78b36a5cf676ec93bdeaf1e966faae2820d1c0069420ac9905f971b"
+    },
+    {
+      "path": "tests/test_army_builder.gd",
+      "sha256": "71a20498d1cab86cc581447b107894f5407cd58313d0e0842c535958d9e4c454"
+    },
+    {
+      "path": "tests/test_space_marine_leader_links.gd",
+      "sha256": "eabe04a92275241e151b3e6d81f43c3287d15c7525443eb517072b74692a79de"
+    }
+  ],
+  "test_file": "tests/test_marine_machine_spirits.gd",
+  "scope": "One-model profile and source cost tiers (230 first; 250 second-plus), source characteristics, keywords, default weapons and optional transport weapons; 16-space transport, GRAVIS/TERMINATOR double occupancy, JUMP PACK exclusion; Damaged 6 and Deadly Demise D6; Fury of the Machine Spirit's Lethal Hits within 12 inches with an out-of-range boundary; current catalog, both-player preparation, copy limit and roster totals.",
+  "limits": "This closes only the shared-book local sheet scope from the pinned Wahapedia 11e export. Copy ceilings are local construction gates, not complete army limits. No full faction or army legality, Chapter-specific profiles, other game modes, network behavior, complete-match certification or human playtesting is implied; network validation remains deferred to final integration.",
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_marine_transport_profiles --only test_marine_transport_admission --only test_marine_transport_weapon_options --only test_marine_transport_rules --only test_marine_transport_destruction --only test_marine_machine_spirits --only test_marine_rhino_admission --only test_marine_impulsor_options --only test_marine_firing_deck --only test_marine_conditional_weapon_traits --only test_roster_validation --only test_army_builder --only test_marine_repulsor_combat_embarkation --only test_marine_executioner --only test_marine_repulsor_loadouts --only test_marine_rhino_veiling_smoke --only test_space_marine_leader_links --timeout 300",
+    "result": "passed",
+    "processes": "19/19",
+    "artifact": ".tools/verification/20261028T072634954983Z/results.json",
+    "artifact_sha256": "96c77d6ec353164a6d3fb07e637c6f99a97ad66602854f9e2fd8cff01909b1ff",
+    "network": false,
+    "legacy_starter_staged": true,
+    "cleanup_diagnostics": false
+  },
+  "verified_profile": {
+    "name": "Land Raider Crusader",
+    "source_book_id": "000000139",
+    "source_datasheet_id": "000000066",
+    "source_snapshot_id": "20261021T130623Z",
+    "source_retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21T16:06:23+03:00",
+    "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "source_slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+    "source_files": [
+      {
+        "name": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "name": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "name": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "name": "Datasheets_detachment_abilities.csv",
+        "sha256": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc"
+      },
+      {
+        "name": "Datasheets_enhancements.csv",
+        "sha256": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f"
+      },
+      {
+        "name": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "name": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      },
+      {
+        "name": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "name": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "name": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "name": "Datasheets_stratagems.csv",
+        "sha256": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7"
+      },
+      {
+        "name": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "name": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "name": "Detachment_abilities.csv",
+        "sha256": "92121fb215c41e5ff2c7c33a38c7ca0835f91887fb41670dc6a17694d1c3d7fe"
+      },
+      {
+        "name": "Detachments.csv",
+        "sha256": "e8790f57ee8210513102bc736ddd72d24e4a70ddffba6f09d92244d68b12c585"
+      },
+      {
+        "name": "Detachments_chapter_dp.csv",
+        "sha256": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6"
+      },
+      {
+        "name": "Enhancements.csv",
+        "sha256": "7df67f570117355fcf1e4f649b33806b7669456ab2fe839741db0ffc7889026f"
+      },
+      {
+        "name": "Enhancements_wargear.csv",
+        "sha256": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d"
+      },
+      {
+        "name": "Export-Data-Specs.xlsx",
+        "sha256": "df354091366bc730998e85bc70cf0ae4481e2497650548d625838243b9132d11"
+      },
+      {
+        "name": "Factions.csv",
+        "sha256": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608"
+      },
+      {
+        "name": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "name": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "name": "Stratagems.csv",
+        "sha256": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621"
+      }
+    ],
+    "points": 230,
+    "points_by_models": {
+      "1": 230
+    },
+    "third_plus_points_by_models": {
+      "1": 250
+    },
+    "wargear_costs": {},
+    "models": 1,
+    "base_size_source": "Use model",
+    "source_cost_sections": {
+      "first": {
+        "1": 230
+      },
+      "second_plus": {
+        "1": 250
+      }
+    },
+    "base_size_source_mm": 150,
+    "base_geometry": "circular vehicle proxy",
+    "base_radius_inches": 2.952755905511811,
+    "geometry_scope": "Game proxy only; this vehicle's exact source footprint is outside the local geometry model.",
+    "damaged_threshold": 0,
+    "stats": {
+      "movement_inches": 12,
+      "toughness": 12,
+      "save_target": 2,
+      "wounds": 16,
+      "leadership_target": 6,
+      "objective_control": 5,
+      "invulnerable_target": 0
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "DEATHWING",
+      "FRAME",
+      "TRANSPORT",
+      "IMPERIUM",
+      "EXPLOSIVES",
+      "VEHICLE",
+      "SMOKE"
+    ],
+    "ranged": [
+      {
+        "id": "hurricane-bolter",
+        "profiles": {
+          "standard": {
+            "name": "Hurricane Bolter",
+            "range_inches": 24,
+            "attacks": 6,
+            "skill": 3,
+            "strength": 5,
+            "ap": "-1",
+            "damage": 1,
+            "keywords": {
+              "twin-linked": true,
+              "rapid-fire": 6
+            }
+          }
+        }
+      },
+      {
+        "id": "hurricane-bolter-2",
+        "profiles": {
+          "standard": {
+            "name": "Hurricane Bolter",
+            "range_inches": 24,
+            "attacks": 6,
+            "skill": 3,
+            "strength": 5,
+            "ap": "-1",
+            "damage": 1,
+            "keywords": {
+              "twin-linked": true,
+              "rapid-fire": 6
+            }
+          }
+        }
+      },
+      {
+        "id": "twin-assault-cannon",
+        "profiles": {
+          "standard": {
+            "name": "Twin Assault Cannon",
+            "range_inches": 24,
+            "attacks": 6,
+            "skill": 3,
+            "strength": 6,
+            "ap": "-2",
+            "damage": 1,
+            "keywords": {
+              "twin-linked": true,
+              "sustained-hits": 1
+            }
+          }
+        }
+      }
+    ],
+    "melee": [
+      {
+        "id": "armoured-tracks",
+        "profiles": {
+          "standard": {
+            "name": "Armoured Tracks",
+            "range_inches": "Melee",
+            "attacks": 6,
+            "skill": 4,
+            "strength": 8,
+            "ap": 0,
+            "damage": 1,
+            "keywords": {}
+          }
+        }
+      }
+    ],
+    "additional_weapon_profiles": {
+      "ranged": [
+        {
+          "id": "hunter-killer-missile",
+          "profiles": {
+            "standard": {
+              "name": "Hunter-killer Missile",
+              "range_inches": 48,
+              "attacks": 1,
+              "skill": 2,
+              "strength": 14,
+              "ap": "-3",
+              "damage": "D3+3",
+              "keywords": {
+                "one-shot": true
+              }
+            }
+          }
+        },
+        {
+          "id": "multi-melta",
+          "profiles": {
+            "standard": {
+              "name": "Multi-melta",
+              "range_inches": 18,
+              "attacks": 2,
+              "skill": 3,
+              "strength": 10,
+              "ap": "-3",
+              "damage": "D3+3",
+              "keywords": {
+                "melta": 3
+              }
+            }
+          }
+        },
+        {
+          "id": "storm-bolter",
+          "profiles": {
+            "standard": {
+              "name": "Storm Bolter",
+              "range_inches": 24,
+              "attacks": 2,
+              "skill": 3,
+              "strength": 5,
+              "ap": "-1",
+              "damage": 1,
+              "keywords": {
+                "rapid-fire": 2
+              }
+            }
+          }
+        }
+      ],
+      "melee": []
+    },
+    "transport": {
+      "capacity": 16,
+      "required": [
+        "ADEPTUS ASTARTES",
+        "INFANTRY"
+      ],
+      "forbidden": [
+        "JUMP PACK"
+      ],
+      "double_space": [
+        "GRAVIS",
+        "TERMINATOR"
+      ],
+      "abilities": [
+        {
+          "name": "Damaged",
+          "parameter": "6",
+          "type": "Core",
+          "text": ""
+        },
+        {
+          "name": "Deadly Demise",
+          "parameter": "D6",
+          "type": "Core",
+          "text": ""
+        },
+        {
+          "name": "Assault Ramp",
+          "text": "In your Movement phase, when this unit ends a normal move, units embarked within this unit can make an assault disembark move."
+        },
+        {
+          "name": "Fury of the Machine Spirit",
+          "text": "This unit’s ranged attacks that target a unit within 12\" of this unit have [Lethal Hits]."
+        }
+      ],
+      "options": {
+        "add": [
+          "Hunter-killer Missile",
+          "Multi-melta",
+          "Storm Bolter"
+        ]
+      }
+    },
+    "second_plus_points_by_models": {
+      "1": 250
+    }
+  },
+  "source_context": {
+    "edition": "Warhammer 40,000 11th edition",
+    "source_book": {
+      "id": "000000139",
+      "name": "Space Marines App"
+    },
+    "chapter_filter": "None selected; shared common-book Space Marines datasheet.",
+    "game_mode": "Common 40K datasheet and army-points view; Boarding Actions and other mode-specific lists are outside this scope.",
+    "live_revision": "Space Marines App 2.8.1 / October 2026"
+  }
+}

@@ -3,6 +3,12 @@
   "id": "wahapedia-marine-keyword-context-2026-10-26-v49",
   "scope": "Audit context for the currently exported fixed profiles and conditional Chapter keywords. Every prepared match with current-reference Marine profiles resolves their Chapter context, removes source-projected DEATHWING/RAVENWING from shared instances, then applies Dark Angels DEATHWING to TERMINATOR/DREADNOUGHT families and listed identities and RAVENWING to MOUNTED/VEHICLE+FLY families, including when optional unit abilities are off. Exported faction keywords remain runtime identity tags and are excluded from non-faction datasheet keyword comparison.",
   "export_updated_at": "2026-10-16T15:03:46-03:00",
+  "verified_against_snapshot_id": "20261021T130623Z",
+  "source_files_sha256": {
+    "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+    "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+    "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+  },
   "source_pages": [
     {
       "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
@@ -21,20 +27,90 @@
   ],
   "conditional_keywords": [
     {
-      "datasheet_id": "000001183",
+      "datasheet_id": "000000065",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000065: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000066",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000066: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000071",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000071: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000079",
       "source_book_id": "000000139",
       "keyword": "DEATHWING",
       "requires_chapter": "dark-angels",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing"
     },
     {
-      "datasheet_id": "000002677",
+      "datasheet_id": "000000091",
       "source_book_id": "000000139",
       "keyword": "DEATHWING",
       "requires_chapter": "dark-angels",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
-      "export_locator": "Datasheets_keywords.csv, datasheet 000002677: non-faction keyword row Deathwing",
-      "scope_note": "Keep out of the shared base profile. Prepared-match ChapterRules removes source-projected DEATHWING/RAVENWING from shared current-reference profile instances outside the applicable context, then applies the Dark Angels grants to the Terminator family and listed identities."
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000091: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000115",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000115: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000118",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000118: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000135",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000135: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000136",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000136: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000147",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing"
     },
     {
       "datasheet_id": "000001165",
@@ -46,18 +122,137 @@
       "scope_note": "Keep out of the shared base profile. Prepared-match ChapterRules applies DEATHWING to Bladeguard Ancient only in Dark Angels context."
     },
     {
-      "datasheet_id": "000000147",
+      "datasheet_id": "000001183",
       "source_book_id": "000000139",
       "keyword": "DEATHWING",
       "requires_chapter": "dark-angels",
       "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing"
     },
     {
-      "datasheet_id": "000000079",
+      "datasheet_id": "000002173",
       "source_book_id": "000000139",
       "keyword": "DEATHWING",
       "requires_chapter": "dark-angels",
-      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing"
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000002173: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000002255",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000002255: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000002677",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000002677: non-faction keyword row Deathwing",
+      "scope_note": "Keep out of the shared base profile. Prepared-match ChapterRules removes source-projected DEATHWING/RAVENWING from shared current-reference profile instances outside the applicable context, then applies the Dark Angels grants to the Terminator family and listed identities."
+    },
+    {
+      "datasheet_id": "000002717",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000002717: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000002721",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000002721: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000002722",
+      "source_book_id": "000000139",
+      "keyword": "DEATHWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Deathwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000002722: non-faction DEATHWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000094",
+      "source_book_id": "000000139",
+      "keyword": "RAVENWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000094: non-faction RAVENWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000114",
+      "source_book_id": "000000139",
+      "keyword": "RAVENWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000114: non-faction RAVENWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000000124",
+      "source_book_id": "000000139",
+      "keyword": "RAVENWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000000124: non-faction RAVENWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000001610",
+      "source_book_id": "000000139",
+      "keyword": "RAVENWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000001610: non-faction RAVENWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000002702",
+      "source_book_id": "000000139",
+      "keyword": "RAVENWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000002702: non-faction RAVENWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000002711",
+      "source_book_id": "000000139",
+      "keyword": "RAVENWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000002711: non-faction RAVENWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000002712",
+      "source_book_id": "000000139",
+      "keyword": "RAVENWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000002712: non-faction RAVENWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
+    },
+    {
+      "datasheet_id": "000004247",
+      "source_book_id": "000000139",
+      "keyword": "RAVENWING",
+      "requires_chapter": "dark-angels",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing",
+      "export_locator": "Datasheets_keywords.csv, datasheet 000004247: non-faction RAVENWING keyword row",
+      "scope_note": "Classify this source keyword as a Dark Angels conditional grant in the shared profile audit; runtime ChapterRules behavior has separate local checks."
     }
   ],
   "internal_identity_tags": [
@@ -85,6 +280,11 @@
       "runtime_identity": "suboden-khan",
       "tag": "MOBILE",
       "meaning": "Keyword granted to Suboden Khan's unit by the Skilled Riders ability; derived runtime identity tag, not a printed datasheet keyword row."
+    },
+    {
+      "runtime_identity": "sammael",
+      "tag": "MOBILE",
+      "meaning": "Runtime classification tag retained on Sammael; it is not present in the pinned Datasheets_keywords.csv rows and is not certified as a printed datasheet keyword."
     },
     {
       "runtime_identity": "darnath-lysander",

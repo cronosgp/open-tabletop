@@ -1,0 +1,117 @@
+{
+  "id": "marine-apothecary-biologis-e11-2026-10-27",
+  "source": {
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Apothecary-Biologis",
+    "datasheet_id": "000000060",
+    "book_id": "000000139",
+    "runtime_export_stamp": "2026-10-16T21:03:46+03:00",
+    "edition": 11
+  },
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b (URL query parameter)",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ]
+  },
+  "current_scope_validation": {
+    "observed_at": "2026-10-27",
+    "profile": "apothecary-biologis",
+    "test_file": "tests/test_biologis.gd",
+    "profile_parity_test": "tests/test_apothecary_biologis_profile_parity.gd",
+    "related_shared_relation_test": "tests/test_space_marine_leader_links.gd",
+    "related_bodyguard_scope_test": "tests/test_eradicator_heavy_bolters.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_biologis --only test_apothecary_biologis_profile_parity --only test_space_marine_leader_links --only test_eradicator_heavy_bolters --timeout 300",
+    "artifact": ".tools/verification/20261027T093653231740Z/results.json",
+    "artifact_sha256": "9d5179d129d5dbe462a4bff9b14427725e494ceb98fba72a3180f0aa343e1ca9",
+    "status": "passed; 6/6 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "source_scope_summary": "One model, 60 points, 40 mm base, M5/T6/Sv3+/W5/Ld6+/OC1; fixed Absolvor Bolt Pistol and Servo-armature; Vivispectral Analysis Targeting; all four shared-book Support bodyguards; target-unit Vehicle exclusion, Monster eligibility, destroyed target model keyword removal and source-death expiry; current-catalog admission and AttackPlan paths.",
+    "current_catalog_for_both_players": true,
+    "source_options_rows": 0,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user"
+  },
+  "source_options_rows": 0,
+  "weapon_profiles_checked": [
+    "Absolvor Bolt Pistol: 18 inches, A1, BS3+, S5, AP-2, D2, Close-quarters.",
+    "Servo-armature: melee A4, WS3+, S5, AP0, D1."
+  ],
+  "ability_effects_checked": [
+    "The attached living Biologis grants Lethal Hits to the unit against non-Vehicle target units; Monster targets remain eligible.",
+    "A Vehicle keyword on a living model excludes the target unit; a destroyed model stops contributing its keywords to the attached unit.",
+    "Destroying the Biologis removes Vivispectral Analysis Targeting from future attack declarations.",
+    "A critical pistol hit automatically wounds through the shared Lethal Hits resolution; the attached pistol and bodyguard melee attacks enter AttackPlan."
+  ],
+  "support_links_checked": [
+    "aggressor-squad",
+    "heavy-intercessor-squad",
+    "eradicator-squad-with-heavy-bolters",
+    "eradicator-squad-with-melta-rifles"
+  ],
+  "construction_checked": {
+    "models": "One Apothecary Biologis model.",
+    "base": "40 mm round base.",
+    "points": 60,
+    "equipment_option_rows": 0,
+    "admission_result": "Current consolidated Marine catalogs materialize for both players; all four shared-book Support links and a 550-point Incursion roster pass local admission. Non-Gravis Intercessors and duplicate Supports without separate bodyguards are rejected."
+  },
+  "scope_limits": [
+    "The export also contains an Indomitor Kill Team relation in the separate Deathwatch source book; it is outside this shared Space Marines book scope and current admission.",
+    "Full army legality, Chapter-book variants, Forge World, Legends, Boarding Actions, network behavior, complete-match certification and human playtesting are not established."
+  ],
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_match_certified": false
+}

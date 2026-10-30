@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "provider": "wahapedia",
+  "edition": "11e",
+  "source": {
+    "book_id": "000000356",
+    "book_name": "Space Marines (Warhammer Legends)",
+    "datasheet_id": "000000117",
+    "datasheet_name": "Dreadnought",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Dreadnought",
+    "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "retrieved_at_utc": "2026-10-30T01:32:29Z",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+    "selected_export_file_sha256": {
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+    }
+  },
+  "local_scope": {
+    "status": "source_bounded_local_scope_passed_2026_10_30",
+    "models": 1,
+    "points": 135,
+    "maximum_supported_copies": 3,
+    "weapons_and_options": "Default Assault Cannon, Dreadnought Fist and Storm Bolter; Assault Cannon replacement by Heavy Plasma Cannon, Multi-melta or Twin Lascannon; linked Dreadnought Fist + Storm Bolter replacement by Missile Launcher + Crushing Feet; alternative Storm Bolter replacement by Heavy Flamer; every source ranged and melee profile is represented. The last two replacement groups are mutually exclusive because both replace the Storm Bolter.",
+    "unique_ability": "Wisdom of the Ancients grants friendly Adeptus Astartes Infantry units within 6 inches of this model re-roll Hit rolls of 1. The aura checks source survival and battlefield presence, same-owner status, target Astartes + Infantry keywords and base-edge range; Snap Shooting and Indirect Fire restrictions remain active.",
+    "core_abilities": [
+      "Combat Doctrines",
+      "Deadly Demise 1"
+    ],
+    "geometry_limit": "The exact 60 mm source base is represented with a 30 mm radius.",
+    "game_mode": "Warhammer Legends casual-use scope; competitive events require organiser approval.",
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "DEATHWING",
+      "WALKER",
+      "VEHICLE",
+      "SMOKE",
+      "IMPERIUM"
+    ]
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_dreadnought_legends --only test_cerberus --only test_attack_plan --only test_implemented_catalog --only test_space_marine_profile_source_fields --only test_marine_category_copy_limits --only test_capabilities --only test_combat_doctrines --only test_current_unit_abilities --only test_ballistus_dreadnought --only test_redemptor_dreadnought --only test_brutalis_dreadnought --only test_space_wolves_walkers --only test_ironclad_champions --only test_vindicator --only test_stormhawk_interceptor --only test_stormtalon_gunship --only test_rapier_carrier",
+    "status": "passed",
+    "process_count": 20,
+    "network": false,
+    "legacy_starter_staged": true,
+    "headless_rid_cleanup_diagnostics": false,
+    "results_path": ".tools/verification/20261030T093959828822Z/results.json",
+    "results_sha256": "2CF0774EE62B33D9B5209AE00F5C2A213FCB4A5E2C482F683682700B2EFBE2F5",
+    "focused_retest": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_dreadnought_legends",
+      "status": "passed",
+      "process_count": 3,
+      "network": false,
+      "results_path": ".tools/verification/20261030T094342691431Z/results.json",
+      "results_sha256": "41FD7232A9ABF0E9DE1B4017F4AF6F0FB7E78E0F070F8574817131B36B378E3E"
+    }
+  },
+  "identity_export": {
+    "profile_count": 175,
+    "missing_source_ids": [],
+    "path": ".tools/space-marine-runtime-identities-full-audit-next-20261030-v9.json",
+    "sha256": "CE84F29A7AADD431D140BFEAF7F8048027298F43232E4AB8B9A7BDC1EED18DAA"
+  },
+  "limits": [
+    "Live-page and current event-pack price validation remain deferred to final network integration.",
+    "The source footprint is exactly 60 mm; local geometry models it as a circular base.",
+    "This sheet-level result does not certify full army legality, all combined rules interactions, competitive organiser acceptance or human playtesting."
+  ]
+}

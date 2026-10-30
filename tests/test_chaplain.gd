@@ -19,7 +19,7 @@ func lists() -> Dictionary:
 func fixture(smoke_target: bool = false) -> Dictionary:
  var selection := lists()
  if smoke_target: selection[1].entries[1] = {"definition_id": "40kdc:11e:adeptus-astartes:eliminator-squad", "models": 3, "copies": 1}
- var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, selection)
+ var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "terrain_layout": "ca-2026-27-take-and-hold-mirror-a-v1", "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, selection)
  if s.has("error"): return s
  s.awakened_dynasty.pending = []
  s.mission.stage = "battle"

@@ -6,6 +6,7 @@ const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
+const FenrisianWolves = preload("res://scripts/edition_11/fenrisian_wolves.gd")
 
 static func living(state: Dictionary, squad: int) -> Array[int]:
 	var ids: Array[int] = []
@@ -37,6 +38,10 @@ static func objective_control(state: Dictionary, id: int) -> int:
 	var squad: Dictionary = state.squads[state.units[id].squad]
 	if squad.battle_shocked: return 0
 	var value := int(state.units[id].get("objective_control", squad.stats.objective_control)) + Ancient.honour(state, state.units[id].squad) + AncientFury.objective_control_bonus(state, int(state.units[id].squad))
+	value += FenrisianWolves.hunting_hounds_bonus(state, id)
+	value += UnitAbilities.curse_of_the_wulfen_oc_bonus(state, id)
+	if state.get("unit_abilities", {}).get("crusade_martial_honour", {}).has(id): value += 5
+	if UnitAbilities.has(state, int(state.units[id].squad), "ravenwing-astartes-banner"): value += 1
 	var lion_will: Dictionary = state.get("detachment_stratagems", {}).get("lion_will", {}).get(state.units[id].squad, {})
 	if int(lion_will.get("turn", -1)) == int(state.get("turn", -2)) and int(lion_will.get("owner", -1)) == int(state.units[id].get("owner", -2)): value += 1
 	var for_the_emperor: Dictionary = state.get("detachment_stratagems", {}).get("for_the_emperor", {}).get(state.units[id].squad, {})
@@ -46,6 +51,7 @@ static func objective_control(state: Dictionary, id: int) -> int:
 	if UnitAbilities.seeker_of_the_unfound_active(state, id): value += 9
 	if terror_troops_applies(state, id): value -= 1
 	if lord_of_pyroclasts_applies(state, id): value -= 1
+	if UnitAbilities.black_rage_restricted(state, int(state.units[id].squad)): return 0
 	return maxi(0, value)
 
 static func lord_of_pyroclasts_applies(state: Dictionary, target: int) -> bool:
@@ -111,6 +117,17 @@ static func roll_battle_shock(state: Dictionary, squad: int, roller: Callable, m
 	if not roller.is_valid(): return {"error": "Battle-shock requires host dice."}
 	var rolls: Array[int] = []
 	for die in range(2):
+		var value: Variant = roller.call()
+		if not value is int or value < 1 or value > 6: return {"error": "Dice provider must return an integer from 1 to 6."}
+		rolls.append(value)
+	return {"error": "", "squad": squad, "rolls": rolls, "target": profile.target, "modifier": modifier, "modified_total": rolls[0] + rolls[1] + modifier, "passed": rolls[0] + rolls[1] + modifier >= profile.target}
+
+static func roll_leadership_test(state: Dictionary, squad: int, roller: Callable, modifier: int = 0) -> Dictionary:
+	var profile := leadership(state, squad)
+	if not profile.error.is_empty(): return profile
+	if not roller.is_valid(): return {"error": "The Leadership test requires host dice."}
+	var rolls: Array[int] = []
+	for _die in range(2):
 		var value: Variant = roller.call()
 		if not value is int or value < 1 or value > 6: return {"error": "Dice provider must return an integer from 1 to 6."}
 		rolls.append(value)

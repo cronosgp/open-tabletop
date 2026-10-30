@@ -2,6 +2,8 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Army = preload("res://scripts/edition_11/army_capabilities.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const A = C.UnitAbilities
 const Fluidity = preload("res://scripts/edition_11/tactical_fluidity.gd")
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
@@ -15,10 +17,11 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 func six() -> int: return 6
 func selections() -> Dictionary:
-	var result := F.selections()
-	result[1].entries = [
-		{"definition_id": "40kdc:11e:adeptus-astartes:captain-in-phobos-armour", "models": 1, "copies": 1},
-		{"definition_id": "40kdc:11e:adeptus-astartes:infiltrator-squad", "models": 5, "copies": 1}]
+	var result := F.current_marine_selections()
+	for owner in [1, 2]:
+		result[owner].entries = [
+			{"definition_id": "40kdc:11e:adeptus-astartes:captain-in-phobos-armour", "models": 1, "copies": 1},
+			{"definition_id": "40kdc:11e:adeptus-astartes:infiltrator-squad", "models": 5, "copies": 1}]
 	return result
 func fixture() -> Dictionary:
 	var state := F.P.initial_state({"unit_abilities": true, "reanimation_protocols": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true}, selections())
@@ -84,6 +87,35 @@ func submit_doctrine(state: Dictionary, owner: int, doctrine: String) -> Diction
 		if str(option.get("action", "")) != "combat-doctrine" or str(option.get("value", "")) != doctrine: continue
 		return MatchCommandService.execute(state, owner, {"kind": MatchCommandService.SELECT_DOCTRINE, "revision": int(state.get("revision", -1)), "doctrine": doctrine, "decision_id": str(decision.get("decision_id", "")), "option_id": str(option.get("id", ""))}, six)
 	return {"error": "The current Combat Doctrine decision does not offer %s." % doctrine}
+
+func check_weapon_plan(state: Dictionary, model: int, target_squad: int, weapon: Dictionary, melee: bool) -> void:
+	var living_targets: Array[int] = C.living(state, target_squad)
+	if living_targets.is_empty():
+		check(false, "%s has a living target for its AttackPlan" % str(weapon.get("id", "weapon")))
+		return
+	var target_model: int = living_targets[0]
+	var prior_phase: String = str(state.phase)
+	var prior_active: int = int(state.active)
+	var old_attacker_position: Vector2 = state.units[model].position
+	var old_target_position: Vector2 = state.units[target_model].position
+	state.units[model].position = Vector2.ZERO
+	state.units[target_model].position = Vector2(1.75, 0.0) if melee else Vector2(10.0, 0.0)
+	state.phase = "fight" if melee else "shooting"
+	state.active = 1
+	var weapon_id := str(weapon.get("id", ""))
+	var expected: Dictionary = weapon.get("profiles", {}).get("standard", {})
+	var selected: Dictionary = Equipment.select(state, model, melee, weapon_id, "standard")
+	check(str(selected.get("error", "")).is_empty() and selected.get("stats", {}) == expected, "%s enters Equipment with its exact source profile: %s" % [weapon_id, str(selected.get("error", ""))])
+	if str(selected.get("error", "")).is_empty():
+		var amount := int(expected.get("attacks", 1)) if melee else 1
+		var plan: Dictionary = C.AttackPlan.prepare(state, int(state.units[model].squad), melee, [{"model": model, "target": target_squad, "amount": amount, "weapon": weapon_id, "profile": "standard"}], true)
+		check(str(plan.get("error", "")).is_empty() and plan.get("batches", []).size() == 1, "%s routes through AttackPlan: %s" % [weapon_id, str(plan.get("error", ""))])
+	state.phase = prior_phase
+	state.active = prior_active
+	state.unit_abilities.phase_key = C.UnitActions.key(state)
+	state.units[model].position = old_attacker_position
+	state.units[target_model].position = old_target_position
+
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s := fixture()
@@ -95,10 +127,24 @@ func run() -> void:
 	var captain := model_for(s, "captain-in-phobos-armour")
 	var squad := int(s.units[captain].squad)
 	var profile := P.profile("captain-in-phobos-armour")
+	var catalog_resolution: Dictionary = Army.resolve("Space Marines", "40kdc:11e:adeptus-astartes:captain-in-phobos-armour")
+	check(catalog_resolution.get("error", "").is_empty() and int(catalog_resolution.get("cost", -1)) == 75 and catalog_resolution.get("unsupported_abilities", []).is_empty(), "Captain resolves at the source cost with no blocked abilities in the consolidated local catalog")
 	check(profile.points == 75 and profile.source_datasheet_id == "000002701" and profile.stats.wounds == 5 and profile.stats.objective_control == 1 and profile.stats.invulnerable_target == 4 and "CAPTAIN" in profile.keywords, "Captain profile, local source identity, cost, stats, save or keywords mismatch")
 	check(profile.ranged[0].profiles.standard.keywords.precision and profile.melee[0].profiles.standard.keywords.get("sustained-hits", 0) == 1, "Instigator Carbine or Combat Knife traits missing")
-	check(A.has(s, squad, "leader") and A.has(s, squad, "tactical-fluidity") and A.has(s, squad, "strategic-acumen") and A.scout_distance(s, squad) == 6, "Captain abilities not admitted")
+	check(A.has(s, squad, "leader") and A.has(s, squad, "deep-strike") and A.has(s, squad, "tactical-fluidity") and A.has(s, squad, "strategic-acumen") and A.has(s, squad, "transhuman-strategist") and A.scout_distance(s, squad) == 6, "Captain abilities not admitted")
 	check(Detection.infiltrators(s, squad) and Detection.stealth(s, squad), "Captain Infiltrators or Stealth keyword effect missing")
+	for owner in [1, 2]:
+		var owner_captain := model_for(s, "captain-in-phobos-armour", owner)
+		check(owner_captain >= 0, "Player %d materializes Captain in Phobos Armour from the current catalog" % owner)
+		if owner_captain < 0: continue
+		var owner_squad: int = int(s.units[owner_captain].squad)
+		check(s.squads[owner_squad].get("stats", {}) == profile.stats and s.units[owner_captain].get("keywords", []) == profile.keywords, "Player %d receives the complete source characteristics and keywords" % owner)
+		check(A.has(s, owner_squad, "deep-strike") and A.scout_distance(s, owner_squad) == 6 and Detection.infiltrators(s, owner_squad) and Detection.stealth(s, owner_squad), "Player %d receives Deep Strike, Scouts 6, Infiltrators and Stealth" % owner)
+		var linked_model := model_for(s, "infiltrator-squad", owner)
+		var linked_squad := int(s.units[linked_model].squad) if linked_model >= 0 else -1
+		check(linked_squad >= 0 and C.UnitActions.attachment_allowed(s, owner_captain, linked_squad), "Player %d Captain can lead the source-linked Infiltrator Squad" % owner)
+	for weapon: Dictionary in profile.get("ranged", []): check_weapon_plan(s, captain, int(s.units[model_for(s, "infiltrator-squad", 2)].squad), weapon, false)
+	for weapon: Dictionary in profile.get("melee", []): check_weapon_plan(s, captain, int(s.units[model_for(s, "infiltrator-squad", 2)].squad), weapon, true)
 	s.phase = "deployment"
 	s.unit_abilities.setup_players = []
 	check(C.UnitActions.attachment_allowed(s, captain, int(s.units[model_for(s, "infiltrator-squad")].squad)), "Captain Leader pairing missing")
@@ -120,13 +166,13 @@ func run() -> void:
 	# After the unit shoots, use its once-per-round D6 Normal Move.
 	s.phase = "shooting"
 	s.unit_abilities.setup_players = [1, 2]
-	var target_model := model_for(s, "necron-warriors", 2)
+	var target_model := model_for(s, "infiltrator-squad", 2)
 	var target_squad: int = int(s.units[target_model].squad)
 	for index in range(C.living(s, target_squad).size()):
 		var target_member: int = C.living(s, target_squad)[index]
 		s.units[target_member].position = Vector2(-8, -12 + float(index) * 1.0)
 	var shot := C.resolve_attack_plan(s, 1, captain, [{"model": captain, "target": target_squad, "amount": 1, "weapon": str(s.units[captain].ranged_weapons[0].id), "profile": "standard"}], s.revision, false, true, six)
-	check(shot.error.is_empty() and s.squads[squad].shot and s.unit_abilities.window.get("kind", "") == Fluidity.WINDOW, "A completed Captain shooting action opens the Tactical Fluidity decision")
+	check(shot.error.is_empty() and s.squads[squad].shot and s.unit_abilities.window.get("kind", "") == Fluidity.WINDOW, "A completed Captain shooting action opens the Tactical Fluidity decision: result=%s shot=%s window=%s" % [str(shot), str(s.squads[squad].get("shot", false)), str(s.unit_abilities.window)])
 	var attack_frame := C.ResolutionFrames.current(s)
 	var attack_decision := C.UnitActions.pending_decision(s)
 	check(attack_frame.get("kind", "") == "attack" and attack_frame.get("status", "") == "suspended" and attack_decision.get("resume_frame_id", "") == attack_frame.get("frame_id", ""), "Tactical Fluidity decision retains the completed attack frame")
@@ -159,7 +205,7 @@ func run() -> void:
 	s = fixture()
 	captain = model_for(s, "captain-in-phobos-armour")
 	squad = int(s.units[captain].squad)
-	var enemy := model_for(s, "necron-warriors", 2)
+	var enemy := model_for(s, "infiltrator-squad", 2)
 	s.units[captain].position = Vector2.ZERO
 	s.units[enemy].position = Vector2(1.8, 0)
 	s.phase = "fight"
@@ -174,8 +220,11 @@ func run() -> void:
 	var close_error := C.advance_phase(s, 2, s.revision)
 	var end_decision := C.UnitActions.pending_decision(s)
 	check(close_error.is_empty() and end_decision.get("timing", "") == "end-phase:fight" and ResolutionFrames.current(s).get("kind", "") == "phase-close", "Fight close suspends its phase-close frame for the normalized Tactical Fluidity decision: " + close_error)
-	var opponent_pass := submit_public_choice(s, 2, "pass")
-	check(str(opponent_pass.get("error", "")).is_empty() and C.UnitActions.actor(s) == 1, "Opponent can pass earlier end-of-Fight choices before Tactical Fluidity: " + str(opponent_pass.get("error", "")))
+	if C.UnitActions.actor(s) == 2:
+		var opponent_pass := submit_public_choice(s, 2, "pass")
+		check(str(opponent_pass.get("error", "")).is_empty() and C.UnitActions.actor(s) == 1, "Opponent can pass its earlier end-of-Fight choices before Tactical Fluidity: " + str(opponent_pass.get("error", "")))
+	else:
+		check(C.UnitActions.actor(s) == 1, "Captain receives the end-of-Fight Tactical Fluidity decision when the opponent has no earlier choices")
 	var fluidity_start := submit_public_choice(s, 1, "fluidity-end", squad)
 	var phase_close_frame_id := str(ResolutionFrames.current(s).get("frame_id", ""))
 	check(str(fluidity_start.get("error", "")).is_empty() and s.unit_abilities.window.get("kind", "") == Fluidity.WINDOW and phase_close_frame_id.begins_with("phase-close:"), "Normalized Tactical Fluidity choice opens its Fall Back subchoice under the same phase-close frame: " + str(fluidity_start.get("error", "")))

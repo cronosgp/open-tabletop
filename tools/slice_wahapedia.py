@@ -130,6 +130,7 @@ def extract(snapshot, output, source_id, datasheet_ids=None):
     manifest = {"schema_version": 1, "provider": "wahapedia", "edition": "11e",
                 "artifact_type": "scoped_audit_slice", "source_policy": parent["source_policy"],
                 "parent_manifest_sha256": parent_hash, "export_updated_at": parent["export_updated_at"],
+                "parent_files_sha256": {name + ".csv": w.manifest_file_hash(parent, name) for name in w.HEADERS},
                 "source_book": source, "subject_datasheet_ids": subjects,
                 "external_identity_only_datasheet_ids": external,
                 "files": {name: {"sha256": w.sha(data), "bytes": len(data)} for name, data in files.items()},

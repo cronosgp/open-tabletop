@@ -6,6 +6,9 @@ const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Plan = preload("res://scripts/edition_11/attack_plan.gd")
 const Actions = preload("res://scripts/edition_11/actions.gd")
 const F = preload("res://tests/all_units_fixture.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
+const DatasheetChecks = preload("res://tests/space_marine_datasheet_checks.gd")
+const DESOLATION_ID := "40kdc:11e:adeptus-astartes:desolation-squad"
 var failures := 0
 var dice: Array[int] = []
 
@@ -17,63 +20,119 @@ func check(ok: bool, message: String) -> void:
 func roll_die() -> int:
 	return dice.pop_front() if not dice.is_empty() else 6
 
+func current_marine_selections() -> Dictionary:
+	var selections := F.current_marine_selections()
+	selections[1].entries[0].definition_id = DESOLATION_ID
+	selections[1].entries[0].models = 5
+	return selections
+
+func find_desolation(state: Dictionary) -> Dictionary:
+	var result := {"squad": -1, "models": [], "sergeant": -1}
+	for model: int in state.get("units", {}):
+		var unit: Dictionary = state.units[model]
+		if unit.owner != 1 or Abilities.identity(unit) != "desolation-squad": continue
+		result.squad = int(unit.squad)
+		result.models.append(model)
+		if unit.get("sergeant", false): result.sergeant = model
+	return result
+
+func rocket_choice(state: Dictionary, model: int, value: String) -> Dictionary:
+	for choice: Dictionary in F.C.UnitActions.choices(state, 1):
+		if choice.get("action", "") == "desolation-rocket" and int(choice.get("model", -1)) == model and choice.get("value", "") == value:
+			return choice
+	return {}
+
+func apply_rocket_choice(state: Dictionary, model: int, value: String) -> String:
+	var choice := rocket_choice(state, model, value)
+	if choice.is_empty(): return "No public Desolation rocket choice: %s/%s" % [str(model), value]
+	return PublicUnitCommand.error(state, 1, choice)
+
+func check_weapon_plans(state: Dictionary, model: int, target_squad: int) -> void:
+	var loadout := {"ranged": state.units[model].ranged_weapons.duplicate(true), "melee": state.units[model].melee_weapons.duplicate(true)}
+	for failure: String in DatasheetChecks.fixed_weapon_plan_failures(state, loadout, model, target_squad):
+		check(false, failure)
+
 func _initialize() -> void:
 	call_deferred("run")
 
 func run() -> void:
 	var profile := Profiles.profile("desolation-squad")
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000002270" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Desolation identity follows the selected local export revision")
-	check(profile.points_by_models == {5: 140} and profile.third_plus_points_by_models == {5: 150} and profile.max_supported_copies == 3 and profile.wargear_costs == {"vengor-launcher": 5}, "Desolation fixed size, copy price and Sergeant Vengor cost match the local export")
+	check(profile.points_by_models == {5: 140} and profile.third_plus_points_by_models == {5: 150} and profile.max_supported_copies == 2 and profile.wargear_costs == {"vengor-launcher": 5}, "Desolation fixed size, source copy prices, supported Incursion limit and Sergeant Vengor cost match the selected rules scope")
 	check(profile.stats == {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0} and profile.base_radius_inches == 16.0 / 25.4, "Desolation characteristics and 32mm base match the local export")
+	var expected_keywords := ["ADEPTUS ASTARTES", "EXPLOSIVES", "IMPERIUM", "INFANTRY", "TACTICUS"]
+	var actual_keywords: Array = profile.keywords.duplicate()
+	actual_keywords.sort()
+	check(actual_keywords == expected_keywords, "Desolation shared-book keywords match the local export without Chapter-only context")
 	check(profile.ranged.size() == 3 and profile.ranged[0].id == "bolt-pistol" and profile.ranged[1].id == "castellan-launcher" and profile.ranged[2].profiles.standard.keywords == {"blast": 1, "heavy": true} and profile.melee[0].profiles.standard.attacks == 3, "Default equipment and Ceramite Fists are present")
 	var vengor: Dictionary = Profiles.desolation_weapons("vengor")[2].profiles.standard
 	var krak: Dictionary = Profiles.desolation_weapons("superkrak")[2].profiles.standard
 	check(vengor.keywords == {"blast": 1, "indirect-fire": true, "heavy": true} and vengor.strength == 7 and vengor.damage == 2 and krak.strength == 10 and krak.damage == "D3+3", "Vengor and Superkrak retain their distinct extracted profiles")
 	check(Army.SPECS["desolation-squad"].current_reference and Abilities.RULES["desolation-squad"] == ["targeter-optics"], "The sheet and Targeter Optics are registered for local admission")
+	var catalog_choice := Army.current_catalog_choice({"id": DESOLATION_ID, "edition": "11e", "faction": "Space Marines"})
+	check(catalog_choice.get("options", []) == [{"models": 5, "cost": 140, "third_plus_cost": 150}], "The consolidated catalog retains the source third-plus cost while local admission stays within Incursion")
 	var selection := {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000,
-		"entries": [{"definition_id": "40kdc:11e:adeptus-astartes:desolation-squad", "models": 5, "copies": 1}]}
+		"entries": [{"definition_id": DESOLATION_ID, "models": 5, "copies": 1}]}
 	var admitted := Army.admit(selection)
+	var two_selection := selection.duplicate(true)
+	two_selection.entries[0].copies = 2
 	var three_selection := selection.duplicate(true)
 	three_selection.entries[0].copies = 3
-	var four_selection := selection.duplicate(true)
-	four_selection.entries[0].copies = 4
+	var two := Army.admit(two_selection)
 	var three := Army.admit(three_selection)
-	var four := Army.admit(four_selection)
-	check(admitted.error.is_empty() and admitted.total == 140 and three.error.is_empty() and three.total == 430 and not four.error.is_empty(), "Local construction applies 140/150-point copy prices and rejects more than three squads")
-	var selections := F.selections()
-	for index in range(selections[1].entries.size()):
-		if selections[1].entries[index].definition_id.ends_with(":assault-intercessor-squad"):
-			selections[1].entries[index].definition_id = "40kdc:11e:adeptus-astartes:desolation-squad"
-			break
+	check(admitted.error.is_empty() and admitted.total == 140 and two.error.is_empty() and two.total == 280 and not three.error.is_empty(), "Incursion admits at most two Desolation Squads; the source third-plus price remains recorded but is not admitted in the supported mode")
+	var selections := current_marine_selections()
 	var state := F.P.initial_state({"unit_abilities": true, "manual_allocation": false}, selections)
-	check(not state.has("error"), "Desolation materializes from the consolidated local catalog: %s" % state.get("error", ""))
+	check(not state.has("error"), "Both armies materialize from the consolidated Space Marines catalog: %s" % state.get("error", ""))
 	if state.has("error"):
 		quit(1)
 		return
-	var squad := -1
-	var sergeant := -1
+	var desolation := find_desolation(state)
+	var squad: int = desolation.squad
+	var sergeant: int = desolation.sergeant
 	var members: Array[int] = []
-	for model: int in state.units:
-		if Abilities.identity(state.units[model]) != "desolation-squad": continue
-		squad = state.units[model].squad
-		members.append(model)
-		if state.units[model].get("sergeant", false): sergeant = model
-	check(members.size() == 5 and sergeant >= 0 and state.squads[squad].training_cost == 140, "The fixed five-model unit and Sergeant role materialize")
-	var option: Dictionary = {}
-	for choice: Dictionary in F.C.UnitActions.choices(state, 1):
-		if choice.action == "desolation-rocket" and choice.model == sergeant and choice.value == "vengor": option = choice
-	check(not option.is_empty(), "Only the Sergeant's preparation choices offer the Vengor Launcher")
-	if not option.is_empty():
-		var error := PublicUnitCommand.error(state, 1, option)
-		check(error.is_empty() and state.squads[squad].training_cost == 145 and state.units[sergeant].ranged_weapons[2].profiles.standard.keywords.get("indirect-fire", false), "Selecting Vengor updates equipment and adds five points: " + error)
-	for model: int in members:
-		if model != sergeant: check(state.units[model].desolation_rocket == "superfrag", "Non-Sergeant retains the default Superfrag profile")
+	for model: Variant in desolation.models: members.append(int(model))
+	check(members.size() == 5 and sergeant >= 0 and squad >= 0, "The fixed five-model unit and Sergeant role materialize")
+	if members.size() != 5 or sergeant < 0 or squad < 0:
+		quit(1)
+		return
+	check(state.squads[squad].training_cost == 140, "The default materialized unit retains its source cost")
 	var target := -1
 	for model: int in state.units:
-		if state.units[model].owner == 2 and Abilities.identity(state.units[model]) == "necron-warriors":
+		if state.units[model].owner == 2 and Abilities.identity(state.units[model]) == "intercessor-squad":
 			target = model
 			break
+	check(target >= 0, "The opposing current catalog supplies an Intercessor target")
+	if target < 0:
+		quit(1)
+		return
 	var target_squad: int = state.units[target].squad
+	for model: int in members:
+		check(is_equal_approx(float(state.units[model].radius), 16.0 / 25.4), "Every Desolation model uses the source 32 mm base proxy")
+		check(state.units[model].ranged_weapons.size() == 3 and state.units[model].melee_weapons.size() == 1 and state.units[model].desolation_rocket == "superfrag", "Every model starts with the four source-listed default weapons")
+	for model: int in members:
+		var has_vengor_option := not rocket_choice(state, model, "vengor").is_empty()
+		check(has_vengor_option == (model == sergeant), "Only the Sergeant can select a Vengor Launcher")
+		check(not rocket_choice(state, model, "superkrak").is_empty(), "Each model can select a Superkrak Rocket Launcher")
+	check(not rocket_choice(state, sergeant, "superkrak").is_empty(), "The Sergeant may exchange Superfrag for Superkrak")
+	var ordinary := int(members[0]) if int(members[0]) != sergeant else int(members[1])
+	check(rocket_choice(state, ordinary, "vengor").is_empty(), "Ordinary Desolation Marines cannot select a Vengor Launcher")
+	var wrong_owner_choice := rocket_choice(state, sergeant, "superkrak")
+	var unchanged := var_to_bytes(state)
+	check(not PublicUnitCommand.error(state, 2, wrong_owner_choice).is_empty() and unchanged == var_to_bytes(state), "The opponent cannot apply a Sergeant equipment choice")
+	check(apply_rocket_choice(state, ordinary, "superkrak").is_empty() and state.units[ordinary].desolation_rocket == "superkrak" and state.squads[squad].training_cost == 140, "Ordinary models can select Superkrak without changing the Vengor cost")
+	check_weapon_plans(state, ordinary, target_squad)
+	check(apply_rocket_choice(state, ordinary, "superfrag").is_empty() and state.units[ordinary].desolation_rocket == "superfrag", "Ordinary models can restore the default Superfrag profile")
+	check(apply_rocket_choice(state, sergeant, "superkrak").is_empty() and state.units[sergeant].desolation_rocket == "superkrak", "The Sergeant can select Superkrak")
+	check_weapon_plans(state, sergeant, target_squad)
+	check(apply_rocket_choice(state, sergeant, "vengor").is_empty() and state.squads[squad].training_cost == 145 and state.units[sergeant].ranged_weapons[2].profiles.standard.keywords.get("indirect-fire", false), "Selecting Vengor updates equipment and adds five points")
+	check(apply_rocket_choice(state, sergeant, "superfrag").is_empty() and state.squads[squad].training_cost == 140, "Restoring the Sergeant's Superfrag profile also restores the source cost")
+	check(apply_rocket_choice(state, sergeant, "vengor").is_empty() and state.squads[squad].training_cost == 145, "The Vengor setup can be selected again after restoration")
+	for model: int in members:
+		for keyword: String in expected_keywords:
+			check(F.C.Terrain.has_keyword(state.units[model], [keyword.to_lower()]), "Each Desolation model has the %s keyword" % keyword)
+		check(Equipment.select(state, model, false, "rocket-launcher", "standard").get("error", "").is_empty(), "The selected rocket launcher resolves through Equipment")
+		check_weapon_plans(state, model, target_squad)
 	for model: int in state.units:
 		if state.units[model].owner == 1 and state.units[model].squad != squad: state.units[model].on_battlefield = false
 	for model: int in members: state.units[model].position = Vector2(-5, 0)

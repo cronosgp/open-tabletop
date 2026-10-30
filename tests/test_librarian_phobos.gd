@@ -3,6 +3,7 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const Prevention = preload("res://scripts/edition_11/unit_prevention.gd")
 const ScoutMoves = preload("res://scripts/edition_11/scout_moves.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
@@ -16,14 +17,16 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 
 func six() -> int: return 6
+func four() -> int: return 4
 func one() -> int: return 1
 
 func selections() -> Dictionary:
-	var result := F.selections()
-	result[1].entries = [
-		{"definition_id": "40kdc:11e:adeptus-astartes:librarian-in-phobos-armour", "models": 1, "copies": 1},
-		{"definition_id": "40kdc:11e:adeptus-astartes:infiltrator-squad", "models": 5, "copies": 1},
-		{"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 5, "copies": 1}]
+	var result := F.current_marine_selections()
+	for owner in [1, 2]:
+		result[owner].entries = [
+			{"definition_id": "40kdc:11e:adeptus-astartes:librarian-in-phobos-armour", "models": 1, "copies": 1},
+			{"definition_id": "40kdc:11e:adeptus-astartes:infiltrator-squad", "models": 5, "copies": 1},
+			{"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 5, "copies": 1}]
 	return result
 
 func make_state() -> Dictionary:
@@ -39,11 +42,40 @@ func find(state: Dictionary) -> Array[int]:
 	var enemy_model := -1
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		match C.UnitAbilities.identity(unit):
-			"librarian-in-phobos-armour": librarian = model
-			"infiltrator-squad": bodyguard = unit.squad
-		if unit.owner == 2 and enemy_model == -1: enemy_model = model
+		if unit.owner == 1:
+			match C.UnitAbilities.identity(unit):
+				"librarian-in-phobos-armour": librarian = model
+				"infiltrator-squad": bodyguard = unit.squad
+		if unit.owner == 2 and C.UnitAbilities.identity(unit) == "intercessor-squad" and enemy_model == -1: enemy_model = model
 	return [librarian, bodyguard, enemy_model]
+
+func check_weapon_plan(state: Dictionary, model: int, target_squad: int, weapon: Dictionary, profile_id: String, melee: bool) -> void:
+	var targets: Array[int] = C.living(state, target_squad)
+	if targets.is_empty():
+		check(false, "%s has a living target for its AttackPlan" % str(weapon.get("id", "weapon")))
+		return
+	var target_model: int = targets[0]
+	var old_phase := str(state.phase)
+	var old_active := int(state.active)
+	var old_attacker_position: Vector2 = state.units[model].position
+	var old_target_position: Vector2 = state.units[target_model].position
+	state.units[model].position = Vector2.ZERO
+	state.units[target_model].position = Vector2(1.75, 0.0) if melee else Vector2(10.0, 0.0)
+	state.phase = "fight" if melee else "shooting"
+	state.active = int(state.units[model].owner)
+	var weapon_id := str(weapon.get("id", ""))
+	var expected: Dictionary = weapon.get("profiles", {}).get(profile_id, {})
+	var selected := Equipment.select(state, model, melee, weapon_id, profile_id)
+	check(str(selected.get("error", "")).is_empty() and selected.get("stats", {}) == expected, "%s/%s passes Equipment with its exact source profile: %s" % [weapon_id, profile_id, str(selected.get("error", ""))])
+	if str(selected.get("error", "")).is_empty():
+		var amount := int(expected.get("attacks", 1)) if melee and expected.get("attacks", 1) is int else 1
+		var plan: Dictionary = C.AttackPlan.prepare(state, int(state.units[model].squad), melee, [{"model": model, "target": target_squad, "amount": amount, "weapon": weapon_id, "profile": profile_id}], true)
+		check(str(plan.get("error", "")).is_empty() and plan.get("batches", []).size() == 1, "%s/%s routes through AttackPlan: %s" % [weapon_id, profile_id, str(plan.get("error", ""))])
+	state.phase = old_phase
+	state.active = old_active
+	state.unit_abilities.phase_key = C.UnitActions.key(state)
+	state.units[model].position = old_attacker_position
+	state.units[target_model].position = old_target_position
 
 func option(state: Dictionary, player: int, action: String, value: String, target: int = -999) -> Dictionary:
 	for item: Dictionary in C.unit_choices(state, player):
@@ -78,11 +110,35 @@ func submit_projected_choice(state: Dictionary, player: int, selected: Dictionar
 	if projected.is_empty(): return {"error": "Selected choice is not in the current UnitActions projection."}
 	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "choice": {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, roller)
 
+func finish_scout_move(state: Dictionary, player: int, model: int, squad: int, point: Vector2) -> Dictionary:
+	var start := option(state, player, "scout-move", "", squad)
+	if start.is_empty(): return {"error": "missing Player %d Scout move choice" % player}
+	var start_result := submit_scout_choice(state, player, "scout-move", -1, squad)
+	if not str(start_result.get("error", "")).is_empty(): return start_result
+	var placement: Dictionary = {}
+	for choice: Dictionary in C.unit_choices(state, player):
+		if choice.action == "scout-place" and int(choice.get("model", -1)) == model: placement = choice
+	if placement.is_empty(): return {"error": "missing Player %d Scout placement choice" % player}
+	var placement_result := submit_scout_choice(state, player, "scout-place", model, squad, point)
+	if not str(placement_result.get("error", "")).is_empty(): return placement_result
+	var confirmation: Dictionary = {}
+	for choice: Dictionary in C.unit_choices(state, player):
+		if choice.action == "scout-confirm" and int(choice.get("target", -1)) == squad: confirmation = choice
+	if confirmation.is_empty(): return {"error": "missing Player %d Scout confirmation choice" % player}
+	return submit_scout_choice(state, player, "scout-confirm", -1, squad)
+
 func _initialize() -> void:
 	var profile := Profiles.profile("librarian-in-phobos-armour")
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000000119" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Phobos Librarian retains local Wahapedia source identity")
-	check(profile.points_by_models == {1: 75} and profile.stats.movement_inches == 8 and profile.stats.toughness == 4 and profile.stats.save_target == 3 and profile.stats.wounds == 4 and profile.stats.objective_control == 1, "Phobos Librarian characteristics and price match the extraction")
+	check(profile.models == 1 and is_equal_approx(profile.base_radius_inches, 20.0 / 25.4) and profile.points_by_models == {1: 75} and profile.stats == {"movement_inches": 8, "toughness": 4, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0}, "Phobos Librarian model count, base, characteristics and price match the extraction")
+	var expected_keywords := ["INFANTRY", "CHARACTER", "EXPLOSIVES", "IMPERIUM", "PHOBOS", "PSYKER", "ADEPTUS ASTARTES"]
+	var keywords_match: bool = profile.keywords.size() == expected_keywords.size()
+	for keyword: String in expected_keywords:
+		if keyword not in profile.keywords: keywords_match = false
+	check(keywords_match, "Phobos Librarian retains the complete source keyword set")
 	check("EXPLOSIVES" in profile.keywords and "PSYKER" in profile.keywords and profile.ranged.size() == 2 and profile.ranged[1].profiles.focused.attacks == "D3+3" and profile.ranged[1].profiles.focused.keywords == {"devastating-wounds": true, "psychic": true, "hazardous": true} and profile.melee[0].profiles.standard.keywords.psychic, "Phobos weapons, Smite modes and Psychic traits match the extraction")
+	var resolution := Army.resolve("Space Marines", "40kdc:11e:adeptus-astartes:librarian-in-phobos-armour")
+	check(resolution.get("error", "").is_empty() and int(resolution.get("cost", -1)) == 75 and resolution.get("unsupported_abilities", []).is_empty(), "Phobos Librarian resolves from the current local catalog without blocked abilities")
 	var admitted := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:librarian-in-phobos-armour", "models": 1, "copies": 1}]})
 	check(admitted.error.is_empty() and admitted.total == 75, "Phobos Librarian is admitted at 75 local points")
 	var state := make_state()
@@ -100,6 +156,21 @@ func _initialize() -> void:
 		print("Phobos Librarian checks: %d failures" % (failures + 1))
 		quit(1)
 		return
+	for owner in [1, 2]:
+		var owner_librarian := -1
+		for model: int in state.units:
+			if state.units[model].owner == owner and C.UnitAbilities.identity(state.units[model]) == "librarian-in-phobos-armour": owner_librarian = model
+		check(owner_librarian >= 0, "Player %d materializes the Phobos Librarian from the current local catalog" % owner)
+	var librarian_squad: int = int(state.units[librarian].squad)
+	check(C.UnitAbilities.has(state, librarian_squad, "deep-strike") and C.UnitAbilities.has(state, librarian_squad, "infiltrators") and C.UnitAbilities.has(state, librarian_squad, "stealth") and C.UnitAbilities.scout_distance(state, librarian_squad) == 6, "The Phobos Librarian retains its Core Deep Strike, Infiltrators, Stealth and Scouts 6 abilities")
+	check(C.UnitAbilities.has(state, librarian_squad, "combat-doctrines") and C.UnitAbilities.has(state, librarian_squad, "librarius"), "The exported Combat Doctrines and Librarius faction abilities are catalogued for this datasheet")
+	var materialization_enemy_squad: int = state.units[enemy_model].squad
+	for weapon: Dictionary in profile.ranged:
+		for weapon_profile: String in weapon.profiles:
+			check_weapon_plan(state, librarian, materialization_enemy_squad, weapon, weapon_profile, false)
+	for weapon: Dictionary in profile.melee:
+		for weapon_profile: String in weapon.profiles:
+			check_weapon_plan(state, librarian, materialization_enemy_squad, weapon, weapon_profile, true)
 	state.phase = "deployment"
 	state.unit_abilities.setup_players = []
 	check(C.UnitActions.attachment_allowed(state, librarian, bodyguard), "Phobos Librarian can lead the admitted Infiltrator Squad")
@@ -108,6 +179,12 @@ func _initialize() -> void:
 	check(not C.UnitAbilities.every_model_has(state, bodyguard, "deep-strike") and C.UnitAbilities.scout_distance(state, bodyguard) == 0 and not C.UnitAbilities.Detection.stealth(state, bodyguard), "Attached Infiltrators do not gain non-shared Deep Strike, Scout or Stealth")
 	var rules: Array = Prevention.rules(state, librarian)
 	check(rules == [{"target": 4, "against": "psychic"}] and Prevention.rules(state, C.living(state, bodyguard)[0]) == rules, "Phobos Psychic Hood gives the attached unit 4+ against Psychic damage")
+	var prevented := C.Attacks.Prevention.resolve(1, 3, rules, "normal", four, "psychic")
+	check(prevented.error.is_empty() and prevented.prevented == 1 and prevented.lost == 0, "Psychic Hood prevents normal damage from Psychic attacks")
+	prevented = C.Attacks.Prevention.resolve(1, 3, rules, "mortal", four, "psychic")
+	check(prevented.error.is_empty() and prevented.prevented == 1 and prevented.lost == 0, "Psychic Hood also prevents mortal damage from Psychic attacks")
+	prevented = C.Attacks.Prevention.resolve(1, 3, rules, "normal", four)
+	check(prevented.error.is_empty() and prevented.lost == 1 and prevented.rolls.is_empty(), "Psychic Hood does not prevent non-Psychic damage")
 	check(C.UnitActions.attachment_allowed(state, librarian, bodyguard) == false, "A Leader cannot be attached twice")
 
 	var soul_state := make_state()
@@ -243,7 +320,13 @@ func _initialize() -> void:
 			if item.action == "scout-confirm": confirm = item
 		var confirmation := submit_scout_choice(scout, 1, "scout-confirm", -1, scout_squad)
 		check(not confirm.is_empty() and str(confirmation.get("error", "")).is_empty(), "Scout positions confirm before the first turn")
-		check(scout.phase == "start_turn" and scout.units[scout_model].position == Vector2(-19, 0), "Scout move resolves before round one")
+		check(scout.phase == "pre_battle" and C.actor(scout) == 2 and scout.units[scout_model].position == Vector2(-19, 0), "Player 1 Scout move hands the pre-battle sequence to Player 2")
+		var opponent_scout_model := -1
+		for model: int in scout.units:
+			if scout.units[model].owner == 2 and C.UnitAbilities.identity(scout.units[model]) == "librarian-in-phobos-armour": opponent_scout_model = model
+		var opponent_scout_squad := int(scout.units[opponent_scout_model].squad) if opponent_scout_model >= 0 else -1
+		var opponent_scout_result := finish_scout_move(scout, 2, opponent_scout_model, opponent_scout_squad, Vector2(14, 0)) if opponent_scout_model >= 0 else {"error": "missing Player 2 Phobos Librarian"}
+		check(str(opponent_scout_result.get("error", "")).is_empty() and scout.phase == "start_turn" and scout.units[opponent_scout_model].position == Vector2(14, 0), "Player 2 Scout move completes before round one: " + str(opponent_scout_result.get("error", "")))
 
 	var reserve_scout := make_state()
 	found = find(reserve_scout)
@@ -276,7 +359,12 @@ func _initialize() -> void:
 		if not reserve_confirm.is_empty(): reserve_confirm_result = submit_scout_choice(reserve_scout, 1, "scout-confirm", -1, scout_squad)
 		var reserve_place_error := str(reserve_place_result.get("error", ""))
 		var reserve_confirm_error := str(reserve_confirm_result.get("error", ""))
-		check(reserve_place_error.is_empty() and reserve_confirm_error.is_empty() and reserve_scout.phase == "start_turn", "Reserved Scout unit sets up wholly in its deployment zone (place: %s; confirm: %s)" % [reserve_place_error, reserve_confirm_error])
+		var opponent_reserve_scout_model := -1
+		for model: int in reserve_scout.units:
+			if reserve_scout.units[model].owner == 2 and C.UnitAbilities.identity(reserve_scout.units[model]) == "librarian-in-phobos-armour": opponent_reserve_scout_model = model
+		var opponent_reserve_scout_squad := int(reserve_scout.units[opponent_reserve_scout_model].squad) if opponent_reserve_scout_model >= 0 else -1
+		var opponent_reserve_scout_result := finish_scout_move(reserve_scout, 2, opponent_reserve_scout_model, opponent_reserve_scout_squad, Vector2(14, 0)) if opponent_reserve_scout_model >= 0 else {"error": "missing Player 2 Phobos Librarian"}
+		check(reserve_place_error.is_empty() and reserve_confirm_error.is_empty() and str(opponent_reserve_scout_result.get("error", "")).is_empty() and reserve_scout.phase == "start_turn", "Reserved Player 1 unit sets up, then Player 2 takes its Scout move (place: %s; confirm: %s; opponent: %s)" % [reserve_place_error, reserve_confirm_error, str(opponent_reserve_scout_result.get("error", ""))])
 		check(reserve_scout.units[scout_model].get("on_battlefield", false) and not reserve_scout.unit_abilities.reserves.has(scout_squad), "Scout set-up removes the unit from Strategic Reserves")
 
 	print("Phobos Librarian checks: %d failures" % failures)

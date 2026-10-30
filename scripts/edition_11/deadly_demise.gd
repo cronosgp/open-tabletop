@@ -7,6 +7,7 @@ const UnitPrevention = preload("res://scripts/edition_11/unit_prevention.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
+const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
 const WINDOW := "deadly-demise-mortal"
 
@@ -85,7 +86,8 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 			if die != 6: continue
 			for squad: int in state.squads:
 				if Geometry.alive(state, squad).is_empty() or Geometry.distance_to_target(state, state.units[source], squad) > 6.001: continue
-				var rolled := RandomStat.roll(deadly_demise_value, roller)
+				var expression := str(deadly_demise_value)
+				var rolled: Dictionary = {"error": "", "value": int(expression), "rolls": [], "expression": expression} if expression.is_valid_int() else RandomStat.roll(deadly_demise_value, roller)
 				if not rolled.error.is_empty(): return rolled
 				var packet := {"source_model": source, "target": squad, "owner": state.squads[squad].owner,
 					"roll": rolled, "remaining": int(rolled.value), "allocations": [], "discarded": 0}
@@ -130,6 +132,7 @@ static func allocate(state: Dictionary, player: int, selected: Dictionary, rolle
 	packet.remaining -= 1
 	if state.units[model].wounds <= 0:
 		DetachmentStratagems.record_destroyed(state, model)
+		for cenobyte: int in ChaplainGrimaldus.destroy_cenobytes(state, model): DetachmentStratagems.record_destroyed(state, cenobyte)
 		if UnitAbilities.deadly_demise_value(state, model) != null and model not in pending.queue:
 			pending.queue.append(model)
 	pending.packets[pending.packet_cursor] = packet

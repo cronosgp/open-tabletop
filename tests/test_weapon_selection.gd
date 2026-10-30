@@ -73,6 +73,12 @@ func _initialize() -> void:
 	check(imported.has("unsupported-target-restriction"), "Conflicting imported target restrictions are blocked")
 	imported = C.Attacks.Traits.import_keywords([{"keyword_id": "sustained-hits", "parameters": {"value": 1, "excluded_target_keywords": ["Monster"]}}])
 	check(imported.has("unsupported-parameters:sustained-hits"), "Unimplemented conditional parameters are not silently dropped")
+	imported = C.Attacks.Traits.import_keywords([{"keyword_id": "anti-monster", "parameters": {"value": 4}}])
+	check(imported == {"anti-monster": 4} and C.Attacks._validate({"attacks": 1, "skill": 3, "strength": 4, "ap": 0, "damage": 1, "keywords": imported}, Plan.defender(s, 4), {"target_keywords": ["MONSTER"]}).is_empty(), "Imported Anti-Monster keeps its threshold and is admitted by the current attack rules")
+	imported = C.Attacks.Traits.import_keywords([{"keyword_id": "anti-psyker", "parameters": {"value": 2}}])
+	check(imported == {"anti-psyker": 2} and C.Attacks._validate({"attacks": 1, "skill": 3, "strength": 4, "ap": 0, "damage": 1, "keywords": imported}, Plan.defender(s, 4), {"target_keywords": ["PSYKER"]}).is_empty(), "Imported Anti-Psyker keeps its threshold and is admitted by the current attack rules")
+	imported = C.Attacks.Traits.import_keywords([{"keyword_id": "lance", "parameters": {}}])
+	check(imported == {"lance": true} and C.Attacks._validate({"attacks": 1, "skill": 3, "strength": 4, "ap": 0, "damage": 1, "keywords": imported}, Plan.defender(s, 4), {"target_keywords": ["INFANTRY"]}).is_empty(), "Imported Lance remains a supported boolean weapon trait")
 	s = F.state(true)
 	s.squads[2].stats.save_target = 7
 	s.squads[4].stats.save_target = 7

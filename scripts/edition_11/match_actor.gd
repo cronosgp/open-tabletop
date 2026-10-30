@@ -68,6 +68,8 @@ static func pending_state_error(state: Dictionary) -> String:
 	if typeof(command_battle_shock) != TYPE_DICTIONARY: return "Cannot continue while Command Battle-shock decision state is invalid."
 	if typeof(command_battle_shock.get("pending", {})) != TYPE_DICTIONARY: return "Cannot continue while Command Battle-shock decision state is invalid."
 	if typeof(state.get("fearsome_assault", {})) != TYPE_DICTIONARY: return "Cannot continue while Fearsome Assault decision state is invalid."
+	if typeof(state.get("feared-interrogator", {})) != TYPE_DICTIONARY: return "Cannot continue while Feared Interrogator decision state is invalid."
+	if typeof(state.get("death-mask-of-sanguinius", {})) != TYPE_DICTIONARY: return "Cannot continue while Death Mask of Sanguinius decision state is invalid."
 	var pending_move: Variant = state.get("pending_move", {})
 	if typeof(pending_move) != TYPE_DICTIONARY: return "Cannot continue while movement state is invalid."
 	if not pending_move.is_empty() and str(pending_move.get("move_type", "")) == "desperate_escape":

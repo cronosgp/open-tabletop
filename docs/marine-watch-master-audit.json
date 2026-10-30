@@ -1,0 +1,182 @@
+{
+  "id": "marine-watch-master-e11-local-audit-2026-10-29",
+  "rules_authority": "Wahapedia 11th edition current Space Marines faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Deathwatch",
+    "book_id": "000000035",
+    "book_type": "App",
+    "datasheet_id": "000003871",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Watch-Master",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "current_page_checked_at": "2026-10-29",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "specification_revision": "20260817b (URL query parameter)",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_manifest_sha256": "680cff731d32f16de516ae815963dc18ecb5091e51b95843dacc595999aca4de",
+    "slice_subject_datasheet_ids": [
+      "000003871"
+    ],
+    "slice_external_identity_only_datasheet_ids": [
+      "000002780",
+      "000002783",
+      "000004175"
+    ],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "snapshot_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Enhancements.csv": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Detachment_abilities.csv": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c",
+      "Detachments.csv": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "d08fd3ae3ac7102238a52b072170af6a663b248f98185b7cf676d4fa464dc14d",
+      "Datasheets.csv": "75ae64c82f51240576f04e733bb2a75e182ea128db55f491d8c62d4662b29ec8",
+      "Datasheets_abilities.csv": "dcee543f5d19f2e5e6432e632ee147ec7897017bc1da1a9efd095ba72121ca29",
+      "Datasheets_keywords.csv": "3b70f14485b0a15673575ee1efcc920982a01eeccd0d02ef2c0d8f4cd420d076",
+      "Datasheets_models.csv": "a83289c1f916ded4b3d1b7547d143cd27b5a0a31ce9b9192e4ac883673f137ad",
+      "Datasheets_options.csv": "7a32f726f4d7977477962f34bb06098b13ccb859b4e7052de42e57b708ee8bdb",
+      "Datasheets_wargear.csv": "c73240e30a3839381a4afa35c42d6031c5f5a85d95830d8917898bfecbf5852a",
+      "Datasheets_unit_composition.csv": "c75167ca7c00e1fe52abd0678917823fde59a1524b837bba839485ba57a8d7a3",
+      "Datasheets_models_cost.csv": "c05316c52ef0fc4aa566634405e8cbd920787c0bf59debe7720c41a6bc617ea8",
+      "Datasheets_stratagems.csv": "1bc38a6ec0f8f0836e484de3ef3782beecc971e67f05e7349dea2b79f115591b",
+      "Datasheets_enhancements.csv": "4d96fdfc397ed9cf8e0dd331e24c5d6cde712f47f05b16afa0bb245ca2825ab9",
+      "Datasheets_detachment_abilities.csv": "6b1c2f7466f34de030cb8eb0e69de9b4f8fcb4c608aa97ebb788560d034140e4",
+      "Datasheets_leader.csv": "9ec55941460d44208554d3b665020225d5aec2cdd08a4e70263a1e7369729293",
+      "Stratagems.csv": "4d6562363832acde407ba75bac9da9eceb0dff4bc98ca33aded13d084468ed74",
+      "Abilities.csv": "8c0373c543e8557331b905b2a5849e9d1705298b3f127b8d2b59892e212320ad",
+      "Enhancements.csv": "329d60043743a543f2a5ccbc6e9ea725652e21928b60ebb968c61e24e98d04a2",
+      "Enhancements_wargear.csv": "ebb355f9d4ce1ec4def01a2ce0b27d0c9f39a343e4fe54f49fa14f980a48d2e5",
+      "Detachment_abilities.csv": "140ffed73c253d1b0af4a902368daf29b8b50b543826b4a7e04eec1d85a99778",
+      "Detachments.csv": "b1f07179c14fa9c080029a322a8224c7efe66b9f9962a23c8d6e4f1e01a72fa8",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    }
+  },
+  "source_profile": {
+    "points": 105,
+    "model_count": 1,
+    "base_mm": 32,
+    "characteristics": {
+      "movement": "6\"",
+      "toughness": 5,
+      "save": "2+",
+      "invulnerable_save": "4+",
+      "wounds": 5,
+      "leadership": "6+",
+      "objective_control": 1
+    },
+    "keywords": [
+      "Infantry",
+      "Captain",
+      "Character",
+      "Kill Team",
+      "Explosives",
+      "Imperium",
+      "Adeptus Astartes",
+      "Deathwatch"
+    ],
+    "ranged_weapon": {
+      "name": "Vigil Spear",
+      "range": "24\"",
+      "attacks": 2,
+      "skill": "2+",
+      "strength": 5,
+      "ap": -1,
+      "damage": 2
+    },
+    "melee_weapon": {
+      "name": "Vigil Spear",
+      "attacks": 6,
+      "skill": "2+",
+      "strength": 6,
+      "ap": -2,
+      "damage": 2,
+      "keywords": [
+        "Lance"
+      ]
+    },
+    "abilities": [
+      "Leader",
+      "Combat Doctrines",
+      "Transhuman Strategist",
+      "Strategic Knowledge",
+      "Watch Master",
+      "Purgatus Quarry"
+    ],
+    "leader_targets": [
+      "000002783",
+      "000002780",
+      "000004175"
+    ]
+  },
+  "runtime_scope": {
+    "current_reference_catalog": true,
+    "source_bounded_local_scope": "passed",
+    "effects": [
+      "Strategic Knowledge gives this unit’s ranged attacks Assault, preserves shooting after Fall Back and preserves Charge eligibility after Advance or Fall Back.",
+      "Watch Master grants the Watch Master model Hit and Wound re-rolls of 1 against CHARACTER targets.",
+      "Purgatus Quarry offers an optional hunted target at the start of the first battle round and an optional replacement each time that quarry is destroyed; its attacks re-roll Wound rolls of 1 against the hunted unit."
+    ],
+    "choice_command": "normalized UnitActions command",
+    "full_army_legality_certified": false,
+    "network_validated": false,
+    "human_playtested": false
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_watch_master --timeout 120",
+    "result_path": ".tools/verification/20261029T005637251297Z/results.json",
+    "result_sha256": "7bc0f4e042816ba40993ccdac0340c972ae9d28c0bb2f22204668cc8fc274f0c",
+    "processes_passed": 3,
+    "network": false,
+    "legacy_starter_staged": false,
+    "headless_rid_cleanup_diagnostics": false,
+    "related_regression": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_watch_master --only test_invictor_tactical_warsuit --only test_deathwatch_veterans --only test_space_marine_leader_links --only test_combat_doctrines --only test_capabilities --only test_implemented_catalog --timeout 180",
+      "result_path": ".tools/verification/20261029T005519320110Z/results.json",
+      "result_sha256": "822ed338b843e5294a900a5fd6d8e29b0ea26ae52b7a284de0f8507af60928f6",
+      "processes_passed": 9,
+      "network": false,
+      "legacy_starter_staged": true,
+      "headless_rid_cleanup_diagnostics": false,
+      "suite_stems": [
+        "test_watch_master",
+        "test_invictor_tactical_warsuit",
+        "test_deathwatch_veterans",
+        "test_space_marine_leader_links",
+        "test_combat_doctrines",
+        "test_capabilities",
+        "test_implemented_catalog"
+      ],
+      "note": "The Invictor three-copy construction scenario uses the 2,000-point Strike Force category; Incursion has a two-copy ceiling for non-Battleline datasheets."
+    }
+  },
+  "limits": [
+    "Local sheet scope does not certify Deathwatch/Chapter roster legality, full army legality, other Space Marine sheets, network behavior, human playtesting or alternate modes.",
+    "The parent export has 68 validation errors; source facts for this sheet were taken from the valid zero-error scoped slice."
+  ]
+}

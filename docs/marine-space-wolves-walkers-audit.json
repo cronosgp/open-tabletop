@@ -1,0 +1,125 @@
+{
+  "id": "space-wolves-walkers-e11-local-audit-2026-10-29",
+  "status": "source_bounded_local_scope_tested",
+  "observed_at": "2026-10-29",
+  "rules_authority": "Wahapedia 11e pages are the project's current rules reference; verified local Wahapedia Data Export slices supply datasheet facts.",
+  "source": {
+    "edition": "11e",
+    "chapter": "Space Wolves",
+    "book_id": "000000036",
+    "book_type": "App",
+    "game_mode": "Standard Warhammer 40,000 army datasheets; alternate modes excluded",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "specification_revision": "20260817b",
+    "snapshot_id": "20261029T003124Z",
+    "snapshot_retrieval_window_utc": "2026-10-29T00:31:29.030708Z–2026-10-29T00:32:27.211499Z",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_path": ".tools/wahapedia-e11-live-refresh-20261029T003124Z/remaining-space-wolves-slice",
+    "slice_manifest_sha256": "d7e1cd38ee48ed72c881e42652e3cf185056736f1e373f625411e1e250dda764",
+    "slice_catalog_sha256": "5d2041467eb03ecc5cdcd508ccf49f9063c871e39d379fa9fb9e2e6ba2581c3e",
+    "subject_datasheet_ids": ["000000302", "000000314", "000002801", "000004133"],
+    "external_identity_only_datasheet_ids": ["000004131", "000000303", "000000305"],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "fresh_live_recheck": {
+      "snapshot_id": "20261029T063826Z-final-integration",
+      "retrieval_window_utc": "2026-10-29T06:38:30.800735Z–2026-10-29T06:39:15.125339Z",
+      "manifest_sha256": "5d85720060856efea23b4f485b8a620a7857570136db55d6f33901f9b1480f2c",
+      "export_updated_at": "2026-10-28T23:48:19+03:00",
+      "timestamp_bracket_checked": true,
+      "parent_validation_error_count": 68,
+      "note": "Relevant raw CSV hashes match the subject slice parent; the recheck confirmed the same export content and did not clear the separate Talonstrike page/export conflict."
+    },
+    "slice_file_sha256": {
+      "Datasheets.csv": "831542ea8497ba719b537c1844cf05ff40492cf6e0a5f194461c82fdec4132bc",
+      "Datasheets_abilities.csv": "1b2b5307b60c5adc706ea6d0491d709e6092819858edd089164b2bfb03681973",
+      "Datasheets_keywords.csv": "9e90fb94efaf0e25be996458e6a71d16a5175714cf86160314846a02f3699c52",
+      "Datasheets_models.csv": "1e326dc5abb9f42bc759b0399973403a3494e8d3f9bc8125340e431d2f83f10a",
+      "Datasheets_options.csv": "3984b359f0b15df4f02e758008f0157fd6e9282af8c3981958048e1921037db8",
+      "Datasheets_wargear.csv": "dc5a12f2b00bc5ed0d4a02f688a3190a7453c6aacfa137d611d200f63ab6386e",
+      "Datasheets_unit_composition.csv": "5ec0269c7288645244b1093a1966579ebdfac6b9d6acb42a024b077865548568",
+      "Datasheets_models_cost.csv": "220a39089f272be9ac88ccfc2782600005cbd46d0d5a929801e75b1441d282f1"
+    },
+    "page_comparison": {
+      "checked_at": "2026-10-29",
+      "status": "matched_for_subject_profiles_costs_loadouts_and_abilities",
+      "datasheet_urls": [
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Bjorn-The-Fell-handed",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Murderfang",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Venerable-Dreadnought-1",
+        "https://wahapedia.ru/wh40k11ed/factions/space-marines/Wulfen-Dreadnought-1"
+      ]
+    }
+  },
+  "datasheets": [
+    {
+      "id": "000000302",
+      "identity": "bjorn-the-fell-handed",
+      "name": "Bjorn the Fell-handed",
+      "points": 160,
+      "max_supported_copies": 1,
+      "base_size": "60 mm",
+      "characteristics": {"M": "9\"", "T": 10, "Sv": "2+", "W": 8, "Ld": "6+", "OC": 3, "invulnerable_save": "5+"},
+      "abilities": ["Deadly Demise 1", "Feel No Pain 5+", "Combat Doctrines", "Legendary Tenacity", "Ancient Tactician"],
+      "local_loadout_support": ["Assault Cannon", "Helfrost Cannon", "Multi-melta", "Heavy Flamer", "Trueclaw"]
+    },
+    {
+      "id": "000000314",
+      "identity": "murderfang",
+      "name": "Murderfang",
+      "points": 150,
+      "max_supported_copies": 1,
+      "base_size": "60 mm",
+      "characteristics": {"M": "9\"", "T": 9, "Sv": "2+", "W": 8, "Ld": "6+", "OC": 0},
+      "abilities": ["Deadly Demise 1", "Feel No Pain 6+", "Combat Doctrines", "Curse of the Wulfen", "Murder-maker", "Bestial Fury", "Force of Untamed Destruction"],
+      "local_loadout_support": ["Heavy Flamer", "Storm Bolter", "Murderclaws"]
+    },
+    {
+      "id": "000002801",
+      "identity": "venerable-dreadnought",
+      "name": "Venerable Dreadnought",
+      "points_by_copy_tier": {"first_to_second": 130, "third_plus": 140},
+      "max_supported_copies": 3,
+      "base_size": "60 mm",
+      "characteristics": {"M": "8\"", "T": 9, "Sv": "2+", "W": 8, "Ld": "6+", "OC": 3},
+      "abilities": ["Deadly Demise 1", "Combat Doctrines", "Fervour of the Ancients", "Blizzard Shield"],
+      "local_loadout_support": ["Assault Cannon", "Helfrost Cannon", "Multi-melta", "Storm Bolter", "Heavy Flamer", "Dreadnought Combat Weapon", "Fenrisian Great Axe", "Blizzard Shield"]
+    },
+    {
+      "id": "000004133",
+      "identity": "wulfen-dreadnought",
+      "name": "Wulfen Dreadnought",
+      "points_by_copy_tier": {"first_to_second": 140, "third_plus": 150},
+      "max_supported_copies": 3,
+      "base_size": "60 mm",
+      "characteristics": {"M": "9\"", "T": 9, "Sv": "2+", "W": 8, "Ld": "6+", "OC": 0},
+      "abilities": ["Deadly Demise 1", "Feel No Pain 6+", "Combat Doctrines", "Curse of the Wulfen", "Violent Fury", "Bestial Rage", "Blizzard Shield"],
+      "local_loadout_support": ["Storm Bolter", "Heavy Flamer", "Fenrisian Great Axe", "Great Wolf Claw", "Blizzard Shield"]
+    }
+  ],
+  "runtime": {
+    "profile_file": "scripts/edition_11/current_reference_marine_profiles.gd",
+    "catalog_file": "scripts/edition_11/army_capabilities.gd",
+    "ability_files": ["scripts/edition_11/unit_ability_catalog.gd", "scripts/edition_11/unit_abilities.gd", "scripts/edition_11/unit_actions.gd", "scripts/edition_11/deadly_demise.gd", "scripts/edition_11/stratagems.gd", "scripts/edition_11/combat_scenario.gd", "scripts/edition_11/detachment_stratagems.gd", "scripts/edition_11/death_company_dreadnought.gd", "scripts/edition_11/defender_groups.gd"],
+    "capability_validation_status": "tests_passed_local_targeted",
+    "construction_catalog_profiles_before_increment": 155,
+    "construction_catalog_profiles_after_increment": 159
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_space_wolves_walkers --only test_wulfen --only test_wulfen_storm_shields --only test_core_reactions --only test_capabilities --only test_roster_validation --only test_implemented_catalog --only test_ballistus_dreadnought --only test_baal_predator --only test_movement_rerolls --only test_jump_pack_captain --timeout 300",
+    "report": ".tools/verification/20261029T064721289232Z/results.json",
+    "report_sha256": "A46BDC2EC53361FA110F7CCF1BBFD0CDF1FE29426842F14C82E837DECB56A251",
+    "process_count": 13,
+    "status": "passed",
+    "network": false,
+    "legacy_starter_staged": true,
+    "headless_cleanup_diagnostics": false
+  },
+  "limits": [
+    "Closes only four source-bounded Space Wolves Dreadnought local datasheet scopes.",
+    "The verifier was offline; the four page comparisons were performed separately against the current 11e Wahapedia pages.",
+    "Catalog-wide network validation, full Chapter/army legality, human playtesting, and Forge World/Legends/alternate-mode inventories remain open."
+  ]
+}

@@ -1,0 +1,226 @@
+{
+  "id": "marine-wulfen-with-storm-shields-e11-local-audit-2026-10-29",
+  "rules_authority": "Verified local Wahapedia 11th-edition Data Export; page comparison and network validation are deferred to final integration.",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Space Wolves",
+    "book_id": "000000036",
+    "book_type": "App",
+    "datasheet_id": "000004132",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Wulfen-with-Storm-Shields",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "snapshot_retrieval_window_utc": "2026-10-29T00:31:29.030708Z–2026-10-29T00:32:24.715969Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_manifest_sha256": "6cc0d72accb62915e6233a42d92a1f8d0da90566a60818597e569b3c562d2ae5",
+    "slice_catalog_sha256": "bd49bdcbb2eccba06d6550bcdf7a4b72ffae888a34af6d127659585ec3becf25",
+    "slice_subject_datasheet_ids": [
+      "000004132"
+    ],
+    "external_identity_only_datasheet_ids": [],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "parent_snapshot_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Enhancements.csv": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Detachment_abilities.csv": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c",
+      "Detachments.csv": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "7b35df86ec1bbed9f101a8923cbcca41bafb2533e9a1978ae9c366c8c8267999",
+      "Datasheets.csv": "ce30d9426edfd5e006cdad3cdddcd79d3c341a72ed7e4a867bfe463ba53591aa",
+      "Datasheets_abilities.csv": "ea0a352d7a322d2bb889294ba449e524a2de73b123dc2aa499959771d5b04f9e",
+      "Datasheets_keywords.csv": "60a905ad39dea55ba1cd3eb2295447672c915135f8f378e06028eca7c7585072",
+      "Datasheets_models.csv": "15237ca07508ed813b9a09641901c34c026086e4d059fa87b3de37cdbcad221a",
+      "Datasheets_options.csv": "b677e6c0c8d26e2125874275cf9871f4021076564bfa4e9915de19d83c480ec0",
+      "Datasheets_wargear.csv": "754f3750d771e86f8aea575638a3da12ad3f20a4c833f2b31afb534974d7f99d",
+      "Datasheets_unit_composition.csv": "534e6ef766e6896cf0c33d84f9721afd908d9503ba116bc558304ed4fd8c3d78",
+      "Datasheets_models_cost.csv": "6b777b25df94c0c4b356d657f2c5944c9327e6e3673be716b4fcf891e6cc3041",
+      "Datasheets_stratagems.csv": "d7ab4cf3fdad8183da5e3a3366c69b391400caca2a10cedc4cb82f22472c7c1c",
+      "Datasheets_enhancements.csv": "9edb0bff1510b6d7a7397fad3ac8be4da461843c3ec1642c9e78f2f21c4f35e0",
+      "Datasheets_detachment_abilities.csv": "a94c9b88f4cc1e66c98041edb2f7d4e3c03b2041e68b9562b085a14d4a19a74c",
+      "Datasheets_leader.csv": "7a547c829682f010c1d3bdda8eed1789ac4d3079c62fd7ad9e6703235fe1b824",
+      "Stratagems.csv": "e0764c06d86d21b48c5991e9c8c532d0a6a5cc75886dfe39c3e96b82bcfa1627",
+      "Abilities.csv": "f1400c45c4dbae2d300afa44330360fb50e551db3e4c683733cc315d0341f604",
+      "Enhancements.csv": "f39526e165b64fee321778006bbc0069c2ae0449e9d7d43fd88763e9c3ef1ee3",
+      "Enhancements_wargear.csv": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a",
+      "Detachment_abilities.csv": "ee8e98722d7e3139ceddf127d56dc3cbf908d4a8d18db9b385b31f75e953ea11",
+      "Detachments.csv": "2f2437e4224d83736d3bb8f2ddeeaa9cc0d91d358fb9a82bc30d53e8fa25f1f7",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "network_validation": "deferred_to_final_integration"
+  },
+  "source_checked_facts": {
+    "composition": {
+      "minimum": "5 Wulfen with Storm Shield models",
+      "maximum": "10 Wulfen with Storm Shield models"
+    },
+    "points_by_models": {
+      "5": 125,
+      "10": 250
+    },
+    "third_plus_points_by_models": {
+      "5": 155,
+      "10": 280
+    },
+    "base_size_mm": 40,
+    "characteristics": {
+      "movement_inches": 9,
+      "toughness": 6,
+      "save_target": 4,
+      "invulnerable_target": 4,
+      "wounds": 2,
+      "leadership_target": 7,
+      "objective_control": 0
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "SPACE WOLVES",
+      "INFANTRY",
+      "WULFEN",
+      "IMPERIUM"
+    ],
+    "default_loadout": [
+      "Stormfrag Auto-launcher",
+      "Thunder Hammer"
+    ],
+    "weapon_profiles": {
+      "Stormfrag Auto-launcher": {
+        "range_inches": 12,
+        "attacks": 2,
+        "skill": 4,
+        "strength": 4,
+        "ap": -1,
+        "damage": 1,
+        "keywords": [
+          "ASSAULT",
+          "BLAST 1"
+        ]
+      },
+      "Thunder Hammer": {
+        "range_inches": 0,
+        "attacks": 2,
+        "skill": 3,
+        "strength": 8,
+        "ap": -2,
+        "damage": 3,
+        "keywords": [
+          "DEVASTATING WOUNDS"
+        ]
+      },
+      "Thunder Hammer - Hunter": {
+        "range_inches": 0,
+        "attacks": 3,
+        "skill": 3,
+        "strength": 10,
+        "ap": -3,
+        "damage": 3,
+        "keywords": [
+          "DEVASTATING WOUNDS"
+        ],
+        "activation_condition_in_export": null
+      }
+    },
+    "options": [
+      "Any number of models can each have their Stormfrag Auto-launcher replaced with 1 Death Totem."
+    ],
+    "special_abilities": {
+      "combat_doctrines": true,
+      "curse_of_the_wulfen": "+1 Objective Control within 6 inches of a friendly Space Wolves Character excluding Wulfen, or 12 inches of a friendly Wolf Priest, while not Battle-shocked; Bestial Forms makes each Wulfen count as two transport spaces.",
+      "hammer_blow": "After this unit has fought in the Fight phase, select up to one enemy MONSTER/VEHICLE unit hit by those attacks; it is suppressed until the start of your next turn and its attacks have -1 to Hit.",
+      "death_totem": "This unit's melee attacks can re-roll Hit rolls of 1 while the Totem remains equipped.",
+      "savage_frenzy": false
+    },
+    "leader_relations": [],
+    "support_relations": []
+  },
+  "implementation": {
+    "catalog_identity": "wulfen-with-storm-shields",
+    "status": "source_bounded_local_scope_passed_2026_10_29",
+    "implemented_scope": [
+      "Source facts and Storm Shield save",
+      "Reversible per-model launcher/Death Totem choice",
+      "Death Totem, Curse of the Wulfen and Bestial Forms",
+      "Hammer Blow post-fight choice, suppression duration and Hit modifier",
+      "Thunder Hammer profiles retained as one physical weapon; no Hunter condition is inferred"
+    ],
+    "implementation_files": [
+      "scripts/edition_11/current_reference_marine_profiles.gd",
+      "scripts/edition_11/army_capabilities.gd",
+      "scripts/edition_11/prepared_training.gd",
+      "scripts/edition_11/unit_actions.gd",
+      "scripts/edition_11/unit_ability_catalog.gd",
+      "scripts/edition_11/unit_abilities.gd",
+      "scripts/edition_11/morale.gd",
+      "scripts/edition_11/transport_rules.gd",
+      "scripts/edition_11/combat_scenario.gd",
+      "scripts/edition_11/detachment_stratagems.gd",
+      "scripts/edition_11/attack_plan.gd",
+      "scripts/edition_11/wulfen_storm_shields.gd",
+      "tests/test_wulfen_storm_shields.gd",
+      "tests/test_implemented_catalog.gd",
+      "tools/verify.py"
+    ]
+  },
+  "verification": {
+    "focused_offline": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_wulfen_storm_shields --timeout 300",
+      "report": ".tools/verification/20261029T033331055146Z/results.json",
+      "report_sha256": "f203254f1c6e0ba62d7489c8da9a61a3170fde78a18115c78b953a211bd4e124",
+      "processes_passed": 3,
+      "network": false,
+      "legacy_starter_staged": false,
+      "cleanup_diagnostics": false
+    },
+    "connected_current_catalog_regression": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_wulfen_storm_shields --only test_wulfen --only test_implemented_catalog --only test_sammael --only test_marine_transport_rules --only test_fenrisian_wolves --only test_wolf_guard_terminators --only test_thunderwolf_cavalry --only test_space_marine_leader_links --timeout 300",
+      "report": ".tools/verification/20261029T033559838252Z/results.json",
+      "report_sha256": "63916b3d07296bfae5d0a6e617b4465d8f9d8e1abc0b2f30bd4be3cb916c6565",
+      "processes_passed": 11,
+      "network": false,
+      "legacy_starter_staged": false,
+      "cleanup_diagnostics": false
+    },
+    "legacy_dependent_regression": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_tactical_brethren --only test_detachment_stratagems --only test_capabilities --only test_combat_doctrines --only test_roster_validation --timeout 300",
+      "report": ".tools/verification/20261029T033713524054Z/results.json",
+      "report_sha256": "53c4b2a7f4425ed55ee18b3d17a6cb716165254da8620753f382badd85b378e8",
+      "processes_passed": 7,
+      "network": false,
+      "legacy_starter_staged": true,
+      "cleanup_diagnostics": false,
+      "reason": "The selected Tactical Brethren, detachment-stratagem, capability, doctrine and roster suites declare a dependency on the historical starter snapshot."
+    }
+  },
+  "limits": [
+    "The parent export has 68 findings; the subject slice has zero and parent findings remain open.",
+    "Network page validation, human playtesting, army legality and complete-match certification remain open.",
+    "The local export supplies no activation condition for Thunder Hammer - Hunter; none is inferred."
+  ]
+}

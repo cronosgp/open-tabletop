@@ -3,7 +3,7 @@ extends RefCounted
 const Commands = preload("res://scripts/edition_11/match_command_service.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 
-static func submit(state: Dictionary, player: int, selected: Dictionary, point: Vector2 = Vector2.ZERO, roller: Callable = Callable(), decision_id: String = "", option_id: String = "") -> Dictionary:
+static func submit(state: Dictionary, player: int, selected: Dictionary, point: Vector2 = Vector2.ZERO, roller: Callable = Callable(), decision_id: String = "", option_id: String = "", destination_elevation: float = -1.0) -> Dictionary:
 	if selected.is_empty(): return {"error": "No UnitActions choice was selected."}
 	var command_choice := selected
 	var decision := PendingDecisions.current(state, ["unit-actions"])
@@ -20,7 +20,7 @@ static func submit(state: Dictionary, player: int, selected: Dictionary, point: 
 			"option_id": option_id if not option_id.is_empty() else str(projected.get("id", "")),
 			"choice": selected
 		}
-	return Commands.execute(state, player, {"kind": Commands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "point": point, "choice": command_choice}, roller)
+	return Commands.execute(state, player, {"kind": Commands.SELECT_UNIT_CHOICE, "revision": int(state.get("revision", -1)), "point": point, "destination_elevation": destination_elevation, "choice": command_choice}, roller)
 
 static func error(state: Dictionary, player: int, selected: Dictionary, point: Vector2 = Vector2.ZERO, roller: Callable = Callable()) -> String:
 	return str(submit(state, player, selected, point, roller).get("error", ""))

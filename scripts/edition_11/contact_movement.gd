@@ -4,7 +4,9 @@ extends RefCounted
 
 const Movement = preload("res://scripts/rules.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
+const AircraftRules = preload("res://scripts/edition_11/aircraft_rules.gd")
 const EPSILON := 0.001
+const MAX_ENGAGEMENT_VERTICAL_DISTANCE := 5.0
 
 static func alive(state: Dictionary, squad: int) -> Array[int]:
 	var ids: Array[int] = []
@@ -16,14 +18,14 @@ static func edge(first: Dictionary, second: Dictionary) -> float:
 	return maxf(0.0, first.position.distance_to(second.position) - float(first.radius) - float(second.radius))
 
 static func within_engagement(first: Dictionary, second: Dictionary) -> bool:
-	return edge(first, second) <= 2.0 + EPSILON and absf(float(first.get("elevation", 0.0)) - float(second.get("elevation", 0.0))) <= 5.0 + EPSILON
+	return edge(first, second) <= 2.0 + EPSILON and absf(float(first.get("elevation", 0.0)) - float(second.get("elevation", 0.0))) <= MAX_ENGAGEMENT_VERTICAL_DISTANCE + EPSILON
 
 static func distance_to_target(state: Dictionary, model: Dictionary, target: int) -> float:
 	var distance := INF
 	for id: int in alive(state, target): distance = minf(distance, edge(model, state.units[id]))
 	return distance
 
-static func distance_to_target_at_height(state: Dictionary, model: Dictionary, target: int, maximum_vertical: float = 5.0) -> float:
+static func distance_to_target_at_height(state: Dictionary, model: Dictionary, target: int, maximum_vertical: float = MAX_ENGAGEMENT_VERTICAL_DISTANCE) -> float:
 	var distance := INF
 	for id: int in alive(state, target):
 		if absf(float(model.get("elevation", 0.0)) - float(state.units[id].get("elevation", 0.0))) > maximum_vertical + EPSILON: continue
@@ -69,6 +71,7 @@ static func clear_path(state: Dictionary, model_id: int, destination: Vector2, m
 			if id == model_id: continue
 			var other: Dictionary = state.units[id]
 			if other.wounds <= 0 or not other.get("on_battlefield", true): continue
+			if AircraftRules.is_aircraft(state, int(other.get("squad", -1))): continue
 			var is_enemy: bool = other.owner != model.owner
 			if not is_enemy and not monster_vehicle_move_blocks_large_model(model, other, move_type): continue
 			if is_enemy and monster_vehicle_can_pass_enemy_model(model, other, move_type): continue

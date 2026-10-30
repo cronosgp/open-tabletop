@@ -11,6 +11,11 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
+	var tiered_unit := {"id": "rhino", "name": "Rhino", "edition": "11e", "faction": "Space Marines", "role": "Transporte dedicado", "source_digest": "source",
+		"options": [{"models": 1, "cost": 70, "third_plus_cost": 70, "fourth_plus_cost": 80}]}
+	var tiered_list := R.new_list("11e", "Space Marines", "custom", 1000)
+	tiered_list.entries.append(R.entry(tiered_unit, 0, 4))
+	check(R.summary(tiered_list).points == 290 and R.tiered_cost(70, 70, 1, 3, 80) == 80, "Fourth-plus pricing begins on the fourth copy, including copies split across entries")
 	var catalog := F.catalog()
 	var list := R.new_list("11e", "Space Marines")
 	list.entries.append(R.entry(catalog.units[0], 1, 2))
@@ -87,6 +92,26 @@ func run() -> void:
 	panel._apply_entry_size()
 	panel._reprice()
 	check(panel.draft.entries[0].cost == 150 and panel.draft.entries[0].visual_variants[0] == "variant-one", "Repricing restores the catalog cost while preserving miniature choices")
+	panel.source.catalog.units.append({"id": "40kdc:11e:adeptus-astartes:victrix-honour-guard", "source_id": "victrix-honour-guard", "name": "Victrix Honour Guard", "edition": "11e", "faction": "Space Marines", "role": "Other units", "keywords": ["ADEPTUS ASTARTES", "ULTRAMARINES"], "options": [{"models": 3, "cost": 120}], "source_digest": "source"})
+	panel._filter_units()
+	var victrix_index := -1
+	for index in panel.unit_picker.item_count:
+		var listed: Dictionary = panel.unit_picker.get_item_metadata(index)
+		if listed.get("id", "") == "40kdc:11e:adeptus-astartes:victrix-honour-guard": victrix_index = index
+	if victrix_index >= 0:
+		panel._select_unit(victrix_index)
+		panel.choice_picker.select(0)
+		panel._refresh_composition_options()
+		for index in panel.composition_picker.item_count:
+			var choice: Dictionary = panel.composition_picker.get_item_metadata(index)
+			if choice.get("id", "") == "guards-only": panel.composition_picker.select(index)
+	panel.copies.value = 1
+	panel._refresh_addition_summary()
+	var composition_available := panel.composition_picker.visible
+	var roles_preview := panel.addition_summary.text
+	panel._add()
+	var saved_victrix: Dictionary = panel.draft.entries.back()
+	check(victrix_index >= 0 and composition_available and "120 pts added" in roles_preview and saved_victrix.get("composition_choice_id", "") == "guards-only" and int(saved_victrix.get("wargear_cost", -1)) == 0, "Army Workshop offers source-defined Victrix roles and saves the Bannerless role choice at the correct cost: index=%d visible=%s preview=%s saved=%s" % [victrix_index, str(composition_available), roles_preview, str(saved_victrix)])
 	var corrupt_path := ROOT.path_join("corrupt.json")
 	var file := FileAccess.open(corrupt_path, FileAccess.WRITE)
 	file.store_string("{broken")
@@ -119,6 +144,15 @@ func run() -> void:
 	check(local_panel.draft.entries.size() == 1 and local_panel.draft.entries[0].unit_id == "40kdc:11e:adeptus-astartes:infernus-squad" and local_panel.draft.entries[0].models == 10 and local_panel.draft.entries[0].cost == 190, "Builder stores the local canonical identity, size and current source cost")
 	local_panel._reprice()
 	check(local_panel.draft.entries[0].cost == 190, "Explicit repricing preserves the approved profile price")
+	var local_land_raider: Dictionary = local_panel.source.lookup("40kdc:11e:adeptus-astartes:land-raider")
+	local_panel.unit_picker.clear()
+	local_panel.unit_picker.add_item(local_land_raider.name)
+	local_panel.unit_picker.set_item_metadata(0, local_land_raider)
+	local_panel._select_unit(0)
+	local_panel.draft = R.new_list("11e", "Space Marines", "custom", 2000)
+	local_panel.choice_picker.select(0)
+	local_panel.copies.value = 2
+	check("2nd+ 265 pts" in local_panel.choice_picker.get_item_text(0) and "510 pts added" in local_panel.addition_summary.text, "Builder displays the Land Raider's distinct second-copy price and calculates the preview")
 	var local_terminators: Dictionary = local_panel.source.lookup("40kdc:11e:adeptus-astartes:terminator-squad")
 	local_panel.unit_picker.clear()
 	local_panel.unit_picker.add_item(local_terminators.name)
@@ -132,5 +166,17 @@ func run() -> void:
 	check(local_panel.draft.entries[0].get("third_plus_cost", -1) == 230 and R.summary(local_panel.draft).points == 610 and "610 pts" in local_panel.entries.get_item_text(0), "Builder saves and displays tiered Terminator prices accurately")
 	local_panel._reprice()
 	check(R.summary(local_panel.draft).points == 610, "Explicit repricing retains the tiered current-source price")
+	var local_drop_pod: Dictionary = local_panel.source.lookup("40kdc:11e:adeptus-astartes:drop-pod")
+	local_panel.unit_picker.clear()
+	local_panel.unit_picker.add_item(local_drop_pod.name)
+	local_panel.unit_picker.set_item_metadata(0, local_drop_pod)
+	local_panel._select_unit(0)
+	local_panel.draft = R.new_list("11e", "Space Marines", "custom", 2000)
+	local_panel.copies.value = 4
+	check("4th+ 70 pts" in local_panel.choice_picker.get_item_text(0) and "250 pts added" in local_panel.addition_summary.text, "Builder explains the Drop Pod fourth-copy price and calculates the preview")
+	local_panel._add()
+	check(local_panel.draft.entries.size() == 1 and local_panel.draft.entries[0].get("fourth_plus_cost", -1) == 70 and R.summary(local_panel.draft).points == 250, "Builder stores and totals the distinct fourth-plus price tier")
+	local_panel._reprice()
+	check(R.summary(local_panel.draft).points == 250, "Explicit repricing retains the sourced fourth-plus tier")
 	print("Army builder/profile checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

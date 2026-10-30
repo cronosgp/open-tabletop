@@ -15,11 +15,23 @@ func check(ok: bool, message: String) -> void:
 		push_error(message)
 		failures += 1
 
-func make_state() -> Dictionary:
-	var state := F.fresh()
+func entry(identity: String, models_count: int = 1) -> Dictionary:
+	return {"definition_id": "40kdc:11e:adeptus-astartes:" + identity, "models": models_count, "copies": 1}
+
+func make_state(transport_identity: String = "repulsor") -> Dictionary:
+	var rosters := {
+		1: {"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 1000, "entries": [entry(transport_identity), entry("intercessor-squad", 5)]},
+		2: {"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 1000, "entries": [entry("intercessor-squad", 5)]},
+	}
+	var state: Dictionary = F.P.initial_state({
+		"checked_rosters": false, "official_mission": false, "unit_abilities": true,
+		"combat_doctrines": true, "core_stratagems": true, "awakened_dynasty": true,
+		"marine_chapters": {1: "BLACK TEMPLARS", 2: "BLACK TEMPLARS"},
+	}, rosters)
+	if state.has("error"): return state
 	state.units.clear()
 	state.squads.clear()
-	var profile := Profiles.profile("repulsor")
+	var profile := Profiles.profile(transport_identity)
 	state.squads[1] = {"owner": 1, "name": "Charging unit", "starting_strength": 1, "stats": {"movement_inches": 6}, "charged": false}
 	state.units[100] = {"owner": 1, "squad": 1, "position": Vector2(0, 0), "radius": 0.1, "keywords": ["INFANTRY"], "wounds": 2, "max_wounds": 2, "on_battlefield": true}
 	state.squads[2] = {"owner": 2, "name": "Declared target", "starting_strength": 1, "stats": {"movement_inches": 6}, "charged": false}
@@ -29,7 +41,7 @@ func make_state() -> Dictionary:
 	state.squads[4] = {"owner": 2, "name": "Engaged target", "starting_strength": 1, "stats": {"movement_inches": 6}, "charged": false}
 	state.units[400] = {"owner": 2, "squad": 4, "position": Vector2(1.5, 0), "radius": 0.1, "keywords": ["ADEPTUS ASTARTES", "INFANTRY", "TACTICUS"], "wounds": 2, "max_wounds": 2, "on_battlefield": true}
 	state.squads[90] = {"owner": 2, "name": "Repulsor", "starting_strength": 1, "stats": profile.stats.duplicate(true), "moved": false, "move_type": "stationary"}
-	state.units[9000] = {"owner": 2, "squad": 90, "definition_id": "40kdc:11e:adeptus-astartes:repulsor", "position": Vector2(4.8, 0), "radius": profile.base_radius_inches, "keywords": profile.keywords.duplicate(), "wounds": profile.stats.wounds, "max_wounds": profile.stats.wounds, "on_battlefield": true, "transport_profile": profile.transport.duplicate(true)}
+	state.units[9000] = {"owner": 2, "squad": 90, "definition_id": "40kdc:11e:adeptus-astartes:" + transport_identity, "position": Vector2(4.8, 0), "radius": profile.base_radius_inches, "keywords": profile.keywords.duplicate(), "wounds": profile.stats.wounds, "max_wounds": profile.stats.wounds, "on_battlefield": true, "transport_profile": profile.transport.duplicate(true)}
 	UnitAbilities.enable(state)
 	state.awakened_dynasty.pending = []
 	state.erase("fearsome_assault")
@@ -52,6 +64,10 @@ func submit_choice(state: Dictionary, player: int, choice: Dictionary) -> Dictio
 
 func run() -> void:
 	var state := make_state()
+	check(not state.has("error"), "Current-catalog Repulsor fixture prepares: " + str(state.get("error", "")))
+	if state.has("error"):
+		quit(1)
+		return
 	check(Transport._combat_embarkation_candidates(state, 2).size() == 1 and Transport._combat_embarkation_candidates(state, 2)[0].passenger_squad == 2, "Repulsor offers only the unengaged, in-range, datasheet-eligible Astartes target")
 	state.squads[2].set_up_this_turn = true
 	check(Transport._combat_embarkation_candidates(state, 2).is_empty(), "A unit set up this turn is not eligible to embark in response to a charge")

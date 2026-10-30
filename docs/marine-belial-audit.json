@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "datasheet": {
+    "name": "Belial",
+    "definition_id": "40kdc:11e:adeptus-astartes:belial",
+    "source_book_id": "000000023",
+    "source_datasheet_id": "000000219",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Belial",
+    "current_page_checked_at": "2026-10-28",
+    "current_page_revision": "Dark Angels App 2.8.1 (October 2026)",
+    "edition": "11e",
+    "game_mode_scope": "Warhammer 40,000 standard rules; no Boarding Actions or Legends rules",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-28-v95-deathwing-knights",
+    "status": "source_bounded_local_scope_passed_2026_10_28"
+  },
+  "source_snapshot": {
+    "provider": "Wahapedia",
+    "edition": "11e",
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b",
+    "manifest_path": ".tools/wahapedia/11e/space-marines/20261021T130623Z/manifest.json",
+    "raw_data_committed": false,
+    "files_sha256": {
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_leader.csv": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4",
+      "Abilities.csv": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+    }
+  },
+  "source_slice": {
+    "artifact_type": "scoped_audit_slice",
+    "path": ".tools/wahapedia/11e/space-marine-chapter-slices/belial-20261028",
+    "manifest_sha256": "a6c2ed1db24e231ab4f1257595bf5074c4ea0bdf301a18d2a37e2fe8b9e4e266",
+    "parent_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "subject_datasheet_ids": [
+      "000000219"
+    ],
+    "external_identity_only_datasheet_ids": [
+      "000000118",
+      "000000230",
+      "000000231",
+      "000001183"
+    ],
+    "structurally_valid": true,
+    "slice_validation_errors": [],
+    "parent_validation_error_count_outside_slice": 68,
+    "playable": false,
+    "full_match_certified": false
+  },
+  "runtime_scope": {
+    "composition": 1,
+    "points_by_models": {
+      "1": 100
+    },
+    "max_supported_copies": 1,
+    "base_size_source_mm": 50,
+    "stats": {
+      "movement_inches": 5,
+      "toughness": 6,
+      "save_target": 2,
+      "wounds": 6,
+      "leadership_target": 6,
+      "objective_control": 1,
+      "invulnerable_target": 4
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "DARK ANGELS",
+      "INFANTRY",
+      "CAPTAIN",
+      "CHARACTER",
+      "EPIC HERO",
+      "TERMINATOR",
+      "DEATHWING",
+      "IMPERIUM"
+    ],
+    "fixed_weapon_profiles": [
+      {
+        "name": "Master-crafted Storm Bolter",
+        "range_inches": 24,
+        "attacks": 2,
+        "skill": 2,
+        "strength": 5,
+        "ap": -1,
+        "damage": 2,
+        "keywords": {
+          "precision": true
+        }
+      },
+      {
+        "name": "The Sword of Silence",
+        "range_inches": 0,
+        "attacks": 6,
+        "skill": 2,
+        "strength": 6,
+        "ap": -3,
+        "damage": 2,
+        "keywords": {}
+      }
+    ],
+    "leader_targets": [
+      {
+        "identity": "terminator-assault-squad",
+        "source_id": "000001183",
+        "runtime_available": true
+      },
+      {
+        "identity": "terminator-squad",
+        "source_id": "000000118",
+        "runtime_available": true
+      },
+      {
+        "identity": "deathwing-knights",
+        "source_id": "000000231",
+        "runtime_available": true
+      },
+      {
+        "identity": "deathwing-terminator-squad",
+        "source_id": "000000230",
+        "runtime_available": true
+      }
+    ],
+    "abilities": [
+      "leader",
+      "deep-strike",
+      "combat-doctrines",
+      "transhuman-strategist",
+      "grand-master-of-the-deathwing",
+      "strikes-of-retribution"
+    ],
+    "included": [
+      "source profile, fixed weapons, costs, base and keywords",
+      "current construction catalog and unique-copy limit",
+      "all four source Leader relations, with Deathwing Knights and Deathwing Terminator Squad both available",
+      "Dark Angels Deathwing keyword context and public Terminator Squad attachment",
+      "Grand Master of the Deathwing +1 Wound modifier for the attached unit against CHARACTER targets",
+      "Strikes of Retribution 2+ Fight-phase retention and unit/phase-end removal",
+      "Transhuman Strategist Warlord selection and Command point timing"
+    ],
+    "limits": [
+      "full Dark Angels roster legality is not certified",
+      "full Space Marines army legality is not certified",
+      "network validation is deferred to final integration",
+      "complete-match certification and human playtesting are not included",
+      "parent export validation errors outside this slice are not claimed as passed"
+    ]
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_deathwing_terminator_squad --only test_terminator_squad_current --only test_deathwing_knights --only test_belial --only test_space_marine_leader_links --timeout 300",
+    "report_path": ".tools/verification/20261028T113916146828Z/results.json",
+    "report_sha256": "7eef7b59a1c6e093ffb3b59954ba06d5e78779a7919105100d6155f59a3d137b",
+    "related_suites": [
+      "test_deathwing_terminator_squad",
+      "test_terminator_squad_current",
+      "test_deathwing_knights",
+      "test_belial",
+      "test_space_marine_leader_links"
+    ],
+    "processes_passed": 7,
+    "network": false,
+    "legacy_starter_staged": false,
+    "headless_rid_cleanup_diagnostics": false
+  },
+  "metadata_verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_capabilities --only test_azrael --timeout 300",
+    "report_path": ".tools/verification/20261028T113948965947Z/results.json",
+    "report_sha256": "c5549d6994d478f9ef45cf3c12b1eba6bdd8d0062e78deaba01390337514d153",
+    "related_suites": [
+      "test_capabilities",
+      "test_azrael"
+    ],
+    "processes_passed": 4,
+    "network": false,
+    "legacy_starter_staged": true,
+    "headless_rid_cleanup_diagnostics": false
+  }
+}

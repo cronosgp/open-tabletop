@@ -21,10 +21,14 @@ const PhaseProgression = preload("res://scripts/edition_11/phase_progression.gd"
 const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const Reivers = preload("res://scripts/edition_11/reivers.gd")
+const Asmodai = preload("res://scripts/edition_11/asmodai.gd")
+const CommanderDante = preload("res://scripts/edition_11/commander_dante.gd")
 const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 const Stratagems = preload("res://scripts/edition_11/stratagems.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
+const AircraftRules = preload("res://scripts/edition_11/aircraft_rules.gd")
+const StasisBomb = preload("res://scripts/edition_11/stasis_bomb.gd")
 
 ## The facade supplies journal/fight hooks to keep this coordinator below it in the dependency graph.
 static func advance_after_admission(state: Dictionary, roller: Callable, hooks: Dictionary) -> String:
@@ -81,6 +85,13 @@ static func advance_after_admission(state: Dictionary, roller: Callable, hooks: 
 	# Command morale resolves before end-of-phase control. Draft placements never capture.
 	if not UnitAbilities.enabled(state) and state.phase in ["command", "movement", "shooting", "charge", "fight"]:
 		Objectives.resolve_control(state, Callable(Morale, "objective_control"))
+	if state.phase == "movement": StasisBomb.end_movement_phase(state)
+	if state.phase == "end_turn":
+		var returned_aircraft := AircraftRules.return_at_end_of_opponent_turn(state)
+		if not returned_aircraft.is_empty():
+			var aircraft_names: Array[String] = []
+			for squad: int in returned_aircraft: aircraft_names.append(str(state.squads[squad].get("name", "AIRCRAFT")))
+			emit_event.call(state, "%s returned to Strategic Reserves at the end of the opponent's turn." % ", ".join(aircraft_names))
 	var ability_note := ObjectiveSecured.end_command(state)
 	if state.phase == "end_turn": Actions.complete_end_turn(state)
 	if state.phase == "command":
@@ -112,7 +123,8 @@ static func advance_after_admission(state: Dictionary, roller: Callable, hooks: 
 		state.core_reactions.charge_closed = false
 		state.core_reactions.heroic = {}
 	if state.phase == "command":
-		UnitAbilities.start_command(state)
+		for healed: Dictionary in UnitAbilities.start_command(state):
+			emit_event.call(state, "Self-repair restores 1 wound to %s." % str(state.squads.get(int(healed.get("squad", -1)), {}).get("name", "Rhino Primaris")))
 		Doctrines.start_command(state)
 		OathOfMoment.start_command(state)
 		VowedTarget.start_command(state)
@@ -135,7 +147,10 @@ static func advance_after_admission(state: Dictionary, roller: Callable, hooks: 
 		var coherency_suspend_error := ResolutionFrames.suspend(state, str(coherency_frame.frame_id), "end-turn-coherency-casualties")
 		if not coherency_suspend_error.is_empty(): return coherency_suspend_error
 	emit_event.call(state, "Player %d: %s" % [state.active, state.phase] + (" • " + ability_note if not ability_note.is_empty() else ""))
-	if state.phase == "fight" and Reivers.begin_fight(state): emit_event.call(state, "Fearsome Assault: resolve the required Battle-shock tests before the Fight sequence.")
+	if state.phase == "fight":
+		if Reivers.begin_fight(state): emit_event.call(state, "Fearsome Assault: resolve the required Battle-shock tests before the Fight sequence.")
+		if Asmodai.begin_fight(state): emit_event.call(state, "Feared Interrogator: resolve the required CHARACTER Battle-shock tests before the Fight sequence.")
+		if CommanderDante.begin_fight(state): emit_event.call(state, "Death Mask of Sanguinius: resolve the required Battle-shock tests before the Fight sequence.")
 	return ""
 
 static func _phase_close_action_id(state: Dictionary) -> String:

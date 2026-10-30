@@ -1,0 +1,260 @@
+{
+  "id": "marine-grey-hunters-e11-local-audit-2026-10-29",
+  "rules_authority": "Wahapedia 11th edition current Space Marines faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Space Wolves",
+    "book_id": "000000036",
+    "book_type": "App",
+    "datasheet_id": "000000305",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Grey-Hunters",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "current_page_checked_at": "2026-10-29",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "retrieved_at_utc": "2026-10-29T00:31:24Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_manifest_sha256": "B7E39365429434EE6416607CA5AFE7B4AC59D5D7738392BDFC526518F716568F",
+    "slice_subject_datasheet_ids": [
+      "000000305"
+    ],
+    "external_identity_only_datasheet_ids": [
+      "000000292",
+      "000000297",
+      "000000306",
+      "000004129",
+      "000004130"
+    ],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "parent_snapshot_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Enhancements.csv": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Detachment_abilities.csv": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c",
+      "Detachments.csv": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "7b35df86ec1bbed9f101a8923cbcca41bafb2533e9a1978ae9c366c8c8267999",
+      "Datasheets.csv": "4f81b44a1fb17a9f63801624c7bd525d14613de259c30a51f190fb5725714457",
+      "Datasheets_abilities.csv": "52f28107951eff3f82dc7522111ea5cce8a318867ba94cab189d0809276290f6",
+      "Datasheets_keywords.csv": "f10451149b781ce1b0cfa619bac1456616c3f3b2e7a383fb82d4047095822b09",
+      "Datasheets_models.csv": "0f4063bdcfa6788625d2f7ac896b3d3443195d2e576f752f96b4d08191887a7c",
+      "Datasheets_options.csv": "b3cff68cb009b43469a7e19522d25cfa90d37e7d740b75d75e3c414462160467",
+      "Datasheets_wargear.csv": "bf3f47d3c673b3a948de15b512a05f5d65623bc9a685cc185e397f08a380e7de",
+      "Datasheets_unit_composition.csv": "9f4b9386a770e0bc24fe8056facfea0ad7b1a8ba4ce6c47e9c69c22cf837b69f",
+      "Datasheets_models_cost.csv": "dfbd4c910be1e46f167ffcb108fdd73597746e64a37c0e5b7cc0694b8b3ea751",
+      "Datasheets_stratagems.csv": "06f4774702b6601f83dce166ac170e7c6577357ea5398bd36255e1c4953b2231",
+      "Datasheets_enhancements.csv": "14a4ae4665aa150fd893002d190f4b6051ba7757555f43de200da35921b0ee68",
+      "Datasheets_detachment_abilities.csv": "32fb59177459ceb5106bcc2b86d65fc0838b81d35dd9ddedede458d416c210ad",
+      "Datasheets_leader.csv": "3afdfd154dacf11c4639e42e9a318070a82948cdcf3646adf9d058e3c58b2a96",
+      "Stratagems.csv": "6ad04ef8114f86c40a1280ef4cb4871e07b56e38c8932855278416947709c752",
+      "Abilities.csv": "3ba65e907c342a3cc2ad68b78ecc9583f5f9d79a62a38a7decf7ba9cff740d4e",
+      "Enhancements.csv": "f39526e165b64fee321778006bbc0069c2ae0449e9d7d43fd88763e9c3ef1ee3",
+      "Enhancements_wargear.csv": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a",
+      "Detachment_abilities.csv": "7322c040fa2c6e9af3f5476fca413682493cdffcb43861db2acd24846544a1a5",
+      "Detachments.csv": "b2823bb179e180333446a50fb63b40d916dc933474a03acf9ca936bf4a0f5d94",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    }
+  },
+  "source_checked_facts": {
+    "composition": "1 Grey Hunter Pack Leader and 9 Grey Hunters",
+    "points_by_models": {
+      "10": 180
+    },
+    "base_size_source_mm": 32,
+    "characteristics": {
+      "movement_inches": 7,
+      "toughness": 5,
+      "save_target": 3,
+      "wounds": 2,
+      "leadership_target": 6,
+      "objective_control": 3
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "BATTLELINE",
+      "EXPLOSIVES",
+      "IMPERIUM",
+      "INFANTRY",
+      "SPACE WOLVES",
+      "TACTICUS"
+    ],
+    "default_loadout": {
+      "Grey Hunter Pack Leader": [
+        "Bolt Carbine",
+        "Bolt Pistol",
+        "Chainsword"
+      ],
+      "Grey Hunter": [
+        "Bolt Carbine",
+        "Bolt Pistol",
+        "Chainsword"
+      ]
+    },
+    "pack_leader_replacements": {
+      "ranged": {
+        "Bolt Pistol": "Plasma Pistol"
+      },
+      "melee": {
+        "Chainsword": [
+          "Power Fist",
+          "Power Weapon"
+        ]
+      },
+      "independent_choices": true
+    },
+    "weapons": {
+      "bolt_carbine": {
+        "range_inches": 24,
+        "attacks": 3,
+        "skill": 3,
+        "strength": 5,
+        "ap": -1,
+        "damage": 1,
+        "keywords": [
+          "assault",
+          "rapid_fire_1"
+        ]
+      },
+      "bolt_pistol": {
+        "range_inches": 12,
+        "attacks": 1,
+        "skill": 3,
+        "strength": 5,
+        "ap": -1,
+        "damage": 1,
+        "keywords": [
+          "close-quarters"
+        ]
+      },
+      "plasma_pistol_standard": {
+        "range_inches": 12,
+        "attacks": 1,
+        "skill": 3,
+        "strength": 7,
+        "ap": -2,
+        "damage": 1,
+        "keywords": [
+          "close-quarters"
+        ]
+      },
+      "plasma_pistol_supercharge": {
+        "range_inches": 12,
+        "attacks": 1,
+        "skill": 3,
+        "strength": 8,
+        "ap": -3,
+        "damage": 2,
+        "keywords": [
+          "close-quarters",
+          "hazardous"
+        ]
+      },
+      "chainsword": {
+        "attacks": 4,
+        "skill": 3,
+        "strength": 5,
+        "ap": -1,
+        "damage": 1
+      },
+      "power_weapon": {
+        "attacks": 4,
+        "skill": 3,
+        "strength": 5,
+        "ap": -2,
+        "damage": 1
+      },
+      "power_fist": {
+        "attacks": 3,
+        "skill": 3,
+        "strength": 8,
+        "ap": -2,
+        "damage": 2
+      }
+    },
+    "abilities": [
+      "Old Greymanes",
+      "Cunning Hunters"
+    ],
+    "old_greymanes": "During Declare Battle Formations, the player may split the unit into two equal units and records which five models belong to each unit.",
+    "cunning_hunters": "During the Fight phase, while this unit is within range of an objective marker, improve the Strength and AP characteristics of its melee weapons by 1.",
+    "leader_targets": [
+      {
+        "name": "Ulrik the Slayer",
+        "datasheet_id": "000000297"
+      },
+      {
+        "name": "Wolf Priest",
+        "datasheet_id": "000004129"
+      },
+      {
+        "name": "Wolf Guard Battle Leader",
+        "datasheet_id": "000004130"
+      },
+      {
+        "name": "Njal Stormcaller",
+        "datasheet_id": "000000292"
+      },
+      {
+        "name": "Iron Priest",
+        "datasheet_id": "000000306"
+      }
+    ]
+  },
+  "runtime_scope": {
+    "identity": "grey-hunters",
+    "status": "source_bounded_local_scope_passed_2026_10_29",
+    "implemented": [
+      "source composition, 10-model price, characteristics, 32 mm base and keywords",
+      "Bolt Carbine, Bolt Pistol and Chainsword profiles for all models",
+      "Pack Leader Plasma Pistol, Power Fist and Power Weapon replacements",
+      "Old Greymanes setup choice with explicit five-model membership, reversible draft and conserved roster cost",
+      "Cunning Hunters Fight-phase objective-range gate and melee Strength/AP modifiers"
+    ],
+    "deferred_source_relations": "All five source-listed Leader endpoints are recorded but remain unavailable until those character profiles are integrated.",
+    "full_match_certified": false,
+    "network_validation": "deferred"
+  },
+  "verification": {
+    "profile": "targeted",
+    "report": ".tools/verification/20261029T021529028806Z/results.json",
+    "report_sha256": "E53F5448997D72DBEE37AC38D76B31678D9E53B5F69E8188E5C119DA97CD008C",
+    "network": false,
+    "headless_rid_cleanup_diagnostics": false,
+    "selected_suites": [
+      "test_grey_hunters",
+      "test_implemented_catalog",
+      "test_capabilities",
+      "test_blood_claws",
+      "test_combat_doctrines",
+      "test_roster_validation"
+    ],
+    "focused_test": "tests/test_grey_hunters.gd",
+    "outcome": "passed_8_of_8_processes_locally"
+  }
+}

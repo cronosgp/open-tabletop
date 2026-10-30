@@ -1,0 +1,264 @@
+{
+  "identity": "captain-titus",
+  "source": {
+    "authority": "Wahapedia 11th-edition local export",
+    "source_book_id": "000000139",
+    "export_snapshot_id": "20261021T130623Z",
+    "export_updated_at": "2026-10-21T16:06:23+03:00",
+    "export_retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "specification_revision": "20260817b",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+    "source_checked_at": "2026-10-27",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ],
+    "datasheet_id": "000004187",
+    "runtime_profile_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-Titus"
+  },
+  "scope": {
+    "models": 1,
+    "base": "40 mm",
+    "points": 115,
+    "characteristics": {
+      "M": 6,
+      "T": 5,
+      "Sv": "3+",
+      "W": 6,
+      "Ld": "6+",
+      "OC": 1,
+      "invulnerable_save": "4+"
+    },
+    "runtime_keywords": [
+      "INFANTRY",
+      "CHARACTER",
+      "EPIC HERO",
+      "CAPTAIN",
+      "TACTICUS",
+      "IMPERIUM",
+      "EXPLOSIVES",
+      "ADEPTUS ASTARTES",
+      "ULTRAMARINES"
+    ],
+    "source_core_abilities": [
+      {
+        "name": "Feel No Pain",
+        "parameter": "5+"
+      },
+      {
+        "name": "Leader",
+        "parameter": ""
+      }
+    ],
+    "source_army_rules": [
+      "Transhuman Strategist",
+      "Combat Doctrines"
+    ],
+    "source_datasheet_abilities": [
+      "Press the Attack",
+      "Righteous Fury",
+      "Honour of Ultramar"
+    ],
+    "weapons": [
+      "Bolt Pistol",
+      "Master-crafted Bolter",
+      "Master-crafted Chainsword"
+    ],
+    "source_options_rows": 0,
+    "source_leader_rows": 7,
+    "common_book_leader_targets": [
+      "Bladeguard Veteran Squad",
+      "Hellblaster Squad",
+      "Intercessor Squad",
+      "Sternguard Veteran Squad",
+      "Assault Intercessor Squad",
+      "Infernus Squad"
+    ],
+    "out_of_scope_leader_targets": [
+      {
+        "name": "Vanguard Veteran Squad",
+        "source_book_id": "000000356",
+        "datasheet_id": "000001154"
+      }
+    ],
+    "source_keywords": [
+      {
+        "keyword": "Adeptus Astartes",
+        "is_faction_keyword": true
+      },
+      {
+        "keyword": "Ultramarines",
+        "is_faction_keyword": true
+      },
+      {
+        "keyword": "Character",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Epic Hero",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Explosives",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Imperium",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Tacticus",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Captain",
+        "is_faction_keyword": false
+      },
+      {
+        "keyword": "Infantry",
+        "is_faction_keyword": false
+      }
+    ]
+  },
+  "source_weapons": [
+    {
+      "name": "Bolt Pistol",
+      "type": "Ranged",
+      "range": "12",
+      "attacks": "1",
+      "skill": "2",
+      "strength": "5",
+      "ap": "-1",
+      "damage": "1",
+      "description": "CLOSE-QUARTERS"
+    },
+    {
+      "name": "Master-crafted Bolter",
+      "type": "Ranged",
+      "range": "24",
+      "attacks": "2",
+      "skill": "2",
+      "strength": "5",
+      "ap": "-1",
+      "damage": "2",
+      "description": "ASSAULT, Rapid Fire 1, Heavy"
+    },
+    {
+      "name": "Master-crafted Chainsword",
+      "type": "Melee",
+      "range": "Melee",
+      "attacks": "8",
+      "skill": "2",
+      "strength": "5",
+      "ap": "-1",
+      "damage": "2",
+      "description": "ANTI-non-MONSTER/VEHICLE 2+"
+    }
+  ],
+  "source_leader_targets": [
+    {
+      "name": "Bladeguard Veteran Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000000071"
+    },
+    {
+      "name": "Hellblaster Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000002098"
+    },
+    {
+      "name": "Intercessor Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000001157"
+    },
+    {
+      "name": "Sternguard Veteran Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000002255"
+    },
+    {
+      "name": "Vanguard Veteran Squad",
+      "source_book_id": "000000356",
+      "datasheet_id": "000001154"
+    },
+    {
+      "name": "Assault Intercessor Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000001606"
+    },
+    {
+      "name": "Infernus Squad",
+      "source_book_id": "000000139",
+      "datasheet_id": "000000126"
+    }
+  ],
+  "local_validation": ".tools/verification/20261027T122555251642Z/results.json",
+  "local_validation_sha256": "b8e812cb005c69ef1704c4dd926b30d431793289157f057914d66fb0d9801c75",
+  "test_files": [
+    "tests\\test_captain_titus.gd",
+    "tests\\test_space_marine_leader_links.gd",
+    "tests\\test_marine_conditional_weapon_traits.gd"
+  ],
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_match_certified": false,
+  "latest_scope_validation": {
+    "observed_at": "2026-10-27",
+    "status": "passed; 5/5 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "open_limit": "Closes only Captain Titus's shared-book local sheet scope. The separately listed Vanguard Veteran Squad Leader target belongs to Warhammer Legends book 000000356 and remains outside common-book construction. Ultramarines/Chapter restrictions, full faction/army legality, network behavior, complete matches and human playtesting remain outside this result. Network validation is deferred to final integration.",
+    "master_evidence": "space-marines-profile-evidence.json"
+  }
+}

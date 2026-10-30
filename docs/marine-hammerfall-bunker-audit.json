@@ -1,0 +1,159 @@
+{
+  "id": "marine-hammerfall-bunker-legends-e11-local-audit-2026-10-30",
+  "observed_at": "2026-10-30",
+  "status": "source_bounded_local_rules_passed_placement_partial",
+  "rules_authority": "Wahapedia 11th edition and its verified local Data Export; live-page validation is deferred to final integration.",
+  "source": {
+    "edition": "11e",
+    "faction": "Space Marines",
+    "chapter": "Space Marines (Warhammer Legends)",
+    "book_id": "000000356",
+    "book_type": "App",
+    "book_edition": "11",
+    "datasheet_id": "000000097",
+    "role": "Fortifications",
+    "game_mode": "Warhammer Legends; alternate modes are outside this profile audit.",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Hammerfall-Bunker",
+    "current_page_checked_at": "Local verified export identity; live network recheck deferred.",
+    "snapshot": {
+      "provider": "Wahapedia Data Export",
+      "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+      "retrieved_at_utc": "2026-10-29T22:33:48.347556-03:00",
+      "export_updated_at": "2026-10-28T17:48:19-03:00",
+      "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+      "slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5f565f2a1ba195928be3d3ceb5c",
+      "parent_validation_findings": 68,
+      "exact_legends_slice_validation_findings": 0,
+      "source_files": [
+        {
+          "filename": "Datasheets.csv",
+          "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"
+        },
+        {
+          "filename": "Datasheets_abilities.csv",
+          "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"
+        },
+        {
+          "filename": "Datasheets_keywords.csv",
+          "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"
+        },
+        {
+          "filename": "Datasheets_models.csv",
+          "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"
+        },
+        {
+          "filename": "Datasheets_models_cost.csv",
+          "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"
+        },
+        {
+          "filename": "Datasheets_options.csv",
+          "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"
+        },
+        {
+          "filename": "Datasheets_unit_composition.csv",
+          "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"
+        },
+        {
+          "filename": "Datasheets_wargear.csv",
+          "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"
+        }
+      ]
+    }
+  },
+  "reconciliation": "One Hammerfall Bunker model costs 175 points in all source copy-price tiers. The source characteristics, keywords, default Heavy Bolter Array and Missile Launcher, both Missile Launcher profiles, Heavy Flamer Array replacement, Combat Doctrines, Deadly Demise D6, Damaged 5, Ceramite Cover, Defensive Array and Fortification are represented. The source has no footprint measurement; exact physical placement and clearance remain uncertified.",
+  "implemented_scope": {
+    "runtime_profile": "scripts/edition_11/current_reference_marine_profiles.gd",
+    "army_admission": "scripts/edition_11/army_capabilities.gd",
+    "weapon_preparation": "scripts/edition_11/unit_actions.gd",
+    "attack_and_targeting": [
+      "scripts/edition_11/attack_plan.gd",
+      "scripts/edition_11/fortification_rules.gd"
+    ],
+    "cover": "scripts/edition_11/terrain.gd",
+    "fall_back_hazard": "scripts/edition_11/combat_scenario.gd",
+    "defensive_array": [
+      "scripts/edition_11/core_reactions.gd",
+      "scripts/edition_11/core_reaction_state.gd"
+    ],
+    "ability_registration": [
+      "scripts/edition_11/unit_ability_catalog.gd",
+      "scripts/edition_11/unit_abilities.gd",
+      "scripts/edition_11/capabilities.gd"
+    ],
+    "composition": {
+      "models": 1,
+      "points_by_copy_tier": {
+        "first": 175,
+        "second_plus": 175,
+        "third_plus": 175
+      },
+      "copy_limit": {
+        "incursion": 2,
+        "strike_force": 3
+      },
+      "default_loadout": [
+        "Hammerfall Heavy Bolter Array",
+        "Hammerfall Missile Launcher"
+      ],
+      "replacement": {
+        "Hammerfall Heavy Bolter Array": "Hammerfall Heavy Flamer Array"
+      }
+    },
+    "geometry": {
+      "source": "Use model; no footprint dimensions in the verified export",
+      "runtime": "labelled 120 mm circular interaction-test proxy",
+      "certified_for_physical_placement": false
+    },
+    "source_slice_recheck": {
+      "path": ".tools/marine-full-space-readiness-20261030/legends-readiness-audit-post-hammerfall.json",
+      "subjects": 28,
+      "slice_validation_findings": 0,
+      "parent_validation_findings": 68,
+      "sha256": "aea645a658dcffbceb05ae8763a4638dc79ded1a82a33c0607c48650d173eabf"
+    },
+    "verified_runtime_identity_export": {
+      "path": ".tools/space-marine-runtime-identities-full-audit-next-20261030-v18-hammerfall.json",
+      "profile_count": 185,
+      "missing_source_ids": 0,
+      "sha256": "e7307ec9a36350ccd64abfe2d078f2a8caca895831abe5cffe2b7113db05d9e4"
+    },
+    "whole_index_inventory": {
+      "page_entries": 193,
+      "datasheet_identities": 192,
+      "standard_profiles": 161,
+      "space_marine_legends_profiles": 24,
+      "runtime_profile_count": 185,
+      "runtime_inventory_report_path": ".tools/space-marine-full-inventory-post-hammerfall-20261030.json",
+      "runtime_inventory_report_sha256": "d820598cb30e3053da48dc22a3125069ea08ba515a5208fbb235e3065e88898e"
+    }
+  },
+  "verification": {
+    "connected_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_hammerfall_bunker --only test_implemented_catalog --only test_space_marine_profile_source_fields --only test_marine_category_copy_limits --only test_capabilities --only test_attack_plan --only test_core_reactions --only test_smokescreen --only test_firestrike_servo_turrets --only test_tarantula_sentry_battery --only test_marine_transport_profiles --only test_marine_transport_rules --only test_marine_transport_weapon_options --only test_marine_transport_destruction --only test_combat_doctrines",
+    "connected_result_path": ".tools/verification/20261030T135350883038Z/results.json",
+    "connected_result_sha256": "67e1e3d2a78742021ef5c2493b844cfee81449cafec739db804a204134fa26d3",
+    "connected_passed_processes": 17,
+    "connected_failed_processes": 0,
+    "network": false,
+    "legacy_starter_staged": true,
+    "headless_cleanup_diagnostics": false,
+    "builder_ui_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_implemented_catalog",
+    "builder_ui_result_path": ".tools/verification/20261030T135718985528Z/results.json",
+    "builder_ui_result_sha256": "c4f968f771153d20707473e9565854261db98a5974e46b647d1cdbd38aa678fd",
+    "builder_ui_passed_processes": 3,
+    "builder_ui_failed_processes": 0,
+    "focused_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_hammerfall_bunker",
+    "focused_result_path": ".tools/verification/20261030T140049678605Z/results.json",
+    "focused_result_sha256": "026c9dd6bf4aedcaa0980116a4d24b8ef6f0ddfdd1e0eb8b085006295c85c981",
+    "focused_passed_processes": 3,
+    "focused_failed_processes": 0
+  },
+  "legal_use": {
+    "local_game_mode": "The project labels this a Warhammer Legends profile for home, store, club and campaign play.",
+    "competitive_events": "Requires organiser approval; no event-specific acceptance is certified.",
+    "army_legality": "This sheet's local admission, point cost and selected copy caps passed; full roster legality is not certified."
+  },
+  "remaining_blockers": [
+    "The source says Use model without measurable dimensions; the runtime's 120 mm proxy cannot certify legal movement, overlap or physical clearance.",
+    "Live-page/network validation, current event-pack restrictions, event approval, full army legality, network play and human playtesting remain pending."
+  ]
+}

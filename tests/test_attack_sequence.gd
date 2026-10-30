@@ -47,6 +47,26 @@ func _initialize() -> void:
 	check(anti_result.error.is_empty() and anti_result.wounds == 1 and anti_result.critical_wounds == 1, "Anti-Vehicle 2+ did not make an unmodified 2 a Critical Wound against a Vehicle")
 	anti_result = resolve(anti_vehicle_weapon, vehicle_defender, {"target_keywords": ["INFANTRY"], "defer_saves": true}, [6, 2])
 	check(anti_result.error.is_empty() and anti_result.wounds == 0 and anti_result.critical_wounds == 0, "Anti-Vehicle applied without a Vehicle target")
+	var anti_monster_weapon := weapon()
+	anti_monster_weapon.attacks = 1
+	anti_monster_weapon.strength = 2
+	anti_monster_weapon.keywords = {"anti-monster": 2}
+	var monster_defender := defender()
+	monster_defender.toughness = 10
+	var anti_monster_result := resolve(anti_monster_weapon, monster_defender, {"target_keywords": ["MONSTER"], "defer_saves": true}, [6, 2])
+	check(anti_monster_result.error.is_empty() and anti_monster_result.wounds == 1 and anti_monster_result.critical_wounds == 1, "Anti-Monster 2+ does not make an unmodified 2 a Critical Wound against a Monster")
+	anti_monster_result = resolve(anti_monster_weapon, monster_defender, {"target_keywords": ["VEHICLE"], "defer_saves": true}, [6, 2])
+	check(anti_monster_result.error.is_empty() and anti_monster_result.wounds == 0 and anti_monster_result.critical_wounds == 0, "Anti-Monster applies only to a MONSTER target")
+	var anti_psyker_weapon := weapon()
+	anti_psyker_weapon.attacks = 1
+	anti_psyker_weapon.strength = 2
+	anti_psyker_weapon.keywords = {"anti-psyker": 2}
+	var psyker_defender := defender()
+	psyker_defender.toughness = 10
+	var anti_psyker_result := resolve(anti_psyker_weapon, psyker_defender, {"target_keywords": ["PSYKER"], "defer_saves": true}, [6, 2])
+	check(anti_psyker_result.error.is_empty() and anti_psyker_result.wounds == 1 and anti_psyker_result.critical_wounds == 1, "Anti-Psyker 2+ makes an unmodified 2 a Critical Wound against a PSYKER")
+	anti_psyker_result = resolve(anti_psyker_weapon, psyker_defender, {"target_keywords": ["INFANTRY"], "defer_saves": true}, [6, 2])
+	check(anti_psyker_result.error.is_empty() and anti_psyker_result.wounds == 0 and anti_psyker_result.critical_wounds == 0, "Anti-Psyker applies only against a PSYKER target")
 	var d := defender()
 	var result := resolve(weapon(), d, {}, [3, 6, 4, 6, 3, 4])
 	check(result.error == "" and result.hits == 2 and result.wounds == 2, "Hit and wound pool")

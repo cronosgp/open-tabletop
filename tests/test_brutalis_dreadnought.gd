@@ -6,11 +6,22 @@ const Reactions = preload("res://scripts/edition_11/core_reactions.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
 const F = preload("res://tests/all_units_fixture.gd")
+const C = F.C
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
 var failures := 0
 var dice: Array[int] = []
+
+const EXPECTED_WEAPONS := {
+	"bolt-rifles": {"range_inches": 24.0, "attacks": 4, "skill": 3, "strength": 5, "ap": -1, "damage": 1, "keywords": {"twin-linked": true}},
+	"twin-heavy-bolter": {"range_inches": 36.0, "attacks": 3, "skill": 3, "strength": 5, "ap": -1, "damage": 2, "keywords": {"twin-linked": true, "sustained-hits": 1, "rapid-fire": 2}},
+	"twin-icarus-ironhail-heavy-stubber": {"range_inches": 36.0, "attacks": 3, "skill": 3, "strength": 4, "ap": -1, "damage": 1, "keywords": {"anti-fly": 3, "rapid-fire": 3, "twin-linked": true}},
+	"twin-multi-melta": {"range_inches": 18.0, "attacks": 2, "skill": 3, "strength": 10, "ap": -3, "damage": "D3+2", "keywords": {"twin-linked": true, "melta": 3}},
+	"brutalis-fists": {"range_inches": 0.0, "attacks": 6, "skill": 3, "strength": 12, "ap": -3, "damage": "D3+3", "keywords": {"twin-linked": true}},
+	"brutalis-talons": {"range_inches": 0.0, "attacks": 8, "skill": 3, "strength": 10, "ap": -2, "damage": 2, "keywords": {"sustained-hits": 1, "twin-linked": true, "cleave": 2}}
+}
 
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -33,14 +44,37 @@ func submit_choice(state: Dictionary, player: int, selected: Dictionary, roller:
 		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
 	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "choice": payload}, roller)
 
-func selection(copies: int = 1) -> Dictionary:
-	return {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000,
+func selection(copies: int = 1, category: String = "incursion") -> Dictionary:
+	return {"schema_version": 2, "faction": "Space Marines", "category": category, "points_limit": 2000 if category == "strike_force" else 1000,
 		"entries": [{"definition_id": "40kdc:11e:adeptus-astartes:brutalis-dreadnought", "models": 1, "copies": copies}]}
 
 func first_model(state: Dictionary, identity: String, owner: int) -> int:
 	for model: int in state.units:
 		if state.units[model].owner == owner and state.units[model].wounds > 0 and Abilities.identity(state.units[model]) == identity: return model
 	return -1
+
+func check_attack_profile(state: Dictionary, squad: int, model: int, target: int, melee: bool, weapon_id: String) -> void:
+	var selected: Dictionary = Equipment.select(state, model, melee, weapon_id, "standard")
+	check(selected.get("error", "").is_empty(), "The selected Brutalis model exposes %s to Equipment" % weapon_id)
+	if not selected.get("error", "").is_empty(): return
+	var expected: Dictionary = EXPECTED_WEAPONS[weapon_id]
+	for field in ["range_inches", "attacks", "skill", "strength", "ap", "damage"]:
+		check(selected.stats.get(field) == expected[field], "%s matches source %s" % [weapon_id, field])
+	check(selected.stats.get("keywords", {}) == expected.keywords, "%s matches its complete source keyword profile" % weapon_id)
+	var previous_phase: String = str(state.phase)
+	var previous_position: Vector2 = state.units[model].position
+	if melee:
+		state.phase = "fight"
+		var target_models: Array[int] = C.living(state, target)
+		if not target_models.is_empty(): state.units[model].position = state.units[target_models[0]].position
+	var amount := int(selected.stats.attacks) if melee else 1
+	var plan: Dictionary = C.AttackPlan.prepare(state, squad, melee, [{"model": model, "target": target, "amount": amount, "weapon": weapon_id, "profile": "standard"}], true)
+	state.phase = previous_phase
+	state.units[model].position = previous_position
+	check(plan.get("error", "").is_empty() and plan.get("batches", []).size() == 1, "%s routes through AttackPlan: %s" % [weapon_id, plan.get("error", "")])
+	if plan.get("error", "").is_empty() and plan.get("batches", []).size() == 1:
+		var sources: Array = plan.batches[0].context.get("attack_sources", [])
+		check(not sources.is_empty() and str(sources[0].get("weapon", "")) == weapon_id, "AttackPlan retains the correct source for %s" % weapon_id)
 
 func _initialize() -> void:
 	call_deferred("run")
@@ -58,33 +92,48 @@ func run() -> void:
 	check(talons.melee[0].profiles.standard.keywords == {"sustained-hits": 1, "twin-linked": true, "cleave": 2} and talons.melee[0].profiles.standard.target_restricted_traits == {"sustained-hits": ["MONSTER", "VEHICLE"]}, "Brutalis Talons preserve Cleave and conditional Sustained Hits")
 	check(Army.SPECS["brutalis-dreadnought"].current_reference and Army.SPECS["brutalis-dreadnought"].max_supported_copies == 3, "Brutalis admission is tied to the current-reference profile and explicit copy limit")
 	var admitted := Army.admit(selection())
-	var three := Army.admit(selection(3))
-	var four := Army.admit(selection(4))
-	check(admitted.error.is_empty() and admitted.total == 160 and three.error.is_empty() and three.total == 500 and not four.error.is_empty(), "Local construction uses exact first/second and third-plus prices and rejects a fourth copy: %s / %d; %s / %d; %s" % [admitted.get("error", ""), admitted.get("total", -1), three.get("error", ""), three.get("total", -1), four.get("error", "")])
+	var three := Army.admit(selection(3, "strike_force"))
+	var four := Army.admit(selection(4, "strike_force"))
+	var incursion_three := Army.admit(selection(3))
+	check(admitted.error.is_empty() and admitted.total == 160 and three.error.is_empty() and three.total == 500 and not four.error.is_empty() and not incursion_three.error.is_empty(), "Local construction uses source copy tiers, Strike Force's third-copy price and each game's copy cap: %s / %d; %s / %d; %s; Incursion: %s" % [admitted.get("error", ""), admitted.get("total", -1), three.get("error", ""), three.get("total", -1), four.get("error", ""), incursion_three.get("error", "")])
 	var wounded := {"unit_abilities": {"implementation": Abilities.ID}, "units": {
 		100: {"definition_id": "40kdc:11e:adeptus-astartes:brutalis-dreadnought", "wounds": 5},
 		101: {"definition_id": "40kdc:11e:adeptus-astartes:brutalis-dreadnought", "wounds": 4},
 		102: {"definition_id": "40kdc:11e:adeptus-astartes:redemptor-dreadnought", "wounds": 4}}}
 	check(Abilities.damaged_attack_penalty(wounded, 100) == 0 and Abilities.damaged_attack_penalty(wounded, 101) == -1 and Abilities.damaged_attack_penalty(wounded, 102) == -1, "Damaged 4 applies at four remaining wounds to both admitted Dreadnought sheets")
-	var selections := F.selections()
+	var selections := F.current_marine_selections()
+	var selected_brutalis := false
+	var selected_redemptor := false
 	for entry: Dictionary in selections[1].entries:
-		if entry.definition_id.ends_with(":assault-intercessor-squad"):
+		if entry.definition_id.ends_with(":intercessor-squad") and int(entry.models) == 5 and not selected_brutalis:
 			entry.definition_id = "40kdc:11e:adeptus-astartes:brutalis-dreadnought"
 			entry.models = 1
-		elif entry.definition_id.ends_with(":heavy-intercessor-squad"):
+			selected_brutalis = true
+		elif entry.definition_id.ends_with(":intercessor-squad") and int(entry.models) == 10 and not selected_redemptor:
 			entry.definition_id = "40kdc:11e:adeptus-astartes:redemptor-dreadnought"
 			entry.models = 1
+			selected_redemptor = true
 	var state := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true}, selections)
 	check(not state.has("error"), "Brutalis and Redemptor both materialize from consolidated current Marine profiles: %s" % state.get("error", ""))
 	if not state.has("error"):
 		var brutalis := first_model(state, "brutalis-dreadnought", 1)
 		var redemptor := first_model(state, "redemptor-dreadnought", 1)
-		var target_model := first_model(state, "necron-warriors", 2)
+		var target_model := first_model(state, "intercessor-squad", 2)
 		check(brutalis >= 0 and redemptor >= 0 and target_model >= 0, "Materialized battle includes both Vehicle sheets and a target")
 		if brutalis >= 0 and redemptor >= 0 and target_model >= 0:
 			var squad: int = state.units[brutalis].squad
 			var red_squad: int = state.units[redemptor].squad
 			var enemy_squad: int = state.units[target_model].squad
+			check(Reactions.crushing_unit(state, squad), "The source VEHICLE keyword makes the Brutalis eligible for Crushing Impact")
+			var profile_state: Dictionary = state.duplicate(true)
+			for model: int in profile_state.units:
+				profile_state.units[model].position = Vector2(-25, -20) if profile_state.units[model].owner == 1 else Vector2(25, 20)
+			profile_state.units[brutalis].position = Vector2.ZERO
+			for enemy: int in C.living(profile_state, enemy_squad): profile_state.units[enemy].position = Vector2(8, 0)
+			profile_state.phase = "shooting"
+			profile_state.active = 1
+			for weapon: Dictionary in profile_state.units[brutalis].ranged_weapons: check_attack_profile(profile_state, squad, brutalis, enemy_squad, false, str(weapon.id))
+			for weapon: Dictionary in profile_state.units[brutalis].melee_weapons: check_attack_profile(profile_state, squad, brutalis, enemy_squad, true, str(weapon.id))
 			state.awakened_dynasty.pending = []
 			var loadout_options := UnitActions.choices(state, 1)
 			var talon_choice: Dictionary = {}
@@ -101,10 +150,19 @@ func run() -> void:
 				var melta_error := PublicUnitCommand.error(state, 1, melta_choice)
 				check(melta_error.is_empty() and state.units[brutalis].ranged_weapons[0].id == "twin-multi-melta", "Selecting Twin Multi-melta replaces the Twin Heavy Bolter")
 			for model: int in state.units:
+				state.units[model].position = Vector2(-25, -20) if state.units[model].owner == 1 else Vector2(25, 20)
+			state.units[brutalis].position = Vector2.ZERO
+			for enemy: int in C.living(state, enemy_squad): state.units[enemy].position = Vector2(8, 0)
+			state.phase = "shooting"
+			state.active = 1
+			for weapon: Dictionary in state.units[brutalis].ranged_weapons: check_attack_profile(state, squad, brutalis, enemy_squad, false, str(weapon.id))
+			for weapon: Dictionary in state.units[brutalis].melee_weapons: check_attack_profile(state, squad, brutalis, enemy_squad, true, str(weapon.id))
+			for model: int in state.units:
 				if state.units[model].owner == 1: state.units[model].position = Vector2(-25, -20)
 				else: state.units[model].position = Vector2(25, 20)
 			state.units[brutalis].position = Vector2(6, 0)
 			state.units[target_model].position = Vector2(12, 0)
+			for enemy: int in C.living(state, enemy_squad): state.units[enemy].position = Vector2(12, 0)
 			state.phase = "charge"
 			state.active = 1
 			state.turn = 1
@@ -132,6 +190,9 @@ func run() -> void:
 				for option: Dictionary in choices:
 					if option.value == Reactions.CRUSHING and option.target == enemy_squad: tank_choice = option
 				check(not tank_choice.is_empty() and Reactions.cost_of(state, 1, squad, Reactions.CRUSHING) == 0, "Brutalis Charge offers Tank Shock for 0 CP against an engaged enemy")
+				var prior_normal_use_state: Dictionary = state.duplicate(true)
+				prior_normal_use_state.stratagems.uses.append({"player": 1, "squad": red_squad, "stratagem": Reactions.CRUSHING, "phase_key": Reactions.phase_key(prior_normal_use_state), "turn": prior_normal_use_state.turn, "brutalis_charge": false})
+				check(Reactions.error(prior_normal_use_state, 1, squad, Reactions.CRUSHING, brutalis, false, enemy_squad).is_empty() and Reactions.cost_of(prior_normal_use_state, 1, squad, Reactions.CRUSHING) == 0, "A prior ordinary Tank Shock use does not consume the Brutalis Charge exception")
 				if not tank_choice.is_empty():
 					dice = [6, 5, 5, 6, 6, 6, 6, 6, 6, 6]
 					var tank_result := submit_choice(state, 1, tank_choice, roll_die)

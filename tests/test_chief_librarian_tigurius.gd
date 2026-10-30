@@ -2,6 +2,7 @@ extends SceneTree
 const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Prevention = preload("res://scripts/edition_11/unit_prevention.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
@@ -9,6 +10,7 @@ const Abilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const PendingDecisions = preload("res://scripts/edition_11/pending_decision_registry.gd")
 const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
+const DatasheetChecks = preload("res://tests/space_marine_datasheet_checks.gd")
 
 var failures := 0
 var dice_queue: Array[int] = []
@@ -36,6 +38,25 @@ func find_model(state: Dictionary, owner: int, identity: String) -> int:
 		if state.units[model].owner == owner and Abilities.identity(state.units[model]) == identity: return model
 	return -1
 
+func position_telepathic_assault_target(state: Dictionary, target_squad: int) -> void:
+	state.terrain.areas = []
+	var source_model := find_model(state, 1, "chief-librarian-tigurius")
+	var source_squad: int = state.units[source_model].squad
+	var index := 0
+	for model: int in state.units:
+		state.units[model].position = Vector2(-15.0, 30.0 + index * 1.2) if state.units[model].owner == 1 else Vector2(24.0, 30.0 + index * 1.2)
+		index += 1
+	state.units[source_model].position = Vector2.ZERO
+	var bodyguard_index := 0
+	for bodyguard: int in Geometry.alive(state, source_squad):
+		if bodyguard == source_model: continue
+		state.units[bodyguard].position = Vector2(-2.0, 4.0 + bodyguard_index * 1.2)
+		bodyguard_index += 1
+	var target_index := 0
+	for target: int in Geometry.alive(state, target_squad):
+		state.units[target].position = Vector2(8.0, -2.0 + target_index * 1.1)
+		target_index += 1
+
 func action(state: Dictionary, action_id: String, value: String = "", target: int = -1, player: int = 1) -> Dictionary:
 	for option: Dictionary in C.UnitActions.choices(state, player):
 		if option.action == action_id and (value.is_empty() or option.value == value) and (target < 0 or option.target == target): return option
@@ -61,27 +82,17 @@ func submit_action(state: Dictionary, player: int, action_id: String, target: in
 	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "choice": payload}, Callable(self, "queued_die"))
 
 func make_state() -> Dictionary:
-	var lists := F.selections()
-	lists[1].entries = [entry("captain"), entry("intercessor-squad", 5), entry("infernus-squad", 5), entry("bladeguard-veteran-squad", 3), entry("heavy-intercessor-squad", 5)]
-	lists[2].entries = [
-		{"definition_id": "40kdc:11e:necrons:immortals", "models": 5, "copies": 1},
-		{"definition_id": "40kdc:11e:necrons:necron-warriors", "models": 10, "copies": 1}]
+	var lists := F.current_marine_selections()
+	lists[1].entries = [entry("chief-librarian-tigurius"), entry("intercessor-squad", 5), entry("infernus-squad", 5), entry("bladeguard-veteran-squad", 3), entry("heavy-intercessor-squad", 5)]
+	lists[2].entries = [entry("assault-intercessor-squad", 5), entry("intercessor-squad", 5)]
 	var state: Dictionary = F.P.initial_state({"checked_rosters": false, "official_mission": false, "unit_abilities": true, "combat_doctrines": true, "core_stratagems": true, "reanimation_protocols": true, "awakened_dynasty": true, "manual_allocation": false}, lists)
 	if state.has("error"): return state
-	var model := find_model(state, 1, "captain")
-	var profile := Profiles.profile("chief-librarian-tigurius")
-	state.units[model].definition_id = "40kdc:11e:adeptus-astartes:chief-librarian-tigurius"
-	state.units[model].keywords = profile.keywords.duplicate()
-	state.units[model].ranged_weapons = profile.ranged.duplicate(true)
-	state.units[model].melee_weapons = profile.melee.duplicate(true)
-	state.units[model].invulnerable_target = profile.stats.invulnerable_target
-	state.units[model].wounds = profile.stats.wounds
-	state.units[model].max_wounds = profile.stats.wounds
 	Abilities.enable(state)
 	state.awakened_dynasty.pending = []
 	state.unit_abilities.setup_players = []
 	var guard := find_squad(state, 1, "intercessor-squad")
-	if guard >= 0: C.UnitActions.attach(state, model, guard)
+	var tigurius := find_model(state, 1, "chief-librarian-tigurius")
+	if guard >= 0 and tigurius >= 0: C.UnitActions.attach(state, tigurius, guard)
 	state.mission.stage = "battle"
 	return state
 
@@ -90,25 +101,32 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var profile := Profiles.profile("chief-librarian-tigurius")
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000001611" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Tigurius profile identifies the exact local Wahapedia shared-book datasheet")
-	check(profile.points == 115 and profile.models == 1 and profile.base_size_source_mm == 40 and profile.stats == {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 5, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4}, "Tigurius source points, base and characteristics match")
+	check(profile.points == 115 and profile.points_by_models == {1: 115} and profile.max_supported_copies == 1 and profile.models == 1 and profile.base_size_source_mm == 40 and profile.stats == {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 5, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4}, "Tigurius source points, copy cap, base and characteristics match")
+	check(profile.get("additional_weapon_profiles", {}).is_empty(), "Tigurius's fixed source loadout has no selectable equipment replacements")
 	check(profile.keywords == ["INFANTRY", "TACTICUS", "PSYKER", "EXPLOSIVES", "EPIC HERO", "CHARACTER", "ADEPTUS ASTARTES", "ULTRAMARINES"], "Tigurius preserves only the source-exported non-faction and faction keywords")
 	check(profile.ranged[0].profiles.standard.keywords == {"close-quarters": true} and profile.ranged[1].profiles.standard.attacks == "D3+6" and profile.ranged[1].profiles.standard.keywords == {"psychic": true, "blast": 1}, "Bolt Pistol and Storm of the Emperor's Wrath preserve extracted weapon traits")
 	check(profile.melee[0].profiles.standard.attacks == 5 and profile.melee[0].profiles.standard.strength == 7 and profile.melee[0].profiles.standard.keywords == {"psychic": true}, "Rod of Tigurius matches the local export")
+	var identity := "40kdc:11e:adeptus-astartes:chief-librarian-tigurius"
+	var catalog_choice := Catalog.current_catalog_choice({"id": identity, "edition": "11e", "faction": "Space Marines"})
+	check(catalog_choice.get("options", []).size() == 1 and catalog_choice.options[0].get("models", 0) == 1 and catalog_choice.options[0].get("cost", 0) == 115, "The consolidated catalog publishes Tigurius's one-model source cost")
+	check(Catalog.resolve("Space Marines", identity).get("error", "").is_empty(), "Tigurius resolves through the admitted current-reference catalog")
 	var state := make_state()
-	check(not state.has("error"), "Tigurius fixture materializes from local profiles")
+	check(not state.has("error"), "Tigurius and both players' current Marine rosters materialize from the consolidated catalog")
 	if state.has("error"):
 		print(state.error)
 		quit(1)
 		return
 	var model := find_model(state, 1, "chief-librarian-tigurius")
 	var squad: int = state.units[model].squad
+	var enemy_intercessors := find_squad(state, 2, "intercessor-squad")
 	var intercessors := find_squad(state, 1, "intercessor-squad")
 	var infernus := find_squad(state, 1, "infernus-squad")
 	var bladeguard := find_squad(state, 1, "bladeguard-veteran-squad")
 	var heavy_intercessors := find_squad(state, 1, "heavy-intercessor-squad")
-	var immortals := find_squad(state, 2, "immortals")
-	var warriors := find_squad(state, 2, "necron-warriors")
-	check(Abilities.has(state, squad, "librarius") and Abilities.has(state, squad, "hood-of-hellfire") and Abilities.has(state, squad, "transhuman-strategist"), "Tigurius grants Hood of Hellfire, Librarius and Warlord rule")
+	position_telepathic_assault_target(state, enemy_intercessors)
+	check(Abilities.has(state, squad, "leader") and Abilities.has(state, squad, "combat-doctrines") and Abilities.has(state, squad, "librarius") and Abilities.has(state, squad, "hood-of-hellfire") and Abilities.has(state, squad, "transhuman-strategist"), "Tigurius grants Leader, Combat Doctrines, Hood of Hellfire, Librarius and Warlord rule")
+	for failure: String in DatasheetChecks.fixed_weapon_plan_failures(state, profile, model, enemy_intercessors):
+		check(false, "Tigurius source weapon plan: " + failure)
 	check(Prevention.rules(state, model).has({"target": 4, "against": "psychic"}) and Prevention.rules(state, model).has({"target": 4, "against": "mortal"}), "Hood of Hellfire grants Feel No Pain 4+ against Psychic and mortal damage")
 	var attached_bodyguards: Array[int] = Geometry.alive(state, squad).filter(func(bodyguard: int) -> bool: return bodyguard != model)
 	check(not attached_bodyguards.is_empty() and Prevention.rules(state, attached_bodyguards[0]).has({"target": 4, "against": "psychic"}) and Prevention.rules(state, attached_bodyguards[0]).has({"target": 4, "against": "mortal"}), "Hood of Hellfire protection extends to Tigurius's attached bodyguards")
@@ -155,11 +173,11 @@ func run() -> void:
 	check(Abilities.save_bonus(state, squad, Callable(C.Morale, "objective_control")) == 0, "Prescience expires at the start of Tigurius's next turn")
 	state.phase = "shooting"
 	state.active = 1
-	var telepathic := action(state, "tigurius-psychic", "telepathic-assault", immortals)
+	var telepathic := action(state, "tigurius-psychic", "telepathic-assault", enemy_intercessors)
 	check(not telepathic.is_empty(), "Telepathic Assault is offered against a visible enemy in 24 inches")
 	dice_queue = [1, 4, 2]
 	if not telepathic.is_empty():
-		var psychic_result := submit_action(state, 1, "tigurius-psychic", immortals, "telepathic-assault", model)
+		var psychic_result := submit_action(state, 1, "tigurius-psychic", enemy_intercessors, "telepathic-assault", model)
 		check(str(psychic_result.get("error", "")).is_empty(), "Telepathic Assault resolves through the common match command")
 	check(state.squads[squad].battle_shocked, "A psychic roll of 1 makes Tigurius's unit Battle-shocked")
 	check(state.unit_abilities.get("window", {}).get("kind", "") == C.CoreReactions.TIGURIUS_MORTAL and state.get("last_tigurius_telepathic_assault", {}).get("mortal_wounds", 0) == 3, "Telepathic Assault inflicts 2D3 mortal wounds and opens normal allocation")
@@ -172,7 +190,7 @@ func run() -> void:
 	state = restored_mortal_state
 	var first_mortal_model := int(mortal_decision.legal_options[0].model)
 	var before_wrong_mortal_owner := var_to_bytes(state)
-	var wrong_mortal_owner := submit_action(state, 1, "mortal-allocate", immortals, C.CoreReactions.TIGURIUS_MORTAL, first_mortal_model)
+	var wrong_mortal_owner := submit_action(state, 1, "mortal-allocate", enemy_intercessors, C.CoreReactions.TIGURIUS_MORTAL, first_mortal_model)
 	check(not str(wrong_mortal_owner.get("error", "")).is_empty() and var_to_bytes(state) == before_wrong_mortal_owner, "The attacker cannot submit or mutate the defender's mortal allocation")
 	var mortal_allocations_ok := true
 	for allocation_index in range(3):
@@ -183,7 +201,7 @@ func run() -> void:
 			break
 		var model_to_wound := int(available[0].model)
 		dice_queue = [4]
-		var allocation_result := submit_action(state, 2, "mortal-allocate", immortals, C.CoreReactions.TIGURIUS_MORTAL, model_to_wound)
+		var allocation_result := submit_action(state, 2, "mortal-allocate", enemy_intercessors, C.CoreReactions.TIGURIUS_MORTAL, model_to_wound)
 		if not str(allocation_result.get("error", "")).is_empty():
 			mortal_allocations_ok = false
 			break
@@ -201,10 +219,12 @@ func run() -> void:
 		var simultaneous_prescience_result := submit_action(simultaneous, 1, "tigurius-psychic", simultaneous_squad, "prescience", simultaneous_model)
 		check(str(simultaneous_prescience_result.get("error", "")).is_empty(), "Prescience resolves before the Shooting phase through the common match command")
 	simultaneous.phase = "shooting"
-	var simultaneous_telepathic := action(simultaneous, "tigurius-psychic", "telepathic-assault", find_squad(simultaneous, 2, "immortals"))
+	var simultaneous_enemy := find_squad(simultaneous, 2, "assault-intercessor-squad")
+	position_telepathic_assault_target(simultaneous, simultaneous_enemy)
+	var simultaneous_telepathic := action(simultaneous, "tigurius-psychic", "telepathic-assault", simultaneous_enemy)
 	dice_queue = [6, 6, 6]
 	if not simultaneous_telepathic.is_empty():
-		var simultaneous_telepathic_result := submit_action(simultaneous, 1, "tigurius-psychic", find_squad(simultaneous, 2, "immortals"), "telepathic-assault", simultaneous_model)
+		var simultaneous_telepathic_result := submit_action(simultaneous, 1, "tigurius-psychic", simultaneous_enemy, "telepathic-assault", simultaneous_model)
 		check(str(simultaneous_telepathic_result.get("error", "")).is_empty(), "Telepathic Assault remains available in the same own turn through the common match command")
 	check(simultaneous.unit_abilities.used.has("tigurius-prescience:%d:1" % simultaneous_squad) and simultaneous.unit_abilities.used.has("tigurius-telepathic:%d:1" % simultaneous_squad), "Level-2 Prescience and level-1 Telepathic Assault each resolve during one turn")
 	print("Chief Librarian Tigurius profile checks: %d failures" % failures)

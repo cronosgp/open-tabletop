@@ -1,0 +1,160 @@
+{
+  "id": "space-marines-invader-atvs-current-e11-scope",
+  "edition": "11th edition",
+  "source_authority": "Wahapedia 11e shared Space Marines datasheet; facts checked against the verified local Data Export snapshot and live datasheet.",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000004247",
+  "source_datasheet_name": "Invader ATVs",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Invader-ATVs",
+  "observed_at": "2026-10-28",
+  "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; 11e page rechecked 2026-10-28; Data Export specification revision 20260817b.",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ]
+  },
+  "source_context": {
+    "conditional_keyword": "RAVENWING",
+    "rule_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing",
+    "rule": "Dark Angels context grants RAVENWING to ADEPTUS ASTARTES MOUNTED units; outside that context, remove the source-projected keyword from this shared-profile instance.",
+    "keyword_context_audit": "docs/wahapedia-keyword-context.json",
+    "keyword_context_id": "wahapedia-marine-keyword-context-2026-10-26-v49",
+    "base_size": "Use model",
+    "runtime_geometry": "90 x 52 mm oval footprint proxy; not a source-verified base measurement."
+  },
+  "implementation": [
+    {
+      "path": "scripts/edition_11/current_reference_marine_profiles.gd",
+      "sha256": "ace0c03075cf1e2deab133f22731ff0b7b333d9ca8154ba880b8c4416169bc0e"
+    },
+    {
+      "path": "scripts/edition_11/army_capabilities.gd",
+      "sha256": "b9dbbf341a3ed0e3f5b216c09b8d4128acd11dc3c818109cddea04e5855dfb6d"
+    },
+    {
+      "path": "scripts/edition_11/roster_validation.gd",
+      "sha256": "14f30a3bd4781feaafde312468ee18432147866f46004bf85645cda401b1df96"
+    },
+    {
+      "path": "scripts/edition_11/unit_abilities.gd",
+      "sha256": "0172ed93f0df1d385131d8f736a2be49feeb22644afcfe282e78d43d2a22f665"
+    },
+    {
+      "path": "scripts/edition_11/unit_ability_catalog.gd",
+      "sha256": "2e87326d97533478d092b79e81b45361bc8eb5b43e8b4c5fbb73bd47f1cfc62c"
+    },
+    {
+      "path": "scripts/edition_11/chapter_rules.gd",
+      "sha256": "307603b063340738197ecf613901e056610076508bb7e790ca36807f6a445087"
+    },
+    {
+      "path": "scripts/edition_11/attack_plan.gd",
+      "sha256": "0a3bcf2046aec615944e28aaf5299be820f8f6d33f9961d49f9008f0edd59f46"
+    },
+    {
+      "path": "scripts/edition_11/equipment.gd",
+      "sha256": "a747e67cb4c63c8d00379953f89ebd896a52730d76efeeb9fc2359a184bbec44"
+    },
+    {
+      "path": "scripts/edition_11/marine_leader_links.gd",
+      "sha256": "84cd00c910ff133f136d44a59adfd6c0f271ff2a2efd3be412ac04d574fe4d25"
+    },
+    {
+      "path": "scripts/edition_11/support_attachments.gd",
+      "sha256": "d6e3292412a3b7b10f0fe816b4d6a037028c4ffcbd3412130420e7b00022eb67"
+    },
+    {
+      "path": "scripts/edition_11/capabilities.gd",
+      "sha256": "e54ccbae954a5555db4e463d104733c991ff37ed715e4590a0f8d14b89d90f92"
+    },
+    {
+      "path": "tests/test_invader_atvs.gd",
+      "sha256": "0c39a3259bbbc4d36959728926ef65de03ba3d1cdfdceb81f98991dbbb52efee"
+    },
+    {
+      "path": "tests/test_marine_conditional_weapon_traits.gd",
+      "sha256": "3be93418d546ead3e5a76383ef1ccb07846a04500da3ea77ee9b0f9e5906c30c"
+    },
+    {
+      "path": "tests/space_marine_datasheet_checks.gd",
+      "sha256": "eb64b310e2614278fc26581ebf6ad0afccef5277a514639b6153ea2e47c274da"
+    },
+    {
+      "path": "tests/all_units_fixture.gd",
+      "sha256": "eeba563cd7ededafa4a878443e801c548fea67cb609dec1178717f3f969d0d41"
+    },
+    {
+      "path": "tools/verify.py",
+      "sha256": "415b231070a607be6322b21d77fb53822a68223f65ba1866c735e93ddf5a3ca1"
+    },
+    {
+      "path": "docs/wahapedia-keyword-context.json",
+      "sha256": "f635545c278fe6ceac8a0327b6aab954220c340c26b342423f39cf3f3fbd2e38"
+    }
+  ],
+  "test_file": "tests/test_invader_atvs.gd",
+  "scope": "Invader ATVs source-bounded shared-book scope: 1/2-model composition, characteristics, 65/130 first-two and 75/140 third-plus prices, all fixed weapon profiles through Equipment/AttackPlan, Multi-melta through Equipment, per-model reversible +5 choice, copy tiers in current catalog and saved roster rows, Aggressive Reconnaissance own-Shooting-phase +1 wound with the edge-to-edge 6-inch boundary in AttackPlan, no opponent-phase/Overwatch effect, contextual Dark Angels RAVENWING, both-player catalogs and no Leader/Support links.",
+  "limits": "The source says Use model for base size; runtime 90 x 52 mm oval footprint is a labelled geometry proxy, not a verified base measurement. Chapter-book variants and restrictions, full faction/army legality, complete matches, network behavior and human playtesting are outside the scope; network verification is deferred to final integration.",
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_invader_atvs --only test_marine_conditional_weapon_traits --only test_space_marine_leader_links --timeout 300",
+    "result": "passed",
+    "processes": "5/5",
+    "artifact": ".tools/verification/20261028T061032408179Z/results.json",
+    "artifact_sha256": "2789e8f3c1ec39549d7be5ea344a93f7b653ae6edcef43417e4adefb49e7871b",
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false
+  },
+  "relation_map_identities": []
+}

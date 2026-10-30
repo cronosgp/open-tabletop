@@ -2,8 +2,9 @@ extends SceneTree
 ## Offline audit helper; exports runtime data without starting a match or using saves.
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
+const Army = preload("res://scripts/edition_11/army_capabilities.gd")
 const IDENTITIES := ["chaplain-on-bike", "captain-on-bike", "adrax-agatone", "kaius-konorius", "librarian", "aethon-shaan", "intercessor-squad", "assault-intercessor-squad", "heavy-intercessor-squad", "terminator-squad", "terminator-assault-squad", "captain", "lieutenant",
-	"infiltrator-squad", "lieutenant-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "suboden-khan", "iron-father-feirros", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "victrix-honour-guard", "marneus-calgar", "caanok-var", "ancient-in-terminator-armour", "wardens-of-ultramar", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "bladeguard-veteran-squad", "judiciar", "chaplain", "sternguard-veteran-squad", "eliminator-squad", "eradicator-squad-with-melta-rifles", "eradicator-squad-with-heavy-bolters", "apothecary-biologis", "aggressor-squad", "infernus-squad", "hellblaster-squad", "assault-intercessors-with-jump-packs", "captain-with-jump-pack", "vanguard-veteran-squad-with-jump-packs", "chaplain-with-jump-pack", "librarian-in-terminator-armour", "librarian-in-phobos-armour", "captain-in-phobos-armour", "scout-squad", "incursor-squad", "reiver-squad", "firestrike-servo-turrets", "ballistus-dreadnought", "redemptor-dreadnought", "brutalis-dreadnought", "invictor-tactical-warsuit", "desolation-squad", "lieutenant-with-combi-weapon", "techmarine", "roboute-guilliman", "inceptor-squad", "company-heroes", "outrider-squad", "gladiator-reaper", "gladiator-valiant", "gladiator-lancer", "land-speeder", "storm-speeder-hammerstrike", "storm-speeder-hailstrike", "storm-speeder-thunderstrike", "invader-atvs", "kor-sarro-khan", "captain-titus", "vulkan-hestan", "land-raider", "land-raider-crusader", "drop-pod", "land-raider-redeemer", "impulsor", "repulsor", "repulsor-executioner", "rhino"]
+	"infiltrator-squad", "lieutenant-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "suboden-khan", "iron-father-feirros", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "victrix-honour-guard", "marneus-calgar", "caanok-var", "ancient-in-terminator-armour", "wardens-of-ultramar", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "bladeguard-veteran-squad", "judiciar", "chaplain", "sternguard-veteran-squad", "eliminator-squad", "eradicator-squad-with-melta-rifles", "eradicator-squad-with-heavy-bolters", "apothecary-biologis", "aggressor-squad", "infernus-squad", "hellblaster-squad", "assault-intercessors-with-jump-packs", "captain-with-jump-pack", "vanguard-veteran-squad-with-jump-packs", "chaplain-with-jump-pack", "librarian-in-terminator-armour", "librarian-in-phobos-armour", "captain-in-phobos-armour", "scout-squad", "incursor-squad", "reiver-squad", "firestrike-servo-turrets", "ballistus-dreadnought", "redemptor-dreadnought", "brutalis-dreadnought", "invictor-tactical-warsuit", "desolation-squad", "lieutenant-with-combi-weapon", "techmarine", "roboute-guilliman", "lion-eljonson", "emperor-s-champion", "black-templars-gladiator-lancer", "black-templars-gladiator-reaper", "black-templars-gladiator-valiant", "black-templars-impulsor", "black-templars-repulsor", "black-templars-repulsor-executioner", "inceptor-squad", "company-heroes", "outrider-squad", "gladiator-reaper", "gladiator-valiant", "gladiator-lancer", "land-speeder", "storm-speeder-hammerstrike", "storm-speeder-hailstrike", "storm-speeder-thunderstrike", "invader-atvs", "kor-sarro-khan", "captain-titus", "vulkan-hestan", "land-raider", "land-raider-crusader", "drop-pod", "land-raider-redeemer", "impulsor", "repulsor", "repulsor-executioner", "rhino"]
 
 func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
@@ -15,10 +16,56 @@ func _initialize() -> void:
 		push_error("Output already exists")
 		quit(1)
 		return
+	var current_catalog: Dictionary = Profiles.catalog()
+	var identities: Array[String] = []
+	for identity_variant: Variant in IDENTITIES:
+		var identity := str(identity_variant)
+		if not identities.has(identity): identities.append(identity)
+	for identity_variant: Variant in current_catalog:
+		var identity := str(identity_variant)
+		if not identities.has(identity): identities.append(identity)
+	identities.sort()
 	var profiles := {}
-	for identity: String in IDENTITIES:
+	for identity: String in identities:
 		profiles[identity] = Profiles.profile(identity)
-		if Roster.POINTS.has(identity): profiles[identity].fixed_roster = Roster.POINTS[identity].duplicate(true)
+		if identity == "crusader-squad":
+			var crusader_loadouts: Array[Dictionary] = []
+			var crusader_model_count := int(profiles[identity].get("models", 10))
+			for model_index in range(crusader_model_count):
+				var loadout := Profiles.crusader_squad_model_loadout(model_index, crusader_model_count)
+				if not loadout.is_empty(): crusader_loadouts.append(loadout)
+			profiles[identity].model_loadouts = crusader_loadouts
+		if identity == "wolf-scouts":
+			var wolf_scout_loadouts: Array[Dictionary] = []
+			var wolf_scout_model_count := int(profiles[identity].get("models", 6))
+			for model_index in range(wolf_scout_model_count):
+				var loadout := Profiles.wolf_scouts_model_loadout(model_index, wolf_scout_model_count)
+				if not loadout.is_empty(): wolf_scout_loadouts.append(loadout)
+			profiles[identity].model_loadouts = wolf_scout_loadouts
+			var instigator_loadout: Dictionary = Profiles.wolf_scouts_model_loadout(3, 12, "instigator-bolt-carbine")
+			var instigator_weapons: Array = instigator_loadout.get("ranged", [])
+			var additional_profiles: Dictionary = profiles[identity].get("additional_weapon_profiles", {}).duplicate(true)
+			var additional_ranged: Array = additional_profiles.get("ranged", []).duplicate(true)
+			if not instigator_weapons.is_empty():
+				for option_index in range(additional_ranged.size()):
+					if str(additional_ranged[option_index].get("id", "")) == "instigator-bolt-carbine":
+						additional_ranged[option_index] = instigator_weapons[0].duplicate(true)
+			additional_profiles["ranged"] = additional_ranged
+			profiles[identity].additional_weapon_profiles = additional_profiles
+		var keywords: Array = profiles[identity].get("keywords", [])
+		profiles[identity].max_supported_copies = int(Army.SPECS.get(identity, {}).get("max_supported_copies", 6 if "BATTLELINE" in keywords else 3))
+		if Roster.POINTS.has(identity):
+			profiles[identity].fixed_roster = Roster.POINTS[identity].duplicate(true)
+			# The e11 export has duplicate total-model cost rows for Headtakers.
+			# Preserve the official MFM role mapping so comparison can distinguish
+			# the legal mixed rows from the incompatible Headtakers-only rows.
+			if profiles[identity].has("mfm_composition_cost_rows"):
+				profiles[identity].fixed_roster.mfm_composition_cost_rows = profiles[identity].mfm_composition_cost_rows.duplicate(true)
+			if profiles[identity].has("unpriced_source_permitted_role_mix_note"):
+				profiles[identity].fixed_roster.unpriced_source_permitted_role_mix_note = str(profiles[identity].unpriced_source_permitted_role_mix_note)
+			var profile_wargear_costs: Dictionary = profiles[identity].get("wargear_costs", {})
+			if not profile_wargear_costs.is_empty():
+				profiles[identity].fixed_roster.wargear_costs = profile_wargear_costs.duplicate(true)
 		if identity == "scout-squad":
 			profiles[identity].additional_weapon_profiles = {"ranged": [
 				Profiles.scout_ranged("shotgun")[1], Profiles.scout_ranged("sniper-rifle")[1],
@@ -29,7 +76,6 @@ func _initialize() -> void:
 		if identity == "redemptor-dreadnought":
 			var options: Dictionary = profiles[identity].additional_weapon_profiles
 			profiles[identity].additional_weapon_profiles = {"ranged": [options.storm_bolters, options.onslaught, options.macro_plasma, options.icarus_rocket_pod], "melee": []}
-			profiles[identity].fixed_roster.wargear_costs = profiles[identity].wargear_costs.duplicate(true)
 		if identity == "brutalis-dreadnought":
 			var options: Dictionary = profiles[identity].additional_weapon_profiles
 			profiles[identity].additional_weapon_profiles = {"ranged": [options.twin_multi_melta], "melee": [options.brutalis_talons]}
@@ -110,7 +156,14 @@ func _initialize() -> void:
 		push_error("Cannot write profile export")
 		quit(1)
 		return
-	file.store_string(JSON.stringify({"id": Profiles.ID, "digest": Profiles.digest(), "roster_digest": Roster.digest(), "profiles": profiles}, "\t"))
+	file.store_string(JSON.stringify({"id": Profiles.ID, "digest": Profiles.digest(), "roster_digest": Roster.digest(),
+		"profile_count": profiles.size(), "manual_option_profile_count": IDENTITIES.size(),
+		"audit_scope": "All current runtime profiles; numeric model/default-weapon checks for exported entries; optional weapon profiles are enriched only for the manually enumerated subset.",
+		"profiles": profiles}, "\t"))
 	file.close()
-	print("Exported %d runtime Marine profiles for audit" % profiles.size())
+	if profiles.size() != current_catalog.size():
+		push_error("Runtime audit export did not cover the complete current Marine catalog")
+		quit(1)
+		return
+	print("Exported %d runtime Marine profiles for audit (%d with manually enriched option profiles)" % [profiles.size(), IDENTITIES.size()])
 	quit(0)

@@ -1,0 +1,122 @@
+{
+  "title": "Chaplain With Jump Pack implementation audit",
+  "observed_at": "2026-10-27",
+  "source_authority": "Wahapedia 11th-edition local Data Export snapshot",
+  "source": {
+    "book_id": "000000139",
+    "datasheet_id": "000000112",
+    "runtime_source_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Chaplain-With-Jump-Pack",
+    "edition": "11th",
+    "game_mode": "matched play datasheet scope",
+    "page_observed_at": "2026-10-27",
+    "app_version": "Space Marines App 2.8.1 / October 2026",
+    "source_chapter_scope": "Common Space Marines book 000000139; Chapter supplements excluded.",
+    "game_mode_scope": "Matched-play local datasheet construction/combat scope",
+    "export_revision": "20260817b"
+  },
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Abilities.csv",
+        "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ]
+  },
+  "scope": {
+    "selectable_identity": "chaplain-with-jump-pack",
+    "points": 75,
+    "composition": "1 model",
+    "base": "40 mm round",
+    "source_options_rows": 0,
+    "admitted_leader_targets": [
+      "Assault Intercessors With Jump Packs",
+      "Vanguard Veteran Squad With Jump Packs"
+    ],
+    "excluded_source_leader_targets": "Chapter-specific sheets outside the shared-book runtime catalog"
+  },
+  "profile_checks": [
+    "M12, T5, Sv3+, 4+ invulnerable save, W4, Ld5+, OC1",
+    "Absolvor Bolt Pistol: 18 inches, A1, BS3+, S5, AP-2, D2, Close-quarters",
+    "Crozius Arcanum: A5, WS2+, S6, AP-1, D2, Cleave 1",
+    "Deep Strike and Character keyword are represented in the current local profile"
+  ],
+  "abilities": [
+    "Leader: admitted for the two listed common-book Jump Pack bodyguards",
+    "Litany of Hate: attached unit melee attacks gain Lance",
+    "Exhortation of Rage: at or below half-strength, optional melee Wound rerolls include successful and failed results; no ranged rerolls"
+  ],
+  "current_scope_validation": {
+    "test_file": "tests\\test_chaplain_with_jump_pack.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_chaplain_on_bike --only test_chaplain_with_jump_pack --only test_space_marine_leader_links --timeout 300",
+    "artifact": ".tools/verification/20261027T103130253761Z/results.json",
+    "artifact_sha256": "621fc4919202fbf3c121213824ee0dc085508de7eef8f0138dd9a99b02e976f6",
+    "status": "passed; 5/5 processes; network=false; no cleanup diagnostics",
+    "scope_summary": "Full source-bounded Chaplain With Jump Pack scope against the pinned 2026-10-21 Wahapedia 11e snapshot: one-model/75-point fixed profile and weapons, Deep Strike, both admitted common-book Leader links, current-catalog construction, complete Crozius attack planning and Litany of Hate, plus optional Exhortation of Rage melee Wound rerolls above, at and below half-strength including successful and failed dice.",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "source_edition": "11th",
+    "source_chapter_scope": "Common Space Marines book 000000139; Chapter supplements excluded.",
+    "game_mode_scope": "Matched-play local datasheet construction/combat scope.",
+    "source_page_observed_at": "2026-10-27",
+    "source_app_version": "Space Marines App 2.8.1 / October 2026",
+    "source_export_revision": "20260817b"
+  },
+  "limits": [
+    "Common-book datasheet scope only; Chapter-specific Leader endpoints are excluded",
+    "Full faction and army legality are not certified",
+    "Network behavior, complete-match certification and human playtesting remain pending"
+  ]
+}

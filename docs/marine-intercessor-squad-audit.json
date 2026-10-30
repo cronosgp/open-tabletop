@@ -1,0 +1,290 @@
+{
+  "id": "space-marines-intercessor-squad-current-e11-scope",
+  "edition": "11th edition",
+  "source_authority": "Wahapedia 11e shared Space Marines datasheet; facts checked against the verified local Data Export snapshot.",
+  "source_book_id": "000000139",
+  "source_datasheet_id": "000001157",
+  "source_datasheet_name": "Intercessor Squad",
+  "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
+  "source_export_updated_at": "2026-10-16T21:03:46+03:00",
+  "observed_at": "2026-10-28",
+  "source_snapshot": {
+    "snapshot_id": "20261021T130623Z",
+    "retrieved_at_utc": "2026-10-21T19:46:58Z",
+    "source_export_updated_at": "2026-10-21 16:06:23 GMT+3 (from Last_update.csv)",
+    "specification_revision": "20260817b",
+    "manifest_file_count": 23,
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+    "relevant_file_hashes": [
+      {
+        "filename": "Last_update.csv",
+        "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"
+      },
+      {
+        "filename": "Source.csv",
+        "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"
+      },
+      {
+        "filename": "Datasheets.csv",
+        "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"
+      },
+      {
+        "filename": "Datasheets_models.csv",
+        "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"
+      },
+      {
+        "filename": "Datasheets_models_cost.csv",
+        "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"
+      },
+      {
+        "filename": "Datasheets_unit_composition.csv",
+        "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"
+      },
+      {
+        "filename": "Datasheets_options.csv",
+        "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"
+      },
+      {
+        "filename": "Datasheets_wargear.csv",
+        "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"
+      },
+      {
+        "filename": "Datasheets_keywords.csv",
+        "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+      },
+      {
+        "filename": "Datasheets_abilities.csv",
+        "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"
+      },
+      {
+        "filename": "Datasheets_leader.csv",
+        "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"
+      }
+    ]
+  },
+  "implementation": [
+    {
+      "path": "scripts/edition_11/current_reference_marine_profiles.gd",
+      "sha256": "ace0c03075cf1e2deab133f22731ff0b7b333d9ca8154ba880b8c4416169bc0e"
+    },
+    {
+      "path": "scripts/edition_11/army_capabilities.gd",
+      "sha256": "9ebc51ee8bb5e29f7fb38115a67063025776e38330823ad2d2b83fa4c79768dc"
+    },
+    {
+      "path": "scripts/edition_11/roster_validation.gd",
+      "sha256": "14f30a3bd4781feaafde312468ee18432147866f46004bf85645cda401b1df96"
+    },
+    {
+      "path": "scripts/edition_11/unit_actions.gd",
+      "sha256": "94f9147b8f84e41d33a18324ce281a5ba183ff63e2d856fe209eb7bf165a7c53"
+    },
+    {
+      "path": "scripts/edition_11/unit_abilities.gd",
+      "sha256": "f6df87ad5dd64582e6c1516def255d133c22d021c8d4513ac54d21307db2152d"
+    },
+    {
+      "path": "scripts/edition_11/unit_ability_catalog.gd",
+      "sha256": "2e87326d97533478d092b79e81b45361bc8eb5b43e8b4c5fbb73bd47f1cfc62c"
+    },
+    {
+      "path": "scripts/edition_11/actions.gd",
+      "sha256": "6c082131fbb1d02b068c935388499e24f91062e2004b31e211e9f9874a833819"
+    },
+    {
+      "path": "scripts/edition_11/attack_plan.gd",
+      "sha256": "0a3bcf2046aec615944e28aaf5299be820f8f6d33f9961d49f9008f0edd59f46"
+    },
+    {
+      "path": "scripts/edition_11/equipment.gd",
+      "sha256": "a747e67cb4c63c8d00379953f89ebd896a52730d76efeeb9fc2359a184bbec44"
+    },
+    {
+      "path": "scripts/edition_11/marine_leader_links.gd",
+      "sha256": "84cd00c910ff133f136d44a59adfd6c0f271ff2a2efd3be412ac04d574fe4d25"
+    },
+    {
+      "path": "scripts/edition_11/support_attachments.gd",
+      "sha256": "d6e3292412a3b7b10f0fe816b4d6a037028c4ffcbd3412130420e7b00022eb67"
+    },
+    {
+      "path": "tests/test_intercessor_current.gd",
+      "sha256": "7d17b47db0215612fa46baa1b242e9d9e2ccf330c707410fe990c5063b128a73"
+    },
+    {
+      "path": "tests/space_marine_datasheet_checks.gd",
+      "sha256": "eb64b310e2614278fc26581ebf6ad0afccef5277a514639b6153ea2e47c274da"
+    },
+    {
+      "path": "tests/public_unit_command.gd",
+      "sha256": "a794f809babcaf677bb42bfbb4d2e10575c2e76b4db0fc136ed864417bf9e75f"
+    },
+    {
+      "path": "tools/verify.py",
+      "sha256": "f3b5dd3695301347dc0daefaf7def5cbd0164800e6d1bc1ded1a5b90a21a379c"
+    }
+  ],
+  "validation_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_intercessor_current --only test_space_marine_leader_links --timeout 300",
+  "validation_artifact": ".tools/verification/20261028T051426845028Z/results.json",
+  "validation_artifact_sha256": "3539e140d8a8761f330ef0ad244626f492895d90de8ed833ecb822b8a3ed4dea",
+  "validation_status": "passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+  "fixed_data_consistent": true,
+  "verified_profile": {
+    "composition": "One Intercessor Sergeant and four to nine Intercessors; 5/10 models.",
+    "points": {
+      "5": 85,
+      "10": 170,
+      "third_plus_tier": null
+    },
+    "base": "32 mm circle",
+    "characteristics": {
+      "movement_inches": 6,
+      "toughness": 5,
+      "save": "3+",
+      "wounds": 2,
+      "leadership": "6+",
+      "objective_control": 2,
+      "invulnerable_save": null
+    },
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "BATTLELINE",
+      "EXPLOSIVES",
+      "IMPERIUM",
+      "INFANTRY",
+      "TACTICUS"
+    ],
+    "default_weapons": [
+      "Bolt Rifle",
+      "Bolt Pistol",
+      "Knives and Fists"
+    ],
+    "optional_equipment": [
+      "Sergeant replaces Knives and Fists with Chainsword, Power Fist, Power Weapon or Thunder Hammer.",
+      "Sergeant replaces Bolt Rifle with Chainsword, Hand Flamer, Plasma Pistol or Power Weapon; Bolt Pistol remains equipped.",
+      "One non-Sergeant model per five models adds a Grenade Launcher."
+    ],
+    "abilities": [
+      "Bolter Discipline: in the unit's own Shooting phase, +1 ranged Hit when the unit or target is within objective range.",
+      "Tactical Mainstay: Battle-shock and Engagement do not prevent an otherwise eligible action; starting an action does not block shooting. Other action requirements remain."
+    ]
+  },
+  "weapon_profiles_checked": [
+    "Bolt Rifle Focused Fire and Saturation.",
+    "Bolt Pistol and Knives and Fists.",
+    "Grenade Launcher Frag and Krak.",
+    "Hand Flamer, including Torrent.",
+    "Plasma Pistol Standard and Supercharge, including Hazardous.",
+    "Chainsword, Power Fist, Power Weapon and Thunder Hammer, including Devastating Wounds."
+  ],
+  "leader_links": [
+    "Adrax Agatone",
+    "Ancient",
+    "Apothecary",
+    "Captain",
+    "Captain Titus",
+    "Chaplain",
+    "Chief Librarian Tigurius",
+    "Judiciar",
+    "Kor'sarro Khan",
+    "Librarian",
+    "Lieutenant",
+    "Marneus Calgar",
+    "Techmarine",
+    "Wardens of Ultramar"
+  ],
+  "support_links": [
+    "Ancient",
+    "Apothecary",
+    "Judiciar",
+    "Lieutenant",
+    "Wardens of Ultramar"
+  ],
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_source_bounded_local_scope_validated": true,
+  "full_army_legality_certified": false,
+  "full_match_certified": false,
+  "known_scope_limits": [
+    "The local fixed-roster check is the project's MFM 1.6 1,000-point Incursion path; its current Battleline repetition gate permits four copies and is not a full 11th-edition army-legality certificate. No third-plus Intercessor price tier is present in the source profile. Other Chapter-specific Leader links and rules, Forge World, Legends, full faction/army legality, network behavior, complete-match certification and human playtesting remain outside this scope; network validation is deferred to final integration."
+  ],
+  "current_scope_validation": {
+    "observed_at": "2026-10-28",
+    "profile": "intercessor-squad",
+    "test_file": "tests/test_intercessor_current.gd",
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_intercessor_current --only test_space_marine_leader_links --timeout 300",
+    "artifact": ".tools/verification/20261028T051426845028Z/results.json",
+    "artifact_sha256": "3539e140d8a8761f330ef0ad244626f492895d90de8ed833ecb822b8a3ed4dea",
+    "status": "passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
+    "source_revision": "Space Marines App 2.8.1 / October 2026; stable Last_update 2026-10-19 03:47:32; live datasheet page checked 2026-10-28 UTC.",
+    "source_scope_summary": "Complete shared-book scope covers five/ten-model composition and 85/170 points; 32 mm bases, all characteristics/keywords and default loadout; every Bolt Rifle, Grenade Launcher, Hand Flamer, Plasma Pistol, melee and optional Sergeant profile through Equipment and AttackPlan; public reversible Sergeant choices, owner/model/value rejection, and one Grenade Launcher per five models; Bolter Discipline and Tactical Mainstay boundaries; all fourteen common-book Leader/Supported by links, five common-book Supported by identities, seven source-reviewed Support targets available to Intercessor Squad, both-player current-catalog materialization and local Incursion admission.",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "implementation_files": [
+      {
+        "path": "scripts/edition_11/current_reference_marine_profiles.gd",
+        "sha256": "ace0c03075cf1e2deab133f22731ff0b7b333d9ca8154ba880b8c4416169bc0e"
+      },
+      {
+        "path": "scripts/edition_11/army_capabilities.gd",
+        "sha256": "9ebc51ee8bb5e29f7fb38115a67063025776e38330823ad2d2b83fa4c79768dc"
+      },
+      {
+        "path": "scripts/edition_11/roster_validation.gd",
+        "sha256": "14f30a3bd4781feaafde312468ee18432147866f46004bf85645cda401b1df96"
+      },
+      {
+        "path": "scripts/edition_11/unit_actions.gd",
+        "sha256": "94f9147b8f84e41d33a18324ce281a5ba183ff63e2d856fe209eb7bf165a7c53"
+      },
+      {
+        "path": "scripts/edition_11/unit_abilities.gd",
+        "sha256": "f6df87ad5dd64582e6c1516def255d133c22d021c8d4513ac54d21307db2152d"
+      },
+      {
+        "path": "scripts/edition_11/unit_ability_catalog.gd",
+        "sha256": "2e87326d97533478d092b79e81b45361bc8eb5b43e8b4c5fbb73bd47f1cfc62c"
+      },
+      {
+        "path": "scripts/edition_11/actions.gd",
+        "sha256": "6c082131fbb1d02b068c935388499e24f91062e2004b31e211e9f9874a833819"
+      },
+      {
+        "path": "scripts/edition_11/attack_plan.gd",
+        "sha256": "0a3bcf2046aec615944e28aaf5299be820f8f6d33f9961d49f9008f0edd59f46"
+      },
+      {
+        "path": "scripts/edition_11/equipment.gd",
+        "sha256": "a747e67cb4c63c8d00379953f89ebd896a52730d76efeeb9fc2359a184bbec44"
+      },
+      {
+        "path": "scripts/edition_11/marine_leader_links.gd",
+        "sha256": "84cd00c910ff133f136d44a59adfd6c0f271ff2a2efd3be412ac04d574fe4d25"
+      },
+      {
+        "path": "scripts/edition_11/support_attachments.gd",
+        "sha256": "d6e3292412a3b7b10f0fe816b4d6a037028c4ffcbd3412130420e7b00022eb67"
+      },
+      {
+        "path": "tests/test_intercessor_current.gd",
+        "sha256": "7d17b47db0215612fa46baa1b242e9d9e2ccf330c707410fe990c5063b128a73"
+      },
+      {
+        "path": "tests/space_marine_datasheet_checks.gd",
+        "sha256": "eb64b310e2614278fc26581ebf6ad0afccef5277a514639b6153ea2e47c274da"
+      },
+      {
+        "path": "tests/public_unit_command.gd",
+        "sha256": "a794f809babcaf677bb42bfbb4d2e10575c2e76b4db0fc136ed864417bf9e75f"
+      },
+      {
+        "path": "tools/verify.py",
+        "sha256": "f3b5dd3695301347dc0daefaf7def5cbd0164800e6d1bc1ded1a5b90a21a379c"
+      }
+    ]
+  }
+}

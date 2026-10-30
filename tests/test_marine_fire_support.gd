@@ -20,7 +20,7 @@ func selections() -> Dictionary:
 		lists[1].entries.append({"definition_id": "40kdc:11e:adeptus-astartes:" + name, "models": 5, "copies": 1})
 	return lists
 func fixture() -> Dictionary:
-	var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, selections())
+	var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false, "terrain_layout": C.Mission.DEFAULT_TERRAIN_LAYOUT}, selections())
 	if s.has("error"): return s
 	s.awakened_dynasty.pending = []
 	s.unit_abilities.setup_players = [1, 2]
@@ -155,7 +155,7 @@ func run() -> void:
 	lists[1].entries = [{"definition_id": "40kdc:11e:adeptus-astartes:captain", "models": 1, "copies": 1}]
 	for name in ["infernus-squad", "hellblaster-squad"]:
 		for size in [5, 10]: lists[1].entries.append({"definition_id": "40kdc:11e:adeptus-astartes:" + name, "models": size, "copies": 1})
-	s = F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true}, lists)
+	s = F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "terrain_layout": C.Mission.DEFAULT_TERRAIN_LAYOUT}, lists)
 	check(not s.has("error") and s.training_points[1] == 720, "Mixed 5/10-model formations retain separate composition and current price")
 	if not s.has("error"):
 		var found_ten := 0
@@ -170,7 +170,7 @@ func run() -> void:
 	check(alias.error.is_empty() and alias.cost == 95 and alias.unit.stats.toughness == 5, "Builder discovery alias resolves to current rules and prices")
 	var api := {"id": "openhammer:11e:Space%20Marines:b007-fc7b-8e4a-b017", "name": "Infernus Squad", "edition": "11e", "faction": "Space Marines", "role": "Infantry", "source_digest": "stale-api", "options": [{"models": 1, "cost": 85}, {"models": 6, "cost": 180}]}
 	var approved := F.P.Training.Capabilities.current_catalog_choice(api)
-	check(approved.options == [{"models": 5, "cost": 95}, {"models": 10, "cost": 190}] and api.options[0].models == 1, "Current builder choices replace stale API composition without modifying its catalog")
+	check(approved.options.size() == 2 and approved.options[0].models == 5 and approved.options[0].cost == 95 and approved.options[1].models == 10 and approved.options[1].cost == 190 and api.options[0].models == 1, "Current builder choices replace stale API composition without modifying its catalog")
 	s = fixture()
 	s.phase = "deployment"
 	s.unit_abilities.setup_players = []

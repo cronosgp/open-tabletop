@@ -1,0 +1,100 @@
+{
+  "id": "marine-centurion-devastator-squad-e11-local-audit-2026-10-30",
+  "rules_authority": "Wahapedia 11th edition and its verified local Data Export; current official Warhammer material used to confirm Legends event guidance",
+  "observed_at": "2026-10-30",
+  "source": {
+    "edition": "11e",
+    "faction": "Space Marines",
+    "chapter": "Space Marines (Warhammer Legends)",
+    "book_id": "000000356",
+    "book_type": "App",
+    "book_edition": "11",
+    "datasheet_id": "000001193",
+    "game_mode": "Standard Warhammer 40,000 datasheet; Boarding Actions and other alternate modes are outside this profile audit",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Centurion-Devastator-Squad",
+    "current_page_checked_at": "2026-10-30",
+    "games_workshop_legends_guidance_url": "https://www.warhammer-community.com/en-gb/articles/bbnskauh/big-space-marines-news/",
+    "games_workshop_legends_guidance_checked_at": "2026-10-30",
+    "snapshot": {
+      "provider": "Wahapedia Data Export",
+      "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+      "retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00",
+      "export_updated_at": "2026-10-28T23:48:19+03:00",
+      "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+      "slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+      "slice_catalog_sha256": "193f0e7f424660db0936131ec003de11aa626cf5a36d3054ad9443cdbfbdb3e3",
+      "slice_validation_findings": 0,
+      "parent_validation_findings": 68,
+      "raw_slice_path": ".tools/marine-full-space-readiness-20261030/space-marines-legends/raw",
+      "source_slice_check": {
+        "command": "python tools/audit_space_marine_extended_slice.py --slice-root .tools/marine-full-space-readiness-20261030/space-marines-legends --expected-book-id 000000356 --expected-count 56 --output .tools/verification/centurion-legends-slice-audit.json",
+        "result_path": ".tools/verification/centurion-legends-slice-audit.json",
+        "result_sha256": "01cb8ae2f5f20f2ba9276ce2722db4d6c9946427587263897d30cfde0b3c08e0",
+        "slice_manifest_file_sha256": "ad907cea26b5118f408b89b4847e145aa074c70a8be7d406b8dcdbec40f7cadb",
+        "subjects_including_linked_source_dependencies": 56,
+        "structurally_valid": true,
+        "slice_validation_error_count": 0
+      },
+      "source_files": [
+        {"filename": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+        {"filename": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+        {"filename": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"},
+        {"filename": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+        {"filename": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+        {"filename": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+        {"filename": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+        {"filename": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+        {"filename": "Datasheets_leader.csv", "sha256": "553afa406a6c1ee5c244c152fdacc25def50e5c3ff9089eb2992828e44859a3a"}
+      ],
+      "source_leader_links": 0
+    },
+    "rules_authority_scope": "Current Wahapedia /wh40k11ed/ pages and matching verified local 11e export. No earlier-edition rules were substituted.",
+    "reconciliation": "The current page and local snapshot identify the same Warhammer Legends book and datasheet. All source-priced sizes and the minimum role composition are internally legal; the page offers 3 models for 175 points and 6 models for 350 points."
+  },
+  "implemented_scope": {
+    "runtime_profile": "scripts/edition_11/current_reference_marine_profiles.gd",
+    "army_admission": "scripts/edition_11/army_capabilities.gd",
+    "ability_registration": "scripts/edition_11/unit_ability_catalog.gd",
+    "ability_effect": "scripts/edition_11/attack_plan.gd",
+    "preparation_choices": "scripts/edition_11/unit_actions.gd",
+    "composition": "One Devastator Centurion Sergeant plus 2-5 Devastator Centurions; both model roles have the exported characteristics and default loadout.",
+    "points_by_models": {"3": 175, "6": 350},
+    "model_count_profiles": [3, 6],
+    "base_size_source_mm": 50,
+    "special_rules": ["Combat Doctrines", "Decimator Protocols"],
+    "weapons": {
+      "ranged_default": ["Centurion Bolters", "Grav-cannon"],
+      "ranged_replacements": ["Centurion Missile Launcher", "Twin Heavy Bolter", "Twin Lascannon"],
+      "melee": ["Centurion Fists"],
+      "all_per_model_ranged_combinations_supported": true
+    },
+    "decimator_protocols": "Ranged attacks re-roll Hit rolls of 1; against a target unit within range of an objective, the unit can instead re-roll Hit rolls. Standard Fire Overwatch and Indirect Shooting re-roll restrictions are retained; melee is not modified.",
+    "copy_limit": {"incursion": 2, "strike_force": 3},
+    "leader_links": []
+  },
+  "runtime": {
+    "profile_status": "source_bounded_local_scope_passed_2026_10_30",
+    "construction_catalog_size_after_admission": 165,
+    "legends_label_and_event_condition_shown": true,
+    "competitive_event_condition": "Requires the event organiser's permission.",
+    "unsupported_configurations": "Unpriced model counts are not available in construction."
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_centurion_devastator_squad --only test_implemented_catalog --only test_attack_plan --only test_core_reactions --only test_combat_doctrines --only test_space_marine_profile_source_fields --only test_capabilities --only test_marine_category_copy_limits",
+    "result_path": ".tools/verification/20261030T060308657963Z/results.json",
+    "result_sha256": "1f6798207eddc66265bc5b24b3c07fd5602da05ddc3cfd053252c6d2a94606cc",
+    "process_count": 10,
+    "status": "passed",
+    "network": false,
+    "legacy_starter_staged": true,
+    "cleanup_diagnostics": false
+  },
+  "certification_limits": {
+    "datasheet_scope": "Local source-bounded sheet profile and declared ability behavior only.",
+    "full_army_legality_certified": false,
+    "full_match_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "human_playtesting": "not_performed",
+    "parent_export_findings": "The parent export retains 68 unrelated validation findings; the scoped Space Marines Legends slice has zero findings."
+  }
+}

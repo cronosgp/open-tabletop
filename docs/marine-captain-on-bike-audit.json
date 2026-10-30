@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "id": "marine-captain-on-bike-e11-2026-10-28",
+  "source": {
+    "edition": 11,
+    "book_id": "000000139",
+    "datasheet_id": "000002702",
+    "book_name": "App. Space Marines",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Captain-on-Bike",
+    "checked_at": "2026-10-28",
+    "runtime_export_updated_at": "2026-10-16T21:03:46+03:00",
+    "source_revision": "Wahapedia Space Marines App 2.8.1 / October 2026; stable Last_update 2026-10-19 03:47:32; live page checked 2026-10-28.",
+    "chapter_context": "Shared-book Space Marines profile. The Ravenwing Black Knights Dark Angels Chapter-book Leader target is now integrated separately; Chapter roster restrictions remain uncertified.",
+    "game_mode": "Standard Warhammer 40,000 11th edition through the local match/action runtime; this is not full-match certification.",
+    "snapshot": {
+      "snapshot_id": "20261021T130623Z",
+      "retrieved_at_utc": "2026-10-21T19:46:58Z",
+      "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
+      "specification_revision": "20260817b",
+      "manifest_file_count": 23,
+      "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+      "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989",
+      "relevant_file_hashes": [
+        {"filename": "Last_update.csv", "sha256": "e39235a323535cd23fbcbc3813bf939df34511b9a10203ca93377700e2ec7485"},
+        {"filename": "Source.csv", "sha256": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9"},
+        {"filename": "Datasheets.csv", "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"},
+        {"filename": "Datasheets_models.csv", "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"},
+        {"filename": "Datasheets_models_cost.csv", "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"},
+        {"filename": "Datasheets_unit_composition.csv", "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"},
+        {"filename": "Datasheets_options.csv", "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"},
+        {"filename": "Datasheets_wargear.csv", "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"},
+        {"filename": "Datasheets_keywords.csv", "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"},
+        {"filename": "Abilities.csv", "sha256": "4922f4c86c5b3ad31d5651feb4b395255a14912ec361e2296f80364a9a731410"},
+        {"filename": "Datasheets_abilities.csv", "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"},
+        {"filename": "Datasheets_leader.csv", "sha256": "af1d26d1d6188bb845777ad57aeb2a3c75e851c9a521b7c754b4607fa10abac4"}
+      ]
+    }
+  },
+  "fixed_data_comparison": {
+    "status": "passed_profile_comparison",
+    "artifact": ".tools/marine-comparison-20261027-v12.json",
+    "identity": "captain-on-bike",
+    "source_id": "000002702",
+    "differences": [],
+    "limit": "Per-profile fixed-data parity only. The broader comparator parent source is structurally invalid and this profile result does not certify complete behavior or other datasheets."
+  },
+  "profile": {
+    "model_count": 1,
+    "points": 110,
+    "base_size_mm": [90, 52],
+    "base_geometry": "oval; runtime collision geometry uses a 90 x 52 mm bounding-circle proxy",
+    "max_supported_copies": 3,
+    "characteristics": {"movement_inches": 12, "toughness": 6, "save_target": 3, "wounds": 6, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 4},
+    "keywords": ["MOUNTED", "CAPTAIN", "CHARACTER", "EXPLOSIVES", "IMPERIUM", "RAVENWING", "ADEPTUS ASTARTES"],
+    "default_loadout": ["Heavy Bolt Pistol", "Twin Bolt Rifle", "Master-crafted Power Weapon"],
+    "options": [
+      "Heavy Bolt Pistol may be replaced with Plasma Pistol (standard and supercharge profiles).",
+      "Master-crafted Power Weapon may be replaced with Thunder Hammer."
+    ],
+    "legal_loadout_packages_checked": [
+      "Heavy Bolt Pistol + Master-crafted Power Weapon",
+      "Plasma Pistol + Master-crafted Power Weapon",
+      "Heavy Bolt Pistol + Thunder Hammer",
+      "Plasma Pistol + Thunder Hammer"
+    ],
+    "abilities_checked": ["Leader", "Combat Doctrines", "Transhuman Strategist", "Strategic Acumen", "Into the Fray"],
+    "leader_targets_in_common_book_scope": ["Outrider Squad"],
+    "source_listed_chapter_book_target": "Ravenwing Black Knights (Dark Angels Chapter book; now integrated under its separate profile)"
+  },
+  "scope": [
+    "Exact one-model profile, source characteristics, 110-point cost, keywords, oval-base dimensions and explicit runtime geometry limitation.",
+    "Default weapons and both independent replacement choices; all four legal packages and every weapon profile, including both Plasma Pistol modes, pass Equipment and AttackPlan.",
+    "Current consolidated Space Marines catalogs materialize the profile for both players; the catalog accepts one to three copies and rejects a fourth.",
+    "This Captain suite exercises the shared-book Outrider Squad target; the separate Dark Angels Ravenwing Black Knights link is exercised by its own sheet scope suite.",
+    "Combat Doctrines, Leader, Strategic Acumen, Transhuman Strategist and Into the Fray are present in the source ability map.",
+    "Public Warlord choice and once-per-round Transhuman Strategist CP are checked.",
+    "Strategic Acumen is owner-checked, selectable in the owner's Command phase, limited to once that phase, persists through the opponent's Command phase and expires at the next own Command phase.",
+    "Into the Fray grants Cleave 1 to melee attacks after a charge move and not without a charge move.",
+    "The shared 153-link Leader/Support regression passes."
+  ],
+  "verification": {
+    "status": "passed_source_bounded_local_scope",
+    "command": "python tools/verify.py --godot 'C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe' --profile focused --only test_ravenwing_black_knights --only test_captain_on_bike --only test_outrider_squad_current --timeout 300",
+    "artifact": ".tools/verification/20261028T091330361383Z/results.json",
+    "artifact_sha256": "8b74375d8f95fae875f78bda94b58bd0d6a92ff6da49e5cb3ed9ce5625d8f242",
+    "processes_passed": 5,
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false
+  },
+  "limits": [
+    "Closes only the Captain on Bike shared-book local datasheet scope; fixed-data parity is profile-specific, not a behavior certificate.",
+    "Runtime base collision uses a bounding-circle proxy; exact oval placement geometry remains open.",
+    "Ravenwing Black Knights remains outside the Captain's common-book scope but is now independently integrated; Chapter roster restrictions are not certified.",
+    "Full faction/army legality, network behavior, complete-match certification and human playtesting remain outside this closure; network validation is deferred to final integration."
+  ]
+}

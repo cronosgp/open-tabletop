@@ -1,0 +1,239 @@
+{
+  "id": "wolf-guard-headtakers-e11-audit-2026-10-29",
+  "status": "partial_source_bounded_local_scope",
+  "observed_at": "2026-10-30",
+  "edition": "11e",
+  "game_mode": "Standard Warhammer 40,000 Chapter App datasheet; alternate modes excluded",
+  "rules_reference": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Wolf-Guard-Headtakers",
+  "data_export_reference": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+  "source": {
+    "source_book_id": "000000036",
+    "source_book_name": "Space Wolves",
+    "datasheet_id": "000004131",
+    "datasheet_name": "Wolf Guard Headtakers",
+    "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "retrieved_at": "2026-10-29",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "parent_validation_findings": 68,
+    "slice_path": ".tools/marine-slices-current/wolf-guard-headtakers",
+    "slice_manifest_sha256": "e0178a7d1203b781f24987b55980b832a6ff10112d1a5b1a70a21df4df50ebc7",
+    "slice_catalog_sha256": "4900aafe8d4c54bad4ea48229ad7be45f66c487f458abea1c3155553bb9775d6",
+    "slice_validation_findings": 0,
+    "slice_structurally_valid": true,
+    "relevant_slice_file_sha256": {
+      "Datasheets.csv": "eddae62175d8cfee7a35c5c0cdbaa146e990f135a8f377bb10348be6393ff0c5",
+      "Datasheets_abilities.csv": "cc7d75b4cf28fafbd4b49b396a644bbcf4ebc48ebdc8253a2d10cc4d0c1c1767",
+      "Datasheets_models.csv": "1eca25ed1d566ee5b490c6384f461f00638dd84c6db72bb872d375f859a0a7be",
+      "Datasheets_options.csv": "b58844293cf85876c771e713988e871a4a78e7d4fd846114b7c6685f18373155",
+      "Datasheets_wargear.csv": "38fcd554a8ea79aa51bd0cb97d49b560d9ba1c1c9b31df48a53868346ddb7016",
+      "Datasheets_unit_composition.csv": "efc85ea8768f5fac6cea16878cb638833e8f6dc883bbfde905eedc040b525168",
+      "Datasheets_models_cost.csv": "55de8194a9665287b7d83fc2ebe1aca9dd88730cf637426c965a50107c9fdcea",
+      "Datasheets_leader.csv": "3504d9fd63f729f0fdef1eb369bba439a1e92ab5446c62e67d03f5a0e072b6ff"
+    },
+    "retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00",
+    "current_page_checked_at": "2026-10-30",
+    "official_points_reference": {
+      "url": "https://mfm.warhammer-community.com/en/space-wolves",
+      "version": "v1.0",
+      "download_page_url": "https://www.warhammer-community.com/en-gb/downloads/warhammer-40000/",
+      "download_page_update_date": "2026-10-14",
+      "checked_at": "2026-10-30",
+      "selectable_costs_match": true,
+      "selectable_rows": {
+        "3 Headtakers + 3 Hunting Wolves": {
+          "first_second": 115,
+          "third_plus": 125
+        },
+        "6 Headtakers + 6 Hunting Wolves": {
+          "first_second": 230,
+          "third_plus": 240
+        }
+      },
+      "unpriced_role_mixes_remain_blocked": true
+    }
+  },
+  "points_reference": {
+    "title": "Warhammer 40,000 Munitorum Field Manual — Space Wolves",
+    "url": "https://mfm.warhammer-community.com/en/space-wolves",
+    "version": "v1.0",
+    "observed_at": "2026-10-29",
+    "rows": [
+      {
+        "models": 3,
+        "headtakers": 3,
+        "hunting_wolves": 0,
+        "first_to_second_points": 85,
+        "third_plus_points": 95,
+        "wahapedia_composition_compatible": false
+      },
+      {
+        "models": 6,
+        "headtakers": 3,
+        "hunting_wolves": 3,
+        "first_to_second_points": 115,
+        "third_plus_points": 125,
+        "wahapedia_composition_compatible": true
+      },
+      {
+        "models": 6,
+        "headtakers": 6,
+        "hunting_wolves": 0,
+        "first_to_second_points": 170,
+        "third_plus_points": 180,
+        "wahapedia_composition_compatible": false
+      },
+      {
+        "models": 12,
+        "headtakers": 6,
+        "hunting_wolves": 6,
+        "first_to_second_points": 230,
+        "third_plus_points": 240,
+        "wahapedia_composition_compatible": true
+      }
+    ],
+    "composition_conflict_note": "The MFM enumerates four exact role mixes: mixed 3+3 and 6+6 are compatible with the Wahapedia composition, while the Headtakers-only rows are not. Wahapedia allows 3-6 of each role, but MFM v1.0 has no explicit points row for other role-count combinations; runtime does not infer costs for them."
+  },
+  "runtime_profile": {
+    "definition_id": "40kdc:11e:adeptus-astartes:wolf-guard-headtakers",
+    "partial": true,
+    "mfm_composition_cost_rows_field": "mfm_composition_cost_rows",
+    "admitted_model_counts": [
+      6,
+      12
+    ],
+    "blocked_compositions": [
+      {
+        "headtakers": 3,
+        "hunting_wolves": 0,
+        "points": 85,
+        "third_plus_points": 95
+      },
+      {
+        "headtakers": 6,
+        "hunting_wolves": 0,
+        "points": 170,
+        "third_plus_points": 180
+      }
+    ],
+    "model_roles": [
+      "wolf-guard-headtaker",
+      "hunting-wolf"
+    ],
+    "implemented_abilities": [
+      "Headhunters",
+      "Let Loose the Wolves",
+      "Hunting Hounds",
+      "Storm Shield"
+    ],
+    "source_leader_targets": [
+      {
+        "datasheet_id": "000004129",
+        "name": "Wolf Priest"
+      },
+      {
+        "datasheet_id": "000004130",
+        "name": "Wolf Guard Battle Leader"
+      },
+      {
+        "datasheet_id": "000000285",
+        "name": "Ragnar Blackmane"
+      },
+      {
+        "datasheet_id": "000000297",
+        "name": "Ulrik the Slayer"
+      },
+      {
+        "datasheet_id": "000000292",
+        "name": "Njal Stormcaller"
+      },
+      {
+        "datasheet_id": "000000306",
+        "name": "Iron Priest"
+      }
+    ],
+    "unpriced_source_permitted_role_mix_note": "The export permits 3-6 models of each role; MFM v1.0 gives no explicit points row for other combinations beyond the priced 3+3 and 6+6 mixed formations, so those options remain unavailable without inferred cost.",
+    "hunting_wolf_base_proxy": "The source 60 x 35.5 mm oval is represented by a 30 mm circular geometry proxy; shape coverage is approximate."
+  },
+  "verification": {
+    "focused_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_wolf_guard_headtakers --timeout 300",
+    "focused_report": ".tools/verification/20261029T214027644989Z/results.json",
+    "focused_report_sha256": "12FF611601AE39A51319B5EF4BB3C02250A5B2DC8CD56D52017C8AC00F6CE838",
+    "focused_processes_passed": 3,
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false,
+    "catalog_roster_cost_audit_report": ".tools/space-marine-roster-cost-audit-20261029-mfm-rows.json",
+    "catalog_roster_cost_audit_sha256": "A12345D38A4DA9E95409ADD9AAB8B688247247C5769F24CEB6F94DAEB0AFEBBE",
+    "catalog_roster_cost_profiles_checked": 161,
+    "catalog_construction_choices_checked": 161,
+    "catalog_source_cost_rows_checked": 576,
+    "catalog_cost_mismatches": 0,
+    "connected_regression_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_wolf_guard_headtakers --only test_wolf_scouts --only test_fenrisian_wolves --only test_watch_master --only test_space_marine_leader_links --timeout 300",
+    "connected_regression_report": ".tools/verification/20261029T205134675733Z/results.json",
+    "connected_regression_report_sha256": "991D3C5A5DFB6A60F00350D5E527F33CF1FF48D3B25AC4369CD40E00A76A22BA",
+    "connected_regression_processes_passed": 7,
+    "network_validation": "deferred",
+    "human_playtesting": "not performed",
+    "full_army_legality": "not certified",
+    "role_aware_cost_comparison": {
+      "report": ".tools/marine-comparison-rolemapped-headtakers-20261030.json",
+      "sha256": "f76429c0f3e39fdbdfa52f2ea2ac4d83d6a509a344ea67c1545dba68f9449aea",
+      "profiles_checked": 161,
+      "fixed_data_profiles_consistent": 161,
+      "headtakers_cost_consistent": true,
+      "selectable_first_second_costs": {
+        "6": 115,
+        "12": 230
+      },
+      "selectable_third_plus_costs": {
+        "6": 125,
+        "12": 240
+      },
+      "role_price_scope_complete": false,
+      "unpriced_permitted_role_mixes_blocked": true,
+      "parent_export_structurally_valid": false,
+      "parent_export_validation_findings": 68
+    },
+    "targeted_regression_report": ".tools/verification/20261030T035752327644Z/results.json",
+    "targeted_regression_report_sha256": "467535c10b9f27f1fcfa99407abdf9a4f2470923e41ebb1820ba5a7c967f9768",
+    "targeted_regression_processes_passed": 9,
+    "targeted_regression_network": false,
+    "targeted_regression_legacy_starter_staged": true,
+    "targeted_regression_cleanup_diagnostics": false,
+    "latest_three_requested_sheets_regression": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_decimus_kill_team --only test_wolf_guard_headtakers --only test_crusader_squad --only test_contact_reachability --only test_fist_god_emperor --only test_vow_sworn_enhancements --only test_vow_sworn_stratagems --only test_implemented_catalog --only test_space_marine_profile_source_fields --only test_marine_category_copy_limits --only test_capabilities --only test_attack_plan --only test_current_unit_abilities",
+      "result_path": ".tools/verification/20261030T102146906553Z/results.json",
+      "results_sha256": "daa3134c46d55086618e0a01ec438cbd5e431470fef33759c66a01e2cbdd5cde",
+      "processes_passed": 15,
+      "network": false,
+      "legacy_starter_staged": true,
+      "cleanup_diagnostics": false,
+      "selected_suites": [
+        "test_decimus_kill_team",
+        "test_wolf_guard_headtakers",
+        "test_crusader_squad",
+        "test_contact_reachability",
+        "test_fist_god_emperor",
+        "test_vow_sworn_enhancements",
+        "test_vow_sworn_stratagems",
+        "test_implemented_catalog",
+        "test_space_marine_profile_source_fields",
+        "test_marine_category_copy_limits",
+        "test_capabilities",
+        "test_attack_plan",
+        "test_current_unit_abilities"
+      ]
+    }
+  },
+  "integrated_readiness_verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_decimus_kill_team --only test_wolf_guard_headtakers --only test_crusader_squad --only test_fist_god_emperor --only test_contact_reachability --only test_implemented_catalog --only test_capabilities --only test_space_marine_profile_source_fields --only test_marine_category_copy_limits",
+    "result_path": ".tools/verification/20261030T070201355409Z/results.json",
+    "results_sha256": "eb3e935cc2ba1cbd6494ce3f5342b0af3a9a9f9b260affec4435a68b26b09913",
+    "process_count": 11,
+    "status": "passed",
+    "network": false,
+    "legacy_starter_staged": true,
+    "cleanup_diagnostics": false
+  }
+}

@@ -4,6 +4,7 @@ const C = F.C
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Army = preload("res://scripts/edition_11/army_capabilities.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const Prevention = preload("res://scripts/edition_11/unit_prevention.gd")
 var failures := 0
 var dice_queue: Array[int] = []
@@ -22,10 +23,11 @@ func submit_choice(state: Dictionary, player: int, choice: Dictionary, roller: C
 	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "choice": choice, "revision": int(state.revision)}, roller)
 
 func selections() -> Dictionary:
-	var result := F.selections()
-	result[1].entries = [
-		{"definition_id": "40kdc:11e:adeptus-astartes:librarian-in-terminator-armour", "models": 1, "copies": 1},
-		{"definition_id": "40kdc:11e:adeptus-astartes:terminator-squad", "models": 5, "copies": 1}]
+	var result := F.current_marine_selections()
+	for owner in [1, 2]:
+		result[owner].entries = [
+			{"definition_id": "40kdc:11e:adeptus-astartes:librarian-in-terminator-armour", "models": 1, "copies": 1},
+			{"definition_id": "40kdc:11e:adeptus-astartes:terminator-squad", "models": 5, "copies": 1}]
 	return result
 
 func make_state() -> Dictionary:
@@ -42,16 +44,51 @@ func find_squads(state: Dictionary) -> Array[int]:
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		var identity := C.UnitAbilities.identity(unit)
-		if identity == "librarian-in-terminator-armour": librarian = model
+		if unit.owner == 1 and identity == "librarian-in-terminator-armour": librarian = model
 		if identity == "terminator-squad" and unit.owner == 1: terminators = unit.squad
-		if unit.owner == 2: enemy = unit.squad
+		if identity == "terminator-squad" and unit.owner == 2: enemy = unit.squad
 	return [librarian, terminators, enemy]
+
+func check_weapon_plan(state: Dictionary, model: int, target_squad: int, weapon: Dictionary, profile_id: String, melee: bool) -> void:
+	var targets: Array[int] = C.living(state, target_squad)
+	if targets.is_empty():
+		check(false, "%s has a living target for its AttackPlan" % str(weapon.get("id", "weapon")))
+		return
+	var target_model: int = targets[0]
+	var old_phase := str(state.phase)
+	var old_active := int(state.active)
+	var old_attacker_position: Vector2 = state.units[model].position
+	var old_target_position: Vector2 = state.units[target_model].position
+	state.units[model].position = Vector2.ZERO
+	state.units[target_model].position = Vector2(1.75, 0.0) if melee else Vector2(10.0, 0.0)
+	state.phase = "fight" if melee else "shooting"
+	state.active = int(state.units[model].owner)
+	var weapon_id := str(weapon.get("id", ""))
+	var expected: Dictionary = weapon.get("profiles", {}).get(profile_id, {})
+	var selected := Equipment.select(state, model, melee, weapon_id, profile_id)
+	check(str(selected.get("error", "")).is_empty() and selected.get("stats", {}) == expected, "%s/%s passes Equipment with its exact source profile: %s" % [weapon_id, profile_id, str(selected.get("error", ""))])
+	if str(selected.get("error", "")).is_empty():
+		var amount := int(expected.get("attacks", 1)) if melee and expected.get("attacks", 1) is int else 1
+		var plan: Dictionary = C.AttackPlan.prepare(state, int(state.units[model].squad), melee, [{"model": model, "target": target_squad, "amount": amount, "weapon": weapon_id, "profile": profile_id}], true)
+		check(str(plan.get("error", "")).is_empty() and plan.get("batches", []).size() == 1, "%s/%s routes through AttackPlan: %s" % [weapon_id, profile_id, str(plan.get("error", ""))])
+	state.phase = old_phase
+	state.active = old_active
+	state.unit_abilities.phase_key = C.UnitActions.key(state)
+	state.units[model].position = old_attacker_position
+	state.units[target_model].position = old_target_position
 
 func _initialize() -> void:
 	var profile := Profiles.profile("librarian-in-terminator-armour")
 	check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000000079" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Librarian preserves its local Wahapedia source identity")
-	check(profile.points_by_models == {1: 80} and profile.stats.movement_inches == 5 and profile.stats.toughness == 6 and profile.stats.save_target == 2 and profile.stats.wounds == 5 and profile.stats.leadership_target == 6 and profile.stats.objective_control == 1 and profile.stats.invulnerable_target == 4, "Librarian characteristics and points match the local extraction")
-	check(profile.ranged.size() == 2 and profile.ranged[0].profiles.focused.attacks == "D3+3" and profile.ranged[0].profiles.focused.keywords == {"devastating-wounds": true, "psychic": true, "hazardous": true} and profile.melee[0].profiles.standard.keywords.psychic, "Smite modes and Psychic weapon traits are transcribed")
+	check(profile.models == 1 and is_equal_approx(profile.base_radius_inches, 20.0 / 25.4) and profile.points_by_models == {1: 80} and profile.stats == {"movement_inches": 5, "toughness": 6, "save_target": 2, "wounds": 5, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4}, "Librarian model count, base, characteristics and price match the local export")
+	var expected_keywords := ["INFANTRY", "CHARACTER", "IMPERIUM", "TERMINATOR", "PSYKER", "ADEPTUS ASTARTES"]
+	var keywords_match: bool = profile.keywords.size() == expected_keywords.size()
+	for keyword: String in expected_keywords:
+		if keyword not in profile.keywords: keywords_match = false
+	check(keywords_match and "DEATHWING" not in profile.keywords, "Librarian retains all unconditional keywords and leaves conditional Deathwing out of the shared profile")
+	check(profile.ranged.size() == 2 and profile.ranged[0].profiles.focused.attacks == "D3+3" and profile.ranged[0].profiles.focused.keywords == {"devastating-wounds": true, "psychic": true, "hazardous": true} and profile.ranged[1].profiles.standard.keywords == {"rapid-fire": 2} and profile.melee[0].profiles.standard.keywords == {"psychic": true}, "Smite modes, Storm Bolter and Force Weapon traits match the local profile")
+	var resolution := Army.resolve("Space Marines", "40kdc:11e:adeptus-astartes:librarian-in-terminator-armour")
+	check(resolution.get("error", "").is_empty() and int(resolution.get("cost", -1)) == 80 and resolution.get("unsupported_abilities", []).is_empty(), "Librarian resolves from the current local catalog without blocked abilities")
 	var admitted := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:librarian-in-terminator-armour", "models": 1, "copies": 1}]})
 	check(admitted.error.is_empty() and admitted.total == 80, "Librarian is admitted at its local 80-point cost")
 	var state := make_state()
@@ -69,6 +106,24 @@ func _initialize() -> void:
 		print("Terminator Librarian checks: %d failures" % (failures + 1))
 		quit(1)
 		return
+	for owner in [1, 2]:
+		var owner_librarian := -1
+		var owner_terminators := -1
+		for model: int in state.units:
+			var unit: Dictionary = state.units[model]
+			if unit.owner != owner: continue
+			match C.UnitAbilities.identity(unit):
+				"librarian-in-terminator-armour": owner_librarian = model
+				"terminator-squad": owner_terminators = unit.squad
+		check(owner_librarian >= 0 and owner_terminators >= 0, "Player %d materializes the Terminator Librarian and Terminator Squad from current catalog profiles" % owner)
+	var librarian_squad: int = int(state.units[librarian].squad)
+	check(C.UnitAbilities.has(state, librarian_squad, "deep-strike") and C.UnitAbilities.has(state, librarian_squad, "combat-doctrines") and C.UnitAbilities.has(state, librarian_squad, "librarius"), "Terminator Librarian retains Deep Strike, Combat Doctrines and level-1 Librarius")
+	for weapon: Dictionary in profile.ranged:
+		for weapon_profile: String in weapon.profiles:
+			check_weapon_plan(state, librarian, enemy, weapon, weapon_profile, false)
+	for weapon: Dictionary in profile.melee:
+		for weapon_profile: String in weapon.profiles:
+			check_weapon_plan(state, librarian, enemy, weapon, weapon_profile, true)
 	state.phase = "deployment"
 	state.unit_abilities.setup_players = []
 	check(C.UnitActions.attachment_allowed(state, librarian, terminators), "Librarian can lead the admitted Terminator Squad")

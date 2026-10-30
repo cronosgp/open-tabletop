@@ -3,6 +3,7 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const H = preload("res://scripts/edition_11/unit_healing.gd")
 const S = preload("res://scripts/edition_11/support_attachments.gd")
+const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
@@ -13,9 +14,9 @@ func six() -> int: return 6
 func entry(name: String, models: int = 1) -> Dictionary:
  return {"definition_id": "40kdc:11e:adeptus-astartes:" + name, "models": models, "copies": 1}
 func fixture() -> Dictionary:
- var lists := F.selections()
+ var lists := F.current_marine_selections()
  lists[1].entries = [entry("apothecary"), entry("captain"), entry("intercessor-squad", 5), entry("lieutenant")]
- var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
+ var s := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
  if s.has("error"): return s
  C.UnitActions.attach(s, 700, 5)
  C.UnitActions.attach(s, 100, 5)
@@ -39,6 +40,14 @@ func fixture() -> Dictionary:
  for model: int in positions: s.units[model].position = positions[model]
  s.unit_abilities.anchors = {5: C.living(s, 5)}
  return s
+func current_catalog_bodyguard_fixture(identity: String, models: int) -> Dictionary:
+ var lists := F.current_marine_selections()
+ lists[1].entries = [entry("apothecary"), entry(identity, models)]
+ var options := {"unit_abilities": true, "reanimation_protocols": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}
+ if identity in ["crusader-squad", "sword-brethren-squad"]: options.marine_chapters = {1: "BLACK TEMPLARS", 2: "BLACK TEMPLARS"}
+ elif identity == "inner-circle-companions": options.marine_chapters = {1: "DARK ANGELS", 2: "DARK ANGELS"}
+ elif identity in ["deathwatch-veterans", "fortis-kill-team", "decimus-kill-team"]: options.marine_chapters = {1: "DEATHWATCH", 2: "DEATHWATCH"}
+ return F.P.initial_state(options, lists)
 func choose(s: Dictionary, action: String, model: int = -1, point: Vector2 = Vector2.ZERO) -> String:
   var result: Dictionary = {}
   if not C.UnitActions.pending_decision(s).is_empty():
@@ -66,6 +75,27 @@ func submit_normalized(s: Dictionary, player: int, selected: Dictionary, point: 
  return MatchCommandService.execute(s, player, {"kind": MatchCommandService.SELECT_UNIT_CHOICE, "revision": int(s.revision) if revision == -2147483648 else revision, "point": point, "choice": {"_decision_type": MatchCommandService.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, six)
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
+ var source_bodyguard_sizes := {"assault-intercessor-squad": 5, "bladeguard-veteran-squad": 3, "company-heroes": 4, "crusader-squad": 10, "decimus-kill-team": 10, "deathwatch-veterans": 5, "desolation-squad": 5, "fortis-kill-team": 10, "hellblaster-squad": 5, "infernus-squad": 5, "inner-circle-companions": 3, "intercessor-squad": 5, "sternguard-veteran-squad": 5, "sword-brethren-squad": 4}
+ check(S.BODYGUARDS.apothecary.size() == source_bodyguard_sizes.size(), "Apothecary runtime Support map retains all fourteen current-standard bodyguards")
+ for identity: String in S.BODYGUARDS.apothecary:
+  var bodyguard_state := current_catalog_bodyguard_fixture(identity, int(source_bodyguard_sizes.get(identity, -1)))
+  check(not bodyguard_state.has("error"), "Current Space Marine catalogs admit an Apothecary with %s: %s" % [identity, str(bodyguard_state.get("error", ""))])
+  if bodyguard_state.has("error"): continue
+  var apothecary_model := -1
+  var bodyguard_squad := -1
+  var bodyguard_models := 0
+  for model: int in bodyguard_state.units:
+   var unit: Dictionary = bodyguard_state.units[model]
+   if unit.owner != 1: continue
+   var identity_in_state := C.UnitAbilities.identity(unit)
+   if identity_in_state == "apothecary": apothecary_model = model
+   if identity_in_state == identity:
+    bodyguard_squad = int(unit.squad)
+    bodyguard_models += 1
+  var has_models := apothecary_model > 0 and bodyguard_squad > 0
+  check(bodyguard_models == int(source_bodyguard_sizes.get(identity, -1)) and has_models and C.UnitActions.attachment_allowed(bodyguard_state, apothecary_model, bodyguard_squad), "The source-linked current-catalog %s bodyguard is eligible for Apothecary" % identity)
+  if has_models and C.UnitActions.attachment_allowed(bodyguard_state, apothecary_model, bodyguard_squad): C.UnitActions.attach(bodyguard_state, apothecary_model, bodyguard_squad)
+  check(has_models and bodyguard_state.units[apothecary_model].squad == bodyguard_squad and bodyguard_state.units[apothecary_model].attachment_role == "support", "Apothecary attaches to the current-catalog %s bodyguard" % identity)
  var s := fixture()
  check(not s.has("error"), "Apothecary admission failed")
  if s.has("error"):
@@ -131,7 +161,11 @@ func run() -> void:
  var normalized_heal_confirm := choose_normalized(s, "heal-confirm")
  check(str(normalized_heal_confirm.get("error", "")).is_empty() and s.unit_abilities.window.is_empty(), "The normalized confirmation completes the Apothecary's transactional healing order: " + str(normalized_heal_confirm.get("error", "")))
  var resumed_healing_close := C.advance_phase(s, 1, s.revision, six)
- var opponent_end_pass := choose_normalized(s, "pass", -1, Vector2.ZERO, 2)
+ var opponent_end_pass := {"error": ""}
+ for end_choice: Dictionary in C.UnitActions.choices(s, 2):
+  if end_choice.action == "pass":
+   opponent_end_pass = submit_normalized(s, 2, end_choice)
+   break
  check(resumed_healing_close.is_empty() and str(opponent_end_pass.get("error", "")).is_empty() and s.phase == "movement" and C.ResolutionFrames.current(s).is_empty(), "Resuming Command close after the opponent passes their end-phase choices completes the original frame: " + resumed_healing_close + " / " + str(opponent_end_pass.get("error", "")))
  s = fixture()
  for id: int in C.living(s, 2): s.units[id].position = Vector2(0,-11.5)
@@ -140,6 +174,17 @@ func run() -> void:
  for row: Dictionary in plan:
   if row.model == 100: own.append(row)
  check(own.size() == 2 and own[0].weapon == "servo-armature" and own[0].amount == 4 and own[1].weapon == "reductor-pistol" and own[1].amount == 1, "Default melee omitted ordinary or Extra Attacks weapon")
+ var servo := Equipment.select(s, 100, true, "servo-armature", "standard")
+ var reductor := Equipment.select(s, 100, true, "reductor-pistol", "standard")
+ var absolvor := Equipment.select(s, 100, false, "absolvor-bolt-pistol", "standard")
+ check(servo.get("error", "").is_empty() and servo.stats.get("attacks") == 4 and servo.stats.get("strength") == 5 and servo.stats.get("ap") == 0 and servo.stats.get("damage") == 1, "Servo-armature exposes the exact source profile through Equipment")
+ check(reductor.get("error", "").is_empty() and reductor.stats.get("attacks") == 1 and reductor.stats.get("strength") == 5 and reductor.stats.get("ap") == -4 and reductor.stats.get("damage") == 2 and reductor.stats.get("keywords", {}).get("extra-attacks", false), "Reductor Pistol exposes its exact Extra Attacks profile through Equipment")
+ check(absolvor.get("error", "").is_empty() and absolvor.stats.get("range_inches") == 18.0 and absolvor.stats.get("attacks") == 1 and absolvor.stats.get("skill") == 3 and absolvor.stats.get("strength") == 5 and absolvor.stats.get("ap") == -2 and absolvor.stats.get("damage") == 2 and absolvor.stats.get("keywords", {}).get("close-quarters", false), "Absolvor Bolt Pistol exposes its exact profile through Equipment")
+ s.phase = "shooting"
+ s.active = 1
+ var pistol_plan: Dictionary = C.AttackPlan.prepare(s, 5, false, [{"model": 100, "target": 2, "amount": 1, "weapon": "absolvor-bolt-pistol", "profile": "standard"}], true)
+ check(pistol_plan.get("error", "").is_empty() and pistol_plan.get("batches", []).size() == 1 and pistol_plan.batches[0].weapon.get("strength") == 5 and pistol_plan.batches[0].weapon.get("ap") == -2 and pistol_plan.batches[0].weapon.get("damage") == 2, "Absolvor Bolt Pistol reaches AttackPlan with its source characteristics")
+ s.phase = "command"
  check(s.units[100].ranged_weapons.size() == 1 and s.units[100].ranged_weapons[0].id == "absolvor-bolt-pistol" and "EXPLOSIVES" not in s.units[100].keywords, "Apothecary gained ranged Reductor or inferred keyword")
  s = fixture()
  s.units[500].wounds = 1

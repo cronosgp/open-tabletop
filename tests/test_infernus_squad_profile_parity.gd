@@ -28,7 +28,7 @@ func run() -> void:
 		"name": "Pyreblaster",
 		"range_inches": 12.0,
 		"attacks": 3,
-		"skill": 3,
+		"skill": 0,
 		"strength": 5,
 		"ap": -1,
 		"damage": 1,

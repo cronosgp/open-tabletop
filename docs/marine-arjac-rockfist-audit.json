@@ -1,0 +1,153 @@
+{
+  "id": "marine-arjac-rockfist-e11-local-audit-2026-10-29",
+  "rules_authority": "The verified local Wahapedia 11th-edition Data Export supplies datasheet facts. Page comparison and network validation are deferred to final integration.",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Space Wolves",
+    "book_id": "000000036",
+    "book_type": "App",
+    "datasheet_id": "000000317",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Arjac-Rockfist",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "snapshot_retrieval_window_utc": "2026-10-29T00:31:29.030708Z–2026-10-29T00:32:24.715969Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_manifest_sha256": "d63245311ac15f3b13e1a0235e9a642fd374d2ecd0b1853f791ee4981633dc06",
+    "slice_catalog_sha256": "033ec2f4b60555fdd547c3efd20c80ec5d6347f044665e0d4e423cb9161ead5a",
+    "slice_subject_datasheet_ids": [
+      "000000317"
+    ],
+    "external_identity_only_datasheet_ids": [
+      "000001183",
+      "000000118",
+      "000000318"
+    ],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "parent_snapshot_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_stratagems.csv": "cc9929a1a551dc1c608e84ea481285ece82296b9227815edb89404fcc2152cc7",
+      "Datasheets_enhancements.csv": "97cd4bf6aac2064a7555dd04a067095e106ff263d57bf13b9d8e79fbe903158f",
+      "Datasheets_detachment_abilities.csv": "c0011f8310f137969e0943059638587efb1b1821d78717340c831c05c80f87dc",
+      "Datasheets_leader.csv": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+      "Stratagems.csv": "9e01eb024e3fc851e4717f3a4f0c5f73f29c5bd87d08fd94e999f35f7e57b621",
+      "Abilities.csv": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Enhancements.csv": "c39535264e62a8b3f8deb9f5bd0c09be9f7e76d4e0ab3a5347ec593f0623ea4c",
+      "Enhancements_wargear.csv": "0e59e4d13849d5509ee6a2943515b64152f5455db5472587c65b9ca57f25c34d",
+      "Detachment_abilities.csv": "e95380c00e4d993935f4ef5dcd09c93f5d5548aa07d28151f68652c2b87b0e1c",
+      "Detachments.csv": "d323c5cc7e025ba8c3c004805fedf1adfbf0126305a770e448287d6280b4c536",
+      "Detachments_chapter_dp.csv": "d99fc6a76bd7f466a9bba025d31874f01066cb0fa8e3ad81d0e17c4b5d0a99e6",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "4d34498c24d51e16bc03db40b57c8fba1abd23939a330d1fb0e5ed79a0495744",
+      "Datasheets.csv": "67df3fdd34dc19b8694bfef5e6992431cfdc694417b6834933677b2dd4e5fb5a",
+      "Datasheets_abilities.csv": "b07e812be02394c5a9073dede52e923cc5db478c0a1a019b4ae984d8aa683502",
+      "Datasheets_keywords.csv": "229b92d9fc928b3e73ec4b8b44624674e071f1c91c075c1f67632cab2bcdb05f",
+      "Datasheets_models.csv": "989cc4501d6f9340f27d27ac4ecdcedc1bbb076de9ac6e49f71e26d038b8fff4",
+      "Datasheets_options.csv": "7a32f726f4d7977477962f34bb06098b13ccb859b4e7052de42e57b708ee8bdb",
+      "Datasheets_wargear.csv": "e777a8860d83559a6530fba2246a314fc4695483f99ce0a9cc4c3541a390989c",
+      "Datasheets_unit_composition.csv": "20b170d7cd1a5bca85d4a73c074a6cfa816de5f5be96038117b20501abdd254b",
+      "Datasheets_models_cost.csv": "3a92947463a583b2bfcd6157fd35abf2f1d285ccdcc54437831a5c2345b61e64",
+      "Datasheets_stratagems.csv": "e057b68ea1fcc9afcb1c7c7150874ca8522d2c329f2bd28004c604a421124fe5",
+      "Datasheets_enhancements.csv": "706aba5f1abf97fbae09634be1f3deef8cf5703a2a692f604df0c1f79c810305",
+      "Datasheets_detachment_abilities.csv": "406aeea06a2aa1bf3936c905a51d1c8ed2f501876077117dba5b3ead5ad08df2",
+      "Datasheets_leader.csv": "760c701b37e894e9fb45b0bfa4e6bf004a53a5d08cc1d99395432e3ad0d3cbbc",
+      "Stratagems.csv": "ba4e6e5a4ea6d78e96f7792d223f86a8ffa2b90b99383b9819774e375f6b2cbf",
+      "Abilities.csv": "1100db70aca9ec3b3ef4884b7d11e924fa0314b2d94737a734ee9ff4743a6c08",
+      "Enhancements.csv": "12aa57be799c6284332b0c3c641e75955e6bd74f055a4c862089410fbd35f036",
+      "Enhancements_wargear.csv": "3465cfebb46f621f7800fb35fdb107fd81ac24e8ab6f251558fdd6d697ae6e1a",
+      "Detachment_abilities.csv": "f24b37b560fdc2927931efc775fab4ebeb82d127e995c70a4a4d17d4c278eb72",
+      "Detachments.csv": "7ac8e5558108272c10301b6aad9803653438adc4c40934bf4ef13c2233369109",
+      "Detachments_chapter_dp.csv": "714f5f72254c42bbcd5a45e0c9aecec1a7eb69bca018f1efb7d0d2e2c0de0e07",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    }
+  },
+  "source_checked_facts": {
+    "composition": {
+      "1": [
+        "1 Arjac Rockfist"
+      ]
+    },
+    "points_by_models": {
+      "1": 105
+    },
+    "third_plus_points_by_models": {},
+    "max_supported_copies": 1,
+    "model_profiles": {
+      "Arjac Rockfist": {
+        "movement_inches": 6,
+        "toughness": 6,
+        "save_target": 2,
+        "wounds": 6,
+        "leadership_target": 6,
+        "objective_control": 1,
+        "invulnerable_target": 4,
+        "base_size_mm": 50,
+        "weapons": [
+          "Foehammer (Ranged): 9 inches, A1, BS2+, S10, AP-2, D3; Assault, Anti-Monster/Vehicle 3+",
+          "Foehammer (Melee): A5, WS2+, S10, AP-2, D3; Anti-Monster/Vehicle 3+, Precision"
+        ]
+      }
+    },
+    "options": [],
+    "abilities": [
+      "Leader: may lead the source-listed Terminator Squad, Terminator Assault Squad or Wolf Guard Terminators.",
+      "Deep Strike.",
+      "Combat Doctrines.",
+      "Champion of the Kingsguard: this model re-rolls Hit and Wound rolls of 1 against CHARACTER units.",
+      "Anvil of Endurance: in the Fight phase, when a model in this unit is destroyed before the unit is selected to fight, roll one D6; on 4+, retain it with 1 wound until the unit fights or the phase ends."
+    ],
+    "keywords": [
+      "ADEPTUS ASTARTES",
+      "CHARACTER",
+      "EPIC HERO",
+      "IMPERIUM",
+      "INFANTRY",
+      "SPACE WOLVES",
+      "TERMINATOR"
+    ],
+    "leader_datasheet_ids": [
+      "000001183",
+      "000000118",
+      "000000318"
+    ]
+  },
+  "local_scope_validation": {
+    "status": "source_bounded_local_scope_passed_2026_10_29",
+    "focused_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_arjac_rockfist --timeout 300",
+    "focused_report": ".tools/verification/20261029T040343855197Z/results.json",
+    "focused_report_sha256": "6dc425f0c50b7935fab4ca040d5449d19152bb154641fd8b73dc1d202bb11234",
+    "focused_processes_passed": 3,
+    "connected_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_arjac_rockfist --only test_implemented_catalog --only test_space_marine_leader_links --only test_capabilities --only test_wolf_guard_terminators --only test_terminator_squad_current --only test_terminator_assault_squad --only test_lazarus --only test_belial --only test_ancients --only test_captain_titus --only test_roster_validation --only test_combat_doctrines --timeout 300",
+    "connected_report": ".tools/verification/20261029T040913593435Z/results.json",
+    "connected_report_sha256": "e249f5a9b9f5ac18bc4087fe32283e48d3be185a46fc23853772e8f53870d827",
+    "connected_processes_passed": 15,
+    "network_validation": "deferred_to_final_integration",
+    "human_playtesting": "not_completed",
+    "full_army_legality": "not_certified"
+  },
+  "implementation_limits": [
+    "The verified local subject slice contains zero structural findings; the parent export has 68 unrelated findings that remain open.",
+    "Network/page comparison and human playtesting are deferred to final integration.",
+    "Source-bounded local profile and focused interaction checks do not certify complete Space Wolves restrictions or full army legality."
+  ],
+  "playable": false,
+  "full_match_certified": false
+}

@@ -6,6 +6,7 @@ const Core = preload("res://scripts/edition_11/core_reactions.gd")
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
+const WeaponChecks = preload("res://tests/space_marine_datasheet_checks.gd")
 var failures := 0
 
 func check(ok: bool, message: String) -> void:
@@ -38,20 +39,29 @@ func run() -> void:
 	check(profile.ranged[0].profiles.standard.skill == 2 and profile.melee[0].profiles.standard.keywords == {"twin-linked": true, "sustained-hits": 2} and profile.melee[0].profiles.standard.target_restricted_traits["sustained-hits"] == ["MONSTER", "VEHICLE"], "Aethon weapons preserve the source traits and target restriction")
 	check(Catalog.SPECS["aethon-shaan"].max_supported_copies == 1, "Aethon is unique in construction")
 
-	var lists := F.selections()
-	lists[1].entries = [entry("aethon-shaan"), entry("intercessor-squad", 5)]
-	var s: Dictionary = F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "core_stratagems": true, "movement_rerolls": false, "reanimation_protocols": true, "awakened_dynasty": true, "manual_allocation": false}, lists)
-	check(not s.has("error"), "Aethon and current Intercessors materialize from local profiles")
+	var lists := F.current_marine_selections()
+	lists[1].entries.append(entry("aethon-shaan"))
+	lists[2].entries.append(entry("gladiator-lancer"))
+	var s: Dictionary = F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "core_stratagems": true, "movement_rerolls": false, "reanimation_protocols": true, "awakened_dynasty": true, "manual_allocation": false}, lists)
+	check(not s.has("error"), "Both players' current Marine catalogs materialize with Aethon and a current Gladiator target")
 	if s.has("error"):
 		print(s.error)
 		quit(1)
 		return
 	var aethon := find_unit(s, 1, "aethon-shaan")
 	var infantry := find_unit(s, 1, "intercessor-squad")
-	var enemy := find_unit(s, 2, "necron-warriors")
+	var enemy := find_unit(s, 2, "intercessor-squad")
+	var vehicle := find_unit(s, 2, "gladiator-lancer")
 	var aethon_squad: int = s.units[aethon].squad
 	var infantry_squad: int = s.units[infantry].squad
 	var enemy_squad: int = s.units[enemy].squad
+	var vehicle_squad: int = s.units[vehicle].squad
+	var weapon_failures := WeaponChecks.fixed_weapon_plan_failures(s, profile, aethon, enemy_squad)
+	check(weapon_failures.is_empty(), "Heavy Bolt Pistol and Claws of Severax pass Equipment and AttackPlan: %s" % str(weapon_failures))
+	var claws: Dictionary = profile.melee[0].profiles.standard
+	var infantry_claws := C.UnitAbilities.weapon(s, aethon, enemy_squad, claws, true)
+	var vehicle_claws := C.UnitAbilities.weapon(s, aethon, vehicle_squad, claws, true)
+	check(infantry_claws.keywords.get("sustained-hits", 0) == 2 and not vehicle_claws.keywords.has("sustained-hits"), "Claws of Severax gain Sustained Hits 2 against Infantry but not a Vehicle")
 	check(not C.UnitAbilities.has(s, aethon_squad, "leader") and not C.UnitActions.attachment_allowed(s, aethon, infantry_squad), "Aethon has no Leader ability or Leader target link")
 	for ability: String in ["deep-strike", "lone-operative", "stealth", "combat-doctrines", "transhuman-strategist", "master-of-shadows", "blackwing-mantle"]:
 		check(C.UnitAbilities.has(s, aethon_squad, ability), "Aethon receives the exported %s ability" % ability)
@@ -72,7 +82,7 @@ func run() -> void:
 	check(not C.UnitAbilities.lone_operative_active(s, aethon), "Lone Operative is disabled if Aethon joins an Attached unit")
 	s.squads[aethon_squad].attached = false
 	s.unit_abilities.warlords = {1: aethon}
-	s.active = s.first_player
+	s.active = 1
 	s.round = 1
 	s.cp[1] = 0
 	C.UnitActions.start_round(s)

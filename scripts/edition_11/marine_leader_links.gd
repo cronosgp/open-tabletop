@@ -39,3 +39,65 @@ const TARGETS := {
 	"wardens-of-ultramar": ["sternguard-veteran-squad", "intercessor-squad", "assault-intercessor-squad", "bladeguard-veteran-squad"],
 	"caanok-var": ["terminator-squad", "terminator-assault-squad"]
 }
+
+## Chapter-book targets are kept separate from the common-book source audit.
+const CHAPTER_TARGETS := {
+	"captain-in-phobos-armour": ["spectrus-kill-team", "wolf-scouts"],
+	"lieutenant-in-phobos-armour": ["spectrus-kill-team", "wolf-scouts"],
+	"librarian-in-phobos-armour": ["spectrus-kill-team", "wolf-scouts"],
+	"captain-in-gravis-armour": ["indomitor-kill-team"],
+	"apothecary-biologis": ["indomitor-kill-team"],
+	"watch-master": ["deathwatch-veterans", "fortis-kill-team", "decimus-kill-team"],
+	"watch-captain-artemis": ["deathwatch-veterans", "fortis-kill-team", "decimus-kill-team"],
+	"chaplain-grimaldus": ["assault-intercessor-squad", "infernus-squad", "intercessor-squad", "crusader-squad", "sword-brethren-squad"],
+	"captain-on-bike": ["ravenwing-black-knights"],
+	"chaplain-with-jump-pack": ["talonstrike-kill-team", "death-company-marines-with-jump-packs"],
+	"sammael": ["outrider-squad", "ravenwing-black-knights"],
+	"ravenwing-command-squad": ["outrider-squad", "ravenwing-black-knights"],
+	"chaplain-on-bike": ["ravenwing-black-knights"],
+	"asmodai": ["inner-circle-companions", "bladeguard-veteran-squad", "infernus-squad", "intercessor-squad", "assault-intercessor-squad", "hellblaster-squad", "sternguard-veteran-squad"],
+	"judiciar": ["inner-circle-companions", "deathwatch-veterans", "fortis-kill-team", "decimus-kill-team", "crusader-squad", "sword-brethren-squad"],
+	"lazarus": ["inner-circle-companions", "infernus-squad", "sternguard-veteran-squad", "intercessor-squad", "assault-intercessor-squad", "company-heroes", "bladeguard-veteran-squad"],
+	"ancient": ["inner-circle-companions", "deathwatch-veterans", "fortis-kill-team", "decimus-kill-team", "sword-brethren-squad", "crusader-squad"],
+	"ezekiel": ["assault-intercessor-squad", "bladeguard-veteran-squad", "hellblaster-squad", "infernus-squad", "intercessor-squad", "sternguard-veteran-squad", "inner-circle-companions"],
+	"chaplain": ["inner-circle-companions", "deathwatch-veterans", "fortis-kill-team", "decimus-kill-team", "death-company-marines", "crusader-squad", "sword-brethren-squad"],
+	"lieutenant": ["inner-circle-companions", "deathwatch-veterans", "fortis-kill-team", "decimus-kill-team", "crusader-squad", "sword-brethren-squad"],
+	"librarian": ["inner-circle-companions", "deathwatch-veterans", "fortis-kill-team", "decimus-kill-team"],
+	"techmarine": ["fortis-kill-team", "decimus-kill-team", "crusader-squad", "sword-brethren-squad"],
+	"azrael": ["assault-intercessor-squad", "bladeguard-veteran-squad", "company-heroes", "hellblaster-squad", "infernus-squad", "intercessor-squad", "sternguard-veteran-squad", "inner-circle-companions"],
+	"belial": ["terminator-assault-squad", "terminator-squad", "deathwing-knights", "deathwing-terminator-squad"],
+	"ancient-in-terminator-armour": ["deathwing-knights", "deathwing-terminator-squad", "deathwatch-terminator-squad", "wolf-guard-terminators"],
+	"captain-in-terminator-armour": ["deathwing-knights", "deathwing-terminator-squad", "deathwatch-terminator-squad", "wolf-guard-terminators"],
+	"chaplain-in-terminator-armour": ["deathwing-knights", "deathwing-terminator-squad", "deathwatch-terminator-squad", "wolf-guard-terminators"],
+	"librarian-in-terminator-armour": ["deathwing-knights", "deathwing-terminator-squad", "deathwatch-terminator-squad", "wolf-guard-terminators"],
+	"captain": ["inner-circle-companions", "deathwatch-veterans", "fortis-kill-team", "decimus-kill-team", "crusader-squad", "sword-brethren-squad"],
+	"apothecary": ["inner-circle-companions", "deathwatch-veterans", "fortis-kill-team", "decimus-kill-team", "crusader-squad", "sword-brethren-squad"],
+	"emperor-s-champion": ["assault-intercessor-squad", "intercessor-squad", "sternguard-veteran-squad", "crusader-squad", "sword-brethren-squad"],
+	"crusade-ancient": ["crusader-squad", "sword-brethren-squad"],
+	"high-marshal-helbrecht": ["assault-intercessor-squad", "bladeguard-veteran-squad", "company-heroes", "intercessor-squad", "crusader-squad", "sword-brethren-squad"],
+	"castellan": ["assault-intercessor-squad", "bladeguard-veteran-squad", "company-heroes", "infernus-squad", "intercessor-squad", "sternguard-veteran-squad", "crusader-squad", "sword-brethren-squad"],
+	"marshal": ["assault-intercessor-squad", "bladeguard-veteran-squad", "infernus-squad", "intercessor-squad", "sternguard-veteran-squad", "crusader-squad", "sword-brethren-squad"],
+	"execrator": ["crusader-squad", "sword-brethren-squad"],
+	"blood-angels-captain": ["sternguard-veteran-squad", "company-heroes", "intercessor-squad", "assault-intercessor-squad", "infernus-squad"],
+	"sanguinary-priest": ["assault-intercessor-squad", "bladeguard-veteran-squad", "company-heroes", "desolation-squad", "hellblaster-squad", "infernus-squad", "intercessor-squad", "sternguard-veteran-squad"],
+	"death-company-captain": ["death-company-marines"],
+	"death-company-captain-with-jump-pack": ["death-company-marines-with-jump-packs"],
+	"captain-with-jump-pack": ["sanguinary-guard", "talonstrike-kill-team"],
+	"commander-dante": ["assault-intercessors-with-jump-packs", "vanguard-veteran-squad-with-jump-packs", "sanguinary-guard"],
+	"astorath": ["death-company-marines-with-jump-packs"],
+	"lemartes": ["death-company-marines-with-jump-packs"],
+	"arjac-rockfist": ["terminator-squad", "terminator-assault-squad", "wolf-guard-terminators"],
+	"logan-grimnar": ["terminator-squad", "terminator-assault-squad", "wolf-guard-terminators"],
+	"ragnar-blackmane": ["wolf-guard-headtakers", "blood-claws"],
+	"ulrik-the-slayer": ["grey-hunters", "assault-intercessor-squad", "wolf-guard-headtakers", "blood-claws", "bladeguard-veteran-squad", "intercessor-squad"],
+	"iron-priest": ["intercessor-squad", "wolf-guard-headtakers", "blood-claws", "assault-intercessor-squad", "grey-hunters"],
+	"wolf-guard-battle-leader": ["wolf-guard-headtakers", "bladeguard-veteran-squad", "blood-claws", "intercessor-squad", "grey-hunters", "assault-intercessor-squad"],
+	"wolf-priest": ["wolf-guard-headtakers", "assault-intercessor-squad", "grey-hunters", "blood-claws", "bladeguard-veteran-squad", "intercessor-squad"],
+	"njal-stormcaller": ["bladeguard-veteran-squad", "assault-intercessor-squad", "intercessor-squad", "blood-claws", "grey-hunters", "wolf-guard-headtakers"],
+}
+
+static func targets(source: String) -> Array:
+	var result: Array = TARGETS.get(source, []).duplicate()
+	for target: Variant in CHAPTER_TARGETS.get(source, []):
+		if target not in result: result.append(target)
+	return result

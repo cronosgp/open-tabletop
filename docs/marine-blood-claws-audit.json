@@ -1,0 +1,118 @@
+{
+  "id": "marine-blood-claws-e11-local-audit-2026-10-29",
+  "rules_authority": "Wahapedia 11th edition current Space Marines faction page checked against the verified local Data Export",
+  "observed_at": "2026-10-29",
+  "source": {
+    "edition": "11e",
+    "chapter": "Space Wolves",
+    "book_id": "000000036",
+    "book_type": "App",
+    "datasheet_id": "000000303",
+    "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and alternate modes excluded",
+    "datasheet_url": "https://www.wahapedia.ru/wh40k11ed/factions/space-marines/Blood-Claws",
+    "data_export_url": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
+    "current_page_checked_at": "2026-10-29",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "snapshot_id": "20261029T003124Z",
+    "retrieved_at_utc": "2026-10-29T00:31:24Z",
+    "specification_revision": "20260817b",
+    "snapshot_manifest_sha256": "457067e2a3aa94f341e020792d56dfae4a36fe30272d0daf7eeb1de6ed2dab9d",
+    "slice_manifest_sha256": "8C713E966DCB17BEEFD5B3556FBCF674A6EAA7080F628C2ED128D1DEC89B78A2",
+    "slice_subject_datasheet_ids": ["000000303"],
+    "external_identity_only_datasheet_ids": ["000000285", "000000292", "000000297", "000000306", "000004129", "000004130"],
+    "parent_validation_error_count": 68,
+    "slice_validation_error_count": 0,
+    "slice_structurally_valid": true,
+    "raw_exports_ignored": true,
+    "parent_snapshot_file_sha256": {
+      "Factions.csv": "d5038518059e5deeafa8d74e814a51598929a45c2864d3056c92c8629e7d4608",
+      "Source.csv": "1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9",
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_leader.csv": "5189a116bc8e500352de8a361167b5a952e71d90ce603dc51eec956bec1b0180",
+      "Abilities.csv": "df1a84b39f53ccf63e949f48709f9937600794bad665278eb92d3cc4b1e44a16",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    },
+    "slice_file_sha256": {
+      "Factions.csv": "98201b53af4642033a3866e00277a390c76ba681828f93bc141fe8994c0f1792",
+      "Source.csv": "7b35df86ec1bbed9f101a8923cbcca41bafb2533e9a1978ae9c366c8c8267999",
+      "Datasheets.csv": "11fa0cf38b2e888b6b252b571d6a1dcb02a29d33ba5e508292beb12e72930e78",
+      "Datasheets_abilities.csv": "ed36e78f7454e964c5dea6c66c8a9645bab94a157192987f3edf4a4c65317704",
+      "Datasheets_keywords.csv": "03b3e7a8a9e9dafa9d2302446e649ba000d2b45be58aa204335011ecb9bb6a3e",
+      "Datasheets_models.csv": "4808ac66a215375bf4d9b6b4ff87cbbc85ffa9285cb33e9299f3e3bba60f6af6",
+      "Datasheets_options.csv": "57695a064d07bad978f7f9acf3e39295e0c8e27fc165e55ac92dfc49dcdd85c1",
+      "Datasheets_wargear.csv": "5e671f3fc49149233a602459ba3403c51d78b2c87a7a0277c68cb69cd146cb82",
+      "Datasheets_unit_composition.csv": "85bd33762a338fbdc091f3066b9285e00f8b40fc9f8a3835ffae42f761d954fb",
+      "Datasheets_models_cost.csv": "a27c225357170e4d7be1a813715a2abbe2228e3f89596c28f4c904b33dcad25a",
+      "Datasheets_leader.csv": "d695cd9e842114311a1e0dc8458f2fe66dbfa83e1dfceeeaa4e741a1cb1691a0",
+      "Abilities.csv": "3ba65e907c342a3cc2ad68b78ecc9583f5f9d79a62a38a7decf7ba9cff740d4e",
+      "Last_update.csv": "2963d9bff16dec10ccbd0fb71c63bbf6d7dc2286b13fb9a8c98cb2548c55e5a2"
+    }
+  },
+  "source_checked_facts": {
+    "composition": "1 Blood Claw Pack Leader and 9-19 Blood Claws",
+    "points_by_models": {"10": 150, "20": 290},
+    "base_size_source_mm": 32,
+    "characteristics": {
+      "movement_inches": 7,
+      "toughness": 5,
+      "save_target": 3,
+      "wounds": 2,
+      "leadership_target": 6,
+      "objective_control": 2
+    },
+    "keywords": ["ADEPTUS ASTARTES", "BATTLELINE", "EXPLOSIVES", "IMPERIUM", "INFANTRY", "SPACE WOLVES", "TACTICUS"],
+    "default_loadout": {"Blood Claw Pack Leader": ["Bolt Pistol", "Chainsword"], "Blood Claw": ["Bolt Pistol", "Chainsword"]},
+    "pack_leader_replacements": {
+      "ranged": {"Bolt Pistol": "Plasma Pistol"},
+      "melee": {"Chainsword": "Power Weapon"},
+      "independent_choices": true
+    },
+    "weapons": {
+      "bolt_pistol": {"range_inches": 12, "attacks": 1, "skill": 3, "strength": 5, "ap": -1, "damage": 1, "keywords": ["close-quarters"]},
+      "plasma_pistol_standard": {"range_inches": 12, "attacks": 1, "skill": 3, "strength": 7, "ap": -2, "damage": 1, "keywords": ["close-quarters"]},
+      "plasma_pistol_supercharge": {"range_inches": 12, "attacks": 1, "skill": 3, "strength": 8, "ap": -3, "damage": 2, "keywords": ["close-quarters", "hazardous"]},
+      "chainsword": {"attacks": 4, "skill": 3, "strength": 5, "ap": -1, "damage": 1},
+      "power_weapon": {"attacks": 4, "skill": 3, "strength": 5, "ap": -2, "damage": 1}
+    },
+    "abilities": ["Berserk Charge"],
+    "berserk_charge": "If selected to make an Advance move, the Advance does not prevent this unit from being eligible to declare a Charge in the same turn.",
+    "leader_targets": [
+      {"name": "Ragnar Blackmane", "datasheet_id": "000000285"},
+      {"name": "Njal Stormcaller", "datasheet_id": "000000292"},
+      {"name": "Ulrik the Slayer", "datasheet_id": "000000297"},
+      {"name": "Iron Priest", "datasheet_id": "000000306"},
+      {"name": "Wolf Priest", "datasheet_id": "000004129"},
+      {"name": "Wolf Guard Battle Leader", "datasheet_id": "000004130"}
+    ]
+  },
+  "runtime_scope": {
+    "identity": "blood-claws",
+    "status": "source_bounded_local_scope_passed_2026_10_29",
+    "implemented": [
+      "source composition, 10/20-model prices, characteristics, base and keywords",
+      "source default Bolt Pistol and Chainsword profiles",
+      "independent Pack Leader Plasma Pistol and Power Weapon replacements",
+      "Berserk Charge through shared Charge-declaration eligibility"
+    ],
+    "deferred_source_relations": "All six source-listed Leader endpoints are captured but remain unavailable until those character profiles are integrated.",
+    "full_match_certified": false,
+    "network_validation": "deferred"
+  },
+  "verification": {
+    "profile": "targeted",
+    "report": ".tools/verification/20261029T015613920914Z/results.json",
+    "report_sha256": "3F094EFE0B29A3B268AE34115D3B8A7889533960B1622E8D32A2A95B36C63288",
+    "network": false,
+    "headless_rid_cleanup_diagnostics": false,
+    "selected_suites": ["test_blood_claws", "test_implemented_catalog", "test_capabilities", "test_combat_doctrines", "test_execrator"],
+    "focused_test": "tests/test_blood_claws.gd",
+    "outcome": "passed_7_of_7_processes_locally"
+  }
+}

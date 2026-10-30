@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "provider": "wahapedia",
+  "edition": "11e",
+  "source": {
+    "book_id": "000000356",
+    "book_name": "Space Marines (Warhammer Legends)",
+    "datasheet_id": "000001190",
+    "datasheet_name": "Stormtalon Gunship",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Stormtalon-Gunship",
+    "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+    "selected_export_file_sha256": {
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+    }
+  },
+  "local_scope": {
+    "status": "source_bounded_local_scope_passed_2026_10_30",
+    "models": 1,
+    "points": 165,
+    "weapons_and_replacements": "All source-listed default and replacement weapon profiles are represented.",
+    "unique_ability": "Strafing Run: ranged attacks gain +1 to Hit against targets without FLY.",
+    "geometry_limit": "Source base is a 120 x 92 mm oval; local match geometry uses a labelled 60 mm bounding-circle proxy.",
+    "game_mode": "Warhammer Legends casual-use scope; competitive events require organiser approval."
+  },
+  "verification": {
+    "command": "python tools/verify.py --profile targeted --only test_stormtalon_gunship --only test_stormhawk_interceptor --only test_nephilim_jetfighter --only test_implemented_catalog --only test_space_marine_profile_source_fields --only test_marine_category_copy_limits --only test_capabilities --only test_current_unit_abilities --godot 'C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe'",
+    "status": "passed",
+    "process_count": 10,
+    "network": false,
+    "legacy_starter_staged": true,
+    "headless_rid_cleanup_diagnostics": false,
+    "results_path": ".tools/verification/20261030T084944412603Z/results.json",
+    "results_sha256": "2db87ad663a3133d03523ab7e9e53b7d3a1a7289f5d0358793ff7536a53a140f"
+  },
+  "focused_follow_up": {
+    "command": "python tools/verify.py --profile targeted --only test_stormtalon_gunship --godot 'C:\\Godot\\4.7.2\\Godot_v4.7.2-stable_win64_console.exe'",
+    "status": "passed",
+    "process_count": 3,
+    "network": false,
+    "legacy_starter_staged": false,
+    "headless_rid_cleanup_diagnostics": false,
+    "results_path": ".tools/verification/20261030T085923444727Z/results.json",
+    "results_sha256": "560c810fa3aee065e6670c31f352dc4ef509228d87af51bc79f71ef761bd25f4"
+  },
+  "identity_export": {
+    "profile_count": 173,
+    "missing_source_ids": [],
+    "path": ".tools/space-marine-runtime-identities-full-audit-next-20261030-v6.json",
+    "sha256": "fc9049e66855fbb33e0f44bbb0b67fb6e1007c64f8acb2c638b7c8e42fe9021d"
+  },
+  "limits": [
+    "Live-page and current event-pack price validation remain deferred to final network integration.",
+    "Exact physical base clearance is not represented by the bounding-circle proxy.",
+    "Profile-specific Deadly Demise trigger and chain cases, complete army legality, competitive organiser acceptance and human playtesting are not certified by this sheet result."
+  ]
+}

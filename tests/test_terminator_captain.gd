@@ -3,6 +3,8 @@ const F = preload("res://tests/all_units_fixture.gd")
 const C = F.C
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const P = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Army = preload("res://scripts/edition_11/army_capabilities.gd")
+const WeaponChecks = preload("res://tests/space_marine_datasheet_checks.gd")
 const U = preload("res://scripts/edition_11/unit_prevention.gd")
 const MatchCommands = preload("res://scripts/edition_11/match_command_service.gd")
 const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
@@ -16,10 +18,16 @@ func four() -> int: return 4
 func three() -> int: return 3
 func entry(name: String, models: int = 1) -> Dictionary:
  return {"definition_id": "40kdc:11e:adeptus-astartes:" + name, "models": models, "copies": 1}
+func model_for(state: Dictionary, owner: int, identity: String) -> int:
+ for model: int in state.units:
+  var unit: Dictionary = state.units[model]
+  if int(unit.get("owner", -1)) == owner and C.UnitAbilities.identity(unit) == identity: return model
+ return -1
 func fixture(attached: bool = true) -> Dictionary:
- var lists := F.selections()
+ var lists := F.current_marine_selections()
  lists[1].entries = [entry("captain-in-terminator-armour"), entry("intercessor-squad", 5), entry("terminator-squad", 5)]
- var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
+ lists[2].entries = [entry("captain-in-terminator-armour"), entry("intercessor-squad", 5), entry("terminator-squad", 5)]
+ var s := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
  if s.has("error"): return s
  if attached: C.UnitActions.attach(s, 100, 5)
  s.mission.stage = "battle"
@@ -56,11 +64,28 @@ func charge_fixture() -> Dictionary:
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
  var s := fixture()
- check(not s.has("error"), "Terminator Captain admission failed")
+ check(not s.has("error"), "Terminator Captain admission failed: %s" % str(s.get("error", "")))
  if s.has("error"):
   print(s)
   quit(1)
   return
+ var profile: Dictionary = P.profile("captain-in-terminator-armour")
+ check(profile.source_book_id == "000000139" and profile.source_datasheet_id == "000000135" and profile.source_export_updated_at == "2026-10-16T21:03:46+03:00", "Captain preserves its local Wahapedia source identity")
+ check(profile.models == 1 and is_equal_approx(profile.base_radius_inches, 20.0/25.4) and profile.points_by_models == {1: 90} and profile.stats == {"movement_inches": 5, "toughness": 6, "save_target": 2, "wounds": 6, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4}, "Captain's one-model profile, base, characteristics and price match the local export")
+ check(profile.keywords == ["INFANTRY", "CAPTAIN", "CHARACTER", "IMPERIUM", "TERMINATOR", "ADEPTUS ASTARTES"] and "DEATHWING" not in profile.keywords, "Captain retains unconditional keywords and excludes chapter-conditional Deathwing")
+ var resolution := Army.resolve("Space Marines", "40kdc:11e:adeptus-astartes:captain-in-terminator-armour")
+ check(resolution.get("error", "").is_empty() and int(resolution.get("cost", -1)) == 90 and resolution.get("unsupported_abilities", []).is_empty(), "Captain resolves from the consolidated local catalog with no blocked abilities")
+ var admitted := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [entry("captain-in-terminator-armour")]})
+ check(admitted.error.is_empty() and admitted.total == 90, "Captain is admitted at the local 90-point cost")
+ for owner in [1, 2]:
+  var owner_model := model_for(s, owner, "captain-in-terminator-armour")
+  check(owner_model >= 0 and s.units[owner_model].max_wounds == 6, "Player %d materializes the current Terminator Captain profile" % owner)
+ var expected_keywords := ["leader", "deep-strike", "combat-doctrines", "strategic-acumen", "unstoppable-valour", "transhuman-strategist"]
+ for ability: String in expected_keywords:
+  check(C.UnitAbilities.has(s, 5, ability), "Captain retains source ability %s" % ability)
+ check(not C.UnitAbilities.has(s, 5, "finest-hour"), "Terminator Captain does not inherit the ordinary Captain's Finest Hour")
+ var weapon_failures := WeaponChecks.fixed_weapon_plan_failures(s, profile, 100, 2)
+ check(weapon_failures.is_empty(), "Default Storm Bolter and Relic Weapon pass Equipment and AttackPlan: %s" % str(weapon_failures))
  check(s.training_points[1] == 365 and s.units[100].max_wounds == 6 and is_equal_approx(s.units[100].radius,20.0/25.4), "Captain stats/price/base incorrect")
  check(C.UnitAbilities.has(s,5,"strategic-acumen") and C.UnitAbilities.has(s,5,"transhuman-strategist") and C.UnitAbilities.has(s,5,"deep-strike") and not C.UnitAbilities.has(s,5,"finest-hour"), "Captain identities/abilities merged")
  s = charge_fixture()
@@ -99,6 +124,9 @@ func run() -> void:
  check(s.units[100].ranged_weapons.size()==1 and s.units[100].ranged_weapons[0].profiles.size()==3 and s.units[100].melee_weapons[0].id=="relic-fist", "Combi modes treated as separate weapons or fist missing")
  var combi: Dictionary = s.units[100].ranged_weapons[0].profiles
  check(combi.infernus.keywords.torrent and combi.infernus.keywords.blast==1 and combi.damnatus.keywords.melta==2 and combi.damnatus.damage=="D3+2", "Combi characteristics/traits incorrect")
+ var alternate_profile := {"ranged": P.terminator_captain_weapons(true, false).ranged, "melee": P.terminator_captain_weapons(true, true).melee}
+ weapon_failures = WeaponChecks.fixed_weapon_plan_failures(s, alternate_profile, 100, 2)
+ check(weapon_failures.is_empty(), "Selected Combi-weapon profiles and Relic Fist pass Equipment and AttackPlan: %s" % str(weapon_failures))
  C.UnitActions.attach(s,100,5)
  s.phase = "deployment"
  check(s.squads[5].training_cost==280 and choose(s,"terminator-captain-gun","bolter").is_empty() and s.units[100].melee_weapons[0].id=="relic-fist", "Gun swap changed fist or attachment cost omitted Captain")
@@ -147,5 +175,17 @@ func run() -> void:
  check(automatic.error.is_empty() and automatic.hit_rolls.is_empty() and automatic.hits==automatic.attacks, "Torrent with no BS rolled to hit or lost automatic hits in cover")
  invalid.keywords.erase("torrent")
  check(not C.Attacks._validate(invalid,C.AttackPlan.defender(s,2),{}).is_empty(), "Zero BS admitted without Torrent")
+ s = fixture(false)
+ s.unit_abilities.warlords = {1: 100}
+ s.round = 1
+ s.cp[1] = 0
+ C.UnitActions.start_round(s)
+ check(s.cp[1] == 1, "Transhuman Strategist grants its Warlord CP to the Terminator Captain")
+ C.UnitActions.start_round(s)
+ check(s.cp[1] == 1, "Terminator Captain cannot grant the Warlord CP twice in a battle round")
+ s.round = 2
+ s.units[100].wounds = 0
+ C.UnitActions.start_round(s)
+ check(s.cp[1] == 1, "A destroyed Terminator Captain no longer grants Transhuman Strategist CP")
  print("Terminator Captain checks: %d failures" % failures)
  quit(0 if failures==0 else 1)

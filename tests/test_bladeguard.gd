@@ -144,7 +144,7 @@ func run() -> void:
  # Checked admission uses the supported Marine-vs-Necron mission separately.
  var checked_lists := F.selections()
  checked_lists[1] = selection()
- var checked := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true}, checked_lists)
+ var checked := F.P.initial_state({"checked_rosters": true, "official_mission": true, "terrain_layout": "ca-2026-27-take-and-hold-mirror-a-v1", "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true}, checked_lists)
  check(not checked.has("error") and checked.training_points[1] == 180, "Bladeguard failed checked Marine-vs-Necron admission")
  s = fixture()
  s.manual_allocation = true

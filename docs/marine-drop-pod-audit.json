@@ -1,0 +1,54 @@
+{
+  "identity": "drop-pod",
+  "source": {
+    "authority": "Wahapedia 11th-edition local export",
+    "source_book_id": "000000139",
+    "datasheet_id": "000000087",
+    "export_snapshot_id": "20261021T130623Z",
+    "export_updated_at": "2026-10-21T16:06:23+03:00",
+    "source_checked_at": "2026-10-27",
+    "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Drop-Pod",
+    "manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf",
+    "slice_manifest_sha256": "f11ff7ddce6e12b33abf62426a245711611667a98e13969efa8679bef88c7989"
+  },
+  "scope": {
+    "models": 1,
+    "base": "80 mm circle proxy; source geometry is Custom",
+    "points_first_third": 60,
+    "points_fourth_plus": 70,
+    "max_supported_copies": 4,
+    "weapons": [],
+    "abilities": [
+      "Deep Strike",
+      "Deadly Demise 1",
+      "Drop Pod Assault"
+    ],
+    "transport_capacity": 12,
+    "required_keywords": [
+      "ADEPTUS ASTARTES",
+      "INFANTRY"
+    ],
+    "forbidden_keywords": [
+      "GRAVIS",
+      "JUMP PACK",
+      "TERMINATOR"
+    ],
+    "full_army_legality_certified": false
+  },
+  "local_validation": ".tools/verification/20261027T110036757480Z/results.json",
+  "local_validation_sha256": "673625518FD3C2032CD86DEF8F2E8002F117A28081423BB1BEE5E312919FE2BC",
+  "test_file": "tests/test_marine_drop_pod.gd",
+  "network_validation": "deferred_to_final_integration_by_user",
+  "full_match_certified": false,
+  "latest_scope_validation": {
+    "observed_at": "2026-10-27",
+    "status": "passed; 4/4 processes; network=false; legacy_starter_staged=false; no cleanup diagnostics",
+    "source_snapshot_id": "20261021T130623Z",
+    "current_catalog_for_both_players": true,
+    "full_source_bounded_local_scope_validated": true,
+    "full_army_legality_certified": false,
+    "network_validation": "deferred_to_final_integration_by_user",
+    "open_limit": "Local cap is four copies; category-aware Incursion and Strike Force limits, including Strike Force copies five and six, are unsupported.",
+    "master_evidence": "space-marines-profile-evidence.json"
+  }
+}
