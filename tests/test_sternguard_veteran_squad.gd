@@ -165,7 +165,7 @@ func run() -> void:
 	for support: String in SupportAttachments.BODYGUARDS:
 		if UNIT in SupportAttachments.BODYGUARDS[support]: source_supports.append(support)
 	source_supports.sort()
-	check(source_supports == ["ancient", "apothecary", "judiciar", "kaius-konorius", "lieutenant", "wardens-of-ultramar"], "All six common-book Supported by identities match the source link map: %s" % str(source_supports))
+	check(source_supports == ["ancient", "apothecary", "castellan", "judiciar", "kaius-konorius", "lieutenant", "sanguinary-priest", "wardens-of-ultramar"], "All common-book and source-reviewed Chapter Supported by identities match the source link map: %s" % str(source_supports))
 	check(C.UnitActions.attachment_allowed(state, captain, small), "Captain attachment is accepted for Sternguard")
 	C.UnitActions.attach(state, captain, small)
 	check(state.units[captain].squad == small and C.UnitAbilities.has(state, small, "veteran-marksmen"), "Attached Captain joins the bodyguard and living Sternguard grants Veteran Marksmen")

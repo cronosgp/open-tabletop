@@ -1,6 +1,6 @@
 extends RefCounted
 ## Dependency-free visibility effects, shared by terrain and unit abilities.
-const ABILITY_IMPLEMENTATION_ID := "track-a-current-datasheets-2026-10-v87-wolf-guard-headtakers"
+const ABILITY_IMPLEMENTATION_ID := "track-a-current-datasheets-2026-10-v94-hammerfall-bunker"
 const EPSILON := 0.001
 
 static func cloaks(state: Dictionary, squad: int) -> bool:

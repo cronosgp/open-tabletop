@@ -1,0 +1,85 @@
+{
+  "id": "marine-mastodon-legends-e11-local-audit-2026-10-30",
+  "observed_at": "2026-10-30",
+  "status": "source_bounded_local_rules_passed_placement_partial",
+  "rules_authority": "Wahapedia 11th edition and its verified local Data Export; live-page validation is deferred to final integration.",
+  "source": {
+    "edition": "11e",
+    "faction": "Space Marines",
+    "chapter": "Space Marines (Warhammer Legends)",
+    "book_id": "000000356",
+    "book_type": "App",
+    "book_edition": "11",
+    "datasheet_id": "000001189",
+    "role": "Transport",
+    "game_mode": "Warhammer Legends; alternate modes are outside this profile audit.",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Mastodon",
+    "current_page_checked_at": "Local verified export identity; live network recheck deferred.",
+    "snapshot": {
+      "provider": "Wahapedia Data Export",
+      "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+      "retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00",
+      "export_updated_at": "2026-10-28T23:48:19+03:00",
+      "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+      "slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+      "parent_validation_findings": 68,
+      "exact_legends_slice_validation_findings": 0,
+      "source_files": [
+        {"filename": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+        {"filename": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+        {"filename": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+        {"filename": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+        {"filename": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+        {"filename": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+        {"filename": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+        {"filename": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"}
+      ]
+    }
+  },
+  "reconciliation": "One Mastodon model at 540 points in first, second and third copy tiers. All listed characteristics, seven source weapons and two independent three-choice replacement groups are represented. Transport has 45 shared capacity, accepts source-listed ADEPTUS ASTARTES Infantry and up to two current catalogued Dreadnought identities, counts Dreadnought W, and applies the listed Jump Pack/Gravis/Terminator x2 and Centurion x3 multipliers. The source says Use model with no hull dimensions; exact placement geometry is not certified.",
+  "implemented_scope": {
+    "runtime_profile": "scripts/edition_11/current_reference_marine_profiles.gd",
+    "army_admission": "scripts/edition_11/army_capabilities.gd",
+    "transport_rules": "scripts/edition_11/transport_rules.gd",
+    "ability_registration": [
+      "scripts/edition_11/unit_ability_catalog.gd",
+      "scripts/edition_11/unit_abilities.gd",
+      "scripts/edition_11/capabilities.gd"
+    ],
+    "dreadnought_identity_group": [
+      "dreadnought",
+      "venerable-dreadnought",
+      "venerable-dreadnought-legends",
+      "ballistus-dreadnought",
+      "redemptor-dreadnought",
+      "brutalis-dreadnought",
+      "death-company-dreadnought",
+      "wulfen-dreadnought"
+    ],
+    "composition": {"models": 1, "points_by_copy_tier": {"first": 540, "second_plus": 540, "third_plus": 540}, "copy_limit": {"incursion": 2, "strike_force": 3}},
+    "geometry": {"source": "Use model; no hull dimensions in the verified export", "runtime": "labelled 60 mm circular interaction-test proxy", "certified_for_physical_placement": false},
+    "verified_runtime_identity_export": {"path": ".tools/space-marine-runtime-identities-full-audit-next-20261030-v16.json", "profile_count": 182, "missing_source_ids": 0, "sha256": "E44796241979C35F6C9072039DCC46F026763D4AB60A2F2A745589FB5508505E"},
+    "whole_index_inventory": {"path": ".tools/space-marine-full-inventory-post-mastodon-20261030.json", "page_entries": 193, "datasheet_identities": 192, "sha256": "222B2E30197C355CCE185DCAC931E143C75F498F8A5C4443898A363EB73649B0"}
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_mastodon_legends --only test_implemented_catalog --only test_space_marine_profile_source_fields --only test_space_marine_copy_cost_parity --only test_marine_category_copy_limits --only test_capabilities --only test_marine_transport_profiles --only test_marine_transport_rules --only test_marine_transport_weapon_options --only test_marine_transport_destruction --only test_attack_plan --only test_combat_doctrines --only test_land_raider_excelsior --only test_rhino_primaris_legends --only test_dreadnought_legends",
+    "result_path": ".tools/verification/20261030T124919082721Z/results.json",
+    "result_sha256": "4d112555b3373fc911bee04c7b47a795a07d5a4a7cdc3c3ef5a05bd7756720a1",
+    "passed_processes": 17,
+    "failed_processes": 0,
+    "network": false,
+    "legacy_starter_staged": true,
+    "headless_cleanup_diagnostics": false
+  },
+  "legal_use": {
+    "local_game_mode": "The project labels this a Warhammer Legends profile for home, store, club and campaign play.",
+    "competitive_events": "Requires organiser approval; no event-specific acceptance is certified.",
+    "army_legality": "Only this profile's local admission and selected construction limits were checked; whole-army legality is not certified."
+  },
+  "remaining_blockers": [
+    "The source says Use model without a hull diameter or exact geometry; the runtime's 60 mm proxy cannot certify legal movement, overlap or clearance.",
+    "The transport phrase Dreadnought models is mapped to the eight currently catalogued Dreadnought-named identities because the export has no DREADNOUGHT keyword; live-page/source wording validation remains deferred.",
+    "Full Deadly Demise 2D6 resolution, Emergency Disembark interactions and all transport combat timing remain outside this sheet-specific check.",
+    "Live-page/network validation, current event-pack restrictions, whole-army legality, network play and human playtesting remain pending."
+  ]
+}

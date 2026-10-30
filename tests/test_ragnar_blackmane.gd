@@ -72,7 +72,7 @@ func run() -> void:
 	check(AbilityCatalog.RULES.get("ragnar-blackmane", []) == ["leader", "combat-doctrines", "transhuman-strategist", "battle-lust", "war-howl"], "Leader, Combat Doctrines, Transhuman Strategist and both datasheet abilities are registered")
 	check(Registry.supported("battle-lust") and Registry.supported("war-howl"), "Both Ragnar datasheet abilities are exposed as supported capabilities")
 	var targets := LeaderLinks.targets("ragnar-blackmane")
-	check(targets == ["wolf-guard-headtakers", "blood-claws"] and not Army.SPECS.has("wolf-guard-headtakers"), "Both source Leader endpoints are recorded while Headtakers remains unavailable for construction")
+	check(targets == ["wolf-guard-headtakers", "blood-claws"] and Army.SPECS.get("wolf-guard-headtakers", {}).get("current_reference", false), "Both source Leader endpoints are recorded and the reconciled Headtakers profile is selectable")
 	var admitted := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 1000, "entries": [entry("ragnar-blackmane")]})
 	var duplicate := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 1000, "entries": [entry("ragnar-blackmane", 1, 2)]})
 	check(admitted.get("error", "").is_empty() and admitted.get("total", -1) == 100 and not str(duplicate.get("error", "")).is_empty(), "Construction admits Ragnar at source cost and enforces his Epic Hero limit")

@@ -278,7 +278,85 @@ def composition(rows, fixed):
             "source_model_roles": parts, "issues": issues, "model_role_assignment_certified": False}
 
 
+def _composition_costs(rows, fixed, max_supported_copies):
+    """Compare duplicated total-size rows when a verified source maps each to a role mix."""
+    headings = {"YOUR UNIT COSTS": "ordinary", "YOUR 1ST TO 2ND UNITS COST": "first_second",
+                "YOUR 3RD+ UNIT COSTS": "third_plus"}
+    source_rows, issues, current = [], [], None
+    for row in rows:
+        description = plain(row["description"])
+        if not row["cost"]:
+            current = headings.get(description)
+            if current is None:
+                issues.append("Unrecognized composition-cost section: " + description)
+            continue
+        match = re.fullmatch(r"(\d+) models?", description)
+        price = number(row["cost"])
+        if current not in ["first_second", "third_plus"] or match is None or price is None:
+            issues.append("Unparsed composition-cost row: " + row["line"])
+            continue
+        source_rows.append((current, int(match[1]), int(price)))
+
+    mapped_rows = fixed.get("mfm_composition_cost_rows", [])
+    mapped_source_rows = []
+    legal_first, legal_third = {}, {}
+    seen_first, seen_third = {}, {}
+    for row in mapped_rows:
+        try:
+            models = int(row["models"])
+            headtakers = int(row["headtakers"])
+            wolves = int(row["hunting_wolves"])
+            first = int(row["first_to_second_points"])
+            third = int(row["third_plus_points"])
+            compatible = row["wahapedia_composition_compatible"] is True
+        except (KeyError, TypeError, ValueError):
+            issues.append("Malformed official role-composition cost mapping")
+            continue
+        if models <= 0 or headtakers < 0 or wolves < 0 or headtakers + wolves != models or first <= 0 or third <= 0:
+            issues.append("Invalid official role-composition cost mapping")
+            continue
+        mapped_source_rows.extend([("first_second", models, first), ("third_plus", models, third)])
+        if not compatible:
+            continue
+        for table, seen, key, price in [(legal_first, seen_first, "first_second", first),
+                                        (legal_third, seen_third, "third_plus", third)]:
+            if models in seen and seen[models] != price:
+                issues.append("Conflicting prices for a legal role composition at %d models" % models)
+            seen[models] = price
+            table[str(models)] = price
+
+    if sorted(source_rows) != sorted(mapped_source_rows):
+        issues.append("Official role-price mapping does not account for every source cost row")
+    if not legal_first:
+        issues.append("No source-priced role composition is compatible with the selected datasheet composition")
+    if int(fixed.get("models", -1)) not in [int(size) for size in legal_first]:
+        issues.append("Runtime default size has no compatible role-priced composition")
+    elif int(fixed.get("cost", -1)) != legal_first.get(str(fixed.get("models"))):
+        issues.append("Runtime default price differs from its compatible role composition")
+    advertised_first = {str(k): int(v) for k, v in fixed.get("sizes", {}).items()}
+    if advertised_first != legal_first:
+        issues.append("Runtime selectable sizes differ from the compatible role-priced compositions")
+    if max_supported_copies is None or max_supported_copies >= 3:
+        advertised_third = {str(k): int(v) for k, v in fixed.get("third_plus_sizes", {}).items()}
+        if advertised_third != legal_third:
+            issues.append("Runtime third-copy prices differ from the compatible role-priced compositions")
+
+    return {"consistent": not issues, "price_scope_complete": bool(legal_first) and advertised_first == legal_first
+            and (max_supported_copies is not None and max_supported_copies < 3 or
+                 {str(k): int(v) for k, v in fixed.get("third_plus_sizes", {}).items()} == legal_third),
+            "optional_wargear_scope_complete": True, "runtime_unit_cost": fixed.get("cost"),
+            "source_unit_cost": legal_first.get(str(fixed.get("models"))),
+            "source_sections": {"first_second": legal_first, "third_plus": legal_third},
+            "runtime_optional_wargear_costs": fixed.get("wargear_costs"), "issues": issues,
+            "role_price_scope_complete": not bool(fixed.get("unpriced_source_permitted_role_mix_note", "")),
+            "unpriced_source_permitted_role_mix_note": fixed.get("unpriced_source_permitted_role_mix_note", ""),
+            "source_role_cost_rows": mapped_rows,
+            "scope": "Every selectable role composition is checked against its mapped official role-price row; incompatible source rows stay excluded. Unpriced source-permitted role mixes are disclosed and unavailable."}
+
+
 def costs(rows, fixed, max_supported_copies=None):
+    if fixed.get("mfm_composition_cost_rows"):
+        return _composition_costs(rows, fixed, max_supported_copies)
     sections, issues, current = {}, [], None
     headings = {"YOUR UNIT COSTS": "ordinary", "YOUR 1ST TO 2ND UNITS COST": "first_second",
                 "YOUR 3RD+ UNIT COSTS": "third_plus", "WARGEAR OPTIONS": "optional_wargear",

@@ -44,8 +44,8 @@ func submit_choice(state: Dictionary, player: int, selected: Dictionary, roller:
 		payload = {"_decision_type": MatchCommands.UNIT_CHOICE_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}
 	return MatchCommands.execute(state, player, {"kind": MatchCommands.SELECT_UNIT_CHOICE, "revision": int(state.revision), "choice": payload}, roller)
 
-func selection(copies: int = 1) -> Dictionary:
-	return {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000,
+func selection(copies: int = 1, category: String = "incursion") -> Dictionary:
+	return {"schema_version": 2, "faction": "Space Marines", "category": category, "points_limit": 2000 if category == "strike_force" else 1000,
 		"entries": [{"definition_id": "40kdc:11e:adeptus-astartes:brutalis-dreadnought", "models": 1, "copies": copies}]}
 
 func first_model(state: Dictionary, identity: String, owner: int) -> int:
@@ -92,9 +92,10 @@ func run() -> void:
 	check(talons.melee[0].profiles.standard.keywords == {"sustained-hits": 1, "twin-linked": true, "cleave": 2} and talons.melee[0].profiles.standard.target_restricted_traits == {"sustained-hits": ["MONSTER", "VEHICLE"]}, "Brutalis Talons preserve Cleave and conditional Sustained Hits")
 	check(Army.SPECS["brutalis-dreadnought"].current_reference and Army.SPECS["brutalis-dreadnought"].max_supported_copies == 3, "Brutalis admission is tied to the current-reference profile and explicit copy limit")
 	var admitted := Army.admit(selection())
-	var three := Army.admit(selection(3))
-	var four := Army.admit(selection(4))
-	check(admitted.error.is_empty() and admitted.total == 160 and three.error.is_empty() and three.total == 500 and not four.error.is_empty(), "Local construction uses exact first/second and third-plus prices and rejects a fourth copy: %s / %d; %s / %d; %s" % [admitted.get("error", ""), admitted.get("total", -1), three.get("error", ""), three.get("total", -1), four.get("error", "")])
+	var three := Army.admit(selection(3, "strike_force"))
+	var four := Army.admit(selection(4, "strike_force"))
+	var incursion_three := Army.admit(selection(3))
+	check(admitted.error.is_empty() and admitted.total == 160 and three.error.is_empty() and three.total == 500 and not four.error.is_empty() and not incursion_three.error.is_empty(), "Local construction uses source copy tiers, Strike Force's third-copy price and each game's copy cap: %s / %d; %s / %d; %s; Incursion: %s" % [admitted.get("error", ""), admitted.get("total", -1), three.get("error", ""), three.get("total", -1), four.get("error", ""), incursion_three.get("error", "")])
 	var wounded := {"unit_abilities": {"implementation": Abilities.ID}, "units": {
 		100: {"definition_id": "40kdc:11e:adeptus-astartes:brutalis-dreadnought", "wounds": 5},
 		101: {"definition_id": "40kdc:11e:adeptus-astartes:brutalis-dreadnought", "wounds": 4},

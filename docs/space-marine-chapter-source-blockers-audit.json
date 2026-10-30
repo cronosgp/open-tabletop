@@ -8,12 +8,12 @@
   "data_export_reference": "https://wahapedia.ru/wh40k11ed/the-rules/data-export/",
   "current_export": {
     "export_updated_at": "2026-10-28T23:48:19+03:00",
-    "snapshot_id": "20261029T072022Z-final-integration",
-    "retrieval_window_utc": "2026-10-29T07:20:41.585070Z–2026-10-29T07:21:44.550982Z",
+    "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "retrieval_window_utc": "2026-10-30T01:32:36.486872+00:00–2026-10-30T01:33:47.386402+00:00",
     "timestamp_bracket_checked": true,
-    "manifest_sha256": "772952e313b6772022c68226514eba7cdde00464468fd79c8291d20c24da4801",
+    "manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
     "parent_validation_error_count": 68,
-    "note": "The parent export has 68 unrelated structural findings. The current Talonstrike and Headtakers subject slices each have zero findings; Talonstrike is source-reconciled, and Headtakers is partially integrated for its exact MFM-priced mixed compositions. Other role-count combinations allowed by the export but lacking MFM rows remain unpriced and blocked."
+    "note": "The timestamp-bracketed parent export has 68 unrelated structural findings. The current Talonstrike and Headtakers subject slices have zero findings; Talonstrike is source-reconciled, and Headtakers remains partial for its exact MFM-priced mixed compositions. Other role-count combinations allowed by Wahapedia but lacking MFM rows remain unpriced and blocked. All 22 CSV file hashes were checked in the latest capture."
   },
   "blockers": [
     {
@@ -209,22 +209,22 @@
           "wahapedia_composition_compatible": true
         }
       ],
-      "page_observation": "The current Wahapedia page and verified local export list 3-6 Hunting Wolves and 3-6 Headtakers, with Let Loose the Wolves splitting the formed unit after Declare Battle Formations. The official MFM labels four exact cost rows: mixed 3+3 and 6+6 are source-compatible, while Headtakers-only 3- and 6-model rows fail the selected minimum. Other role mixes permitted by the source have no explicit MFM cost row and receive no inferred price. Runtime admits the two priced compatible mixes. Headhunters, Let Loose the Wolves, Hunting Hounds, Storm Shield, and all six Leader endpoints are integrated in the source-bounded local profile. Exact oval-base geometry and final network/page validation remain open.",
-      "source_snapshot_id": "20261029T072022Z-final-integration",
-      "source_snapshot_manifest_sha256": "772952e313b6772022c68226514eba7cdde00464468fd79c8291d20c24da4801",
-      "scoped_slice_path": ".tools/wahapedia-e11-live-refresh-20261029T072022Z-final-integration/headtakers-slice",
-      "scoped_slice_manifest_sha256": "9779a6e90c1690c19179a7eda8a66498d4cce2c6e953e05d3bcd7a644763fe1e",
-      "scoped_slice_catalog_sha256": "6468dbcd4dc03b1884b259659592472e4fa63506e4cdcfd64a4d529363f458a1",
+      "page_observation": "The current Wahapedia page and verified local export list 3-6 Hunting Wolves and 3-6 Headtakers, with Let Loose the Wolves splitting the formed unit after Declare Battle Formations. The official MFM v1.0 page, checked 29 October, labels four exact cost rows: mixed 3+3 and 6+6 are source-compatible, while Headtakers-only 3- and 6-model rows fail the selected minimum. Other role mixes permitted by the source have no explicit MFM cost row and receive no inferred price. Runtime admits the two priced compatible mixes. Headhunters, Let Loose the Wolves, Hunting Hounds, Storm Shield, and all six Leader endpoints are integrated in the source-bounded local profile. Exact oval-base geometry, human playtesting and full Space Wolves roster legality remain open.",
+      "source_snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+      "source_snapshot_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+      "scoped_slice_path": ".tools/marine-slices-current/wolf-guard-headtakers",
+      "scoped_slice_manifest_sha256": "e0178a7d1203b781f24987b55980b832a6ff10112d1a5b1a70a21df4df50ebc7",
+      "scoped_slice_catalog_sha256": "4900aafe8d4c54bad4ea48229ad7be45f66c487f458abea1c3155553bb9775d6",
       "scoped_slice_validation_error_count": 0,
       "scoped_slice_structurally_valid": true,
       "relevant_slice_file_sha256": {
         "Datasheets.csv": "eddae62175d8cfee7a35c5c0cdbaa146e990f135a8f377bb10348be6393ff0c5",
+        "Datasheets_abilities.csv": "cc7d75b4cf28fafbd4b49b396a644bbcf4ebc48ebdc8253a2d10cc4d0c1c1767",
         "Datasheets_models.csv": "1eca25ed1d566ee5b490c6384f461f00638dd84c6db72bb872d375f859a0a7be",
-        "Datasheets_unit_composition.csv": "efc85ea8768f5fac6cea16878cb638833e8f6dc883bbfde905eedc040b525168",
-        "Datasheets_models_cost.csv": "55de8194a9665287b7d83fc2ebe1aca9dd88730cf637426c965a50107c9fdcea",
         "Datasheets_options.csv": "b58844293cf85876c771e713988e871a4a78e7d4fd846114b7c6685f18373155",
         "Datasheets_wargear.csv": "38fcd554a8ea79aa51bd0cb97d49b560d9ba1c1c9b31df48a53868346ddb7016",
-        "Datasheets_abilities.csv": "cc7d75b4cf28fafbd4b49b396a644bbcf4ebc48ebdc8253a2d10cc4d0c1c1767",
+        "Datasheets_unit_composition.csv": "efc85ea8768f5fac6cea16878cb638833e8f6dc883bbfde905eedc040b525168",
+        "Datasheets_models_cost.csv": "55de8194a9665287b7d83fc2ebe1aca9dd88730cf637426c965a50107c9fdcea",
         "Datasheets_leader.csv": "3504d9fd63f729f0fdef1eb369bba439a1e92ab5446c62e67d03f5a0e072b6ff"
       },
       "runtime_profile": {

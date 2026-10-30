@@ -212,6 +212,43 @@ class FixedDataChecksTests(unittest.TestCase):
         self.assertFalse(checks.costs(rows, {"models": 10, "cost": 190})["consistent"])
         self.assertFalse(checks.costs(rows, {"models": 5, "cost": 190, "third_cost": 190})["consistent"])
 
+    def test_role_mapped_duplicate_cost_rows_check_only_compatible_priced_compositions(self):
+        rows = [
+            {"line": "1", "description": "YOUR 1ST TO 2ND UNITS COST", "cost": ""},
+            {"line": "2", "description": "3 models", "cost": "85"},
+            {"line": "3", "description": "6 models", "cost": "115"},
+            {"line": "4", "description": "6 models", "cost": "170"},
+            {"line": "5", "description": "12 models", "cost": "230"},
+            {"line": "6", "description": "YOUR 3RD+ UNIT COSTS", "cost": ""},
+            {"line": "7", "description": "3 models", "cost": "95"},
+            {"line": "8", "description": "6 models", "cost": "125"},
+            {"line": "9", "description": "6 models", "cost": "180"},
+            {"line": "10", "description": "12 models", "cost": "240"},
+        ]
+        role_rows = [
+            {"models": 3, "headtakers": 3, "hunting_wolves": 0, "first_to_second_points": 85, "third_plus_points": 95, "wahapedia_composition_compatible": False},
+            {"models": 6, "headtakers": 3, "hunting_wolves": 3, "first_to_second_points": 115, "third_plus_points": 125, "wahapedia_composition_compatible": True},
+            {"models": 6, "headtakers": 6, "hunting_wolves": 0, "first_to_second_points": 170, "third_plus_points": 180, "wahapedia_composition_compatible": False},
+            {"models": 12, "headtakers": 6, "hunting_wolves": 6, "first_to_second_points": 230, "third_plus_points": 240, "wahapedia_composition_compatible": True},
+        ]
+        fixed = {"models": 6, "cost": 115, "sizes": {6: 115, 12: 230},
+                 "third_plus_sizes": {6: 125, 12: 240}, "mfm_composition_cost_rows": role_rows,
+                 "unpriced_source_permitted_role_mix_note": "Other permitted role mixes have no explicit MFM price."}
+        result = checks.costs(rows, fixed, max_supported_copies=3)
+        self.assertTrue(result["consistent"], result["issues"])
+        self.assertTrue(result["price_scope_complete"])
+        self.assertFalse(result["role_price_scope_complete"])
+        self.assertEqual(result["source_sections"]["first_second"], {"6": 115, "12": 230})
+
+        invalid_admission = copy.deepcopy(fixed)
+        invalid_admission["mfm_composition_cost_rows"][2]["wahapedia_composition_compatible"] = True
+        self.assertFalse(checks.costs(rows, invalid_admission, max_supported_copies=3)["consistent"])
+
+        wrong_source_price = copy.deepcopy(role_rows)
+        wrong_source_price[1]["first_to_second_points"] = 116
+        wrong_mapping = {**fixed, "mfm_composition_cost_rows": wrong_source_price}
+        self.assertFalse(checks.costs(rows, wrong_mapping, max_supported_copies=3)["consistent"])
+
     def test_explicitly_mapped_optional_wargear_price_is_compared(self):
         rows = [{"line": "1", "description": "YOUR 1ST TO 2ND UNITS COST", "cost": ""},
                 {"line": "2", "description": "1 model", "cost": "170"},

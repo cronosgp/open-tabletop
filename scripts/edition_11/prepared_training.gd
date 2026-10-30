@@ -434,6 +434,27 @@ static func _current_loadouts(state: Dictionary) -> String:
 			if marine_profile.has("base_radius_inches"): unit.radius = float(marine_profile.base_radius_inches)
 			unit.ranged_weapons = marine_profile.ranged.duplicate(true)
 			unit.melee_weapons = marine_profile.melee.duplicate(true)
+			if source == "cerberus":
+				unit.cerberus_optional_weapon = "none"
+				unit.cerberus_optional_pair = "none"
+			if source == "dreadnought":
+				unit.dreadnought_primary = "assault-cannon"
+				unit.dreadnought_melee_package = "dreadnought-fist"
+				unit.dreadnought_secondary = "none"
+			if source == "venerable-dreadnought-legends":
+				unit.venerable_dreadnought_legends_primary = "assault-cannon"
+				unit.venerable_dreadnought_legends_package = "fist-and-storm-bolter"
+				var venerable_weapons := CurrentMarineProfiles.venerable_dreadnought_legends_weapons()
+				if venerable_weapons.is_empty(): return "Venerable Dreadnought Legends requires its source-listed default weapon package."
+				unit.ranged_weapons = venerable_weapons.ranged
+				unit.melee_weapons = venerable_weapons.melee
+			if source == "typhon":
+				unit.typhon_sponsons = "none"
+				unit.typhon_hull_weapon = "none"
+				var typhon_weapons := CurrentMarineProfiles.typhon_weapons()
+				if typhon_weapons.is_empty(): return "Typhon requires its source-listed default weapon package."
+				unit.ranged_weapons = typhon_weapons.ranged
+				unit.melee_weapons = typhon_weapons.melee
 			if source in ["death-company-marines", "death-company-marines-with-jump-packs"]:
 				unit.death_company_melee_package = "chainsword"
 				unit.death_company_pistol_package = "heavy-bolt-pistol"
@@ -751,6 +772,13 @@ static func _current_loadouts(state: Dictionary) -> String:
 				var outrider_weapons := CurrentMarineProfiles.outrider_weapons(false, "chainsword")
 				unit.ranged_weapons = outrider_weapons.ranged
 				unit.melee_weapons = outrider_weapons.melee
+			if source == "scout-bike-squad":
+				unit.scout_bike_grenade_launcher = false
+				unit.scout_bike_sergeant_option = "bolt-pistol"
+				var scout_bike_weapons := CurrentMarineProfiles.scout_bike_squad_weapons()
+				if scout_bike_weapons.is_empty(): return "Scout Bike Squad requires its source-listed default wargear."
+				unit.ranged_weapons = scout_bike_weapons.ranged
+				unit.melee_weapons = scout_bike_weapons.melee
 			if source == "ravenwing-black-knights":
 				unit.black_knight_grenade_launcher = false
 				var black_knight_weapons := CurrentMarineProfiles.ravenwing_black_knight_weapons()
@@ -795,6 +823,12 @@ static func _current_loadouts(state: Dictionary) -> String:
 				unit.ranged_weapons = weapons.ranged
 				unit.melee_weapons = weapons.melee
 				if unit.get("sergeant", false): unit.vanguard_melee = "relic-blade"
+			if source == "vanguard-veteran-squad":
+				unit.vanguard_veteran_squad_loadout = "bolt-pistol"
+				var veteran_weapons := CurrentMarineProfiles.vanguard_veteran_squad_weapons()
+				if veteran_weapons.is_empty(): return "Vanguard Veteran Squad requires its source-listed default equipment."
+				unit.ranged_weapons = veteran_weapons.ranged
+				unit.melee_weapons = veteran_weapons.melee
 			marine_profiles_used = true
 			continue
 		if not cache.has(source):

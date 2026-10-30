@@ -80,7 +80,7 @@ func run() -> void:
 	check(AbilityCatalog.RULES.get("ulrik-the-slayer", []) == ["leader", "combat-doctrines", "transhuman-strategist", "slayer-s-oath", "oathbound"], "Leader, Combat Doctrines, Transhuman Strategist and both datasheet abilities are registered")
 	check(Registry.supported("slayer-s-oath") and Registry.supported("oathbound"), "Both Ulrik abilities are exposed as supported local capabilities")
 	var targets := LeaderLinks.targets("ulrik-the-slayer")
-	check(targets == ["grey-hunters", "assault-intercessor-squad", "wolf-guard-headtakers", "blood-claws", "bladeguard-veteran-squad", "intercessor-squad"] and not Army.SPECS.has("wolf-guard-headtakers"), "All six source-listed Leader endpoints are recorded in source order; Headtakers remains unavailable for construction")
+	check(targets == ["grey-hunters", "assault-intercessor-squad", "wolf-guard-headtakers", "blood-claws", "bladeguard-veteran-squad", "intercessor-squad"] and Army.SPECS.get("wolf-guard-headtakers", {}).get("current_reference", false), "All six source-listed Leader endpoints are recorded in source order and reconciled Headtakers is selectable")
 	var admitted := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 1000, "entries": [entry("ulrik-the-slayer")]})
 	var duplicate := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 1000, "entries": [entry("ulrik-the-slayer", 1, 2)]})
 	check(admitted.get("error", "").is_empty() and admitted.get("total", -1) == 90 and not str(duplicate.get("error", "")).is_empty(), "Construction admits Ulrik at source cost and enforces his Epic Hero limit")

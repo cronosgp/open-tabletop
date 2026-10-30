@@ -197,7 +197,7 @@ func run() -> void:
 	for candidate: String in SupportAttachments.BODYGUARDS:
 		if UNIT in SupportAttachments.BODYGUARDS[candidate]: source_supports.append(candidate)
 	source_supports.sort()
-	check(source_supports == ["ancient", "apothecary", "judiciar", "lieutenant", "wardens-of-ultramar"], "All five common-book Supported by links match the local source map: %s" % str(source_supports))
+	check(source_supports == ["ancient", "apothecary", "castellan", "judiciar", "lieutenant", "sanguinary-priest", "wardens-of-ultramar"], "All common-book and source-reviewed Chapter Supported by links match the local source map: %s" % str(source_supports))
 	var captain_model := model_for_identity(state, "captain")
 	check(captain_model >= 0 and C.UnitActions.attachment_allowed(state, captain_model, small), "A source-linked Captain can attach to Intercessor Squad")
 

@@ -1,0 +1,104 @@
+{
+  "id": "marine-razorback-legends-e11-local-audit-2026-10-30",
+  "rules_authority": "Wahapedia 11th edition and its verified local Data Export; Legends game-mode guidance is recorded separately from datasheet facts",
+  "observed_at": "2026-10-30",
+  "source": {
+    "edition": "11e",
+    "faction": "Space Marines",
+    "chapter": "Space Marines (Warhammer Legends)",
+    "book_id": "000000356",
+    "book_type": "App",
+    "book_edition": "11",
+    "game_mode": "Standard Warhammer 40,000 datasheets; Legends; alternate modes are outside this audit",
+    "snapshot": {
+      "provider": "Wahapedia Data Export",
+      "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+      "retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00",
+      "export_updated_at": "2026-10-28T23:48:19+03:00",
+      "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+      "slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+      "parent_validation_findings": 68,
+      "slice_validation_findings": 0,
+      "raw_slice_path": ".tools/marine-full-space-readiness-20261030/space-marines-legends/raw",
+      "parent_export_files": [
+        {"filename": "Datasheets.csv", "sha256": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c"},
+        {"filename": "Datasheets_abilities.csv", "sha256": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6"},
+        {"filename": "Datasheets_keywords.csv", "sha256": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"},
+        {"filename": "Datasheets_models.csv", "sha256": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03"},
+        {"filename": "Datasheets_models_cost.csv", "sha256": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e"},
+        {"filename": "Datasheets_options.csv", "sha256": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853"},
+        {"filename": "Datasheets_unit_composition.csv", "sha256": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245"},
+        {"filename": "Datasheets_wargear.csv", "sha256": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d"}
+      ],
+      "source_slice_files": [
+        {"filename": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+        {"filename": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+        {"filename": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+        {"filename": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+        {"filename": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+        {"filename": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+        {"filename": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+        {"filename": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"}
+      ],
+      "sheets": [
+        {
+          "name": "Razorback",
+          "datasheet_id": "000000129",
+          "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Razorback",
+          "source_row_counts": {"datasheet": 1, "model_roles": 1, "weapon_and_wargear_rows": 5, "option_rows": 3, "composition_rows": 1, "cost_rows": 6, "keyword_rows": 7, "ability_rows": 3, "leader_links": 0},
+          "cost_points_per_copy": {"first": 95, "second_plus": 95, "third_plus": 95},
+          "source_fire_support_name": "Fire Support"
+        },
+        {
+          "name": "Relic Razorback",
+          "datasheet_id": "000002720",
+          "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Relic-Razorback",
+          "source_row_counts": {"datasheet": 1, "model_roles": 1, "weapon_and_wargear_rows": 7, "option_rows": 3, "composition_rows": 1, "cost_rows": 6, "keyword_rows": 7, "ability_rows": 3, "leader_links": 0},
+          "cost_points_per_copy": {"first": 105, "second_plus": 105, "third_plus": 105},
+          "source_fire_support_name": "Fire Supprt",
+          "normalization_note": "The export's ability spelling is preserved in provenance; runtime lookup normalizes it to Fire Support based on the matching source description."
+        }
+      ]
+    }
+  },
+  "implemented_scope": {
+    "runtime_profile": "scripts/edition_11/current_reference_marine_profiles.gd",
+    "army_admission": "scripts/edition_11/army_capabilities.gd",
+    "ability_registration": ["scripts/edition_11/unit_ability_catalog.gd", "scripts/edition_11/unit_abilities.gd"],
+    "combat_and_transport_integration": ["scripts/edition_11/razorback_fire_support.gd", "scripts/edition_11/combat_scenario.gd", "scripts/edition_11/unit_actions.gd", "scripts/edition_11/transport_rules.gd", "scripts/edition_11/attack_plan.gd"],
+    "composition": "One model per datasheet. Source copy-tier prices are 95 or 105 points. Standard Dedicated Transport repetition limits permit up to 4 copies in Incursion or 6 in Strike Force for each datasheet, subject to points and other list rules.",
+    "characteristics": {"movement_inches": 12, "toughness": 9, "save_target": 3, "wounds": 10, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
+    "keywords": ["ADEPTUS ASTARTES", "SMOKE", "FRAME", "VEHICLE", "DEDICATED TRANSPORT", "TRANSPORT", "IMPERIUM"],
+    "geometry": {"source": "Use model", "runtime_proxy": "Labelled 120 mm circular interaction proxy", "exact_physical_clearance_certified": false},
+    "transport": {"capacity_models": 6, "required_keywords": ["ADEPTUS ASTARTES", "INFANTRY"], "forbidden_model_keywords": ["JUMP PACK", "TERMINATOR", "CENTURION", "GRAVIS"]},
+    "abilities": ["Combat Doctrines", "Deadly Demise D3", "Fire Support"],
+    "fire_support": "After this transport shoots, its owner selects an enemy unit actually hit. Friendly ADEPTUS ASTARTES units disembarked from that transport this turn may optionally re-roll Wound rolls against that target; target, source transport and turn are checked locally.",
+    "legends_game_mode": "Project policy enables casual/home/store/club/campaign use. Competitive use requires event organiser permission; event-specific acceptance is not established."
+  },
+  "runtime": {
+    "profile_status": "source_bounded_local_scope_passed_2026_10_30",
+    "standard_space_marine_profiles": 161,
+    "space_marine_legends_profiles": 23,
+    "construction_catalog_size_after_admission": 184,
+    "runtime_identity_export_path": ".tools/space-marine-runtime-identities-20261030-v17-razorback.json",
+    "runtime_identity_export_sha256": "69B7E3CCB453351E446B83F9854F89E1570A13FC37488592CB8A0FC5007FE194",
+    "missing_source_identity_count": 0
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_razorback_legends --only test_implemented_catalog --only test_space_marine_profile_source_fields --only test_marine_category_copy_limits --only test_marine_transport_weapon_options --only test_marine_transport_rules --only test_marine_transport_destruction",
+    "network": false,
+    "legacy_starter_staged": true,
+    "focused_result_path": ".tools/verification/20261030T132109018867Z/results.json",
+    "focused_result_sha256": "47FF08129742A58BF9078F7736811681473FD6756C677BA41E488265F6086764",
+    "focused_process_count": 9,
+    "focused_status": "passed"
+  },
+  "certification_limits": [
+    "The verified local source slice has zero scoped findings; the parent export retains 68 unrelated structural findings.",
+    "Live Wahapedia page and event-pack network validation remains deferred to final integration.",
+    "The wider transport Deadly Demise timing and global resolution capability remains pending.",
+    "Full army legality and all cross-datasheet interactions are not certified by this sheet audit.",
+    "The source provides no hull dimensions; the labelled 120 mm interaction proxy does not certify exact physical placement or clearance.",
+    "Competitive event acceptance, event-specific restrictions, remote play and human playtesting remain unverified."
+  ]
+}

@@ -56,6 +56,7 @@ static func new_list(edition: String, faction: String, category: String = "incur
 static func entry(unit: Dictionary, option: int, copies: int = 1, composition_choice: Dictionary = {}) -> Dictionary:
 	var result := {"unit_id": unit.id, "name": unit.name, "edition": unit.edition, "faction": unit.faction, "role": unit.role,
 		"models": unit.options[option].models, "cost": unit.options[option].cost, "copies": copies, "source_digest": unit.source_digest}
+	if not str(unit.get("source_scope", "")).is_empty(): result.source_scope = str(unit.source_scope)
 	if unit.options[option].has("second_plus_cost"): result.second_plus_cost = unit.options[option].second_plus_cost
 	if unit.options[option].has("third_plus_cost"): result.third_plus_cost = unit.options[option].third_plus_cost
 	if unit.options[option].has("fourth_plus_cost"): result.fourth_plus_cost = unit.options[option].fourth_plus_cost
@@ -131,6 +132,7 @@ static func validate(list: Variant) -> String:
 		for key in ["unit_id", "name", "edition", "faction", "role", "source_digest"]:
 			if not item.get(key) is String: return "Invalid unit entry field: " + key
 		if item.unit_id.is_empty() or item.edition != list.edition: return "Cannot mix editions."
+		if item.has("source_scope") and (not item.source_scope is String or item.source_scope.length() > 64): return "Invalid unit source scope."
 		if not faction_allowed(list.faction, item.faction, list.allow_allies): return "Allow allies to include another faction."
 		if not integer(item.get("models"), 0, 1000) or not integer(item.get("copies"), 1, 20): return "Invalid unit/model count."
 		if not item.has("cost") or (item.cost != null and not integer(item.cost, 1)): return "Invalid cost."
@@ -167,6 +169,7 @@ static func reprice(list: Dictionary, catalog: Dictionary) -> Dictionary:
 					break
 			if composition_choice.is_empty(): return {"error": "Unit composition changed in the catalog: " + old.name}
 		var refreshed := entry(unit, option, int(old.copies), composition_choice)
+		if old.has("source_scope") and not unit.has("source_scope"): refreshed.source_scope = str(old.source_scope)
 		if old.has("visual_variants"): refreshed.visual_variants = old.visual_variants.duplicate(true)
 		if old.has("enhancement_id"): refreshed.enhancement_id = old.enhancement_id
 		updated.entries[index] = refreshed

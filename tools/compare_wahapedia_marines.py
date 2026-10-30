@@ -381,7 +381,12 @@ def compare(snapshot, runtime, chapter="shared", keyword_context=None, source_id
             and result["fixed_cost_check"].get("price_scope_complete", False)
             and result["fixed_cost_check"].get("optional_wargear_scope_complete", False))
         result["scope"] = "Fixed numeric/trait/default-loadout/size/cost source checks only. Optional wargear, model-role assignment and executable ability interactions are not certified."
-    parent_validation_errors = manifest.get("parent_validation_errors", [])
+    # Scoped slices expose their original export findings as
+    # parent_validation_errors. A direct live-export snapshot instead stores
+    # them as validation_errors; preserve that source status in both cases.
+    parent_validation_errors = manifest.get("parent_validation_errors")
+    if parent_validation_errors is None:
+        parent_validation_errors = manifest.get("validation_errors", [])
     return {"snapshot_manifest_sha256": manifest_digest,
             "source_identity_map_sha256": importer.sha(importer.encode(source_identity_map)) if source_identity_map is not None else None,
             "identity_mapping_verified": identity_rows is not None,

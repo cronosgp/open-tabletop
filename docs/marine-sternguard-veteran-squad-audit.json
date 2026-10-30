@@ -217,7 +217,7 @@
   "full_army_legality_certified": false,
   "full_match_certified": false,
   "known_scope_limits": [
-    "The checked roster path is the project's MFM 1.6 1,000-point Incursion validator, which caps this non-BATTLELINE datasheet at two copies; Strike Force admission is not implemented, while source third-plus prices remain cataloged. The conditional Deathwing keyword and Chapter-book links, Forge World, Legends, full faction/army legality, network behavior, full-match certification and human playtesting remain outside this scope. Network validation is deferred to final integration."
+    "The checked 1,000-point Incursion path admits two copies and rejects a third. Current Strike Force admission and per-datasheet copy limits are also implemented; the 138-suite Marine batch checked these gates across all 161 profiles, including Sternguard Veteran Squad. Source third-plus prices remain cataloged. The conditional Deathwing keyword and other Chapter-book rules, Forge World, Legends, full faction/army legality, network behavior, full-match certification and human playtesting remain outside this scope. Network validation is deferred to final integration."
   ],
   "current_scope_validation": {
     "observed_at": "2026-10-28",

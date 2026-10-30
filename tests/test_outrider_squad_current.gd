@@ -134,7 +134,7 @@ func run() -> void:
 	var supported_by: Array[String] = []
 	for source: String in SupportAttachments.BODYGUARDS:
 		if UNIT in SupportAttachments.BODYGUARDS[source]: supported_by.append(source)
-	check(leader_targets == ["captain-on-bike", "chaplain-on-bike", "suboden-khan"] and supported_by.is_empty(), "The three shared-book Leader links are present and no common-book Support link is declared")
+	check(leader_targets == ["captain-on-bike", "chaplain-on-bike", "suboden-khan"] and supported_by == ["ravenwing-command-squad"], "The shared-book Leader links and Ravenwing Command Squad Chapter Support link are present")
 
 	var state := fixture()
 	check(not state.has("error"), "Both players build Outriders from the consolidated current Marine catalog: %s" % str(state.get("error", "")))

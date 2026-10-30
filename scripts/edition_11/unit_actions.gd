@@ -56,6 +56,8 @@ const WulfenStormShields = preload("res://scripts/edition_11/wulfen_storm_shield
 const HeresyRetribution = preload("res://scripts/edition_11/heresy_retribution.gd")
 const CrusaderSurge = preload("res://scripts/edition_11/crusader_surge.gd")
 const DeathCompanyDreadnought = preload("res://scripts/edition_11/death_company_dreadnought.gd")
+const WhirlwindPunishingBombardment = preload("res://scripts/edition_11/whirlwind_punishing_bombardment.gd")
+const RazorbackFireSupport = preload("res://scripts/edition_11/razorback_fire_support.gd")
 const LeaderCatalog = preload("res://scripts/edition_11/leader_catalog.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
@@ -94,6 +96,8 @@ static func open_death_visions(state: Dictionary, attacker: int) -> bool:
 
 static func window_state_error(state: Dictionary) -> String:
 	var kind := str(pending(state).get("kind", ""))
+	if kind in [WhirlwindPunishingBombardment.TARGET_WINDOW, WhirlwindPunishingBombardment.REROLL_WINDOW]: return WhirlwindPunishingBombardment.window_error(state)
+	if kind == RazorbackFireSupport.WINDOW: return RazorbackFireSupport.window_error(state)
 	if kind == HeresyRetribution.WINDOW: return HeresyRetribution.window_error(state)
 	if kind in [CrusaderSurge.WINDOW, CrusaderSurge.TARGET_WINDOW, CrusaderSurge.PLACEMENT]: return CrusaderSurge.window_error(state)
 	if kind in [DeathCompanyDreadnought.WINDOW, DeathCompanyDreadnought.TARGET_WINDOW, DeathCompanyDreadnought.PLACEMENT]: return DeathCompanyDreadnought.window_error(state)
@@ -108,7 +112,7 @@ static func supported_window_kind(kind: String) -> bool:
 		DeadlyDemise.WINDOW, DetachmentStratagems.VENGEFUL_ANIMUS_WINDOW, DetachmentStratagems.LAYERED_CERAMITE_WINDOW, CorvusBlackstar.WINDOW, WulfenStormShields.WINDOW,
 		"evade-and-survive", "evade-placement", CatoSicarius.WINDOW, CatoSicarius.PLACEMENT, FenrisianWolves.WINDOW, FenrisianWolves.PLACEMENT, SwordBrethren.WINDOW, SwordBrethren.PLACEMENT,
 		TacticalFluidity.WINDOW, TacticalFluidity.PLACEMENT, PurgationRun.WINDOW, PurgationRun.PLACEMENT, PhobosShadowMasters.WINDOW, PhobosExecuteRedeploy.WINDOW,
-		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, HeresyRetribution.WINDOW, CrusaderSurge.WINDOW, CrusaderSurge.TARGET_WINDOW, CrusaderSurge.PLACEMENT, DeathCompanyDreadnought.WINDOW, DeathCompanyDreadnought.TARGET_WINDOW, DeathCompanyDreadnought.PLACEMENT, "forward-assault-mark",
+		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, HeresyRetribution.WINDOW, CrusaderSurge.WINDOW, CrusaderSurge.TARGET_WINDOW, CrusaderSurge.PLACEMENT, DeathCompanyDreadnought.WINDOW, DeathCompanyDreadnought.TARGET_WINDOW, DeathCompanyDreadnought.PLACEMENT, WhirlwindPunishingBombardment.TARGET_WINDOW, WhirlwindPunishingBombardment.REROLL_WINDOW, RazorbackFireSupport.WINDOW, "forward-assault-mark",
 		CoreReactions.EXPLOSIVES, CoreReactions.CRUSHING_MORTAL, CoreReactions.CORVUS_CLUSTER_MORTAL, Hammer.MORTAL_WINDOW, CoreReactions.GRAVIS_ARMOURED_IMPACT_MORTAL, CoreReactions.WRATH_OF_THE_LION_MORTAL, CoreReactions.PHOBOS_MORTIS_SNARES_MORTAL, StasisBomb.MORTAL_WINDOW, HighMarshalHelbrecht.MORTAL_WINDOW, BloodAngelsCharacters.DEATH_VISIONS_WINDOW, BloodAngelsCharacters.DEATH_VISIONS_MORTAL, StasisBomb.RESUME_WINDOW, Hammer.ID,
 		DetachmentStratagems.PHOBOS_SHADOW_MORTIS_TRIGGER_WINDOW, DetachmentStratagems.PHOBOS_SHADOW_MORTIS_DAMAGE_WINDOW,
 		DetachmentStratagems.HEADHUNTER_WINDOW, DetachmentStratagems.GRAVIS_ANNIHILATING_WINDOW, DetachmentStratagems.TERMINATOR_MERCILESS_WINDOW, DetachmentStratagems.PHOBOS_STRIKE_WINDOW, DetachmentStratagems.METHODICAL_BRUTALITY_WINDOW, DetachmentStratagems.PIOUS_ENMITY_WINDOW, DetachmentStratagems.FOR_THE_EMPERORS_HONOUR_WINDOW, DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW, DetachmentStratagems.DREAD_CRUSADERS_WINDOW, DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW, DetachmentStratagems.POINT_BLANK_BRUTALITY_WINDOW, DetachmentStratagems.UNSTOPPABLE_WINDOW,
@@ -563,6 +567,245 @@ static func space_wolves_walker_loadout_choices(state: Dictionary, player: int) 
 				result.append(choice("Wulfen Dreadnought %d: %s" % [model, "Fenrisian Great Axe" if option == "fenrisian-great-axe" else "replace Fenrisian Great Axe with Blizzard Shield"], "space-wolves-walker-loadout", model, 2, option))
 	return result
 
+static func rapier_carrier_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "rapier-carrier": continue
+		var primary := str(unit.get("rapier_carrier_primary", "quad-heavy-bolter"))
+		for option: String in ["quad-heavy-bolter", "graviton-cannon", "laser-destroyer", "quad-launcher"]:
+			if option == primary: continue
+			var labels := {"quad-heavy-bolter": "Quad Heavy Bolter", "graviton-cannon": "Graviton Cannon", "laser-destroyer": "Laser Destroyer", "quad-launcher": "Quad Launcher"}
+			result.append(choice("Rapier Carrier %d: replace Quad Heavy Bolter with %s" % [model, labels[option]], "rapier-carrier-loadout", model, 0, option))
+	return result
+
+static func centurion_devastator_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "centurion-devastator-squad": continue
+		var sergeant := bool(unit.get("sergeant", false))
+		var label := "Devastator Centurion Sergeant" if sergeant else "Devastator Centurion"
+		var bolters := str(unit.get("centurion_devastator_bolters", "centurion-bolters"))
+		var bolter_option := "centurion-missile-launcher" if bolters == "centurion-bolters" else "centurion-bolters"
+		var bolter_label := "Centurion Missile Launcher" if bolter_option == "centurion-missile-launcher" else "restore Centurion Bolters"
+		result.append(choice("%s %d: %s" % [label, model, bolter_label], "centurion-devastator-loadout", model, 0, bolter_option))
+		var support := str(unit.get("centurion_devastator_support", "grav-cannon"))
+		for option: String in ["grav-cannon", "twin-heavy-bolter", "twin-lascannon"]:
+			if option == support: continue
+			var support_label: String = {"grav-cannon": "Grav-cannon", "twin-heavy-bolter": "Twin Heavy Bolter", "twin-lascannon": "Twin Lascannon"}[option]
+			result.append(choice("%s %d: %s" % [label, model, support_label], "centurion-devastator-loadout", model, 1, option))
+	return result
+
+static func centurion_assault_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "centurion-assault-squad": continue
+		var sergeant := bool(unit.get("sergeant", false))
+		var label := "Assault Centurion Sergeant" if sergeant else "Assault Centurion"
+		var has_launcher := bool(unit.get("centurion_assault_launcher", false))
+		var launcher_value := "centurion-bolters" if has_launcher else "centurion-assault-launcher"
+		var launcher_label := "restore Centurion Bolters" if has_launcher else "Centurion Assault Launcher (grant EXPLOSIVES)"
+		result.append(choice("%s %d: %s" % [label, model, launcher_label], "centurion-assault-loadout", model, 0, launcher_value))
+		var has_meltagun := bool(unit.get("centurion_twin_meltagun", false))
+		var flamer_value := "twin-flamer" if has_meltagun else "twin-meltagun"
+		var flamer_label := "restore Twin Flamer" if has_meltagun else "Twin Meltagun"
+		result.append(choice("%s %d: %s" % [label, model, flamer_label], "centurion-assault-loadout", model, 1, flamer_value))
+	return result
+
+static func vindicator_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "vindicator": continue
+		var missile := bool(unit.get("vindicator_hunter_killer_missile", false))
+		result.append(choice("Vindicator %d: %s Hunter-killer Missile" % [model, "remove" if missile else "add"], "vindicator-loadout", model, 0, "off" if missile else "on"))
+		var storm_bolter := bool(unit.get("vindicator_storm_bolter", false))
+		result.append(choice("Vindicator %d: %s Storm Bolter" % [model, "remove" if storm_bolter else "add"], "vindicator-loadout", model, 1, "off" if storm_bolter else "on"))
+	return result
+
+static func predator_annihilator_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "predator-annihilator": continue
+		var heavy_bolters := bool(unit.get("predator_annihilator_heavy_bolters", false))
+		result.append(choice("Predator Annihilator %d: %s sponson Lascannons" % [model, "restore" if heavy_bolters else "replace with 2 Heavy Bolters"], "predator-annihilator-loadout", model, 0, "off" if heavy_bolters else "on"))
+		var missile := bool(unit.get("predator_annihilator_hunter_killer_missile", false))
+		result.append(choice("Predator Annihilator %d: %s Hunter-killer Missile" % [model, "remove" if missile else "add"], "predator-annihilator-loadout", model, 1, "off" if missile else "on"))
+		var storm_bolter := bool(unit.get("predator_annihilator_storm_bolter", false))
+		result.append(choice("Predator Annihilator %d: %s Storm Bolter" % [model, "remove" if storm_bolter else "add"], "predator-annihilator-loadout", model, 2, "off" if storm_bolter else "on"))
+	return result
+
+static func predator_destructor_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "predator-destructor": continue
+		var heavy_bolters := bool(unit.get("predator_destructor_heavy_bolters", false))
+		result.append(choice("Predator Destructor %d: %s sponson Lascannons" % [model, "restore" if heavy_bolters else "replace with 2 Heavy Bolters"], "predator-destructor-loadout", model, 0, "off" if heavy_bolters else "on"))
+		var missile := bool(unit.get("predator_destructor_hunter_killer_missile", false))
+		result.append(choice("Predator Destructor %d: %s Hunter-killer Missile" % [model, "remove" if missile else "add"], "predator-destructor-loadout", model, 1, "off" if missile else "on"))
+		var storm_bolter := bool(unit.get("predator_destructor_storm_bolter", false))
+		result.append(choice("Predator Destructor %d: %s Storm Bolter" % [model, "remove" if storm_bolter else "add"], "predator-destructor-loadout", model, 2, "off" if storm_bolter else "on"))
+	return result
+
+static func whirlwind_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "whirlwind": continue
+		var missile := bool(unit.get("whirlwind_hunter_killer_missile", false))
+		result.append(choice("Whirlwind %d: %s Hunter-killer Missile" % [model, "remove" if missile else "add"], "whirlwind-loadout", model, 0, "off" if missile else "on"))
+		var storm_bolter := bool(unit.get("whirlwind_storm_bolter", false))
+		result.append(choice("Whirlwind %d: %s Storm Bolter" % [model, "remove" if storm_bolter else "add"], "whirlwind-loadout", model, 1, "off" if storm_bolter else "on"))
+	return result
+
+static func hammerfall_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "hammerfall-bunker": continue
+		var uses_flamer := bool(unit.get("hammerfall_heavy_flamer_array", false))
+		var label := "restore Heavy Bolter Array" if uses_flamer else "replace Heavy Bolter Array with Heavy Flamer Array"
+		result.append(choice("Hammerfall Bunker %d: %s" % [model, label], "hammerfall-loadout", model, 0, "heavy-bolter" if uses_flamer else "heavy-flamer"))
+	return result
+
+static func stormhawk_interceptor_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "stormhawk-interceptor": continue
+		var squad := int(unit.get("squad", -1))
+		var icarus := bool(unit.get("stormhawk_icarus_stormcannon", false))
+		result.append(choice("Stormhawk Interceptor %d: %s" % [model, "restore Las-talon" if icarus else "replace Las-talon with Icarus Stormcannon"], "stormhawk-primary-loadout", model, squad, "las-talon" if icarus else "icarus-stormcannon"))
+		var current_missile := str(unit.get("stormhawk_missile_launcher", "skyhammer-missile-launcher"))
+		var labels := {"skyhammer-missile-launcher": "Skyhammer Missile Launcher", "twin-heavy-bolter": "Twin Heavy Bolter", "typhoon-missile-launcher": "Typhoon Missile Launcher"}
+		for option: String in ["skyhammer-missile-launcher", "twin-heavy-bolter", "typhoon-missile-launcher"]:
+			if option == current_missile: continue
+			result.append(choice("Stormhawk Interceptor %d: replace Skyhammer Missile Launcher with %s" % [model, labels[option]], "stormhawk-missile-loadout", model, squad, option))
+	return result
+
+static func stormtalon_gunship_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "stormtalon-gunship": continue
+		var squad := int(unit.get("squad", -1))
+		var current := str(unit.get("stormtalon_missile_launcher", "skyhammer-missile-launcher"))
+		var labels := {"skyhammer-missile-launcher": "Skyhammer Missile Launcher", "twin-heavy-bolter": "Twin Heavy Bolter", "twin-lascannon": "Twin Lascannon", "typhoon-missile-launcher": "Typhoon Missile Launcher"}
+		for option: String in ["skyhammer-missile-launcher", "twin-heavy-bolter", "twin-lascannon", "typhoon-missile-launcher"]:
+			if option == current: continue
+			result.append(choice("Stormtalon Gunship %d: replace Skyhammer Missile Launcher with %s" % [model, labels[option]], "stormtalon-loadout", model, squad, option))
+	return result
+
+static func cerberus_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var optional_labels := {"none": "no optional weapon", "heavy-bolter": "Heavy Bolter", "heavy-flamer": "Heavy Flamer", "multi-melta": "Multi-melta", "storm-bolter": "Storm Bolter"}
+	var pair_labels := {"none": "no optional pair", "two-heavy-bolters": "2 Heavy Bolters", "two-lascannons": "2 Lascannons"}
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "cerberus": continue
+		var squad := int(unit.get("squad", -1))
+		var current_weapon := str(unit.get("cerberus_optional_weapon", "none"))
+		for option: String in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]:
+			if option != current_weapon: result.append(choice("Cerberus %d: %s" % [model, optional_labels[option]], "cerberus-optional-weapon", model, squad, option))
+		var current_pair := str(unit.get("cerberus_optional_pair", "none"))
+		for option: String in ["none", "two-heavy-bolters", "two-lascannons"]:
+			if option != current_pair: result.append(choice("Cerberus %d: %s" % [model, pair_labels[option]], "cerberus-optional-pair", model, squad, option))
+	return result
+
+static func typhon_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var sponson_labels := {"none": "no optional sponson pair", "two-heavy-bolters": "2 Heavy Bolters", "two-lascannons": "2 Lascannons"}
+	var hull_labels := {"none": "no optional hull weapon", "heavy-bolter": "Heavy Bolter", "heavy-flamer": "Heavy Flamer", "multi-melta": "Multi-melta", "storm-bolter": "Storm Bolter"}
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "typhon": continue
+		var squad := int(unit.get("squad", -1))
+		var current_sponsons := str(unit.get("typhon_sponsons", "none"))
+		for option: String in ["none", "two-heavy-bolters", "two-lascannons"]:
+			if option != current_sponsons: result.append(choice("Typhon %d: %s" % [model, sponson_labels[option]], "typhon-sponsons", model, squad, option))
+		var current_hull_weapon := str(unit.get("typhon_hull_weapon", "none"))
+		for option: String in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]:
+			if option != current_hull_weapon: result.append(choice("Typhon %d: %s" % [model, hull_labels[option]], "typhon-hull-weapon", model, squad, option))
+	return result
+
+static func falchion_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var optional_labels := {"none": "no optional weapon", "heavy-bolter": "Heavy Bolter", "heavy-flamer": "Heavy Flamer", "multi-melta": "Multi-melta", "storm-bolter": "Storm Bolter"}
+	var main_labels := {"quad-lascannons": "2 Quad Lascannons", "laser-destroyers": "2 Laser Destroyers"}
+	var twin_labels := {"twin-heavy-bolter": "Twin Heavy Bolter", "twin-heavy-flamer": "Twin Heavy Flamer"}
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "falchion": continue
+		var squad := int(unit.get("squad", -1))
+		var optional_weapon := str(unit.get("falchion_optional_weapon", "none"))
+		for option: String in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]:
+			if option != optional_weapon: result.append(choice("Falchion %d: %s" % [model, optional_labels[option]], "falchion-optional-weapon", model, squad, option))
+		var main_armament := str(unit.get("falchion_main_armament", "quad-lascannons"))
+		for option: String in ["quad-lascannons", "laser-destroyers"]:
+			if option != main_armament: result.append(choice("Falchion %d: %s" % [model, main_labels[option]], "falchion-main-armament", model, squad, option))
+		var twin_replacement := str(unit.get("falchion_twin_replacement", "twin-heavy-bolter"))
+		for option: String in ["twin-heavy-bolter", "twin-heavy-flamer"]:
+			if option != twin_replacement: result.append(choice("Falchion %d: %s" % [model, twin_labels[option]], "falchion-twin-replacement", model, squad, option))
+	return result
+
+static func dreadnought_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var primary_labels := {"assault-cannon": "Assault Cannon", "heavy-plasma-cannon": "Heavy Plasma Cannon", "multi-melta": "Multi-melta", "twin-lascannon": "Twin Lascannon"}
+	var package_labels := {"dreadnought-fist": "Dreadnought Fist + Storm Bolter", "crushing-feet": "Missile Launcher + Crushing Feet"}
+	var secondary_labels := {"none": "keep Storm Bolter", "heavy-flamer": "replace Storm Bolter with Heavy Flamer"}
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "dreadnought": continue
+		var squad := int(unit.get("squad", -1))
+		if not state.squads.has(squad): continue
+		var current_primary := str(unit.get("dreadnought_primary", "assault-cannon"))
+		for option: String in ["assault-cannon", "heavy-plasma-cannon", "multi-melta", "twin-lascannon"]:
+			if option != current_primary: result.append(choice("Dreadnought %d: replace Assault Cannon with %s" % [model, primary_labels[option]], "dreadnought-primary", model, squad, option))
+		var current_package := str(unit.get("dreadnought_melee_package", "dreadnought-fist"))
+		for option: String in ["dreadnought-fist", "crushing-feet"]:
+			if option == current_package: continue
+			var next_secondary := str(unit.get("dreadnought_secondary", "none"))
+			if MarineProfiles.dreadnought_weapons(current_primary, option, next_secondary).is_empty(): continue
+			result.append(choice("Dreadnought %d: use %s" % [model, package_labels[option]], "dreadnought-melee-package", model, squad, option))
+		var current_secondary := str(unit.get("dreadnought_secondary", "none"))
+		for option: String in ["none", "heavy-flamer"]:
+			if option == current_secondary or MarineProfiles.dreadnought_weapons(current_primary, current_package, option).is_empty(): continue
+			result.append(choice("Dreadnought %d: %s" % [model, secondary_labels[option]], "dreadnought-secondary", model, squad, option))
+	return result
+
+static func venerable_dreadnought_legends_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var primary_labels := {"assault-cannon": "Assault Cannon", "dreadnought-inferno-cannon": "Dreadnought Inferno Cannon", "heavy-plasma-cannon": "Heavy Plasma Cannon", "multi-melta": "Multi-melta", "twin-autocannon": "Twin Autocannon", "twin-heavy-bolter": "Twin Heavy Bolter", "twin-heavy-flamer": "Twin Heavy Flamer", "twin-lascannon": "Twin Lascannon"}
+	var package_labels := {"fist-and-storm-bolter": "Dreadnought Fist + Storm Bolter", "heavy-flamer-and-fist": "Heavy Flamer + Dreadnought Fist", "missile-launcher": "Missile Launcher", "twin-autocannon": "Twin Autocannon"}
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "venerable-dreadnought-legends": continue
+		var squad := int(unit.get("squad", -1))
+		if not state.squads.has(squad): continue
+		var current_primary := str(unit.get("venerable_dreadnought_legends_primary", "assault-cannon"))
+		for option: String in ["assault-cannon", "dreadnought-inferno-cannon", "heavy-plasma-cannon", "multi-melta", "twin-autocannon", "twin-heavy-bolter", "twin-heavy-flamer", "twin-lascannon"]:
+			if option != current_primary: result.append(choice("Venerable Dreadnought (Legends) %d: replace Assault Cannon with %s" % [model, primary_labels[option]], "venerable-dreadnought-legends-primary", model, squad, option))
+		var current_package := str(unit.get("venerable_dreadnought_legends_package", "fist-and-storm-bolter"))
+		for option: String in ["fist-and-storm-bolter", "heavy-flamer-and-fist", "missile-launcher", "twin-autocannon"]:
+			if option != current_package: result.append(choice("Venerable Dreadnought (Legends) %d: use %s package" % [model, package_labels[option]], "venerable-dreadnought-legends-package", model, squad, option))
+	return result
+
+static func tarantula_sentry_battery_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "tarantula-sentry-battery": continue
+		var primary := str(unit.get("tarantula_sentry_primary", "twin-heavy-bolter"))
+		for option: String in ["twin-heavy-bolter", "twin-lascannon"]:
+			if option == primary: continue
+			var label := "Twin Heavy Bolter" if option == "twin-heavy-bolter" else "Twin Lascannon"
+			result.append(choice("Tarantula Sentry Battery %d: replace Twin Heavy Bolter with %s" % [model, label], "tarantula-sentry-battery-loadout", model, int(unit.get("squad", -1)), option))
+	return result
+
 static func death_company_marines_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for model: int in state.units:
@@ -749,6 +992,170 @@ static func _configure_space_wolves_walker_loadout(state: Dictionary, player: in
 	unit.space_wolves_blizzard_shield = bool(weapons.blizzard_shield)
 	unit.ranged_weapons = weapons.ranged
 	unit.melee_weapons = weapons.melee
+	return ""
+
+static func _configure_rapier_carrier_loadout(state: Dictionary, player: int, model: int, category: int, value: String) -> String:
+	if setup_actor(state) != player or not state.units.has(model): return "Rapier Carrier equipment is selected during your army preparations."
+	var unit: Dictionary = state.units[model]
+	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "rapier-carrier": return "Choose a living Rapier Carrier from your army."
+	if category != 0: return "The Rapier Carrier has one replaceable Quad Heavy Bolter slot."
+	var weapons := MarineProfiles.rapier_carrier_weapons(value)
+	if weapons.is_empty(): return "Choose the Quad Heavy Bolter, Graviton Cannon, Laser Destroyer or Quad Launcher listed on the Rapier Carrier datasheet."
+	unit.rapier_carrier_primary = value
+	unit.ranged_weapons = weapons.ranged
+	unit.melee_weapons = weapons.melee
+	return ""
+
+static func _configure_centurion_devastator_loadout(state: Dictionary, player: int, model: int, category: int, value: String) -> String:
+	if setup_actor(state) != player or not state.units.has(model): return "Centurion Devastator equipment is selected during your army preparations."
+	var unit: Dictionary = state.units[model]
+	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "centurion-devastator-squad": return "Choose a living Centurion Devastator from your army."
+	var bolters := str(unit.get("centurion_devastator_bolters", "centurion-bolters"))
+	var support := str(unit.get("centurion_devastator_support", "grav-cannon"))
+	if category == 0:
+		if value not in ["centurion-bolters", "centurion-missile-launcher"]: return "Choose Centurion Bolters or their listed Centurion Missile Launcher replacement."
+		bolters = value
+	elif category == 1:
+		if value not in ["grav-cannon", "twin-heavy-bolter", "twin-lascannon"]: return "Choose the Grav-cannon, Twin Heavy Bolter or Twin Lascannon listed for this model."
+		support = value
+	else:
+		return "The Centurion Devastator has only two ranged replacement slots."
+	var weapons := MarineProfiles.centurion_devastator_weapons(bolters, support)
+	if weapons.is_empty(): return "That Centurion Devastator loadout is not listed on its datasheet."
+	unit.centurion_devastator_bolters = bolters
+	unit.centurion_devastator_support = support
+	unit.ranged_weapons = weapons.ranged
+	unit.melee_weapons = weapons.melee
+	return ""
+
+static func _configure_centurion_assault_loadout(state: Dictionary, player: int, model: int, category: int, value: String) -> String:
+	if setup_actor(state) != player or not state.units.has(model): return "Centurion Assault equipment is selected during your army preparations."
+	var unit: Dictionary = state.units[model]
+	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "centurion-assault-squad": return "Choose a living Centurion Assault model from your army."
+	var assault_launcher := bool(unit.get("centurion_assault_launcher", false))
+	var twin_meltagun := bool(unit.get("centurion_twin_meltagun", false))
+	if category == 0:
+		if value not in ["centurion-bolters", "centurion-assault-launcher"]: return "Choose Centurion Bolters or the listed Centurion Assault Launcher."
+		assault_launcher = value == "centurion-assault-launcher"
+	elif category == 1:
+		if value not in ["twin-flamer", "twin-meltagun"]: return "Choose the Twin Flamer or its listed Twin Meltagun replacement."
+		twin_meltagun = value == "twin-meltagun"
+	else:
+		return "The Centurion Assault has only two per-model ranged replacement options."
+	var weapons := MarineProfiles.centurion_assault_weapons(assault_launcher, twin_meltagun)
+	if weapons.is_empty(): return "That Centurion Assault loadout is not listed on its datasheet."
+	unit.centurion_assault_launcher = assault_launcher
+	unit.centurion_twin_meltagun = twin_meltagun
+	unit.ranged_weapons = weapons.ranged
+	unit.melee_weapons = weapons.melee
+	var keywords: Array = unit.get("keywords", []).duplicate()
+	keywords.erase("EXPLOSIVES")
+	if assault_launcher: keywords.append("EXPLOSIVES")
+	unit.keywords = keywords
+	return ""
+
+static func _configure_vindicator_loadout(state: Dictionary, player: int, model: int, category: int, value: String) -> String:
+	if setup_actor(state) != player or not state.units.has(model): return "Vindicator equipment is selected during your army preparations."
+	var unit: Dictionary = state.units[model]
+	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "vindicator": return "Choose a living Vindicator from your army."
+	if value not in ["on", "off"]: return "Choose whether to add the source-listed optional weapon."
+	var missile := bool(unit.get("vindicator_hunter_killer_missile", false))
+	var storm_bolter := bool(unit.get("vindicator_storm_bolter", false))
+	if category == 0: missile = value == "on"
+	elif category == 1: storm_bolter = value == "on"
+	else: return "Choose the Hunter-killer Missile or Storm Bolter option listed for the Vindicator."
+	var weapons := MarineProfiles.vindicator_weapons(storm_bolter, missile)
+	if weapons.is_empty(): return "The selected Vindicator package is not present in the local current datasheet."
+	unit.vindicator_hunter_killer_missile = missile
+	unit.vindicator_storm_bolter = storm_bolter
+	unit.ranged_weapons = weapons.ranged
+	unit.melee_weapons = weapons.melee
+	return ""
+
+static func _configure_predator_annihilator_loadout(state: Dictionary, player: int, model: int, category: int, value: String) -> String:
+	if setup_actor(state) != player or not state.units.has(model): return "Predator Annihilator equipment is selected during your army preparations."
+	var unit: Dictionary = state.units[model]
+	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "predator-annihilator": return "Choose a living Predator Annihilator from your army."
+	if value not in ["on", "off"]: return "Choose whether the source-listed Predator Annihilator option is equipped."
+	var heavy_bolters := bool(unit.get("predator_annihilator_heavy_bolters", false))
+	var missile := bool(unit.get("predator_annihilator_hunter_killer_missile", false))
+	var storm_bolter := bool(unit.get("predator_annihilator_storm_bolter", false))
+	match category:
+		0: heavy_bolters = value == "on"
+		1: missile = value == "on"
+		2: storm_bolter = value == "on"
+		_: return "Choose a listed Predator Annihilator sponson or optional weapon."
+	var weapons := MarineProfiles.predator_annihilator_weapons(heavy_bolters, missile, storm_bolter)
+	if weapons.is_empty(): return "The selected Predator Annihilator loadout is not present in the local datasheet."
+	unit.predator_annihilator_heavy_bolters = heavy_bolters
+	unit.predator_annihilator_hunter_killer_missile = missile
+	unit.predator_annihilator_storm_bolter = storm_bolter
+	unit.ranged_weapons = weapons.ranged
+	unit.melee_weapons = weapons.melee
+	return ""
+
+static func _configure_predator_destructor_loadout(state: Dictionary, player: int, model: int, category: int, value: String) -> String:
+	if setup_actor(state) != player or not state.units.has(model): return "Predator Destructor equipment is selected during your army preparations."
+	var unit: Dictionary = state.units[model]
+	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "predator-destructor": return "Choose a living Predator Destructor from your army."
+	if value not in ["on", "off"]: return "Choose whether the source-listed Predator Destructor option is equipped."
+	var heavy_bolters := bool(unit.get("predator_destructor_heavy_bolters", false))
+	var missile := bool(unit.get("predator_destructor_hunter_killer_missile", false))
+	var storm_bolter := bool(unit.get("predator_destructor_storm_bolter", false))
+	match category:
+		0: heavy_bolters = value == "on"
+		1: missile = value == "on"
+		2: storm_bolter = value == "on"
+		_: return "Choose a listed Predator Destructor sponson or optional weapon."
+	var weapons := MarineProfiles.predator_destructor_weapons(heavy_bolters, missile, storm_bolter)
+	if weapons.is_empty(): return "The selected Predator Destructor loadout is not present in the local datasheet."
+	unit.predator_destructor_heavy_bolters = heavy_bolters
+	unit.predator_destructor_hunter_killer_missile = missile
+	unit.predator_destructor_storm_bolter = storm_bolter
+	unit.ranged_weapons = weapons.ranged
+	unit.melee_weapons = weapons.melee
+	return ""
+
+static func _configure_whirlwind_loadout(state: Dictionary, player: int, model: int, category: int, value: String) -> String:
+	if setup_actor(state) != player or not state.units.has(model): return "Whirlwind equipment is selected during your army preparations."
+	var unit: Dictionary = state.units[model]
+	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "whirlwind": return "Choose a living Whirlwind from your army."
+	if value not in ["on", "off"]: return "Choose whether to add the source-listed optional weapon."
+	var missile := bool(unit.get("whirlwind_hunter_killer_missile", false))
+	var storm_bolter := bool(unit.get("whirlwind_storm_bolter", false))
+	if category == 0: missile = value == "on"
+	elif category == 1: storm_bolter = value == "on"
+	else: return "Choose the Hunter-killer Missile or Storm Bolter option listed for the Whirlwind."
+	var weapons := MarineProfiles.whirlwind_weapons(missile, storm_bolter)
+	if weapons.is_empty(): return "The selected Whirlwind loadout is not present in the local Legends datasheet."
+	unit.whirlwind_hunter_killer_missile = missile
+	unit.whirlwind_storm_bolter = storm_bolter
+	unit.ranged_weapons = weapons.ranged
+	unit.melee_weapons = weapons.melee
+	return ""
+
+static func _configure_hammerfall_loadout(state: Dictionary, player: int, model: int, category: int, value: String) -> String:
+	if setup_actor(state) != player or not state.units.has(model): return "Hammerfall Bunker equipment is selected during your army preparations."
+	var unit: Dictionary = state.units[model]
+	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "hammerfall-bunker": return "Choose a living Hammerfall Bunker from your army."
+	if category != 0 or value not in ["heavy-bolter", "heavy-flamer"]: return "Choose the source-listed Heavy Bolter Array or Heavy Flamer Array."
+	var use_flamer := value == "heavy-flamer"
+	var weapons := MarineProfiles.hammerfall_weapons(use_flamer)
+	if weapons.is_empty(): return "The selected Hammerfall Bunker loadout is not present in the local Legends datasheet."
+	unit.hammerfall_heavy_flamer_array = use_flamer
+	unit.ranged_weapons = weapons.ranged
+	unit.melee_weapons = weapons.melee
+	return ""
+
+static func _configure_tarantula_sentry_battery_loadout(state: Dictionary, player: int, model: int, category: int, value: String) -> String:
+	if setup_actor(state) != player or not state.units.has(model): return "Tarantula Sentry Battery equipment is selected during your army preparations."
+	var unit: Dictionary = state.units[model]
+	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "tarantula-sentry-battery": return "Choose a living Tarantula Sentry Battery model from your army."
+	if int(unit.get("squad", -1)) != category: return "Choose the selected Tarantula Sentry Battery model from its own unit."
+	var weapons := MarineProfiles.tarantula_sentry_battery_weapons(value)
+	if weapons.is_empty(): return "Choose the Twin Heavy Bolter or its datasheet-listed Twin Lascannon replacement."
+	unit.tarantula_sentry_primary = value
+	unit.ranged_weapons = weapons.ranged
 	return ""
 
 static func _death_company_loadout_valid(state: Dictionary, squad: int, identity: String, changed_model: int = -1, melee_replacement: String = "", pistol_replacement: String = "", grenade_replacement: Variant = null) -> bool:
@@ -1849,6 +2256,10 @@ static func choices(state: Dictionary, player: int) -> Array:
 		return CrusaderSurge.choices(state, player)
 	if pending(state).get("kind", "") in [DeathCompanyDreadnought.WINDOW, DeathCompanyDreadnought.TARGET_WINDOW, DeathCompanyDreadnought.PLACEMENT]:
 		return DeathCompanyDreadnought.choices(state, player)
+	if pending(state).get("kind", "") in [WhirlwindPunishingBombardment.TARGET_WINDOW, WhirlwindPunishingBombardment.REROLL_WINDOW]:
+		return WhirlwindPunishingBombardment.choices(state, player)
+	if pending(state).get("kind", "") == RazorbackFireSupport.WINDOW:
+		return RazorbackFireSupport.choices(state, player)
 	if pending(state).get("kind", "") == "forward-assault-mark":
 		var source_squad: int = int(pending(state).source_squad)
 		if int(pending(state).owners[0]) != player: return result
@@ -1934,6 +2345,22 @@ static func choices(state: Dictionary, player: int) -> Array:
 		result.append_array(baal_predator_loadout_choices(state, player))
 		result.append_array(death_company_dreadnought_loadout_choices(state, player))
 		result.append_array(space_wolves_walker_loadout_choices(state, player))
+		result.append_array(rapier_carrier_loadout_choices(state, player))
+		result.append_array(centurion_devastator_loadout_choices(state, player))
+		result.append_array(centurion_assault_loadout_choices(state, player))
+		result.append_array(vindicator_loadout_choices(state, player))
+		result.append_array(predator_annihilator_loadout_choices(state, player))
+		result.append_array(predator_destructor_loadout_choices(state, player))
+		result.append_array(whirlwind_loadout_choices(state, player))
+		result.append_array(hammerfall_loadout_choices(state, player))
+		result.append_array(stormhawk_interceptor_loadout_choices(state, player))
+		result.append_array(stormtalon_gunship_loadout_choices(state, player))
+		result.append_array(cerberus_loadout_choices(state, player))
+		result.append_array(dreadnought_loadout_choices(state, player))
+		result.append_array(venerable_dreadnought_legends_loadout_choices(state, player))
+		result.append_array(typhon_loadout_choices(state, player))
+		result.append_array(falchion_loadout_choices(state, player))
+		result.append_array(tarantula_sentry_battery_loadout_choices(state, player))
 		result.append_array(death_company_marines_loadout_choices(state, player))
 		result.append_array(deathwatch_veterans_loadout_choices(state, player))
 		result.append_array(deathwatch_terminator_loadout_choices(state, player))
@@ -2123,6 +2550,16 @@ static func choices(state: Dictionary, player: int) -> Array:
 			if plasma_equipped or plasma_count < plasma_limit:
 				result.append(choice("Outrider %d: %s Plasma Pistol" % [model, "restore Heavy Bolt Pistol" if plasma_equipped else "replace Heavy Bolt Pistol with"], "outrider-plasma-pistol", model, outrider.squad, "off" if plasma_equipped else "on"))
 		for model: int in state.units:
+			var scout_biker: Dictionary = state.units[model]
+			if scout_biker.owner != player or scout_biker.wounds <= 0 or A.identity(scout_biker) != "scout-bike-squad": continue
+			var grenade_launcher_equipped := bool(scout_biker.get("scout_bike_grenade_launcher", false))
+			result.append(choice("Scout Biker %d: %s Grenade Launcher" % [model, "restore Twin Boltgun or replace it with" if grenade_launcher_equipped else "replace Twin Boltgun with"], "scout-bike-grenade-launcher", model, scout_biker.squad, "off" if grenade_launcher_equipped else "on"))
+			if scout_biker.get("sergeant", false):
+				var selected_sidearm := str(scout_biker.get("scout_bike_sergeant_option", "bolt-pistol"))
+				for option: String in ["bolt-pistol", "boltgun", "combi-weapon", "chainsword", "grav-pistol", "hand-flamer", "inferno-pistol", "plasma-pistol", "power-fist", "power-weapon", "storm-bolter", "thunder-hammer"]:
+					if option == selected_sidearm: continue
+					result.append(choice("Scout Biker Sergeant %d: %s" % [model, MarineProfiles.scout_bike_sergeant_option_label(option)], "scout-bike-sergeant-option", model, scout_biker.squad, option))
+		for model: int in state.units:
 			var guard: Dictionary = state.units[model]
 			if guard.owner != player or guard.wounds <= 0 or A.identity(guard) != "sanguinary-guard": continue
 			var inferno_equipped := bool(guard.get("sanguinary_guard_inferno_pistol", false))
@@ -2299,6 +2736,11 @@ static func choices(state: Dictionary, player: int) -> Array:
 					if kind == current_pistol: continue
 					if kind == "plasma-pistol" and not unit.get("sergeant", false) and _vanguard_plasma_count(state, unit.squad, model) >= int(state.squads[unit.squad].starting_strength / 5.0) * 2: continue
 					result.append(choice("Vanguard Veteran %d: %s" % [model, {"heavy-bolt-pistol": "Heavy Bolt Pistol", "plasma-pistol": "Plasma Pistol", "combat-shield": "Combat Shield (5+ invulnerable save)"}[kind]], "vanguard-veteran-pistol", model, unit.squad, kind))
+			if A.identity(unit) == "vanguard-veteran-squad":
+				var current_loadout := str(unit.get("vanguard_veteran_squad_loadout", "bolt-pistol"))
+				var labels := {"bolt-pistol": "Bolt Pistol", "storm-shield": "Storm Shield (4+ invulnerable save)", "grav-pistol": "Grav-pistol", "hand-flamer": "Hand Flamer", "inferno-pistol": "Inferno Pistol", "plasma-pistol": "Plasma Pistol"}
+				for kind: String in MarineProfiles.profile("vanguard-veteran-squad").options.pistol_replacements:
+					if kind != current_loadout: result.append(choice("Vanguard Veteran %d: %s" % [model, labels[kind]], "vanguard-veteran-squad-loadout", model, unit.squad, kind))
 			if A.identity(unit) == "vanguard-veteran-squad-with-jump-packs" and unit.get("sergeant", false):
 				for kind: String in ["relic-blade", "power-fist", "thunder-hammer"]:
 					if kind != unit.get("vanguard_melee", "default"):
@@ -3093,6 +3535,8 @@ static func point_error(state: Dictionary, point: Vector2, radius: float) -> Str
 	return ""
 
 static func apply(state: Dictionary, player: int, selected: Dictionary, point: Vector2, roller: Callable, destination_elevation: float = -1.0) -> Dictionary:
+	if str(selected.get("action", "")).begins_with("whirlwind-punishing-bombardment-"): return WhirlwindPunishingBombardment.apply(state, player, selected, roller)
+	if str(selected.get("action", "")) == RazorbackFireSupport.ACTION: return RazorbackFireSupport.apply(state, player, selected)
 	if str(selected.get("action", "")).begins_with("corvus-cluster-"): return CorvusBlackstar.apply(state, player, selected, roller)
 	if selected.get("action", "") in [WulfenStormShields.USE, WulfenStormShields.PASS]: return WulfenStormShields.apply(state, player, selected)
 	if selected.get("action", "") in [WatchCaptainArtemis.USE, WatchCaptainArtemis.PASS]: return WatchCaptainArtemis.apply_choice(state, player, selected, roller)
@@ -3226,6 +3670,42 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		var walker_loadout_error := _configure_space_wolves_walker_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
 		if not walker_loadout_error.is_empty(): return {"error": walker_loadout_error}
 		return {"message": "Dreadnought equipment updated from its local Space Wolves datasheet."}
+	if selected.get("action", "") == "rapier-carrier-loadout":
+		var rapier_loadout_error := _configure_rapier_carrier_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not rapier_loadout_error.is_empty(): return {"error": rapier_loadout_error}
+		return {"message": "Rapier Carrier equipment updated from its local Warhammer Legends datasheet."}
+	if selected.get("action", "") == "centurion-devastator-loadout":
+		var centurion_loadout_error := _configure_centurion_devastator_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not centurion_loadout_error.is_empty(): return {"error": centurion_loadout_error}
+		return {"message": "Centurion Devastator equipment updated from its local Warhammer Legends datasheet."}
+	if selected.get("action", "") == "centurion-assault-loadout":
+		var centurion_assault_error := _configure_centurion_assault_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not centurion_assault_error.is_empty(): return {"error": centurion_assault_error}
+		return {"message": "Centurion Assault equipment updated from its local Warhammer Legends datasheet."}
+	if selected.get("action", "") == "vindicator-loadout":
+		var vindicator_error := _configure_vindicator_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not vindicator_error.is_empty(): return {"error": vindicator_error}
+		return {"message": "Vindicator equipment updated from its local Warhammer Legends datasheet."}
+	if selected.get("action", "") == "predator-annihilator-loadout":
+		var predator_error := _configure_predator_annihilator_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not predator_error.is_empty(): return {"error": predator_error}
+		return {"message": "Predator Annihilator equipment updated from its local Warhammer Legends datasheet."}
+	if selected.get("action", "") == "predator-destructor-loadout":
+		var predator_error := _configure_predator_destructor_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not predator_error.is_empty(): return {"error": predator_error}
+		return {"message": "Predator Destructor equipment updated from its local Warhammer Legends datasheet."}
+	if selected.get("action", "") == "whirlwind-loadout":
+		var whirlwind_error := _configure_whirlwind_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not whirlwind_error.is_empty(): return {"error": whirlwind_error}
+		return {"message": "Whirlwind equipment updated from its local Warhammer Legends datasheet."}
+	if selected.get("action", "") == "hammerfall-loadout":
+		var hammerfall_error := _configure_hammerfall_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not hammerfall_error.is_empty(): return {"error": hammerfall_error}
+		return {"message": "Hammerfall Bunker equipment updated from its local Warhammer Legends datasheet."}
+	if selected.get("action", "") == "tarantula-sentry-battery-loadout":
+		var tarantula_loadout_error := _configure_tarantula_sentry_battery_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not tarantula_loadout_error.is_empty(): return {"error": tarantula_loadout_error}
+		return {"message": "Tarantula Sentry Battery equipment updated from its local Warhammer Legends datasheet."}
 	if selected.get("action", "") in ["death-company-melee-loadout", "death-company-pistol-loadout", "death-company-grenade-launcher"]:
 		var marine_loadout_error := _configure_death_company_marine_loadout(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("action", "")), str(selected.get("value", "")))
 		if not marine_loadout_error.is_empty(): return {"error": marine_loadout_error}
@@ -3652,6 +4132,21 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var weapons := MarineProfiles.outrider_weapons(bearer.get("outrider_plasma_pistol", false), bearer.get("outrider_melee_choice", "chainsword"))
 			bearer.ranged_weapons = weapons.ranged
 			bearer.melee_weapons = weapons.melee
+		"scout-bike-sergeant-option", "scout-bike-grenade-launcher":
+			if setup_actor(state) != player: return {"error": "Scout Bike Squad wargear is selected during your army preparation."}
+			var bearer: Dictionary = state.units.get(model, {})
+			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "scout-bike-squad": return {"error": "Choose a living model from your Scout Bike Squad."}
+			if selected.action == "scout-bike-sergeant-option":
+				if not bearer.get("sergeant", false) or selected.value not in ["bolt-pistol", "boltgun", "combi-weapon", "chainsword", "grav-pistol", "hand-flamer", "inferno-pistol", "plasma-pistol", "power-fist", "power-weapon", "storm-bolter", "thunder-hammer"]: return {"error": "Only the Scout Biker Sergeant can choose one of the listed Bolt Pistol replacements."}
+				bearer.scout_bike_sergeant_option = str(selected.value)
+			else:
+				if selected.value not in ["on", "off"]: return {"error": "Choose whether this model replaces its Twin Boltgun with a Grenade Launcher."}
+				if (selected.value == "on") == bool(bearer.get("scout_bike_grenade_launcher", false)): return {"error": "This model already has the selected Twin Boltgun or Grenade Launcher loadout."}
+				bearer.scout_bike_grenade_launcher = selected.value == "on"
+			var scout_bike_weapons := MarineProfiles.scout_bike_squad_weapons(bool(bearer.get("scout_bike_grenade_launcher", false)), str(bearer.get("scout_bike_sergeant_option", "bolt-pistol")) if bearer.get("sergeant", false) else "bolt-pistol")
+			if scout_bike_weapons.is_empty(): return {"error": "The selected Scout Bike Squad loadout is not present in its local Legends datasheet."}
+			bearer.ranged_weapons = scout_bike_weapons.ranged
+			bearer.melee_weapons = scout_bike_weapons.melee
 		"sanguinary-guard-inferno-pistol":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "sanguinary-guard": return {"error": "Choose a living Sanguinary Guard model during your army preparation."}
@@ -4081,6 +4576,133 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if selected.value not in ["twin-heavy-bolter", "lascannons"]: return {"error": "Choose the Twin Heavy Bolter or Nephilim Lascannons replacement."}
 			bearer.nephilim_lascannons = selected.value == "lascannons"
 			bearer.ranged_weapons = MarineProfiles.nephilim_jetfighter_weapons(bearer.nephilim_lascannons)
+		"stormhawk-primary-loadout", "stormhawk-missile-loadout":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or A.identity(bearer) != "stormhawk-interceptor": return {"error": "Stormhawk Interceptor weapons are selected during army preparation."}
+			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Stormhawk Interceptor from its own unit."}
+			var icarus := bool(bearer.get("stormhawk_icarus_stormcannon", false))
+			var missile := str(bearer.get("stormhawk_missile_launcher", "skyhammer-missile-launcher"))
+			if selected.action == "stormhawk-primary-loadout":
+				if selected.value not in ["las-talon", "icarus-stormcannon"]: return {"error": "Choose the Las-talon or its Icarus Stormcannon replacement."}
+				icarus = selected.value == "icarus-stormcannon"
+			else:
+				if selected.value not in ["skyhammer-missile-launcher", "twin-heavy-bolter", "typhoon-missile-launcher"]: return {"error": "Choose the Skyhammer Missile Launcher or one of its datasheet-listed replacements."}
+				missile = str(selected.value)
+			var weapons := MarineProfiles.stormhawk_interceptor_weapons(icarus, missile)
+			if weapons.is_empty(): return {"error": "The selected Stormhawk Interceptor loadout is not present in the local Legends datasheet."}
+			bearer.stormhawk_icarus_stormcannon = icarus
+			bearer.stormhawk_missile_launcher = missile
+			bearer.ranged_weapons = weapons
+		"stormtalon-loadout":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or A.identity(bearer) != "stormtalon-gunship": return {"error": "Stormtalon Gunship weapons are selected during army preparation."}
+			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Stormtalon Gunship from its own unit."}
+			if selected.value not in ["skyhammer-missile-launcher", "twin-heavy-bolter", "twin-lascannon", "typhoon-missile-launcher"]: return {"error": "Choose the Skyhammer Missile Launcher or one of its datasheet-listed replacements."}
+			var weapons := MarineProfiles.stormtalon_gunship_weapons(str(selected.value))
+			if weapons.is_empty(): return {"error": "The selected Stormtalon Gunship loadout is not present in the local Legends datasheet."}
+			bearer.stormtalon_missile_launcher = str(selected.value)
+			bearer.ranged_weapons = weapons
+		"cerberus-optional-weapon", "cerberus-optional-pair":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "cerberus": return {"error": "Cerberus weapons are selected during army preparation."}
+			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Cerberus from its own unit."}
+			var optional_weapon := str(bearer.get("cerberus_optional_weapon", "none"))
+			var optional_pair := str(bearer.get("cerberus_optional_pair", "none"))
+			if selected.action == "cerberus-optional-weapon":
+				if selected.value not in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]: return {"error": "Choose one listed Cerberus optional weapon, or none."}
+				optional_weapon = str(selected.value)
+			else:
+				if selected.value not in ["none", "two-heavy-bolters", "two-lascannons"]: return {"error": "Choose two Heavy Bolters, two Lascannons, or no optional pair."}
+				optional_pair = str(selected.value)
+			var cerberus_weapons := MarineProfiles.cerberus_weapons(optional_weapon, optional_pair)
+			if cerberus_weapons.is_empty(): return {"error": "The selected Cerberus loadout is not listed on the local Legends datasheet."}
+			bearer.cerberus_optional_weapon = optional_weapon
+			bearer.cerberus_optional_pair = optional_pair
+			bearer.ranged_weapons = cerberus_weapons.ranged
+			bearer.melee_weapons = cerberus_weapons.melee
+		"falchion-optional-weapon", "falchion-main-armament", "falchion-twin-replacement":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "falchion": return {"error": "Falchion weapons are selected during army preparation."}
+			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Falchion from its own unit."}
+			var optional_weapon := str(bearer.get("falchion_optional_weapon", "none"))
+			var main_armament := str(bearer.get("falchion_main_armament", "quad-lascannons"))
+			var twin_replacement := str(bearer.get("falchion_twin_replacement", "twin-heavy-bolter"))
+			match selected.action:
+				"falchion-optional-weapon":
+					if selected.value not in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]: return {"error": "Choose one source-listed optional weapon, or none."}
+					optional_weapon = str(selected.value)
+				"falchion-main-armament":
+					if selected.value not in ["quad-lascannons", "laser-destroyers"]: return {"error": "Choose the two Quad Lascannons or replace them with two Laser Destroyers."}
+					main_armament = str(selected.value)
+				"falchion-twin-replacement":
+					if selected.value not in ["twin-heavy-bolter", "twin-heavy-flamer"]: return {"error": "Choose the Twin Heavy Bolter or its Twin Heavy Flamer replacement."}
+					twin_replacement = str(selected.value)
+			var falchion_loadout := MarineProfiles.falchion_weapons(optional_weapon, main_armament, twin_replacement)
+			if falchion_loadout.is_empty(): return {"error": "The selected Falchion loadout is not listed on the local Legends datasheet."}
+			bearer.falchion_optional_weapon = optional_weapon
+			bearer.falchion_main_armament = main_armament
+			bearer.falchion_twin_replacement = twin_replacement
+			bearer.ranged_weapons = falchion_loadout.ranged
+			bearer.melee_weapons = falchion_loadout.melee
+		"typhon-sponsons", "typhon-hull-weapon":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "typhon": return {"error": "Typhon weapons are selected during army preparation."}
+			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Typhon from its own unit."}
+			var sponsons := str(bearer.get("typhon_sponsons", "none"))
+			var hull_weapon := str(bearer.get("typhon_hull_weapon", "none"))
+			if selected.action == "typhon-sponsons":
+				if selected.value not in ["none", "two-heavy-bolters", "two-lascannons"]: return {"error": "Choose no sponson pair, two Heavy Bolters, or two Lascannons."}
+				sponsons = str(selected.value)
+			else:
+				if selected.value not in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]: return {"error": "Choose one listed optional hull weapon, or none."}
+				hull_weapon = str(selected.value)
+			var weapons := MarineProfiles.typhon_weapons(sponsons, hull_weapon)
+			if weapons.is_empty(): return {"error": "The selected Typhon loadout is not listed on the local Legends datasheet."}
+			bearer.typhon_sponsons = sponsons
+			bearer.typhon_hull_weapon = hull_weapon
+			bearer.ranged_weapons = weapons.ranged
+			bearer.melee_weapons = weapons.melee
+		"venerable-dreadnought-legends-primary", "venerable-dreadnought-legends-package":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "venerable-dreadnought-legends": return {"error": "Venerable Dreadnought Legends weapons are selected during army preparation."}
+			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Venerable Dreadnought Legends from its own unit."}
+			var primary := str(bearer.get("venerable_dreadnought_legends_primary", "assault-cannon"))
+			var package := str(bearer.get("venerable_dreadnought_legends_package", "fist-and-storm-bolter"))
+			if selected.action == "venerable-dreadnought-legends-primary":
+				if selected.value not in ["assault-cannon", "dreadnought-inferno-cannon", "heavy-plasma-cannon", "multi-melta", "twin-autocannon", "twin-heavy-bolter", "twin-heavy-flamer", "twin-lascannon"]: return {"error": "Choose the Assault Cannon or a datasheet-listed primary replacement."}
+				primary = str(selected.value)
+			else:
+				if selected.value not in ["fist-and-storm-bolter", "heavy-flamer-and-fist", "missile-launcher", "twin-autocannon"]: return {"error": "Choose a source-listed Dreadnought Fist and ranged-weapon replacement package."}
+				package = str(selected.value)
+			var venerable_weapons := MarineProfiles.venerable_dreadnought_legends_weapons(primary, package)
+			if venerable_weapons.is_empty(): return {"error": "This Venerable Dreadnought Legends loadout is not present in the local source profile."}
+			bearer.venerable_dreadnought_legends_primary = primary
+			bearer.venerable_dreadnought_legends_package = package
+			bearer.ranged_weapons = venerable_weapons.ranged
+			bearer.melee_weapons = venerable_weapons.melee
+		"dreadnought-primary", "dreadnought-melee-package", "dreadnought-secondary":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "dreadnought": return {"error": "Dreadnought weapons are selected during army preparation."}
+			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Dreadnought from its own unit."}
+			var primary := str(bearer.get("dreadnought_primary", "assault-cannon"))
+			var melee_package := str(bearer.get("dreadnought_melee_package", "dreadnought-fist"))
+			var secondary := str(bearer.get("dreadnought_secondary", "none"))
+			if selected.action == "dreadnought-primary":
+				if selected.value not in ["assault-cannon", "heavy-plasma-cannon", "multi-melta", "twin-lascannon"]: return {"error": "Choose the Assault Cannon or a datasheet-listed replacement."}
+				primary = str(selected.value)
+			elif selected.action == "dreadnought-melee-package":
+				if selected.value not in ["dreadnought-fist", "crushing-feet"]: return {"error": "Choose the Dreadnought Fist + Storm Bolter or Missile Launcher + Crushing Feet package."}
+				melee_package = str(selected.value)
+			else:
+				if selected.value not in ["none", "heavy-flamer"]: return {"error": "Choose the Storm Bolter or its Heavy Flamer replacement."}
+				secondary = str(selected.value)
+			var weapons := MarineProfiles.dreadnought_weapons(primary, melee_package, secondary)
+			if weapons.is_empty(): return {"error": "This Dreadnought loadout conflicts with its source-listed replacement groups."}
+			bearer.dreadnought_primary = primary
+			bearer.dreadnought_melee_package = melee_package
+			bearer.dreadnought_secondary = secondary
+			bearer.ranged_weapons = weapons.ranged
+			bearer.melee_weapons = weapons.melee
 		"terminator-captain-gun", "terminator-captain-blade":
 			var bearer: Dictionary = state.units[model]
 			if selected.action == "terminator-captain-gun": bearer.terminator_combi = selected.value == "combi"
@@ -4117,6 +4739,15 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.ranged_weapons = weapons.ranged
 			bearer.melee_weapons = weapons.melee
 			if bearer.has("defense"): bearer.defense.invulnerable_target = 5 if bearer.combat_shield else 0
+		"vanguard-veteran-squad-loadout":
+			var bearer: Dictionary = state.units.get(model, {})
+			var allowed_loadouts: Array = MarineProfiles.profile("vanguard-veteran-squad").get("options", {}).get("pistol_replacements", [])
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "vanguard-veteran-squad" or selected.value not in allowed_loadouts: return {"error": "Choose a source-listed Vanguard Veteran Squad Bolt Pistol replacement during your army preparations."}
+			var weapons := MarineProfiles.vanguard_veteran_squad_weapons(str(selected.value))
+			if weapons.is_empty(): return {"error": "Could not resolve the source-listed Vanguard Veteran Squad replacement."}
+			bearer.vanguard_veteran_squad_loadout = str(selected.value)
+			bearer.ranged_weapons = weapons.ranged.duplicate(true)
+			bearer.melee_weapons = weapons.melee.duplicate(true)
 		"vanguard-veteran-melee":
 			var bearer: Dictionary = state.units[model]
 			if not bearer.get("sergeant", false) or selected.value not in ["relic-blade", "power-fist", "thunder-hammer"]: return {"error": "Unsupported Vanguard Veteran Sergeant melee option."}
@@ -4483,19 +5114,19 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			elif int(hurtling_window.get("squad", -1)) != target: return {"error": "No matching detachment shooting reaction is pending."}
 			if selected.action == "hurtling-use":
 				if not bool(hurtling_window.get("can_hurtling", false)): return {"error": "Hurtling Targets is not eligible for this reaction."}
-				var hurtling_error := DetachmentStratagems.use_hurtling(state, player, target)
+				var hurtling_error := DetachmentStratagems.use_hurtling(state, player, target, roller)
 				if not hurtling_error.is_empty(): return {"error": hurtling_error}
 			elif selected.action == "evasive-use":
 				var eligibility_error := DetachmentStratagems.error(state, player, target, DetachmentStratagems.EVASIVE_MANOEUVRES)
 				if not eligibility_error.is_empty(): return {"error": eligibility_error}
-				var evasive_error := DetachmentStratagems.use_evasive_manoeuvres(state, player, target)
+				var evasive_error := DetachmentStratagems.use_evasive_manoeuvres(state, player, target, roller)
 				if not evasive_error.is_empty(): return {"error": evasive_error}
 			elif selected.action == "umbral-evasion-use":
-				var umbral_error := DetachmentStratagems.use_umbral_evasion(state, player, target)
+				var umbral_error := DetachmentStratagems.use_umbral_evasion(state, player, target, roller)
 				if not umbral_error.is_empty(): return {"error": umbral_error}
 			elif selected.action == "angels-defiant-use":
 				if not bool(hurtling_window.get("can_angels_defiant", false)): return {"error": "Angels Defiant is not eligible for this reaction."}
-				angels_spent = DetachmentStratagems.apply(state, player, {"stratagem": DetachmentStratagems.FIST_ANGELS_DEFIANT, "value": DetachmentStratagems.FIST_ANGELS_DEFIANT, "target": target, "model": -1})
+				angels_spent = DetachmentStratagems.apply(state, player, {"stratagem": DetachmentStratagems.FIST_ANGELS_DEFIANT, "value": DetachmentStratagems.FIST_ANGELS_DEFIANT, "target": target, "model": -1}, roller)
 				if not str(angels_spent.get("error", "")).is_empty(): return angels_spent
 			var hurtling_declaration: Dictionary = hurtling_window.get("declaration", {}).duplicate(true)
 			a.window = {}
@@ -4508,10 +5139,10 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if armour_window.get("kind", "") != DetachmentStratagems.ARMOUR_WINDOW or armour_window.get("owners", []) != [player] or int(armour_window.get("squad", -1)) != target: return {"error": "No matching defensive stratagem decision is pending."}
 			var foresight_spent: Dictionary = {}
 			if selected.action == "armour-use":
-				var armour_error := DetachmentStratagems.use_armour(state, player, target, int(armour_window.get("attacker_squad", -1)))
+				var armour_error := DetachmentStratagems.use_armour(state, player, target, int(armour_window.get("attacker_squad", -1)), roller)
 				if not armour_error.is_empty(): return {"error": armour_error}
 			elif selected.action == "tactical-foresight-use":
-				foresight_spent = DetachmentStratagems.apply(state, player, {"stratagem": DetachmentStratagems.ULTRAMARINES_TACTICAL_FORESIGHT, "value": DetachmentStratagems.ULTRAMARINES_TACTICAL_FORESIGHT, "target": target, "model": -1})
+				foresight_spent = DetachmentStratagems.apply(state, player, {"stratagem": DetachmentStratagems.ULTRAMARINES_TACTICAL_FORESIGHT, "value": DetachmentStratagems.ULTRAMARINES_TACTICAL_FORESIGHT, "target": target, "model": -1}, roller)
 				if not str(foresight_spent.get("error", "")).is_empty(): return foresight_spent
 			var armour_declaration: Dictionary = armour_window.get("declaration", {}).duplicate(true)
 			a.window = {}
@@ -5103,7 +5734,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 					ResolutionFrames.complete(state, ingress_frame_id)
 					return use_result
 			var deep_strike_ingress := bool(reserve_record.get("deep_strike", _reserve_unit_has_deep_strike(state, target))) and not teleportarium
-			a.window = {"kind": "ingress", "owners": [player], "squad": target, "positions": {}, "homer": homer, "deep_strike": deep_strike_ingress, "relic_teleportarium": teleportarium, "resolution_frame_id": ingress_frame_id, "return_window": a.window.duplicate(true)}
+			a.window = {"kind": "ingress", "owners": [player], "squad": target, "positions": {}, "homer": homer, "deep_strike": deep_strike_ingress, "outflank": A.has(state, target, "outflank"), "relic_teleportarium": teleportarium, "resolution_frame_id": ingress_frame_id, "return_window": a.window.duplicate(true)}
 			if teleportarium: return {"error": "", "message": "Relic Teleportarium: set up more than 6 inches from every enemy; this unit cannot declare a Charge this turn."}
 		"ingress-place":
 			var error := ingress_position_error(state, model, point)
@@ -5152,7 +5783,10 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if state.active != player and not bool(window.get("miraculous_saviour", false)):
 				state.cp[player] -= 0 if window.homer else 1
 				a.used["ingress:%d:%s" % [player, key(state)]] = true
-				if state.has("stratagems"): state.stratagems.uses.append({"player": player, "squad": window.squad, "stratagem": "rapid-ingress", "phase_key": key(state), "turn": state.turn})
+				if state.has("stratagems"):
+					state.stratagems.uses.append({"player": player, "squad": window.squad, "stratagem": "rapid-ingress", "phase_key": key(state), "turn": state.turn})
+					var orbital_error := A.resolve_orbital_comms_array(state, player, int(window.squad), "rapid-ingress", roller)
+					if not orbital_error.is_empty(): return {"error": orbital_error}
 				if window.homer: a.homers.erase(window.squad)
 			a.window = window.return_window
 			if TransportRules.is_drop_pod(state, int(window.squad)):
@@ -5180,7 +5814,7 @@ static func ingress_position_error(state: Dictionary, model: int, point: Vector2
 		if nearest_edge_gap > 6.001: return "Ingress models must be set up wholly within 6 inches of a battlefield edge."
 	var ingress_round := int(state.get("round", 0))
 	if A.high_king_fenris_selected(state, int(window.get("squad", -1))): ingress_round += 1
-	if not uses_deep_strike and ingress_round < 3:
+	if not uses_deep_strike and ingress_round < 3 and not bool(window.get("outflank", false)):
 		var zones_value: Variant = state.get("deployment", {}).get("zones", {})
 		if typeof(zones_value) != TYPE_DICTIONARY: return "Cannot validate ingress without deployment zones."
 		var enemy_owner := 3 - int(unit.owner)

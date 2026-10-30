@@ -1,7 +1,7 @@
 {
   "id": "marine-decimus-kill-team-e11-local-audit-2026-10-29",
   "rules_authority": "Wahapedia 11th edition, current faction page checked against the verified local Data Export",
-  "observed_at": "2026-10-29",
+  "observed_at": "2026-10-30",
   "source": {
     "edition": "11e",
     "chapter": "Deathwatch",
@@ -10,24 +10,24 @@
     "datasheet_id": "000004175",
     "game_mode": "Standard Warhammer 40,000 army datasheet; Boarding Actions and other modes excluded",
     "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Decimus-Kill-Team",
-    "current_page_checked_at": "2026-10-29",
+    "current_page_checked_at": "2026-10-30",
     "latest_source_recheck": {
-      "checked_at": "2026-10-29",
-      "snapshot_id": "20261029T072022Z-final-integration",
+      "checked_at": "2026-10-30",
+      "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
       "export_updated_at": "2026-10-28T23:48:19+03:00",
-      "parent_manifest_sha256": "772952e313b6772022c68226514eba7cdde00464468fd79c8291d20c24da4801",
-      "subject_slice_manifest_sha256": "4FD505E6F0B8EEA123FC253A4E2017CFE3D3FD1B838ABF2081697B455CEF825F",
-      "subject_catalog_sha256": "75ea30ea77f5e8fcfa24b9e3f5f799c303013841aeb418e52d3109d91057da0b",
+      "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+      "subject_slice_manifest_sha256": "B258EDD148A8B4F1DCB1DD174721C132B8337E6533B8AEA597871DD96CD1AA88",
+      "subject_catalog_sha256": "b57f6491ead33f53178f92da0260744367eecf3ba2523b5348c246f8fe0e72fd",
       "subject_slice_validation_error_count": 0,
       "parent_validation_error_count": 68,
       "composition_observation": "The live page and refreshed export list a 5-model price, but their six required model roles sum to a minimum of six. The ten-model composition and price agree."
     },
     "export_updated_at": "2026-10-28T23:48:19+03:00",
-    "snapshot_id": "wahapedia-e11-live-refresh-20261029T072022Z-final-integration",
-    "retrieved_at_utc": "2026-10-29T07:21:20.557818Z",
+    "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00",
     "specification_revision": "20260817b (URL query parameter)",
-    "snapshot_manifest_sha256": "772952e313b6772022c68226514eba7cdde00464468fd79c8291d20c24da4801",
-    "slice_manifest_sha256": "4fd505e6f0b8eea123fc253a4e2017cfe3d3fd1b838abf2081697b455cef825f",
+    "snapshot_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "slice_manifest_sha256": "b258edd148a8b4f1dcb1dd174721c132b8337e6533b8aea597871dd96cd1aa88",
     "slice_subject_datasheet_ids": [
       "000004175"
     ],
@@ -421,18 +421,40 @@
     },
     "relevant_slice_file_sha256": {
       "Datasheets.csv": "77cd84d0d636296fb73b91cc09e3cd2aa952b1651219b171e440461b4509cd28",
+      "Datasheets_abilities.csv": "aff9a30393bb3664d0721955844870b7c9177e6ccf27af571e67ed6b237dbbb4",
       "Datasheets_models.csv": "3d32409e983a60d27825f2aa02a09bcb3d37e9307346b966d534948083276616",
-      "Datasheets_unit_composition.csv": "4d50c3a15d6a859f2c8a2244cdcad601311ba5aab9365379ec44a5401ab4278b",
-      "Datasheets_models_cost.csv": "e1e4866f7d215da9a11fa007a6138f46852eb8e4537c9733a8b83782a8132ad6",
       "Datasheets_options.csv": "6b3144ecfcc051c09e73aa55717125c695ec7333397a0afca4343c90d4bea929",
       "Datasheets_wargear.csv": "d89a85efeb490d2761b34ceda3dac4f90750937f72262ef854daa55dff166383",
-      "Datasheets_abilities.csv": "aff9a30393bb3664d0721955844870b7c9177e6ccf27af571e67ed6b237dbbb4",
+      "Datasheets_unit_composition.csv": "4d50c3a15d6a859f2c8a2244cdcad601311ba5aab9365379ec44a5401ab4278b",
+      "Datasheets_models_cost.csv": "e1e4866f7d215da9a11fa007a6138f46852eb8e4537c9733a8b83782a8132ad6",
       "Datasheets_leader.csv": "553afa406a6c1ee5c244c152fdacc25def50e5c3ff9089eb2992828e44859a3a"
+    },
+    "retrieved_at": "2026-10-29",
+    "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "slice_catalog_sha256": "b57f6491ead33f53178f92da0260744367eecf3ba2523b5348c246f8fe0e72fd",
+    "slice_validation_findings": 0,
+    "slice_path": ".tools/marine-slices-current/decimus-kill-team",
+    "official_points_reference": {
+      "url": "https://mfm.warhammer-community.com/en/deathwatch",
+      "version": "v1.0",
+      "download_page_url": "https://www.warhammer-community.com/en-gb/downloads/warhammer-40000/",
+      "download_page_update_date": "2026-10-14",
+      "checked_at": "2026-10-30",
+      "reported_unit_costs": {
+        "5 models": 100,
+        "10 models": 190
+      },
+      "wahapedia_11e_costs": {
+        "5 models": 110,
+        "10 models": 210
+      },
+      "costs_conflict": true,
+      "project_runtime_source_policy": "Keep Wahapedia 11e costs in the local catalog per project decision; this does not certify a roster using current official MFM points."
     }
   },
   "runtime": {
     "profile_id": "decimus-kill-team",
-    "local_status": "source_bounded_10_model_scope_passed_5_model_size_blocked_2026_10_29",
+    "local_status": "source_bounded_wahapedia_10_model_profile_complete_mfm_points_conflict_2026_10_30",
     "points_by_models": {
       "5": 110,
       "10": 210
@@ -446,14 +468,48 @@
       "Per-five-model Gravis weapon replacement, Heavy Veteran Storm Shield/Power Weapon package with bearer-only 4+ invulnerable save, and Stalker Plasma Incinerator replacement.",
       "Six source-listed Leader and four Support identity links."
     ],
-    "composition_interpretation": "Only the 10-model composition is selectable: it uses two of each variable specialist and satisfies the source minimum/maximum rows at 210 points. The 5-model/110-point row is excluded because the source requires at least one each of four specialist roles in addition to the Xenophase Veteran and Sergeant, totaling at least six models.",
+    "composition_interpretation": "The legal 10-model composition uses two of each variable specialist and satisfies the source minimum/maximum rows at 210 points. The 5-model/110-point source-cost row is recorded but cannot map to a legal composition: the Xenophase Veteran and Sergeant are fixed, and each of four other roles requires at least one model, for a six-model minimum. Runtime stores no 5-model composition and defaults to the legal 10-model roster.",
     "known_limits": [
-      "Network validation was disabled for the focused run.",
-      "This local datasheet scope does not certify full roster/army legality or human playability.",
-      "The five-model size remains excluded from new construction pending an authoritative source correction or erratum."
+      "The source-listed 5-model/110-point row is impossible under the six-model minimum composition and remains blocked.",
+      "The selectable ten-model cost is 210 points in the chosen Wahapedia source but 190 points in current official MFM v1.0; roster points are not certified for events using that MFM.",
+      "This local datasheet scope does not certify full roster or army legality, every cross-sheet interaction, network behavior or human playability."
     ]
   },
   "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_decimus_kill_team --only test_wolf_guard_headtakers --only test_crusader_squad --only test_fist_god_emperor --only test_contact_reachability --only test_implemented_catalog --only test_capabilities --only test_space_marine_profile_source_fields --only test_marine_category_copy_limits",
+    "result_path": ".tools/verification/20261030T070201355409Z/results.json",
+    "results_sha256": "eb3e935cc2ba1cbd6494ce3f5342b0af3a9a9f9b260affec4435a68b26b09913",
+    "process_count": 11,
+    "status": "passed",
+    "network": false,
+    "legacy_starter_staged": true,
+    "cleanup_diagnostics": false,
+    "latest_three_requested_sheets_regression": {
+      "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_decimus_kill_team --only test_wolf_guard_headtakers --only test_crusader_squad --only test_contact_reachability --only test_fist_god_emperor --only test_vow_sworn_enhancements --only test_vow_sworn_stratagems --only test_implemented_catalog --only test_space_marine_profile_source_fields --only test_marine_category_copy_limits --only test_capabilities --only test_attack_plan --only test_current_unit_abilities",
+      "result_path": ".tools/verification/20261030T102146906553Z/results.json",
+      "results_sha256": "daa3134c46d55086618e0a01ec438cbd5e431470fef33759c66a01e2cbdd5cde",
+      "processes_passed": 15,
+      "network": false,
+      "legacy_starter_staged": true,
+      "cleanup_diagnostics": false,
+      "selected_suites": [
+        "test_decimus_kill_team",
+        "test_wolf_guard_headtakers",
+        "test_crusader_squad",
+        "test_contact_reachability",
+        "test_fist_god_emperor",
+        "test_vow_sworn_enhancements",
+        "test_vow_sworn_stratagems",
+        "test_implemented_catalog",
+        "test_space_marine_profile_source_fields",
+        "test_marine_category_copy_limits",
+        "test_capabilities",
+        "test_attack_plan",
+        "test_current_unit_abilities"
+      ]
+    }
+  },
+  "focused_source_recheck_verification": {
     "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_decimus_kill_team --timeout 300",
     "result_path": ".tools/verification/20261029T220221019374Z/results.json",
     "results_sha256": "d975ec817706afccb3831fcf2c3f3c129bec76f3c79bc713cb63dc67368d7210",

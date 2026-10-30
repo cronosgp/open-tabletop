@@ -1,0 +1,118 @@
+{
+  "id": "marine-falchion-e11-local-audit-2026-10-30",
+  "rules_authority": "Wahapedia 11th edition and its verified local Data Export; current official Warhammer material supplies project Legends game-mode guidance",
+  "observed_at": "2026-10-30",
+  "source": {
+    "edition": "11e",
+    "faction": "Space Marines",
+    "chapter": "Space Marines (Warhammer Legends)",
+    "book_id": "000000356",
+    "book_type": "App",
+    "book_edition": "11",
+    "datasheet_id": "000001666",
+    "role": "Titanic",
+    "game_mode": "Standard Warhammer 40,000 datasheet; Legends; alternate modes are outside this profile audit",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Falchion",
+    "current_page_checked_at": "2026-10-30 local export identity; live network recheck deferred",
+    "snapshot": {
+      "provider": "Wahapedia Data Export",
+      "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+      "retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00",
+      "export_updated_at": "2026-10-28T23:48:19+03:00",
+      "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+      "slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+      "parent_validation_findings": 68,
+      "slice_validation_findings": 0,
+      "raw_slice_path": ".tools/marine-full-space-readiness-20261030/space-marines-legends/raw",
+      "source_slice_audit": {
+        "command": "python tools/audit_space_marine_extended_slice.py --slice-root .tools/marine-full-space-readiness-20261030/space-marines-legends --expected-book-id 000000356 --expected-count 56 --output .tools/marine-full-space-readiness-20261030/legends-readiness-audit-post-falchion.json",
+        "result_path": ".tools/marine-full-space-readiness-20261030/legends-readiness-audit-post-falchion.json",
+        "result_sha256": "3cdc3f38de9b0246e2397c8832a77d29d2930fb49f8396fe30e8aefe23ee8b54",
+        "slice_manifest_file_sha256": "ad907cea26b5118f408b89b4847e145aa074c70a8be7d406b8dcdbec40f7cadb",
+        "subject_count_including_source_dependencies": 56,
+        "space_marine_subject_count": 28,
+        "runtime_admitted_count_by_this_source_audit": 0,
+        "playable_certified_count_by_this_source_audit": 0,
+        "structurally_valid": true
+      },
+      "source_files": [
+        {"filename": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+        {"filename": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+        {"filename": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"},
+        {"filename": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+        {"filename": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+        {"filename": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+        {"filename": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+        {"filename": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+        {"filename": "Datasheets_leader.csv", "sha256": "18243d3fe8bfb7786f5293ab8b611a52eec8d0941172c6ee991c5a7ed5fbd06d"}
+      ],
+      "source_row_counts_for_sheet": {
+        "model_role_rows": 1,
+        "weapon_profile_rows": 10,
+        "option_rows": 3,
+        "composition_rows": 1,
+        "priced_cost_rows": 3,
+        "ability_rows": 4,
+        "leader_link_rows": 0
+      }
+    },
+    "reconciliation": "The source lists one model at 420 points in each of the first, second and third copy tiers. No earlier-edition profile was substituted. The local runtime limits construction to three copies."
+  },
+  "implemented_scope": {
+    "runtime_profile": "scripts/edition_11/current_reference_marine_profiles.gd",
+    "army_admission": "scripts/edition_11/army_capabilities.gd",
+    "ability_registration": "scripts/edition_11/unit_ability_catalog.gd",
+    "ability_resolution": "scripts/edition_11/unit_abilities.gd",
+    "preparation_choices": "scripts/edition_11/unit_actions.gd",
+    "composition": "One model; up to three copies.",
+    "points_by_copy_tier": {"first": 420, "second_plus": 420, "third_plus": 420},
+    "characteristics": {"movement_inches": 9, "toughness": 13, "save_target": 2, "wounds": 24, "leadership_target": 6, "objective_control": 8, "invulnerable_target": 0},
+    "keywords": ["ADEPTUS ASTARTES", "FRAME", "SMOKE", "IMPERIUM", "TITANIC", "VEHICLE"],
+    "base_size_source": "Use model",
+    "geometry_proxy": "Labelled 60 mm circular footprint; exact physical footprint and clearance are not certified.",
+    "special_rules": ["Combat Doctrines", "Deadly Demise D6+2", "Damaged 8", "Titan-killer"],
+    "weapons": {
+      "source_weapon_rows": 10,
+      "default_ranged": ["2 Quad Lascannons", "Twin Falchion Volcano Cannon", "Twin Heavy Bolter"],
+      "default_melee": ["Armoured Tracks"],
+      "optional_weapon_addition": ["Heavy Bolter", "Heavy Flamer", "Multi-melta", "Storm Bolter"],
+      "replace_two_quad_lascannons_with": ["2 Laser Destroyers"],
+      "replace_twin_heavy_bolter_with": ["Twin Heavy Flamer"],
+      "legal_option_combinations": 20,
+      "all_source_weapon_profiles_represented": true
+    },
+    "titan_killer_scope": "Only Twin Falchion Volcano Cannon ranged attacks gain Devastating Wounds against MONSTER or VEHICLE targets.",
+    "legends_game_mode": "Project label permits home/store/club/campaign use; competitive events require organiser permission. Event-specific acceptance is not established."
+  },
+  "runtime": {
+    "profile_status": "source_bounded_local_scope_passed_2026_10_30",
+    "construction_catalog_size_after_admission": 179,
+    "space_marine_legends_profiles_after_admission": 18,
+    "runtime_identity_export_path": ".tools/space-marine-runtime-identities-full-audit-next-20261030-v13.json",
+    "runtime_identity_export_sha256": "22d65f1464791f7ebecb55d3cd206943119c84d0c6effff2b795530e0b009a28",
+    "missing_source_identity_count": 0
+  },
+  "verification": {
+    "dedicated_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_falchion_legends",
+    "dedicated_result_path": ".tools/verification/20261030T110317013906Z/results.json",
+    "dedicated_result_sha256": "401935e223376558498686cc3a60c59d5cb8a2f17687308e3670a108cbde7738",
+    "dedicated_process_count": 3,
+    "dedicated_status": "passed",
+    "focused_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 1200 --only test_falchion_legends --only test_implemented_catalog --only test_space_marine_profile_source_fields --only test_space_marine_copy_cost_parity --only test_capabilities --only test_current_unit_abilities --only test_attack_plan --only test_weapon_selection --only test_combat_doctrines --only test_typhon_legends --only test_cerberus --only test_land_raider_excelsior",
+    "focused_result_path": ".tools/verification/20261030T110346483572Z/results.json",
+    "focused_result_sha256": "63b9eec14a424902d0c18ecfa4927eee2bdad270a1ebcfafd576b7e2a950ca04",
+    "focused_process_count": 14,
+    "focused_status": "passed",
+    "network": false,
+    "legacy_starter_staged": true,
+    "cleanup_diagnostics": false
+  },
+  "certification_limits": [
+    "Live page and event-pack network validation remain deferred to final integration.",
+    "The parent export retains 68 unrelated structural findings; the exact Legends slice itself has zero scoped findings.",
+    "Full army legality and all cross-datasheet interactions are not certified by this datasheet check.",
+    "The 60 mm footprint is a disclosed proxy because the source says Use model without giving a diameter.",
+    "Competitive event acceptance and event-specific points or restrictions require organiser confirmation.",
+    "Network behavior and human playtesting remain unverified."
+  ]
+}

@@ -115,7 +115,7 @@ func run() -> void:
 
 	var expected_abilities := {
 		CAPTAIN: ["leader", "combat-doctrines", "feel-no-pain-6", "death-visions-of-sanguinius", "black-rage", "forlorn-hero"],
-		JUMP_CAPTAIN: ["deep-strike", "combat-doctrines", "feel-no-pain-6", "black-rage", "death-visions-of-sanguinius", "lost-to-fury"],
+		JUMP_CAPTAIN: ["leader", "deep-strike", "combat-doctrines", "feel-no-pain-6", "black-rage", "death-visions-of-sanguinius", "lost-to-fury"],
 		ASTORATH: ["leader", "deep-strike", "combat-doctrines", "redeemer-of-the-lost", "mass-of-doom"],
 		LEMARTES: ["leader", "deep-strike", "feel-no-pain-6", "combat-doctrines", "fury-unbound", "guardian-of-the-lost"]}
 	for identity: String in expected_abilities:

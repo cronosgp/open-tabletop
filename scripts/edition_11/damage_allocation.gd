@@ -171,6 +171,7 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 			var candidates := Groups.precision_candidates(state, batch)
 			pending.current = {"target": batch.target, "failed_rolls": [], "steps": [], "cursor": 0, "damage": batch.weapon.damage, "weapon": batch.weapon,
 				"free_damage_reroll": batch.context.get("free_damage_reroll", false), "aquilon_optics": batch.context.get("aquilon_optics", false),
+				"annihilator_damage_reroll": batch.context.get("annihilator_damage_reroll", false), "total_obliteration_damage_reroll": batch.context.get("total_obliteration_damage_reroll", false),
 				"armoured_wrath": batch.context.get("armoured_wrath", false), "armoured_wrath_full": batch.context.get("armoured_wrath_full", false),
 				"result": rolled, "groups": Groups.groups(state, batch.target, pending.melee), "order": [], "precision": -1, "precision_candidates": candidates,
 				"phase": "precision" if not candidates.is_empty() and rolled.wounds > 0 and pending.precision_prompt else "order"}
@@ -286,8 +287,10 @@ static func apply(state: Dictionary, model: int, roller: Callable) -> Dictionary
 	if not pending.aquilon_used.has(aquilon_key): pending.aquilon_used[aquilon_key] = {}
 	var aquilon_available: bool = not current.get("aquilon_optics", false) or not pending.aquilon_used[aquilon_key].get("damage", false)
 	var reroll_sources: Array[String] = []
-	if current.get("free_damage_reroll", false) and aquilon_available and not rolled.rolls.is_empty() and not current.get("damage_reroll_offered", false):
-		reroll_sources.append("Aquilon Optics" if current.get("aquilon_optics", false) else "Total Obliteration")
+	if current.get("free_damage_reroll", false) and not rolled.rolls.is_empty() and not current.get("damage_reroll_offered", false):
+		if current.get("aquilon_optics", false) and aquilon_available: reroll_sources.append("Aquilon Optics")
+		if current.get("annihilator_damage_reroll", false): reroll_sources.append("Annihilator")
+		if current.get("total_obliteration_damage_reroll", false): reroll_sources.append("Total Obliteration")
 	var armoured_context := {"armoured_wrath": current.get("armoured_wrath", false), "armoured_wrath_full": current.get("armoured_wrath_full", false)}
 	if not rolled.rolls.is_empty() and armoured_wrath_available(pending, armoured_context, "damage"):
 		reroll_sources.append("Armoured Wrath")

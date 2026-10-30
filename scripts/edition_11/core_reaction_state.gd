@@ -2,7 +2,7 @@ extends RefCounted
 ## Shared low-level state for Core Rules reaction stratagems.
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
-const ID := "core-reaction-stratagems-2026-10-high-marshal-helbrecht-v2"
+const ID := "core-reaction-stratagems-2026-10-high-marshal-helbrecht-v3-defensive-array"
 const ADMITTED_ABILITIES := ["fire-overwatch", "heroic-intervention", "counteroffensive", "epic-challenge", "explosives", "smokescreen", "crushing-impact"]
 
 static func enable(state: Dictionary) -> void:

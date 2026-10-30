@@ -17,7 +17,7 @@ func lists() -> Dictionary:
   {"definition_id": "40kdc:11e:adeptus-astartes:" + UNIT, "models": 10, "copies": 1}]
  return result
 func fixture() -> Dictionary:
- var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists())
+ var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "terrain_layout": "ca-2026-27-take-and-hold-mirror-a-v1", "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists())
  if s.has("error"): return s
  s.awakened_dynasty.pending = []
  s.mission.stage = "battle"
@@ -111,6 +111,6 @@ func run() -> void:
  invalid[1].entries.append({"definition_id": "40kdc:11e:adeptus-astartes:" + UNIT, "models": 5, "copies": 1})
  check(not C.RosterValidation.admit(invalid[1]).error.is_empty(), "5/10 entries bypassed shared datasheet repetition cap")
  var catalog := F.P.Training.Capabilities.current_catalog_choice({"id": "openhammer:11e:Space%20Marines:907f-11-c4d1-ec21", "edition": "11e", "faction": "Space Marines"})
- check(catalog.get("options", []) == [{"models": 5, "cost": 105}, {"models": 10, "cost": 210}], "Catalog retained superseded API sizes/prices")
+ check(catalog.get("options", []) == [{"models": 5, "cost": 105, "third_plus_cost": 120}, {"models": 10, "cost": 210, "third_plus_cost": 225}], "Catalog uses the current local model sizes and source third-plus prices without cached API values")
  print("Sternguard checks: %d failures" % failures)
  quit(1 if failures else 0)

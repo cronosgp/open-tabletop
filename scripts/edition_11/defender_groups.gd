@@ -33,6 +33,7 @@ static func profile(state: Dictionary, model: int, melee: bool = false) -> Dicti
 	if MarineEnhancements.consecrating_aura_active(state, int(unit.squad)):
 		result.invulnerable_target = 5 if int(result.invulnerable_target) == 0 else mini(5, int(result.invulnerable_target))
 	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) == "vanguard-veteran-squad-with-jump-packs" and unit.get("combat_shield", false): result.invulnerable_target = 5
+	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) == "vanguard-veteran-squad" and unit.get("vanguard_veteran_squad_loadout", "bolt-pistol") == "storm-shield": result.invulnerable_target = 4
 	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) in ["venerable-dreadnought", "wulfen-dreadnought"] and unit.get("space_wolves_blizzard_shield", false): result.invulnerable_target = 4 if int(result.invulnerable_target) == 0 else mini(4, int(result.invulnerable_target))
 	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) == "deathwatch-veterans" and unit.get("deathwatch_veteran_storm_shield", false): result.invulnerable_target = 4 if int(result.invulnerable_target) == 0 else mini(4, int(result.invulnerable_target))
 	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) == "thunderwolf-cavalry" and unit.get("thunderwolf_cavalry_storm_shield", false): result.invulnerable_target = 4 if int(result.invulnerable_target) == 0 else mini(4, int(result.invulnerable_target))

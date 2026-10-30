@@ -76,9 +76,26 @@ func copy_limit_configurations(identity: String, profile: Dictionary) -> Array[D
 	return candidates
 
 func run() -> void:
+	for case: Dictionary in [
+		{"identity": "crusader-squad", "models": [10, 20], "expected": "bounded", "blocked": "MFM v1.0 lists 10/150 and 20/290"},
+		{"identity": "decimus-kill-team", "models": [10], "expected": "six-model minimum", "blocked": "Current GW MFM v1.0 lists 10 models for 190 pts"},
+		{"identity": "wolf-guard-headtakers", "models": [6, 12], "expected": "3–6 of each role", "blocked": "other allowed mixes have no confirmed cost"}
+	]:
+		var identity := str(case.identity)
+		var choice := Army.current_catalog_choice({"id": "40kdc:11e:adeptus-astartes:" + identity, "edition": "11e", "faction": "Space Marines"})
+		var actual_sizes: Array[int] = []
+		for option: Dictionary in choice.get("options", []): actual_sizes.append(int(option.models))
+		check(actual_sizes == case.models, "%s exposes only its source-supported selectable sizes: %s" % [identity, str(actual_sizes)])
+		var readiness_note := str(choice.get("construction_scope", ""))
+		check(readiness_note.contains(str(case.expected)), "%s construction note explains its exact remaining boundary" % identity)
+		if not str(case.blocked).is_empty(): check(readiness_note.contains(str(case.blocked)), "%s explicitly names the withheld or unpriced choice" % identity)
+	var ordinary_choice := Army.current_catalog_choice({"id": "40kdc:11e:adeptus-astartes:intercessor-squad", "edition": "11e", "faction": "Space Marines"})
+	check(str(ordinary_choice.get("construction_scope", "")).is_empty(), "complete construction scopes do not receive a persistent warning")
+
 	var current_profile_count := 0
 	var common_profile_count := 0
 	var chapter_profile_count := 0
+	var legends_profile_count := 0
 	for identity: String in Army.SPECS:
 		var spec: Dictionary = Army.SPECS[identity]
 		if not spec.get("current_reference", false): continue
@@ -86,15 +103,17 @@ func run() -> void:
 		check(not profile.is_empty(), "%s has a source-backed current profile for copy-limit evaluation" % identity)
 		if profile.is_empty(): continue
 		current_profile_count += 1
-		if profile.get("source_book_id", "") == "000000139": common_profile_count += 1
-		else: chapter_profile_count += 1
+		match str(profile.get("source_book_id", "")):
+			"000000139": common_profile_count += 1
+			"000000356": legends_profile_count += 1
+			_: chapter_profile_count += 1
 		var keywords: Array = profile.get("keywords", [])
 		var expected_incursion := 1 if "EPIC HERO" in keywords else (4 if "BATTLELINE" in keywords or "DEDICATED TRANSPORT" in keywords else 2)
 		var expected_strike_force := 1 if "EPIC HERO" in keywords else (6 if "BATTLELINE" in keywords or "DEDICATED TRANSPORT" in keywords else 3)
 		check(Army.standard_unit_copy_limit("incursion", keywords) == expected_incursion, "%s uses its exported keywords for the Incursion repeat limit" % identity)
 		check(Army.standard_unit_copy_limit("strike_force", keywords) == expected_strike_force, "%s uses its exported keywords for the Strike Force repeat limit" % identity)
-	check(current_profile_count == 160 and common_profile_count == 85 and chapter_profile_count == 75,
-		"The category audit covers all 160 runtime profiles (85 shared-book, 75 Chapter-book; got %d/%d/%d)" % [current_profile_count, common_profile_count, chapter_profile_count])
+	check(current_profile_count == 185 and common_profile_count == 85 and chapter_profile_count == 76 and legends_profile_count == 24,
+		"The category audit covers all 185 runtime profiles (85 shared-book, 76 Chapter-book, 24 Legends; got %d/%d/%d/%d)" % [current_profile_count, common_profile_count, chapter_profile_count, legends_profile_count])
 	var actual_strike_force_limit_profiles := 0
 	for identity: String in Army.SPECS:
 		if not Army.SPECS[identity].get("current_reference", false): continue
@@ -106,15 +125,16 @@ func run() -> void:
 		check(not maximum_entry.is_empty(), "%s has a source-priced composition for an actual copy-limit admission" % identity)
 		if maximum_entry.is_empty(): continue
 		var at_limit := admit("strike_force", [maximum_entry])
-		check(str(at_limit.get("error", "")).is_empty(), "%s admits %d copies at its Strike Force datasheet limit: %s" % [identity, expected_limit, str(at_limit.get("error", ""))])
+		var at_limit_error := str(at_limit.get("error", ""))
+		check(at_limit_error.is_empty() or at_limit_error.begins_with("The list exceeds the training-pack budget:"), "%s does not exceed its Strike Force datasheet copy cap at %d copies; any remaining rejection must be only the points budget: %s" % [identity, expected_limit, at_limit_error])
 		var above_limit_entry := maximum_entry.duplicate(true)
 		above_limit_entry.copies = expected_limit + 1
 		var above_limit := admit("strike_force", [above_limit_entry])
 		var expected_error := "An army cannot include more than one EPIC HERO unit with the same datasheet:" if "EPIC HERO" in keywords else "Core-profile repetition limit exceeded:"
 		check(str(above_limit.get("error", "")).begins_with(expected_error), "%s rejects copy %d through the correct Strike Force limit gate: %s" % [identity, expected_limit + 1, str(above_limit.get("error", ""))])
 		actual_strike_force_limit_profiles += 1
-	check(actual_strike_force_limit_profiles == 160,
-		"Actual Strike Force admission checks cover all 160 current runtime profiles (got %d)" % actual_strike_force_limit_profiles)
+	check(actual_strike_force_limit_profiles == 185,
+		"Actual Strike Force admission checks cover all 185 current runtime profiles (got %d)" % actual_strike_force_limit_profiles)
 	var actual_incursion_limit_profiles := 0
 	for identity: String in Army.SPECS:
 		if not Army.SPECS[identity].get("current_reference", false): continue
@@ -126,8 +146,9 @@ func run() -> void:
 		check(not maximum_entry.is_empty(), "%s has a source-priced composition for actual Incursion copy-limit admission" % identity)
 		if maximum_entry.is_empty(): continue
 		var at_limit := admit("incursion", [maximum_entry])
-		check(str(at_limit.get("error", "")).is_empty(),
-			"%s admits %d copies at its Incursion datasheet limit: %s" % [identity, expected_limit, str(at_limit.get("error", ""))])
+		var at_limit_error := str(at_limit.get("error", ""))
+		check(at_limit_error.is_empty() or at_limit_error.begins_with("The list exceeds the training-pack budget:"),
+			"%s does not exceed its Incursion datasheet copy cap at %d copies; any remaining rejection must be only the points budget: %s" % [identity, expected_limit, at_limit_error])
 		var above_limit_entry := maximum_entry.duplicate(true)
 		above_limit_entry.copies = expected_limit + 1
 		var above_limit := admit("incursion", [above_limit_entry])
@@ -135,8 +156,8 @@ func run() -> void:
 		check(str(above_limit.get("error", "")).begins_with(expected_error),
 			"%s rejects copy %d through the correct Incursion limit gate: %s" % [identity, expected_limit + 1, str(above_limit.get("error", ""))])
 		actual_incursion_limit_profiles += 1
-	check(actual_incursion_limit_profiles == 160,
-		"Actual Incursion admission checks cover all 160 current runtime profiles (got %d)" % actual_incursion_limit_profiles)
+	check(actual_incursion_limit_profiles == 185,
+		"Actual Incursion admission checks cover all 185 current runtime profiles (got %d)" % actual_incursion_limit_profiles)
 	var split_configuration_profiles := 0
 	for identity: String in Army.SPECS:
 		if not Army.SPECS[identity].get("current_reference", false): continue
@@ -291,6 +312,7 @@ func run() -> void:
 	check(black_templars_shared_roster.error.is_empty() and int(black_templars_shared_roster.get("unit_count", 0)) == 4,
 		"Incursion admits a Black Templars unit with three shared-book profiles in one roster")
 	var tagged_chapter_profile_count := 0
+	var chapter_book_tagged_profile_count := 0
 	var profiles_by_chapter: Dictionary = {}
 	for identity: String in Army.SPECS:
 		if not Army.SPECS[identity].get("current_reference", false): continue
@@ -299,10 +321,12 @@ func run() -> void:
 		check(chapters.size() <= 1, "%s carries at most one Chapter faction keyword" % identity)
 		if chapters.size() != 1: continue
 		tagged_chapter_profile_count += 1
+		if str(profile.get("source_book_id", "")) != "000000139": chapter_book_tagged_profile_count += 1
 		var roster_entry := {"identity": identity, "entry": cheapest_limit_entry(identity, 1)}
 		if not profiles_by_chapter.has(chapters[0]): profiles_by_chapter[chapters[0]] = []
 		profiles_by_chapter[chapters[0]].append(roster_entry)
-	check(tagged_chapter_profile_count >= 75, "The audit verifies Chapter keywords across all Chapter-book runtime profiles")
+	check(chapter_book_tagged_profile_count == 76,
+		"The audit verifies a Chapter keyword on all 76 Chapter-book profiles (got %d)" % chapter_book_tagged_profile_count)
 	var chapter_names: Array = profiles_by_chapter.keys()
 	chapter_names.sort()
 	var same_chapter_checks := 0

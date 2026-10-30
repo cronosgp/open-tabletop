@@ -110,7 +110,7 @@ func _initialize() -> void:
 
 func run() -> void:
 	var profile := Profiles.profile("crusader-squad")
-	check(str(profile.get("source_snapshot_id", "")) == "20261021T130623Z" and str(profile.get("source_manifest_sha256", "")) == "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf" and str(profile.get("source_slice_manifest_sha256", "")) == "8a6d9529ae553b06203cdb2b6c8f1edd736f2a737ba1c215d2241bd1cdfb5bbe", "Crusader Squad records the verified Space Marines snapshot and Black Templars slice identities")
+	check(str(profile.get("source_snapshot_id", "")) == "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z" and str(profile.get("source_manifest_sha256", "")) == "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e" and str(profile.get("source_slice_manifest_sha256", "")) == "c826abb55add7cc48814b3df865546da059e17f311a62fc581092c2d43aa1bc8", "Crusader Squad records the current verified export and Black Templars subject-slice identities")
 	check(profile.get("points_by_models", {}) == {10: 160, 20: 305} and profile.get("keywords", []).has("BATTLELINE"), "Crusader Squad preserves both source sizes, prices and the Battleline keyword")
 	var ranged_ids: Array[String] = []
 	for weapon: Dictionary in profile.get("ranged", []) + profile.get("additional_weapon_profiles", {}).get("ranged", []): ranged_ids.append(str(weapon.get("id", "")))

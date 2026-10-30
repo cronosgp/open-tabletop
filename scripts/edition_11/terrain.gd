@@ -3,6 +3,7 @@ extends RefCounted
 const Board = preload("res://scripts/rules.gd")
 const Smoke = preload("res://scripts/edition_11/smokescreen.gd")
 const Detection = preload("res://scripts/edition_11/detection_rules.gd")
+const Fortifications = preload("res://scripts/edition_11/fortification_rules.gd")
 const EPSILON := 0.001
 const SIGHT_RADIUS := 0.5 / 25.4 # Half of the required 1mm sightline width.
 const DEFAULT_LAYOUT := "terrain-11e-v1"
@@ -521,7 +522,7 @@ static func benefit_of_cover(state: Dictionary, observer: int, squad: int) -> bo
 	if legacy(state): return false
 	var ids := _alive(state, squad)
 	if ids.is_empty(): return false
-	if Detection.stealth(state, squad) or Smoke.cover(state, observer, squad): return true
+	if Detection.stealth(state, squad) or Smoke.cover(state, observer, squad) or Fortifications.ceramite_cover(state, observer, squad): return true
 	for id: int in ids:
 		var in_area := has_keyword(state.units[id], ["infantry", "beasts", "swarm"]) and not model_areas(state, id).is_empty()
 		if not in_area and pair(state, observer, id).fully_visible: return false

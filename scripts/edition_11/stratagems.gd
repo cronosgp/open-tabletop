@@ -237,8 +237,10 @@ static func open_roll(state: Dictionary, player: int, squad: int, kind: String, 
 	state.stratagems.pending = {"kind": kind, "player": player, "squad": squad, "phase_key": phase_key(state), "rolls": rolls.duplicate(), "draft": draft.duplicate(true), "master_shadows": master_shadows, "lord_of_the_ravenwing": lord_of_the_ravenwing, "linebreaker_onslaught": linebreaker_onslaught, "deathwatch_terminatus_assault": deathwatch_terminatus_assault, "supercharged": supercharged, "honour_vigilance": honour_vigilance, "wrath_chapter": wrath_chapter, "stormseers_wisdom": stormseers_wisdom, "righteous_fervour": righteous_fervour, "bestial_fury": bestial_fury, "overcharged_engines": overcharged_engines}
 	return true
 
-static func consume(state: Dictionary, player: int, squad: int, stratagem: String) -> void:
+static func consume(state: Dictionary, player: int, squad: int, stratagem: String, roller: Callable = Callable()) -> String:
 	# Internal operation, called only after all command/effect validation succeeds.
-	state.cp[player] -= maxi(0, int(SUPPORTED[stratagem].cost) - UnitAbilities.discount(state, player, squad))
-	UnitAbilities.consume_discount(state, player, squad)
+	var base_cost := int(SUPPORTED[stratagem].cost)
+	state.cp[player] -= maxi(0, base_cost - UnitAbilities.discount(state, player, squad))
+	if base_cost > 0: UnitAbilities.consume_discount(state, player, squad)
 	state.stratagems.uses.append({"player": player, "squad": squad, "stratagem": stratagem, "phase_key": phase_key(state), "turn": state.turn})
+	return UnitAbilities.resolve_orbital_comms_array(state, player, squad, stratagem, roller)

@@ -100,12 +100,9 @@ foreach ($profile in $runtimeIdentityAudit.profiles) {
     $identityBySlug[$identity] = $sourceId
 }
 $missingRuntime = @($candidateById.Keys | Where-Object { -not $identityById.ContainsKey($_) })
-if ($runtimeIdentityAudit.profile_count -ne 160 -or $identityById.Count -ne 160 -or $missingRuntime.Count -ne 1) {
-    throw "Expected 160 runtime profiles and one source-only profile; found $($identityById.Count) runtime mappings and $($missingRuntime.Count) missing source identities."
+if ($runtimeIdentityAudit.profile_count -ne $candidateById.Count -or $identityById.Count -ne $candidateById.Count -or $missingRuntime.Count -ne 0) {
+    throw "Expected a runtime profile for every one of the $($candidateById.Count) current standard Marine sheets; found $($identityById.Count) mappings and $($missingRuntime.Count) missing source identities."
 }
-$missingSheet = $candidateById[$missingRuntime[0]]
-if ([string]$missingSheet.source_id -ne "000000036" -or [string]$missingSheet.name -ne "Wolf Guard Headtakers") { throw "The unmapped source identity is not the known Wolf Guard Headtakers blocker." }
-$identityById[$missingRuntime[0]] = "wolf-guard-headtakers"
 
 $sourceEdges = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
 $leaderRows = Import-Csv -LiteralPath (Join-Path $csvDirectory "Datasheets_leader.csv") -Delimiter '|' -Encoding UTF8
@@ -141,7 +138,7 @@ foreach ($map in @($commonMap, $chapterMap)) {
 }
 $missingEdges = @($sourceEdges | Where-Object { -not $runtimeEdges.Contains($_) } | Sort-Object)
 $extraEdges = @($runtimeEdges | Where-Object { -not $sourceEdges.Contains($_) } | Sort-Object)
-if ($sourceEdges.Count -ne 363 -or $runtimeEdges.Count -ne $sourceEdges.Count -or $missingEdges.Count -gt 0 -or $extraEdges.Count -gt 0) {
+if ($runtimeEdges.Count -ne $sourceEdges.Count -or $missingEdges.Count -gt 0 -or $extraEdges.Count -gt 0) {
     throw "Leader link mismatch: source $($sourceEdges.Count), runtime $($runtimeEdges.Count), missing [$($missingEdges -join ', ')], extra [$($extraEdges -join ', ')]."
 }
 
@@ -167,5 +164,5 @@ foreach ($map in @($bodyguards, $conditional)) {
 }
 
 $snapshotId = [System.IO.Path]::GetFileName((Resolve-Path -LiteralPath $SnapshotPath).Path)
-Write-Output "Wahapedia e11 Space Marine attachments: $($sourceEdges.Count)/363 source relations exact across $($identityById.Count)/161 runtime/source identities."
+Write-Output "Wahapedia e11 Space Marine attachments: $($sourceEdges.Count) source relations exact across $($identityById.Count)/$($candidateById.Count) runtime/source identities."
 Write-Output "Support: $($sourceSupport.Count)/14 static Support identities exact; conditional Support: $(@($conditional.Keys).Count) profile(s). Snapshot $snapshotId passed $($filesToVerify.Count)/$($filesToVerify.Count) manifest SHA-256 checks."

@@ -49,6 +49,7 @@ var role_picker: OptionButton
 var unit_picker: ItemList
 var chapter_status: Label
 var choice_picker: OptionButton
+var construction_scope_hint: Label
 var composition_picker: OptionButton
 var composition_hint: Label
 var copies: SpinBox
@@ -272,6 +273,11 @@ func _ready() -> void:
 	choice_picker = OptionButton.new()
 	editor.add_child(choice_picker)
 	choice_picker.item_selected.connect(func(_index: int): _refresh_composition_options())
+	construction_scope_hint = label("")
+	construction_scope_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	construction_scope_hint.add_theme_font_size_override("font_size", 12)
+	construction_scope_hint.add_theme_color_override("font_color", Color("f0b46a"))
+	construction_scope_hint.visible = false
 	composition_hint = label("Source-listed roles. The Chapter Ancient's Banner of Macragge adds 15 pts.")
 	composition_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	composition_hint.add_theme_font_size_override("font_size", 12)
@@ -383,6 +389,7 @@ func _organize_workshop() -> void:
 	addition_summary.custom_minimum_size.x = 290
 	choice_picker.fit_to_longest_item = false
 	choice_picker.reparent(addition_panel)
+	construction_scope_hint.reparent(addition_panel)
 	composition_hint.reparent(addition_panel)
 	composition_picker.fit_to_longest_item = false
 	composition_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -504,7 +511,7 @@ func _refresh_addition_summary() -> void:
 	var partial: bool = unknown or int(totals.unknown) > 0
 	var role_summary := "\nRoles · " + str(selected_composition.get("label", "")) if not selected_composition.is_empty() else ""
 	var banner_summary := " (+15 pts per unit for Banner of Macragge)" if wargear_cost > 0 else ""
-	addition_summary.text = "To add · %s\n%d units · %s · %s%s%s\nAfter adding: %d / %d pts%s" % [str(selected_unit.name), amount, "%d models" % (count * amount) if count > 0 else "composition pending", "cost unconfirmed" if unknown else "%d pts added" % added, role_summary, banner_summary, int(totals.points) + added, int(draft.points_limit), " · partial" if partial else (" · over budget" if int(totals.points) + added > int(draft.points_limit) else "")]
+	addition_summary.text = "To add · %s\n%d units · %s · %s%s%s\nAfter adding: %d / %d pts%s" % [str(selected_unit.name), amount, _model_count_label(count * amount) if count > 0 else "composition pending", "cost unconfirmed" if unknown else "%d pts added" % added, role_summary, banner_summary, int(totals.points) + added, int(draft.points_limit), " · partial" if partial else (" · over budget" if int(totals.points) + added > int(draft.points_limit) else "")]
 
 func _refresh_composition_options() -> void:
 	if composition_picker == null: return
@@ -556,9 +563,10 @@ func _render_draft() -> void:
 		var entry_points: Variant = Roster.entry_cost(draft.entries, index)
 		var enhancement_id := str(item.get("enhancement_id", ""))
 		var enhancement_suffix := " • +%d pts: %s" % [Roster.enhancement_cost(enhancement_id), _enhancement_name(enhancement_id)] if enhancement_id != "" else ""
+		var source_suffix := " • " + str(item.source_scope) if str(item.get("source_scope", "")) != "" else ""
 		var composition_label := _composition_label(item)
 		var composition_suffix := " • " + composition_label if not composition_label.is_empty() else ""
-		entries.add_item("%d× %s • %s • %s%s%s" % [item.copies, item.name, "%d models" % item.models if item.models > 0 else "composition pending", "%d pts" % int(entry_points) if entry_points != null else "cost pending", composition_suffix, enhancement_suffix])
+		entries.add_item("%d× %s%s • %s • %s%s%s" % [item.copies, item.name, source_suffix, _model_count_label(int(item.models)) if item.models > 0 else "composition pending", "%d pts" % int(entry_points) if entry_points != null else "cost pending", composition_suffix, enhancement_suffix])
 	updating = false
 	_fill_factions()
 	_render_summary()
@@ -619,7 +627,8 @@ func _show_saved_detail(id: String) -> void:
 		var entry_points: Variant = Roster.entry_cost(list.entries, index)
 		var composition_label := _composition_label(entry)
 		var composition_suffix := " · " + composition_label if not composition_label.is_empty() else ""
-		saved_roster.add_item("%d× %s · %d models%s · %s" % [entry.copies, entry.name, entry.models, composition_suffix, "%d pts" % int(entry_points) if entry_points != null else "cost pending"])
+		var source_suffix := " · " + str(entry.source_scope) if str(entry.get("source_scope", "")) != "" else ""
+		saved_roster.add_item("%d× %s%s · %s%s · %s" % [entry.copies, entry.name, source_suffix, _model_count_label(int(entry.models)), composition_suffix, "%d pts" % int(entry_points) if entry_points != null else "cost pending"])
 	if totals.unknown > 0: lines.append("Some costs are unconfirmed; total is partial.")
 	saved_list_detail.text = "\n".join(lines)
 	if not list.entries.is_empty():
@@ -636,6 +645,9 @@ func _composition_label(entry: Dictionary) -> String:
 		if int(option.get("models", -1)) == int(entry.get("models", 0)) and str(option.get("id", "")) == choice_id:
 			return str(option.get("label", "")) + (" · +%d Banner" % int(option.get("wargear_cost", 0)) if int(option.get("wargear_cost", 0)) > 0 else "")
 	return ""
+
+func _model_count_label(count: int) -> String:
+	return "%d model%s" % [count, "" if count == 1 else "s"]
 
 func _edit_saved_list() -> void:
 	if selected_saved_id.is_empty():
@@ -995,6 +1007,7 @@ func _filter_units() -> void:
 	unit_picker.clear()
 	choice_picker.clear()
 	selected_unit = {}
+	_refresh_construction_scope_hint()
 	if composition_picker != null:
 		composition_picker.clear()
 		composition_picker.visible = false
@@ -1013,7 +1026,8 @@ func _filter_units() -> void:
 		if not query.text.strip_edges().is_empty() and query.text.strip_edges().to_lower() not in unit.name.to_lower(): continue
 		var roles := {1: ["Character", "Personagem"], 2: ["Battleline", "Linha de batalha"], 3: ["Dedicated transport", "Transporte dedicado"], 4: ["Other units"]}
 		if role_picker.selected > 0 and unit.role not in roles[role_picker.selected]: continue
-		unit_picker.add_item(unit.name + (" • " + unit.faction if unit.faction != draft.faction else ""))
+		var source_suffix := " • " + str(unit.source_scope) if str(unit.get("source_scope", "")) != "" else ""
+		unit_picker.add_item(unit.name + source_suffix + (" • " + unit.faction if unit.faction != draft.faction else ""))
 		unit_picker.set_item_metadata(unit_picker.item_count - 1, unit)
 
 func _draft_chapter_state() -> Dictionary:
@@ -1055,6 +1069,7 @@ func _select_unit(index: int) -> void:
 	selected_unit = unit_picker.get_item_metadata(index)
 	var current := Training.Capabilities.current_catalog_choice(selected_unit)
 	if not current.is_empty(): selected_unit = current
+	_refresh_construction_scope_hint()
 	choice_picker.clear()
 	for option: Dictionary in selected_unit.options:
 		var origin := "Wahapedia e11" if not current.is_empty() else "local"
@@ -1062,9 +1077,15 @@ func _select_unit(index: int) -> void:
 		if option.has("second_plus_cost") and option.cost != null and int(option.second_plus_cost) != int(option.cost): price_text += " · 2nd+ %d pts" % int(option.second_plus_cost)
 		if option.has("third_plus_cost") and option.cost != null and int(option.third_plus_cost) != int(option.get("second_plus_cost", option.cost)): price_text += " · 3rd+ %d pts" % int(option.third_plus_cost)
 		if option.has("fourth_plus_cost") and option.cost != null and int(option.fourth_plus_cost) != int(option.get("third_plus_cost", option.cost)): price_text += " · 4th+ %d pts" % int(option.fourth_plus_cost)
-		choice_picker.add_item(("%d models (%s)" % [option.models, origin] if option.models > 0 else "Composition not provided") + " • " + price_text)
+		choice_picker.add_item(("%s (%s)" % [_model_count_label(int(option.models)), origin] if option.models > 0 else "Composition not provided") + " • " + price_text)
 	add_button.disabled = false
 	_refresh_composition_options()
+
+func _refresh_construction_scope_hint() -> void:
+	if construction_scope_hint == null: return
+	var scope := str(selected_unit.get("construction_scope", ""))
+	construction_scope_hint.text = scope
+	construction_scope_hint.visible = not scope.is_empty()
 
 func _add() -> void:
 	_sync()

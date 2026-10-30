@@ -16,8 +16,8 @@ func check(ok: bool, message: String) -> void:
 func roll_die() -> int:
 	return dice.pop_front() if not dice.is_empty() else 1
 
-func selection(copies: int = 1) -> Dictionary:
-	return {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000,
+func selection(copies: int = 1, category: String = "incursion") -> Dictionary:
+	return {"schema_version": 2, "faction": "Space Marines", "category": category, "points_limit": 2000 if category == "strike_force" else 1000,
 		"entries": [{"definition_id": "40kdc:11e:adeptus-astartes:redemptor-dreadnought", "models": 1, "copies": copies}]}
 
 func run() -> void:
@@ -31,10 +31,10 @@ func run() -> void:
 	check(replacements.size() == 4 and replacements[0].id == "storm-bolters" and replacements[1].id == "onslaught-gatling-cannon" and replacements[2].profiles.standard.strength == 9 and replacements[2].profiles.supercharge.keywords.hazardous and replacements[3].profiles.standard.keywords["anti-fly"] == 2 and Profiles.profile("redemptor-dreadnought").additional_weapon_profiles.heavy_flamer.profiles.standard.skill == null, "All optional weapon replacements, the Icarus pod, and the Heavy Flamer's absent BS are transcribed")
 	var admitted := Army.admit(selection())
 	check(admitted.error.is_empty() and admitted.total == 170, "Redemptor enters local construction at the extracted first/second cost")
-	var three := Army.admit(selection(3))
-	check(three.error.is_empty() and three.total == 530, "Third Redemptor copy uses the extracted 190-point price")
-	var four := Army.admit(selection(4))
-	check(not four.error.is_empty(), "The fourth Redemptor copy is rejected by the local three-copy roster limit")
+	var three := Army.admit(selection(3, "strike_force"))
+	check(three.error.is_empty() and three.total == 530, "Third Redemptor copy uses the extracted 190-point price in Strike Force")
+	var four := Army.admit(selection(4, "strike_force"))
+	check(not four.error.is_empty(), "The fourth Redemptor copy is rejected by the Strike Force three-copy limit")
 	var wounded := {"unit_abilities": {"implementation": Abilities.ID}, "units": {
 		100: {"definition_id": "40kdc:11e:adeptus-astartes:redemptor-dreadnought", "wounds": 5},
 		101: {"definition_id": "40kdc:11e:adeptus-astartes:redemptor-dreadnought", "wounds": 4},

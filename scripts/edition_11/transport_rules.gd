@@ -166,6 +166,16 @@ static func transport_weapon_loadout_choices(state: Dictionary, player: int) -> 
 		var selected_groups: Dictionary = unit.get("optional_transport_replacement_groups", {})
 		for group_id: String in replacement_groups:
 			var group: Dictionary = replacement_groups[group_id]
+			if group.get("choices", {}) is Dictionary:
+				var choice_records: Dictionary = group.get("choices", {})
+				var selected_choice := str(selected_groups.get(group_id, ""))
+				for choice_id: String in choice_records:
+					if choice_id == selected_choice: continue
+					var choice: Dictionary = choice_records[choice_id]
+					result.append({"label": "%s %d: replace %s with %s" % [data.name, model, str(group.get("name", group_id)), str(choice.get("name", choice_id))], "action": "transport-weapon-loadout", "model": model, "target": 2, "value": "group:%s:%s" % [group_id, choice_id]})
+				if not selected_choice.is_empty():
+					result.append({"label": "%s %d: restore %s" % [data.name, model, str(group.get("name", group_id))], "action": "transport-weapon-loadout", "model": model, "target": 2, "value": "group:%s:default" % group_id})
+				continue
 			var equipped := bool(selected_groups.get(group_id, false))
 			var verb := "restore" if equipped else "replace"
 			result.append({"label": "%s %d: %s %s" % [data.name, model, verb, str(group.get("name", group_id))], "action": "transport-weapon-loadout", "model": model, "target": 2, "value": "group:%s:%s" % [group_id, "off" if equipped else "on"]})
@@ -177,9 +187,16 @@ static func configure_optional_transport_weapon(state: Dictionary, model: int, v
 	var profile_data := MarineProfiles.profile(identity(state.units[model]))
 	if parts.size() == 3 and parts[0] == "group":
 		var groups: Dictionary = profile_data.get("transport", {}).get("options", {}).get("replacement_groups", {})
-		if not groups.has(parts[1]) or parts[2] not in ["on", "off"]: return "That grouped weapon replacement is not listed for this transport datasheet."
+		if not groups.has(parts[1]): return "That grouped weapon replacement is not listed for this transport datasheet."
 		var selected_groups: Dictionary = state.units[model].get("optional_transport_replacement_groups", {}).duplicate(true)
-		selected_groups[parts[1]] = parts[2] == "on"
+		var group: Dictionary = groups[parts[1]]
+		if group.get("choices", {}) is Dictionary:
+			if parts[2] == "default": selected_groups.erase(parts[1])
+			elif group.get("choices", {}).has(parts[2]): selected_groups[parts[1]] = parts[2]
+			else: return "That grouped replacement choice is not listed for this transport datasheet."
+		else:
+			if parts[2] not in ["on", "off"]: return "That grouped weapon replacement is not listed for this transport datasheet."
+			selected_groups[parts[1]] = parts[2] == "on"
 		state.units[model].optional_transport_replacement_groups = selected_groups
 	elif parts.size() == 3 and parts[0] == "replace":
 		var base_id: String = parts[1]
@@ -233,10 +250,16 @@ static func _optional_transport_inventory(profile_data: Dictionary, unit: Dictio
 	var selected_groups: Dictionary = unit.get("optional_transport_replacement_groups", {})
 	var groups: Dictionary = profile_data.get("transport", {}).get("options", {}).get("replacement_groups", {})
 	for group_id: String in groups:
-		if not bool(selected_groups.get(group_id, false)): continue
 		var group: Dictionary = groups[group_id]
 		var from_ids: Array = group.get("from_ids", [])
 		var to_ids: Array = group.get("to_ids", [])
+		if group.get("choices", {}) is Dictionary:
+			var selected_choice := str(selected_groups.get(group_id, ""))
+			var choices: Dictionary = group.get("choices", {})
+			if not choices.has(selected_choice): continue
+			to_ids = choices[selected_choice].get("to_ids", [])
+		elif not bool(selected_groups.get(group_id, false)):
+			continue
 		if from_ids.is_empty() or to_ids.is_empty(): continue
 		weapons = weapons.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) not in from_ids)
 		for weapon_id: String in to_ids: _append_impulsor_weapon(weapons, profile_data, weapon_id)
@@ -309,17 +332,43 @@ static func squad_embarked(state: Dictionary, squad: int) -> bool:
 		if state.units[model].squad == squad and int(state.units[model].get("embarked_transport", -1)) >= 0: return true
 	return false
 
+static func _unit_in_identity_group(unit: Dictionary, group: Dictionary) -> bool:
+	return UnitAbilities.identity(unit) in group.get("identities", [])
+
+static func _identity_group_model_count_in_transport(state: Dictionary, transport_model: int, group: Dictionary) -> int:
+	var total := 0
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("embarked_transport", -1)) != transport_model or int(unit.get("wounds", 0)) <= 0: continue
+		if _unit_in_identity_group(unit, group): total += 1
+	return total
+
 static func capacity_cost(state: Dictionary, squad: int, profile_data: Dictionary) -> int:
 	var total := 0
 	var double_space: Array = profile_data.get("double_space", [])
+	var triple_space: Array = profile_data.get("triple_space", [])
+	var wounds_space: Array = profile_data.get("wounds_space_keywords", [])
+	var identity_groups: Dictionary = profile_data.get("identity_groups", {})
 	for model: int in models(state, squad):
 		if str(state.units[model].get("chaplain_grimaldus_role", "")) == "cenobyte": continue
 		var keywords: Array = state.units[model].get("keywords", [])
+		var wounds_space_model := false
+		for keyword: String in wounds_space:
+			if keyword in keywords: wounds_space_model = true
+		for group_name: String in identity_groups:
+			var group: Dictionary = identity_groups[group_name]
+			if bool(group.get("capacity_by_wounds", false)) and _unit_in_identity_group(state.units[model], group): wounds_space_model = true
+		if wounds_space_model:
+			total += int(state.units[model].get("max_wounds", state.units[model].get("wounds", 0)))
+			continue
 		var doubled := false
+		var tripled := false
 		for keyword: String in double_space:
 			if keyword in keywords: doubled = true
+		for keyword: String in triple_space:
+			if keyword in keywords: tripled = true
 		if UnitAbilities.has(state, squad, "bestial-forms") and "WULFEN" in keywords: doubled = true
-		total += 2 if doubled else 1
+		total += 3 if tripled else (2 if doubled else 1)
 	return total
 
 static func occupied_capacity(state: Dictionary, transport_model: int) -> int:
@@ -333,6 +382,14 @@ static func occupied_capacity(state: Dictionary, transport_model: int) -> int:
 		if visited.has(squad) or models(state, squad).is_empty(): continue
 		visited[squad] = true
 		total += capacity_cost(state, squad, data)
+	return total
+
+static func _keyword_model_count_in_transport(state: Dictionary, transport_model: int, keyword: String) -> int:
+	var total := 0
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("embarked_transport", -1)) != transport_model or int(unit.get("wounds", 0)) <= 0: continue
+		if keyword in unit.get("keywords", []): total += 1
 	return total
 
 static func eligibility_error(state: Dictionary, transport_model: int, passenger_squad: int, require_range: bool = false) -> String:
@@ -352,8 +409,39 @@ static func eligibility_error(state: Dictionary, transport_model: int, passenger
 		if int(unit.get("embarked_transport", -1)) >= 0: return "The passenger unit is already embarked."
 		for keyword: String in data.get("required", []):
 			if keyword not in unit.get("keywords", []): return "This transport can carry only models with %s." % keyword
+		var required_any: Array = data.get("required_any", [])
+		var required_any_groups: Array = data.get("required_any_groups", [])
+		if not required_any.is_empty() or not required_any_groups.is_empty():
+			var matched_required_any := false
+			for keyword: String in required_any:
+				if keyword in unit.get("keywords", []): matched_required_any = true
+			var identity_groups: Dictionary = data.get("identity_groups", {})
+			for group_name: String in required_any_groups:
+				if identity_groups.has(group_name) and _unit_in_identity_group(unit, identity_groups[group_name]): matched_required_any = true
+			if not matched_required_any:
+				var allowed_labels: Array[String] = []
+				for keyword: String in required_any: allowed_labels.append(keyword)
+				for group_name: String in required_any_groups:
+					allowed_labels.append(str(identity_groups.get(group_name, {}).get("display_name", group_name)))
+				return "This transport can carry only models with one of: %s." % ", ".join(allowed_labels)
 		for keyword: String in data.get("forbidden", []):
 			if keyword in unit.get("keywords", []): return "This transport cannot carry %s models." % keyword
+	for keyword: String in data.get("max_models_by_keyword", {}):
+		var model_count := _keyword_model_count_in_transport(state, transport_model, keyword)
+		for model: int in passenger_models:
+			if keyword in state.units[model].get("keywords", []): model_count += 1
+		if model_count > int(data.max_models_by_keyword[keyword]):
+			return "This transport can carry no more than %d %s models." % [int(data.max_models_by_keyword[keyword]), keyword]
+	var identity_groups: Dictionary = data.get("identity_groups", {})
+	for group_name: String in data.get("max_models_by_identity_group", {}):
+		if not identity_groups.has(group_name): continue
+		var group: Dictionary = identity_groups[group_name]
+		var model_count := _identity_group_model_count_in_transport(state, transport_model, group)
+		for model: int in passenger_models:
+			if int(state.units[model].get("wounds", 0)) > 0 and _unit_in_identity_group(state.units[model], group): model_count += 1
+		var maximum := int(data.max_models_by_identity_group[group_name])
+		if model_count > maximum:
+			return "This transport can carry no more than %d %s models." % [maximum, str(group.get("display_name", group_name))]
 	if int(data.get("capacity", 0)) - occupied_capacity(state, transport_model) < capacity_cost(state, passenger_squad, data): return "The transport does not have enough remaining capacity for the whole unit."
 	if require_range:
 		for model: int in passenger_models:
@@ -366,6 +454,8 @@ static func _set_embarked(state: Dictionary, passenger_squad: int, transport_mod
 		state.units[model].on_battlefield = false
 		state.units[model].embarked_transport = transport_model
 	state.squads[passenger_squad].embarked_in = transport_model
+	state.squads[passenger_squad].erase("disembarked_from_transport")
+	state.squads[passenger_squad].erase("disembarked_turn")
 	state.squads[passenger_squad].embarked_this_turn = int(state.turn) if state.phase == "movement" else -1
 
 static func gauntlet_duty_error(state: Dictionary, player: int, passenger_squad: int, transport_model: int, require_end_window: bool = true) -> String:
@@ -950,7 +1040,8 @@ static func resolve_hazard_reaction(state: Dictionary, player: int, squad: int, 
 		var rerolls: Array = window.get("hazard_rerolls", []).duplicate(true)
 		rerolls.append({"index": die, "original": original[die], "replacement": final_rolls[die], "source": "Command Re-roll"})
 		window.hazard_rerolls = rerolls
-		Stratagems.consume(working, player, squad, stratagem)
+		var consume_error := Stratagems.consume(working, player, squad, stratagem, roller)
+		if not consume_error.is_empty(): return consume_error
 	window.hazard_rolls = hazard.rolls
 	window.hazard_total = int(hazard.total)
 	window.hazard_remaining = int(hazard.total)
@@ -1143,6 +1234,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				state.squads[passenger_squad].moved = true
 				state.squads[passenger_squad].set_up_this_turn = true
 				state.squads[passenger_squad].disembarked_turn = int(state.turn)
+				state.squads[passenger_squad].disembarked_from_transport = int(state.units[int(window.transport)].get("squad", -1))
 				state.squads[passenger_squad].erase("embarked_in")
 				state.squads[passenger_squad].erase("embarked_this_turn")
 				state.unit_abilities.transport_window = {}
@@ -1155,6 +1247,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				state.squads[passenger_squad].moved = window.mode != "tactical"
 				state.squads[passenger_squad].moved_distance = 0.0
 				state.squads[passenger_squad].disembarked_turn = int(state.turn)
+				state.squads[passenger_squad].disembarked_from_transport = int(state.units[int(window.transport)].get("squad", -1))
 				if window.mode in ["rapid", "shock", "combat"]: state.squads[passenger_squad].cannot_charge_until_turn = int(state.turn)
 				if window.mode == "combat": state.squads[passenger_squad].battle_shocked = true
 				if window.get("mandatory_drop_pod", false):

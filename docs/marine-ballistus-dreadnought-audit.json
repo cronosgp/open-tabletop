@@ -102,7 +102,11 @@
     "first_and_second_copy_points": 150,
     "third_plus_copy_points": 170,
     "max_supported_copies": 3,
-    "admission_result": "One copy: 150 points; two: 300; three: 470; a fourth is rejected in the checked local Incursion construction."
+    "admission_result": "Incursion: one copy costs 150 points, two cost 300, and a third is rejected. Strike Force: one costs 150, two cost 300, three cost 470, and a fourth is rejected.",
+    "max_supported_copies_by_game_size": {
+      "incursion": 2,
+      "strike_force": 3
+    }
   },
   "source_options_rows": 0,
   "current_catalog_for_both_players": true,

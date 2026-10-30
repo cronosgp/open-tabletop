@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "provider": "wahapedia",
+  "edition": "11e",
+  "source": {
+    "book_id": "000000356",
+    "book_name": "Space Marines (Warhammer Legends)",
+    "datasheet_id": "000001153",
+    "datasheet_name": "Cerberus",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Cerberus",
+    "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "retrieved_at_utc": "2026-10-30T01:32:29Z",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+    "selected_export_file_sha256": {
+      "Datasheets.csv": "39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c",
+      "Datasheets_models.csv": "9cb303097f003f2eaa3bfc7cba8d3d7579b0364a35a139bafa5c0705bbd68d03",
+      "Datasheets_unit_composition.csv": "f00a66fedc7b1df1a5a3907f763561db75789e3db82a0bd1f6a059fc2061e245",
+      "Datasheets_models_cost.csv": "2114a9c824060fa66abef42b66ad70e43b98afb38e2cef221a2fb550ca213b8e",
+      "Datasheets_options.csv": "642b8b74e57ac45aa5a383f46afd1cbd0a7e873a19dbee5a624cfbf6043e3853",
+      "Datasheets_wargear.csv": "565b48410062728c942c709d0e61408660f18914b652fed6c77172d801f84d7d",
+      "Datasheets_abilities.csv": "49b054afc2f9977b9c8168ee446b016bd097b047adbd7ec35d23df5f054d7fe6",
+      "Datasheets_keywords.csv": "bdb2431dd3a24d34ec91e1aa1e7ddae9da3565faa18a56abcd8ead5247b4e341"
+    }
+  },
+  "local_scope": {
+    "status": "source_bounded_local_scope_passed_2026_10_30",
+    "models": 1,
+    "points": 270,
+    "maximum_supported_copies": 3,
+    "weapons_and_options": "Default Neutron Pulse Array and Armoured Tracks, both independently selectable optional equipment groups, and all seven ranged weapon identities have source-bounded local profiles.",
+    "unique_ability": "Atomantic Arc-reactor grants Lethal Hits only to Neutron Pulse Array ranged attacks when the unit remained stationary this turn.",
+    "core_abilities": ["Combat Doctrines", "Deadly Demise D6"],
+    "geometry_limit": "Source footprint is Use model without a diameter; local match geometry uses a labelled 60 mm circular proxy.",
+    "game_mode": "Warhammer Legends casual-use scope; competitive events require organiser approval."
+  },
+  "verification": {
+    "command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_cerberus --only test_attack_plan --only test_implemented_catalog --only test_space_marine_profile_source_fields --only test_marine_category_copy_limits --only test_capabilities --only test_combat_doctrines --only test_current_unit_abilities --only test_stormhawk_interceptor --only test_stormtalon_gunship --only test_rapier_carrier --only test_vindicator",
+    "status": "passed",
+    "process_count": 14,
+    "network": false,
+    "legacy_starter_staged": true,
+    "headless_rid_cleanup_diagnostics": false,
+    "results_path": ".tools/verification/20261030T091339075999Z/results.json",
+    "results_sha256": "d2755e880b3bd32d37ee4ea8b1e7ab62410327df27ccedf83b75b192463f382c"
+  },
+  "identity_export": {
+    "profile_count": 174,
+    "missing_source_ids": [],
+    "path": ".tools/space-marine-runtime-identities-full-audit-next-20261030-v7.json",
+    "sha256": "761b2c1be8b5275eb16d9fdaaa2c57c729b8660f83b0d0da56d2236fef1c4c741"
+  },
+  "limits": [
+    "Live-page and current event-pack price validation remain deferred to final network integration.",
+    "Exact physical clearance is not represented by the labelled 60 mm circular proxy.",
+    "This sheet-level result does not certify full army legality, all combined rules interactions, competitive organiser acceptance or human playtesting."
+  ]
+}

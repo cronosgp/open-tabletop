@@ -1877,13 +1877,15 @@ static func armour_error(s: Dictionary, player: int, squad: int, attacker_squad:
 			if int(use.get("squad", -1)) == squad: return "This unit already received a stratagem this phase."
 	return ""
 
-static func use_armour(s: Dictionary, player: int, squad: int, attacker_squad: int) -> String:
+static func use_armour(s: Dictionary, player: int, squad: int, attacker_squad: int, roller: Callable = Callable()) -> String:
 	var failure := armour_error(s, player, squad, attacker_squad, true)
 	if not failure.is_empty(): return failure
 	s.cp[player] -= maxi(0, 1 - A.discount(s, player, squad))
 	A.consume_discount(s, player, squad)
 	var source_rule := armour_stratagem(s, player)
 	s.stratagems.uses.append({"player": player, "squad": squad, "stratagem": source_rule, "phase_key": phase_key(s), "turn": s.turn})
+	var orbital_error := A.resolve_orbital_comms_array(s, player, squad, source_rule, roller)
+	if not orbital_error.is_empty(): return orbital_error
 	s.detachment_stratagems.armour[squad] = {"phase_key": phase_key(s), "attacker": attacker_squad, "source": source_rule}
 	return ""
 
@@ -1948,39 +1950,47 @@ static func terminator_fortitude_error(s: Dictionary, player: int, squad: int, a
 			if int(use.get("squad", -1)) == squad: return "This unit already received a stratagem this phase."
 	return ""
 
-static func spend_sudden_onslaught(s: Dictionary, player: int, squad: int) -> String:
+static func spend_sudden_onslaught(s: Dictionary, player: int, squad: int, roller: Callable = Callable()) -> String:
 	var failure := error(s, player, squad, SUDDEN_ONSLAUGHT)
 	if not failure.is_empty(): return failure
 	s.cp[player] -= maxi(0, 1 - A.discount(s, player, squad))
 	A.consume_discount(s, player, squad)
 	s.stratagems.uses.append({"player": player, "squad": squad, "stratagem": SUDDEN_ONSLAUGHT, "phase_key": phase_key(s), "turn": s.turn})
+	var orbital_error := A.resolve_orbital_comms_array(s, player, squad, SUDDEN_ONSLAUGHT, roller)
+	if not orbital_error.is_empty(): return orbital_error
 	s.detachment_stratagems.sudden_onslaught[squad] = {"phase_key": phase_key(s)}
 	return ""
 
-static func use_hurtling(s: Dictionary, player: int, squad: int) -> String:
+static func use_hurtling(s: Dictionary, player: int, squad: int, roller: Callable = Callable()) -> String:
 	var failure := error(s, player, squad, HURTLING_TARGETS)
 	if not failure.is_empty(): return failure
 	s.cp[player] -= maxi(0, 1 - A.discount(s, player, squad))
 	A.consume_discount(s, player, squad)
 	s.stratagems.uses.append({"player": player, "squad": squad, "stratagem": HURTLING_TARGETS, "phase_key": phase_key(s), "turn": s.turn})
+	var orbital_error := A.resolve_orbital_comms_array(s, player, squad, HURTLING_TARGETS, roller)
+	if not orbital_error.is_empty(): return orbital_error
 	s.detachment_stratagems.hurtling[squad] = {"phase_key": phase_key(s)}
 	return ""
 
-static func use_evasive_manoeuvres(s: Dictionary, player: int, squad: int) -> String:
+static func use_evasive_manoeuvres(s: Dictionary, player: int, squad: int, roller: Callable = Callable()) -> String:
 	var failure := error(s, player, squad, EVASIVE_MANOEUVRES)
 	if not failure.is_empty(): return failure
 	s.cp[player] -= maxi(0, 1 - A.discount(s, player, squad))
 	A.consume_discount(s, player, squad)
 	s.stratagems.uses.append({"player": player, "squad": squad, "stratagem": EVASIVE_MANOEUVRES, "phase_key": phase_key(s), "turn": s.turn})
+	var orbital_error := A.resolve_orbital_comms_array(s, player, squad, EVASIVE_MANOEUVRES, roller)
+	if not orbital_error.is_empty(): return orbital_error
 	s.detachment_stratagems.evasive[squad] = {"phase_key": phase_key(s)}
 	return ""
 
-static func use_umbral_evasion(s: Dictionary, player: int, squad: int) -> String:
+static func use_umbral_evasion(s: Dictionary, player: int, squad: int, roller: Callable = Callable()) -> String:
 	var failure := error(s, player, squad, PHOBOS_UMBRAL_EVASION)
 	if not failure.is_empty(): return failure
 	s.cp[player] -= maxi(0, 1 - A.discount(s, player, squad))
 	A.consume_discount(s, player, squad)
 	s.stratagems.uses.append({"player": player, "squad": squad, "stratagem": PHOBOS_UMBRAL_EVASION, "phase_key": phase_key(s), "turn": s.turn})
+	var orbital_error := A.resolve_orbital_comms_array(s, player, squad, PHOBOS_UMBRAL_EVASION, roller)
+	if not orbital_error.is_empty(): return orbital_error
 	if not s.detachment_stratagems.has("phobos_umbral"): s.detachment_stratagems.phobos_umbral = {}
 	s.detachment_stratagems.phobos_umbral[squad] = {"phase_key": phase_key(s)}
 	return ""
@@ -2351,6 +2361,8 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		s.cp[player] -= maxi(0, 1 - A.discount(s, player, selected.target))
 		A.consume_discount(s, player, selected.target)
 		s.stratagems.uses.append({"player": player, "squad": selected.target, "stratagem": rule, "phase_key": phase_key(s), "turn": s.turn})
+		var orbital_error := A.resolve_orbital_comms_array(s, player, int(selected.target), rule, roller)
+		if not orbital_error.is_empty(): return {"error": orbital_error}
 		s.detachment_stratagems.wind_swift[selected.target] = {"phase_key": phase_key(s)}
 		TacticalFluidity.start_wind(s, player, int(selected.target), TacticalFluidity.wind_mode(s, int(selected.target)))
 		return {"error": "", "message": "Wind-Swift Evasion: move up to 6 inches."}
@@ -2375,6 +2387,8 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 	A.consume_discount(s, player, selected.target)
 	var used_rule := source_rule if source_rule in [ASSAULT_ARMOUR, TACTICAL_ARMOUR, DEVASTATOR_ARMOUR, ULTRAMARINES_ARMOUR, ULTRAMARINES_COURAGE, ULTRAMARINES_EXEMPLARY_VIGILANCE, ULTRAMARIAN_ADAPTIVITY, ULTRAMARIAN_PRACTICAL_TACTICS, DUTY_IN_DEATH, INNER_CIRCLE_DUTY_UNTO_DEATH, HAIL_OF_VENGEANCE, STORM_OF_FIRE, FIRESTORM_RELENTLESS_ASSAULT] else rule
 	s.stratagems.uses.append({"player": player, "squad": selected.target, "stratagem": used_rule, "phase_key": phase_key(s), "turn": s.turn})
+	var orbital_error := A.resolve_orbital_comms_array(s, player, int(selected.target), used_rule, roller)
+	if not orbital_error.is_empty(): return {"error": orbital_error}
 	if rule == FIST_DOCTRINAL_FLEXIBILITY:
 		s.unit_abilities.doctrines[selected.target] = {"doctrine": fist_doctrine}
 		Doctrines.record_selection(s, player, fist_doctrine)

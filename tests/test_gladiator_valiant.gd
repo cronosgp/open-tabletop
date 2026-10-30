@@ -30,8 +30,8 @@ func check(ok: bool, message: String) -> void:
 func roll_die() -> int:
 	return dice.pop_front() if not dice.is_empty() else 1
 
-func selection(copies: int = 1) -> Dictionary:
-	return {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000,
+func selection(copies: int = 1, category: String = "incursion") -> Dictionary:
+	return {"schema_version": 2, "faction": "Space Marines", "category": category, "points_limit": 2000 if category == "strike_force" else 1000,
 		"entries": [{"definition_id": VALIANT_ID, "models": 1, "copies": copies}]}
 
 func selections() -> Dictionary:
@@ -164,11 +164,11 @@ func run() -> void:
 	check(catalog_choice.get("options", []) == [{"models": 1, "cost": 165, "third_plus_cost": 185}],
 		"Current construction exposes the source model count and copy-price tiers")
 	var one_copy := Catalog.admit(selection(1))
-	var three_copies := Catalog.admit(selection(3))
-	var four_copies := Catalog.admit(selection(4))
+	var three_copies := Catalog.admit(selection(3, "strike_force"))
+	var four_copies := Catalog.admit(selection(4, "strike_force"))
 	check(one_copy.error.is_empty() and one_copy.total == 165 and three_copies.error.is_empty()
 		and three_copies.total == 515 and not four_copies.error.is_empty(),
-		"Current construction applies first/third-copy costs and the three-copy cap: %s / %d; %s / %d; %s"
+		"Current Strike Force construction applies first/third-copy costs and the three-copy cap: %s / %d; %s / %d; %s"
 		% [one_copy.get("error", ""), one_copy.get("total", -1), three_copies.get("error", ""), three_copies.get("total", -1), four_copies.get("error", "")])
 
 	var state := fixture()

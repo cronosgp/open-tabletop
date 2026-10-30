@@ -24,8 +24,8 @@ Focused offline verification passed **4/4 processes** at `.tools/verification/20
 python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_sternguard_veteran_squad --only test_space_marine_leader_links --timeout 300
 ```
 
-The fixed-roster check is the project's MFM 1.6 Incursion path. Its two-copy cap is a local validator boundary, not full current-edition army legality. Network validation remains deferred to final integration.
+The Incursion check admits two copies and rejects a third. The current cross-profile Marine check also exercises Strike Force admission and source-priced copy limits for this datasheet. These local checks do not certify complete army legality. Network validation remains deferred to final integration.
 
 ## Limits
 
-This closes only the shared-book Sternguard Veteran Squad local datasheet scope. Chapter-specific variants and links, Forge World, Legends, full faction/army legality, Strike Force admission, network behavior, complete-match certification and human playtesting remain outside this result.
+This closes only the shared-book Sternguard Veteran Squad local datasheet scope. Chapter-specific variants and rules, Forge World, Legends, full faction/army legality, network behavior, complete-match certification and human playtesting remain outside this result.

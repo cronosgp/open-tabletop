@@ -591,7 +591,7 @@ Source: local Wahapedia 11th-edition export, Space Marines book `000000139`, dat
 - Default ranged weapon: Twin Firestrike Las-talon (36 inches, A2, BS2+, S10, AP-3, D3+3; Twin-linked).
 - Each model may replace its Las-talon with a Twin Firestrike Autocannon (48 inches, A4, BS2+, S9, AP-1, D3; Twin-linked, Rapid Fire 2). The choice is individual to each turret.
 - Hovering Bulk is the melee weapon (A3, WS3+, S5, AP0, D1).
-- Sentinel Protocols lets this unit be targeted by Fire Overwatch regardless of other uses of that Stratagem in the phase. Once per phase per unit, the unit's snap shooting hits on unmodified 4+ until that Stratagem use is resolved. The usual CP cost and target eligibility remain. Snap shooting still cannot generate Critical Hits or use Hit re-rolls.
+- Firestrike's Sentinel Protocols wording lets this unit be targeted by Fire Overwatch regardless of other uses of that Stratagem in the phase, and its use does not prevent other units from using it. Once per phase per unit, the unit's snap shooting hits on unmodified 4+ until that Stratagem use is resolved. The usual CP cost and target eligibility remain. Snap shooting still cannot generate Critical Hits or use Hit re-rolls. Do not apply the extra-use exception to Tarantula Sentry Battery, whose datasheet only changes the snap-hit threshold.
 
 ## Local validation
 

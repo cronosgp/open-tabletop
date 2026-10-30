@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "provider": "wahapedia",
+  "edition": "11e",
+  "status": "source_bounded_local_scope_passed",
+  "source": {
+    "book_id": "000000356",
+    "book_name": "Space Marines (Warhammer Legends)",
+    "datasheet_id": "000000093",
+    "datasheet_name": "Typhon",
+    "url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Typhon",
+    "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "retrieved_at_utc": "2026-10-30T01:32:29Z",
+    "export_updated_at": "2026-10-28T23:48:19+03:00",
+    "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+    "selected_export_file_sha256": {
+      "Datasheets.csv": "CF5B733A7802192E263A1A3A25AFBF86B570319B75A88B2122052D36F1A1593C",
+      "Datasheets_models.csv": "70EF48A6CCFC72C9AEF9E8BD1CDEAE9EDD1BAF1AE9DDC57B9AB8F6BFB8130412",
+      "Datasheets_unit_composition.csv": "94403EC4A93EDA94BEA0CF18D88373453217A88A7C07CA82D1C5FF1BE9C3785A",
+      "Datasheets_models_cost.csv": "133787B7D71432E4CFBF585F366D703825451EB60E174A913616516007562EB1",
+      "Datasheets_options.csv": "6D0606FFFAE83D2928333A04664DEE6C3B59A7D14B9F46480E8EFAE9ED7D9D08",
+      "Datasheets_wargear.csv": "8DA7DF62E8E3B1C7EABD64B8073872AB12B7D662282B8827C00F9FC9A7C0897F",
+      "Datasheets_abilities.csv": "2ACDB9D5AE8BA2DBC2F82783F6863C8C14C89C63F61A6B0FDE6036CFAD68A7A9",
+      "Datasheets_keywords.csv": "7F9782C1FC29CADA10481788FB8ABB8AA8D3D5CFEEA60E397A732C5A557326DC"
+    }
+  },
+  "implemented_scope": {
+    "models": 1,
+    "points": 320,
+    "maximum_supported_copies": 3,
+    "stats": {
+      "movement_inches": 10,
+      "toughness": 12,
+      "save_target": 2,
+      "wounds": 18,
+      "leadership_target": 6,
+      "objective_control": 6,
+      "invulnerable_target": 0
+    },
+    "keywords": ["ADEPTUS ASTARTES", "FRAME", "VEHICLE", "IMPERIUM", "SMOKE"],
+    "default_weapons": ["Dreadhammer Siege Cannon", "Armoured Tracks"],
+    "weapon_profiles": ["Dreadhammer Siege Cannon", "Heavy Bolter", "Heavy Flamer", "Lascannon", "Multi-melta", "Storm Bolter", "Armoured Tracks"],
+    "optional_groups": {
+      "sponsons": ["none", "two Heavy Bolters", "two Lascannons"],
+      "hull_weapon": ["none", "Heavy Bolter", "Heavy Flamer", "Multi-melta", "Storm Bolter"],
+      "legal_combinations": 15
+    },
+    "abilities": ["Combat Doctrines", "Damaged 6", "Deadly Demise D6", "Sunderer of Fortresses"],
+    "geometry": {
+      "source_value": "Use model",
+      "simulation_proxy": "60 mm circular base",
+      "exact_model_clearance_certified": false
+    },
+    "game_mode": {
+      "label": "Warhammer Legends",
+      "casual_home_store_club_campaign": "source-bounded local sheet scope available",
+      "competitive_event": "organiser permission required"
+    }
+  },
+  "verification": {
+    "focused_results": ".tools/verification/20261030T095847866454Z/results.json",
+    "focused_results_sha256": "0267EE2BC11E027B91690F2EBC7B26B5AF0434709097AFAA23A4BAC2C76EFDFE",
+    "focused_processes_passed": 3,
+    "connected_regression_results": ".tools/verification/20261030T100032341278Z/results.json",
+    "connected_regression_sha256": "FEA6375D208F9D5C0673405413F3548525CF06436A4189A3B3DE2F6E2375E51F",
+    "connected_regression_processes_passed": 12,
+    "connected_regression_legacy_starter_staged": true,
+    "network_validation": "deferred_to_final_integration",
+    "full_army_legality": "not_certified",
+    "identity_export": ".tools/space-marine-runtime-identities-full-audit-next-20261030-v10.json",
+    "identity_export_sha256": "F5C3C91F9170A0D33B1C5D868E3A057EBF47A8FCF2E37A87D8D670C440B86AFF",
+    "identity_export_profile_count": 176
+  }
+}

@@ -58,6 +58,7 @@ func run() -> void:
 	check(autocannon_profile.name == "Twin Firestrike Autocannon" and autocannon_profile.range_inches == 48.0 and autocannon_profile.attacks == 4 and autocannon_profile.skill == 2 and autocannon_profile.strength == 9 and autocannon_profile.ap == -1 and autocannon_profile.damage == 3 and autocannon_profile.keywords.get("twin-linked", false) and autocannon_profile.keywords.get("rapid-fire", 0) == 2, "Twin Firestrike Autocannon retains Twin-linked and Rapid Fire 2")
 	check(hovering_bulk_profile.name == "Hovering Bulk" and hovering_bulk_profile.attacks == 3 and hovering_bulk_profile.skill == 3 and hovering_bulk_profile.strength == 5 and hovering_bulk_profile.ap == 0 and hovering_bulk_profile.damage == 1, "Hovering Bulk retains its melee profile")
 	check(Capabilities.supported("sentinel-protocols"), "Sentinel Protocols is declared as locally supported")
+	check(Capabilities.supported("sentinel-overwatch-extra-use"), "Firestrike's separately worded extra-use permission is declared as locally supported")
 	var one := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:firestrike-servo-turrets", "models": 1, "copies": 1}]})
 	var two := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:firestrike-servo-turrets", "models": 2, "copies": 1}]})
 	if not one.error.is_empty() or not two.error.is_empty(): print("Firestrike admission diagnostics: ", one, " / ", two)
@@ -78,7 +79,7 @@ func run() -> void:
 		if s.squads[candidate].owner == 2:
 			target_squad = candidate
 			break
-	check(models.size() == 2 and squad >= 0 and C.UnitAbilities.has(s, squad, "sentinel-protocols"), "Two-turret unit carries Sentinel Protocols")
+		check(models.size() == 2 and squad >= 0 and C.UnitAbilities.has(s, squad, "sentinel-protocols") and C.UnitAbilities.has(s, squad, "sentinel-overwatch-extra-use"), "Two-turret unit carries Sentinel Protocols and its explicit extra-use permission")
 	if squad >= 0 and not models.is_empty():
 		var gun := P.firestrike_autocannon()
 		var validation := Attacks._validate(gun.profiles.standard, {"toughness": 4, "save_target": 4, "wounds_per_model": 1, "remaining_wounds": [1]}, {"distance_inches": 20.0, "heavy_eligible": false, "target_model_count": 1, "target_engaged": false})

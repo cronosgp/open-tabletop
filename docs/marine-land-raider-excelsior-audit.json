@@ -1,0 +1,119 @@
+{
+  "id": "marine-land-raider-excelsior-e11-local-audit-2026-10-30",
+  "rules_authority": "Wahapedia 11th edition and its verified local Data Export; current official Warhammer material supplies the project Legends game-mode guidance",
+  "observed_at": "2026-10-30",
+  "source": {
+    "edition": "11e",
+    "faction": "Space Marines",
+    "chapter": "Space Marines (Warhammer Legends)",
+    "book_id": "000000356",
+    "book_type": "App",
+    "book_edition": "11",
+    "datasheet_id": "000000067",
+    "game_mode": "Standard Warhammer 40,000 datasheet; Legends; alternate modes are outside this profile audit",
+    "datasheet_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Land-Raider-Excelsior",
+    "current_page_checked_at": "2026-10-30 local export identity; live network recheck deferred",
+    "games_workshop_legends_guidance_url": "https://www.warhammer-community.com/en-gb/articles/bbnskauh/big-space-marines-news/",
+    "games_workshop_legends_guidance_checked_at": "Prior project source assessment; not rechecked over the network in this increment",
+    "snapshot": {
+      "provider": "Wahapedia Data Export",
+      "snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+      "retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00",
+      "export_updated_at": "2026-10-28T23:48:19+03:00",
+      "parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+      "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+      "source_slice_validation_findings": 0,
+      "parent_validation_findings": 68,
+      "raw_slice_path": ".tools/marine-full-space-readiness-20261030/space-marines-legends/raw",
+      "source_slice_recheck": {
+        "command": "python tools/audit_space_marine_extended_slice.py --slice-root .tools/marine-full-space-readiness-20261030/space-marines-legends --expected-book-id 000000356 --expected-count 56 --output .tools/marine-full-space-readiness-20261030/legends-readiness-audit-post-excelsior.json",
+        "result_path": ".tools/marine-full-space-readiness-20261030/legends-readiness-audit-post-excelsior.json",
+        "result_sha256": "48737f9b273c908beae1370a58651bc92c59d408ad7fa18f7559357fb1a923ee",
+        "slice_manifest_file_sha256": "ad907cea26b5118f408b89b4847e145aa074c70a8be7d406b8dcdbec40f7cadb",
+        "subjects_including_linked_source_dependencies": 56,
+        "space_marine_subjects": 28,
+        "structurally_valid": true,
+        "slice_validation_error_count": 0,
+        "note": "The scoped audit checks source completeness only and reports zero runtime-admitted profiles by design; runtime admission is separately checked below."
+      },
+      "source_files": [
+        {"filename": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+        {"filename": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+        {"filename": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"},
+        {"filename": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+        {"filename": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+        {"filename": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+        {"filename": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+        {"filename": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+        {"filename": "Datasheets_leader.csv", "sha256": "18243d3fe8bfb7786f5293ab8b611a52eec8d0941172c6ee991c5a7ed5fbd06d"}
+      ],
+      "source_row_counts_for_sheet": {
+        "model_role_rows": 1,
+        "weapon_profile_rows": 9,
+        "option_rows": 4,
+        "composition_rows": 1,
+        "priced_cost_rows": 3,
+        "ability_rows": 4,
+        "leader_link_rows": 0
+      }
+    },
+    "rules_authority_scope": "Current 11e identity and datasheet facts are from the locally verified Wahapedia Data Export. Live network verification is deferred to final integration under project policy.",
+    "reconciliation": "The local export identifies one Land Raider Excelsior at 250 points in each of the first, second and third copy tiers. No earlier-edition datasheet was substituted."
+  },
+  "implemented_scope": {
+    "runtime_profile": "scripts/edition_11/current_reference_marine_profiles.gd",
+    "army_admission": "scripts/edition_11/army_capabilities.gd",
+    "ability_registration": "scripts/edition_11/unit_ability_catalog.gd",
+    "stratagem_cost_and_ability_use": "scripts/edition_11/unit_abilities.gd; scripts/edition_11/stratagems.gd",
+    "transport_capacity_and_options": "scripts/edition_11/transport_rules.gd",
+    "composition": "One model per unit; up to three copies admitted.",
+    "points_by_copy_tier": {"first": 250, "second_plus": 250, "third_plus": 250},
+    "base_size_source": "Use model",
+    "geometry_proxy": "Labelled 60 mm circular footprint; exact model footprint and clearance are not certified.",
+    "special_rules": ["Combat Doctrines", "Damaged 5", "Deadly Demise D6", "Rites of Battle"],
+    "weapons": {
+      "default": ["Armoured Tracks", "2 Godhammer Lascannons", "Grav-cannon"],
+      "optional_additions": ["Multi-melta", "Hunter-killer Missile", "Storm Bolter", "Combi-weapon - Damnatus"],
+      "combi_weapon_profiles": ["Damnatus", "Infernus", "Purgatus"],
+      "all_source_weapon_rows_represented": true
+    },
+    "transport": {
+      "capacity": 12,
+      "required_keywords": ["ADEPTUS ASTARTES", "INFANTRY"],
+      "double_space_keywords": ["JUMP PACK", "GRAVIS", "TERMINATOR"],
+      "triple_space_keywords": ["CENTURION"]
+    },
+    "legends_game_mode": "Project label permits home/store/club/campaign use; competitive events require organiser permission. Event-specific approval is not established.",
+    "leader_links": []
+  },
+  "runtime": {
+    "profile_status": "source_bounded_local_scope_passed_2026_10_30",
+    "construction_catalog_size_after_admission": 178,
+    "space_marine_legends_profiles_after_admission": 17,
+    "runtime_identity_export_path": ".tools/space-marine-runtime-identities-full-audit-next-20261030-v12.json",
+    "runtime_identity_export_sha256": "b7388894176ed072f1a91186e926bf215a617a0014b57ede4e2ced7456ffcd1a",
+    "missing_source_identity_count": 0,
+    "legends_label_and_event_condition_shown": true,
+    "unsupported_configurations": "No unsupported model-count options. Exact physical footprint and event-specific acceptance remain unresolved."
+  },
+  "verification": {
+    "dedicated_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 300 --only test_land_raider_excelsior",
+    "dedicated_result_path": ".tools/verification/20261030T105104891887Z/results.json",
+    "dedicated_result_sha256": "769a354db815f489a64c72683738fc5eddeee69e742097ae77b31f9c49b2ec94",
+    "dedicated_process_count": 3,
+    "dedicated_status": "passed",
+    "focused_regression_command": "python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 900 --only test_land_raider_excelsior --only test_marine_transport_profiles --only test_marine_transport_rules --only test_marine_transport_weapon_options --only test_marine_transport_destruction --only test_marine_transport_admission --only test_current_unit_abilities --only test_implemented_catalog --only test_capabilities --only test_space_marine_profile_source_fields --only test_space_marine_copy_cost_parity --only test_attack_plan --only test_combat_doctrines",
+    "focused_result_path": ".tools/verification/20261030T104449773869Z/results.json",
+    "focused_result_sha256": "17febc9758170782a92a4e09586e7b8e370ffa50047e15d2f6e54c0080a02e19",
+    "process_count": 15,
+    "status": "passed",
+    "network": false,
+    "legacy_starter_staged": false,
+    "cleanup_diagnostics": false
+  },
+  "certification_limits": [
+    "This audit confirms local source completeness, runtime admission, and the stated focused local behavior only.",
+    "Full Space Marines or whole-army legality, every interaction, current connected-page validation, current event-pack reconciliation, exact physical footprint clearance, and competitive-event organiser permission are not certified.",
+    "The parent Data Export has 68 unrelated validation findings; the scoped source slice for this source book has zero findings."
+  ]
+}

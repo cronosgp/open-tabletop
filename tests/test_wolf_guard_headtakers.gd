@@ -79,7 +79,7 @@ func _initialize() -> void:
 
 func run() -> void:
 	var profile := Profiles.profile(UNIT)
-	check(profile.source_datasheet_id == "000004131" and profile.source_snapshot_id == "20261029T072022Z-final-integration" and profile.source_slice_manifest_sha256 == "9779a6e90c1690c19179a7eda8a66498d4cce2c6e953e05d3bcd7a644763fe1e", "Headtakers records the verified Space Wolves App sheet and bounded slice")
+	check(profile.source_datasheet_id == "000004131" and profile.source_snapshot_id == "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z" and profile.source_manifest_sha256 == "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e" and profile.source_slice_manifest_sha256 == "e0178a7d1203b781f24987b55980b832a6ff10112d1a5b1a70a21df4df50ebc7", "Headtakers records the current verified Space Wolves App export and subject slice")
 	var expected_mfm_cost_rows: Array[Dictionary] = [
 		{"models": 3, "headtakers": 3, "hunting_wolves": 0, "first_to_second_points": 85, "third_plus_points": 95, "wahapedia_composition_compatible": false},
 		{"models": 6, "headtakers": 3, "hunting_wolves": 3, "first_to_second_points": 115, "third_plus_points": 125, "wahapedia_composition_compatible": true},

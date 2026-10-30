@@ -41,6 +41,7 @@ const Allocation = preload("res://scripts/edition_11/damage_allocation.gd")
 const DefenderGroups = preload("res://scripts/edition_11/defender_groups.gd")
 const DeadlyDemise = preload("res://scripts/edition_11/deadly_demise.gd")
 const Hazard = preload("res://scripts/edition_11/hazardous.gd")
+const Fortifications = preload("res://scripts/edition_11/fortification_rules.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const Attachments = preload("res://scripts/edition_11/attached_units.gd")
 const Deployment = preload("res://scripts/edition_11/deployment.gd")
@@ -62,6 +63,8 @@ const PhobosExecuteRedeploy = preload("res://scripts/edition_11/phobos_execute_r
 const VictrixHonourGuard = preload("res://scripts/edition_11/victrix_honour_guard.gd")
 const CrusaderSurge = preload("res://scripts/edition_11/crusader_surge.gd")
 const DeathCompanyDreadnought = preload("res://scripts/edition_11/death_company_dreadnought.gd")
+const WhirlwindPunishingBombardment = preload("res://scripts/edition_11/whirlwind_punishing_bombardment.gd")
+const RazorbackFireSupport = preload("res://scripts/edition_11/razorback_fire_support.gd")
 const DeathwatchTerminatusAssault = preload("res://scripts/edition_11/deathwatch_terminatus_assault.gd")
 const Mephiston = preload("res://scripts/edition_11/mephiston.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
@@ -387,7 +390,9 @@ static func resolve_command_reaction(state: Dictionary, player: int, squad: int,
 	else:
 		result = {"error": "", "squad": squad, "rolls": [], "target": profile.target, "passed": true, "automatic": true, "stratagem": stratagem}
 	var working := state.duplicate(true)
-	if not stratagem.is_empty(): Stratagems.consume(working, player, squad, stratagem)
+	if not stratagem.is_empty():
+		var consume_error := Stratagems.consume(working, player, squad, stratagem, roller)
+		if not consume_error.is_empty(): return consume_error
 	error = _finish_command_battle_shock_roll(working, player, squad, result, revision, roller)
 	if not error.is_empty(): return error
 	state.clear()
@@ -797,7 +802,9 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 		state.unit_abilities.veil_of_time_pending.erase(squad)
 	elif move_type != "advance" and state.get("unit_abilities", {}).get("veil_of_time_pending", {}).has(squad):
 		state.unit_abilities.veil_of_time_pending.erase(squad)
-	if move_type in ["advance", "desperate_escape"] and not use_sudden_onslaught:
+	var fortification_hazard_auto_pass := move_type == "desperate_escape" and Fortifications.fall_back_hazard_auto_pass(state, squad)
+	draft.fortification_hazard_auto_pass = fortification_hazard_auto_pass
+	if (move_type == "advance" or (move_type == "desperate_escape" and not fortification_hazard_auto_pass)) and not use_sudden_onslaught:
 		if not roller.is_valid(): return "This move requires host dice."
 		var dice := Attacks.Dice.new(roller)
 		if move_type == "advance": draft.bonus = dice.d6()
@@ -812,7 +819,7 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 			draft.hazard_remaining = int(initial_hazard.total)
 	if _begin_movement_frame(state, squad, "movement-roll").is_empty(): return "Could not open the movement resolution frame."
 	if move_type == "advance" and use_sudden_onslaught:
-		error = DetachmentStratagems.spend_sudden_onslaught(state, player, squad)
+		error = DetachmentStratagems.spend_sudden_onslaught(state, player, squad, roller)
 		if not error.is_empty(): return error
 		draft.bonus = 6
 		draft.raw_bonus = 6
@@ -851,7 +858,7 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 	if frame.is_empty(): return "Could not resume the movement resolution frame."
 	if UnitAbilities.enabled(state): UnitActions.Techmarine.open_for_move(state, squad, "start")
 	UnitActions.TargetAuguryWeb.open_for_move(state, squad, "start")
-	if move_type == "desperate_escape" and state.get("stratagems", {}).get("escape_rerolls", false):
+	if move_type == "desperate_escape" and not bool(draft.get("fortification_hazard_auto_pass", false)) and state.get("stratagems", {}).get("escape_rerolls", false):
 		# Recalculate from the final pool after an optional Command Re-roll.
 		var rerolled_hazard := Hazard.from_rolls(state, squad, draft.hazard_rolls, draft.get("hazard_modifiers", []))
 		if not str(rerolled_hazard.get("error", "")).is_empty(): return str(rerolled_hazard.error)
@@ -869,7 +876,8 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 		if not suspend_error.is_empty(): return suspend_error
 	var message := "%s selected %s." % [state.squads[squad].name, move_type.replace("_", " ")]
 	if move_type == "advance": message += " Advance %s: %d inches." % ["roll: 6 (Sudden Onslaught, 1 CP)" if use_sudden_onslaught else "roll", draft.bonus]
-	if move_type == "desperate_escape": message += " Hazard rolls: %s; allocate %d mortal wounds before moving." % [str(draft.hazard_rolls), state.pending_move.hazard_remaining]
+	if move_type == "desperate_escape" and fortification_hazard_auto_pass: message += " Its Desperate Escape Hazard rolls automatically pass because it is engaged only with FORTIFICATION units."
+	elif move_type == "desperate_escape": message += " Hazard rolls: %s; allocate %d mortal wounds before moving." % [str(draft.hazard_rolls), state.pending_move.hazard_remaining]
 	if take_to_skies: message += " Take to the Skies declared%s; FLY models can move through all models and terrain." % (" with no movement reduction (HOVER)" if float(draft.take_to_skies_penalty) == 0.0 else "; maximum move reduced by 2 inches")
 	_event(state, message)
 	return ""
@@ -892,7 +900,9 @@ static func resolve_escape_reaction(state: Dictionary, player: int, squad: int, 
 	var working := state.duplicate(true)
 	var hazard := Hazard.from_rolls(working, squad, rolls, working.get("pending_move", {}).get("hazard_modifiers", []))
 	if not hazard.error.is_empty(): return hazard.error
-	if not stratagem.is_empty(): Stratagems.consume(working, player, squad, stratagem)
+	if not stratagem.is_empty():
+		var consume_error := Stratagems.consume(working, player, squad, stratagem, roller)
+		if not consume_error.is_empty(): return consume_error
 	working.stratagems.pending = {}
 	working.pending_move.hazard_rolls = rolls
 	working.pending_move.hazard_remaining = hazard.total
@@ -1253,7 +1263,9 @@ static func resolve_roll_reaction(state: Dictionary, player: int, squad: int, st
 		rolls = [dice.d6()] if window.kind == "after_advance_roll" else [dice.d6(), dice.d6()]
 		if not dice.error.is_empty(): return dice.error
 	var working := state.duplicate(true)
-	if stratagem == "command-re-roll": Stratagems.consume(working, player, squad, stratagem)
+	if stratagem == "command-re-roll":
+		var consume_error := Stratagems.consume(working, player, squad, stratagem, roller)
+		if not consume_error.is_empty(): return consume_error
 	working.stratagems.pending = {}
 	working.last_command_roll = {"kind": window.kind, "squad": squad, "original_rolls": window.rolls.duplicate(), "rolls": rolls.duplicate(), "rerolled": not stratagem.is_empty(), "source": stratagem}
 	if window.kind == "after_advance_roll":
@@ -1507,7 +1519,7 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 			if not focus_rolls_value is Dictionary:
 				ResolutionFrames.complete(state, str(frame.frame_id))
 				return "Saved Tactical Focus roll history is invalid; synchronize before consolidating."
-			var focus_use := DetachmentStratagems.apply(state, player, {"stratagem": DetachmentStratagems.TACTICAL_FOCUS, "target": squad, "model": -1, "value": DetachmentStratagems.TACTICAL_FOCUS})
+			var focus_use := DetachmentStratagems.apply(state, player, {"stratagem": DetachmentStratagems.TACTICAL_FOCUS, "target": squad, "model": -1, "value": DetachmentStratagems.TACTICAL_FOCUS}, roller)
 			if not str(focus_use.get("error", "")).is_empty():
 				ResolutionFrames.complete(state, str(frame.frame_id))
 				return str(focus_use.error)
@@ -1519,7 +1531,7 @@ static func begin_contact_move(state: Dictionary, player: int, model: int, kind:
 			if not push_rolls_value is Dictionary:
 				ResolutionFrames.complete(state, str(frame.frame_id))
 				return "Saved Devout Push roll history is invalid; synchronize before moving."
-			var push_use := DetachmentStratagems.apply(state, player, {"stratagem": DetachmentStratagems.VOW_DEVOUT_PUSH, "target": squad, "model": -1, "value": DetachmentStratagems.VOW_DEVOUT_PUSH})
+			var push_use := DetachmentStratagems.apply(state, player, {"stratagem": DetachmentStratagems.VOW_DEVOUT_PUSH, "target": squad, "model": -1, "value": DetachmentStratagems.VOW_DEVOUT_PUSH}, roller)
 			if not str(push_use.get("error", "")).is_empty():
 				ResolutionFrames.complete(state, str(frame.frame_id))
 				return str(push_use.error)
@@ -2414,6 +2426,8 @@ static func _commit_finished_attack(state: Dictionary, squad: int, player: int, 
 		VictrixHonourGuard.open_after_enemy_shot(state, squad, resolved.pools)
 		CrusaderSurge.open_after_enemy_shot(state, squad, resolved.pools)
 		DeathCompanyDreadnought.open_after_enemy_shot(state, squad, resolved.pools)
+		WhirlwindPunishingBombardment.open_after_shot(state, squad, resolved.pools)
+		RazorbackFireSupport.open_after_shot(state, squad, resolved.pools)
 	if melee: WulfenStormShields.offer_after_fight(state, squad, resolved, melee)
 	var names: Array[String] = []
 	for target: int in prepared.targets: names.append(state.squads[target].name)
@@ -2559,7 +2573,8 @@ static func resolve_attack_reaction(state: Dictionary, player: int, squad: int, 
 			var replacement := Allocation.RollWindows.reroll(current.checkpoint, die, current.checkpoint.revision, roller)
 			if not replacement.error.is_empty(): return replacement.error
 			current.checkpoint = replacement
-		Stratagems.consume(working, player, squad, stratagem)
+		var consume_error := Stratagems.consume(working, player, squad, stratagem, roller)
+		if not consume_error.is_empty(): return consume_error
 	var generating: bool = Stratagems.pending(state).kind == "after_attack_count_roll"
 	var final_rolls: Array = current.checkpoint.generated.rolls.duplicate() if generating else (current.pending_damage.rolled.rolls.duplicate() if damaging else (current.result.save_rolls.duplicate() if saving else (current.checkpoint.hit_rolls.duplicate() if current.checkpoint.phase == "hit" else current.checkpoint.effective_wounds.duplicate())))
 	working.last_command_roll = {"kind": Stratagems.pending(state).kind, "squad": squad, "original_rolls": original, "rolls": final_rolls, "rerolled": not stratagem.is_empty(), "die": die}
@@ -2637,7 +2652,8 @@ static func resolve_hazard_reaction(state: Dictionary, player: int, squad: int, 
 		prior_rerolls.append({"index": die, "original": original[die], "replacement": value, "source": "Command Re-roll"})
 		replaced.rerolls = prior_rerolls
 		pending.resolved.hazardous = replaced
-		Stratagems.consume(working, player, squad, stratagem)
+		var consume_error := Stratagems.consume(working, player, squad, stratagem, roller)
+		if not consume_error.is_empty(): return consume_error
 	working.last_command_roll = {"kind": "after_hazardous_roll", "squad": squad, "original_rolls": original, "rolls": pending.resolved.hazardous.rolls.duplicate(), "rerolled": not stratagem.is_empty(), "die": die}
 	working.stratagems.pending = {}
 	pending.remaining = pending.resolved.hazardous.total

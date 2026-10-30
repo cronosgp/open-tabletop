@@ -183,7 +183,7 @@ func run() -> void:
 	for candidate: String in SupportAttachments.BODYGUARDS:
 		if UNIT in SupportAttachments.BODYGUARDS[candidate]: source_supports.append(candidate)
 	source_supports.sort()
-	check(source_supports == ["ancient", "apothecary", "lieutenant"], "All three common-book Supported by links are retained: %s" % str(source_supports))
+	check(source_supports == ["ancient", "apothecary", "lieutenant", "sanguinary-priest"], "All common-book and source-reviewed Chapter Supported by links are retained: %s" % str(source_supports))
 	check(C.UnitActions.attachment_allowed(state, support * 100, small), "The source-linked Apothecary can attach to a Hellblaster unit")
 
 	test_weapons(state, small, target)

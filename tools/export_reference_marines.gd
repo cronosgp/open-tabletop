@@ -56,6 +56,13 @@ func _initialize() -> void:
 		profiles[identity].max_supported_copies = int(Army.SPECS.get(identity, {}).get("max_supported_copies", 6 if "BATTLELINE" in keywords else 3))
 		if Roster.POINTS.has(identity):
 			profiles[identity].fixed_roster = Roster.POINTS[identity].duplicate(true)
+			# The e11 export has duplicate total-model cost rows for Headtakers.
+			# Preserve the official MFM role mapping so comparison can distinguish
+			# the legal mixed rows from the incompatible Headtakers-only rows.
+			if profiles[identity].has("mfm_composition_cost_rows"):
+				profiles[identity].fixed_roster.mfm_composition_cost_rows = profiles[identity].mfm_composition_cost_rows.duplicate(true)
+			if profiles[identity].has("unpriced_source_permitted_role_mix_note"):
+				profiles[identity].fixed_roster.unpriced_source_permitted_role_mix_note = str(profiles[identity].unpriced_source_permitted_role_mix_note)
 			var profile_wargear_costs: Dictionary = profiles[identity].get("wargear_costs", {})
 			if not profile_wargear_costs.is_empty():
 				profiles[identity].fixed_roster.wargear_costs = profile_wargear_costs.duplicate(true)

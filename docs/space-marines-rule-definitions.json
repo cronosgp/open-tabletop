@@ -1605,6 +1605,40 @@
       ]
     },
     {
+      "id": "space-marines/tarantula-sentry-battery/sentinel-protocols",
+      "name": "Sentinel Protocols",
+      "kind": "unit_ability",
+      "datasheet_id": "space-marines/tarantula-sentry-battery",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Tarantula-Sentry-Battery",
+      "source_book_id": "000000356",
+      "source_datasheet_id": "000000098",
+      "timing": "When this unit is targeted with Fire Overwatch.",
+      "eligibility": "Once per phase for this unit; the unit must be an eligible Fire Overwatch target, and the player must not already have used Fire Overwatch this phase.",
+      "effect": "This unit's snap shooting attacks hit on unmodified Hit rolls of 4+ until that Stratagem is resolved.",
+      "duration": "Until this Fire Overwatch Stratagem use is resolved.",
+      "limits": [
+        "Once per phase per unit.",
+        "Does not bypass the core once-per-player-per-phase Fire Overwatch restriction.",
+        "The normal Command Point cost and target restrictions for Fire Overwatch still apply.",
+        "Snap shooting cannot produce Critical Hits or use Hit re-rolls."
+      ],
+      "interactions_to_validate": [
+        "another Fire Overwatch use in this phase blocks targeting this unit",
+        "the same unit cannot be targeted twice in the phase",
+        "unmodified 4+ snap hit threshold",
+        "no Critical Hits or Hit re-rolls while snap shooting"
+      ],
+      "official_check": "not_required_by_current_source_policy",
+      "definition_status": "implemented_in_admitted_tarantula_sentry_battery_scope",
+      "implementation_document": "marine-tarantula-sentry-battery.md",
+      "validated_interactions": [
+        "normal use after an unused Fire Overwatch phase allowance",
+        "ordinary prior use blocks this unit",
+        "4+ unmodified snap hits",
+        "snap Hit re-rolls suppressed"
+      ]
+    },
+    {
       "id": "space-marines/brutalis-dreadnought/brutalis-charge",
       "name": "Brutalis Charge",
       "kind": "unit_ability",
@@ -2737,6 +2771,72 @@
       "definition_status": "implemented_and_locally_validated_in_admitted_scope",
       "implementation_document": "marine-captain-titus.md",
       "validation_artifact": ".tools/verification/20261019T181223215266Z/results.json"
+    },
+    {
+      "id": "space-marines/centurion-devastator-squad/decimator-protocols",
+      "name": "Decimator Protocols",
+      "kind": "datasheet_ability",
+      "timing": "When this unit makes ranged attacks.",
+      "eligibility": "Apply the target-specific objective alternative when the target enemy unit is within range of an objective.",
+      "effect": "Ranged Hit rolls of 1 can be re-rolled; instead, all Hit rolls can be re-rolled against a target unit within range of an objective.",
+      "duration": "For each ranged attack sequence.",
+      "interactions_to_validate": [
+        "Each attack batch checks the target unit objective-range status using the current objective and base-range query.",
+        "The all-Hit reroll option replaces the hit-rolls-of-1 option against a target in objective range.",
+        "Decimator Protocols does not override the Core Rules hit-reroll prohibitions for Fire Overwatch or Indirect Shooting.",
+        "The ability does not modify melee attacks."
+      ],
+      "datasheet_id": "space-marines/centurion-devastator-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Centurion-Devastator-Squad",
+      "source_book_id": "000000356",
+      "source_datasheet_id": "000001193",
+      "source_export_updated_at": "2026-10-28T23:48:19+03:00",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-centurion-devastator-squad.md",
+      "validation_artifact": ".tools/verification/20261030T060308657963Z/results.json"
+    },
+    {
+      "id": "space-marines/centurion-assault-squad/annihilator-protocols",
+      "name": "Annihilator Protocols",
+      "kind": "datasheet_ability",
+      "timing": "When this unit makes melee attacks.",
+      "eligibility": "The target unit has the MONSTER, VEHICLE or FORTIFICATION keyword.",
+      "effect": "The melee attacks gain Sustained Hits 2.",
+      "duration": "For each eligible melee attack sequence.",
+      "interactions_to_validate": [
+        "Only melee attacks against the listed target keywords gain Sustained Hits 2.",
+        "Melee attacks against other targets are unchanged."
+      ],
+      "datasheet_id": "space-marines/centurion-assault-squad",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Centurion-Assault-Squad",
+      "source_book_id": "000000356",
+      "source_datasheet_id": "000002703",
+      "source_export_updated_at": "2026-10-28T23:48:19+03:00",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-centurion-assault-squad.md",
+      "validation_artifact": ".tools/verification/20261030T061652252047Z/results.json"
+    },
+    {
+      "id": "space-marines/vindicator/siege-shield",
+      "name": "Siege Shield",
+      "kind": "datasheet_ability",
+      "timing": "In your Shooting phase, when selecting this unit to shoot using close-quarters shooting.",
+      "eligibility": "The Vindicator must be engaged. For the modifier rule, the target enemy unit must be engaged with the Vindicator.",
+      "effect": "Attacks targeting an enemy unit engaged with the Vindicator can ignore Ballistic Skill and Hit modifiers. The Demolisher Cannon can be selected without its Blast ability; if used this way, it can target an enemy unit only if that unit is not engaged with another friendly unit.",
+      "duration": "For the selected close-quarters shooting sequence.",
+      "interactions_to_validate": [
+        "The no-Blast target restriction allows an unengaged enemy or one engaged only with the Vindicator; it prohibits an enemy engaged with any other friendly unit.",
+        "The modifier permission applies to Ballistic Skill and Hit modifiers; the current runtime elects to ignore all applicable modifiers.",
+        "Vehicle close-quarters shooting can still target eligible unengaged enemies; Blast weapons ordinarily cannot target an engaged unit."
+      ],
+      "datasheet_id": "space-marines/vindicator",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Vindicator",
+      "source_book_id": "000000356",
+      "source_datasheet_id": "000001188",
+      "source_export_updated_at": "2026-10-28T23:48:19+03:00",
+      "definition_status": "implemented_and_locally_validated_in_admitted_scope",
+      "implementation_document": "marine-vindicator.md",
+      "validation_artifact": ".tools/verification/20261030T063731391958Z/results.json"
     }
   ],
   "open_questions": [

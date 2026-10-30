@@ -263,6 +263,29 @@ class WahapediaImportTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Changed offline snapshot"):
                 w.capture(Path(directory) / "second", output / "raw")
 
+    def test_direct_comparison_reports_global_source_validation_findings(self):
+        tables = fixture()
+        tables["Datasheets_leader"][0]["attached_id"] = "999999"
+        profile = {"source_book_id": "000001", "source_datasheet_id": "000001",
+                   "name": "Original test unit",
+                   "stats": {"movement_inches": 6, "toughness": 4, "save_target": 3,
+                              "wounds": 2, "leadership_target": 6, "objective_control": 1,
+                              "invulnerable_target": 0},
+                   "keywords": ["INFANTRY"], "model_loadouts": [], "ranged": [], "melee": []}
+        runtime = {"id": "source-status-test", "digest": "test", "profiles": {"fixture": profile}}
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "input"
+            source.mkdir()
+            for name, rows in tables.items():
+                (source / (name + ".csv")).write_bytes(blob(name, rows))
+            snapshot = Path(directory) / "snapshot"
+            manifest = w.capture(snapshot, source)
+            self.assertFalse(manifest["structurally_valid"])
+            report = comparator.compare(snapshot, runtime)
+        self.assertFalse(report["parent_source_structurally_valid"])
+        self.assertEqual(report["parent_source_validation_error_count"], len(manifest["validation_errors"]))
+        self.assertGreater(report["parent_source_validation_error_count"], 0)
+
     def test_comparison_uses_hash_bound_identity_map_and_faction_keywords(self):
         tables = fixture()
         tables["Source"][0].update(id="000000139", name="Space Marines", edition="11")

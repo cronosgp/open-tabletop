@@ -206,7 +206,7 @@
   "full_army_legality_certified": false,
   "full_match_certified": false,
   "known_scope_limits": [
-    "The local fixed-roster check is the project's MFM 1.6 1,000-point Incursion path; its current Battleline repetition gate permits four copies and is not a full 11th-edition army-legality certificate. No third-plus Intercessor price tier is present in the source profile. Chapter-specific Leader links, Forge World, Legends, full faction/army legality, network behavior, complete-match certification and human playtesting remain outside this scope; network validation is deferred to final integration."
+    "The local fixed-roster check is the project's MFM 1.6 1,000-point Incursion path; its current Battleline repetition gate permits four copies and is not a full 11th-edition army-legality certificate. No third-plus Intercessor price tier is present in the source profile. Other Chapter-specific Leader links and rules, Forge World, Legends, full faction/army legality, network behavior, complete-match certification and human playtesting remain outside this scope; network validation is deferred to final integration."
   ],
   "current_scope_validation": {
     "observed_at": "2026-10-28",
@@ -219,7 +219,7 @@
     "source_snapshot_id": "20261021T130623Z",
     "source_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Intercessor-Squad",
     "source_revision": "Space Marines App 2.8.1 / October 2026; stable Last_update 2026-10-19 03:47:32; live datasheet page checked 2026-10-28 UTC.",
-    "source_scope_summary": "Complete shared-book scope covers five/ten-model composition and 85/170 points; 32 mm bases, all characteristics/keywords and default loadout; every Bolt Rifle, Grenade Launcher, Hand Flamer, Plasma Pistol, melee and optional Sergeant profile through Equipment and AttackPlan; public reversible Sergeant choices, owner/model/value rejection, and one Grenade Launcher per five models; Bolter Discipline and Tactical Mainstay boundaries; all fourteen common-book Leader/Supported by links, five Supported by identities, both-player current-catalog materialization and local Incursion admission.",
+    "source_scope_summary": "Complete shared-book scope covers five/ten-model composition and 85/170 points; 32 mm bases, all characteristics/keywords and default loadout; every Bolt Rifle, Grenade Launcher, Hand Flamer, Plasma Pistol, melee and optional Sergeant profile through Equipment and AttackPlan; public reversible Sergeant choices, owner/model/value rejection, and one Grenade Launcher per five models; Bolter Discipline and Tactical Mainstay boundaries; all fourteen common-book Leader/Supported by links, five common-book Supported by identities, seven source-reviewed Support targets available to Intercessor Squad, both-player current-catalog materialization and local Incursion admission.",
     "current_catalog_for_both_players": true,
     "full_source_bounded_local_scope_validated": true,
     "full_army_legality_certified": false,

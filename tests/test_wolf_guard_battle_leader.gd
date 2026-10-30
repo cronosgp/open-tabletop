@@ -70,7 +70,7 @@ func run() -> void:
 	check(power_weapon.get("attacks") == 7 and power_weapon.get("skill") == 2 and power_weapon.get("strength") == 6 and power_weapon.get("ap") == -2 and power_weapon.get("damage") == 2, "Master-crafted Power Weapon matches its source profile")
 	check(hammer.get("attacks") == 5 and hammer.get("skill") == 3 and hammer.get("strength") == 8 and hammer.get("ap") == -2 and hammer.get("damage") == 3 and hammer.get("keywords", {}).get("devastating-wounds", false), "Thunder Hammer matches its source profile")
 	check(Profiles.wolf_guard_battle_leader_weapons("storm-shield", "thunder-hammer").ranged.is_empty() and Profiles.wolf_guard_battle_leader_weapons("invalid", "thunder-hammer").is_empty(), "Storm Shield replaces the pistol and unknown packages are rejected")
-	check(Catalog.SPECS.get(UNIT, {}).get("current_reference", false) and not Catalog.SPECS.has("wolf-guard-headtakers"), "The Battle Leader is selectable while ambiguous Headtakers stays excluded")
+	check(Catalog.SPECS.get(UNIT, {}).get("current_reference", false) and Catalog.SPECS.get("wolf-guard-headtakers", {}).get("current_reference", false), "The Battle Leader and reconciled, source-priced Headtakers profile are selectable")
 	check(AbilityCatalog.RULES.get(UNIT, []) == ["leader", "combat-doctrines", "transhuman-strategist", "tempered-ferocity", "heroic-last-stand"], "Leader, doctrines, Warlord eligibility and both datasheet abilities register")
 	check(Registry.supported("tempered-ferocity") and Registry.supported("heroic-last-stand"), "Both named abilities are recorded as supported capabilities")
 	var targets := LeaderLinks.targets(UNIT)

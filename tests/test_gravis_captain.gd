@@ -76,9 +76,10 @@ func run() -> void:
 	check(Catalog.SPECS.get("captain-in-gravis-armour", {}).get("current_reference", false), "Captain in Gravis Armour is selectable from the current local catalog")
 
 	var one_copy := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [entry("captain-in-gravis-armour")]})
-	var three_copies := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [entry("captain-in-gravis-armour", 1, 3)]})
-	var four_copies := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [entry("captain-in-gravis-armour", 1, 4)]})
-	check(one_copy.get("error", "").is_empty() and int(one_copy.get("total", -1)) == 90 and three_copies.get("error", "").is_empty() and int(three_copies.get("total", -1)) == 270 and not str(four_copies.get("error", "")).is_empty(), "Catalog applies the non-Epic Hero three-copy ceiling and source cost")
+	var three_copies := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "strike_force", "points_limit": 2000, "entries": [entry("captain-in-gravis-armour", 1, 3)]})
+	var four_copies := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "strike_force", "points_limit": 2000, "entries": [entry("captain-in-gravis-armour", 1, 4)]})
+	var incursion_three := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [entry("captain-in-gravis-armour", 1, 3)]})
+	check(one_copy.get("error", "").is_empty() and int(one_copy.get("total", -1)) == 90 and three_copies.get("error", "").is_empty() and int(three_copies.get("total", -1)) == 270 and not str(four_copies.get("error", "")).is_empty() and not str(incursion_three.get("error", "")).is_empty(), "Catalog applies the Incursion and Strike Force copy ceilings and source cost")
 
 	var source_targets: Array = MarineLinks.TARGETS.get("captain-in-gravis-armour", []).duplicate()
 	var expected_targets := ["aggressor-squad", "eradicator-squad-with-heavy-bolters", "eradicator-squad-with-melta-rifles", "heavy-intercessor-squad"]

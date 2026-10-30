@@ -612,7 +612,21 @@
           "id": "sentinel-protocols",
           "name": "Sentinel Protocols",
           "status": "implemented_in_admitted_firestrike_servo_turrets_scope",
-          "implementation_scope": "Once per phase per unit, may be targeted by Fire Overwatch despite other uses that phase; its snap shooting hits on unmodified 4+ until that use resolves. No Critical Hits or Hit re-rolls."
+          "implementation_scope": "Firestrike only: the datasheet explicitly permits Fire Overwatch regardless of other uses that phase, and this use does not prevent other units from using it. Once per phase per unit; normal CP cost. Snap shooting hits on unmodified 4+ until the use resolves; no Critical Hits or Hit re-rolls."
+        }
+      ]
+    },
+    {
+      "id": "space-marines/tarantula-sentry-battery",
+      "name": "Tarantula Sentry Battery",
+      "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Tarantula-Sentry-Battery",
+      "source_status": "wahapedia_e11_legends_export_2026_10_28",
+      "rules": [
+        {
+          "id": "sentinel-protocols",
+          "name": "Sentinel Protocols",
+          "status": "implemented_in_admitted_tarantula_sentry_battery_scope",
+          "implementation_scope": "Once per phase per unit, this unit's Fire Overwatch snap shooting hits on unmodified 4+. Normal CP cost and the core once-per-player-per-phase restriction remain; unlike Firestrike, the datasheet does not grant an extra use after another unit has used Fire Overwatch."
         }
       ]
     },
@@ -9126,5 +9140,85 @@
     "full_army_legality_certified": false,
     "full_match_certified": false,
     "limits": "Closes only the declared Sammael and Ravenwing Command Squad source-bounded local scopes and the shared complete-Support transfer behavior. It does not certify the parent export's 68 out-of-slice validation errors, the external identity-only Leader/Support targets, full Dark Angels or Space Marines army legality, network behavior, complete matches or human playtesting. The Ravenwing Command Squad oval uses a labelled circular collision proxy; Forge World, Legends, Boarding Actions and alternate modes remain outside scope."
+  },
+  "centurion_devastator_scope_followup": {
+    "as_of": "2026-10-30",
+    "document": "marine-centurion-devastator-squad.md",
+    "audit_artifact": "marine-centurion-devastator-squad-audit.json",
+    "audit_artifact_sha256": "a3f4302dc5bafe7328a761d212a3bd77c96782ebccef13beeaff5399542449c6",
+    "source_book_id": "000000356",
+    "source_datasheet_ids": ["000001193"],
+    "source_snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "source_export_updated_at": "2026-10-28T23:48:19+03:00",
+    "source_parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-30-v131-centurion-devastator-squad",
+    "runtime_status": "source_bounded_local_scope_passed_2026_10_30",
+    "implemented_scope": [
+      "3-model/175-point and 6-model/350-point configurations with exactly one source-listed Sergeant and 50 mm bases",
+      "all per-model Centurion Missile Launcher, Twin Heavy Bolter and Twin Lascannon replacement combinations",
+      "Decimator Protocols target-specific objective rerolls, including Fire Overwatch and Indirect Shooting restrictions",
+      "Warhammer Legends construction and event-organiser permission condition"
+    ],
+    "validation_artifact": ".tools/verification/20261030T060308657963Z/results.json",
+    "validation_artifact_sha256": "1f6798207eddc66265bc5b24b3c07fd5602da05ddc3cfd053252c6d2a94606cc",
+    "validation_status": "passed_source_bounded_local_scope; 10/10 processes; network=false; legacy_starter_staged=true; cleanup_diagnostics=false",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_army_legality_certified": false,
+    "full_match_certified": false,
+    "limits": "The local audit closes only the Centurion Devastator Squad sheet and declared Decimator Protocols behavior. It does not certify the parent export's 68 unrelated structural findings, complete Space Marines list legality, every cross-unit interaction, network play, a complete match or human playtesting. Competitive event acceptance remains subject to the organiser."
+  },
+  "centurion_assault_scope_followup": {
+    "as_of": "2026-10-30",
+    "document": "marine-centurion-assault-squad.md",
+    "audit_artifact": "marine-centurion-assault-squad-audit.json",
+    "audit_artifact_sha256": "7c0d9b7634240d42a8fb5f41186c6a14991bb84ca859d8e60401663a6b9e49eb",
+    "source_book_id": "000000356",
+    "source_datasheet_ids": ["000002703"],
+    "source_snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "source_export_updated_at": "2026-10-28T23:48:19+03:00",
+    "source_parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-30-v132-centurion-assault-squad",
+    "runtime_status": "source_bounded_local_scope_passed_2026_10_30",
+    "implemented_scope": [
+      "3-model/150-point and 6-model/300-point configurations with one source-listed Sergeant and exact 50 mm bases",
+      "per-model Centurion Assault Launcher and Twin Meltagun choices in all four combinations",
+      "Centurion Assault Launcher bearer EXPLOSIVES keyword and shared Core Explosives action",
+      "Annihilator Protocols Sustained Hits 2 only for melee attacks against MONSTER, VEHICLE or FORTIFICATION targets",
+      "Warhammer Legends construction label and event-organiser permission condition"
+    ],
+    "validation_artifact": ".tools/verification/20261030T061652252047Z/results.json",
+    "validation_artifact_sha256": "b768a70481d0279ee01719b452a55ce9704ee4f468b16e883f0df6c442ee6e22",
+    "validation_status": "passed_source_bounded_local_scope; 10/10 processes; network=false; legacy_starter_staged=true; cleanup_diagnostics=false",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_army_legality_certified": false,
+    "full_match_certified": false,
+    "limits": "The local audit closes only the Centurion Assault Squad sheet and declared Annihilator Protocols/launcher behavior. It does not certify the parent export's 68 unrelated structural findings, complete Space Marines list legality, every cross-unit interaction, network play, a complete match or human playtesting. Competitive event acceptance remains subject to the organiser."
+  },
+  "vindicator_scope_followup": {
+    "as_of": "2026-10-30",
+    "document": "marine-vindicator.md",
+    "audit_artifact": "marine-vindicator-audit.json",
+    "audit_artifact_sha256": "83d73cb537c17df7336b04c2da9ccc8a6e601a74cc3e31ad6472ce27966966ed",
+    "source_book_id": "000000356",
+    "source_datasheet_ids": ["000001188"],
+    "source_snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "source_export_updated_at": "2026-10-28T23:48:19+03:00",
+    "source_parent_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+    "runtime_profile_id": "space-marines-e11-fixed-reference-2026-10-30-v133-vindicator",
+    "runtime_status": "source_bounded_local_scope_passed_2026_10_30",
+    "implemented_scope": [
+      "One-model profile, source characteristics, weapons, independent optional wargear and 185/200-point copy tiers",
+      "Combat Doctrines, Deadly Demise D3 and Damaged 4",
+      "Siege Shield close-quarters modifier and no-Blast targeting boundaries",
+      "Legends construction label and event-organiser permission condition"
+    ],
+    "validation_artifact": ".tools/verification/20261030T063731391958Z/results.json",
+    "validation_artifact_sha256": "82dd67dea1d954eb01ad3d3a4929c0cb31118eb5054543402e051a44e9258dfa",
+    "validation_status": "passed_source_bounded_local_scope; 14/14 processes; network=false; legacy_starter_staged=false; cleanup_diagnostics=false",
+    "network_validation": "deferred_to_final_integration_by_user",
+    "full_army_legality_certified": false,
+    "full_match_certified": false,
+    "limits": "The local audit closes only the Vindicator sheet and declared rules behavior. The source says Use model but gives no footprint size; the 60 mm circle is a labelled simulation proxy, not a physical clearance certification. It does not certify the parent export's 68 unrelated findings, full Space Marines army legality, network play, complete matches or human playtesting. Competitive event acceptance remains subject to the organiser."
   }
 }

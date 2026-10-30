@@ -50,7 +50,9 @@ func select_edition(value: String) -> String:
 			options.append(option)
 		var scope := "Reconciled local runtime profile; complete army legality and final network validation remain outside this catalog."
 		if sizes.size() < profile.points_by_models.size(): scope = "Partial source reconciliation: only %s-model configuration is selectable; conflicting source size is blocked." % ", ".join(sizes.map(func(size: int) -> String: return str(size)))
-		units.append({"id": id, "source_id": identity, "name": profile.name, "edition": "11e", "faction": spec.faction, "role": Roster.role(profile.get("keywords", [])), "source_digest": Current.digest(), "options": options, "scope": scope})
+		var readiness_note := Capabilities.construction_readiness_note(identity)
+		if not readiness_note.is_empty(): scope = readiness_note
+		units.append({"id": id, "source_id": identity, "name": profile.name, "edition": "11e", "faction": spec.faction, "role": Roster.role(profile.get("keywords", [])), "source_scope": str(profile.get("source_scope", spec.get("source_scope", ""))), "source_digest": Current.digest(), "options": options, "scope": scope})
 	units.sort_custom(func(a: Dictionary, b: Dictionary): return str(a.name).naturalnocasecmp_to(str(b.name)) < 0)
 	var eligible_identities: Array[String] = []
 	for unit: Dictionary in units: eligible_identities.append(str(unit.id))

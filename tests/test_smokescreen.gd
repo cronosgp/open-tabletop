@@ -14,7 +14,7 @@ func fixture() -> Dictionary:
   {"definition_id": "40kdc:11e:adeptus-astartes:captain", "models": 1, "copies": 1},
   {"definition_id": "40kdc:11e:adeptus-astartes:eliminator-squad", "models": 3, "copies": 1},
   {"definition_id": "40kdc:11e:adeptus-astartes:intercessor-squad", "models": 5, "copies": 1}]
- var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
+ var s := F.P.initial_state({"checked_rosters": true, "official_mission": true, "terrain_layout": C.Mission.DEFAULT_TERRAIN_LAYOUT, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, lists)
  if s.has("error"): return s
  s.awakened_dynasty.pending = []
  s.mission.stage = "battle"

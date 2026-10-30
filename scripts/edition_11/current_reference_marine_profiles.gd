@@ -1,7 +1,19 @@
 extends RefCounted
 ## Fixed default loadouts transcribed from the local Wahapedia e11 extraction.
 ## Wahapedia is the project's sole rules authority; local admission remains scoped and uncertified for full army legality.
-const ID := "space-marines-e11-fixed-reference-2026-10-29-v127-wolf-guard-headtakers"
+const ID := "space-marines-e11-fixed-reference-2026-10-30-v151-hammerfall-bunker"
+const VERIFIED_EXPORT_SNAPSHOT_ID := "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z"
+const VERIFIED_EXPORT_UPDATED_AT := "2026-10-28T23:48:19+03:00"
+const VERIFIED_EXPORT_MANIFEST_SHA256 := "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e"
+const VERIFIED_EXPORT_SLICE_SHA256_BY_BOOK := {
+	"000000139": "735b84fad5e1b0901ed34dc9cd4f55a62fc69a1e4b8eb086746e598d1770c535",
+	"000000021": "0ef16f837a955ea6b832a53c66e5ddae56680c2e629afd83d4cdd970d8b3a0ea",
+	"000000023": "63babe1ca34885808f13f7250bd2f1f490fbeb0ba386e9bae1280a93802397f8",
+	"000000035": "ed356b7d4a9c34085a53daab7dc08325429f4d754d7441ac6f6728920affb109",
+	"000000036": "427316a1e2d42a21e90b0937d1792d92dcd0f6d6a3a3eed8775c21f52af64327",
+	"000000162": "49b1df5633b88744e6b4f9ee60d0b1e3841178e2ed9bcb76c3eab021efba3f97",
+	"000000356": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+}
 const BLACK_TEMPLARS_VEHICLE_SOURCES := {
 	"black-templars-gladiator-lancer": {"base": "gladiator-lancer", "name": "Gladiator Lancer", "datasheet_id": "000002787", "cost": 165, "third_cost": 185, "wargear_costs": {"Multi-melta": 10}, "keywords": ["ADEPTUS ASTARTES", "BLACK TEMPLARS", "FRAME", "IMPERIUM", "SMOKE", "VEHICLE"]},
 	"black-templars-gladiator-reaper": {"base": "gladiator-reaper", "name": "Gladiator Reaper", "datasheet_id": "000002789", "cost": 165, "third_cost": 185, "wargear_costs": {"Multi-melta": 10}, "keywords": ["ADEPTUS ASTARTES", "BLACK TEMPLARS", "FRAME", "IMPERIUM", "SMOKE", "VEHICLE"]},
@@ -101,8 +113,8 @@ static func _build_profiles() -> Dictionary:
 		}
 	},
 	"crusader-squad": {
-		"name": "Crusader Squad", "source_book_id": "000000162", "source_datasheet_id": "000002799", "source_export_updated_at": "2026-10-21 16:06:23 GMT+3",
-		"source_snapshot_id": "20261021T130623Z", "source_manifest_sha256": "169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf", "source_slice_manifest_sha256": "8a6d9529ae553b06203cdb2b6c8f1edd736f2a737ba1c215d2241bd1cdfb5bbe",
+		"name": "Crusader Squad", "source_book_id": "000000162", "source_datasheet_id": "000002799", "source_export_updated_at": "2026-10-28T23:48:19+03:00",
+		"source_snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z", "source_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e", "source_slice_manifest_sha256": "c826abb55add7cc48814b3df865546da059e17f311a62fc581092c2d43aa1bc8",
 		"points": 160, "points_by_models": {10: 160, 20: 305}, "models": 10, "base_size_source_mm": 28.5, "base_radius_inches": 14.25 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
 		"keywords": ["BATTLELINE", "INFANTRY", "TACTICUS", "IMPERIUM", "EXPLOSIVES", "ADEPTUS ASTARTES", "BLACK TEMPLARS"],
@@ -1001,6 +1013,33 @@ static func _build_profiles() -> Dictionary:
 			]
 		}
 	},
+	"vanguard-veteran-squad": {
+		"name": "Vanguard Veteran Squad", "source_book_id": "000000356", "source_datasheet_id": "000001154",
+		"source_export_updated_at": VERIFIED_EXPORT_UPDATED_AT, "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Vanguard-Veteran-Squad", "source_scope": "Warhammer Legends",
+		"points": 120, "points_by_models": {5: 120, 10: 240}, "models": 5, "max_supported_copies": 3,
+		"base_size_source_mm": 32, "base_radius_inches": 16.0 / 25.4,
+		"scouts_inches": 6,
+		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "IMPERIUM", "INFANTRY", "EXPLOSIVES"],
+		"default_loadout_by_role": {
+			"Vanguard Veteran Sergeant": {"Bolt Pistol": 1, "Heirloom Weapon": 1},
+			"Vanguard Veteran": {"Bolt Pistol": 1, "Heirloom Weapon": 1}
+		},
+		"options": {"pistol_replacements": ["bolt-pistol", "storm-shield", "grav-pistol", "hand-flamer", "inferno-pistol", "plasma-pistol"]},
+		"ranged": [{"id": "bolt-pistol", "profiles": {"standard": _weapon("Bolt Pistol", 12.0, 1, 3, 5, -1, 1, {"close-quarters": true})}}],
+		"melee": [{"id": "heirloom-weapon", "profiles": {"standard": _weapon("Heirloom Weapon", 0.0, 4, 3, 5, -2, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "grav-pistol", "profiles": {"standard": _weapon("Grav-pistol", 12.0, 2, 3, 2, -1, 3, {"close-quarters": true, "anti-vehicle": 2})}},
+			{"id": "hand-flamer", "profiles": {"standard": _weapon("Hand Flamer", 9.0, 3, 0, 4, 0, 1, {"close-quarters": true, "torrent": true})}},
+			{"id": "inferno-pistol", "profiles": {"standard": _weapon("Inferno Pistol", 9.0, 1, 3, 8, -3, "D3+2", {"melta": 2, "close-quarters": true})}},
+			{"id": "plasma-pistol", "profiles": {
+				"standard": _weapon("Plasma Pistol - Standard", 12.0, 1, 3, 7, -2, 1, {"close-quarters": true}),
+				"supercharge": _weapon("Plasma Pistol - Supercharge", 12.0, 1, 3, 8, -3, 2, {"close-quarters": true, "hazardous": true})}}
+		]},
+		"special_rules": ["Scouts 6 inches", "Combat Doctrines", "Vanguard Assault (Lethal Hits)", "Storm Shield (4+ invulnerable save)"]
+	},
 	"heavy-intercessor-squad": {
 		"name": "Heavy Intercessor Squad", "source_book_id": "000000139", "source_datasheet_id": "000001177", "source_export_updated_at": "2026-10-16T21:03:46+03:00",
 		"points": 115, "points_by_models": {5: 115, 10: 230}, "models": 5, "base_radius_inches": 20.0 / 25.4,
@@ -1663,14 +1702,14 @@ static func _build_profiles() -> Dictionary:
 	},
 	"decimus-kill-team": {
 		"name": "Decimus Kill Team", "source_book_id": "000000035", "source_datasheet_id": "000004175", "source_export_updated_at": "2026-10-28T23:48:19+03:00",
-		"source_snapshot_id": "20261029T072022Z-final-integration", "source_manifest_sha256": "772952e313b6772022c68226514eba7cdde00464468fd79c8291d20c24da4801", "source_slice_manifest_sha256": "4fd505e6f0b8eea123fc253a4e2017cfe3d3fd1b838abf2081697b455cef825f",
+		"source_snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z", "source_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e", "source_slice_manifest_sha256": "b258edd148a8b4f1dcb1dd174721c132b8337e6533b8aea597871dd96cd1aa88",
 		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Decimus-Kill-Team",
-		"points": 110, "points_by_models": {5: 110, 10: 210}, "models": 5, "max_supported_copies": 3,
+		"points": 210, "points_by_models": {5: 110, 10: 210}, "models": 10, "max_supported_copies": 3,
 		"base_size_source_mm": 32, "base_radius_inches": 16.0 / 25.4,
 		"stats": {"movement_inches": 6, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
 		"keywords": ["ADEPTUS ASTARTES", "DEATHWATCH", "BATTLELINE", "INFANTRY", "KILL TEAM", "EXPLOSIVES", "IMPERIUM", "TACTICUS", "GRAVIS"],
 		"model_loadouts": [decimus_kill_team_model_loadout("xenophase-veteran"), decimus_kill_team_model_loadout("sergeant"), decimus_kill_team_model_loadout("marksman-veteran"), decimus_kill_team_model_loadout("heavy-veteran"), decimus_kill_team_model_loadout("stalker-veteran"), decimus_kill_team_model_loadout("gravis-veteran")],
-		"composition_options": decimus_kill_team_composition_options(), "default_composition_choice_ids": {5: "five-heavy-1-stalker-1-gravis-1", 10: "ten-balanced"},
+		"composition_options": decimus_kill_team_composition_options(), "default_composition_choice_ids": {10: "ten-balanced"},
 		"options": {"gravis_replacements_per_five_models": 1, "storm_shields_per_five_models": 1, "plasma_incinerators_per_five_models": 1},
 		"ranged": [
 			{"id": "bolt-pistol", "profiles": {"standard": _weapon("Bolt Pistol", 12.0, 1, 3, 5, -1, 1, {"close-quarters": true})}},
@@ -2103,9 +2142,9 @@ static func _build_profiles() -> Dictionary:
 	},
 	"wolf-guard-headtakers": {
 		"name": "Wolf Guard Headtakers", "source_book_id": "000000036", "source_datasheet_id": "000004131",
-		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": "20261029T072022Z-final-integration",
-		"source_manifest_sha256": "772952e313b6772022c68226514eba7cdde00464468fd79c8291d20c24da4801",
-		"source_slice_manifest_sha256": "9779a6e90c1690c19179a7eda8a66498d4cce2c6e953e05d3bcd7a644763fe1e",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+		"source_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+		"source_slice_manifest_sha256": "e0178a7d1203b781f24987b55980b832a6ff10112d1a5b1a70a21df4df50ebc7",
 		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Wolf-Guard-Headtakers",
 		"points": 115, "points_by_models": {6: 115, 12: 230}, "third_plus_points_by_models": {6: 125, 12: 240},
 		"points_source": "Munitorum Field Manual Space Wolves v1.0 observed 2026-10-29; composition rows cross-checked against the Wahapedia 11e local export",
@@ -2115,6 +2154,7 @@ static func _build_profiles() -> Dictionary:
 			{"models": 6, "headtakers": 6, "hunting_wolves": 0, "first_to_second_points": 170, "third_plus_points": 180, "wahapedia_composition_compatible": false},
 			{"models": 12, "headtakers": 6, "hunting_wolves": 6, "first_to_second_points": 230, "third_plus_points": 240, "wahapedia_composition_compatible": true}
 		],
+		"unpriced_source_permitted_role_mix_note": "Wahapedia permits 3-6 models of each role, but the current Munitorum Field Manual lists exact prices only for the 3+3 and 6+6 mixed compositions; other legal role mixes remain unavailable until explicitly priced.",
 		"models": 6, "max_supported_copies": 3,
 		"base_size_source_mm": 60, "base_radius_inches": 30.0 / 25.4,
 		"base_geometry": "per-model-circles", "geometry_scope": "40 mm Headtaker bases are represented exactly; each 60 x 35.5 mm Hunting Wolf oval is represented by a conservative 60 mm circle proxy.",
@@ -2128,6 +2168,383 @@ static func _build_profiles() -> Dictionary:
 		"melee": [{"id": "paired-master-crafted-power-weapons", "profiles": {"standard": _weapon("Paired Master-crafted Power Weapons", 0.0, 6, 3, 5, -2, 2, {})}}],
 		"additional_weapon_profiles": {"melee": [{"id": "master-crafted-power-weapon", "profiles": {"standard": _weapon("Master-crafted Power Weapon", 0.0, 4, 3, 5, -2, 2, {})}}, {"id": "teeth-and-claws", "profiles": {"standard": _weapon("Teeth and Claws", 0.0, 3, 4, 4, 0, 1, {})}}]},
 		"special_rules": ["Combat Doctrines", "Headhunters", "Let Loose the Wolves", "Hunting Hounds", "Storm Shield"]
+	},
+	"tarantula-air-defence-battery": {
+		"name": "Tarantula Air Defence Battery", "source_book_id": "000000356", "source_datasheet_id": "000000099",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Tarantula-Air-Defence-Battery", "source_scope": "Warhammer Legends",
+		"points": 70, "points_by_models": {1: 70}, "models": 1, "max_supported_copies": 3,
+		"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and gives no base diameter. The simulation uses a 60 mm circular footprint proxy; physical model footprint clearance is not certified.",
+		"stats": {"movement_inches": 0, "toughness": 5, "save_target": 3, "wounds": 4, "leadership_target": 7, "objective_control": 0, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "FRAME", "VEHICLE", "IMPERIUM"],
+		"default_loadout_by_role": {"Tarantula Air Defence Battery": {"Armoured Hull": 1, "Tarantula Air Defence Missiles": 1}},
+		"ranged": [{"id": "tarantula-air-defence-missiles", "profiles": {"standard": _weapon("Tarantula Air Defence Missiles", 48.0, 3, 4, 7, -1, 1, {"blast": 2, "anti-fly": 2})}}],
+		"melee": [{"id": "armoured-hull", "profiles": {"standard": _weapon("Armoured Hull", 0.0, 1, 4, 4, 0, 1, {})}}],
+		"special_rules": ["Combat Doctrines", "Deadly Demise 1", "Sentry Programming"]
+	},
+	"tarantula-sentry-battery": {
+		"name": "Tarantula Sentry Battery", "source_book_id": "000000356", "source_datasheet_id": "000000098",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Tarantula-Sentry-Battery", "source_scope": "Warhammer Legends",
+		"points": 30, "points_by_models": {1: 30, 2: 60, 3: 90}, "models": 1, "max_supported_copies": 3,
+		"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and gives no base diameter. The simulation uses a 60 mm circular footprint proxy for each battery; physical model footprint clearance is not certified.",
+		"stats": {"movement_inches": 0, "toughness": 6, "save_target": 3, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "VEHICLE", "ARTILLERY", "FRAME", "IMPERIUM"],
+		"default_loadout_by_role": {"Tarantula Sentry Battery": {"Armoured Hull": 1, "Twin Heavy Bolter": 1}},
+		"options": {"replace_twin_heavy_bolter": ["twin-lascannon"]},
+		"ranged": [{"id": "twin-heavy-bolter", "profiles": {"standard": _weapon("Twin Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"sustained-hits": 1, "rapid-fire": 2})}}],
+		"melee": [{"id": "armoured-hull", "profiles": {"standard": _weapon("Armoured Hull", 0.0, 1, 6, 3, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [{"id": "twin-lascannon", "profiles": {"standard": _weapon("Twin Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {"twin-linked": true})}}]},
+		"special_rules": ["Combat Doctrines", "Sentinel Protocols"]
+	},
+	"rapier-carrier": {
+		"name": "Rapier Carrier", "source_book_id": "000000356", "source_datasheet_id": "000000110",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Rapier-Carrier", "source_scope": "Warhammer Legends",
+		"points": 90, "points_by_models": {1: 90}, "models": 1, "max_supported_copies": 3,
+		"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and gives no base diameter. The simulation uses a 60 mm circular footprint proxy; physical model footprint clearance is not certified.",
+		"stats": {"movement_inches": 3, "toughness": 6, "save_target": 2, "wounds": 6, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "IMPERIUM", "ARTILLERY", "FRAME", "VEHICLE"],
+		"default_loadout_by_role": {"Rapier Carrier": {"Armoured Hull": 1, "Boltgun": 1, "Quad Heavy Bolter": 1}},
+		"options": {"replace_quad_heavy_bolter": ["graviton-cannon", "laser-destroyer", "quad-launcher"]},
+		"ranged": [
+			{"id": "boltgun", "profiles": {"standard": _weapon("Boltgun", 24.0, 1, 3, 5, -1, 1, {"rapid-fire": 1})}},
+			{"id": "quad-heavy-bolter", "profiles": {"standard": _weapon("Quad Heavy Bolter", 36.0, 6, 3, 5, -1, 2, {"sustained-hits": 1, "rapid-fire": 2, "twin-linked": true, "heavy": true})}}
+		],
+		"melee": [{"id": "armoured-hull", "profiles": {"standard": _weapon("Armoured Hull", 0.0, 2, 3, 4, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "graviton-cannon", "profiles": {"standard": _weapon("Graviton Cannon", 36.0, 3, 3, 6, -2, 2, {"blast": 2, "anti-vehicle": 2, "heavy": true})}},
+			{"id": "laser-destroyer", "profiles": {"standard": _weapon("Laser Destroyer", 72.0, 2, 3, 14, -3, "D6+3", {"heavy": true})}},
+			{"id": "quad-launcher", "profiles": {
+				"shatter-shells": _weapon("Quad Launcher - Shatter Shells", 24.0, 4, 3, 9, -2, 3, {"heavy": true}),
+				"thunderfire-shells": _weapon("Quad Launcher - Thunderfire Shells", 60.0, "D3+6", 3, 5, 0, 1, {"indirect-fire": true, "heavy": true, "blast": 1})
+			}}
+		]},
+		"special_rules": ["Combat Doctrines", "Powerful Volley"]
+	},
+	"centurion-devastator-squad": {
+		"name": "Centurion Devastator Squad", "source_book_id": "000000356", "source_datasheet_id": "000001193",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Centurion-Devastator-Squad", "source_scope": "Warhammer Legends",
+		"points": 175, "points_by_models": {3: 175, 6: 350}, "models": 3, "max_supported_copies": 3,
+		"base_size_source_mm": 50, "base_radius_inches": 25.0 / 25.4,
+		"stats": {"movement_inches": 4, "toughness": 7, "save_target": 2, "wounds": 4, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "INFANTRY", "CENTURION", "IMPERIUM"],
+		"default_loadout_by_role": {
+			"Devastator Centurion": {"Centurion Bolters": 1, "Centurion Fists": 1, "Grav-cannon": 1},
+			"Devastator Centurion Sergeant": {"Centurion Bolters": 1, "Centurion Fists": 1, "Grav-cannon": 1}
+		},
+		"options": {"replace_centurion_bolters": ["centurion-missile-launcher"], "replace_grav_cannon": ["twin-heavy-bolter", "twin-lascannon"]},
+		"ranged": [
+			{"id": "centurion-bolters", "profiles": {"standard": _weapon("Centurion Bolters", 24.0, 3, 3, 5, -1, 1, {"rapid-fire": 3, "twin-linked": true})}},
+			{"id": "grav-cannon", "profiles": {"standard": _weapon("Grav-cannon", 24.0, 3, 3, 6, -1, 3, {"anti-vehicle": 2})}}
+		],
+		"melee": [{"id": "centurion-fists", "profiles": {"standard": _weapon("Centurion Fists", 0.0, 3, 4, 5, -1, 2, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "centurion-missile-launcher", "profiles": {"standard": _weapon("Centurion Missile Launcher", 36.0, 2, 3, 9, -2, 3, {"blast": 1})}},
+			{"id": "twin-heavy-bolter", "profiles": {"standard": _weapon("Twin Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"twin-linked": true, "sustained-hits": 1, "rapid-fire": 2})}},
+			{"id": "twin-lascannon", "profiles": {"standard": _weapon("Twin Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {"twin-linked": true})}}
+		]},
+		"special_rules": ["Combat Doctrines", "Decimator Protocols"]
+	},
+	"centurion-assault-squad": {
+		"name": "Centurion Assault Squad", "source_book_id": "000000356", "source_datasheet_id": "000002703",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Centurion-Assault-Squad", "source_scope": "Warhammer Legends",
+		"points": 150, "points_by_models": {3: 150, 6: 300}, "models": 3, "max_supported_copies": 3,
+		"base_size_source_mm": 50, "base_radius_inches": 25.0 / 25.4,
+		"stats": {"movement_inches": 4, "toughness": 7, "save_target": 2, "wounds": 4, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "INFANTRY", "CENTURION", "IMPERIUM"],
+		"default_loadout_by_role": {
+			"Assault Centurion Sergeant": {"Centurion Bolters": 1, "Siege Drills": 1, "Twin Flamer": 1},
+			"Assault Centurion": {"Centurion Bolters": 1, "Siege Drills": 1, "Twin Flamer": 1}
+		},
+		"options": {"replace_centurion_bolters": ["centurion-assault-launcher"], "replace_twin_flamer": ["twin-meltagun"]},
+		"wargear_abilities": {"centurion-assault-launcher": "The bearer has the EXPLOSIVES keyword."},
+		"ranged": [
+			{"id": "centurion-bolters", "profiles": {"standard": _weapon("Centurion Bolters", 24.0, 3, 3, 5, -1, 1, {"rapid-fire": 3, "twin-linked": true})}},
+			{"id": "twin-flamer", "profiles": {"standard": _weapon("Twin Flamer", 12.0, 3, null, 4, 0, 1, {"blast": 1, "twin-linked": true, "torrent": true})}}
+		],
+		"melee": [{"id": "siege-drills", "profiles": {"standard": _weapon("Siege Drills", 0.0, 3, 3, 10, -2, 3, {"twin-linked": true})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "twin-meltagun", "profiles": {"standard": _weapon("Twin Meltagun", 12.0, 1, 3, 9, -3, "D3+2", {"melta": 2, "twin-linked": true})}}
+		]},
+		"special_rules": ["Combat Doctrines", "Annihilator Protocols"]
+	},
+	"vindicator": {
+		"name": "Vindicator", "source_book_id": "000000356", "source_datasheet_id": "000001188",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Vindicator", "source_scope": "Warhammer Legends",
+		"points": 185, "points_by_models": {1: 185}, "third_plus_points_by_models": {1: 200}, "models": 1, "max_supported_copies": 3,
+		"damaged_threshold": 4,
+		"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and gives no base diameter. The simulation uses a 60 mm circular footprint proxy; exact physical model clearance is not certified.",
+		"stats": {"movement_inches": 9, "toughness": 11, "save_target": 2, "wounds": 11, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "VEHICLE", "FRAME", "IMPERIUM", "SMOKE"],
+		"default_loadout_by_role": {"Vindicator": {"Armoured Tracks": 1, "Demolisher Cannon": 1}},
+		"options": {"add_optional_hunter_killer_missile": true, "add_optional_storm_bolter": true},
+		"ranged": [{"id": "demolisher-cannon", "profiles": {
+			"standard": _weapon("Demolisher Cannon", 24.0, "D3+3", 3, 14, -3, 4, {"blast": 1}),
+			"siege-shield-close-quarters": _weapon("Demolisher Cannon - Siege Shield (Close-quarters, No Blast)", 24.0, "D3+3", 3, 14, -3, 4, {})
+		}}],
+		"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 3, 4, 6, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "hunter-killer-missile", "profiles": {"standard": _weapon("Hunter-killer Missile", 48.0, 1, 2, 14, -3, "D3+3", {"one-shot": true})}},
+			{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}
+		]},
+		"special_rules": ["Combat Doctrines", "Deadly Demise D3", "Damaged 4", "Siege Shield"]
+	},
+	"predator-annihilator": {
+		"name": "Predator Annihilator", "source_book_id": "000000356", "source_datasheet_id": "000002714",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Predator-Annihilator", "source_scope": "Warhammer Legends",
+		"points": 135, "points_by_models": {1: 135}, "third_plus_points_by_models": {1: 145}, "models": 1, "max_supported_copies": 3,
+		"damaged_threshold": 4,
+		"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and gives no base diameter. The simulation uses a 60 mm circular footprint proxy; exact physical model clearance is not certified.",
+		"stats": {"movement_inches": 10, "toughness": 10, "save_target": 3, "wounds": 11, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "VEHICLE", "FRAME", "IMPERIUM", "SMOKE"],
+		"default_loadout_by_role": {"Predator Annihilator": {"Armoured Tracks": 1, "Lascannon": 2, "Predator Twin Lascannon": 1}},
+		"options": {"replace_two_lascannons_with_two_heavy_bolters": true, "add_optional_hunter_killer_missile": true, "add_optional_storm_bolter": true},
+		"ranged": [
+			{"id": "lascannon", "profiles": {"standard": _weapon("Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {})}},
+			{"id": "lascannon", "profiles": {"standard": _weapon("Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {})}},
+			{"id": "predator-twin-lascannon", "profiles": {"standard": _weapon("Predator Twin Lascannon", 48.0, 1, 3, 14, -3, "D3+3", {"twin-linked": true})}}
+		],
+		"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 3, 4, 6, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "heavy-bolter", "profiles": {"standard": _weapon("Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"rapid-fire": 2, "sustained-hits": 1})}},
+			{"id": "hunter-killer-missile", "profiles": {"standard": _weapon("Hunter-killer Missile", 48.0, 1, 2, 14, -3, "D3+3", {"one-shot": true})}},
+			{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}
+		]},
+		"special_rules": ["Combat Doctrines", "Deadly Demise D3", "Damaged 4", "Annihilator"]
+	},
+	"predator-destructor": {
+		"name": "Predator Destructor", "source_book_id": "000000356", "source_datasheet_id": "000002715",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Predator-Destructor", "source_scope": "Warhammer Legends",
+		"points": 140, "points_by_models": {1: 140}, "third_plus_points_by_models": {1: 150}, "models": 1, "max_supported_copies": 3,
+		"damaged_threshold": 4,
+		"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and gives no base diameter. The simulation uses a 60 mm circular footprint proxy; exact physical model clearance is not certified.",
+		"stats": {"movement_inches": 10, "toughness": 10, "save_target": 3, "wounds": 11, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "VEHICLE", "FRAME", "IMPERIUM", "SMOKE"],
+		"default_loadout_by_role": {"Predator Destructor": {"Armoured Tracks": 1, "Lascannon": 2, "Predator Autocannon": 1}},
+		"options": {"replace_two_lascannons_with_two_heavy_bolters": true, "add_optional_hunter_killer_missile": true, "add_optional_storm_bolter": true},
+		"ranged": [
+			{"id": "lascannon", "profiles": {"standard": _weapon("Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {})}},
+			{"id": "lascannon", "profiles": {"standard": _weapon("Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {})}},
+			{"id": "predator-autocannon", "profiles": {"standard": _weapon("Predator Autocannon", 48.0, 4, 3, 9, -1, 3, {"rapid-fire": 2})}}
+		],
+		"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 3, 4, 6, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "heavy-bolter", "profiles": {"standard": _weapon("Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"rapid-fire": 2, "sustained-hits": 1})}},
+			{"id": "hunter-killer-missile", "profiles": {"standard": _weapon("Hunter-killer Missile", 48.0, 1, 2, 14, -3, "D3+3", {"one-shot": true})}},
+			{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}
+		]},
+		"special_rules": ["Combat Doctrines", "Deadly Demise D3", "Damaged 4", "Destructor"]
+	},
+	"whirlwind": {
+		"name": "Whirlwind", "source_book_id": "000000356", "source_datasheet_id": "000002727",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Whirlwind", "source_scope": "Warhammer Legends",
+		"points": 175, "points_by_models": {1: 175}, "second_plus_points_by_models": {1: 195}, "third_plus_points_by_models": {1: 195}, "models": 1, "max_supported_copies": 3,
+		"damaged_threshold": 4,
+		"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and gives no base diameter. The simulation uses a 60 mm circular footprint proxy; exact physical model clearance is not certified.",
+		"stats": {"movement_inches": 10, "toughness": 10, "save_target": 3, "wounds": 11, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "VEHICLE", "FRAME", "IMPERIUM", "SMOKE"],
+		"default_loadout_by_role": {"Whirlwind": {"Armoured Tracks": 1, "Whirlwind Vengeance Launcher": 1}},
+		"options": {"add_optional_hunter_killer_missile": true, "add_optional_storm_bolter": true},
+		"ranged": [{"id": "whirlwind-vengeance-launcher", "profiles": {"standard": _weapon("Whirlwind Vengeance Launcher", 72.0, 6, 3, 8, -2, 2, {"indirect-fire": true, "blast": 2})}}],
+		"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 3, 4, 6, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "hunter-killer-missile", "profiles": {"standard": _weapon("Hunter-killer Missile", 48.0, 1, 2, 14, -3, "D3+3", {"one-shot": true})}},
+			{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}
+		]},
+		"special_rules": ["Combat Doctrines", "Deadly Demise D3", "Damaged 4", "Punishing Bombardment"]
+	},
+	"stormhawk-interceptor": {
+		"name": "Stormhawk Interceptor", "source_book_id": "000000356", "source_datasheet_id": "000000084",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Stormhawk-Interceptor", "source_scope": "Warhammer Legends",
+		"points": 155, "points_by_models": {1: 155}, "models": 1, "max_supported_copies": 3,
+		"base_size_source_mm": [120, 92], "base_geometry": "oval", "base_radius_inches": 60.0 / 25.4,
+		"geometry_scope": "The verified source specifies a 120 x 92 mm oval. The local simulation uses a labelled 60 mm bounding-circle proxy; exact physical base clearance is not certified.",
+		"stats": {"movement_inches": 0, "toughness": 9, "save_target": 3, "wounds": 10, "leadership_target": 6, "objective_control": 0, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "VEHICLE", "SMOKE", "RAVENWING", "IMPERIUM", "FLY", "AIRCRAFT"],
+		"default_loadout_by_role": {"Stormhawk Interceptor": {"Armoured Hull": 1, "Las-talon": 1, "Skyhammer Missile Launcher": 1, "Twin Assault Cannon": 1}},
+		"options": {"las_talon_replacement": "icarus-stormcannon", "skyhammer_missile_launcher_replacements": ["twin-heavy-bolter", "typhoon-missile-launcher"]},
+		"ranged": [
+			{"id": "las-talon", "profiles": {"standard": _weapon("Las-talon", 36.0, 2, 3, 10, -3, "D3+3", {})}},
+			{"id": "skyhammer-missile-launcher", "profiles": {"standard": _weapon("Skyhammer Missile Launcher", 48.0, 3, 3, 8, -1, 2, {"anti-fly": 2})}},
+			{"id": "twin-assault-cannon", "profiles": {"standard": _weapon("Twin Assault Cannon", 24.0, 6, 3, 6, -2, 1, {"twin-linked": true, "sustained-hits": 1})}}
+		],
+		"melee": [{"id": "armoured-hull", "profiles": {"standard": _weapon("Armoured Hull", 0.0, 3, 4, 6, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "icarus-stormcannon", "profiles": {"standard": _weapon("Icarus Stormcannon", 48.0, 6, 3, 7, -1, 2, {"anti-fly": 2})}},
+			{"id": "twin-heavy-bolter", "profiles": {"standard": _weapon("Twin Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"twin-linked": true, "rapid-fire": 2, "sustained-hits": 1})}},
+			{"id": "typhoon-missile-launcher", "profiles": {
+				"krak": _weapon("Typhoon Missile Launcher - Krak", 48.0, 2, 3, 10, -2, "D3+3", {}),
+				"frag": _weapon("Typhoon Missile Launcher - Frag", 48.0, 6, 3, 4, -1, 1, {"blast": 2})
+			}}
+		]},
+		"special_rules": ["Combat Doctrines", "Deadly Demise D3", "Interceptor"]
+	},
+	"stormtalon-gunship": {
+		"name": "Stormtalon Gunship", "source_book_id": "000000356", "source_datasheet_id": "000001190",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Stormtalon-Gunship", "source_scope": "Warhammer Legends",
+		"points": 165, "points_by_models": {1: 165}, "models": 1, "max_supported_copies": 3,
+		"base_size_source_mm": [120, 92], "base_geometry": "oval", "base_radius_inches": 60.0 / 25.4,
+		"geometry_scope": "The verified source specifies a 120 x 92 mm oval. The local simulation uses a labelled 60 mm bounding-circle proxy; exact physical base clearance is not certified.",
+		"stats": {"movement_inches": 0, "toughness": 8, "save_target": 3, "wounds": 10, "leadership_target": 6, "objective_control": 0, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "RAVENWING", "FLY", "VEHICLE", "AIRCRAFT", "IMPERIUM"],
+		"default_loadout_by_role": {"Stormtalon Gunship": {"Armoured Hull": 1, "Skyhammer Missile Launcher": 1, "Twin Assault Cannon": 1}},
+		"options": {"skyhammer_missile_launcher_replacements": ["twin-heavy-bolter", "twin-lascannon", "typhoon-missile-launcher"]},
+		"ranged": [
+			{"id": "skyhammer-missile-launcher", "profiles": {"standard": _weapon("Skyhammer Missile Launcher", 48.0, 3, 3, 8, -1, 2, {"twin-linked": true, "anti-fly": 2})}},
+			{"id": "twin-assault-cannon", "profiles": {"standard": _weapon("Twin Assault Cannon", 24.0, 6, 3, 6, -2, 1, {"twin-linked": true, "sustained-hits": 1})}}
+		],
+		"melee": [{"id": "armoured-hull", "profiles": {"standard": _weapon("Armoured Hull", 0.0, 3, 4, 6, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "twin-heavy-bolter", "profiles": {"standard": _weapon("Twin Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"twin-linked": true, "rapid-fire": 2, "sustained-hits": 1})}},
+			{"id": "twin-lascannon", "profiles": {"standard": _weapon("Twin Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {"twin-linked": true})}},
+			{"id": "typhoon-missile-launcher", "profiles": {
+				"frag": _weapon("Typhoon Missile Launcher - Frag", 48.0, 6, 3, 4, -1, 1, {"blast": 2}),
+				"krak": _weapon("Typhoon Missile Launcher - Krak", 48.0, 2, 3, 10, -2, "D3+3", {})
+			}}
+		]},
+		"special_rules": ["Combat Doctrines", "Deadly Demise D3", "Strafing Run"]
+	},
+	"cerberus": {
+		"name": "Cerberus", "source_book_id": "000000356", "source_datasheet_id": "000001153",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Cerberus", "source_scope": "Warhammer Legends",
+		"points": 270, "points_by_models": {1: 270}, "models": 1, "max_supported_copies": 3,
+		"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and gives no footprint diameter. The simulation uses a labelled 60 mm circular footprint proxy; exact physical model clearance is not certified.",
+		"stats": {"movement_inches": 10, "toughness": 12, "save_target": 2, "wounds": 18, "leadership_target": 6, "objective_control": 6, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "FRAME", "IMPERIUM", "VEHICLE", "SMOKE"],
+		"default_loadout_by_role": {"Cerberus": {"Armoured Tracks": 1, "Cerberus Neutron Pulse Array": 1}},
+		"options": {"optional_weapon": ["heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"], "optional_pair": ["two-heavy-bolters", "two-lascannons"]},
+		"ranged": [{"id": "cerberus-neutron-pulse-array", "profiles": {"standard": _weapon("Cerberus Neutron Pulse Array", 48.0, 3, 3, 16, -3, "D3+6", {"twin-linked": true})}}],
+		"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 6, 4, 8, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "heavy-bolter", "profiles": {"standard": _weapon("Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"rapid-fire": 2, "sustained-hits": 1})}},
+			{"id": "heavy-flamer", "profiles": {"standard": _weapon("Heavy Flamer", 12.0, 3, null, 5, -1, 1, {"blast": 2, "torrent": true})}},
+			{"id": "lascannon", "profiles": {"standard": _weapon("Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {})}},
+			{"id": "multi-melta", "profiles": {"standard": _weapon("Multi-melta", 18.0, 2, 3, 10, -3, "D3+2", {"melta": 3})}},
+			{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}
+		]},
+		"special_rules": ["Combat Doctrines", "Deadly Demise D6", "Atomantic Arc-reactor"]
+	},
+	"dreadnought": {
+		"name": "Dreadnought", "source_book_id": "000000356", "source_datasheet_id": "000000117",
+		"source_export_updated_at": "2026-10-28T23:48:19+03:00", "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Dreadnought", "source_scope": "Warhammer Legends",
+		"points": 135, "points_by_models": {1: 135}, "models": 1, "max_supported_copies": 3,
+		"base_size_source_mm": 60, "base_radius_inches": 30.0 / 25.4,
+		"stats": {"movement_inches": 6, "toughness": 9, "save_target": 2, "wounds": 8, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "DEATHWING", "WALKER", "VEHICLE", "SMOKE", "IMPERIUM"],
+		"default_loadout_by_role": {"Dreadnought": {"Assault Cannon": 1, "Dreadnought Fist": 1, "Storm Bolter": 1}},
+		"options": {"primary": ["heavy-plasma-cannon", "multi-melta", "twin-lascannon"], "melee_package": ["missile-launcher-crushing-feet"], "secondary": ["heavy-flamer"]},
+		"ranged": [
+			{"id": "assault-cannon", "profiles": {"standard": _weapon("Assault Cannon", 24.0, 6, 3, 6, -2, 1, {"sustained-hits": 1})}},
+			{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}
+		],
+		"melee": [{"id": "dreadnought-fist", "profiles": {"standard": _weapon("Dreadnought Fist", 0.0, 5, 3, 12, -2, 3, {})}}],
+		"additional_weapon_profiles": {
+			"ranged": [
+				{"id": "heavy-flamer", "profiles": {"standard": _weapon("Heavy Flamer", 12.0, 3, null, 5, -1, 1, {"blast": 2, "torrent": true})}},
+				{"id": "heavy-plasma-cannon", "profiles": {
+					"standard": _weapon("Heavy Plasma Cannon - Standard", 36.0, 3, 3, 9, -2, 2, {"blast": 1, "heavy": true}),
+					"supercharge": _weapon("Heavy Plasma Cannon - Supercharge", 36.0, 3, 3, 10, -3, 3, {"blast": 1, "hazardous": true, "heavy": true})}},
+				{"id": "missile-launcher", "profiles": {
+					"frag": _weapon("Missile Launcher - Frag", 48.0, 4, 3, 4, -1, 1, {"blast": 1}),
+					"krak": _weapon("Missile Launcher - Krak", 48.0, 1, 3, 10, -2, "D3+3", {})}},
+				{"id": "multi-melta", "profiles": {"standard": _weapon("Multi-melta", 18.0, 2, 3, 10, -3, "D3+2", {"melta": 3})}},
+				{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}},
+				{"id": "twin-lascannon", "profiles": {"standard": _weapon("Twin Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {"twin-linked": true})}}
+			],
+			"melee": [{"id": "crushing-feet", "profiles": {"standard": _weapon("Crushing Feet", 0.0, 5, 3, 6, 0, 1, {})}}]
+		},
+		"special_rules": ["Combat Doctrines", "Deadly Demise 1", "Wisdom of the Ancients"]
+	},
+	"venerable-dreadnought-legends": {
+		"name": "Venerable Dreadnought (Warhammer Legends)", "source_book_id": "000000356", "source_datasheet_id": "000000120",
+		"source_export_updated_at": VERIFIED_EXPORT_UPDATED_AT, "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Venerable-Dreadnought", "source_scope": "Warhammer Legends",
+		"points": 165, "points_by_models": {1: 165}, "models": 1, "max_supported_copies": 3,
+		"base_size_source_mm": 60, "base_radius_inches": 30.0 / 25.4,
+		"stats": {"movement_inches": 6, "toughness": 9, "save_target": 2, "wounds": 8, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "IMPERIUM", "DEATHWING", "VEHICLE", "WALKER", "DREADNOUGHT", "SMOKE"],
+		"default_loadout_by_role": {"Venerable Dreadnought": {"Armoured Feet": 1, "Assault Cannon": 1, "Dreadnought Fist": 1, "Storm Bolter": 1}},
+		"options": {"primary": ["dreadnought-inferno-cannon", "heavy-plasma-cannon", "multi-melta", "twin-autocannon", "twin-heavy-bolter", "twin-heavy-flamer", "twin-lascannon"], "fist-and-storm-bolter-package": ["heavy-flamer-and-fist", "missile-launcher", "twin-autocannon"]},
+		"ranged": [
+			{"id": "assault-cannon", "profiles": {"standard": _weapon("Assault Cannon", 24.0, 6, 3, 6, -2, 1, {"sustained-hits": 1})}},
+			{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}
+		],
+		"melee": [
+			{"id": "armoured-feet", "profiles": {"standard": _weapon("Armoured Feet", 0.0, 5, 3, 6, 0, 1, {})}},
+			{"id": "dreadnought-fist", "profiles": {"standard": _weapon("Dreadnought Fist", 0.0, 5, 3, 12, -2, 3, {})}}
+		],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "dreadnought-inferno-cannon", "profiles": {"standard": _weapon("Dreadnought Inferno Cannon", 12.0, 7, null, 6, -1, 1, {"blast": 2, "torrent": true})}},
+			{"id": "heavy-flamer", "profiles": {"standard": _weapon("Heavy Flamer", 12.0, 3, null, 5, -1, 1, {"torrent": true, "blast": 2})}},
+			{"id": "heavy-plasma-cannon", "profiles": {
+				"standard": _weapon("Heavy Plasma Cannon - Standard", 36.0, 3, 3, 9, -2, 2, {"blast": 1, "heavy": true}),
+				"supercharge": _weapon("Heavy Plasma Cannon - Supercharge", 36.0, 3, 3, 10, -3, 3, {"hazardous": true, "blast": 1, "heavy": true})}},
+			{"id": "missile-launcher", "profiles": {
+				"frag": _weapon("Missile Launcher - Frag", 48.0, 4, 3, 4, -1, 1, {"blast": 1, "heavy": true}),
+				"krak": _weapon("Missile Launcher - Krak", 48.0, 1, 3, 10, -2, "D3+3", {})}},
+			{"id": "multi-melta", "profiles": {"standard": _weapon("Multi-melta", 18.0, 2, 3, 10, -3, "D3+2", {"melta": 3})}},
+			{"id": "twin-autocannon", "profiles": {"standard": _weapon("Twin Autocannon", 48.0, 2, 3, 9, -1, 3, {"twin-linked": true})}},
+			{"id": "twin-heavy-bolter", "profiles": {"standard": _weapon("Twin Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"sustained-hits": 1, "rapid-fire": 2, "twin-linked": true})}},
+			{"id": "twin-heavy-flamer", "profiles": {"standard": _weapon("Twin Heavy Flamer", 12.0, 3, null, 5, -1, 1, {"blast": 2, "twin-linked": true, "torrent": true})}},
+			{"id": "twin-lascannon", "profiles": {"standard": _weapon("Twin Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {"twin-linked": true})}}
+		]},
+		"special_rules": ["Combat Doctrines", "Deadly Demise 1", "Wisdom of the Ancients"]
+	},
+	"typhon": {
+		"name": "Typhon", "source_book_id": "000000356", "source_datasheet_id": "000000093",
+		"source_export_updated_at": VERIFIED_EXPORT_UPDATED_AT, "source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": "d0164c9bf5035b95d88f0a3a1c297bc88dbaf5b565f2a1ba195928be3d3ceb5c",
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Typhon", "source_scope": "Warhammer Legends",
+		"points": 320, "points_by_models": {1: 320}, "models": 1, "max_supported_copies": 3, "damaged_threshold": 6,
+		"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and gives no footprint dimensions. The simulation uses a labelled 60 mm circular footprint proxy; exact physical model clearance is not certified.",
+		"stats": {"movement_inches": 10, "toughness": 12, "save_target": 2, "wounds": 18, "leadership_target": 6, "objective_control": 6, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "FRAME", "VEHICLE", "IMPERIUM", "SMOKE"],
+		"default_loadout_by_role": {"Typhon": {"Armoured Tracks": 1, "Dreadhammer Siege Cannon": 1}},
+		"options": {"sponsons": ["two-heavy-bolters", "two-lascannons"], "hull-weapon": ["heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]},
+		"ranged": [{"id": "dreadhammer-siege-cannon", "profiles": {"standard": _weapon("Dreadhammer Siege Cannon", 24.0, "D6+6", 3, 14, -3, "D3+3", {"blast": 1})}}],
+		"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 6, 4, 8, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "heavy-bolter", "profiles": {"standard": _weapon("Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"rapid-fire": 2, "sustained-hits": 1})}},
+			{"id": "heavy-flamer", "profiles": {"standard": _weapon("Heavy Flamer", 12.0, 3, null, 5, -1, 1, {"torrent": true, "blast": 2})}},
+			{"id": "lascannon", "profiles": {"standard": _weapon("Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {})}},
+			{"id": "multi-melta", "profiles": {"standard": _weapon("Multi-melta", 18.0, 2, 3, 10, -3, "D3+2", {"melta": 3})}},
+			{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}
+		]},
+		"special_rules": ["Combat Doctrines", "Deadly Demise D6", "Damaged 6", "Sunderer of Fortresses"]
 	}
 }
 
@@ -2167,8 +2584,443 @@ static func _all_profiles() -> Dictionary:
 		_profile_catalog_cache = _build_profiles()
 		_profile_catalog_cache.merge(_space_wolves_walker_profiles(), true)
 		_profile_catalog_cache.merge(transport_profiles(), true)
+		_profile_catalog_cache.merge(_legends_transport_profiles(), true)
+		_profile_catalog_cache.merge(_legends_razorback_profiles(), true)
+		_profile_catalog_cache.merge(_legends_hammerfall_profiles(), true)
+		_profile_catalog_cache.merge({"mastodon": _legends_mastodon_profile()}, true)
+		_profile_catalog_cache.merge(_legends_scout_profiles(), true)
+		_profile_catalog_cache.merge(_legends_falchion_profiles(), true)
 		_profile_catalog_cache.merge(_chapter_vehicle_profiles(_profile_catalog_cache), true)
+		_apply_current_source_verification(_profile_catalog_cache)
 	return _profile_catalog_cache
+
+static func _apply_current_source_verification(profiles: Dictionary) -> void:
+	for identity: String in profiles:
+		var profile: Dictionary = profiles[identity]
+		var book_id := str(profile.get("source_book_id", ""))
+		var slice_sha256 := str(VERIFIED_EXPORT_SLICE_SHA256_BY_BOOK.get(book_id, ""))
+		if str(profile.get("source_datasheet_id", "")).is_empty() or slice_sha256.is_empty():
+			push_error("Cannot bind current Wahapedia verification provenance for Marine profile %s" % identity)
+			continue
+		profile["source_verified_against_snapshot_id"] = VERIFIED_EXPORT_SNAPSHOT_ID
+		profile["source_verified_against_export_updated_at"] = VERIFIED_EXPORT_UPDATED_AT
+		profile["source_verified_against_manifest_sha256"] = VERIFIED_EXPORT_MANIFEST_SHA256
+		profile["source_verified_against_slice_manifest_sha256"] = slice_sha256
+
+static func _legends_transport_profiles() -> Dictionary:
+	return {
+		"land-raider-excelsior": {
+			"name": "Land Raider Excelsior", "source_book_id": "000000356", "source_datasheet_id": "000000067", "source_role": "Transport",
+			"source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID, "source_export_updated_at": VERIFIED_EXPORT_UPDATED_AT,
+			"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": VERIFIED_EXPORT_SLICE_SHA256_BY_BOOK["000000356"],
+			"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Land-Raider-Excelsior", "source_scope": "Warhammer Legends",
+			"points": 250, "points_by_models": {1: 250}, "second_plus_points_by_models": {1: 250}, "third_plus_points_by_models": {1: 250},
+			"source_cost_sections": {"first": {"1": 250}, "second_plus": {"1": 250}, "third_plus": {"1": 250}},
+			"models": 1, "max_supported_copies": 3,
+			"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+			"geometry_scope": "The verified source says Use model and gives no footprint diameter. The simulation uses a labelled 60 mm circular footprint proxy; exact physical model clearance is not certified.",
+			"damaged_threshold": 5,
+			"stats": {"movement_inches": 10, "toughness": 12, "save_target": 2, "wounds": 16, "leadership_target": 6, "objective_control": 5, "invulnerable_target": 5},
+			"keywords": ["ADEPTUS ASTARTES", "SMOKE", "IMPERIUM", "TRANSPORT", "FRAME", "VEHICLE"],
+			"default_loadout_by_role": {"Land Raider Excelsior": {"Armoured Tracks": 1, "Godhammer Lascannon": 2, "Grav-cannon": 1}},
+			"ranged": [
+				{"id": "godhammer-lascannon", "profiles": {"standard": _weapon("Godhammer Lascannon", 48.0, 2, 3, 12, -3, "D3+3", {})}},
+				{"id": "godhammer-lascannon-2", "profiles": {"standard": _weapon("Godhammer Lascannon", 48.0, 2, 3, 12, -3, "D3+3", {})}},
+				{"id": "grav-cannon", "profiles": {"standard": _weapon("Grav-cannon", 24.0, 3, 3, 6, -1, 3, {"anti-vehicle": 2})}}
+			],
+			"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 6, 4, 8, 0, 1, {})}}],
+			"additional_weapon_profiles": {"ranged": [
+				{"id": "multi-melta", "profiles": {"standard": _weapon("Multi-melta", 18.0, 2, 3, 10, -3, "D3+2", {"melta": 3})}},
+				{"id": "hunter-killer-missile", "profiles": {"standard": _weapon("Hunter-killer Missile", 48.0, 1, 2, 14, -3, "D3+3", {"one-shot": true})}},
+				{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}},
+				{"id": "combi-weapon", "physical_weapon_id": "combi-weapon", "profiles": {
+					"damnatus": _weapon("Combi-weapon - Damnatus", 12.0, 1, 3, 9, -3, "D3+2", {"melta": 2}),
+					"infernus": _weapon("Combi-weapon - Infernus", 12.0, 3, null, 4, 0, 1, {"torrent": true, "blast": 1}),
+					"purgatus": _weapon("Combi-weapon - Purgatus", 24.0, 2, 3, 7, -2, 2, {})}}
+			]},
+			"transport": {
+				"capacity": 12, "required": ["ADEPTUS ASTARTES", "INFANTRY"],
+				"double_space": ["JUMP PACK", "GRAVIS", "TERMINATOR"], "triple_space": ["CENTURION"],
+				"options": {"add": ["Multi-melta", "Hunter-killer Missile", "Storm Bolter", "Combi-weapon - Damnatus"]},
+				"abilities": [
+					{"name": "Damaged", "parameter": "5", "type": "Core", "text": "While a model’s remaining wounds are equal to or less than 5, that model is damaged: while damaged, its attacks have -1 to Hit rolls."},
+					{"name": "Deadly Demise", "parameter": "D6", "type": "Core", "text": "Each time a model with this ability is destroyed, after units embarked within it have made their Emergency Disembark moves, roll one D6. On a 6, each unit within 6 inches suffers D6 mortal wounds; roll separately for each unit."},
+					{"name": "Combat Doctrines", "type": "Faction", "text": "At the start of your Command phase, select one listed Combat Doctrine. It is active for friendly ADEPTUS ASTARTES units with this ability until the start of your next Command phase. Assault Doctrine: an Advance move does not prevent the unit declaring a Charge. Devastator Doctrine: ranged attacks gain Assault. Tactical Doctrine: a Fall Back move does not prevent the unit shooting or declaring a Charge. Each doctrine can be selected once per battle; only one doctrine can be active for each unit."},
+					{"name": "Rites of Battle", "type": "Datasheet", "text": "Once per battle round, one unit from your army with this ability can use it when it is targeted with a Stratagem. If it does, reduce the cost of that Stratagem by 1 CP."}
+				]
+			},
+			"special_rules": ["Combat Doctrines", "Damaged 5", "Deadly Demise D6", "Rites of Battle"]
+		},
+		"rhino-primaris": _rhino_primaris_profile()
+	}
+
+static func _legends_razorback_profiles() -> Dictionary:
+	return {
+		"razorback": _legend_razorback_profile("Razorback", "000000129", "Razorback", 95, ["JUMP PACK", "TERMINATOR", "CENTURION", "GRAVIS"], false),
+		"relic-razorback": _legend_razorback_profile("Relic Razorback", "000002720", "Relic-Razorback", 105, ["JUMP PACK", "GRAVIS", "CENTURION", "TERMINATOR"], true)
+	}
+
+static func _legends_hammerfall_profiles() -> Dictionary:
+	return {"hammerfall-bunker": _legend_hammerfall_bunker_profile()}
+
+static func _legend_hammerfall_bunker_profile() -> Dictionary:
+	var heavy_bolter_array := _weapon("Hammerfall Heavy Bolter Array", 36.0, 6, 4, 5, -1, 2, {"sustained-hits": 1, "rapid-fire": 2, "twin-linked": true})
+	var heavy_flamer_array := _weapon("Hammerfall Heavy Flamer Array", 12.0, 6, null, 5, -1, 1, {"twin-linked": true, "torrent": true, "blast": 2})
+	var superfrag := _weapon("Hammerfall Missile Launcher - Superfrag", 48.0, 7, 4, 5, -1, 1, {"blast": 1})
+	var superkrak := _weapon("Hammerfall Missile Launcher - Superkrak", 48.0, 2, 4, 10, -2, "D3+3", {})
+	var abilities: Array[Dictionary] = [
+		{"name": "Deadly Demise", "parameter": "D6", "source_ability_id": "000008339", "type": "Core", "text": "Each time this model is destroyed, after any embarked units make their Emergency Disembark moves, roll one D6. On a 6, each unit within 6 inches suffers D6 mortal wounds; roll separately for each unit."},
+		{"name": "Damaged", "parameter": "5", "source_ability_id": "000011125", "type": "Core", "text": "While this model has 5 or fewer wounds remaining, its attacks have -1 to Hit."},
+		{"name": "Combat Doctrines", "source_ability_id": "000011158", "type": "Faction", "text": "At the start of your Command phase, select one Combat Doctrine for friendly ADEPTUS ASTARTES units with this ability until the start of your next Command phase."},
+		{"name": "Ceramite Cover", "type": "Datasheet", "text": "When an attack targets a unit that is not fully visible to the attacking model because of this unit, the target has the benefit of cover against that attack."},
+		{"name": "Defensive Array (Once per phase, per unit)", "type": "Datasheet", "text": "You can target this unit with the Fire Overwatch stratagem regardless of any other uses of that stratagem this phase. If you do, that use is -1 CP."},
+		{"name": "Fortification", "type": "Datasheet", "text": "While an enemy unit is engaged with only FORTIFICATION units, it can be selected as a target of ranged attacks. Those attacks have -1 to Hit (excluding CLOSE-QUARTERS attacks). When that enemy unit is selected to Fall Back and is not Battle-shocked, its Hazard rolls automatically pass."}
+	]
+	var source_files: Array[Dictionary] = [
+		{"name": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+		{"name": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+		{"name": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+		{"name": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+		{"name": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+		{"name": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+		{"name": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+		{"name": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"}
+	]
+	return {
+		"name": "Hammerfall Bunker", "source_book_id": "000000356", "source_datasheet_id": "000000097", "source_role": "Fortifications",
+		"source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID, "source_retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00", "source_export_updated_at": VERIFIED_EXPORT_UPDATED_AT,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": VERIFIED_EXPORT_SLICE_SHA256_BY_BOOK["000000356"],
+		"source_files": source_files, "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Hammerfall-Bunker", "source_scope": "Warhammer Legends",
+		"points": 175, "points_by_models": {1: 175}, "second_plus_points_by_models": {1: 175}, "third_plus_points_by_models": {1: 175},
+		"source_cost_sections": {"first": {"1": 175}, "second_plus": {"1": 175}, "third_plus": {"1": 175}},
+		"models": 1, "max_supported_copies": 3, "damaged_threshold": 5, "base_size_source": "Use model", "base_radius_inches": 60.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model without hull dimensions. The game uses a labelled 120 mm circular interaction proxy; exact physical footprint, placement and clearance are not certified.",
+		"stats": {"movement_inches": 0, "toughness": 12, "save_target": 2, "wounds": 14, "leadership_target": 6, "objective_control": 0, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "VEHICLE", "FORTIFICATION", "FRAME", "IMPERIUM"],
+		"default_loadout_by_role": {"Hammerfall Bunker": {"Hammerfall Heavy Bolter Array": 1, "Hammerfall Missile Launcher": 1}},
+		"ranged": [
+			{"id": "hammerfall-heavy-bolter-array", "profiles": {"standard": heavy_bolter_array}},
+			{"id": "hammerfall-missile-launcher", "profiles": {"superfrag": superfrag, "superkrak": superkrak}}
+		],
+		"melee": [], "additional_weapon_profiles": {"ranged": [{"id": "hammerfall-heavy-flamer-array", "profiles": {"standard": heavy_flamer_array}}]},
+		"options": {"replacement_groups": {"heavy-weapon-array": {"name": "Hammerfall Heavy Bolter Array", "from_ids": ["hammerfall-heavy-bolter-array"], "choices": {"hammerfall-heavy-flamer-array": {"name": "Hammerfall Heavy Flamer Array", "to_ids": ["hammerfall-heavy-flamer-array"]}}}}},
+		"abilities": abilities, "special_rules": ["Combat Doctrines", "Deadly Demise D6", "Damaged 5", "Ceramite Cover", "Defensive Array", "Fortification"]
+	}
+
+static func hammerfall_weapons(heavy_flamer_array: bool = false) -> Dictionary:
+	var source := profile("hammerfall-bunker")
+	if source.is_empty(): return {}
+	var ranged: Array = source.get("ranged", []).duplicate(true)
+	if heavy_flamer_array:
+		ranged = ranged.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) != "hammerfall-heavy-bolter-array")
+		for weapon: Dictionary in source.get("additional_weapon_profiles", {}).get("ranged", []):
+			if str(weapon.get("id", "")) == "hammerfall-heavy-flamer-array": ranged.append(weapon.duplicate(true))
+	return {"ranged": ranged, "melee": []}
+
+static func _legend_razorback_profile(profile_name: String, datasheet_id: String, url_name: String, points: int, forbidden_keywords: Array[String], relic: bool) -> Dictionary:
+	var twin_heavy_bolter := _weapon("Twin Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"twin-linked": true, "rapid-fire": 2, "sustained-hits": 1})
+	var twin_lascannon := _weapon("Twin Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {"twin-linked": true})
+	var hunter_killer := _weapon("Hunter-killer Missile", 48.0, 1, 2, 14, -3, "D3+3", {"one-shot": true})
+	var storm_bolter := _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})
+	var additional_ranged: Array = [
+		{"id": "twin-lascannon", "profiles": {"standard": twin_lascannon.duplicate(true)}},
+		{"id": "hunter-killer-missile", "profiles": {"standard": hunter_killer.duplicate(true)}},
+		{"id": "storm-bolter", "profiles": {"standard": storm_bolter.duplicate(true)}}
+	]
+	var replacement_choices: Dictionary = {
+		"twin-lascannon": {"name": "Twin Lascannon", "to_ids": ["twin-lascannon"]}
+	}
+	if relic:
+		additional_ranged.append({"id": "multi-melta", "profiles": {"standard": _weapon("Multi-melta", 18.0, 2, 3, 10, -3, "D3+2", {"melta": 3})}})
+		additional_ranged.append({"id": "twin-assault-cannon", "profiles": {"standard": _weapon("Twin Assault Cannon", 24.0, 6, 3, 6, -2, 1, {"twin-linked": true, "sustained-hits": 1})}})
+		replacement_choices["multi-melta"] = {"name": "Multi-melta", "to_ids": ["multi-melta"]}
+		replacement_choices["twin-assault-cannon"] = {"name": "Twin Assault Cannon", "to_ids": ["twin-assault-cannon"]}
+	var abilities: Array[Dictionary] = [
+		{"name": "Deadly Demise", "parameter": "D3", "type": "Core", "text": "Each time this model is destroyed, after any embarked units make their Emergency Disembark moves, roll one D6. On a 6, each unit within 6 inches suffers D3 mortal wounds; roll separately for each unit."},
+		{"name": "Combat Doctrines", "type": "Faction", "text": "At the start of your Command phase, select one Combat Doctrine for friendly ADEPTUS ASTARTES units with this ability until the start of your next Command phase."},
+		{"name": "Fire Support", "type": "Datasheet", "text": "In your Shooting phase, when this unit has shot, select one enemy unit hit by those attacks. Attacks that target that unit made by friendly ADEPTUS ASTARTES units that Disembarked from this TRANSPORT this turn can re-roll Wound rolls."}
+	]
+	if relic:
+		abilities[2].source_name = "Fire Supprt"
+		abilities[2].source_name_note = "The verified export spells the ability name Fire Supprt; its description matches Fire Support and is normalized for runtime lookup."
+	var source_files: Array[Dictionary] = [
+		{"name": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+		{"name": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+		{"name": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+		{"name": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+		{"name": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+		{"name": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+		{"name": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+		{"name": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94e8d0e37b628b9af5625d88aeba0c7cbe9d"}
+	]
+	return {
+		"name": profile_name, "source_book_id": "000000356", "source_datasheet_id": datasheet_id, "source_role": "Dedicated Transports",
+		"source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID, "source_retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00", "source_export_updated_at": VERIFIED_EXPORT_UPDATED_AT,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": VERIFIED_EXPORT_SLICE_SHA256_BY_BOOK["000000356"],
+		"source_files": source_files, "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/%s" % url_name, "source_scope": "Warhammer Legends",
+		"points": points, "points_by_models": {1: points}, "second_plus_points_by_models": {1: points}, "third_plus_points_by_models": {1: points},
+		"source_cost_sections": {"first": {"1": points}, "second_plus": {"1": points}, "third_plus": {"1": points}},
+		"models": 1, "max_supported_copies": 6,
+		"base_size_source": "Use model", "base_radius_inches": 60.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and does not define a hull footprint. The game uses a labelled 120 mm circular interaction proxy; exact physical placement, overlap and clearance are not certified.",
+		"stats": {"movement_inches": 12, "toughness": 9, "save_target": 3, "wounds": 10, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "SMOKE", "FRAME", "VEHICLE", "DEDICATED TRANSPORT", "TRANSPORT", "IMPERIUM"],
+		"default_loadout_by_role": {profile_name: {"Armoured Tracks": 1, "Twin Heavy Bolter": 1}},
+		"ranged": [{"id": "twin-heavy-bolter", "profiles": {"standard": twin_heavy_bolter.duplicate(true)}}],
+		"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 3, 4, 6, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": additional_ranged},
+		"transport": {
+			"capacity": 6, "required": ["ADEPTUS ASTARTES", "INFANTRY"], "forbidden": forbidden_keywords.duplicate(),
+			"options": {"add": ["Hunter-killer Missile", "Storm Bolter"], "replacement_groups": {
+				"primary-weapon": {"name": "Twin Heavy Bolter", "from_ids": ["twin-heavy-bolter"], "choices": replacement_choices}}},
+			"abilities": abilities.duplicate(true)
+		},
+		"abilities": abilities.duplicate(true),
+		"special_rules": ["Combat Doctrines", "Deadly Demise D3", "Fire Support"]
+	}
+
+static func _legends_mastodon_profile() -> Dictionary:
+	var heavy_bolter := _weapon("Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"rapid-fire": 2, "sustained-hits": 1})
+	var heavy_flamer := _weapon("Heavy Flamer", 12.0, 3, null, 5, -1, 1, {"blast": 2, "torrent": true})
+	var lascannon := _weapon("Lascannon", 48.0, 1, 3, 12, -3, "D3+3", {})
+	var volkite_culverin := _weapon("Volkite Culverin", 36.0, 4, 3, 6, 0, 2, {"devastating-wounds": true})
+	var optional_profiles: Array = [
+		{"id": "mastodon-hb-for-flamers-left", "profiles": {"standard": heavy_bolter.duplicate(true)}},
+		{"id": "mastodon-hb-for-flamers-right", "profiles": {"standard": heavy_bolter.duplicate(true)}},
+		{"id": "mastodon-las-for-flamers-left", "profiles": {"standard": lascannon.duplicate(true)}},
+		{"id": "mastodon-las-for-flamers-right", "profiles": {"standard": lascannon.duplicate(true)}},
+		{"id": "mastodon-volkite-for-flamers-left", "profiles": {"standard": volkite_culverin.duplicate(true)}},
+		{"id": "mastodon-volkite-for-flamers-right", "profiles": {"standard": volkite_culverin.duplicate(true)}},
+		{"id": "mastodon-hb-for-lascannons-left", "profiles": {"standard": heavy_bolter.duplicate(true)}},
+		{"id": "mastodon-hb-for-lascannons-right", "profiles": {"standard": heavy_bolter.duplicate(true)}},
+		{"id": "mastodon-flamer-for-lascannons-left", "profiles": {"standard": heavy_flamer.duplicate(true)}},
+		{"id": "mastodon-flamer-for-lascannons-right", "profiles": {"standard": heavy_flamer.duplicate(true)}},
+		{"id": "mastodon-volkite-for-lascannons-left", "profiles": {"standard": volkite_culverin.duplicate(true)}},
+		{"id": "mastodon-volkite-for-lascannons-right", "profiles": {"standard": volkite_culverin.duplicate(true)}}
+	]
+	var source_files: Array[Dictionary] = [
+		{"name": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+		{"name": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+		{"name": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+		{"name": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+		{"name": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+		{"name": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+		{"name": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+		{"name": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"}
+	]
+	return {
+		"name": "Mastodon", "source_book_id": "000000356", "source_datasheet_id": "000001189", "source_role": "Transport",
+		"source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID, "source_retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00", "source_export_updated_at": VERIFIED_EXPORT_UPDATED_AT,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": VERIFIED_EXPORT_SLICE_SHA256_BY_BOOK["000000356"],
+		"source_files": source_files, "source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Mastodon", "source_scope": "Warhammer Legends",
+		"points": 540, "points_by_models": {1: 540}, "second_plus_points_by_models": {1: 540}, "third_plus_points_by_models": {1: 540},
+		"source_cost_sections": {"first": {"1": 540}, "second_plus": {"1": 540}, "third_plus": {"1": 540}},
+		"models": 1, "max_supported_copies": 3,
+		"base_size_source": "Use model", "base_radius_inches": 60.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and supplies no hull dimensions. The match uses a labelled 60 mm circle proxy for interaction testing only; exact Mastodon placement, overlap and clearance are not certified.",
+		"damaged_threshold": 10,
+		"stats": {"movement_inches": 9, "toughness": 14, "save_target": 2, "wounds": 30, "leadership_target": 6, "objective_control": 12, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "TITANIC", "SMOKE", "IMPERIUM", "VEHICLE", "FRAME", "TRANSPORT"],
+		"default_loadout_by_role": {"Mastodon": {"Armoured Tracks": 1, "Heavy Flamer": 2, "Lascannon": 2, "Siege Melta Array": 1, "Skyreaper Battery": 1}},
+		"ranged": [
+			{"id": "mastodon-heavy-flamer-left", "profiles": {"standard": heavy_flamer.duplicate(true)}},
+			{"id": "mastodon-heavy-flamer-right", "profiles": {"standard": heavy_flamer.duplicate(true)}},
+			{"id": "mastodon-lascannon-left", "profiles": {"standard": lascannon.duplicate(true)}},
+			{"id": "mastodon-lascannon-right", "profiles": {"standard": lascannon.duplicate(true)}},
+			{"id": "siege-melta-array", "profiles": {"standard": _weapon("Siege Melta Array", 24.0, 6, 3, 10, -3, "D3+2", {"melta": 3})}},
+			{"id": "skyreaper-battery", "profiles": {"standard": _weapon("Skyreaper Battery", 48.0, 8, 3, 7, -1, 2, {"anti-fly": 4})}}
+		],
+		"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 6, 4, 8, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": optional_profiles},
+		"transport": {
+			"capacity": 45, "required": ["ADEPTUS ASTARTES"], "required_any": ["INFANTRY"], "required_any_groups": ["DREADNOUGHT"],
+			"double_space": ["JUMP PACK", "GRAVIS", "TERMINATOR"], "triple_space": ["CENTURION"],
+			"identity_groups": {"DREADNOUGHT": {
+				"display_name": "Dreadnought", "identities": ["dreadnought", "venerable-dreadnought", "venerable-dreadnought-legends", "ballistus-dreadnought", "redemptor-dreadnought", "brutalis-dreadnought", "death-company-dreadnought", "wulfen-dreadnought"],
+				"capacity_by_wounds": true}}, "max_models_by_identity_group": {"DREADNOUGHT": 2},
+			"options": {"replacement_groups": {
+				"heavy-flamers": {"name": "2 Heavy Flamers", "from_ids": ["mastodon-heavy-flamer-left", "mastodon-heavy-flamer-right"], "choices": {
+					"heavy-bolters": {"name": "2 Heavy Bolters", "to_ids": ["mastodon-hb-for-flamers-left", "mastodon-hb-for-flamers-right"]},
+					"lascannons": {"name": "2 Lascannons", "to_ids": ["mastodon-las-for-flamers-left", "mastodon-las-for-flamers-right"]},
+					"volkite-culverins": {"name": "2 Volkite Culverins", "to_ids": ["mastodon-volkite-for-flamers-left", "mastodon-volkite-for-flamers-right"]}}},
+				"lascannons": {"name": "2 Lascannons", "from_ids": ["mastodon-lascannon-left", "mastodon-lascannon-right"], "choices": {
+					"heavy-bolters": {"name": "2 Heavy Bolters", "to_ids": ["mastodon-hb-for-lascannons-left", "mastodon-hb-for-lascannons-right"]},
+					"heavy-flamers": {"name": "2 Heavy Flamers", "to_ids": ["mastodon-flamer-for-lascannons-left", "mastodon-flamer-for-lascannons-right"]},
+					"volkite-culverins": {"name": "2 Volkite Culverins", "to_ids": ["mastodon-volkite-for-lascannons-left", "mastodon-volkite-for-lascannons-right"]}}}}},
+			"abilities": [
+				{"name": "Damaged", "parameter": "10", "type": "Core", "text": "While a model’s remaining wounds are equal to or less than 10, that model is damaged: while damaged, its attacks have -1 to Hit rolls."},
+				{"name": "Deadly Demise", "parameter": "2D6", "type": "Core", "text": "Each time this model is destroyed, after any embarked units make their Emergency Disembark moves, roll 2D6. On a 6, each unit within 6 inches suffers D6 mortal wounds; roll separately for each unit."},
+				{"name": "Combat Doctrines", "type": "Faction", "text": "At the start of your Command phase, select one Combat Doctrine for friendly ADEPTUS ASTARTES units with this ability until the start of your next Command phase."},
+				{"name": "Inviolable Transport", "type": "Datasheet", "text": "Attacks allocated to this unit have -1 Damage."}
+			]
+		},
+		"special_rules": ["Combat Doctrines", "Damaged 10", "Deadly Demise 2D6", "Inviolable Transport"]
+	}
+
+static func _rhino_primaris_profile() -> Dictionary:
+	var source: Dictionary = transport_profiles().get("rhino", {}).duplicate(true)
+	if source.is_empty():
+		push_error("The verified common Rhino transport template is unavailable for Rhino Primaris.")
+		return {}
+	source.merge({
+		"name": "Rhino Primaris", "source_book_id": "000000356", "source_datasheet_id": "000000085", "source_role": "Transport",
+		"source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID, "source_retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00", "source_export_updated_at": VERIFIED_EXPORT_UPDATED_AT,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": VERIFIED_EXPORT_SLICE_SHA256_BY_BOOK["000000356"],
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Rhino-Primaris", "source_scope": "Warhammer Legends",
+		"source_files": [
+			{"name": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+			{"name": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+			{"name": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+			{"name": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+			{"name": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+			{"name": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+			{"name": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+			{"name": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"}
+		],
+		"points": 95, "points_by_models": {1: 95}, "second_plus_points_by_models": {1: 95}, "third_plus_points_by_models": {1: 95},
+		"source_cost_sections": {"first": {"1": 95}, "second_plus": {"1": 95}, "third_plus": {"1": 95}},
+		"models": 1, "max_supported_copies": 3,
+		"base_size_source": "Use model", "base_radius_inches": 60.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+		"geometry_scope": "The verified source says Use model and gives no footprint diameter. The simulation uses a labelled 120 mm circular footprint proxy; exact physical hull clearance is not certified.",
+		"stats": {"movement_inches": 12, "toughness": 9, "save_target": 3, "wounds": 10, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 0},
+		"keywords": ["ADEPTUS ASTARTES", "TRANSPORT", "IMPERIUM", "SMOKE", "VEHICLE", "FRAME"],
+		"default_loadout_by_role": {"Rhino Primaris": {"Armoured Tracks": 1, "Twin Plasma Gun": 1}},
+		"ranged": [{"id": "twin-plasma-gun", "profiles": {
+			"standard": _weapon("Twin Plasma Gun - Standard", 24.0, 1, 3, 7, -2, 1, {"rapid-fire": 1, "twin-linked": true}),
+			"supercharge": _weapon("Twin Plasma Gun - Supercharge", 24.0, 1, 3, 8, -3, 2, {"rapid-fire": 1, "hazardous": true, "twin-linked": true})
+		}}],
+		"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 3, 4, 6, 0, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "hunter-killer-missile", "profiles": {"standard": _weapon("Hunter-killer Missile", 48.0, 1, 2, 14, -3, "D3+3", {"one-shot": true})}}
+		]},
+		"transport": {
+			"capacity": 6, "required": ["ADEPTUS ASTARTES", "INFANTRY"],
+			"forbidden": ["JUMP PACK", "GRAVIS", "CENTURION", "TERMINATOR"], "double_space": [],
+			"options": {"add": ["Hunter-killer Missile"]},
+			"abilities": [{"name": "Deadly Demise", "parameter": "D3", "type": "Core", "text": "Each time this model is destroyed, after any embarked units make their Emergency Disembark moves, roll one D6. On a 6, each unit within 6 inches suffers D3 mortal wounds; roll separately for each unit."}]
+		},
+		"abilities": [
+			{"name": "Deadly Demise", "parameter": "D3", "type": "Core", "text": "Each time this model is destroyed, after any embarked units make their Emergency Disembark moves, roll one D6. On a 6, each unit within 6 inches suffers D3 mortal wounds; roll separately for each unit."},
+			{"name": "Combat Doctrines", "type": "Faction", "text": "At the start of your Command phase, select one Combat Doctrine for friendly ADEPTUS ASTARTES units with this ability until the start of your next Command phase. Assault Doctrine permits charging after Advancing; Devastator Doctrine grants Assault to ranged weapons; Tactical Doctrine permits shooting and charging after Falling Back. Each doctrine can be selected once per battle and only one doctrine can be active per unit."},
+			{"name": "Self-repair", "type": "Datasheet", "text": "In your Command phase, this unit heals 1 wound."},
+			{"name": "Orbital Comms Array", "type": "Datasheet", "text": "While a friendly ADEPTUS ASTARTES unit is within 6 inches of this unit, each time you target that unit with a stratagem roll 1D6; on a 5+, you gain 1 CP."}
+		],
+		"special_rules": ["Combat Doctrines", "Deadly Demise D3", "Self-repair", "Orbital Comms Array"]
+	}, true)
+	source.erase("base_size_source_mm")
+	source.erase("fourth_plus_points_by_models")
+	return source
+
+static func _legends_scout_profiles() -> Dictionary:
+	return {"scout-bike-squad": {
+		"name": "Scout Bike Squad", "source_book_id": "000000356", "source_datasheet_id": "000000137", "source_role": "Mounted",
+		"source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID, "source_retrieved_at_utc": "2026-10-30T01:33:48.347556+00:00", "source_export_updated_at": VERIFIED_EXPORT_UPDATED_AT,
+		"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": VERIFIED_EXPORT_SLICE_SHA256_BY_BOOK["000000356"],
+		"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Scout-Bike-Squad", "source_scope": "Warhammer Legends",
+		"source_files": [
+			{"name": "Datasheets.csv", "sha256": "45df2602251657c5713b341dbe70127630a76a657c43525703b3b19c6cb9d469"},
+			{"name": "Datasheets_abilities.csv", "sha256": "182b80e44d7f4ae1025a71d8ff3776c33bcc58d8b2e1709cf26448f356e51b1d"},
+			{"name": "Datasheets_keywords.csv", "sha256": "5e1d811ca8b5a92427a2b5a33fe6f731e7ef877fc08a6761e02822402a3561a8"},
+			{"name": "Datasheets_models.csv", "sha256": "4647792360285babac2fc5ef5adf2708397f47f455fbaa0773491a96aa7a3da5"},
+			{"name": "Datasheets_models_cost.csv", "sha256": "0236376fcb947a8c9e4883df7af0f38a0923b11d8d907035e5e9e47c52446de8"},
+			{"name": "Datasheets_options.csv", "sha256": "44a652d49f7e93d6f7acaae805d907b3ce156cbd14c1db7fe35fd66712f4a0fe"},
+			{"name": "Datasheets_unit_composition.csv", "sha256": "b980856c29676675f81abfbbcc1161ad64253f15925df21c8968cd8bbaca13e7"},
+			{"name": "Datasheets_wargear.csv", "sha256": "13e3e6d1e0c4114e41d1cc9c80fe94d8e0e37b628b9af5625d88aeba0c7cbe9d"}
+		],
+		"points": 75, "points_by_models": {3: 75, 6: 150}, "second_plus_points_by_models": {3: 75, 6: 150}, "third_plus_points_by_models": {3: 75, 6: 150},
+		"source_cost_sections": {"first": {3: 75, 6: 150}, "second_plus": {3: 75, 6: 150}, "third_plus": {3: 75, 6: 150}},
+		"models": 3, "max_supported_copies": 3,
+		"source_unit_composition": {3: {"Scout Biker Sergeant": 1, "Scout Biker": 2}, 6: {"Scout Biker Sergeant": 1, "Scout Biker": 5}},
+		"base_size_source_mm": [75, 25], "base_geometry": "oval", "base_radius_inches": 37.5 / 25.4,
+		"geometry_scope": "The source specifies a 75 x 25 mm oval. The simulation uses a labelled 75 mm bounding-circle proxy, so exact oval clearance is not certified.",
+		"stats": {"movement_inches": 12, "toughness": 5, "save_target": 4, "wounds": 3, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 0},
+		"model_role_stats": {"Scout Biker Sergeant": {"M": "12\"", "T": 5, "Sv": "4+", "W": 3, "Ld": "6+", "OC": 2}, "Scout Biker": {"M": "12\"", "T": 5, "Sv": "4+", "W": 3, "Ld": "6+", "OC": 2}},
+		"keywords": ["ADEPTUS ASTARTES", "MOUNTED", "IMPERIUM", "EXPLOSIVES", "SMOKE", "RAVENWING"],
+		"default_loadout_by_role": {
+			"Scout Biker Sergeant": {"Bolt Pistol": 1, "Combat Knife": 1, "Shotgun": 1, "Twin Boltgun": 1},
+			"Scout Biker": {"Bolt Pistol": 1, "Combat Knife": 1, "Shotgun": 1, "Twin Boltgun": 1}},
+		"ranged": [
+			{"id": "bolt-pistol", "profiles": {"standard": _weapon("Bolt Pistol", 12.0, 1, 3, 5, -1, 1, {"close-quarters": true})}},
+			{"id": "shotgun", "profiles": {"standard": _weapon("Shotgun", 18.0, 2, 3, 4, -1, 1, {"assault": true, "blast": 1})}},
+			{"id": "twin-boltgun", "profiles": {"standard": _weapon("Twin Boltgun", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 1, "twin-linked": true})}}
+		],
+		"melee": [{"id": "combat-knife", "profiles": {"standard": _weapon("Combat Knife", 0.0, 3, 3, 4, -1, 1, {})}}],
+		"additional_weapon_profiles": {"ranged": [
+			{"id": "boltgun", "profiles": {"standard": _weapon("Boltgun", 24.0, 1, 3, 5, -1, 1, {"rapid-fire": 1})}},
+			{"id": "combi-weapon", "physical_weapon_id": "combi-weapon", "profiles": {
+				"damnatus": _weapon("Combi-weapon - Damnatus", 12.0, 1, 3, 9, -3, "D3+2", {"melta": 2}),
+				"infernus": _weapon("Combi-weapon - Infernus", 12.0, 3, 0, 4, 0, 1, {"torrent": true, "blast": 1}),
+				"purgatus": _weapon("Combi-weapon - Purgatus", 24.0, 2, 3, 7, -2, 2, {})}},
+			{"id": "grav-pistol", "profiles": {"standard": _weapon("Grav-pistol", 12.0, 2, 3, 2, -1, 3, {"anti-vehicle": 2, "close-quarters": true})}},
+			{"id": "grenade-launcher", "profiles": {
+				"frag": _weapon("Grenade Launcher - Frag", 24.0, 4, 4, 4, -1, 1, {"blast": 1}),
+				"krak": _weapon("Grenade Launcher - Krak", 24.0, 1, 4, 10, -2, 3, {"rapid-fire": 1})}},
+			{"id": "hand-flamer", "profiles": {"standard": _weapon("Hand Flamer", 9.0, 3, 0, 4, 0, 1, {"torrent": true, "close-quarters": true})}},
+			{"id": "inferno-pistol", "profiles": {"standard": _weapon("Inferno Pistol", 9.0, 1, 3, 8, -3, "D3+2", {"melta": 2, "close-quarters": true})}},
+			{"id": "plasma-pistol", "profiles": {
+				"standard": _weapon("Plasma Pistol - Standard", 12.0, 1, 3, 7, -2, 1, {"close-quarters": true}),
+				"supercharge": _weapon("Plasma Pistol - Supercharge", 12.0, 1, 3, 8, -3, 2, {"hazardous": true, "close-quarters": true})}},
+			{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}}
+		], "melee": [
+			{"id": "chainsword", "profiles": {"standard": _weapon("Chainsword", 0.0, 4, 3, 4, -1, 1, {})}},
+			{"id": "power-fist", "profiles": {"standard": _weapon("Power Fist", 0.0, 2, 3, 8, -2, 2, {})}},
+			{"id": "power-weapon", "profiles": {"standard": _weapon("Power Weapon", 0.0, 4, 3, 4, -2, 1, {})}},
+			{"id": "thunder-hammer", "profiles": {"standard": _weapon("Thunder Hammer", 0.0, 3, 4, 8, -2, 3, {"devastating-wounds": true})}}
+		]},
+		"datasheet_options": [
+			"Any number of models can each have their Twin Boltgun replaced with 1 Grenade Launcher.",
+			"The Scout Biker Sergeant can have their Bolt Pistol replaced with one of the following: 1 Boltgun, 1 Chainsword, 1 Combi-weapon, 1 Grav-pistol, 1 Hand Flamer, 1 Inferno Pistol, 1 Plasma Pistol, 1 Power Fist, 1 Power Weapon, 1 Storm Bolter, 1 Thunder Hammer."
+		],
+		"abilities": [
+			{"name": "Scouts", "parameter": "9\"", "type": "Core", "text": "The source lists Scouts with a 9-inch parameter. The Core rule determines whether the unit makes a Scout move or is set up in Strategic Reserves."},
+			{"name": "Combat Doctrines", "type": "Faction", "text": "At the start of your Command phase, select one Combat Doctrine for friendly ADEPTUS ASTARTES units with this ability until the start of your next Command phase. Assault Doctrine permits charging after Advancing; Devastator Doctrine grants Assault to ranged weapons; Tactical Doctrine permits shooting and charging after Falling Back. Each doctrine can be selected once per battle and only one doctrine can be active per unit."},
+			{"name": "Outflank", "type": "Datasheet", "text": "When this unit makes an ingress move, it can be set up within your opponent’s deployment zone."}
+		],
+		"special_rules": ["Scouts 9", "Combat Doctrines", "Outflank"]
+	}}
+
+static func _legends_falchion_profiles() -> Dictionary:
+	return {
+		"falchion": {
+			"name": "Falchion", "source_book_id": "000000356", "source_datasheet_id": "000001666", "source_role": "Titanic",
+			"source_snapshot_id": VERIFIED_EXPORT_SNAPSHOT_ID, "source_export_updated_at": VERIFIED_EXPORT_UPDATED_AT,
+			"source_manifest_sha256": VERIFIED_EXPORT_MANIFEST_SHA256, "source_slice_manifest_sha256": VERIFIED_EXPORT_SLICE_SHA256_BY_BOOK["000000356"],
+			"source_url": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Falchion", "source_scope": "Warhammer Legends",
+			"points": 420, "points_by_models": {1: 420}, "second_plus_points_by_models": {1: 420}, "third_plus_points_by_models": {1: 420},
+			"source_cost_sections": {"first": {"1": 420}, "second_plus": {"1": 420}, "third_plus": {"1": 420}},
+			"models": 1, "max_supported_copies": 3, "damaged_threshold": 8,
+			"base_size_source": "Use model", "base_radius_inches": 30.0 / 25.4, "base_geometry": "circular-model-footprint-proxy",
+			"geometry_scope": "The verified source says Use model and gives no footprint diameter. The simulation uses a labelled 60 mm circular footprint proxy; exact physical model clearance is not certified.",
+			"stats": {"movement_inches": 9, "toughness": 13, "save_target": 2, "wounds": 24, "leadership_target": 6, "objective_control": 8, "invulnerable_target": 0},
+			"keywords": ["ADEPTUS ASTARTES", "FRAME", "SMOKE", "IMPERIUM", "TITANIC", "VEHICLE"],
+			"default_loadout_by_role": {"Falchion": {"Armoured Tracks": 1, "Quad Lascannon": 2, "Twin Falchion Volcano Cannon": 1, "Twin Heavy Bolter": 1}},
+			"options": {"optional-weapon": ["heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"], "main-armament": ["quad-lascannons", "laser-destroyers"], "twin-heavy-bolter-replacement": ["twin-heavy-bolter", "twin-heavy-flamer"]},
+			"ranged": [
+				{"id": "quad-lascannon", "profiles": {"standard": _weapon("Quad Lascannon", 48.0, 4, 3, 12, -3, "D3+3", {})}},
+				{"id": "quad-lascannon-2", "profiles": {"standard": _weapon("Quad Lascannon", 48.0, 4, 3, 12, -3, "D3+3", {})}},
+				{"id": "twin-falchion-volcano-cannon", "profiles": {"standard": _weapon("Twin Falchion Volcano Cannon", 120.0, "D3+1", 3, 24, -4, 12, {"blast": 1, "twin-linked": true})}},
+				{"id": "twin-heavy-bolter", "profiles": {"standard": _weapon("Twin Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"rapid-fire": 2, "twin-linked": true, "sustained-hits": 1})}}
+			],
+			"melee": [{"id": "armoured-tracks", "profiles": {"standard": _weapon("Armoured Tracks", 0.0, 6, 4, 8, 0, 1, {})}}],
+			"additional_weapon_profiles": {"ranged": [
+				{"id": "heavy-bolter", "profiles": {"standard": _weapon("Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"rapid-fire": 2, "sustained-hits": 1})}},
+				{"id": "heavy-flamer", "profiles": {"standard": _weapon("Heavy Flamer", 12.0, 3, null, 5, -1, 1, {"torrent": true, "blast": 2})}},
+				{"id": "laser-destroyer", "profiles": {"standard": _weapon("Laser Destroyer", 72.0, 2, 3, 14, -3, "D6+3", {"heavy": true})}},
+				{"id": "multi-melta", "profiles": {"standard": _weapon("Multi-melta", 18.0, 2, 3, 10, -3, "D3+2", {"melta": 3})}},
+				{"id": "quad-lascannon", "profiles": {"standard": _weapon("Quad Lascannon", 48.0, 4, 3, 12, -3, "D3+3", {})}},
+				{"id": "storm-bolter", "profiles": {"standard": _weapon("Storm Bolter", 24.0, 2, 3, 5, -1, 1, {"rapid-fire": 2})}},
+				{"id": "twin-heavy-bolter", "profiles": {"standard": _weapon("Twin Heavy Bolter", 36.0, 3, 3, 5, -1, 2, {"rapid-fire": 2, "twin-linked": true, "sustained-hits": 1})}},
+				{"id": "twin-heavy-flamer", "profiles": {"standard": _weapon("Twin Heavy Flamer", 12.0, 3, null, 5, -1, 1, {"blast": 2, "twin-linked": true, "torrent": true})}}
+			]},
+			"abilities": [
+				{"name": "Deadly Demise", "parameter": "D6+2", "type": "Core", "text": "Each time a model with this ability is destroyed, after any embarked units make their Emergency Disembark moves, roll one D6. On a 6, each unit within 6 inches suffers D6+2 mortal wounds; roll separately for each unit."},
+				{"name": "Damaged", "parameter": "8", "type": "Core", "text": "While a model has 8 or fewer wounds remaining, it is damaged and its attacks have -1 to Hit rolls."},
+				{"name": "Combat Doctrines", "type": "Faction", "text": "At the start of your Command phase, choose one Combat Doctrine for friendly ADEPTUS ASTARTES units with this ability until your next Command phase. Assault Doctrine permits charging after Advancing; Devastator Doctrine grants Assault to ranged weapons; Tactical Doctrine permits shooting and charging after Falling Back. Each doctrine can be selected once per battle and only one can be active per unit."},
+				{"name": "Titan-killer", "type": "Datasheet", "text": "The Twin Falchion Volcano Cannon ranged attacks made by this unit against a MONSTER or VEHICLE unit have Devastating Wounds."}
+			],
+			"special_rules": ["Combat Doctrines", "Deadly Demise D6+2", "Damaged 8", "Titan-killer"]
+		}
+	}
 
 static func _space_wolves_walker_profiles() -> Dictionary:
 	var metadata := {
@@ -2282,6 +3134,116 @@ static func _kor_sarro_anzuQ() -> Dictionary:
 
 static func profile(identity: String) -> Dictionary:
 	return _all_profiles().get(identity, {}).duplicate(true)
+
+static func rapier_carrier_weapons(primary: String = "quad-heavy-bolter") -> Dictionary:
+	if primary not in ["quad-heavy-bolter", "graviton-cannon", "laser-destroyer", "quad-launcher"]: return {}
+	var data := profile("rapier-carrier")
+	if data.is_empty(): return {}
+	var ranged: Array = data.ranged.duplicate(true)
+	if primary != "quad-heavy-bolter":
+		for weapon: Dictionary in data.get("additional_weapon_profiles", {}).get("ranged", []):
+			if str(weapon.get("id", "")) == primary:
+				ranged[1] = weapon.duplicate(true)
+				break
+	if ranged.size() < 2 or str(ranged[1].get("id", "")) != primary: return {}
+	return {"ranged": ranged, "melee": data.melee.duplicate(true), "primary": primary}
+
+static func centurion_devastator_weapons(bolter_replacement: String = "centurion-bolters", grav_replacement: String = "grav-cannon") -> Dictionary:
+	if bolter_replacement not in ["centurion-bolters", "centurion-missile-launcher"]: return {}
+	if grav_replacement not in ["grav-cannon", "twin-heavy-bolter", "twin-lascannon"]: return {}
+	var data := profile("centurion-devastator-squad")
+	if data.is_empty(): return {}
+	var ranged: Array = data.ranged.duplicate(true)
+	if bolter_replacement != "centurion-bolters": ranged[0] = _profile_weapon(data, "ranged", bolter_replacement)
+	if grav_replacement != "grav-cannon": ranged[1] = _profile_weapon(data, "ranged", grav_replacement)
+	if ranged.size() != 2 or str(ranged[0].get("id", "")) != bolter_replacement or str(ranged[1].get("id", "")) != grav_replacement: return {}
+	return {"ranged": ranged, "melee": data.melee.duplicate(true), "bolters": bolter_replacement, "support": grav_replacement}
+
+static func centurion_assault_weapons(assault_launcher: bool = false, twin_meltagun: bool = false) -> Dictionary:
+	var data := profile("centurion-assault-squad")
+	if data.is_empty(): return {}
+	var ranged: Array = data.ranged.duplicate(true)
+	if assault_launcher:
+		var bolter_index := -1
+		for index: int in ranged.size():
+			if str(ranged[index].get("id", "")) == "centurion-bolters": bolter_index = index
+		if bolter_index < 0: return {}
+		ranged.remove_at(bolter_index)
+	if twin_meltagun:
+		var flamer_index := -1
+		for index: int in ranged.size():
+			if str(ranged[index].get("id", "")) == "twin-flamer": flamer_index = index
+		if flamer_index < 0: return {}
+		var meltagun := additional_weapon("centurion-assault-squad", "ranged", "twin-meltagun")
+		if meltagun.is_empty(): return {}
+		ranged[flamer_index] = meltagun
+	return {"ranged": ranged, "melee": data.melee.duplicate(true), "assault_launcher": assault_launcher, "twin_meltagun": twin_meltagun}
+
+static func vindicator_weapons(storm_bolter: bool = false, hunter_killer_missile: bool = false) -> Dictionary:
+	var data := profile("vindicator")
+	if data.is_empty(): return {}
+	var ranged: Array = data.ranged.duplicate(true)
+	if hunter_killer_missile:
+		var missile := additional_weapon("vindicator", "ranged", "hunter-killer-missile")
+		if missile.is_empty(): return {}
+		ranged.append(missile)
+	if storm_bolter:
+		var bolter := additional_weapon("vindicator", "ranged", "storm-bolter")
+		if bolter.is_empty(): return {}
+		ranged.append(bolter)
+	return {"ranged": ranged, "melee": data.melee.duplicate(true), "storm_bolter": storm_bolter, "hunter_killer_missile": hunter_killer_missile}
+
+static func predator_annihilator_weapons(heavy_bolters: bool = false, hunter_killer_missile: bool = false, storm_bolter: bool = false) -> Dictionary:
+	var data := profile("predator-annihilator")
+	if data.is_empty(): return {}
+	var ranged: Array = data.ranged.duplicate(true)
+	if heavy_bolters:
+		var heavy := additional_weapon("predator-annihilator", "ranged", "heavy-bolter")
+		if heavy.is_empty(): return {}
+		ranged[0] = heavy.duplicate(true)
+		ranged[1] = heavy.duplicate(true)
+	if hunter_killer_missile:
+		var missile := additional_weapon("predator-annihilator", "ranged", "hunter-killer-missile")
+		if missile.is_empty(): return {}
+		ranged.append(missile)
+	if storm_bolter:
+		var bolter := additional_weapon("predator-annihilator", "ranged", "storm-bolter")
+		if bolter.is_empty(): return {}
+		ranged.append(bolter)
+	return {"ranged": ranged, "melee": data.melee.duplicate(true), "heavy_bolters": heavy_bolters, "hunter_killer_missile": hunter_killer_missile, "storm_bolter": storm_bolter}
+
+static func predator_destructor_weapons(heavy_bolters: bool = false, hunter_killer_missile: bool = false, storm_bolter: bool = false) -> Dictionary:
+	var data := profile("predator-destructor")
+	if data.is_empty(): return {}
+	var ranged: Array = data.ranged.duplicate(true)
+	if heavy_bolters:
+		var heavy := additional_weapon("predator-destructor", "ranged", "heavy-bolter")
+		if heavy.is_empty(): return {}
+		ranged[0] = heavy.duplicate(true)
+		ranged[1] = heavy.duplicate(true)
+	if hunter_killer_missile:
+		var missile := additional_weapon("predator-destructor", "ranged", "hunter-killer-missile")
+		if missile.is_empty(): return {}
+		ranged.append(missile)
+	if storm_bolter:
+		var bolter := additional_weapon("predator-destructor", "ranged", "storm-bolter")
+		if bolter.is_empty(): return {}
+		ranged.append(bolter)
+	return {"ranged": ranged, "melee": data.melee.duplicate(true), "heavy_bolters": heavy_bolters, "hunter_killer_missile": hunter_killer_missile, "storm_bolter": storm_bolter}
+
+static func whirlwind_weapons(hunter_killer_missile: bool = false, storm_bolter: bool = false) -> Dictionary:
+	var data := profile("whirlwind")
+	if data.is_empty(): return {}
+	var ranged: Array = data.ranged.duplicate(true)
+	if hunter_killer_missile:
+		var missile := additional_weapon("whirlwind", "ranged", "hunter-killer-missile")
+		if missile.is_empty(): return {}
+		ranged.append(missile)
+	if storm_bolter:
+		var bolter := additional_weapon("whirlwind", "ranged", "storm-bolter")
+		if bolter.is_empty(): return {}
+		ranged.append(bolter)
+	return {"ranged": ranged, "melee": data.melee.duplicate(true), "hunter_killer_missile": hunter_killer_missile, "storm_bolter": storm_bolter}
 
 static func space_wolves_walker_weapons(identity: String, ranged_primary: String = "", ranged_secondary: String = "", melee_package: String = "") -> Dictionary:
 	if identity not in ["bjorn-the-fell-handed", "murderfang", "venerable-dreadnought", "wulfen-dreadnought"]: return {}
@@ -2517,6 +3479,13 @@ static func marshal_weapons(ranged_package: String = "plasma-pistol") -> Diction
 	if data.is_empty() or ranged_package not in data.options.ranged_packages: return {}
 	var ranged: Array = [data.ranged[0].duplicate(true)] if ranged_package == "plasma-pistol" else [data.additional_weapon_profiles.ranged[0].duplicate(true)]
 	return {"ranged": ranged, "melee": data.melee.duplicate(true)}
+
+static func tarantula_sentry_battery_weapons(primary: String = "twin-heavy-bolter") -> Dictionary:
+	if primary not in ["twin-heavy-bolter", "twin-lascannon"]: return {}
+	var data := profile("tarantula-sentry-battery")
+	if data.is_empty(): return {}
+	var ranged: Array = data.ranged.duplicate(true) if primary == "twin-heavy-bolter" else data.get("additional_weapon_profiles", {}).get("ranged", []).duplicate(true)
+	return {"ranged": ranged}
 
 static func baal_predator_weapons(primary_cannon: String = "twin-assault-cannon", sponson_package: String = "none", storm_bolter: bool = false, hunter_killer_missile: bool = false) -> Array[Dictionary]:
 	var data := profile("baal-predator")
@@ -3142,31 +4111,12 @@ static func talonstrike_kill_team_model_loadout(model_index: int, sergeant_melee
 	return {"role": role, "source_model_name": source_model_name, "stats": stats, "base_size_source_mm": base_mm, "base_radius_inches": float(base_mm) / 50.8, "keywords": keywords, "ranged": ranged.duplicate(true), "melee": melee.duplicate(true)}
 
 static func decimus_kill_team_composition_options() -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
 	var role_ids := ["marksman-veteran", "heavy-veteran", "stalker-veteran", "gravis-veteran"]
-	var role_labels := {"marksman-veteran": "Marksman", "heavy-veteran": "Heavy Thunder Hammer", "stalker-veteran": "Stalker", "gravis-veteran": "Gravis"}
-	for marksman_count in range(3):
-		for heavy_count in range(3):
-			for stalker_count in range(3):
-				for gravis_count in range(3):
-					var counts := [marksman_count, heavy_count, stalker_count, gravis_count]
-					if marksman_count + heavy_count + stalker_count + gravis_count != 3: continue
-					var roles: Array[String] = ["xenophase-veteran", "sergeant"]
-					var names: Array[String] = []
-					var id_parts: Array[String] = []
-					for index in range(role_ids.size()):
-						var count := int(counts[index])
-						if count <= 0: continue
-						for _model in range(count): roles.append(role_ids[index])
-						names.append("%s × %d" % [role_labels[role_ids[index]], count])
-						id_parts.append("%s-%d" % [role_ids[index].get_slice("-", 0), count])
-					result.append({"id": "five-" + "-".join(id_parts), "models": 5, "label": "5 models: Xenophase Veteran + Sergeant + " + ", ".join(names), "roles": roles})
 	var ten_roles: Array[String] = ["xenophase-veteran", "sergeant"]
 	for role: String in role_ids:
 		ten_roles.append(role)
 		ten_roles.append(role)
-	result.append({"id": "ten-balanced", "models": 10, "label": "10 models: Xenophase Veteran + Sergeant + 2 of each specialist", "roles": ten_roles})
-	return result
+	return [{"id": "ten-balanced", "models": 10, "label": "10 models: Xenophase Veteran + Sergeant + 2 of each specialist", "roles": ten_roles}]
 
 static func crusader_squad_loadout_options(model_index: int, model_count: int) -> Array[String]:
 	if model_count not in [10, 20] or model_index < 0 or model_index >= model_count: return []
@@ -3518,6 +4468,19 @@ static func vanguard_veteran_weapons(is_sergeant: bool, pistol: String = "heavy-
 		stats = _weapon("Master-crafted Power Weapon", 0.0, 3, 3, 5, -2, 2, {})
 	return {"ranged": ranged, "melee": [{"id": weapon_id, "profiles": {"standard": stats}}], "combat_shield": shield}
 
+static func vanguard_veteran_squad_weapons(loadout: String = "bolt-pistol") -> Dictionary:
+	var data := profile("vanguard-veteran-squad")
+	if data.is_empty() or loadout not in data.get("options", {}).get("pistol_replacements", []): return {}
+	var ranged: Array[Dictionary] = []
+	var shield := loadout == "storm-shield"
+	if not shield:
+		var pistol := _profile_weapon(data, "ranged", loadout)
+		if pistol.is_empty(): return {}
+		ranged.append(pistol)
+	var melee := [_profile_weapon(data, "melee", "heirloom-weapon")]
+	if melee.has({}): return {}
+	return {"ranged": ranged, "melee": melee, "invulnerable_target": 4 if shield else 0}
+
 static func _weapon(label: String, range_inches: float, attacks: Variant, skill: Variant, strength: int, ap: int, damage: Variant, keywords: Dictionary) -> Dictionary:
 	return {"name": label, "range_inches": range_inches, "attacks": attacks, "skill": skill,
 		"strength": strength, "ap": ap, "damage": damage, "keywords": keywords}
@@ -3729,6 +4692,32 @@ static func outrider_weapons(plasma: bool, melee_kind: String) -> Dictionary:
 		"thunder-hammer": melee = data.additional_weapon_profiles.melee[1].duplicate(true)
 	return {"ranged": ranged, "melee": [melee]}
 
+static func scout_bike_sergeant_option_label(option: String) -> String:
+	var labels := {"bolt-pistol": "Bolt Pistol", "boltgun": "Boltgun", "combi-weapon": "Combi-weapon", "chainsword": "Chainsword", "grav-pistol": "Grav-pistol", "hand-flamer": "Hand Flamer", "inferno-pistol": "Inferno Pistol", "plasma-pistol": "Plasma Pistol", "power-fist": "Power Fist", "power-weapon": "Power Weapon", "storm-bolter": "Storm Bolter", "thunder-hammer": "Thunder Hammer"}
+	return str(labels.get(option, ""))
+
+static func scout_bike_squad_weapons(grenade_launcher: bool = false, sergeant_option: String = "bolt-pistol") -> Dictionary:
+	var data := profile("scout-bike-squad")
+	var legal_options: Array[String] = ["bolt-pistol", "boltgun", "combi-weapon", "chainsword", "grav-pistol", "hand-flamer", "inferno-pistol", "plasma-pistol", "power-fist", "power-weapon", "storm-bolter", "thunder-hammer"]
+	if data.is_empty() or sergeant_option not in legal_options: return {}
+	var ranged: Array = data.ranged.duplicate(true)
+	var melee: Array = data.melee.duplicate(true)
+	if grenade_launcher:
+		var launcher := additional_weapon("scout-bike-squad", "ranged", "grenade-launcher")
+		if launcher.is_empty(): return {}
+		ranged[2] = launcher
+	if sergeant_option != "bolt-pistol":
+		ranged.remove_at(0)
+		var sidearm := additional_weapon("scout-bike-squad", "ranged", sergeant_option)
+		if sergeant_option in ["chainsword", "power-fist", "power-weapon", "thunder-hammer"]:
+			sidearm = additional_weapon("scout-bike-squad", "melee", sergeant_option)
+			if sidearm.is_empty(): return {}
+			melee.append(sidearm)
+		else:
+			if sidearm.is_empty(): return {}
+			ranged.insert(0, sidearm)
+	return {"ranged": ranged, "melee": melee}
+
 static func ravenwing_black_knight_weapons(grenade_launcher: bool = false) -> Dictionary:
 	var data := profile("ravenwing-black-knights")
 	var ranged: Array = data.ranged.duplicate(true)
@@ -3776,6 +4765,157 @@ static func nephilim_jetfighter_weapons(lascannons: bool = false) -> Array[Dicti
 	var result: Array[Dictionary] = [data.ranged[0].duplicate(true), data.ranged[1].duplicate(true)]
 	result.append(data.additional_weapon_profiles.ranged[0].duplicate(true) if lascannons else data.ranged[2].duplicate(true))
 	return result
+
+static func stormhawk_interceptor_weapons(icarus_stormcannon: bool = false, skyhammer_replacement: String = "skyhammer-missile-launcher") -> Array[Dictionary]:
+	var data := profile("stormhawk-interceptor")
+	if data.is_empty(): return []
+	var ranged: Array[Dictionary] = []
+	for weapon: Dictionary in data.get("ranged", []): ranged.append(weapon.duplicate(true))
+	var additional: Array = data.get("additional_weapon_profiles", {}).get("ranged", [])
+	for index in range(ranged.size()):
+		if str(ranged[index].get("id", "")) == "las-talon" and icarus_stormcannon:
+			for option: Dictionary in additional:
+				if str(option.get("id", "")) == "icarus-stormcannon": ranged[index] = option.duplicate(true)
+		if str(ranged[index].get("id", "")) == "skyhammer-missile-launcher" and skyhammer_replacement != "skyhammer-missile-launcher":
+			for option: Dictionary in additional:
+				if str(option.get("id", "")) == skyhammer_replacement: ranged[index] = option.duplicate(true)
+	return ranged
+
+static func stormtalon_gunship_weapons(skyhammer_replacement: String = "skyhammer-missile-launcher") -> Array[Dictionary]:
+	var data := profile("stormtalon-gunship")
+	if data.is_empty(): return []
+	var ranged: Array[Dictionary] = []
+	for weapon: Dictionary in data.get("ranged", []): ranged.append(weapon.duplicate(true))
+	if skyhammer_replacement == "skyhammer-missile-launcher": return ranged
+	for replacement: Dictionary in data.get("additional_weapon_profiles", {}).get("ranged", []):
+		if str(replacement.get("id", "")) == skyhammer_replacement:
+			for index in range(ranged.size()):
+				if str(ranged[index].get("id", "")) == "skyhammer-missile-launcher": ranged[index] = replacement.duplicate(true)
+			return ranged
+	return []
+
+static func cerberus_weapons(optional_weapon: String = "none", optional_pair: String = "none") -> Dictionary:
+	if optional_weapon not in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]: return {}
+	if optional_pair not in ["none", "two-heavy-bolters", "two-lascannons"]: return {}
+	var data := profile("cerberus")
+	if data.is_empty(): return {}
+	var ranged: Array[Dictionary] = []
+	for weapon: Dictionary in data.get("ranged", []): ranged.append(weapon.duplicate(true))
+	var additional: Array = data.get("additional_weapon_profiles", {}).get("ranged", [])
+	if optional_weapon != "none":
+		for weapon: Dictionary in additional:
+			if str(weapon.get("id", "")) == optional_weapon: ranged.append(weapon.duplicate(true))
+	if optional_pair != "none":
+		var pair_id := "heavy-bolter" if optional_pair == "two-heavy-bolters" else "lascannon"
+		for weapon: Dictionary in additional:
+			if str(weapon.get("id", "")) == pair_id:
+				ranged.append(weapon.duplicate(true))
+				ranged.append(weapon.duplicate(true))
+	if ranged.size() != 1 + int(optional_weapon != "none") + 2 * int(optional_pair != "none"): return {}
+	return {"ranged": ranged, "melee": data.get("melee", []).duplicate(true)}
+
+static func dreadnought_weapons(primary: String = "assault-cannon", melee_package: String = "dreadnought-fist", secondary: String = "none") -> Dictionary:
+	if primary not in ["assault-cannon", "heavy-plasma-cannon", "multi-melta", "twin-lascannon"]: return {}
+	if melee_package not in ["dreadnought-fist", "crushing-feet"]: return {}
+	if secondary not in ["none", "heavy-flamer"]: return {}
+	if melee_package == "crushing-feet" and secondary != "none": return {}
+	var data := profile("dreadnought")
+	if data.is_empty(): return {}
+	var ranged: Array[Dictionary] = []
+	var melee: Array[Dictionary] = []
+	for weapon: Dictionary in data.ranged:
+		if str(weapon.get("id", "")) == primary: ranged.append(weapon.duplicate(true))
+	if primary != "assault-cannon":
+		for weapon: Dictionary in data.additional_weapon_profiles.ranged:
+			if str(weapon.get("id", "")) == primary: ranged.append(weapon.duplicate(true))
+	if melee_package == "dreadnought-fist":
+		melee.append(data.melee[0].duplicate(true))
+		var secondary_id := "storm-bolter" if secondary == "none" else "heavy-flamer"
+		for weapon: Dictionary in data.additional_weapon_profiles.ranged:
+			if str(weapon.get("id", "")) == secondary_id: ranged.append(weapon.duplicate(true))
+	else:
+		for weapon: Dictionary in data.additional_weapon_profiles.ranged:
+			if str(weapon.get("id", "")) == "missile-launcher": ranged.append(weapon.duplicate(true))
+		for weapon: Dictionary in data.additional_weapon_profiles.melee:
+			if str(weapon.get("id", "")) == "crushing-feet": melee.append(weapon.duplicate(true))
+	if ranged.size() != 2 or melee.size() != 1: return {}
+	return {"ranged": ranged, "melee": melee}
+
+static func venerable_dreadnought_legends_weapons(primary: String = "assault-cannon", package: String = "fist-and-storm-bolter") -> Dictionary:
+	if primary not in ["assault-cannon", "dreadnought-inferno-cannon", "heavy-plasma-cannon", "multi-melta", "twin-autocannon", "twin-heavy-bolter", "twin-heavy-flamer", "twin-lascannon"]: return {}
+	if package not in ["fist-and-storm-bolter", "heavy-flamer-and-fist", "missile-launcher", "twin-autocannon"]: return {}
+	var data := profile("venerable-dreadnought-legends")
+	if data.is_empty(): return {}
+	var ranged: Array[Dictionary] = []
+	var melee: Array[Dictionary] = [data.melee[0].duplicate(true)]
+	if primary == "assault-cannon":
+		for weapon: Dictionary in data.ranged:
+			if str(weapon.get("id", "")) == primary: ranged.append(weapon.duplicate(true))
+	else:
+		for weapon: Dictionary in data.additional_weapon_profiles.ranged:
+			if str(weapon.get("id", "")) == primary: ranged.append(weapon.duplicate(true))
+	match package:
+		"fist-and-storm-bolter":
+			ranged.append(data.ranged[1].duplicate(true))
+			melee.append(data.melee[1].duplicate(true))
+		"heavy-flamer-and-fist":
+			for weapon: Dictionary in data.additional_weapon_profiles.ranged:
+				if str(weapon.get("id", "")) == "heavy-flamer": ranged.append(weapon.duplicate(true))
+			melee.append(data.melee[1].duplicate(true))
+		"missile-launcher", "twin-autocannon":
+			var replacement_id := str(package)
+			for weapon: Dictionary in data.additional_weapon_profiles.ranged:
+				if str(weapon.get("id", "")) == replacement_id: ranged.append(weapon.duplicate(true))
+	if ranged.size() != 2 or melee.size() != (1 if package in ["missile-launcher", "twin-autocannon"] else 2): return {}
+	return {"ranged": ranged, "melee": melee, "primary": primary, "package": package}
+
+static func typhon_weapons(sponsons: String = "none", hull_weapon: String = "none") -> Dictionary:
+	if sponsons not in ["none", "two-heavy-bolters", "two-lascannons"]: return {}
+	if hull_weapon not in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]: return {}
+	var data := profile("typhon")
+	if data.is_empty(): return {}
+	var ranged: Array[Dictionary] = []
+	for weapon: Dictionary in data.get("ranged", []): ranged.append(weapon.duplicate(true))
+	var additional: Array = data.get("additional_weapon_profiles", {}).get("ranged", [])
+	if hull_weapon != "none":
+		for weapon: Dictionary in additional:
+			if str(weapon.get("id", "")) == hull_weapon: ranged.append(weapon.duplicate(true))
+	if sponsons != "none":
+		var sponson_id := "heavy-bolter" if sponsons == "two-heavy-bolters" else "lascannon"
+		for weapon: Dictionary in additional:
+			if str(weapon.get("id", "")) == sponson_id:
+				ranged.append(weapon.duplicate(true))
+				ranged.append(weapon.duplicate(true))
+	if ranged.size() != 1 + int(hull_weapon != "none") + 2 * int(sponsons != "none"): return {}
+	return {"ranged": ranged, "melee": data.get("melee", []).duplicate(true)}
+
+static func falchion_weapons(optional_weapon: String = "none", main_armament: String = "quad-lascannons", twin_bolter_replacement: String = "twin-heavy-bolter") -> Dictionary:
+	if optional_weapon not in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]: return {}
+	if main_armament not in ["quad-lascannons", "laser-destroyers"]: return {}
+	if twin_bolter_replacement not in ["twin-heavy-bolter", "twin-heavy-flamer"]: return {}
+	var data := profile("falchion")
+	if data.is_empty(): return {}
+	var ranged: Array[Dictionary] = []
+	var additional: Array = data.get("additional_weapon_profiles", {}).get("ranged", [])
+	for weapon: Dictionary in data.get("ranged", []):
+		if str(weapon.get("id", "")).begins_with("quad-lascannon"): continue
+		if str(weapon.get("id", "")) == "twin-heavy-bolter": continue
+		ranged.append(weapon.duplicate(true))
+	var main_id := "quad-lascannon" if main_armament == "quad-lascannons" else "laser-destroyer"
+	for index in range(2):
+		var main: Dictionary = {}
+		for weapon: Dictionary in additional:
+			if str(weapon.get("id", "")) == main_id: main = weapon.duplicate(true)
+		if main.is_empty(): return {}
+		main.id = "%s%s" % [main_id, "" if index == 0 else "-2"]
+		ranged.append(main)
+	for weapon: Dictionary in additional:
+		if str(weapon.get("id", "")) == twin_bolter_replacement:
+			ranged.append(weapon.duplicate(true))
+		if optional_weapon != "none" and str(weapon.get("id", "")) == optional_weapon:
+			ranged.append(weapon.duplicate(true))
+	if ranged.size() != 4 + int(optional_weapon != "none"): return {}
+	return {"ranged": ranged, "melee": data.get("melee", []).duplicate(true), "optional_weapon": optional_weapon, "main_armament": main_armament, "twin_bolter_replacement": twin_bolter_replacement}
 
 static func _gladiator_reaper_cannon() -> Dictionary:
 	var cannon := _weapon("Twin Heavy Onslaught Gatling Cannon", 24.0, 12, 3, 6, -1, 1, {"twin-linked": true, "sustained-hits": 2, "devastating-wounds": true})

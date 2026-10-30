@@ -12,6 +12,11 @@ const RULES := {
 	"execrator": ["leader", "combat-doctrines", "remorseless-persecution", "condemnatory-annihilation"],
 	"wardens-of-ultramar": ["support", "combat-doctrines", "raise-the-banner", "strategium-command"],
 	"outrider-squad": ["full-throttle-assault"],
+	"scout-bike-squad": ["scouts-9", "combat-doctrines", "outflank"],
+	"mastodon": ["combat-doctrines", "damaged-10", "transport-deadly-demise", "inviolable-transport"],
+	"razorback": ["combat-doctrines", "transport-deadly-demise", "razorback-fire-support"],
+	"relic-razorback": ["combat-doctrines", "transport-deadly-demise", "razorback-fire-support"],
+	"hammerfall-bunker": ["combat-doctrines", "damaged-5", "deadly-demise-d6", "ceramite-cover", "defensive-array", "fortification"],
 	"gladiator-reaper": ["damaged-4", "deadly-demise-d3", "reaping-tally"],
 	"gladiator-valiant": ["damaged-4", "deadly-demise-d3", "priority-target-acquisition"],
 	"gladiator-lancer": ["damaged-4", "deadly-demise-d3", "aquilon-optics"],
@@ -39,15 +44,33 @@ const RULES := {
 	"land-raider": ["transport-deadly-demise"],
 	"land-raider-crusader": ["transport-deadly-demise"],
 	"land-raider-redeemer": ["transport-deadly-demise"],
+	"land-raider-excelsior": ["combat-doctrines", "damaged-5", "deadly-demise-d6", "rites-of-battle"],
 	"drop-pod": ["deep-strike", "transport-deadly-demise"],
 	"impulsor": ["transport-deadly-demise"],
+	"rhino-primaris": ["combat-doctrines", "transport-deadly-demise", "rhino-primaris-self-repair", "rhino-primaris-orbital-comms-array"],
 	"repulsor": ["transport-deadly-demise"],
 	"repulsor-executioner": ["transport-deadly-demise", "executioner"],
 	"scout-squad": ["scouts-6", "infiltrators", "flexible-asset"],
 	"rhino": ["veiling-smoke", "transport-deadly-demise"],
 	"incursor-squad": ["scouts-6", "divinator-class-auspexes", "haywire-mine"],
 	"reiver-squad": ["scouts-6", "deep-strike", "terror-troops", "fearsome-assault", "grapnel-launchers", "grav-chutes"],
-	"firestrike-servo-turrets": ["sentinel-protocols"],
+	"firestrike-servo-turrets": ["sentinel-protocols", "sentinel-overwatch-extra-use"],
+	"tarantula-air-defence-battery": ["combat-doctrines", "deadly-demise-1", "sentry-programming"],
+	"tarantula-sentry-battery": ["combat-doctrines", "sentinel-protocols"],
+	"rapier-carrier": ["combat-doctrines", "powerful-volley"],
+	"centurion-devastator-squad": ["combat-doctrines", "decimator-protocols"],
+	"centurion-assault-squad": ["combat-doctrines", "annihilator-protocols"],
+	"vindicator": ["combat-doctrines", "deadly-demise-d3", "damaged-4", "siege-shield"],
+	"predator-annihilator": ["combat-doctrines", "deadly-demise-d3", "damaged-4", "predator-annihilator"],
+	"predator-destructor": ["combat-doctrines", "deadly-demise-d3", "damaged-4", "predator-destructor"],
+	"whirlwind": ["combat-doctrines", "deadly-demise-d3", "damaged-4", "punishing-bombardment"],
+	"stormhawk-interceptor": ["combat-doctrines", "deadly-demise-d3", "interceptor"],
+	"stormtalon-gunship": ["combat-doctrines", "deadly-demise-d3", "strafing-run"],
+	"cerberus": ["combat-doctrines", "deadly-demise-d6", "atomantic-arc-reactor"],
+	"dreadnought": ["combat-doctrines", "deadly-demise-1", "wisdom-of-the-ancients"],
+	"venerable-dreadnought-legends": ["combat-doctrines", "deadly-demise-1", "wisdom-of-the-ancients"],
+	"typhon": ["combat-doctrines", "deadly-demise-d6", "damaged-6", "sunderer-of-fortresses"],
+	"falchion": ["combat-doctrines", "deadly-demise-d6-plus-two", "damaged-8", "titan-killer"],
 	"ballistus-dreadnought": ["ballistus-strike", "damaged-4", "deadly-demise-d3"],
 	"redemptor-dreadnought": ["damaged-4", "deadly-demise-d3", "duty-eternal"],
 	"brutalis-dreadnought": ["damaged-4", "deadly-demise-d3", "brutalis-charge"],
@@ -143,6 +166,7 @@ const RULES := {
 	"inceptor-squad": ["deep-strike", "meteoric-descent", "parabolic-jetleap"],
 	"captain-with-jump-pack": ["leader", "deep-strike", "combat-doctrines", "strategic-acumen", "angel-s-wrath", "transhuman-strategist", "relic-shield"],
 	"vanguard-veteran-squad-with-jump-packs": ["deep-strike", "vanguard-assault", "combat-shield"],
+	"vanguard-veteran-squad": ["scouts-6", "combat-doctrines", "vanguard-assault-lethal-hits", "storm-shield"],
 	"heavy-intercessor-squad": ["unyielding-in-the-face-of-the-foe"],
 	"terminator-squad": ["deep-strike", "teleport-homer", "fury-of-the-first"],
 	"terminator-assault-squad": ["deep-strike", "teleport-homer", "terminatus-assault", "storm-shield"],
@@ -181,6 +205,14 @@ static func enabled(state: Dictionary) -> bool:
 static func sources(state: Dictionary, squad: int, name: String) -> Array[int]:
 	var result: Array[int] = []
 	if not enabled(state): return result
+	# Outflank is checked while selecting positions for a unit that is still in reserves.
+	# Keep its living datasheet source available off the battlefield until ingress resolves.
+	if name == "outflank":
+		for model: int in state.get("units", {}):
+			var unit: Dictionary = state.units[model]
+			if int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0: continue
+			if name in RULES.get(identity(unit), []): result.append(model)
+		return result
 	for model: int in Geometry.alive(state, squad):
 		var unit_identity := identity(state.units[model])
 		if unit_identity == "chaplain-grimaldus" and str(state.units[model].get("chaplain_grimaldus_role", "")) != "chaplain": continue
@@ -211,6 +243,7 @@ static func sources(state: Dictionary, squad: int, name: String) -> Array[int]:
 			equipped = equipped or (unit_identity == "wolf-guard-terminators" and state.units[model].get("wolf_guard_terminator_storm_shield", false))
 			equipped = equipped or (unit_identity == "thunderwolf-cavalry" and state.units[model].get("thunderwolf_cavalry_storm_shield", false))
 			equipped = equipped or (unit_identity == "wolf-guard-headtakers" and state.units[model].get("wolf_guard_headtaker_storm_shield", false))
+			equipped = equipped or (unit_identity == "vanguard-veteran-squad" and state.units[model].get("vanguard_veteran_squad_loadout", "bolt-pistol") == "storm-shield")
 			if not equipped: continue
 		if name == "death-totem" and unit_identity in ["wulfen", "wulfen-with-storm-shields"] and not bool(state.units[model].get("wulfen_death_totem", false)): continue
 		if name in RULES.get(identity(state.units[model]), []): result.append(model)

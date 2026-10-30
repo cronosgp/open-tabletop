@@ -91,7 +91,7 @@ Run those audits only against a verified local export; they do not download thir
 
 ## Legacy optional combat snapshot (not the authoritative source)
 
-The current full test profile still consumes the old 40kdc-data starter snapshot pinned by `data/starter.lock.json`. This is retained only for compatibility and historical exercise tests; it is **not** a Wahapedia export, must not be used to validate current datasheet facts, and is not a fallback for a missing local export. The Wahapedia ingestion migration remains pending.
+The broad legacy test profile still consumes the old 40kdc-data starter snapshot pinned by `data/starter.lock.json`. The Wahapedia ingestion migration is complete for the current consolidated Space Marine catalog: all 161 standard-book profiles are sourced from verified local exports and checked separately by the source-cost audit below. The starter snapshot remains only for compatibility and historical exercise tests; it is **not** a Wahapedia export, must not validate current datasheet facts, and is not a fallback for a missing local export. Current Marine scope and remaining gaps are recorded in [Space Marine coverage](../space-marines-coverage.md) and the [support matrix](../project/support-matrix.md).
 
 ```text
 python tools/prepare_starter.py

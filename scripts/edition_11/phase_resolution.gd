@@ -123,7 +123,8 @@ static func advance_after_admission(state: Dictionary, roller: Callable, hooks: 
 		state.core_reactions.charge_closed = false
 		state.core_reactions.heroic = {}
 	if state.phase == "command":
-		UnitAbilities.start_command(state)
+		for healed: Dictionary in UnitAbilities.start_command(state):
+			emit_event.call(state, "Self-repair restores 1 wound to %s." % str(state.squads.get(int(healed.get("squad", -1)), {}).get("name", "Rhino Primaris")))
 		Doctrines.start_command(state)
 		OathOfMoment.start_command(state)
 		VowedTarget.start_command(state)
