@@ -7,6 +7,7 @@ const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
 const FenrisianWolves = preload("res://scripts/edition_11/fenrisian_wolves.gd")
+const Scarabs = preload("res://scripts/edition_11/canoptek_scarab_swarms.gd")
 
 static func living(state: Dictionary, squad: int) -> Array[int]:
 	var ids: Array[int] = []
@@ -37,7 +38,11 @@ static func objective_control(state: Dictionary, id: int) -> int:
 	if not state.units.has(id) or state.units[id].wounds <= 0 or not state.units[id].get("on_battlefield", true): return 0
 	var squad: Dictionary = state.squads[state.units[id].squad]
 	if squad.battle_shocked: return 0
-	var value := int(state.units[id].get("objective_control", squad.stats.objective_control)) + Ancient.honour(state, state.units[id].squad) + AncientFury.objective_control_bonus(state, int(state.units[id].squad))
+	var value := int(state.units[id].get("objective_control", squad.stats.objective_control))
+	if Scarabs.cryptek_sets_unit_oc(state, int(state.units[id].squad)): value = 1
+	var chittering := Scarabs.chittering_penalty(state, id)
+	if chittering > 0 and value > 0: value = maxi(1, value - chittering)
+	value += Ancient.honour(state, state.units[id].squad) + AncientFury.objective_control_bonus(state, int(state.units[id].squad))
 	value += FenrisianWolves.hunting_hounds_bonus(state, id)
 	value += UnitAbilities.curse_of_the_wulfen_oc_bonus(state, id)
 	if state.get("unit_abilities", {}).get("crusade_martial_honour", {}).has(id): value += 5

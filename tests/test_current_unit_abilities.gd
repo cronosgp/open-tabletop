@@ -52,7 +52,7 @@ func submit_reanimation(s: Dictionary, owner: int, action_value: String, target:
 	return MatchCommandService.execute(s, owner, {"kind": MatchCommandService.RESOLVE_REANIMATION, "revision": int(s.get("revision", -1)), "point": point, "choice": {"_decision_type": MatchCommandService.REANIMATION_DECISION_ENVELOPE, "decision_id": str(decision.get("decision_id", "")), "option_id": str(projected.get("id", "")), "choice": selected}}, six)
 func prepared() -> Dictionary:
 	var s := F.fresh()
-	check(not s.has("error"), "All ten canonical profiles materialize")
+	check(not s.has("error"), "All ten canonical profiles materialize: " + str(s.get("error", "")))
 	if s.has("error"): return {}
 	for model: int in [300, 900]:
 		check("TACTICUS" in s.units[model].keywords and "EXPLOSIVES" in s.units[model].keywords, "Current-reference Captain and Lieutenant retain their datasheet keywords before attachment")

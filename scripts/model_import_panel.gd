@@ -14,6 +14,7 @@ const Matcher = preload("res://scripts/forceorg_matcher.gd")
 var automatic_queue: Array[Dictionary] = []
 var automatic_current: Dictionary = {}
 var automatic_messages: Array[String] = []
+var automatic_repair_definitions: Array[String] = []
 var automatic_ready := 0
 var automatic_total := 0
 var automatic_generation := 0
@@ -21,6 +22,7 @@ var automatic_running := false
 var automatic_index: Dictionary = {}
 const Assets = preload("res://scripts/local_models.gd")
 const Download = preload("res://scripts/model_download.gd")
+const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 var downloader: Node
 var download_path: LineEdit
 var download_button: Button
@@ -61,6 +63,7 @@ var preview_root: Node3D
 var preview_camera: Camera3D
 var preview_asset: Dictionary = {}
 var apply_button: Button
+var selected_download_error := "No model selected."
 
 func _label(text: String) -> Label:
 	var label := Label.new()
@@ -130,7 +133,7 @@ func _ready() -> void:
 	)
 	download_cancel = _button("Cancel download", cancel_automatic)
 	download_cancel.visible = false
-	download_status = _label("Only the selected mesh and texture are downloaded, up to 64 MiB per file. Unity bundles are not supported.")
+	download_status = _label("OBJ parts, textures and supported static Unity bundles download and convert locally. Converted parts are checked before the visual is linked.")
 	downloader = Download.new()
 	add_child(downloader)
 	downloader.progress.connect(func(received: int, total: int, label: String):
@@ -208,9 +211,31 @@ func _ready() -> void:
 	linked_unit_button = _button("View linked unit", func(): linked_unit_requested.emit())
 	linked_unit_button.visible = false
 	_button("Remove visual for selected unit type", remove_mapping)
-	notice = _label("No model loaded. Source scripts are ignored. Missing models use placeholders. OBJ materials use the selected diffuse image; MTL, normal maps and AssetBundles are not supported yet.")
+	notice = _label("No model loaded. Source scripts are ignored. Missing models use placeholders. OBJ diffuse images are supported; MTL materials and AssetBundle conversion remain unavailable.")
 	load_settings()
 	_organize_imports()
+
+## Load and persist a player-selected ForceOrg/TTS catalog without downloading its assets.
+## Match preparation downloads only compatible visuals required by the selected armies.
+func load_catalog_file(path: String) -> String:
+	var candidate := path.strip_edges()
+	if candidate.is_empty(): return "Choose a ForceOrg JSON file."
+	var scanned := Assets.scan(candidate)
+	if not scanned.error.is_empty(): return scanned.error
+	if scanned.entries.is_empty(): return "The selected JSON contains no compatible model catalog entries."
+	var previous_path := source_path.text
+	var previous_catalog := catalog
+	source_path.text = candidate
+	catalog = scanned
+	if not _save(mappings):
+		source_path.text = previous_path
+		catalog = previous_catalog
+		return notice.text if not notice.text.is_empty() else "Could not save the ForceOrg catalog path."
+	var matches := _populate_inventory()
+	variants_changed.emit(_definition())
+	lookup_status.text = "%d entries • %d embedded static objects • %d skipped-table warnings\n%s" % [catalog.entries.size(), catalog.get("embedded_objects", 0), catalog.get("warnings", []).size(), matches]
+	if not catalog.get("warnings", []).is_empty(): notice.text += "\n" + "\n".join(catalog.warnings.slice(0, 10))
+	return ""
 
 func _organize_imports() -> void:
 	var original := get_children()
@@ -263,7 +288,7 @@ func _process(_delta: float) -> void:
 	download_path.editable = not downloader.busy and not automatic_running and not variant_download_active
 	download_cancel.visible = downloader.busy or automatic_running or variant_download_active
 	var entry := _selected_entry()
-	download_button.disabled = downloader.busy or automatic_running or variant_download_active or entry.get("kind", "") != "CustomMesh" or str(entry.get("references", {}).get("MeshURL", "")).is_empty()
+	download_button.disabled = downloader.busy or automatic_running or variant_download_active or not selected_download_error.is_empty()
 	var display_name := str(selected_label.call()) if selected_label.is_valid() else definition
 	target.text = "Target unit: " + display_name if not definition.is_empty() else "Select a roster unit in Army, or a model in Play."
 	apply_button.disabled = downloader.busy or automatic_running or variant_download_active or definition.is_empty() or preview_asset.is_empty() or preview_asset.get("path", "") != mesh_path.text.strip_edges() or preview_asset.get("texture", "") != texture_path.text.strip_edges()
@@ -276,7 +301,7 @@ func start_download() -> void:
 		return
 	download_selection = JSON.stringify(entry)
 	_clear_candidate_files()
-	download_status.text = "Iniciando download: " + _entry_title(entry)
+	download_status.text = "Starting download: " + _entry_title(entry)
 	var error: String = downloader.start(entry.duplicate(true), download_path.text.strip_edges())
 	if not error.is_empty(): download_status.text = error
 
@@ -294,27 +319,43 @@ func _download_finished(result: Dictionary) -> void:
 	if JSON.stringify(_selected_entry()) != download_selection:
 		download_status.text = "Files downloaded. The selection changed; select the model again before importing."
 		return
-	mesh_path.text = result.mesh
-	texture_path.text = result.texture
-	load_preview()
+	if result.get("parts") is Array:
+		_load_downloaded_preview(result.parts, result.get("asset", {}))
+	else:
+		mesh_path.text = result.mesh
+		texture_path.text = result.texture
+		load_preview()
 	download_status.text = "Download complete. " + ("Preview loaded; adjust the model and save it for the selected unit." if not preview_asset.is_empty() else notice.text)
+	var visual_warnings := _visual_warnings(result)
+	if not visual_warnings.is_empty(): download_status.text += "\nVisual note: " + "; ".join(visual_warnings)
 	lookup_status.text = "Files retrieved with the download button. Using the TTS cache is optional."
+
+func _visual_warnings(result: Dictionary) -> Array[String]:
+	var output: Array[String] = []
+	var parts: Variant = result.get("parts", [])
+	if not parts is Array: return output
+	for part: Variant in parts:
+		if not part is Dictionary: continue
+		var warnings: Variant = part.get("warnings", [])
+		if not warnings is Array: continue
+		for warning: Variant in warnings:
+			var message := str(warning).strip_edges()
+			if not message.is_empty() and message not in output: output.append(message)
+	return output
+
+func _downloaded_asset(result: Dictionary) -> Dictionary:
+	var supplied: Variant = result.get("asset", {})
+	if supplied is Dictionary and not supplied.is_empty(): return supplied
+	if result.get("parts") is Array: return Assets.composite_from_files(result.parts)
+	return Assets.obj_mesh(str(result.get("mesh", "")), str(result.get("texture", "")))
 
 func _definition() -> String:
 	return str(selected_definition.call()) if selected_definition.is_valid() else ""
 
 func scan_source() -> void:
 	if downloader.busy or automatic_running: return
-	var result := Assets.scan(source_path.text.strip_edges())
-	if not result.error.is_empty():
-		notice.text = result.error
-		return
-	catalog = result
-	_save(mappings)
-	var matches := _populate_inventory()
-	variants_changed.emit(_definition())
-	lookup_status.text = "%d entries • %d embedded static objects • %d skipped-table warnings\n%s" % [catalog.entries.size(), catalog.get("embedded_objects", 0), catalog.get("warnings", []).size(), matches]
-	if not catalog.get("warnings", []).is_empty(): notice.text += "\n" + "\n".join(catalog.warnings.slice(0, 10))
+	var issue := load_catalog_file(source_path.text)
+	if not issue.is_empty(): notice.text = issue
 
 func _populate_inventory() -> String:
 	inventory.clear()
@@ -352,9 +393,15 @@ func _entry_title(entry: Dictionary) -> String:
 	base_name.compile("(?i)^\\d+(?:[x×]\\d+)?\\s*mm(?:\\s[^/]*|$)$")
 	if base_name.search(name) != null: title = "Base: " + title
 	if name in ["Custom_Model", "Custom_Assetbundle", "Custom_Model_Infinite_Bag"]: title = "Unnamed object"
-	if entry.get("kind", "") == "CustomAssetbundle": title += " • Unity bundle (unsupported)"
+	if _entry_has_bundle(entry): title += " • Unity bundle (converter required)"
 	elif int(entry.get("child_components", 0)) > 0: title += " • has separate parts"
 	return title
+
+func _entry_has_bundle(entry: Dictionary) -> bool:
+	var planned := Assets.component_plan(entry)
+	for component: Dictionary in planned.get("components", []):
+		if str(component.get("kind", "")) == "CustomAssetbundle": return true
+	return false
 
 func _selected_entry() -> Dictionary:
 	if catalog.is_empty() or inventory.selected < 0: return {}
@@ -368,7 +415,8 @@ func _describe_entry() -> void:
 	_clear_candidate_files()
 	lookup_status.text = "Object changed. Find its files in the cache or choose them manually."
 	var entry := _selected_entry()
-	selected_description.text = "Selecionado: " + inventory.get_item_text(inventory.selected)
+	selected_download_error = str(Assets.component_plan(entry).get("error", ""))
+	selected_description.text = "Selected: " + inventory.get_item_text(inventory.selected)
 	if "component" in str(entry.get("path", "")).to_lower() or "/ChildObjects/" in str(entry.get("path", "")):
 		selected_description.text += "\nThis is one part of a set; the preview shows this part only."
 	elif int(entry.get("child_components", 0)) > 0:
@@ -376,8 +424,9 @@ func _describe_entry() -> void:
 	selected_description.text += "\nConfirm the preview before linking it to a unit."
 	notice.text = "%s\n%s\n%s" % [entry.name, entry.path, JSON.stringify(entry.references, "  ")]
 	if not str(entry.get("credit", "")).is_empty(): notice.text += "\nSource description/credits: " + str(entry.credit)
-	if entry.kind == "CustomAssetbundle": notice.text += "\nAssetBundle unsupported: choose an independently compatible local OBJ."
-	else: notice.text += "\nChoose this object's downloaded/cached OBJ and optional diffuse image below."
+	if not selected_download_error.is_empty(): notice.text += "\n" + selected_download_error
+	elif _entry_has_bundle(entry): notice.text += "\nOne or more parts use Unity model bundles. Install the optional local ForceOrg converter before downloading; OBJ, diffuse and normal-map parts are validated in the same batch."
+	else: notice.text += "\nDownload this model's OBJ parts and optional diffuse and normal images below."
 
 func _clear_candidate_files() -> void:
 	mesh_path.text = ""
@@ -393,8 +442,9 @@ func find_cached_files() -> void:
 		return
 	var entry := _selected_entry()
 	_clear_candidate_files()
-	if entry.kind != "CustomMesh":
-		notice.text = "AssetBundle unsupported: select a compatible local OBJ manually."
+	var component_plan := Assets.component_plan(entry)
+	if not component_plan.error.is_empty():
+		notice.text = component_plan.error
 		lookup_status.text = notice.text
 		return
 	# Re-index on an explicit request, so newly cached files and duplicates are seen.
@@ -404,22 +454,45 @@ func find_cached_files() -> void:
 		lookup_status.text = notice.text
 		return
 	var resolved := Assets.resolve_cache(entry, cache_index)
-	# Never retain an earlier object's files or preview after an incomplete match.
-	mesh_path.text = resolved.mesh.path
-	texture_path.text = resolved.diffuse.path
-	preview_asset = {}
-	_update_preview()
-	var message := "Inspected %d local files.\nMesh: %s\nDiffuse: %s" % [cache_index.files, resolved.mesh.status, resolved.diffuse.status if resolved.diffuse_required else "not required"]
-	for kind: String in ["mesh", "diffuse"]:
-		if resolved[kind].status == "ambiguous": message += "\n%s: %d candidates (choose manually), first ten:\n%s" % [kind.capitalize(), resolved[kind].candidates.size(), "\n".join(resolved[kind].candidates.slice(0, 10))]
-	if resolved.mesh.status == "found" and (not resolved.diffuse_required or resolved.diffuse.status == "found"):
-		load_preview()
+	var cached_parts := _cached_component_files(resolved)
+	var message := "Inspected %d local files across %d model part(s)." % [cache_index.files, resolved.get("parts", []).size()]
+	if cached_parts.error.is_empty():
+		_load_downloaded_preview(cached_parts.parts)
 		notice.text = message + "\n" + notice.text
 	else:
-		notice.text = message + "\nNo complete match. Choose missing/ambiguous files manually; nothing was downloaded or mapped."
-		if resolved.mesh.status == "missing" or (resolved.diffuse_required and resolved.diffuse.status == "missing"):
-			notice.text = "Local files not found for: %s.\nThe JSON contains references, not the miniatures. Choose the folder where the mesh and texture were downloaded or cached.\nThe JSON or project folder may not contain these files. Nothing was downloaded or linked.\n\n%s" % [_entry_title(entry), message]
+		notice.text = "%s\n%s No files were downloaded or linked." % [cached_parts.error, message]
 	lookup_status.text = notice.text
+
+func _cached_component_files(resolved: Dictionary) -> Dictionary:
+	var files: Array[Dictionary] = []
+	for resolved_part: Dictionary in resolved.get("parts", []):
+		if str(resolved_part.component.get("kind", "CustomMesh")) == "CustomAssetbundle":
+			if resolved_part.bundle.status != "found": return {"error": "%s bundle: %s" % [resolved_part.component.get("name", "Model"), resolved_part.bundle.status], "parts": []}
+			if resolved_part.bundle_parts.is_empty(): return {"error": "%s bundle: converted files are unavailable" % resolved_part.component.get("name", "Model"), "parts": []}
+			files.append_array(resolved_part.bundle_parts)
+			continue
+		if resolved_part.mesh.status != "found": return {"error": "%s mesh: %s" % [resolved_part.component.get("name", "Model"), resolved_part.mesh.status], "parts": []}
+		if resolved_part.diffuse_required and resolved_part.diffuse.status != "found": return {"error": "%s diffuse image: %s" % [resolved_part.component.get("name", "Model"), resolved_part.diffuse.status], "parts": []}
+		if resolved_part.normal_required and resolved_part.normal.status != "found": return {"error": "%s normal image: %s" % [resolved_part.component.get("name", "Model"), resolved_part.normal.status], "parts": []}
+		files.append({"path": resolved_part.mesh.path, "texture": resolved_part.diffuse.path, "normal": resolved_part.normal.path, "transforms": resolved_part.component.get("transforms", []), "name": resolved_part.component.get("name", "Model")})
+	return {"error": "", "parts": files}
+
+func _load_downloaded_preview(parts: Array, supplied_asset: Dictionary = {}) -> void:
+	var loaded := supplied_asset if not supplied_asset.is_empty() else Assets.composite_from_files(parts)
+	if not loaded.error.is_empty():
+		preview_asset = {}
+		_update_preview()
+		notice.text = loaded.error
+		return
+	var first: Dictionary = parts[0]
+	loaded.path = str(first.get("path", ""))
+	loaded.texture = str(first.get("texture", ""))
+	loaded.source_parts = parts.duplicate(true)
+	preview_asset = loaded
+	mesh_path.text = loaded.path
+	texture_path.text = loaded.texture
+	_update_preview()
+	notice.text = "Preview loaded from %d OBJ part(s). Adjust its appearance, select a battlefield model, then save for that unit type. Gameplay bases and rules stay authoritative." % parts.size()
 
 func load_preview() -> void:
 	var path := mesh_path.text.strip_edges()
@@ -433,6 +506,7 @@ func load_preview() -> void:
 	preview_asset = result
 	preview_asset.path = path
 	preview_asset.texture = texture
+	preview_asset.source_parts = []
 	_update_preview()
 	notice.text = "Preview loaded. Adjust its appearance, select a battlefield model, then save for that unit type. Gameplay bases and rules stay authoritative."
 
@@ -475,13 +549,18 @@ func apply_mapping() -> void:
 	mapping.path = preview_asset.path
 	mapping.texture = preview_asset.texture
 	mapping.fingerprint = preview_asset.fingerprint
-	mapping.texture_fingerprint = preview_asset.texture_fingerprint
+	mapping.texture_fingerprint = str(preview_asset.get("texture_fingerprint", ""))
+	if preview_asset.get("source_parts") is Array and not preview_asset.source_parts.is_empty():
+		mapping.parts = preview_asset.source_parts.duplicate(true)
 	mapping.source = catalog.get("source", "")
 	mapping.source_fingerprint = catalog.get("fingerprint", "")
 	if not _selected_entry().is_empty():
 		mapping.entry = _selected_entry().duplicate(true)
 		if mapping.entry.get("tts_scale") is float or mapping.entry.get("tts_scale") is int:
 			mapping.tts_scale = float(mapping.entry.tts_scale)
+	if _mapping_has_unresolved_bundle_dependencies(mapping):
+		notice.text = "This model still has missing Unity material dependencies. Download another compatible variant before linking it to a unit."
+		return
 	var next := mappings.duplicate(true)
 	next[definition] = mapping
 	if not _save(next): return
@@ -558,20 +637,52 @@ func visual_for(definition: String, base_radius_inches: float = 0.0) -> Node3D:
 	if not mappings.has(definition): return null
 	if not cache.has(definition):
 		var mapping: Dictionary = mappings[definition]
-		var result := Assets.obj_mesh(mapping.path, mapping.get("texture", ""))
+		if _mapping_has_unresolved_bundle_dependencies(mapping):
+			notice.text = "Placeholder for %s: the saved model is missing Unity material dependencies and needs a refresh." % definition
+			cache[definition] = {"error": "Unity material dependency missing"}
+			return null
+		var result := _load_mapping_asset(mapping)
 		if not result.error.is_empty():
 			notice.text = "Placeholder for %s: %s" % [definition, result.error]
 			cache[definition] = result
 			return null
-		if result.fingerprint != mapping.get("fingerprint", "") or result.texture_fingerprint != mapping.get("texture_fingerprint", ""):
+		if result.fingerprint != mapping.get("fingerprint", "") or (not mapping.get("parts") is Array and result.texture_fingerprint != mapping.get("texture_fingerprint", "")):
 			notice.text = "Placeholder: model file changed for %s. Preview and save it again." % definition
 			cache[definition] = {"error": "Model changed"}
 			return null
 		cache[definition] = result
 	if not cache[definition].get("error", "").is_empty(): return null
 	var settings: Dictionary = mappings[definition].duplicate()
-	if base_radius_inches > 0.01: settings.base_radius_inches = base_radius_inches
+	var effective_radius := base_radius_inches if base_radius_inches > 0.01 else _base_radius_for_definition(definition)
+	if effective_radius > 0.01: settings.base_radius_inches = effective_radius
+	var visual_issue := Assets.visual_error_for_base(cache[definition], settings)
+	if not visual_issue.is_empty():
+		notice.text = "Placeholder for %s: %s" % [definition, visual_issue]
+		return null
 	return Assets.visual(cache[definition], settings)
+
+func _load_mapping_asset(mapping: Dictionary) -> Dictionary:
+	if mapping.get("parts") is Array and not mapping.parts.is_empty(): return Assets.composite_from_files(mapping.parts)
+	return Assets.obj_mesh(str(mapping.get("path", "")), str(mapping.get("texture", "")))
+
+func _mapping_has_unresolved_bundle_dependencies(mapping: Dictionary) -> bool:
+	var parts: Variant = mapping.get("parts", [])
+	if not parts is Array: return false
+	for part: Variant in parts:
+		if not part is Dictionary: continue
+		var warnings: Variant = part.get("warnings", [])
+		if not warnings is Array: continue
+		for warning: Variant in warnings:
+			var message := str(warning)
+			if message.begins_with("External CAB dependency ") or message.begins_with("External CAB texture ") or message.begins_with("Declared Unity AssetBundle dependency "):
+				return true
+	return false
+
+func _base_radius_for_definition(definition: String) -> float:
+	const prefix := "40kdc:11e:adeptus-astartes:"
+	if not definition.begins_with(prefix): return 0.0
+	var profile: Dictionary = MarineProfiles.profile(definition.trim_prefix(prefix))
+	return float(profile.get("base_radius_inches", 0.0))
 
 func variants_for(definition: String) -> Array[Dictionary]:
 	var options: Array[Dictionary] = []
@@ -634,7 +745,9 @@ func _start_variant_downloads(definition: String) -> void:
 		automatic_status.emit(download_status.text)
 		return
 	for entry: Dictionary in options:
-		if not variant_mappings.has(str(entry.get("variant_id", ""))): variant_queue.append(entry)
+		var identity := str(entry.get("variant_id", ""))
+		if not variant_mappings.has(identity) or _mapping_has_unresolved_bundle_dependencies(variant_mappings.get(identity, {})):
+			variant_queue.append(entry)
 	if variant_queue.is_empty():
 		download_status.text = "All compatible visual variants are already in the local cache."
 		automatic_status.emit(download_status.text)
@@ -656,9 +769,11 @@ func _next_variant_download() -> void:
 	variant_current = variant_queue.pop_front()
 	var cache_index := Assets.index_cache(download_path.text.strip_edges())
 	var resolved := Assets.resolve_cache(variant_current, cache_index) if not cache_index.is_empty() and cache_index.get("error", "").is_empty() else {}
-	if not resolved.is_empty() and resolved.mesh.status == "found" and (not resolved.diffuse_required or resolved.diffuse.status == "found"):
-		_finish_variant_download({"error": "", "mesh": resolved.mesh.path, "texture": resolved.diffuse.path})
-		return
+	if not resolved.is_empty() and resolved.get("error", "").is_empty():
+		var cached_parts := _cached_component_files(resolved)
+		if cached_parts.error.is_empty():
+			_finish_variant_download({"error": "", "parts": cached_parts.parts, "mesh": cached_parts.parts[0].path, "texture": cached_parts.parts[0].texture})
+			return
 	download_status.text = "Downloading %s…" % str(variant_current.get("name", "visual variant"))
 	automatic_status.emit(download_status.text)
 	var issue: String = downloader.start(variant_current, download_path.text.strip_edges())
@@ -667,15 +782,20 @@ func _next_variant_download() -> void:
 func _finish_variant_download(result: Dictionary) -> void:
 	var issue := str(result.get("error", ""))
 	if issue.is_empty():
-		var asset := Assets.obj_mesh(str(result.get("mesh", "")), str(result.get("texture", "")))
+		var asset := _downloaded_asset(result)
 		issue = str(asset.get("error", ""))
+		if issue.is_empty() and _mapping_has_unresolved_bundle_dependencies({"parts": result.get("parts", [])}):
+			issue = "The Unity bundle is missing a required material dependency."
+		if issue.is_empty():
+			issue = Assets.visual_error_for_base(asset, {"base_radius_inches": _base_radius_for_definition(variant_download_definition)})
 		if issue.is_empty():
 			var entry: Dictionary = variant_current.duplicate(true)
 			var tts := float(entry.get("tts_scale", 1.0))
 			if not is_finite(tts) or tts < 0.01 or tts > 20.0: tts = 1.0
 			var identity := str(entry.get("variant_id", ""))
 			var mapping := {"definition": variant_download_definition, "path": str(result.mesh), "texture": str(result.texture), "fingerprint": asset.fingerprint,
-				"texture_fingerprint": asset.texture_fingerprint, "scale": 1.0, "rotation": 0.0, "offset": 0.0, "tts_scale": tts, "entry": entry}
+				"texture_fingerprint": str(asset.get("texture_fingerprint", "")), "scale": 1.0, "rotation": 0.0, "offset": 0.0, "tts_scale": tts, "entry": entry}
+			if result.get("parts") is Array: mapping.parts = result.parts.duplicate(true)
 			variant_mappings[identity] = mapping
 			variant_cache[identity] = asset
 			if not _save(mappings):
@@ -691,17 +811,26 @@ func _finish_variant_download(result: Dictionary) -> void:
 
 func visual_variant_for(identity: String, base_radius_inches: float = 0.0) -> Node3D:
 	if identity.is_empty() or not variant_mappings.has(identity): return null
+	if _mapping_has_unresolved_bundle_dependencies(variant_mappings[identity]):
+		download_status.text = "This saved variant is missing Unity material dependencies. Download it again from Models / Import."
+		return null
 	if not variant_cache.has(identity):
 		var mapping: Dictionary = variant_mappings[identity]
-		var asset := Assets.obj_mesh(str(mapping.path), str(mapping.get("texture", "")))
-		if not asset.error.is_empty() or asset.fingerprint != mapping.get("fingerprint", "") or asset.texture_fingerprint != mapping.get("texture_fingerprint", ""):
+		var asset := _load_mapping_asset(mapping)
+		if not asset.error.is_empty() or asset.fingerprint != mapping.get("fingerprint", "") or (not mapping.get("parts") is Array and asset.texture_fingerprint != mapping.get("texture_fingerprint", "")):
 			download_status.text = "This local variant is unavailable; using the default miniature."
 			variant_cache[identity] = {"error": "Variant unavailable"}
 			return null
 		variant_cache[identity] = asset
 	if not variant_cache[identity].get("error", "").is_empty(): return null
 	var settings: Dictionary = variant_mappings[identity].duplicate()
-	if base_radius_inches > 0.01: settings.base_radius_inches = base_radius_inches
+	var effective_radius := base_radius_inches
+	if effective_radius <= 0.01: effective_radius = _base_radius_for_definition(str(settings.get("definition", "")))
+	if effective_radius > 0.01: settings.base_radius_inches = effective_radius
+	var visual_issue := Assets.visual_error_for_base(variant_cache[identity], settings)
+	if not visual_issue.is_empty():
+		download_status.text = "This local variant is incompatible with the miniature's base; using the default miniature."
+		return null
 	return Assets.visual(variant_cache[identity], settings)
 
 ## Batch uses captured profile IDs, independent of the selected pawn or inventory row.
@@ -711,17 +840,27 @@ func prepare_armies(definitions: Array[String]) -> void:
 		return
 	cancel_automatic()
 	automatic_messages.clear()
+	automatic_repair_definitions.clear()
 	automatic_ready = 0
 	automatic_total = definitions.size()
 	var missing: Array[String] = []
 	for definition: String in definitions:
-		var existing := visual_for(definition)
+		var saved_mapping: Variant = mappings.get(definition, {})
+		if saved_mapping is Dictionary and _mapping_has_unresolved_bundle_dependencies(saved_mapping):
+			cache.erase(definition)
+			automatic_repair_definitions.append(definition)
+			missing.append(definition)
+			automatic_messages.append("Refreshing saved model with missing Unity materials: " + definition)
+			continue
+		var existing := visual_for(definition, _base_radius_for_definition(definition))
 		if existing != null:
 			existing.free()
 			automatic_ready += 1
 			automatic_messages.append("Reused saved model: " + definition)
 		elif mappings.has(definition):
-			automatic_messages.append("Saved model needs repair in Models: " + definition)
+			automatic_repair_definitions.append(definition)
+			missing.append(definition)
+			automatic_messages.append("Repairing saved model link: " + definition)
 		else: missing.append(definition)
 	if missing.is_empty():
 		_report_automatic()
@@ -760,8 +899,9 @@ func prepare_armies(definitions: Array[String]) -> void:
 		var chosen := Matcher.choose(definition, catalog.entries)
 		if not chosen.error.is_empty(): automatic_messages.append(chosen.error)
 		else:
-			automatic_queue.append({"definition": definition, "entry": chosen.entry})
-			automatic_messages.append("Selected %s (%d compatible visual variants; change in Models)." % [chosen.entry.name, chosen.variants])
+			automatic_queue.append({"definition": definition, "entry": chosen.entry, "options": chosen.options, "variant_index": 0})
+			var alias_note := "; reviewed visual-only alias, rules unchanged" if bool(chosen.get("visual_alias", false)) else ""
+			automatic_messages.append("Selected %s (%d compatible visual variants%s; change in Models)." % [chosen.entry.name, chosen.variants, alias_note])
 	automatic_running = true
 	_next_automatic()
 
@@ -782,6 +922,7 @@ func cancel_automatic() -> void:
 	automatic_running = false
 	automatic_queue.clear()
 	automatic_current = {}
+	automatic_repair_definitions.clear()
 	if downloader != null and downloader.busy: downloader.cancel()
 	if was_running:
 		automatic_messages.append("Automatic models cancelled. Existing links and the match are preserved.")
@@ -800,9 +941,11 @@ func _next_automatic(ticket: int = -1) -> void:
 	for index: Dictionary in [automatic_index, automatic_index.get("external", {})]:
 		if index.is_empty() or not index.get("error", "").is_empty(): continue
 		var resolved := Assets.resolve_cache(entry, index)
-		if resolved.mesh.status == "found" and (not resolved.diffuse_required or resolved.diffuse.status == "found"):
-			_finish_automatic_item({"error": "", "mesh": resolved.mesh.path, "texture": resolved.diffuse.path})
-			return
+		if resolved.get("error", "").is_empty():
+			var cached_parts := _cached_component_files(resolved)
+			if cached_parts.error.is_empty():
+				_finish_automatic_item({"error": "", "parts": cached_parts.parts, "mesh": cached_parts.parts[0].path, "texture": cached_parts.parts[0].texture})
+				return
 	download_status.text = "Downloading and linking: " + str(entry.name)
 	automatic_status.emit(download_status.text)
 	var error: String = downloader.start(entry, download_path.text.strip_edges())
@@ -812,28 +955,55 @@ func _finish_automatic_item(result: Dictionary) -> void:
 	if not automatic_running or automatic_current.is_empty(): return
 	var definition: String = automatic_current.definition
 	var issue: String = result.error
+	var asset: Dictionary = {}
 	if issue.is_empty():
-		var asset := Assets.obj_mesh(result.mesh, result.texture)
+		asset = _downloaded_asset(result)
 		issue = asset.error
-		if issue.is_empty() and not mappings.has(definition):
-			var entry: Dictionary = automatic_current.entry.duplicate(true)
-			var tts := float(entry.get("tts_scale", 1.0))
-			if not is_finite(tts) or tts < 0.01 or tts > 20.0: tts = 1.0
-			var mapping := {"scale": 1.0, "rotation": 0.0, "offset": 0.0, "tts_scale": tts, "path": result.mesh, "texture": result.texture,
-				"fingerprint": asset.fingerprint, "texture_fingerprint": asset.texture_fingerprint,
-				"source": catalog.source, "source_fingerprint": catalog.fingerprint, "entry": entry}
-			var next := mappings.duplicate(true)
-			next[definition] = mapping
-			if _save(next):
-				mappings = next
-				cache[definition] = asset
-				mappings_changed.emit()
-			else: issue = "Could not save model settings."
+		if issue.is_empty() and _mapping_has_unresolved_bundle_dependencies({"parts": result.get("parts", [])}):
+			issue = "The Unity bundle is missing a required material dependency."
+		if issue.is_empty():
+			issue = Assets.visual_error_for_base(asset, {"base_radius_inches": _base_radius_for_definition(definition)})
+	if not issue.is_empty() and _try_next_automatic_variant(issue): return
+	if issue.is_empty() and (not mappings.has(definition) or definition in automatic_repair_definitions):
+		var entry: Dictionary = automatic_current.entry.duplicate(true)
+		var tts := float(entry.get("tts_scale", 1.0))
+		if not is_finite(tts) or tts < 0.01 or tts > 20.0: tts = 1.0
+		var mapping := {"scale": 1.0, "rotation": 0.0, "offset": 0.0, "tts_scale": tts, "path": result.mesh, "texture": result.texture,
+			"fingerprint": asset.fingerprint, "texture_fingerprint": str(asset.get("texture_fingerprint", "")),
+			"source": catalog.source, "source_fingerprint": catalog.fingerprint, "entry": entry}
+		if result.get("parts") is Array: mapping.parts = result.parts.duplicate(true)
+		var next := mappings.duplicate(true)
+		next[definition] = mapping
+		if _save(next):
+			mappings = next
+			automatic_repair_definitions.erase(definition)
+			cache[definition] = asset
+			mappings_changed.emit()
+		else: issue = "Could not save model settings."
 	if issue.is_empty(): automatic_ready += 1
-	automatic_messages.append(("Linked: " if issue.is_empty() else "Unavailable: ") + definition + (" — " + issue if not issue.is_empty() else ""))
+	var visual_warnings: Array[String] = []
+	if issue.is_empty(): visual_warnings = _visual_warnings(result)
+	var visual_note := " — Visual note: " + "; ".join(visual_warnings) if not visual_warnings.is_empty() else ""
+	automatic_messages.append(("Linked: " if issue.is_empty() else "Unavailable: ") + definition + (" — " + issue if not issue.is_empty() else "") + visual_note)
 	# Reindex after a successful download so identical mesh/texture URLs are reused.
 	var external: Dictionary = automatic_index.get("external", {})
 	automatic_index = Assets.index_cache(download_path.text.strip_edges())
 	if not external.is_empty(): automatic_index["external"] = external
 	_report_automatic()
 	call_deferred("_next_automatic", automatic_generation)
+
+func _try_next_automatic_variant(reason: String) -> bool:
+	var options: Array = automatic_current.get("options", [])
+	var next_index := int(automatic_current.get("variant_index", 0)) + 1
+	if next_index >= options.size(): return false
+	var retry: Dictionary = automatic_current.duplicate(true)
+	var previous_entry: Dictionary = retry.get("entry", {})
+	var next_entry: Dictionary = options[next_index]
+	retry.entry = next_entry.duplicate(true)
+	retry.variant_index = next_index
+	automatic_messages.append("Visual variant %s failed (%s); trying %s (%d/%d)." % [str(previous_entry.get("name", "Current entry")), reason, str(next_entry.get("name", "Alternate entry")), next_index + 1, options.size()])
+	automatic_queue.push_front(retry)
+	automatic_current.clear()
+	_report_automatic()
+	call_deferred("_next_automatic", automatic_generation)
+	return true

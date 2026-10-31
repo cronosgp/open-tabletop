@@ -1,6 +1,7 @@
 extends SceneTree
 const Catalog = preload("res://scripts/implemented_army_catalog.gd")
 const Roster = preload("res://scripts/army_roster.gd")
+const NecronProfiles = preload("res://scripts/edition_11/current_reference_necron_profiles.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -14,7 +15,8 @@ func run() -> void:
 	Roster.write_json(source.cache_directory.path_join("11e.json"), {"canary": "External API cache must not be loaded or rewritten"})
 	var cache_before := FileAccess.get_file_as_string(source.cache_directory.path_join("11e.json"))
 	check(source.select_edition("11e").is_empty() and not source.catalog.units.is_empty(), "Local catalog loads without an API/cache")
-	check(source.catalog.units.size() == 185 and source.excluded.size() == 5, "The 85 shared-book and 76 Chapter profiles plus twenty-four locally checked Legends profiles publish; four historical datasheets and the conflicting Decimus size are excluded (got %d selectable, %d excluded: %s)" % [source.catalog.units.size(), source.excluded.size(), str(source.excluded)])
+	check(source.catalog.units.size() == 194 and source.excluded.size() == 43, "The 85 shared-book and 76 Chapter profiles, twenty-four locally checked Legends profiles, Canoptek Reanimator, Royal Warden, Necron Warriors, Immortals, Deathmarks, Flayed Ones, Canoptek Scarab Swarms, Hexmark Destroyer and Canoptek Doomstalker publish; the other 42 current Necron sheets and conflicting Decimus size stay excluded (got %d selectable, %d excluded: %s)" % [source.catalog.units.size(), source.excluded.size(), str(source.excluded)])
+	check(not source.excluded.has("canoptek-reanimator") and NecronProfiles.profile("canoptek-reanimator").source_datasheet_id == "000002112" and not source.excluded.has("royal-warden") and NecronProfiles.profile("royal-warden").source_datasheet_id == "000002350" and not source.excluded.has("necron-warriors") and NecronProfiles.profile("necron-warriors").source_datasheet_id == "000000534" and not source.excluded.has("immortals") and NecronProfiles.profile("immortals").source_datasheet_id == "000000535" and not source.excluded.has("deathmarks") and NecronProfiles.profile("deathmarks").source_datasheet_id == "000000537" and not source.excluded.has("flayed-ones") and NecronProfiles.profile("flayed-ones").source_datasheet_id == "000000538" and not source.excluded.has("canoptek-scarab-swarms") and NecronProfiles.profile("canoptek-scarab-swarms").source_datasheet_id == "000002114" and not source.excluded.has("hexmark-destroyer") and NecronProfiles.profile("hexmark-destroyer").source_datasheet_id == "000002355" and not source.excluded.has("canoptek-doomstalker") and NecronProfiles.profile("canoptek-doomstalker").source_datasheet_id == "000002115", "The nine locally checked current Necron sheets are admitted from their source profiles")
 	var mutable_profile := Catalog.Current.profile("high-marshal-helbrecht")
 	mutable_profile.stats.toughness = 99
 	mutable_profile.ranged.clear()
@@ -40,7 +42,7 @@ func run() -> void:
 	for unit: Dictionary in source.catalog.units:
 		var identity: String = unit.source_id
 		check(Catalog.Capabilities.SPECS[identity].get("current_reference", false) and Catalog.Capabilities.SPECS[identity].get("validation_status", "") not in ["tests_written_not_run", "local_checks_pending"], "Only reconciled profiles without pending validation are offered")
-		var profile := Catalog.Current.profile(identity)
+		var profile := Catalog.Capabilities.current_reference_profile(str(unit.faction), identity)
 		for option: Dictionary in unit.options:
 			check(profile.points_by_models[option.models] == option.cost, "Sizes/prices come from the implemented profile")
 			if profile.get("third_plus_points_by_models", {}).has(option.models): check(option.get("third_plus_cost", -1) == profile.third_plus_points_by_models[option.models], "Third-plus prices publish from the same local profile")
@@ -90,6 +92,7 @@ func run() -> void:
 	check("rhino" in published_sources, "Locally validated Rhino enters construction")
 	check("land-raider" in published_sources and "land-raider-crusader" in published_sources and "land-raider-redeemer" in published_sources and "drop-pod" in published_sources and "impulsor" in published_sources and "repulsor" in published_sources and "repulsor-executioner" in published_sources, "Locally reconciled transport sheets enter construction")
 	check("captain" in published_sources, "Locally validated current-reference Captain enters construction")
+	check("necron-warriors" in published_sources and "canoptek-reanimator" in published_sources and "immortals" in published_sources and "deathmarks" in published_sources and "flayed-ones" in published_sources and "canoptek-scarab-swarms" in published_sources and "hexmark-destroyer" in published_sources and "canoptek-doomstalker" in published_sources, "Locally checked Warriors, Reanimator, Immortals, Deathmarks, Flayed Ones, Scarab Swarms, Hexmark Destroyer and Canoptek Doomstalker profiles enter current Necron construction")
 	check("watch-master" in published_sources, "Source-bounded Watch Master enters the consolidated current construction catalog")
 	check("blood-angels-captain" in published_sources, "Locally source-bounded Blood Angels Captain enters construction")
 	check("sanguinary-priest" in published_sources, "Locally source-bounded Sanguinary Priest enters construction")
@@ -139,7 +142,7 @@ func run() -> void:
 	check("lieutenant-with-combi-weapon" in published_sources, "Locally validated Combi-weapon Lieutenant enters construction")
 	check("techmarine" in published_sources, "Locally validated Techmarine enters construction")
 	check("roboute-guilliman" in published_sources and source.catalog.units.filter(func(unit: Dictionary) -> bool: return unit.source_id == "roboute-guilliman")[0].options.size() == 1, "Wahapedia-priced Guilliman enters construction as one fixed 415-point model")
-	check(source.excluded.has("necron-warriors") and not source.excluded.has("intercessor-squad") and not source.excluded.has("techmarine") and not source.excluded.has("lieutenant-with-combi-weapon"), "Unreconciled and historical profiles remain excluded explicitly")
+	check(source.excluded.has("triarch-praetorians") and not source.excluded.has("immortals") and not source.excluded.has("necron-warriors") and not source.excluded.has("canoptek-reanimator") and not source.excluded.has("deathmarks") and not source.excluded.has("intercessor-squad") and not source.excluded.has("techmarine") and not source.excluded.has("lieutenant-with-combi-weapon"), "Unreconciled and historical profiles remain excluded explicitly")
 	check(source.supports_size("40kdc:11e:adeptus-astartes:intercessor-squad", 5) and not source.supports_size("openhammer:11e:Space%20Marines:8da0-4570-c3c-819f", 5), "Current local entries are selectable while prior OpenHammer Intercessor lists remain labeled legacy drafts")
 	source.refresh()
 	check(source.catalog.digest == digest and not source.busy and source.get_child_count() == 0, "Reload is deterministic and creates no HTTP request")

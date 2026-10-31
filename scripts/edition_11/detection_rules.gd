@@ -79,7 +79,7 @@ static func infiltrators(state: Dictionary, squad: int) -> bool:
 	var found := false
 	for model: Dictionary in state.units.values():
 		if model.squad != squad or model.wounds <= 0 or not model.get("on_battlefield", true): continue
-		if str(model.get("definition_id", "")).get_slice(":", 3) not in ["eliminator-squad", "infiltrator-squad", "scout-squad", "wolf-scouts", "spectrus-kill-team", "lieutenant-in-phobos-armour", "librarian-in-phobos-armour", "captain-in-phobos-armour", "lieutenant-with-combi-weapon"]: return false
+		if str(model.get("definition_id", "")).get_slice(":", 3) not in ["eliminator-squad", "infiltrator-squad", "scout-squad", "wolf-scouts", "spectrus-kill-team", "lieutenant-in-phobos-armour", "librarian-in-phobos-armour", "captain-in-phobos-armour", "lieutenant-with-combi-weapon", "flayed-ones"]: return false
 		found = true
 	return found
 
@@ -98,7 +98,7 @@ static func _every_model_has_stealth(state: Dictionary, squad: int) -> bool:
 	var found := false
 	for model: Dictionary in state.units.values():
 		if model.squad != squad or model.wounds <= 0 or not model.get("on_battlefield", true): continue
-		if str(model.get("definition_id", "")).get_slice(":", 3) not in ["eliminator-squad", "librarian-in-phobos-armour", "captain-in-phobos-armour", "lieutenant-with-combi-weapon", "aethon-shaan", "corvus-blackstar"]: return false
+		if str(model.get("definition_id", "")).get_slice(":", 3) not in ["eliminator-squad", "librarian-in-phobos-armour", "captain-in-phobos-armour", "lieutenant-with-combi-weapon", "aethon-shaan", "corvus-blackstar", "flayed-ones"]: return false
 		found = true
 	return found
 

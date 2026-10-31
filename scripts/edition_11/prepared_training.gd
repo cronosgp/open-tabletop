@@ -96,7 +96,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 	if options.get("combat_doctrines", false) and options.get("oath_of_moment", false): return {"error": "11e Combat Doctrines replaces the historical Oath of Moment profile; these options cannot be combined."}
 	for key: Variant in options:
 		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "primary_overrides", "secondary_pair", "force_dispositions", "sealed_force_disposition_reveal", "training_scenario_id"]: continue
-		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts", "oath_of_moment", "reanimation_protocols", "combat_doctrines", "awakened_dynasty", "unit_abilities", "official_mission", "checked_rosters"]: return {"error": "Unsupported match option: " + str(key)}
+		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts", "oath_of_moment", "reanimation_protocols", "combat_doctrines", "awakened_dynasty", "unit_abilities", "official_mission", "checked_rosters", "legacy_necron_reference"]: return {"error": "Unsupported match option: " + str(key)}
 		if not options[key] is bool: return {"error": "Match options must be boolean: " + str(key)}
 	if options.get("unit_abilities", false) and (options.get("hail_of_bolts", false) or options.get("objective_secured", false) or options.get("oath_of_moment", false)): return {"error": "Current datasheets cannot combine with historical Hail of Bolts, Objective Secured or Oath profiles."}
 	if options.get("official_mission", false):
@@ -134,10 +134,12 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			var detachment_id := str(marine_detachments.get(owner, marine_detachments.get(str(owner), marine_detachment))) if options.get("combat_doctrines", false) else "none"
 			var roster_context := {"marine_detachment": detachment_id}
 			var is_marine_roster := selections[owner] is Dictionary and str(selections[owner].get("faction", "")) == "Space Marines"
-			var report := Combat.RosterValidation.admit(selections[owner], detachment_id if is_marine_roster else "") if options.get("checked_rosters", false) else Training.admit(selections[owner], roster_context)
+			var is_legacy_necron_roster: bool = bool(options.get("legacy_necron_reference", false)) and selections[owner] is Dictionary and str(selections[owner].get("faction", "")) == "Necrons"
+			var prefer_current_reference: bool = not is_legacy_necron_roster
+			var report := Combat.RosterValidation.admit(selections[owner], detachment_id if is_marine_roster else "") if options.get("checked_rosters", false) else Training.admit(selections[owner], roster_context, prefer_current_reference)
 			if not report.error.is_empty(): return report
 			for resolved: Dictionary in report.definitions.values() if report.has("definitions") else []:
-				if resolved.get("requires_current_abilities", false) and not options.get("unit_abilities", false): return {"error": "This Marine profile requires current unit abilities to be enabled."}
+				if resolved.get("requires_current_abilities", false) and not options.get("unit_abilities", false): return {"error": "This current datasheet requires unit abilities to be enabled."}
 			reports[owner] = report
 			if options.get("combat_doctrines", false) and report.selection.faction == "Space Marines" and str(marine_detachments.get(owner, marine_detachments.get(str(owner), "none"))) == "none": return {"error": "11e Combat Doctrines requires a declared detachment for each Space Marine army."}
 			for entry: Dictionary in report.selection.get("entries", []):
@@ -186,6 +188,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		state.training_points = {1: reports[1].total, 2: reports[2].total}
 		state.saved_army_setup = {"schema_version": 1, "options": {"manual_allocation": manual, "varied_equipment": false, "terrain_layout": terrain_layout},
 			"armies": {1: reports[1].selection, 2: reports[2].selection}}
+		if options.get("legacy_necron_reference", false): state.saved_army_setup.options.legacy_necron_reference = true
 		state.saved_army_setup.options.marine_detachments = marine_detachments.duplicate(true)
 		if marine_detachments.get(1, "") == marine_detachments.get(2, "") and marine_detachments.get(1, "") != "none": state.saved_army_setup.options.marine_detachment = marine_detachment
 		if options.get("unit_abilities", false) and options.has("marine_chapters"): state.saved_army_setup.options.marine_chapters = marine_chapter_selections.duplicate(true)
@@ -224,7 +227,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		Combat.Awakened.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.awakened_dynasty = true
 	if options.get("unit_abilities", false):
-		var loadout_error := _current_loadouts(state)
+		var loadout_error := _current_loadouts(state, reports)
 		if not loadout_error.is_empty(): return {"error": loadout_error}
 		Combat.UnitAbilities.enable(state)
 		if not reports.is_empty(): state.saved_army_setup.options.unit_abilities = true
@@ -293,7 +296,8 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		"movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls,
 		"save_rerolls": save_rerolls, "damage_rerolls": damage_rerolls,
 		"hazard_rerolls": hazard_rerolls, "escape_rerolls": escape_rerolls,
-		"count_rerolls": count_rerolls, "terrain_layout": terrain_layout
+		"count_rerolls": count_rerolls, "terrain_layout": terrain_layout,
+		"legacy_necron_reference": bool(options.get("legacy_necron_reference", false))
 	}
 	if options.has("training_scenario_id"):
 		if options.training_scenario_id != Training.Tactical.ID or not Training.Tactical.matches(state): return {"error": "The tactical scenario requires its versioned current Marine formations."}
@@ -404,9 +408,16 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 				state.units[squad * 100 + model] = unit
 			index += 1
 
-static func _current_loadouts(state: Dictionary) -> String:
+static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> String:
 	var cache: Dictionary = {}
+	var admitted_definitions: Dictionary = {}
+	var current_reference_digests: Dictionary = {}
 	var marine_profiles_used := false
+	for owner in [1, 2]:
+		var report: Dictionary = reports.get(owner, {})
+		var definitions: Dictionary = report.get("definitions", {})
+		for identity: String in definitions:
+			admitted_definitions["%d:%s" % [owner, identity]] = definitions[identity]
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		var source := Combat.UnitAbilities.identity(unit)
@@ -831,19 +842,33 @@ static func _current_loadouts(state: Dictionary) -> String:
 				unit.melee_weapons = veteran_weapons.melee
 			marine_profiles_used = true
 			continue
-		if not cache.has(source):
-			var faction := "Necrons" if str(unit.definition_id).contains(":necrons:") else "Space Marines"
-			cache[source] = Training.Capabilities.resolve(faction, unit.definition_id)
-			if not cache[source].error.is_empty(): return cache[source].error
-		var resolved: Dictionary = cache[source]
+		var owner_source_key := "%d:%s" % [int(unit.get("owner", -1)), str(unit.get("definition_id", ""))]
+		if not cache.has(owner_source_key):
+			var admitted: Dictionary = admitted_definitions.get(owner_source_key, {})
+			if not admitted.is_empty():
+				cache[owner_source_key] = admitted
+			else:
+				var faction := "Necrons" if str(unit.definition_id).contains(":necrons:") else "Space Marines"
+				# The fixed scenario and legacy training rosters stay on their historical pack unless admission supplied a current profile.
+				cache[owner_source_key] = Training.Capabilities.resolve(faction, unit.definition_id, faction != "Necrons")
+			if not cache[owner_source_key].get("error", "").is_empty(): return cache[owner_source_key].error
+		var resolved: Dictionary = cache[owner_source_key]
+		if resolved.get("requires_current_abilities", false):
+			current_reference_digests[str(resolved.spec.faction)] = str(resolved.get("pack_hash", ""))
 		var profiles := {"standard": resolved.weapons.gun.duplicate(true)}
+		var has_ranged: bool = resolved.weapons.gun is Dictionary and resolved.weapons.gun.has("name")
 		if source == "intercessor-squad":
 			for weapon: Dictionary in resolved.unit.source_weapon_definitions:
 				if weapon.id != resolved.spec.gun[0]: continue
 				profiles = {}
 				for profile: Dictionary in weapon.profiles:
 					profiles[profile.name.to_snake_case()] = Training.Capabilities.weapon(resolved.unit, [weapon.id, profile.name])
-		unit.ranged_weapons = [{"id": "primary", "profiles": profiles}]
+		unit.ranged_weapons = [{"id": "primary", "profiles": profiles}] if has_ranged else []
+		var fixed_ranged: Array = resolved.unit.get("fixed_ranged_weapons", [])
+		if not fixed_ranged.is_empty():
+			unit.ranged_weapons = []
+			for fixed_weapon: Dictionary in fixed_ranged:
+				unit.ranged_weapons.append({"id": str(fixed_weapon.get("id", "")), "profiles": fixed_weapon.get("profiles", {}).duplicate(true)})
 		var secondary: Array = []
 		match source:
 			"captain": secondary = ["heavy-bolt-pistol-captain", "Heavy Bolt Pistol"]
@@ -858,4 +883,7 @@ static func _current_loadouts(state: Dictionary) -> String:
 		unit.melee_weapons = [{"id": "melee", "profiles": {"standard": resolved.weapons.blade.duplicate(true)}}]
 	if marine_profiles_used:
 		state.pack_hash = str(state.get("pack_hash", "")) + ":" + CurrentMarineProfiles.ID + ":" + CurrentMarineProfiles.digest()
+	for faction: String in current_reference_digests:
+		if faction == "Space Marines": continue
+		state.pack_hash = str(state.get("pack_hash", "")) + ":" + Training.Capabilities.ID + ":" + faction + ":" + current_reference_digests[faction]
 	return ""

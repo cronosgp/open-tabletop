@@ -139,12 +139,16 @@ func rebuild(state: Dictionary, selected: int, combat: bool, player: int) -> voi
 		var squad: Dictionary = state.squads[unit.squad]
 		if phase == "movement":
 			current_range = Combat.movement_remaining(state, selected)
-			_range(unit.position, current_range, GREEN)
+			var unlimited_transdimensional_move: bool = state.pending_move.get("squad", -1) == unit.squad and state.pending_move.get("transdimensional_displacement", false)
+			if not unlimited_transdimensional_move: _range(unit.position, current_range, GREEN)
 			var spent: float = state.pending_move.get("spent", {}).get(selected, 0.0) if state.pending_move.get("squad", -1) == unit.squad else 0.0
 			var maximum := current_range + spent
 			var take_to_skies_penalty: float = state.pending_move.get("take_to_skies_penalty", 0.0) if state.pending_move.get("squad", -1) == unit.squad else 0.0
 			var take_to_skies_note := "\nTake to the Skies: -2 inches." if take_to_skies_penalty > 0.0 else ("\nTake to the Skies: HOVER ignores the 2-inch reduction." if state.pending_move.get("squad", -1) == unit.squad and state.pending_move.get("take_to_skies", false) else "")
-			caption = "Model %d • %.2f / %.2f inches remaining\nGreen: movement limit • links: coherency.\nTerrain and bases are checked at the cursor.%s\nPlace miniatures, then confirm the squad." % [selected, current_range, maximum, take_to_skies_note]
+			caption = "Model %d • no maximum movement distance\nTerrain, board edges and bases are checked at the cursor.\nPlace the model, then confirm the squad." % selected if unlimited_transdimensional_move else "Model %d • %.2f / %.2f inches remaining\nGreen: movement limit • links: coherency.\nTerrain and bases are checked at the cursor.%s\nPlace miniatures, then confirm the squad." % [selected, current_range, maximum, take_to_skies_note]
+			if unlimited_transdimensional_move:
+				caption += "\nFinish more than 8 inches horizontally from every enemy unit."
+				if state.pending_move.get("take_to_skies", false): caption += "\nTake to the Skies: FLY models can also pass through terrain."
 			if state.pending_move.get("move_type", "") == "desperate_escape": caption += "\nDesperate Escape permits crossing enemy bases; destinations must be free."
 			var coherent := Contact.coherent(state, unit.squad)
 			caption += "\nSquad coherency: " + ("ready" if coherent else "needs repositioning before confirmation")

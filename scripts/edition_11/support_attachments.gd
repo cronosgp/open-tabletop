@@ -14,7 +14,12 @@ const BODYGUARDS := {
 	"ancient": ["intercessor-squad", "assault-intercessor-squad", "infernus-squad", "hellblaster-squad", "sternguard-veteran-squad", "desolation-squad", "inner-circle-companions", "deathwatch-veterans", "fortis-kill-team", "decimus-kill-team", "sword-brethren-squad", "crusader-squad"],
 	"castellan": ["assault-intercessor-squad", "bladeguard-veteran-squad", "company-heroes", "infernus-squad", "intercessor-squad", "sternguard-veteran-squad", "crusader-squad", "sword-brethren-squad"],
  "bladeguard-ancient": ["bladeguard-veteran-squad"],
- "wardens-of-ultramar": ["intercessor-squad", "bladeguard-veteran-squad", "sternguard-veteran-squad", "assault-intercessor-squad"]}
+ "wardens-of-ultramar": ["intercessor-squad", "bladeguard-veteran-squad", "sternguard-veteran-squad", "assault-intercessor-squad"],
+ "orikan-the-diviner": ["necron-warriors", "immortals"],
+ "plasmancer": ["necron-warriors", "immortals"],
+ "technomancer": ["necron-warriors", "immortals", "canoptek-wraiths"],
+ "psychomancer": ["necron-warriors", "immortals"],
+ "chronomancer": ["necron-warriors", "immortals"]}
 const CONDITIONAL_BODYGUARDS := {"cato-sicarius": ["victrix-honour-guard"]}
 
 static func is_support_identity(identity: String, calgar_in_army: bool) -> bool:

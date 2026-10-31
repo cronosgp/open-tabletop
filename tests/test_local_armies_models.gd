@@ -56,6 +56,11 @@ func run() -> void:
 	bad.references.MeshURL = "https://example.invalid/other.obj"
 	check(Matcher.choose(definition, [entry, bad]).entry == Matcher.choose(definition, [bad, entry]).entry, "Visual variant selection is independent of catalog order")
 	check(Matcher.variants(definition, [entry, bad]).size() == 2 and Matcher.variants(definition, [entry, bad])[0].variant_id != Matcher.variants(definition, [entry, bad])[1].variant_id, "Distinct compatible miniature variants can be assigned separately")
+	var infantry_base := {"base_radius_inches": 20.0 / 25.4}
+	var normal_infantry := {"bounds": AABB(Vector3(-0.3, 0.0, -0.3), Vector3(0.6, 2.0, 0.6)), "base_footprint": Vector2.ZERO}
+	var malformed_infantry := {"bounds": AABB(Vector3(-0.787, 0.0, -0.787), Vector3(13.895, 2.427, 1.575)), "base_footprint": Vector2.ZERO}
+	check(Assets.visual_error_for_base(normal_infantry, infantry_base).is_empty(), "Proportionate infantry geometry without a detected OBJ base remains renderable")
+	check(not Assets.visual_error_for_base(malformed_infantry, infantry_base).is_empty(), "An extreme infantry hull cannot render away from its gameplay base")
 	write(DIR.path_join(Assets.cache_key(mesh_url) + ".obj"), "v 0 0 0\nv 1 0 0\nv 0 2 0\nf 1 2 3\n")
 	var source := DIR.path_join("ForceOrg.json")
 	write(source, JSON.stringify({"ObjectStates": [{"Nickname": "Primaris Intercessor", "CustomMesh": {"MeshURL": mesh_url}}]}))

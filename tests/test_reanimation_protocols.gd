@@ -9,8 +9,10 @@ class Dice:
 	extends RefCounted
 	var calls := 0
 	var value := 6
+	var sequence: Array[int] = []
 	func roll() -> int:
 		calls += 1
+		if not sequence.is_empty(): return sequence.pop_front()
 		return value
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -114,6 +116,187 @@ func run() -> void:
 	C.advance_phase(state, 2, state.revision, dice.roll)
 	check(decide(state, "roll", 2, -1, Vector2.ZERO, dice.roll).is_empty() and decide(state, "suggest").is_empty() and decide(state, "confirm").is_empty() and state.units[201].wounds == 1, "Pure Immortals use the same one-wound return flow")
 	state = fixture()
+	for id in range(203, 210): state.units.erase(id)
+	for model: int in [200, 201, 202]:
+		state.units[model].definition_id = "40kdc:11e:necrons:skorpekh-destroyers"
+		state.units[model].max_wounds = 3
+		state.units[model].radius = 25.0 / 25.4
+		state.units[model].position = Vector2(5.0 + float(model - 200) * 2.1, 1.0)
+		state.units[model].wounds = 3
+	state.units[200].wounds = 1
+	state.units[202].wounds = 0
+	state.squads[2].starting_strength = 3
+	R.start_command(state)
+	check(R.supported_unit(state, 2), "A Skorpekh unit with one wounded survivor is admitted for multi-wound Reanimation")
+	C.advance_phase(state, 2, state.revision, dice.roll)
+	dice.value = 6
+	check(decide(state, "roll", 2, -1, Vector2.ZERO, dice.roll).is_empty() and R.pending(state).current.healed == {200: 2} and R.pending(state).current.slots == 1, "Skorpekh Reanimation heals its wounded survivor before returning a model")
+	check(decide(state, "suggest").is_empty() and decide(state, "confirm").is_empty() and state.units[200].wounds == 3 and state.units[202].wounds == 1, "Multi-wound Reanimation restores the survivor and returns one Skorpekh at one wound")
+	var scarab_state := fixture()
+	for id in range(203, 210): scarab_state.units.erase(id)
+	for model: int in [200, 201, 202]:
+		scarab_state.units[model].definition_id = "40kdc:11e:necrons:canoptek-scarab-swarms"
+		scarab_state.units[model].max_wounds = 4
+		scarab_state.units[model].radius = 20.0 / 25.4
+		scarab_state.units[model].wounds = 4
+	scarab_state.squads[2].starting_strength = 3
+	check(R.supported_unit(scarab_state, 2), "Four-wound Scarab Swarms are admitted by the expanded wound-profile gate")
+	scarab_state.units[200].wounds = 3
+	scarab_state.units[201].wounds = 2
+	check(not R.supported_unit(scarab_state, 2), "Multiple wounded survivors remain blocked until healing allocation choices are modeled")
+	var additional_wound_profiles := {
+		"40kdc:11e:necrons:canoptek-wraiths": 4,
+		"40kdc:11e:necrons:lokhust-destroyers": 3,
+		"40kdc:11e:necrons:lokhust-heavy-destroyers": 4,
+		"40kdc:11e:necrons:ghost-ark": 14,
+		"40kdc:11e:necrons:canoptek-doomstalker": 12,
+		"40kdc:11e:necrons:doomsday-ark": 14,
+		"40kdc:11e:necrons:monolith": 22,
+		"40kdc:11e:necrons:catacomb-command-barge": 9,
+		"40kdc:11e:necrons:triarch-stalker": 12,
+		"40kdc:11e:necrons:hexmark-destroyer": 5,
+		"40kdc:11e:necrons:ophydian-destroyers": 3,
+		"40kdc:11e:necrons:annihilation-barge": 9,
+		"40kdc:11e:necrons:canoptek-macrocytes": 1,
+		"40kdc:11e:necrons:canoptek-reanimator": 6,
+		"40kdc:11e:necrons:canoptek-spyders": 6,
+		"40kdc:11e:necrons:canoptek-tomb-crawlers": 3,
+		"40kdc:11e:necrons:doom-scythe": 12,
+		"40kdc:11e:necrons:convergence-of-dominion": 7,
+		"40kdc:11e:necrons:cryptothralls": 3,
+		"40kdc:11e:necrons:night-scythe": 12,
+		"40kdc:11e:necrons:obelisk": 24,
+		"40kdc:11e:necrons:tesseract-vault": 24,
+		"40kdc:11e:necrons:tomb-blades": 2,
+		"40kdc:11e:necrons:ctan-shard-of-the-deceiver": 16,
+		"40kdc:11e:necrons:ctan-shard-of-the-nightbringer": 16,
+		"40kdc:11e:necrons:ctan-shard-of-the-void-dragon": 16,
+		"40kdc:11e:necrons:geomancer": 4,
+		"40kdc:11e:necrons:nekrosor-ammentar": 9,
+		"40kdc:11e:necrons:overlord-with-translocation-shroud": 6,
+		"40kdc:11e:necrons:transcendent-ctan": 16,
+	}
+	var profile_model_counts := {
+		"40kdc:11e:necrons:canoptek-wraiths": 3,
+		"40kdc:11e:necrons:lokhust-destroyers": 1,
+		"40kdc:11e:necrons:lokhust-heavy-destroyers": 1,
+		"40kdc:11e:necrons:ghost-ark": 1,
+		"40kdc:11e:necrons:canoptek-doomstalker": 1,
+		"40kdc:11e:necrons:doomsday-ark": 1,
+		"40kdc:11e:necrons:monolith": 1,
+		"40kdc:11e:necrons:catacomb-command-barge": 1,
+		"40kdc:11e:necrons:triarch-stalker": 1,
+		"40kdc:11e:necrons:hexmark-destroyer": 1,
+		"40kdc:11e:necrons:ophydian-destroyers": 3,
+		"40kdc:11e:necrons:annihilation-barge": 1,
+		"40kdc:11e:necrons:canoptek-macrocytes": 5,
+		"40kdc:11e:necrons:canoptek-reanimator": 1,
+		"40kdc:11e:necrons:canoptek-spyders": 1,
+		"40kdc:11e:necrons:canoptek-tomb-crawlers": 2,
+		"40kdc:11e:necrons:doom-scythe": 1,
+		"40kdc:11e:necrons:convergence-of-dominion": 1,
+		"40kdc:11e:necrons:cryptothralls": 2,
+		"40kdc:11e:necrons:night-scythe": 1,
+		"40kdc:11e:necrons:obelisk": 1,
+		"40kdc:11e:necrons:tesseract-vault": 1,
+		"40kdc:11e:necrons:tomb-blades": 3,
+		"40kdc:11e:necrons:ctan-shard-of-the-deceiver": 1,
+		"40kdc:11e:necrons:ctan-shard-of-the-nightbringer": 1,
+		"40kdc:11e:necrons:ctan-shard-of-the-void-dragon": 1,
+		"40kdc:11e:necrons:geomancer": 1,
+		"40kdc:11e:necrons:nekrosor-ammentar": 1,
+		"40kdc:11e:necrons:overlord-with-translocation-shroud": 1,
+		"40kdc:11e:necrons:transcendent-ctan": 1,
+	}
+	var exact_profile_sizes := {
+		"40kdc:11e:necrons:annihilation-barge": [1], "40kdc:11e:necrons:canoptek-macrocytes": [5],
+		"40kdc:11e:necrons:canoptek-spyders": [1, 2], "40kdc:11e:necrons:canoptek-tomb-crawlers": [2],
+		"40kdc:11e:necrons:canoptek-reanimator": [1],
+		"40kdc:11e:necrons:doom-scythe": [1], "40kdc:11e:necrons:convergence-of-dominion": [1, 2, 3],
+		"40kdc:11e:necrons:cryptothralls": [2], "40kdc:11e:necrons:night-scythe": [1],
+		"40kdc:11e:necrons:obelisk": [1], "40kdc:11e:necrons:tesseract-vault": [1],
+		"40kdc:11e:necrons:tomb-blades": [3, 6],
+		"40kdc:11e:necrons:ctan-shard-of-the-deceiver": [1], "40kdc:11e:necrons:ctan-shard-of-the-nightbringer": [1],
+		"40kdc:11e:necrons:ctan-shard-of-the-void-dragon": [1], "40kdc:11e:necrons:geomancer": [1],
+		"40kdc:11e:necrons:nekrosor-ammentar": [1], "40kdc:11e:necrons:overlord-with-translocation-shroud": [1],
+		"40kdc:11e:necrons:transcendent-ctan": [1],
+	}
+	for identity: String in additional_wound_profiles:
+		var profile_state := fixture()
+		for model: int in profile_state.units.keys():
+			if profile_state.units[model].squad != 2: continue
+			if model >= 200 + int(profile_model_counts[identity]): profile_state.units.erase(model)
+		for offset in range(int(profile_model_counts[identity])):
+			var model := 200 + offset
+			profile_state.units[model].definition_id = identity
+			profile_state.units[model].max_wounds = int(additional_wound_profiles[identity])
+			profile_state.units[model].wounds = int(additional_wound_profiles[identity])
+		profile_state.squads[2].starting_strength = int(profile_model_counts[identity])
+		check(R.supported_unit(profile_state, 2), "Reanimation recognizes local singleton or multi-wound profile %s" % identity.get_slice(":", 3))
+		if exact_profile_sizes.has(identity):
+			check(R.PROFILE_MODEL_COUNTS.get(identity, []) == exact_profile_sizes[identity], "Reanimation uses every source-listed size for %s" % identity.get_slice(":", 3))
+		if R.CHARACTER_WOUNDS.has(identity):
+			for model: int in profile_state.units:
+				if profile_state.units[model].squad == 2: profile_state.units[model].wounds = 0
+			check(R.returnable(profile_state).is_empty(), "Destroyed Character %s heals only and cannot return" % identity.get_slice(":", 3))
+	var aura_state := fixture()
+	for model: int in range(201, 204): aura_state.units[model].wounds = 0
+	for model: int in range(402, 410): aura_state.units.erase(model)
+	aura_state.squads[4].starting_strength = 1
+	for model: int in [400, 401]:
+		aura_state.units[model].definition_id = "40kdc:11e:necrons:canoptek-reanimator"
+		aura_state.units[model].max_wounds = 6
+		aura_state.units[model].wounds = 6
+		aura_state.units[model].radius = 30.0 / 25.4
+		aura_state.units[model].position = aura_state.units[200].position + Vector2(2.0, 0.0)
+	aura_state.squads[5] = aura_state.squads[4].duplicate(true)
+	aura_state.squads[5].name = "Second Canoptek Reanimator"
+	aura_state.squads[5].starting_strength = 1
+	aura_state.units[401].squad = 5
+	var aura_dice := Dice.new()
+	aura_dice.sequence = [1, 6, 1, 6]
+	check(R.supported_unit(aura_state, 4) and R.supported_unit(aura_state, 5), "Canoptek Reanimator is admitted as its source-listed one-model, six-wound profile")
+	check(R.nanoscarab_aura_applies(aura_state, 2) and R.nanoscarab_aura_applies(aura_state, 4), "Nanoscarab reaches a friendly unit in range and the source is in its own Aura")
+	check(C.advance_phase(aura_state, 2, aura_state.revision, aura_dice.roll).is_empty() and R.pending(aura_state).remaining == [2, 4, 5], "Reanimator units join the eligible Reanimation queue")
+	check(decide(aura_state, "roll", 2, -1, Vector2.ZERO, aura_dice.roll).is_empty() and aura_dice.calls == 2 and R.pending(aura_state).current.budget == 4 and R.pending(aura_state).current.nanoscarab_bonus == 3 and R.pending(aura_state).current.slots == 3, "Two nearby Reanimators add only one D3 to a Necron unit's Reanimation")
+	for model: int in [201, 202, 203]: check(decide(aura_state, "unplaceable", 2, model).is_empty(), "Aura test consumes the return choice for model %d" % model)
+	check(decide(aura_state, "confirm").is_empty(), "Aura-enhanced Warrior Reanimation confirms")
+	check(decide(aura_state, "roll", 4, -1, Vector2.ZERO, aura_dice.roll).is_empty() and aura_dice.calls == 4 and aura_dice.value == 6, "Reanimator's own Reanimation receives one self-Aura D3")
+	var distant_aura_state := fixture()
+	for model: int in range(401, 410): distant_aura_state.units.erase(model)
+	distant_aura_state.squads[4].starting_strength = 1
+	distant_aura_state.units[400].definition_id = "40kdc:11e:necrons:canoptek-reanimator"
+	distant_aura_state.units[400].max_wounds = 6
+	distant_aura_state.units[400].wounds = 6
+	distant_aura_state.units[400].radius = 30.0 / 25.4
+	distant_aura_state.units[400].position = distant_aura_state.units[200].position + Vector2(8.0, 0.0)
+	distant_aura_state.units[201].wounds = 0
+	check(not R.nanoscarab_aura_applies(distant_aura_state, 2), "Nanoscarab does not affect a friendly unit outside 3 inches")
+	var distant_dice := Dice.new()
+	distant_dice.value = 6
+	C.advance_phase(distant_aura_state, 2, distant_aura_state.revision, distant_dice.roll)
+	check(decide(distant_aura_state, "roll", 2, -1, Vector2.ZERO, distant_dice.roll).is_empty() and distant_dice.calls == 1 and R.pending(distant_aura_state).current.budget == 3, "An out-of-range unit rolls only its normal D3")
+	var multiple_vehicles := fixture()
+	for model: int in multiple_vehicles.units.keys():
+		if multiple_vehicles.units[model].squad != 2: continue
+		if model > 201: multiple_vehicles.units.erase(model)
+		else:
+			multiple_vehicles.units[model].definition_id = "40kdc:11e:necrons:ghost-ark"
+			multiple_vehicles.units[model].max_wounds = 14
+			multiple_vehicles.units[model].wounds = 14
+	multiple_vehicles.squads[2].starting_strength = 2
+	check(not R.supported_unit(multiple_vehicles, 2), "Singleton vehicle datasheets remain blocked when incorrectly grouped as multiple models")
+	var undersized_ophydians := fixture()
+	for model: int in undersized_ophydians.units.keys():
+		if undersized_ophydians.units[model].squad != 2: continue
+		if model > 201: undersized_ophydians.units.erase(model)
+		else:
+			undersized_ophydians.units[model].definition_id = "40kdc:11e:necrons:ophydian-destroyers"
+			undersized_ophydians.units[model].max_wounds = 3
+			undersized_ophydians.units[model].wounds = 3
+	undersized_ophydians.squads[2].starting_strength = 2
+	check(not R.supported_unit(undersized_ophydians, 2), "Ophydian Reanimation rejects a model count absent from the local composition rows")
+	state = fixture()
 	state.units[201].wounds = 0
 	C.advance_phase(state, 2, state.revision, dice.roll)
 	before = var_to_bytes(state)
@@ -134,6 +317,15 @@ func run() -> void:
 	state = fixture()
 	for id: int in C.living(state, 2): state.units[id].wounds = 0
 	check(C.advance_phase(state, 2, state.revision).is_empty() and R.pending(state).remaining == [4], "Destroyed unit never activates")
+	state = fixture()
+	state["unit_abilities"] = {"reserves": {2: {"cost": 100}}}
+	check(C.advance_phase(state, 2, state.revision).is_empty() and R.pending(state).remaining == [4], "Core Reanimation skips a living unit in Reserves")
+	state = fixture()
+	state.squads[2].embarked_in = 999
+	for model: int in C.living(state, 2):
+		state.units[model].on_battlefield = false
+		state.units[model].embarked_transport = 999
+	check(C.advance_phase(state, 2, state.revision).is_empty() and R.pending(state).remaining == [4], "Core Reanimation skips a living unit embarked in a Transport")
 	state = fixture()
 	for id in range(201, 210): state.units.erase(id)
 	state.units[200].definition_id = R.OVERLORD
@@ -168,6 +360,7 @@ func run() -> void:
 	game.auto_models.button_pressed = false
 	game.reanimation_protocols_choice.button_pressed = true
 	game._start_prepared_match()
+	var isolated_save_path := "user://matches/reanimation-test-%s.save" % Time.get_ticks_usec()
 	game.state = fixture()
 	game.state.units[201].wounds = 0
 	game._spawn_pieces()
@@ -193,21 +386,26 @@ func run() -> void:
 	game._request_reanimation("suggest")
 	saved_state = game.state.duplicate(true)
 	saved_rng = game.rng.state
-	game._save_match()
-	game._load_match()
+	var pending_save_error := Save.write(game.state, game._save_config(), game.rng.state, game.attack_draft, isolated_save_path, game.host_session, game.journal.checkpoint(), {}, C.MatchActor.player(game.state))
+	game._load_match(false, false, Save.read(isolated_save_path))
 	check(game.state == saved_state and game.rng.state == saved_rng and game.reanimation_protocols and game.pieces[201].visible, "Pending roll and placements survive save/load without reroll")
 	game._start_objectives()
-	game._save_match()
-	var old := Save.read()
+	var save_error := Save.write(game.state, game._save_config(), game.rng.state, game.attack_draft, isolated_save_path, game.host_session, game.journal.checkpoint(), {}, C.MatchActor.player(game.state))
+	var old := Save.read(isolated_save_path)
 	old.config.erase("reanimation_protocols")
-	Save.write(old.state, old.config, old.rng_state, old.attack_draft, Save.PATH, old.session, old.journal)
-	game._load_match()
+	var legacy_write_error := Save.write(old.state, old.config, old.rng_state, old.attack_draft, isolated_save_path, old.session, old.journal)
+	game._load_match(false, false, Save.read(isolated_save_path))
 	check(not game.reanimation_protocols and not game.state.has("reanimation"), "Legacy saves default to disabled")
 	old.config.reanimation_protocols = true
-	Save.write(old.state, old.config, old.rng_state, old.attack_draft, Save.PATH, old.session, old.journal)
+	var conflicting_save_error := Save.write(old.state, old.config, old.rng_state, old.attack_draft, isolated_save_path, old.session, old.journal)
 	before = var_to_bytes(game.state)
-	game._load_match()
-	check(before == var_to_bytes(game.state) and "Reanimation" in game.status.text, "Conflicting save flag rejected")
+	game._load_match(false, false, Save.read(isolated_save_path))
+	check(pending_save_error.is_empty() and save_error.is_empty() and legacy_write_error.is_empty() and conflicting_save_error.is_empty() and before == var_to_bytes(game.state) and "Reanimation" in game.status.text, "Conflicting save flag rejected (writes=%s/%s/%s/%s; unchanged=%s; status=%s)" % [pending_save_error, save_error, legacy_write_error, conflicting_save_error, str(before == var_to_bytes(game.state)), game.status.text])
+	for suffix: String in ["", ".bak", ".tmp"]:
+		var temporary_file := FileAccess.open(isolated_save_path + suffix, FileAccess.READ)
+		if temporary_file != null:
+			temporary_file.close()
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(isolated_save_path + suffix))
 	game.queue_free()
 	await process_frame
 	print("REANIMATION: %d failures" % failures)

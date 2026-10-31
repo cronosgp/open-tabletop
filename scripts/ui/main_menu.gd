@@ -4,6 +4,8 @@ signal start_guided_requested
 signal training_sides_changed(swapped: bool)
 signal resume_requested
 signal new_match_requested
+signal exit_match_requested
+signal exit_application_requested
 signal section_requested(tab_index: int)
 signal help_requested
 signal settings_requested
@@ -32,6 +34,8 @@ var actions_heading: Label
 var match_title: Label
 var nav_heading: Label
 var footer_label: Label
+var exit_application_button: Button
+var first_run_model_setup: Control
 
 const GOLD := Color("e3b65c")
 const IVORY := Color("eee7d2")
@@ -136,7 +140,7 @@ func _build() -> void:
 	resume_note.text = "No compatible saved match found."
 	resume_note.add_theme_color_override("font_color", MUTED)
 	actions.add_child(resume_note)
-	guided_button = _button(actions, "Start tactical training", "Fire and Manoeuvre vs Close Assault. Gladius abilities and stratagems; free play with tips. Uses the local catalog, no downloads. Asymmetric forces; legality and balance are not certified.", true)
+	guided_button = _button(actions, "Start tactical training", "Fire and Manoeuvre vs Close Assault. Gladius abilities and stratagems; free play with tips. Starting training enables local downloads for all six unit types. Asymmetric forces; legality and balance are not certified.", true)
 	guided_button.pressed.connect(func(): start_guided_requested.emit())
 	training_summary = Label.new()
 	training_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -167,6 +171,8 @@ func _build() -> void:
 	settings_button.pressed.connect(func(): settings_requested.emit())
 	var save_button := _button(match_section, "Save match to slot", "Choose one of five local slots for this match.", false)
 	save_button.pressed.connect(func(): save_requested.emit())
+	var exit_match_button := _button(match_section, "Exit match to title screen", "End this match session and return to the title screen. Save the match first if you want to resume it later.", false)
+	exit_match_button.pressed.connect(func(): exit_match_requested.emit())
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	actions.add_child(spacer)
@@ -194,13 +200,19 @@ func _build() -> void:
 	results_button.pressed.connect(func(): saved_results_requested.emit())
 	var guide_button := _button(nav, "Guide", "Read controls and match flow before starting.", false, true)
 	guide_button.pressed.connect(func(): help_requested.emit())
+	var footer_row := HBoxContainer.new()
+	footer_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions.add_child(footer_row)
 	var footer := Label.new()
 	footer_label = footer
 	footer.text = "Saved games and imported model files remain on this computer."
 	footer.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	footer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_theme_font_size_override("font_size", 12)
 	footer.add_theme_color_override("font_color", Color("84919a"))
-	actions.add_child(footer)
+	footer_row.add_child(footer)
+	exit_application_button = _button(footer_row, "Exit", "Close Open Tabletop.", false, true)
+	exit_application_button.pressed.connect(func(): exit_application_requested.emit())
 
 func set_resume_state(available: bool, explanation: String = "", live_match: bool = false, save_count: int = 1) -> void:
 	resume_button.visible = available
@@ -247,6 +259,74 @@ func show_status(message: String) -> void:
 		match_status.text = message if not message.is_empty() else "The match stays active while this local menu is open."
 		match_status.visible = true
 
+func show_first_run_model_setup(choose: Callable, skip: Callable) -> void:
+	if first_run_model_setup != null and is_instance_valid(first_run_model_setup):
+		first_run_model_setup.visible = true
+		return
+	var overlay := Control.new()
+	first_run_model_setup = overlay
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.z_index = 100
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(overlay)
+	var shade := ColorRect.new()
+	shade.color = Color(0.015, 0.022, 0.029, 0.82)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.add_child(shade)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(center)
+	var frame := PanelContainer.new()
+	frame.custom_minimum_size.x = minf(720.0, get_viewport_rect().size.x - 48.0)
+	var frame_style := StyleBoxFlat.new()
+	frame_style.bg_color = Color("10161c")
+	frame_style.border_color = Color("695432")
+	frame_style.set_border_width_all(1)
+	frame_style.border_width_left = 4
+	frame_style.set_corner_radius_all(8)
+	frame_style.content_margin_left = 28
+	frame_style.content_margin_right = 28
+	frame_style.content_margin_top = 24
+	frame_style.content_margin_bottom = 24
+	frame.add_theme_stylebox_override("panel", frame_style)
+	center.add_child(frame)
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 14)
+	frame.add_child(content)
+	var eyebrow := Label.new()
+	eyebrow.text = "LOCAL MINIATURES"
+	eyebrow.add_theme_font_size_override("font_size", 13)
+	eyebrow.add_theme_color_override("font_color", GOLD)
+	content.add_child(eyebrow)
+	var heading := Label.new()
+	heading.text = "Prepare your miniatures"
+	heading.add_theme_font_size_override("font_size", 26)
+	heading.add_theme_color_override("font_color", IVORY)
+	content.add_child(heading)
+	var explanation := Label.new()
+	explanation.text = "Choose ForceOrg.json to use local miniature visuals. The catalog path is saved on this computer. When you start a local match, compatible models for the selected armies download automatically. Tactical training enables downloads for all six unit types. A unit keeps its default miniature if no supported model is available.\n\nContinue without models leaves downloads off for other local matches. Starting tactical training still prepares its miniatures. You can add ForceOrg.json later from Army & Models. Miniature downloads do not affect game rules."
+	explanation.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	explanation.custom_minimum_size.x = minf(650.0, get_viewport_rect().size.x - 104.0)
+	explanation.add_theme_color_override("font_color", Color("c7d0d5"))
+	content.add_child(explanation)
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 10)
+	content.add_child(actions)
+	var choose_button := _button(actions, "Choose ForceOrg.json", "Select and validate a local model catalog.", true)
+	var skip_button := _button(actions, "Continue without models", "Keep using default miniatures. Add ForceOrg.json later from Army & Models.", false)
+	choose_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	skip_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	choose_button.pressed.connect(choose)
+	skip_button.pressed.connect(skip)
+	choose_button.call_deferred("grab_focus")
+
+func hide_first_run_model_setup() -> void:
+	if first_run_model_setup != null and is_instance_valid(first_run_model_setup):
+		first_run_model_setup.queue_free()
+	first_run_model_setup = null
+
 func set_in_match_mode(active: bool) -> void:
 	match_section.visible = active
 	match_status.visible = active
@@ -255,6 +335,7 @@ func set_in_match_mode(active: bool) -> void:
 	if title_sections != null: title_sections.visible = not active
 	if nav_heading != null: nav_heading.visible = not active
 	if footer_label != null: footer_label.visible = not active
+	if exit_application_button != null: exit_application_button.visible = not active
 	if guided_button != null: guided_button.visible = not active
 	if training_swap_choice != null: training_swap_choice.visible = not active
 	if training_summary != null: training_summary.visible = not active

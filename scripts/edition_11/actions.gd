@@ -6,6 +6,7 @@ const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Objectives = preload("res://scripts/edition_11/objectives.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
+const Scarabs = preload("res://scripts/edition_11/canoptek_scarab_swarms.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const SECURE := "training-secure"
@@ -34,6 +35,7 @@ static func eligibility_error(state: Dictionary, squad: int) -> String:
 	if keyword(state, squad, ["aircraft", "fortification"]): return "Aircraft and Fortifications cannot start actions."
 	if unit.battle_shocked and not UnitAbilities.has(state, squad, "tactical-mainstay"): return "Battle-shocked units cannot start actions."
 	var objective_control := int(unit.stats.objective_control) + AncientFury.objective_control_bonus(state, squad)
+	if Scarabs.cryptek_sets_unit_oc(state, squad): objective_control = maxi(objective_control, 1)
 	var lion_will: Dictionary = state.get("detachment_stratagems", {}).get("lion_will", {}).get(squad, {})
 	if int(lion_will.get("turn", -1)) == int(state.get("turn", -2)) and int(lion_will.get("owner", -1)) == int(unit.get("owner", -2)): objective_control += 1
 	var for_the_emperor: Dictionary = state.get("detachment_stratagems", {}).get("for_the_emperor", {}).get(squad, {})

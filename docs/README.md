@@ -37,6 +37,7 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Rules source decision](rules-source-policy.md) — Wahapedia 11e is the definitive project reference.
 - [Source policy and assessment](data/source-assessment.md) — authoritative local datasheet source, verification boundary, and pipeline status.
 - [Standard faction datasheet inventory](data/standard-faction-inventory.md) — current 11e source-book counts and implementation order, with Marine supplements grouped together.
+- [Necrons coverage ledger](data/necrons-coverage.md) — local App v1.2 snapshot identity, file hashes, per-profile scope, blockers and validation status.
 - [Space Marine extended inventory](data/space-marine-extended-inventory.md) — all 193 indexed page entries, including 29 Legends sheets, twenty-four locally admitted Space Marines Legends profiles and two Forge World sheets awaiting separate admission.
 - [Rhino Primaris (Warhammer Legends) sheet audit](marine-rhino-primaris.md) · [machine-readable source/hash audit](marine-rhino-primaris-audit.json) — transport, weapons, ability profiles, repetition limits and event/footprint boundaries.
 - [Hammerfall Bunker (Warhammer Legends) sheet audit](marine-hammerfall-bunker.md) · [machine-readable source/hash audit](marine-hammerfall-bunker-audit.json) — current 175-point profile, complete weapon/loadout data, Fortification, Ceramite Cover, Defensive Array and declared placement boundary.

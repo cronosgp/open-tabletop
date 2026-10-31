@@ -49,6 +49,7 @@ const INPUT_CAMERA_PAN_LEFT := "camera_pan_left"
 const INPUT_CAMERA_PAN_RIGHT := "camera_pan_right"
 const INPUT_CAMERA_PAN_UP := "camera_pan_up"
 const INPUT_CAMERA_PAN_DOWN := "camera_pan_down"
+const CAMERA_MIN_ZOOM := 4.0
 const REBINDABLE_ACTIONS: Array[String] = [
 	INPUT_INSPECT_DATASHEET,
 	INPUT_FOCUS_SELECTED_UNIT,
@@ -74,6 +75,7 @@ const CONTROL_BINDING_LABELS := {
 	INPUT_CAMERA_PAN_RIGHT: "Pan camera right",
 }
 const MainMenu = preload("res://scripts/ui/main_menu.gd")
+const FIRST_RUN_SETTINGS_PATH := "user://startup-settings.cfg"
 const CombatHud = preload("res://scripts/ui/combat_hud.gd")
 const SessionTransport = preload("res://scripts/network/session_transport.gd")
 const MatchSession = preload("res://scripts/network/match_session.gd")
@@ -102,6 +104,7 @@ var seat_challenge: Dictionary:
 var autosave_error := ""
 var auto_models: CheckBox
 var local_model_status: Label
+var model_play_notice: Label
 var saved_army_mode := false
 var saved_army_pickers: Dictionary = {}
 var saved_training_consent: CheckBox
@@ -230,6 +233,9 @@ var deployment_help: Label
 var board_root: Node3D
 var rendered_board_size := Vector2.ZERO
 var model_imports: VBoxContainer
+var first_run_model_prompt: Control
+var first_run_model_file_dialog: FileDialog
+var first_run_model_setup_finished := false
 const PORT := 24560
 var state: Dictionary = Rules.initial_state()
 var pieces: Dictionary = {}
@@ -471,7 +477,7 @@ var defense_picker: OptionButton
 var action_groups: Dictionary = {}
 var confirm_contact_button: Button
 var cancel_contact_button: Button
-const MOVE_TYPES := ["normal", "advance", "ordered_retreat", "desperate_escape", "stationary"]
+const MOVE_TYPES := ["normal", "advance", "ordered_retreat", "desperate_escape", "stationary", "transdimensional_advance"]
 var sidebar_panel: PanelContainer
 var command_panel: PanelContainer
 var command_panel_title: Label
@@ -512,6 +518,106 @@ func _ready() -> void:
 	session_transport.server_disconnected.connect(func(): _offline("Host disconnected. Local preview restored."))
 	_refresh()
 	_update_main_menu_resume_state()
+	call_deferred("_prompt_first_run_model_catalog")
+
+func _prompt_first_run_model_catalog() -> void:
+	if main_menu == null or model_imports == null or first_run_model_setup_finished: return
+	var settings := ConfigFile.new()
+	if settings.load(FIRST_RUN_SETTINGS_PATH) == OK:
+		if settings.has_section_key("startup", "download_models") and auto_models != null:
+			auto_models.set_pressed_no_signal(bool(settings.get_value("startup", "download_models", true)))
+		_refresh_model_download_status()
+		if bool(settings.get_value("startup", "forceorg_setup_complete", false)):
+			first_run_model_setup_finished = true
+			return
+	_show_first_run_model_prompt()
+
+func _show_first_run_model_prompt() -> void:
+	if first_run_model_prompt != null and is_instance_valid(first_run_model_prompt):
+		first_run_model_prompt.visible = true
+		return
+	main_menu.show_first_run_model_setup(_open_first_run_model_file_picker, _skip_first_run_model_setup)
+	first_run_model_prompt = main_menu.first_run_model_setup
+
+func _open_first_run_model_file_picker() -> void:
+	if main_menu != null: main_menu.hide_first_run_model_setup()
+	first_run_model_prompt = null
+	var dialog := FileDialog.new()
+	first_run_model_file_dialog = dialog
+	dialog.title = "Select ForceOrg.json"
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	dialog.filters = PackedStringArray(["*.json ; ForceOrg / Tabletop Simulator JSON"])
+	dialog.file_selected.connect(func(path: String):
+		dialog.queue_free()
+		first_run_model_file_dialog = null
+		_accept_first_run_model_catalog(path)
+	)
+	dialog.canceled.connect(func():
+		dialog.queue_free()
+		first_run_model_file_dialog = null
+		call_deferred("_show_first_run_model_prompt")
+	)
+	add_child(dialog)
+	dialog.popup_centered_ratio(0.78)
+
+func _accept_first_run_model_catalog(path: String) -> void:
+	var issue: String = model_imports.load_catalog_file(path)
+	if not issue.is_empty():
+		main_menu.show_status("ForceOrg catalog not loaded: " + issue)
+		call_deferred("_show_first_run_model_prompt")
+		return
+	if auto_models != null: auto_models.set_pressed_no_signal(true)
+	_refresh_model_download_status()
+	issue = _save_first_run_model_setup(true)
+	if not issue.is_empty():
+		main_menu.show_status("Catalog loaded for this session, but the first-run choice could not be saved: " + issue)
+		return
+	first_run_model_setup_finished = true
+	main_menu.show_status("ForceOrg catalog ready. Compatible models will download for your selected armies when you start a local match.")
+
+func _skip_first_run_model_setup() -> void:
+	if first_run_model_setup_finished: return
+	if main_menu != null: main_menu.hide_first_run_model_setup()
+	first_run_model_prompt = null
+	if auto_models != null: auto_models.set_pressed_no_signal(false)
+	_refresh_model_download_status()
+	var issue := _save_first_run_model_setup(false)
+	if not issue.is_empty():
+		main_menu.show_status("The setup choice could not be saved: " + issue)
+		return
+	first_run_model_setup_finished = true
+	main_menu.show_status("Continuing without external models. You can add ForceOrg.json later from Army & Models.")
+
+func _save_first_run_model_setup(download_models: bool) -> String:
+	var settings := ConfigFile.new()
+	var error := settings.load(FIRST_RUN_SETTINGS_PATH)
+	if error != OK and error != ERR_FILE_NOT_FOUND: return "Could not read startup settings: " + error_string(error)
+	settings.set_value("startup", "forceorg_setup_complete", true)
+	settings.set_value("startup", "download_models", download_models)
+	error = settings.save(FIRST_RUN_SETTINGS_PATH)
+	return "" if error == OK else "Could not write startup settings: " + error_string(error)
+
+func _save_model_download_preference(enabled: bool) -> void:
+	var settings := ConfigFile.new()
+	var error := settings.load(FIRST_RUN_SETTINGS_PATH)
+	if error != OK and error != ERR_FILE_NOT_FOUND:
+		if main_menu != null: main_menu.show_status("Could not read model-download settings: " + error_string(error))
+		return
+	settings.set_value("startup", "download_models", enabled)
+	error = settings.save(FIRST_RUN_SETTINGS_PATH)
+	if error != OK and main_menu != null: main_menu.show_status("Could not save model-download preference: " + error_string(error))
+	_refresh_model_download_status()
+
+func _on_model_download_toggled(enabled: bool) -> void:
+	_save_model_download_preference(enabled)
+
+func _refresh_model_download_status() -> void:
+	if local_model_status == null or auto_models == null: return
+	if auto_models.button_pressed:
+		local_model_status.text = "Models: ForceOrg miniatures download for local matches; tactical training prepares all six unit types. Saved links are reused."
+	else:
+		local_model_status.text = "Models: Automatic downloads are off for other local matches. Tactical training still prepares its six unit types."
 
 func _ensure_tactical_input_actions() -> void:
 	for action: String in REBINDABLE_ACTIONS:
@@ -649,6 +755,7 @@ func _spawn_pieces() -> void:
 				mesh.top_radius = state.units[id].radius
 				var base_offset := Node3D.new()
 				base_offset.position.y = 0.04
+				base_offset.rotation.y = _miniature_facing_rotation(int(state.units[id].get("owner", 1)))
 				piece.add_child(base_offset)
 				base_offset.add_child(visual)
 				# Keep the colored selection base on the board; visuals are cosmetic.
@@ -986,7 +1093,7 @@ func _build_ui() -> void:
 	scope_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(scope_label)
 	var guided_intro := Label.new()
-	guided_intro.text = "Gladius tactical training • Captain, Intercessors and Hellblasters vs Chaplain, Assault Intercessors and Bladeguard. Local free play with tips; asymmetric forces, partial support. Uses the prepared local catalog; no downloads."
+	guided_intro.text = "Gladius tactical training • Captain, Intercessors and Hellblasters vs Chaplain, Assault Intercessors and Bladeguard. Local free play with tips; asymmetric forces, partial support. Starting training enables ForceOrg downloads for all six unit types."
 	guided_intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	overview.add_child(guided_intro)
 	training_swap_choice = CheckBox.new()
@@ -1364,7 +1471,7 @@ func _build_ui() -> void:
 		_refresh_setup_option_controls())
 	reanimation_protocols_choice = CheckBox.new()
 	reanimation_protocols_choice.text = "Next prepared match: Reanimation Protocols"
-	reanimation_protocols_choice.tooltip_text = "September 2026 faction rule, limited to Warriors/Immortals, living Overlords and admitted Overlord attachments. End of own Command: roll D3 per living unit, preview returned troop models, then confirm. Heal surviving models first, then return troops. Slain Characters are unsupported. Resurrection Orb and other datasheet abilities require the current unit abilities option. Both LAN players must agree."
+	reanimation_protocols_choice.tooltip_text = "Necrons App v1.2 faction rule: Warriors, Immortals, Flayed Ones, Skorpekh Destroyers, Scarab Swarms, Wraiths, Lokhust Destroyers, Lokhust Heavy Destroyers, Ghost Arks, Canoptek Doomstalkers, Doomsday Arks, Monoliths, Triarch Stalkers, Ophydian Destroyers, living Catacomb Command Barges, Hexmark Destroyers, Overlords/Royal Wardens and admitted Warriors/Immortals attachments. Only source-listed unit sizes are supported. End of own Command: roll D3 per living unit; heal the one supported wounded survivor, preview returned models, then confirm. Multiple wounded survivors and slain Characters are unsupported. Resurrection Orb and other datasheet abilities require the current unit abilities option. Both LAN players must agree."
 	advanced.add_child(reanimation_protocols_choice)
 	oath_of_moment_choice = CheckBox.new()
 	oath_of_moment_choice.text = "Legacy training option: Oath of Moment (June 2026 profile)"
@@ -1473,13 +1580,15 @@ func _build_ui() -> void:
 		_button(saved_lists, "Save a copy of player %d's list to my profile" % owner, func(): _save_selected_army(owner))
 	auto_models = CheckBox.new()
 	auto_models.text = "Download and link ForceOrg models automatically"
+	auto_models.tooltip_text = "Controls other local matches. Starting tactical training always enables downloads for all six unit types."
 	auto_models.button_pressed = true
+	auto_models.toggled.connect(_on_model_download_toggled)
 	saved_lists.add_child(auto_models)
 	local_model_status = Label.new()
 	local_model_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	local_model_status.text = "Models: ForceOrg catalog and compatible miniatures download automatically. Saved links are reused."
+	local_model_status.text = "Models: Compatible ForceOrg models download when a local match starts. Saved links are reused."
 	saved_lists.add_child(local_model_status)
-	var model_play_notice := Label.new()
+	model_play_notice = Label.new()
 	model_play_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	model_play_notice.visible = false
 	column.add_child(model_play_notice)
@@ -1812,7 +1921,8 @@ func _build_ui() -> void:
 		{"label": "Advance (D6)", "type": "advance"},
 		{"label": "Fall Back: Ordered Retreat", "type": "ordered_retreat"},
 		{"label": "Fall Back: Desperate Escape", "type": "desperate_escape"},
-		{"label": "Remain stationary", "type": "stationary"}
+		{"label": "Remain stationary", "type": "stationary"},
+		{"label": "Transdimensional Displacement", "type": "transdimensional_advance"}
 	]
 	for option: Dictionary in movement_options:
 		movement_choice.add_item(str(option.label))
@@ -1963,6 +2073,7 @@ func _build_ui() -> void:
 	status.text = "Local preview: control both sides."
 	column.add_child(status)
 	column.move_child(status, 0)
+	if model_play_notice != null: column.move_child(model_play_notice, 1)
 	notice_heading = Label.new()
 	notice_heading.visible = false
 	column.add_child(notice_heading)
@@ -2105,7 +2216,7 @@ func _build_ui() -> void:
 	field_guide.bbcode_enabled = true
 	field_guide.fit_content = true
 	field_guide.scroll_active = false
-	field_guide.text = "[color=#e3b75c][b]TURN RAIL[/b][/color]\nThe gold phase is active. R# and P# show the round and active player; the decision line identifies who has priority now.\n\n[color=#e3b75c][b]CURRENT ACTION[/b][/color]\nThe banner below the rail names who acts and the next required task. Follow the available controls in the Command panel; phase progression stays gated while required choices remain.\n\n[color=#e3b75c][b]ARMY LIST[/b][/color]\nThe left panel keeps the selected model and the active player's units. Each model is named by its place in the unit, such as Model 1. Sergeant is added only for the one model that can use that unit's sergeant weapon options. Rows show wounds or Destroyed/Reserves, and the unit row shows Steady or Battle-shocked. Choosing a row selects that model and frames it. The arrow beside a unit hides its models. Hide models does that for every unit. Hide closes this panel; Army on the top bar opens it again.\n\n[color=#e3b75c][b]TABLE CONTROLS[/b][/color]\nLeft-click a miniature to select it. Right-click to place a move or choose a target. Use the wheel to zoom, middle-drag to orbit and the camera pan keys shown in Settings to pan. The Focus control centers the selected unit. P1 side or P2 side returns the camera to that player's table edge. The P1 and P2 marks stay on those edges.\n\n[color=#e3b75c][b]PANEL NAVIGATION[/b][/color]\nWhen a panel opens, focus moves to its first available control. Use Tab or the arrow keys to move between controls and Enter/Space to activate. Escape/Cancel closes the panel and returns focus to the control that opened it.\n\n[color=#e3b75c][b]READ-ONLY PANELS[/b][/color]\nThe army list, Help, Settings and the battle log are local screens. Reading them does not submit a gameplay action. LAN matches continue while they are open."
+	field_guide.text = "[color=#e3b75c][b]TURN RAIL[/b][/color]\nThe gold phase is active. R# and P# show the round and active player; the decision line identifies who has priority now.\n\n[color=#e3b75c][b]CURRENT ACTION[/b][/color]\nThe banner below the rail names who acts and the next required task. Follow the available controls in the Command panel; phase progression stays gated while required choices remain.\n\n[color=#e3b75c][b]ARMY LIST[/b][/color]\nThe left panel keeps the selected model and the active player's units. Each model is named by its place in the unit, such as Intercessor Sergeant and Intercessor 1. Other squads use their unit names too; a Sergeant label appears only when that unit has a sergeant model. Rows show wounds or Destroyed/Reserves, and the unit row shows Steady or Battle-shocked. Choosing a row selects that model and frames it. The arrow beside a unit hides its models. Hide models does that for every unit. Hide closes this panel; Army on the top bar opens it again.\n\n[color=#e3b75c][b]TABLE CONTROLS[/b][/color]\nLeft-click a miniature to select it. Right-click to place a move or choose a target. Use the wheel to zoom, middle-drag to orbit and the camera pan keys shown in Settings to pan. The Focus control centers the selected unit. P1 side or P2 side returns the camera to that player's table edge. The P1 and P2 marks stay on those edges.\n\n[color=#e3b75c][b]PANEL NAVIGATION[/b][/color]\nWhen a panel opens, focus moves to its first available control. Use Tab or the arrow keys to move between controls and Enter/Space to activate. Escape/Cancel closes a tactical overlay. From the match board or local-player handoff it opens the match menu; Escape in that menu returns to the match. The handoff prompt returns without revealing the pending decision.\n\n[color=#e3b75c][b]READ-ONLY PANELS[/b][/color]\nThe army list, Help, Settings and the battle log are local screens. Reading them does not submit a gameplay action. LAN matches continue while they are open."
 	reference.add_child(field_guide)
 	reference.add_child(WeaponKeywordHelp.new())
 	blockers_reference = Label.new()
@@ -2189,6 +2300,8 @@ func _build_ui() -> void:
 	main_menu.training_sides_changed.connect(_set_training_swap)
 	main_menu.resume_requested.connect(_menu_resume)
 	main_menu.new_match_requested.connect(func(): _dismiss_home(0))
+	main_menu.exit_match_requested.connect(_exit_match_to_title_screen)
+	main_menu.exit_application_requested.connect(func(): get_tree().quit())
 	main_menu.section_requested.connect(_open_menu_section)
 	main_menu.help_requested.connect(_open_title_field_guide)
 	main_menu.settings_requested.connect(_open_settings_screen)
@@ -2274,6 +2387,7 @@ func _build_tactical_overlay() -> void:
 	var handoff_component: Control = LocalPlayerHandoff.new()
 	handoff_component.visible = false
 	handoff_component.connect("confirmed", _on_local_handoff_confirmed)
+	handoff_component.connect("menu_requested", _open_home)
 	local_player_handoff = handoff_component
 	handoff_layer.add_child(handoff_component)
 
@@ -2320,7 +2434,7 @@ func _build_title_field_guide() -> void:
 	guide.fit_content = true
 	guide.scroll_active = false
 	guide.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	guide.text = "[color=#e3b75c][b]QUICK START[/b][/color]\nStart tactical training for offline practice with two local armies, optional tips and no downloads. You control both sides. Choose New match for a saved-army exercise or LAN setup. Armies, Models and Tools open local workspaces; opening them does not start a match.\n\n[color=#e3b75c][b]READ THE TURN[/b][/color]\nThe highlighted phase and decision line show where play is and who must act. Read the instruction below the turn rail, then use the matching controls in Command. The game keeps phase progression closed while required choices remain.\n\n[color=#e3b75c][b]DICE AND RE-ROLLS[/b][/color]\nIf Command offers Keep result, it accepts the displayed dice for 0 CP. A re-roll remains optional when Keep result is available; the re-roll control shows its current CP cost and which die or dice would be replaced.\n\n[color=#e3b75c][b]TABLE CONTROLS[/b][/color]\nLeft-click a miniature to select it. Right-click to request a move or choose a target. Use the mouse wheel to zoom and middle-drag to orbit. The current keyboard bindings for camera pan, Focus and Datasheet appear in Settings. The Focus and Datasheet buttons also perform these actions. Camera shortcuts pause while a menu, handoff or reference screen is open.\n\n[color=#e3b75c][b]KEYBOARD AND GAMEPAD[/b][/color]\nThe highlighted control has focus. Use Tab or the directional buttons to move between choices, Enter/Space to activate, and Escape/Cancel to close an open panel. The title and in-match menus focus a primary action when they open.\n\n[color=#e3b75c][b]DATASHEET AND SCOPE[/b][/color]\nDatasheet shows the selected match profile. Ability Rules may include text from an optional verified local source; Implemented Scope describes behavior the game supports. Source text alone does not mean an ability is implemented.\n\n[color=#e3b75c][b]LOCAL SETTINGS[/b][/color]\nOpen Settings to choose window mode, resolution, interface size, keyboard bindings and local presentation options. Select a binding, press an unmodified key and choose Apply to save. Escape cancels key capture; Revert returns to the last applied values.\n\n[color=#e3b75c][b]MATCH STATE[/b][/color]\nReading the guide does not create a match or change saved game state. During LAN play, local reference screens do not pause the other player's match."
+	guide.text = "[color=#e3b75c][b]QUICK START[/b][/color]\nStart tactical training for offline practice with two local armies and optional tips. Starting training enables and saves ForceOrg downloads for all six unit types. You control both sides. Choose New match for a saved-army exercise or LAN setup. Armies, Models and Tools open local workspaces; opening them does not start a match.\n\n[color=#e3b75c][b]READ THE TURN[/b][/color]\nThe highlighted phase and decision line show where play is and who must act. Read the instruction below the turn rail, then use the matching controls in Command. The game keeps phase progression closed while required choices remain.\n\n[color=#e3b75c][b]DICE AND RE-ROLLS[/b][/color]\nIf Command offers Keep result, it accepts the displayed dice for 0 CP. A re-roll remains optional when Keep result is available; the re-roll control shows its current CP cost and which die or dice would be replaced.\n\n[color=#e3b75c][b]TABLE CONTROLS[/b][/color]\nLeft-click a miniature to select it. Right-click to request a move or choose a target. Use the mouse wheel to zoom and middle-drag to orbit. The current keyboard bindings for camera pan, Focus and Datasheet appear in Settings. The Focus and Datasheet buttons also perform these actions. Camera shortcuts pause while a menu, handoff or reference screen is open.\n\n[color=#e3b75c][b]KEYBOARD AND GAMEPAD[/b][/color]\nThe highlighted control has focus. Use Tab or the directional buttons to move between choices, Enter/Space to activate, and Escape/Cancel to close an open panel. The title and in-match menus focus a primary action when they open.\n\n[color=#e3b75c][b]DATASHEET AND SCOPE[/b][/color]\nDatasheet shows the selected match profile. Ability Rules may include text from an optional verified local source; Implemented Scope describes behavior the game supports. Source text alone does not mean an ability is implemented.\n\n[color=#e3b75c][b]LOCAL SETTINGS[/b][/color]\nOpen Settings to choose window mode, resolution, interface size, keyboard bindings and local presentation options. Select a binding, press an unmodified key and choose Apply to save. Escape cancels key capture; Revert returns to the last applied values.\n\n[color=#e3b75c][b]MATCH STATE[/b][/color]\nReading the guide does not create a match or change saved game state. During LAN play, local reference screens do not pause the other player's match."
 	title_guide_scroll.add_child(guide)
 	title_guide_scroll.add_child(WeaponKeywordHelp.new())
 
@@ -3584,7 +3698,7 @@ func _refresh_movement_choices() -> void:
 	var take_skies_available := false
 	var selected_move_index := MOVE_TYPES.find(selected_move)
 	if own_model and state.phase == "movement" and choosing and command_error.is_empty() and selected_move_index >= 0 and selected_move_index < errors.size():
-		take_skies_available = errors[selected_move_index].is_empty() and Combat.Terrain.squad_can_fly(state, selected_squad) and selected_move in ["normal", "advance", "ordered_retreat", "desperate_escape"]
+		take_skies_available = errors[selected_move_index].is_empty() and Combat.Terrain.squad_can_fly(state, selected_squad) and selected_move in ["normal", "advance", "ordered_retreat", "desperate_escape", "transdimensional_advance"]
 	take_to_skies_choice.visible = take_skies_available or pending_take_skies
 	take_to_skies_choice.disabled = not take_skies_available or _match_actor() != _local_player() or (mode == "host" and guest_id == 0)
 	if pending_take_skies:
@@ -3593,7 +3707,8 @@ func _refresh_movement_choices() -> void:
 		take_to_skies_choice.set_pressed_no_signal(false)
 	var declaration_text := ""
 	if pending_take_skies:
-		declaration_text = "TAKE TO THE SKIES DECLARED • " + ("HOVER: no movement reduction" if float(take_skies_draft.get("take_to_skies_penalty", 0.0)) == 0.0 else "maximum move reduced by 2 inches") + " • FLY models pass through all models and terrain"
+		var unlimited_transdimensional: bool = take_skies_draft.get("transdimensional_displacement", false)
+		declaration_text = "TAKE TO THE SKIES DECLARED • " + ("unlimited Advance cap remains" if unlimited_transdimensional else ("HOVER: no movement reduction" if float(take_skies_draft.get("take_to_skies_penalty", 0.0)) == 0.0 else "maximum move reduced by 2 inches")) + " • FLY models pass through all models and terrain"
 		reference_lines.append(declaration_text)
 	movement_reference.text = "\n\n".join(reference_lines)
 	var sudden_available := false
@@ -3941,6 +4056,7 @@ func _open_home() -> void:
 	main_menu.set_in_match_mode(combat_enabled)
 	main_menu.show_status("")
 	main_menu.visible = true
+	_refresh_local_handoff()
 	main_menu.focus_primary_action()
 	sidebar_panel.visible = false
 	guide_panel.visible = false
@@ -4426,6 +4542,9 @@ func _start_guided_first_session() -> void:
 	if mode != "local":
 		status.text = "Start the guided sample locally before connecting to a LAN match."
 		return
+	if auto_models != null:
+		auto_models.set_pressed_no_signal(true)
+		_save_model_download_preference(true)
 	guided_first_session = false
 	checked_rosters_choice.set_pressed_no_signal(false)
 	official_mission_choice.set_pressed_no_signal(false)
@@ -4450,7 +4569,6 @@ func _start_guided_first_session() -> void:
 	objective_secured_choice.set_pressed_no_signal(false)
 	implacable_eradication_choice.set_pressed_no_signal(false)
 	defender_choice.set_pressed_no_signal(true)
-	auto_models.button_pressed = false
 	_refresh_army_choices()
 	for owner: int in [1, 2]:
 		var assault := (owner == 2) != training_swap_sides
@@ -4635,10 +4753,15 @@ func _start_saved_match(local_match: bool = true, tactical_training: bool = fals
 	_spawn_pieces()
 	_layout_ui()
 	_sync_gameplay_workspace()
-	if local_match: _prepare_local_models()
 	status.text = ("Selected CA mission ready. Resolve mission preparation, then formations and deployment." if official_mission else "Saved lists accepted for partial training. Confirm each unit's deployment.") if local_match else "Saved-list LAN mode is active. Player 1: Host; player 2: Join. Each player must select their own list."
 	if not save_target_notice.is_empty(): status.text += " " + save_target_notice
 	_refresh()
+	if local_match:
+		if auto_models != null and not auto_models.button_pressed:
+			model_play_notice.text = "ForceOrg • Automatic downloads are off for this match. Enable them under New match to prepare miniatures."
+			model_play_notice.visible = true
+		else:
+			_prepare_local_models()
 
 func _connected_to_server() -> void:
 	status.text = "Connected. Verifying session seat…"
@@ -5010,6 +5133,14 @@ func _player_outward(player: int) -> Vector2:
 	var half := Rules.half_board(state)
 	return Vector2(-half.x * 0.5, 0.0) if player != 2 else Vector2(half.x * 0.5, 0.0)
 
+func _miniature_facing_rotation(player: int) -> float:
+	# Current ForceOrg OBJ miniatures face +Z; point that axis toward the board centre.
+	var outward := _player_outward(player)
+	if outward.length_squared() < 0.01:
+		outward = Vector2(-1.0, 0.0) if player != 2 else Vector2(1.0, 0.0)
+	var inward := -outward.normalized()
+	return Vector3.BACK.signed_angle_to(Vector3(inward.x, 0.0, inward.y), Vector3.UP)
+
 func _table_angle_for(player: int) -> float:
 	var outward := _player_outward(player)
 	if outward.length_squared() < 0.01:
@@ -5214,7 +5345,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if tactical_overlay_content != null:
 		get_viewport().set_input_as_handled()
 		return
-	if main_menu != null and main_menu.visible: return
+	if main_menu != null and main_menu.visible:
+		if combat_enabled and event.is_action_pressed("ui_cancel"):
+			_dismiss_home(menu_return_tab if menu_return_tab > 0 else 1)
+			get_viewport().set_input_as_handled()
+		return
+	if combat_enabled and event.is_action_pressed("ui_cancel"):
+		_open_home()
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed(INPUT_INSPECT_DATASHEET, false):
 		if not _keyboard_choice_has_focus() and combat_enabled and state.units.has(selected):
 			_open_selected_datasheet()
@@ -5232,7 +5371,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 		_manual_camera_control()
-		zoom = clampf(zoom + (-2 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 2), 10, DecisionCamera.max_zoom(state))
+		var zoom_step := minf(2.0, maxf(0.45, zoom * 0.12))
+		zoom = clampf(zoom + (-zoom_step if event.button_index == MOUSE_BUTTON_WHEEL_UP else zoom_step), CAMERA_MIN_ZOOM, DecisionCamera.max_zoom(state))
 		_update_camera()
 		return
 	if event.button_index == MOUSE_BUTTON_LEFT:
@@ -5738,7 +5878,9 @@ func _refresh_selection_card() -> void:
 	if not unit.get("on_battlefield", true): selection_card.text += "\nStrategic Reserves"
 	elif unit.wounds <= 0: selection_card.text += "\nDestroyed"
 	elif squad.battle_shocked: selection_card.text += "\nBattle-shocked"
-	if state.phase == "movement" and unit.wounds > 0 and unit.get("on_battlefield", true): selection_card.text += "\nMove remaining %.1f\"" % Combat.movement_remaining(state, selected)
+	if state.phase == "movement" and unit.wounds > 0 and unit.get("on_battlefield", true):
+		var unlimited_transdimensional_move: bool = state.pending_move.get("squad", -1) == unit.squad and state.pending_move.get("transdimensional_displacement", false)
+		selection_card.text += "\nMove remaining: no maximum distance" if unlimited_transdimensional_move else "\nMove remaining %.1f\"" % Combat.movement_remaining(state, selected)
 	elif not squad.get("action", {}).is_empty(): selection_card.text += "\nSecure Ground in progress"
 	if Combat.UnitActions.TargetAuguryWeb.active(state, selected): selection_card.text += "\nTarget Augury Web · Lethal Hits until Player %d's next Command phase" % int(unit.get("owner", -1))
 	var machine_war_doctrine := Combat.Doctrines.master_machine_war_doctrine(state, int(unit.get("squad", -1)))
@@ -6084,7 +6226,9 @@ func _refresh() -> void:
 				var names: Array[String] = []
 				for area: Dictionary in Combat.Terrain.model_areas(state, selected): names.append(area.name)
 				details.text += "\nTerrain: %s • %s" % [", ".join(names) if not names.is_empty() else "none", "Hidden" if Combat.Terrain.hidden(state, selected) else "Not hidden"]
-			if state.phase == "movement": details.text += "\nModel %d: %.2f inches remaining" % [selected, Combat.movement_remaining(state, selected)]
+			if state.phase == "movement":
+				var unlimited_transdimensional_move: bool = state.pending_move.get("squad", -1) == unit.squad and state.pending_move.get("transdimensional_displacement", false)
+				details.text += "\nTransdimensional Displacement: no maximum distance" if unlimited_transdimensional_move else "\nModel %d: %.2f inches remaining" % [selected, Combat.movement_remaining(state, selected)]
 			if state.squads[unit.squad].moved: details.text += "\nResolved move: %s" % state.squads[unit.squad].move_type.replace("_", " ")
 		if Combat.RosterValidation.enabled(state): details.text += "\n" + Combat.RosterValidation.summary(state)
 		if Combat.Mission.enabled(state): details.text += "\n" + Combat.Mission.summary(state)
@@ -7466,6 +7610,21 @@ func _offline(message: String) -> void:
 	selected = -1
 	status.text = message
 	_refresh()
+
+func _exit_match_to_title_screen() -> void:
+	if not combat_enabled: return
+	combat_enabled = false
+	prepared_match = false
+	saved_army_mode = false
+	allocation_practice = false
+	guided_first_session = false
+	pending_armies.clear()
+	submitted_army.clear()
+	validated_saved_setup = ""
+	main_menu.visible = true
+	_offline("Returned to the title screen.")
+	main_menu.show_status("")
+	_update_main_menu_resume_state()
 
 func _peer_connected(id: int) -> void:
 	if mode == "host":
@@ -9205,9 +9364,19 @@ func _refresh_unit_actions() -> void:
 		)
 		picker_choices = setup_decision_choices
 	for choice: Dictionary in picker_choices:
-		unit_action_picker.add_item(choice.label)
+		var display_label := str(choice.get("label", ""))
+		if str(choice.get("action", "")) == "warlord":
+			var model_id := int(choice.get("model", -1))
+			if state.units.has(model_id):
+				var model_name := ArmyList.model_label(state, model_id)
+				if model_name.begins_with("Model "):
+					var unit: Dictionary = state.units[model_id]
+					var squad: Dictionary = state.squads.get(int(unit.get("squad", -1)), {})
+					model_name = str(squad.get("name", "Unit")) + " · " + model_name
+				display_label = "Warlord: " + model_name
+		unit_action_picker.add_item(display_label)
 		unit_action_picker.set_item_metadata(unit_action_picker.item_count - 1, choice)
-		unit_action_picker.set_item_tooltip(unit_action_picker.item_count - 1, choice.label)
+		unit_action_picker.set_item_tooltip(unit_action_picker.item_count - 1, display_label)
 	var selected_index := 0
 	for index in range(picker_choices.size()):
 		if picker_choices[index] == previous_choice:

@@ -3,7 +3,7 @@ extends VBoxContainer
 
 signal choice_selected(index: int)
 
-const LABELS := ["Normal move", "Advance · D6", "Fall Back", "Desperate Escape", "Stationary"]
+const LABELS := ["Normal move", "Advance · D6", "Fall Back", "Desperate Escape", "Stationary", "Transdimensional Displacement"]
 const STAGES := ["Unit", "Move", "Place", "Confirm"]
 
 var choices: Array[Button] = []

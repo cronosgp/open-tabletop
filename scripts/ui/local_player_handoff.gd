@@ -1,6 +1,7 @@
 extends Control
 ## Full-screen local hot-seat handoff; it never reads or changes match state.
 signal confirmed(player: int)
+signal menu_requested
 
 var receiving_player := 0
 var player_heading := Label.new()
@@ -50,7 +51,7 @@ func _ready() -> void:
 	player_heading.add_theme_font_size_override("font_size", 32)
 	player_heading.add_theme_color_override("font_color", Color("f2df83"))
 	column.add_child(player_heading)
-	instructions.text = "Give the controls to the next player. Their decision stays covered until they continue."
+	instructions.text = "Give the controls to the next player. Their decision stays covered until they continue. Press Esc for the match menu."
 	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	instructions.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	instructions.add_theme_font_size_override("font_size", 17)
@@ -72,7 +73,7 @@ func show_for_player(player: int) -> void:
 	if player not in [1, 2]: return
 	receiving_player = player
 	player_heading.text = "PLAYER %d" % player
-	instructions.text = "Pass the controls to Player %d, then continue to reveal their decision." % player
+	instructions.text = "Pass the controls to Player %d, then continue to reveal their decision. Press Esc for the match menu." % player
 	ready_button.text = "Continue as Player %d" % player
 	visible = true
 	call_deferred("_focus_ready_button")
@@ -89,3 +90,4 @@ func _confirm() -> void:
 func _input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
+		menu_requested.emit()

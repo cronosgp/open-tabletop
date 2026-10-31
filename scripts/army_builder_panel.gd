@@ -998,7 +998,8 @@ func _fill_factions() -> void:
 	names.sort()
 	faction_picker.clear()
 	for faction: String in names: faction_picker.add_item(faction)
-	if draft.faction.is_empty() and not names.is_empty(): draft.faction = names[0]
+	if draft.faction.is_empty() and not names.is_empty():
+		draft.faction = "Space Marines" if names.has("Space Marines") else names[0]
 	for index in range(faction_picker.item_count):
 		if faction_picker.get_item_text(index) == draft.faction: faction_picker.select(index)
 	_filter_units()

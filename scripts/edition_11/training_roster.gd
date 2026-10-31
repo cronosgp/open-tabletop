@@ -62,8 +62,8 @@ static func inspect(list: Variant, roster_context: Dictionary = {}) -> Dictionar
 	if report.error.is_empty(): report.saved_reference_points = Roster.summary(list).points
 	return report
 
-static func admit(selection: Variant, roster_context: Dictionary = {}) -> Dictionary:
-	if selection is Dictionary and selection.get("schema_version") == 2: return Capabilities.admit(selection, Capabilities.MAX_SQUADS, roster_context)
+static func admit(selection: Variant, roster_context: Dictionary = {}, prefer_current_reference: bool = true) -> Dictionary:
+	if selection is Dictionary and selection.get("schema_version") == 2: return Capabilities.admit(selection, Capabilities.MAX_SQUADS, roster_context, prefer_current_reference)
 	if not selection is Dictionary or selection.size() != 7: return {"error": "Invalid public army selection."}
 	for key: String in ["faction", "definition_id", "category"]:
 		if not selection.get(key) is String: return {"error": "Invalid selection identity."}
@@ -92,6 +92,10 @@ static func admit_current_catalog(list: Variant) -> Dictionary:
 	for resolved: Dictionary in report.get("definitions", {}).values():
 		if not resolved.get("spec", {}).get("current_reference", false):
 			return {"error": "This saved list contains historical profiles and remains a legacy draft."}
+		if not resolved.get("unsupported_abilities", []).is_empty():
+			return {"error": "%s has unsupported current datasheet abilities: %s" % [resolved.get("unit", {}).get("name", "A selected datasheet"), ", ".join(resolved.unsupported_abilities)]}
+		if not resolved.get("unsupported_weapon_rules", []).is_empty():
+			return {"error": "%s has unsupported weapon rules: %s" % [resolved.get("unit", {}).get("name", "A selected datasheet"), ", ".join(resolved.unsupported_weapon_rules)]}
 	return report
 
 static func digest(selection: Dictionary) -> String:
@@ -161,7 +165,7 @@ static func awakened_reference() -> Dictionary:
 	list.pricing_source = "starter-training-v1"
 	list.notes = "Command Protocols training; enable Awakened Dynasty and declare the Overlord attachment before deployment. Other rules and full legality are pending."
 	for source: String in ["overlord", "necron-warriors", "immortals"]:
-		var resolved := Capabilities.resolve("Necrons", "40kdc:11e:necrons:" + source)
+		var resolved := Capabilities.resolve("Necrons", "40kdc:11e:necrons:" + source, false)
 		if not resolved.error.is_empty(): return resolved
 		list.catalog_digest = resolved.pack_hash
 		list.entries.append({"unit_id": resolved.unit.id, "name": resolved.unit.name, "edition": "11e", "faction": "Necrons", "role": Roster.role(resolved.unit.keywords), "models": resolved.models, "cost": resolved.cost, "copies": 1, "source_digest": resolved.pack_hash})

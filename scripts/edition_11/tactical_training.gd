@@ -135,4 +135,4 @@ static func summary() -> String:
 		for entry: Dictionary in report.list.entries:
 			formation.append("%s (%d)" % [str(entry.name), int(entry.models)])
 		lines.append("%s • %d pts\n%s" % [report.list.name, admitted.total, ", ".join(formation)])
-	return "\n".join(lines) + "\nLocal Gladius free play with tips • no downloads\nPractice: abilities • CP stratagems • plasma/Hazardous • Bladeguard stances\nAsymmetric forces; legality and competitive balance are not certified."
+	return "\n".join(lines) + "\nLocal Gladius free play with tips • ForceOrg miniatures download when enabled\nPractice: abilities • CP stratagems • plasma/Hazardous • Bladeguard stances\nAsymmetric forces; legality and competitive balance are not certified."

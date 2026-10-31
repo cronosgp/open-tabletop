@@ -159,7 +159,7 @@ func _build() -> void:
 	menu_button = Button.new()
 	menu_button.text = "Menu"
 	menu_button.custom_minimum_size = Vector2(64, 28)
-	menu_button.tooltip_text = "Open the local menu. A LAN match continues for the other player."
+	menu_button.tooltip_text = "Open the local menu (Escape). A LAN match continues for the other player."
 	menu_button.pressed.connect(func(): menu_requested.emit())
 	steps.add_child(menu_button)
 	toolbar = HBoxContainer.new()

@@ -6,6 +6,7 @@ const CurrentMarines = preload("res://scripts/edition_11/current_reference_marin
 const A = preload("res://scripts/edition_11/army_capabilities.gd")
 const R = preload("res://scripts/army_roster.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
+const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const ID := "incursion-fixed-rosters-mfm1.6-2026-10-25-v38-vow-sworn-force-disposition"
 const CURRENT_SOURCE_STATUS := "wahapedia_e11_coverage_partial"
 const CHECKED_MAX_SQUADS := 12
@@ -194,6 +195,7 @@ static func seal(s: Dictionary, player: int) -> String:
 	var model: int = s.unit_abilities.get("warlords", {}).get(player, -1)
 	if not s.units.has(model) or s.units[model].owner != player or "CHARACTER" not in str(s.units[model].keywords).to_upper(): return "Declare a friendly faction Character as Warlord before completing the checked roster."
 	if str(s.units[model].get("definition_id", "")).get_slice(":", 3) == "murderfang": return "Murderfang cannot be selected as your Warlord."
+	if UnitAbilities.cannot_be_warlord(s, model): return "This model cannot be selected as your Warlord."
 	var calgar_in_army := false
 	for unit: Dictionary in s.units.values():
 		if unit.owner == player and str(unit.get("definition_id", "")).get_slice(":", 3) == "marneus-calgar": calgar_in_army = true
@@ -221,7 +223,7 @@ static func preset(faction: String) -> Dictionary:
 	list.notes = "Current fixed-loadout construction profile, Incursion 1000-point limit. No enhancements. Gladius or bounded Black Templars Fist / Awakened Dynasty only. Choose Warlord and Support attachments before deployment. Other rules remain incomplete."
 	for slug: String in (["captain", "intercessor-squad", "heavy-intercessor-squad"] if faction == "Space Marines" else ["overlord", "necron-warriors", "immortals", "royal-warden"]):
 		var folder := "adeptus-astartes" if faction == "Space Marines" else "necrons"
-		var resolved := A.resolve(faction, "40kdc:11e:%s:%s" % [folder, slug])
+		var resolved := A.resolve(faction, "40kdc:11e:%s:%s" % [folder, slug], faction != "Necrons")
 		if not resolved.error.is_empty(): return resolved
 		list.entries.append({"unit_id": resolved.unit.id, "name": resolved.unit.name, "edition": "11e", "faction": faction, "role": R.role(resolved.unit.keywords), "models": POINTS[slug].models, "cost": POINTS[slug].cost, "copies": 1, "source_digest": digest()})
 	return {"error": "", "list": list}
@@ -249,7 +251,7 @@ static func necron_incursion_list() -> Dictionary:
 	list.notes = "Checked Awakened Incursion list using admitted fixed loadouts: two Overlords, two Royal Wardens, four Warrior squads and four Immortal squads (880/1000). This is the current datasheet repetition ceiling; 1,000 points still needs more admitted Necron types."
 	var composition := {"overlord": 2, "royal-warden": 2, "necron-warriors": 4, "immortals": 4}
 	for slug: String in composition:
-		var resolved := A.resolve("Necrons", "40kdc:11e:necrons:" + slug)
+		var resolved := A.resolve("Necrons", "40kdc:11e:necrons:" + slug, false)
 		if not resolved.error.is_empty(): return resolved
 		list.entries.append({"unit_id": resolved.unit.id, "name": resolved.unit.name, "edition": "11e", "faction": "Necrons", "role": R.role(resolved.unit.keywords), "models": POINTS[slug].models, "cost": POINTS[slug].cost, "copies": int(composition[slug]), "source_digest": digest()})
 	return {"error": "", "list": list}

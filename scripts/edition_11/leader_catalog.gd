@@ -23,7 +23,11 @@ const ATTACHMENTS := {
 	"40kdc:11e:adeptus-astartes:kaius-konorius": ["40kdc:11e:adeptus-astartes:sternguard-veteran-squad", "40kdc:11e:adeptus-astartes:bladeguard-veteran-squad", "40kdc:11e:adeptus-astartes:assault-intercessor-squad", "40kdc:11e:adeptus-astartes:victrix-honour-guard"],
 	"40kdc:11e:adeptus-astartes:marneus-calgar": ["40kdc:11e:adeptus-astartes:bladeguard-veteran-squad", "40kdc:11e:adeptus-astartes:terminator-assault-squad", "40kdc:11e:adeptus-astartes:infernus-squad", "40kdc:11e:adeptus-astartes:vanguard-veteran-squad", "40kdc:11e:adeptus-astartes:intercessor-squad", "40kdc:11e:adeptus-astartes:heavy-intercessor-squad", "40kdc:11e:adeptus-astartes:terminator-squad", "40kdc:11e:adeptus-astartes:assault-intercessor-squad", "40kdc:11e:adeptus-astartes:aggressor-squad", "40kdc:11e:adeptus-astartes:sternguard-veteran-squad", "40kdc:11e:adeptus-astartes:company-heroes", "40kdc:11e:adeptus-astartes:victrix-honour-guard", "40kdc:11e:adeptus-astartes:eradicator-squad-with-heavy-bolters", "40kdc:11e:adeptus-astartes:eradicator-squad-with-melta-rifles"],
 	"40kdc:11e:adeptus-astartes:kor-sarro-khan": ["40kdc:11e:adeptus-astartes:bladeguard-veteran-squad", "40kdc:11e:adeptus-astartes:sternguard-veteran-squad", "40kdc:11e:adeptus-astartes:intercessor-squad", "40kdc:11e:adeptus-astartes:assault-intercessor-squad", "40kdc:11e:adeptus-astartes:company-heroes", "40kdc:11e:adeptus-astartes:vanguard-veteran-squad"],
-	"40kdc:11e:necrons:overlord": ["40kdc:11e:necrons:necron-warriors", "40kdc:11e:necrons:immortals"],
+	"40kdc:11e:necrons:overlord": ["40kdc:11e:necrons:necron-warriors", "40kdc:11e:necrons:lychguard", "40kdc:11e:necrons:immortals"],
+	"40kdc:11e:necrons:imotekh-the-stormlord": ["40kdc:11e:necrons:necron-warriors", "40kdc:11e:necrons:lychguard", "40kdc:11e:necrons:immortals"],
+	"40kdc:11e:necrons:trazyn-the-infinite": ["40kdc:11e:necrons:necron-warriors", "40kdc:11e:necrons:lychguard", "40kdc:11e:necrons:immortals"],
+	"40kdc:11e:necrons:skorpekh-lord": ["40kdc:11e:necrons:skorpekh-destroyers"],
+	"40kdc:11e:necrons:lokhust-lord": ["40kdc:11e:necrons:lokhust-destroyers", "40kdc:11e:necrons:lokhust-heavy-destroyers"],
 }
 
 static func army_has_calgar(state: Dictionary, player: int) -> bool:

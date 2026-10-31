@@ -1,7 +1,7 @@
 # Wahapedia 11th-edition source decision
 
-By explicit user decision on 18 October 2026, Wahapedia's `/wh40k11ed/` Core Rules, faction pages and Data Export are the definitive rules/data references for this project. Games Workshop sources may be used as contextual cross-checks but are not an admission prerequisite and do not override the selected Wahapedia revision.
+By explicit user decision, the verified local Wahapedia 11e Data Export snapshot is the definitive working reference for rules and datasheet facts. Use the local extraction first; consult the matching current Wahapedia page only to resolve missing, ambiguous or inconsistent data, and record the source page/revision plus the resolution. Games Workshop sources may provide context but do not override the selected Wahapedia edition.
 
-Check and record the edition, source book/chapter, game mode, current revision and local snapshot identity. Do not combine superseded editions or profiles silently. Preserve unresolved scope as a blocker.
+Check and record the edition, source book/chapter, game mode and local snapshot identity/revision. Do not combine superseded editions or profiles silently. Preserve unresolved scope as a blocker.
 
 For snapshot layout, SHA-256 provenance, local-only data handling and current pipeline status, see the canonical [source assessment](data/source-assessment.md). For army construction choices, see the [local construction catalog policy](construction-catalog-policy.md).

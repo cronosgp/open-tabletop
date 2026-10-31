@@ -188,7 +188,7 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 			normal_hits += 1
 			continue
 		var hit: bool = successful_roll(roll, effective_skill, hit_modifier)
-		var critical_hit: bool = hit and roll == 6
+		var critical_hit: bool = hit and (roll == 6 or bool(context.get("successful_hits_are_critical", false)))
 		hit_outcomes.append({"roll": roll, "success": hit, "critical": critical_hit})
 		if not hit: continue
 		if critical_hit and keywords.get("lethal-hits", false) and context.get("use_lethal_hits", true):

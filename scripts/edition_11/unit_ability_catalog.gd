@@ -191,13 +191,50 @@ const RULES := {
 	"marneus-calgar": ["deep-strike", "leader", "combat-doctrines", "transhuman-strategist", "codex-adept", "master-tactician", "thunderhawk-insertion"],
 	"kor-sarro-khan": ["leader", "combat-doctrines", "transhuman-strategist", "trophy-taker", "for-the-khan"],
 	"captain-titus": ["feel-no-pain-5", "leader", "combat-doctrines", "transhuman-strategist", "press-the-attack", "righteous-fury", "honour-of-ultramar"],
+	"annihilation-barge": ["deadly-demise-1"],
+	"ctan-shard-of-the-deceiver": ["deep-strike", "deadly-demise-d6", "feel-no-pain-5", "stealth", "necrodermis", "enslaved-star-god"],
+	"ctan-shard-of-the-nightbringer": ["deep-strike", "deadly-demise-d6", "feel-no-pain-5", "necrodermis", "enslaved-star-god"],
+	"ctan-shard-of-the-void-dragon": ["deep-strike", "deadly-demise-d6", "feel-no-pain-5", "necrodermis", "enslaved-star-god"],
+	"canoptek-spyders": ["deadly-demise-1"],
+	"doom-scythe": ["deadly-demise-d3"],
+	"night-scythe": ["deep-strike", "deadly-demise-d3"],
+	"obelisk": ["deep-strike", "deadly-demise-d6"],
+	"tesseract-vault": ["deadly-demise-d6-plus-three"],
+	"transcendent-ctan": ["deep-strike", "deadly-demise-d6", "feel-no-pain-5", "necrodermis", "enslaved-star-god", "ctan-shard", "transdimensional-displacement"],
+	"canoptek-macrocytes": ["scouts-8"],
+	"tomb-blades": ["scouts-9"],
 	"necron-warriors": ["their-number-is-legion"],
 	"immortals": ["implacable-eradication"],
+	"catacomb-command-barge": ["deadly-demise-1"],
+	"triarch-stalker": ["deadly-demise-d3", "scouts-8"],
+	"hexmark-destroyer": ["deep-strike", "lone-operative", "inescapable-death", "multi-threat-eliminator"],
+	"ophydian-destroyers": ["deep-strike"],
+	"ghost-ark": ["deadly-demise-d3"],
+	"canoptek-doomstalker": ["deadly-demise-d3", "damaged-4", "sentinel-construct"],
+	"canoptek-reanimator": ["feel-no-pain-4", "nanoscarab-reanimation-beam"],
+	"canoptek-scarab-swarms": ["self-destruction", "chittering-swarm"],
+	"doomsday-ark": ["deadly-demise-d3", "damaged-5"],
+	"monolith": ["deep-strike", "deadly-demise-d6"],
 	"overlord": ["leader", "my-will-be-done", "implacable-resilience", "resurrection-orb"],
+	"orikan-the-diviner": ["support"],
+	"trazyn-the-infinite": ["leader"],
+	"deathmarks": ["deep-strike", "hyperspace-hunters"],
+	"flayed-ones": ["infiltrators", "stealth", "flesh-hunger"],
+	"triarch-praetorians": ["deep-strike"],
+	"imotekh-the-stormlord": ["leader"],
+	"skorpekh-lord": ["leader"],
+	"plasmancer": ["support"],
+	"technomancer": ["support"],
+	"psychomancer": ["support"],
+	"chronomancer": ["support"],
 	"royal-warden": ["leader", "adaptive-strategy", "engrammatic-logic"]}
 
 static func identity(unit: Dictionary) -> String:
 	return str(unit.get("definition_id", "")).get_slice(":", 3)
+
+static func cannot_receive_enhancements(identity_or_id: String) -> bool:
+	var identity := identity_or_id.get_slice(":", 3) if identity_or_id.count(":") >= 3 else identity_or_id
+	return "ctan-shard" in RULES.get(identity, [])
 
 static func enabled(state: Dictionary) -> bool:
 	return state.get("unit_abilities", {}).get("implementation", "") == ID

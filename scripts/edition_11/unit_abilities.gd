@@ -40,6 +40,11 @@ const TRANSPORT_DEADLY_DEMISE := {
 }
 static func identity(unit: Dictionary) -> String:
 	return AbilityCatalog.identity(unit)
+
+static func cannot_be_warlord(state: Dictionary, model: int) -> bool:
+	if not state.get("units", {}).has(model): return false
+	return "enslaved-star-god" in RULES.get(identity(state.units[model]), [])
+
 static func enabled(state: Dictionary) -> bool:
 	return AbilityCatalog.enabled(state)
 static func sources(state: Dictionary, squad: int, name: String) -> Array[int]:
@@ -79,7 +84,11 @@ static func scout_distance(state: Dictionary, squad: int) -> int:
 	if alive.is_empty(): return 0
 	var distance := -1
 	for model: int in alive:
-		var current := 9 if identity(state.units[model]) == "scout-bike-squad" else 8 if identity(state.units[model]) in ["invictor-tactical-warsuit", "wolf-scouts"] else 6 if identity(state.units[model]) in ["impulsor", "black-templars-impulsor"] and state.units[model].get("impulsor_system", "none") == "orbital-comms-array" else 6 if identity(state.units[model]) in ["lieutenant-in-phobos-armour", "librarian-in-phobos-armour", "captain-in-phobos-armour", "scout-squad", "incursor-squad", "reiver-squad", "death-company-captain", "spectrus-kill-team", "vanguard-veteran-squad"] else 0
+		var current := 0
+		for rule: String in RULES.get(identity(state.units[model]), []):
+			if rule.begins_with("scouts-"): current = maxi(current, int(rule.get_slice("-", 1)))
+		if current == 0:
+			current = 9 if identity(state.units[model]) == "scout-bike-squad" else 8 if identity(state.units[model]) in ["invictor-tactical-warsuit", "wolf-scouts"] else 6 if identity(state.units[model]) in ["impulsor", "black-templars-impulsor"] and state.units[model].get("impulsor_system", "none") == "orbital-comms-array" else 6 if identity(state.units[model]) in ["lieutenant-in-phobos-armour", "librarian-in-phobos-armour", "captain-in-phobos-armour", "scout-squad", "incursor-squad", "reiver-squad", "death-company-captain", "spectrus-kill-team", "vanguard-veteran-squad"] else 0
 		if current <= 0: return 0
 		if distance < 0: distance = current
 		elif distance != current: return 0
@@ -245,6 +254,7 @@ static func deadly_demise_value(state: Dictionary, model: int) -> Variant:
 	var unit: Dictionary = state.units[model]
 	var unit_identity := identity(unit)
 	var abilities: Array = RULES.get(unit_identity, [])
+	if "deadly-demise-d6-plus-three" in abilities: return "D6+3"
 	if "deadly-demise-d6-plus-two" in abilities: return "D6+2"
 	if "deadly-demise-d3" in abilities: return "D3"
 	if "deadly-demise-d6" in abilities: return "D6"
@@ -260,7 +270,8 @@ static func enable(state: Dictionary) -> void:
 			if identity(state.units[model]) == "overlord": state.units[model].wargear = ["resurrection-orb"]
 			var personal_fnp_target := 0
 			if identity(state.units[model]) in ["vulkan-hestan", "watch-captain-artemis", "murderfang", "wulfen-dreadnought"]: personal_fnp_target = 6
-			elif identity(state.units[model]) in ["roboute-guilliman", "lieutenant-with-combi-weapon", "iron-father-feirros", "caanok-var", "captain-titus", "mephiston", "bjorn-the-fell-handed"]: personal_fnp_target = 5
+			elif identity(state.units[model]) in ["roboute-guilliman", "lieutenant-with-combi-weapon", "iron-father-feirros", "caanok-var", "captain-titus", "mephiston", "bjorn-the-fell-handed", "ctan-shard-of-the-deceiver", "ctan-shard-of-the-nightbringer", "ctan-shard-of-the-void-dragon", "transcendent-ctan"]: personal_fnp_target = 5
+			elif identity(state.units[model]) == "canoptek-reanimator": personal_fnp_target = 4
 			if personal_fnp_target > 0:
 				var prevention: Array = state.units[model].get("feel_no_pain", [])
 				var has_personal_fnp := false
@@ -743,6 +754,7 @@ static func damage(state: Dictionary, model: int, amount: int, damage_kind: Stri
 	if amount <= 0 or not state.get("units", {}).has(model): return amount
 	var reduced := amount
 	if enabled(state) and identity(state.units[model]) in ["overlord", "captain-in-gravis-armour"]: reduced -= 1
+	if damage_kind == "normal" and enabled(state) and has(state, int(state.units[model].get("squad", -1)), "necrodermis"): reduced -= 1
 	if damage_kind == "normal" and enabled(state) and has(state, int(state.units[model].get("squad", -1)), "guardian-of-the-lost"): reduced -= 1
 	if damage_kind == "normal" and enabled(state) and identity(state.units[model]) == "emperor-s-champion" and has(state, int(state.units[model].get("squad", -1)), "armour-of-faith"): reduced -= 1
 	if damage_kind == "normal" and enabled(state) and has(state, int(state.units[model].get("squad", -1)), "inner-circle"): reduced -= 1
@@ -757,9 +769,13 @@ static func damage(state: Dictionary, model: int, amount: int, damage_kind: Stri
 static func damaged_attack_penalty(state: Dictionary, model: int) -> int:
 	if not enabled(state) or model not in state.get("units", {}): return 0
 	var unit: Dictionary = state.units[model]
-	var threshold := int(MarineProfiles.profile(identity(unit)).get("damaged_threshold", 0))
 	var identity_rules: Array = RULES.get(identity(unit), [])
-	return -1 if threshold > 0 and ("damaged-10" in identity_rules or "damaged-8" in identity_rules or "damaged-6" in identity_rules or "damaged-5" in identity_rules or "damaged-4" in identity_rules or "damaged-3" in identity_rules) and int(unit.get("wounds", 0)) > 0 and int(unit.wounds) <= threshold else 0
+	var threshold := 0
+	for rule: String in identity_rules:
+		if not rule.begins_with("damaged-"): continue
+		var source_threshold := rule.trim_prefix("damaged-")
+		if source_threshold.is_valid_int(): threshold = maxi(threshold, int(source_threshold))
+	return -1 if threshold > 0 and int(unit.get("wounds", 0)) > 0 and int(unit.wounds) <= threshold else 0
 
 static func discount(state: Dictionary, player: int, squad: int) -> int:
 	if not enabled(state): return 0

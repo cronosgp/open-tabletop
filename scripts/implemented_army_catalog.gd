@@ -3,7 +3,7 @@ extends Node
 signal changed(message: String)
 const Roster = preload("res://scripts/army_roster.gd")
 const Capabilities = preload("res://scripts/edition_11/army_capabilities.gd")
-const Current = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const Current = preload("res://scripts/edition_11/current_reference_marine_profiles.gd") # Existing Marine-only audit callers.
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 var cache_directory := "" # Compatibility only; no cache is loaded or written.
 var edition := "11e"
@@ -27,7 +27,7 @@ func select_edition(value: String) -> String:
 		if spec.get("validation_status", "") in ["tests_written_not_run", "local_checks_pending", "implemented_local_checks_pending"]:
 			excluded[identity] = "Local validation pending."
 			continue
-		var profile := Current.profile(identity)
+		var profile := Capabilities.current_reference_profile(str(spec.faction), identity)
 		if profile.is_empty() or profile.get("points_by_models", {}).is_empty():
 			excluded[identity] = "Current profile or supported composition missing."
 			continue
@@ -52,7 +52,7 @@ func select_edition(value: String) -> String:
 		if sizes.size() < profile.points_by_models.size(): scope = "Partial source reconciliation: only %s-model configuration is selectable; conflicting source size is blocked." % ", ".join(sizes.map(func(size: int) -> String: return str(size)))
 		var readiness_note := Capabilities.construction_readiness_note(identity)
 		if not readiness_note.is_empty(): scope = readiness_note
-		units.append({"id": id, "source_id": identity, "name": profile.name, "edition": "11e", "faction": spec.faction, "role": Roster.role(profile.get("keywords", [])), "source_scope": str(profile.get("source_scope", spec.get("source_scope", ""))), "source_digest": Current.digest(), "options": options, "scope": scope})
+		units.append({"id": id, "source_id": identity, "name": profile.name, "edition": "11e", "faction": spec.faction, "role": Roster.role(profile.get("keywords", [])), "source_scope": str(profile.get("source_scope", spec.get("source_scope", ""))), "source_digest": Capabilities.current_reference_digest(str(spec.faction)), "options": options, "scope": scope})
 	units.sort_custom(func(a: Dictionary, b: Dictionary): return str(a.name).naturalnocasecmp_to(str(b.name)) < 0)
 	var eligible_identities: Array[String] = []
 	for unit: Dictionary in units: eligible_identities.append(str(unit.id))

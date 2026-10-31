@@ -2,8 +2,8 @@
 
 ## Current project decisions
 
-- The target is Warhammer 40,000 11th edition. By user decision, Wahapedia's `/wh40k11ed/` rules and faction pages are the definitive rules reference for this project. Use the corresponding local Data Export snapshot for datasheet facts. Games Workshop material may provide context but is not an admission prerequisite and does not override the selected Wahapedia version. See [source assessment](docs/data/source-assessment.md).
-- Check the edition, source book/chapter, game mode and current Wahapedia revision before implementing or marking a rule supported. Do not substitute an earlier-edition or superseded Codex mechanic for current e11 behavior or silently combine incompatible versions. Isolate historical training profiles and label their limits.
+- The target is Warhammer 40,000 11th edition. By user decision, the verified local Wahapedia Data Export snapshot is the definitive working source for rules and datasheet facts. Start with that extraction; consult the matching current Wahapedia page only when the local data is missing, ambiguous or inconsistent, and record how the question was resolved. Games Workshop material may provide context but does not override the selected Wahapedia edition. See [source assessment](docs/data/source-assessment.md).
+- Check edition, source book/chapter, game mode and the local snapshot's revision before implementing or marking a rule supported. Do not substitute an earlier-edition or superseded Codex mechanic for current e11 behavior or silently combine incompatible versions. Isolate historical training profiles and label their limits.
 - Army construction must use only the consolidated local runtime catalog. Do not restore broad API catalog fetching or cached API choices. Keep pending-validation and historical/unreconciled profiles out of new construction choices. Preserve existing lists as labeled legacy drafts. See [construction catalog policy](docs/construction-catalog-policy.md).
 - Continue Space Marines with local rules, combat and admission checks. Defer network validation to final integration, and never report deferred checks as passed.
 - Keep the roadmap, capability metadata, support matrix and verification claims aligned with runtime gates. A passing test suite does not establish rules accuracy, full army legality or platform coverage.
@@ -18,7 +18,7 @@
 
 ## Rules and data-source policy
 
-- Datasheet facts must come from a verified local export obtained through [Wahapedia's 11e Data Export](https://wahapedia.ru/wh40k11ed/the-rules/data-export/). Record the snapshot identity, retrieval date, filenames and SHA-256 hashes. If the export or its provenance cannot be verified, stop datasheet certification instead of substituting OpenHammer, 40kdc, memory or an older pack.
+- Rules and datasheet facts must come from the verified local Wahapedia 11e export. Record the snapshot identity, retrieval date, filenames and SHA-256 hashes. Use online Wahapedia research only to resolve missing, ambiguous or inconsistent local data, and record the matching page/revision and resolution. If the export or its provenance cannot be verified, stop datasheet certification instead of substituting OpenHammer, 40kdc, memory or an older pack.
 - Keep raw exports and derived third-party data out of Git and distribution. Do not treat legacy imported data or provider adapters as authoritative current inputs.
 - Preserve unsupported rules as explicit blockers/errors; do not silently drop abilities or imply that a selectable profile is complete.
 - Keep capability metadata, support claims, roadmap and validation reports aligned. Distinguish catalogued, implemented, locally validated, source-checked and certified scope.

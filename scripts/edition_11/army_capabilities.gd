@@ -4,8 +4,10 @@ const Pack = preload("res://scripts/data_pack.gd")
 const Roster = preload("res://scripts/army_roster.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const CurrentMarines = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const CurrentNecrons = preload("res://scripts/edition_11/current_reference_necron_profiles.gd")
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
-const ID := "mixed-core-profiles-v81-hammerfall-bunker"
+const UnitAbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
+const ID := "mixed-core-profiles-v82-necron-warriors"
 const DIRECTORY := "res://data/imported/starter-11e-v1"
 const MAX_SQUADS := 6
 const STANDARD_COPY_LIMITS := {"incursion": 2, "strike_force": 3}
@@ -145,15 +147,17 @@ const SPECS := {
 	"invictor-tactical-warsuit": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted", "max_supported_copies": 3},
 	"desolation-squad": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 5, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_28", "max_supported_copies": 2},
 	"necron-warriors": {"faction": "Necrons", "folder": "necrons", "models": 10, "template": 2,
-		"aliases": ["58e9-5212-f5a6-c12d"], "gun": ["gauss-flayer", "Gauss flayer"], "blade": ["close-combat-weapon", "Close combat weapon"]},
+		"aliases": ["58e9-5212-f5a6-c12d"], "gun": ["gauss-flayer", "Gauss flayer"], "blade": ["close-combat-weapon", "Close combat weapon"],
+		"current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000000534", "source_name": "Necron Warriors", "source_scope": "Necrons App v1.2", "construction_model_sizes": [10, 20], "max_supported_copies": 4},
 	"immortals": {"faction": "Necrons", "folder": "necrons", "models": 5, "template": 2,
-		"aliases": ["f81-b23c-e183-39d7"], "gun": ["gauss-blaster", "Gauss blaster"], "blade": ["close-combat-weapon-immortals", "Close combat weapon"]},
+		"aliases": ["f81-b23c-e183-39d7"], "gun": ["gauss-blaster", "Gauss blaster"], "blade": ["close-combat-weapon-immortals", "Close combat weapon"],
+		"current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000000535", "source_name": "Immortals", "source_scope": "Necrons App v1.2", "construction_model_sizes": [5, 10]},
 	"assault-intercessor-squad": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 5, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted"},
 	"inceptor-squad": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 3, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted"},
 	"heavy-intercessor-squad": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 5, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted"},
 	"lieutenant": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted", "gun": ["master-crafted-bolter-lieutenant", "Master-crafted Bolter"], "blade": ["ceramite-fists-lieutenant", "Ceramite Fists"]},
 	"vulkan-hestan": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "tests_passed_local_targeted", "max_supported_copies": 1},
-	"royal-warden": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 2, "aliases": [], "gun": ["relic-gauss-blaster", "Relic gauss blaster"], "blade": ["close-combat-weapon-royal-warden", "Close combat weapon"]},
+	"royal-warden": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 2, "aliases": [], "gun": ["relic-gauss-blaster", "Relic gauss blaster"], "blade": ["close-combat-weapon-royal-warden", "Close combat weapon"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000002350", "source_name": "Royal Warden", "source_scope": "Necrons App v1.2"},
 	"captain": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_28"},
 	"blood-angels-captain": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_28"},
 	"sanguinary-priest": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_28"},
@@ -201,7 +205,54 @@ const SPECS := {
 	"astorath": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_28", "max_supported_copies": 1},
 	"lemartes": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_28", "max_supported_copies": 1},
 	"overlord": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 2,
-		"aliases": [], "gun": ["staff-of-light-overlord", "Ranged"], "blade": ["staff-of-light-overlord", "Melee"]}}
+		"aliases": [], "gun": ["staff-of-light-overlord", "Ranged"], "blade": ["staff-of-light-overlord", "Melee"], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000523", "source_name": "Overlord", "source_scope": "Necrons App v1.2"},
+	"imotekh-the-stormlord": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000522", "source_name": "Imotekh The Stormlord", "source_scope": "Necrons App v1.2"},
+	"orikan-the-diviner": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000530", "source_name": "Orikan The Diviner", "source_scope": "Necrons App v1.2"},
+	"trazyn-the-infinite": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000532", "source_name": "Trazyn The Infinite", "source_scope": "Necrons App v1.2"},
+	"catacomb-command-barge": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000533", "source_name": "Catacomb Command Barge", "source_scope": "Necrons App v1.2"},
+	"lychguard": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000536", "source_name": "Lychguard", "source_scope": "Necrons App v1.2"},
+	"deathmarks": {"faction": "Necrons", "folder": "necrons", "models": 5, "template": 2, "aliases": [], "gun": ["synaptic-disintegrator", "Synaptic disintegrator"], "blade": ["close-combat-weapon-deathmarks", "Close combat weapon"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000000537", "source_name": "Deathmarks", "source_scope": "Necrons App v1.2", "construction_model_sizes": [5, 10]},
+	"flayed-ones": {"faction": "Necrons", "folder": "necrons", "models": 5, "template": 2, "aliases": [], "blade": ["flayer-claws", "Flayer claws"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000000538", "source_name": "Flayed Ones", "source_scope": "Necrons App v1.2", "construction_model_sizes": [5, 10]},
+	"triarch-praetorians": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000539", "source_name": "Triarch Praetorians", "source_scope": "Necrons App v1.2"},
+	"triarch-stalker": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000540", "source_name": "Triarch Stalker", "source_scope": "Necrons App v1.2"},
+	"ctan-shard-of-the-nightbringer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000541", "source_name": "C’tan Shard of the Nightbringer", "source_scope": "Necrons App v1.2"},
+	"ctan-shard-of-the-deceiver": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000542", "source_name": "C’tan Shard of the Deceiver", "source_scope": "Necrons App v1.2"},
+	"ghost-ark": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000543", "source_name": "Ghost Ark", "source_scope": "Necrons App v1.2"},
+	"night-scythe": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000544", "source_name": "Night Scythe", "source_scope": "Necrons App v1.2"},
+	"doom-scythe": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000545", "source_name": "Doom Scythe", "source_scope": "Necrons App v1.2"},
+	"canoptek-wraiths": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000546", "source_name": "Canoptek Wraiths", "source_scope": "Necrons App v1.2"},
+	"tomb-blades": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000548", "source_name": "Tomb Blades", "source_scope": "Necrons App v1.2"},
+	"canoptek-spyders": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000551", "source_name": "Canoptek Spyders", "source_scope": "Necrons App v1.2"},
+	"monolith": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000552", "source_name": "Monolith", "source_scope": "Necrons App v1.2"},
+	"annihilation-barge": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000553", "source_name": "Annihilation Barge", "source_scope": "Necrons App v1.2"},
+	"doomsday-ark": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000554", "source_name": "Doomsday Ark", "source_scope": "Necrons App v1.2"},
+	"transcendent-ctan": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000555", "source_name": "Transcendent C’tan", "source_scope": "Necrons App v1.2"},
+	"tesseract-vault": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000556", "source_name": "Tesseract Vault", "source_scope": "Necrons App v1.2"},
+	"obelisk": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000557", "source_name": "Obelisk", "source_scope": "Necrons App v1.2"},
+	"illuminor-szeras": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002092", "source_name": "Illuminor Szeras", "source_scope": "Necrons App v1.2"},
+	"plasmancer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002108", "source_name": "Plasmancer", "source_scope": "Necrons App v1.2"},
+	"skorpekh-lord": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002109", "source_name": "Skorpekh Lord", "source_scope": "Necrons App v1.2"},
+	"skorpekh-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002110", "source_name": "Skorpekh Destroyers", "source_scope": "Necrons App v1.2"},
+	"cryptothralls": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002111", "source_name": "Cryptothralls", "source_scope": "Necrons App v1.2"},
+	"canoptek-reanimator": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000002112", "source_name": "Canoptek Reanimator", "source_scope": "Necrons App v1.2"},
+	"canoptek-scarab-swarms": {"faction": "Necrons", "folder": "necrons", "models": 3, "template": 2, "aliases": [], "blade": ["feeder-mandibles", "Feeder mandibles"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000002114", "source_name": "Canoptek Scarab Swarms", "source_scope": "Necrons App v1.2", "construction_model_sizes": [3, 6]},
+	"canoptek-doomstalker": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "gun": ["doomsday-blaster", "Doomsday blaster"], "blade": ["doomstalker-limbs", "Doomstalker limbs"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000002115", "source_name": "Canoptek Doomstalker", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
+	"lokhust-heavy-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002116", "source_name": "Lokhust Heavy Destroyers", "source_scope": "Necrons App v1.2"},
+	"lokhust-lord": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002351", "source_name": "Lokhust Lord", "source_scope": "Necrons App v1.2"},
+	"technomancer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002352", "source_name": "Technomancer", "source_scope": "Necrons App v1.2"},
+	"psychomancer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002353", "source_name": "Psychomancer", "source_scope": "Necrons App v1.2"},
+	"chronomancer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002354", "source_name": "Chronomancer", "source_scope": "Necrons App v1.2"},
+	"hexmark-destroyer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "gun": ["enmitic-disintegrator-pistols", "Enmitic disintegrator pistols"], "blade": ["close-combat-weapon-hexmark", "Close combat weapon"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000002355", "source_name": "Hexmark Destroyer", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
+	"ctan-shard-of-the-void-dragon": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002357", "source_name": "C’tan Shard of the Void Dragon", "source_scope": "Necrons App v1.2"},
+	"ophydian-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002358", "source_name": "Ophydian Destroyers", "source_scope": "Necrons App v1.2"},
+	"lokhust-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002359", "source_name": "Lokhust Destroyers", "source_scope": "Necrons App v1.2"},
+	"the-silent-king": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002360", "source_name": "The Silent King", "source_scope": "Necrons App v1.2"},
+	"convergence-of-dominion": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002361", "source_name": "Convergence Of Dominion", "source_scope": "Necrons App v1.2"},
+	"overlord-with-translocation-shroud": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000003693", "source_name": "Overlord with translocation shroud", "source_scope": "Necrons App v1.2"},
+	"canoptek-macrocytes": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000004176", "source_name": "Canoptek Macrocytes", "source_scope": "Necrons App v1.2"},
+	"canoptek-tomb-crawlers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000004177", "source_name": "Canoptek Tomb Crawlers", "source_scope": "Necrons App v1.2"},
+	"geomancer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000004178", "source_name": "Geomancer", "source_scope": "Necrons App v1.2"},
+	"nekrosor-ammentar": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000004186", "source_name": "Nekrosor Ammentar", "source_scope": "Necrons App v1.2"}}
 
 static func weapon(unit: Dictionary, choice: Array) -> Dictionary:
 	for item: Dictionary in unit.get("source_weapon_definitions", []):
@@ -222,6 +273,16 @@ static func canonical_id(faction: String, identity: String) -> String:
 			if identity == "openhammer:11e:%s:%s" % [faction.uri_encode(), alias]: return "40kdc:11e:%s:%s" % [spec.folder, source]
 	return identity
 
+static func current_reference_profile(faction: String, source: String) -> Dictionary:
+	if faction == "Space Marines": return CurrentMarines.profile(source)
+	if faction == "Necrons": return CurrentNecrons.profile(source)
+	return {}
+
+static func current_reference_digest(faction: String) -> String:
+	if faction == "Space Marines": return CurrentMarines.digest()
+	if faction == "Necrons": return CurrentNecrons.digest()
+	return ""
+
 static func standard_unit_copy_limit(category: String, keywords: Array) -> int:
 	if not STANDARD_COPY_LIMITS.has(category): return 0
 	if "EPIC HERO" in keywords: return 1
@@ -235,17 +296,22 @@ static func local_copy_limit(profile: Dictionary, spec: Dictionary) -> int:
 	return int(spec.get("max_supported_copies", profile.get("max_supported_copies", 6 if repeated_category else 3)))
 
 static func current_catalog_choice(unit: Dictionary) -> Dictionary:
-	if unit.get("edition", "") != "11e" or unit.get("faction", "") != "Space Marines": return {}
-	var identity := canonical_id("Space Marines", str(unit.get("id", "")))
+	var faction := str(unit.get("faction", ""))
+	if unit.get("edition", "") != "11e" or faction not in ["Space Marines", "Necrons"]: return {}
+	var identity := canonical_id(faction, str(unit.get("id", "")))
 	var source := identity.get_slice(":", 3)
-	if identity != "40kdc:11e:adeptus-astartes:" + source: return {}
-	if not SPECS.get(source, {}).get("current_reference", false): return {}
+	if identity != "40kdc:11e:%s:%s" % [str(SPECS.get(source, {}).get("folder", "")), source]: return {}
+	if not SPECS.get(source, {}).get("current_reference", false) or str(SPECS[source].faction) != faction: return {}
 	if SPECS[source].get("validation_status", "") in ["tests_written_not_run", "local_checks_pending", "implemented_local_checks_pending"]: return {}
-	var profile := CurrentMarines.profile(source)
+	var profile := current_reference_profile(faction, source)
+	if profile.is_empty(): return {}
+	if not profile.get("unsupported_abilities", []).is_empty() or not profile.get("unsupported_weapon_rules", []).is_empty(): return {}
+	for option: Dictionary in profile.get("source_options", []):
+		if not option.get("implemented", false): return {}
 	var result := unit.duplicate(true)
 	result.id = identity
 	result.name = profile.name
-	result.source_digest = CurrentMarines.digest()
+	result.source_digest = current_reference_digest(faction)
 	result.options = []
 	var source_points: Dictionary = profile.get("source_roster_points", profile)
 	var source_sizes: Dictionary = source_points.get("points_by_models", profile.points_by_models)
@@ -269,6 +335,20 @@ static func current_catalog_choice(unit: Dictionary) -> Dictionary:
 
 static func construction_readiness_note(source: String) -> String:
 	match source:
+		"canoptek-doomstalker":
+			return "Necrons App v1.2 local export: the one-model profile costs 130 points. It has a doomsday blaster, twin gauss flayer, Doomstalker limbs and a 4+ invulnerable save. Deadly Demise D3, Reanimation Protocols, Sentinel Construct and Damaged 4 are bound to the current Canoptek Doomstalker. Sentinel Construct scores Overwatch hits on unmodified 5+. While the model has 1-4 wounds remaining, each of its attacks subtracts 1 from the Hit roll. Full Necron roster legality remains separate."
+		"hexmark-destroyer":
+			return "Necrons App v1.2 local export: the one-model profile costs 75 points. Enmitic disintegrator pistols use the project's close-quarters shooting keyword for the local Pistol rule, plus Ignores Cover. Deep Strike, Lone Operative, Reanimation Protocols, Inescapable Death and Multi-threat Eliminator are bound to the current Hexmark Destroyer. Inescapable Death lets one such unit use Fire Overwatch for 0CP once per turn, including after another unit has used that Stratagem this phase, and its Overwatch hits on unmodified 2+. Multi-threat Eliminator is an optional shot after an enemy unit shoots a friendly Necrons unit within 3 inches. Full Necron roster legality remains separate."
+		"canoptek-scarab-swarms":
+			return "Necrons App v1.2 local export: the 3/6-model profiles cost 40/80 points, with no separate later-copy price. Every model has feeder mandibles. Reanimation Protocols, Self-destruction and Chittering Swarm are bound to current sourced Scarab Swarms. Self-destruction is optional at the start of the Fight phase. Chittering Swarm reduces an engaged enemy model's Objective Control by 1 per Scarab unit, to a minimum of 1, and sets this unit's Objective Control to 1 while a friendly Cryptek is within 6 inches. Full Necron roster legality remains separate."
+		"flayed-ones":
+			return "Necrons App v1.2 local export: the 5/10-model profiles cost 55/100 points, with no separate later-copy price. Every model has flayer claws. Infiltrators, Stealth, Reanimation Protocols and Flesh Hunger are bound to current sourced Flayed Ones. Flesh Hunger makes each successful melee Hit a Critical Hit while the target is Below Half-strength. Full Necron roster legality remains separate."
+		"immortals":
+			return "Necrons App v1.2 local export: the 5/10-model profiles cost 65/130 points; any number of Gauss blasters can be replaced per model with Tesla carbines. Reanimation Protocols and Implacable Eradication are bound to current sourced Immortals; against an objective-range target, the ability offers an optional re-roll of any Wound die. Current event-pack cost reconciliation and full Necron roster legality remain separate."
+		"necron-warriors":
+			return "Necrons App v1.2 local export: the 10/20-model profiles cost 85/190 points and allow any number of Gauss Flayers to be replaced with Gauss Reapers. Reanimation Protocols, Their Number is Legion and source-listed Leader/Support links are represented. Current event-pack cost reconciliation and full Necron roster legality remain separate."
+		"canoptek-reanimator":
+			return "Necrons App v1.2 local export: the fixed one-model/75-point profile includes two Atomiser beams, Reanimator's claws, model-only Feel No Pain 4+, Reanimation Protocols and the once-per-unit 3-inch Nanoscarab Reanimation Beam. The local checks cover its own-unit Aura, non-stacking, Reanimation and prevention behavior; full Necron roster legality remains separate."
 		"crusader-squad":
 			return "Wahapedia e11 points (runtime): 10 models/160 pts; 20/305. Current GW MFM v1.0 lists 10/150 and 20/290; confirm the roster cost with your opponent or event. Righteous Zeal uses validated Surge routes, but route candidates and whole-squad coherency search are bounded; some legal placements on complex terrain may be missed."
 		"decimus-kill-team":
@@ -326,9 +406,10 @@ static func construction_readiness_note(source: String) -> String:
 	return ""
 
 static func construction_model_sizes(source: String, profile: Dictionary = {}) -> Array[int]:
-	var current := profile if not profile.is_empty() else CurrentMarines.profile(source)
+	var spec: Dictionary = SPECS.get(source, {})
+	var current := profile if not profile.is_empty() else current_reference_profile(str(spec.get("faction", "")), source)
 	var points: Dictionary = current.get("points_by_models", {})
-	var candidates: Array = SPECS.get(source, {}).get("construction_model_sizes", points.keys())
+	var candidates: Array = spec.get("construction_model_sizes", points.keys())
 	var result: Array[int] = []
 	for candidate: Variant in candidates:
 		var models := int(candidate)
@@ -336,23 +417,26 @@ static func construction_model_sizes(source: String, profile: Dictionary = {}) -
 	result.sort()
 	return result
 
-static func resolve(faction: String, identity: String) -> Dictionary:
+static func resolve(faction: String, identity: String, prefer_current_reference: bool = true) -> Dictionary:
 	identity = canonical_id(faction, identity)
 	for source: String in SPECS:
 		var spec: Dictionary = SPECS[source]
 		if spec.faction != faction: continue
 		var canonical := "40kdc:11e:%s:%s" % [spec.folder, source]
 		if identity != canonical: continue
-		if spec.get("current_reference", false):
+		if spec.get("current_reference", false) and prefer_current_reference:
 			if spec.get("validation_status", "") in ["tests_written_not_run", "local_checks_pending", "implemented_local_checks_pending"]: return {"error": "Local validation pending for current profile: " + source}
-			var current := CurrentMarines.profile(source)
-			if current.is_empty(): return {"error": "Missing current Marine profile: " + source}
+			var current := current_reference_profile(faction, source)
+			if current.is_empty(): return {"error": "Missing current %s profile: %s" % [faction, source]}
 			var unit := {"id": canonical, "name": current.name, "stats": current.stats.duplicate(true), "keywords": current.keywords.duplicate(), "base": {"shape": "circle", "radius_inches": current.base_radius_inches}}
 			var gun: Dictionary = current.ranged[0].profiles.values()[0].duplicate(true) if not current.ranged.is_empty() else {}
 			var blade: Dictionary = current.melee[0].profiles.values()[0].duplicate(true) if not current.melee.is_empty() else {}
+			if source == "canoptek-doomstalker": unit.fixed_ranged_weapons = current.ranged.duplicate(true)
+			unit.source_scope = str(current.get("source_scope", ""))
 			return {"error": "", "unit": unit, "spec": spec, "cost": current.points, "models": current.models,
-				"weapons": {"gun": gun, "blade": blade},
-				"pack_hash": CurrentMarines.digest(), "unsupported_abilities": [], "requires_current_abilities": true}
+				"weapons": {"gun": gun, "blade": blade}, "uses_current_reference": true,
+				"pack_hash": current_reference_digest(faction), "unsupported_abilities": current.get("unsupported_abilities", []).duplicate(),
+				"unsupported_weapon_rules": current.get("unsupported_weapon_rules", []).duplicate(), "requires_current_abilities": true}
 		var pack := Pack.load_pack(DIRECTORY.path_join(spec.folder))
 		if not pack.error.is_empty(): return pack
 		for unit: Dictionary in pack.units:
@@ -377,11 +461,11 @@ static func resolve(faction: String, identity: String) -> Dictionary:
 				var issue := Attacks._validate(profile, {"toughness": 4, "save_target": 4, "wounds_per_model": 1, "remaining_wounds": [1]}, {"distance_inches": 0.0, "heavy_eligible": false, "target_model_count": 1, "target_engaged": false})
 				if not issue.is_empty(): return {"error": source + ": " + issue}
 				weapons[key] = profile
-			return {"error": "", "unit": unit, "spec": spec, "cost": cost, "models": spec.models, "weapons": weapons,
+			return {"error": "", "unit": unit, "spec": spec, "cost": cost, "models": spec.models, "weapons": weapons, "uses_current_reference": false,
 				"pack_hash": pack.manifest.units_sha256, "unsupported_abilities": unit.get("unsupported_rules", []).duplicate()}
 	return {"error": "Unit is not implemented for this faction: " + identity}
 
-static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context: Dictionary = {}) -> Dictionary:
+static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context: Dictionary = {}, prefer_current_reference: bool = true) -> Dictionary:
 	if not selection is Dictionary or selection.size() != 5 or selection.get("schema_version") != 2: return {"error": "Invalid mixed army selection."}
 	if roster_context.size() > 1 or roster_context.has("marine_detachment") and not roster_context.get("marine_detachment") is String: return {"error": "Invalid current Space Marine roster context."}
 	for context_key: Variant in roster_context.keys():
@@ -410,11 +494,12 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 		var enhancement_id := str(entry.get("enhancement_id", ""))
 		if enhancement_id != "" and int(entry.copies) != 1: return {"error": "Assign an enhancement to one individual unit entry."}
 		var identity := canonical_id(selection.faction, entry.definition_id)
+		if enhancement_id != "" and UnitAbilityCatalog.cannot_receive_enhancements(identity): return {"error": "This datasheet cannot be given Enhancements: " + identity}
 		var resolved: Dictionary = definitions.get(identity, {})
-		if resolved.is_empty(): resolved = resolve(selection.faction, identity)
+		if resolved.is_empty(): resolved = resolve(selection.faction, identity, prefer_current_reference)
 		if not resolved.error.is_empty(): return resolved
 		definitions[identity] = resolved
-		if selection.faction == "Space Marines" and resolved.spec.get("current_reference", false):
+		if selection.faction == "Space Marines" and resolved.get("uses_current_reference", false):
 			var profile_chapters := CurrentMarines.chapter_keywords(identity.get_slice(":", 3))
 			if profile_chapters.size() > 1: return {"error": "Current Marine profile has multiple Chapter faction keywords: " + resolved.unit.name}
 			if not profile_chapters.is_empty():
@@ -423,23 +508,23 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 					return {"error": "A Space Marines army cannot include units from more than one Chapter (%s and %s)." % [CurrentMarines.chapter_name(selected_chapter), CurrentMarines.chapter_name(chapter)]}
 				selected_chapter = chapter
 		var variant: Dictionary = resolved.duplicate(true)
-		var marine_profile: Dictionary = {}
+		var current_profile_data: Dictionary = {}
 		var source_points: Dictionary = {}
 		var composition_choice_id := str(entry.get("composition_choice_id", ""))
 		var composition_choice: Dictionary = {}
-		if resolved.spec.get("current_reference", false):
-			marine_profile = CurrentMarines.profile(identity.get_slice(":", 3))
-			if int(entry.models) not in construction_model_sizes(identity.get_slice(":", 3), marine_profile):
+		if resolved.get("uses_current_reference", false):
+			current_profile_data = current_reference_profile(selection.faction, identity.get_slice(":", 3))
+			if int(entry.models) not in construction_model_sizes(identity.get_slice(":", 3), current_profile_data):
 				return {"error": "This model-count configuration is blocked pending source reconciliation: %s (%d models)." % [resolved.unit.name, int(entry.models)]}
-			source_points = marine_profile.get("source_roster_points", marine_profile)
-			var costs: Dictionary = source_points.get("points_by_models", marine_profile.get("points_by_models", {}))
+			source_points = current_profile_data.get("source_roster_points", current_profile_data)
+			var costs: Dictionary = source_points.get("points_by_models", current_profile_data.get("points_by_models", {}))
 			if not costs.has(entry.models): return {"error": "Unsupported current squad size: " + resolved.unit.name}
 			variant.models = entry.models
 			variant.cost = costs[entry.models]
-			if marine_profile.has("composition_options"):
+			if current_profile_data.has("composition_options"):
 				if composition_choice_id.is_empty():
-					composition_choice_id = str(marine_profile.get("default_composition_choice_ids", {}).get(int(entry.models), marine_profile.get("default_composition_choice_id", "")))
-				for option: Dictionary in marine_profile.composition_options:
+					composition_choice_id = str(current_profile_data.get("default_composition_choice_ids", {}).get(int(entry.models), current_profile_data.get("default_composition_choice_id", "")))
+				for option: Dictionary in current_profile_data.composition_options:
 					if int(option.get("models", -1)) == int(entry.models) and str(option.get("id", "")) == composition_choice_id:
 						composition_choice = option
 						break
@@ -452,7 +537,7 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 			elif not composition_choice_id.is_empty(): return {"error": "This datasheet has no selectable model-role composition."}
 		elif entry.models != resolved.models: return {"error": "%s requires %d models in this core-profile mode." % [resolved.unit.name, resolved.models]}
 		if enhancement_id != "":
-			if not resolved.spec.get("current_reference", false) or not StormlanceEnhancements.valid_for(identity, enhancement_id, str(StormlanceEnhancements.RECORDS.get(enhancement_id, {}).get("detachment", ""))): return {"error": "Enhancement is not eligible for this current datasheet in the local Wahapedia catalog."}
+			if not resolved.get("uses_current_reference", false) or not StormlanceEnhancements.valid_for(identity, enhancement_id, str(StormlanceEnhancements.RECORDS.get(enhancement_id, {}).get("detachment", ""))): return {"error": "Enhancement is not eligible for this current datasheet in the local Wahapedia catalog."}
 			if enhancement_counts.has(enhancement_id): return {"error": "Each selected detachment enhancement can be assigned only once in this list."}
 			enhancement_counts[enhancement_id] = true
 			variant.cost = int(variant.cost) + int(StormlanceEnhancements.RECORDS[enhancement_id].cost)
@@ -460,20 +545,24 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 		var configuration := "%s:%02d:%s" % [identity, int(entry.models), enhancement_id]
 		if not composition_choice_id.is_empty(): configuration += ":" + composition_choice_id
 		configurations[configuration] = variant
-		if resolved.spec.get("current_reference", false):
+		if resolved.get("uses_current_reference", false):
 			var premium := int(StormlanceEnhancements.RECORDS[enhancement_id].cost) if enhancement_id != "" else 0
 			var banner_cost := int(composition_choice.get("wargear_cost", 0))
-			var standard_cost := int(source_points.get("points_by_models", marine_profile.get("points_by_models", {})).get(entry.models, variant.cost - premium - banner_cost)) + premium + banner_cost
-			var second_sizes: Dictionary = source_points.get("second_plus_points_by_models", marine_profile.get("second_plus_points_by_models", {}))
+			var standard_cost := int(source_points.get("points_by_models", current_profile_data.get("points_by_models", {})).get(entry.models, variant.cost - premium - banner_cost)) + premium + banner_cost
+			var second_sizes: Dictionary = source_points.get("second_plus_points_by_models", current_profile_data.get("second_plus_points_by_models", {}))
 			var second_base := int(second_sizes.get(entry.models, standard_cost - premium - banner_cost))
-			var third_sizes: Dictionary = source_points.get("third_plus_points_by_models", marine_profile.get("third_plus_points_by_models", {}))
+			var third_sizes: Dictionary = source_points.get("third_plus_points_by_models", current_profile_data.get("third_plus_points_by_models", {}))
 			var fourth_sizes: Dictionary = source_points.get("fourth_plus_points_by_models", third_sizes)
 			pricing[configuration] = {"standard": standard_cost,
 				"second_plus": second_base + premium + banner_cost,
 				"third_plus": int(third_sizes.get(entry.models, second_base)) + premium + banner_cost,
 				"fourth_plus": int(fourth_sizes.get(entry.models, third_sizes.get(entry.models, second_base))) + premium + banner_cost}
-			sheet_repetition_keywords[identity] = CurrentMarines.roster_keywords(identity.get_slice(":", 3), marine_profile, {}, marine_detachment)
-			var composed_keywords := CurrentMarines.unit_keywords_for_composition(marine_profile, composition_choice)
+			var composed_keywords: Array = current_profile_data.get("keywords", []).duplicate()
+			if selection.faction == "Space Marines":
+				sheet_repetition_keywords[identity] = CurrentMarines.roster_keywords(identity.get_slice(":", 3), current_profile_data, {}, marine_detachment)
+				composed_keywords = CurrentMarines.unit_keywords_for_composition(current_profile_data, composition_choice)
+			else:
+				sheet_repetition_keywords[identity] = composed_keywords.duplicate()
 			if "EPIC HERO" in composed_keywords:
 				sheet_epic_hero_counts[identity] = int(sheet_epic_hero_counts.get(identity, 0)) + int(entry.copies)
 		counts[configuration] = int(counts.get(configuration, 0)) + int(entry.copies)
@@ -488,7 +577,7 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 		var resolved: Dictionary = configurations[configuration]
 		var identity: String = resolved.unit.id
 		count += int(counts[configuration])
-		var current_profile: Dictionary = CurrentMarines.profile(identity.get_slice(":", 3)) if resolved.spec.get("current_reference", false) else {}
+		var current_profile: Dictionary = current_reference_profile(selection.faction, identity.get_slice(":", 3)) if resolved.get("uses_current_reference", false) else {}
 		var effective_keywords: Array = sheet_repetition_keywords.get(identity, current_profile.get("keywords", []))
 		var source_limit := standard_unit_copy_limit(selection.category, effective_keywords) if not current_profile.is_empty() else 0
 		var repetition_limit := 0
@@ -507,11 +596,12 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 		var configuration_copies := int(counts[configuration])
 		total += int(Roster.tiered_cost(identity_pricing.standard, identity_pricing.third_plus, configuration_copies, already_counted, identity_pricing.fourth_plus, identity_pricing.second_plus))
 		priced_counts[identity] = already_counted + configuration_copies
-		var canonical_entry := {"definition_id": identity, "models": int(resolved.models) if not resolved.spec.get("current_reference", false) else int(configurations[configuration].models), "copies": int(counts[configuration])}
+		var canonical_entry := {"definition_id": identity, "models": int(resolved.models) if not resolved.get("uses_current_reference", false) else int(configurations[configuration].models), "copies": int(counts[configuration])}
 		if configurations[configuration].has("enhancement_id"): canonical_entry.enhancement_id = str(configurations[configuration].enhancement_id)
 		if configurations[configuration].has("composition_choice_id"): canonical_entry.composition_choice_id = str(configurations[configuration].composition_choice_id)
 		canonical.append(canonical_entry)
 		if not resolved.unsupported_abilities.is_empty(): warnings.append(resolved.unit.name + ": " + ", ".join(resolved.unsupported_abilities))
+		if not resolved.get("unsupported_weapon_rules", []).is_empty(): warnings.append(resolved.unit.name + " weapon rules: " + ", ".join(resolved.unsupported_weapon_rules))
 	if count > unit_cap: return {"error": "The core-profile mode supports at most %d units per player." % unit_cap}
 	if total > selection.points_limit: return {"error": "The list exceeds the training-pack budget: %d/%d." % [total, selection.points_limit]}
 	var copy_limit_basis := "wahapedia-e11-core-rules-25.03" if STANDARD_COPY_LIMITS.has(selection.category) else "project-local-supported-copy-ceiling"
@@ -525,10 +615,10 @@ static func reference_army(faction: String) -> Dictionary:
 	list.id = "reference:core-v2:" + faction
 	list.name = "Mixed reference — " + faction
 	list.pricing_source = "local-reference-profiles"
-	list.notes = "Reference draft with fixed weapons; this is not a complete army legality or rules-support claim. Necron profile facts remain historical starter data and are not current construction choices."
+	list.notes = "Reference draft with fixed weapons; this is not a complete army legality or rules-support claim. Necron entries intentionally resolve against retained historical starter profiles."
 	for source: String in (["intercessor-squad", "terminator-squad"] if faction == "Space Marines" else ["necron-warriors", "immortals"]):
 		var spec: Dictionary = SPECS[source]
-		var resolved := resolve(faction, "40kdc:11e:%s:%s" % [spec.folder, source])
+		var resolved := resolve(faction, "40kdc:11e:%s:%s" % [spec.folder, source], faction != "Necrons")
 		if not resolved.error.is_empty(): return resolved
 		list.catalog_digest = resolved.pack_hash
 		list.entries.append({"unit_id": resolved.unit.id, "name": resolved.unit.name, "edition": "11e", "faction": faction,

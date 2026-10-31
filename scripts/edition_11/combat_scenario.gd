@@ -489,6 +489,7 @@ static func movement_remaining(state: Dictionary, id: int) -> float:
 	if not state.units.has(id): return 0.0
 	var unit: Dictionary = state.units[id]
 	if unit.wounds <= 0 or state.squads[unit.squad].moved: return 0.0
+	if state.get("pending_move", {}).get("squad", -1) == unit.squad and state.pending_move.get("transdimensional_displacement", false): return INF
 	var spent := 0.0
 	var bonus := 0.0
 	var take_to_skies_penalty := 0.0
@@ -499,6 +500,15 @@ static func movement_remaining(state: Dictionary, id: int) -> float:
 	var characteristic_bonus := 0.0 if DetachmentStratagems.might_ignore_active(state, int(unit.squad)) else Doctrines.movement_bonus(state, int(unit.squad)) + AncientFury.movement_bonus(state, int(unit.squad))
 	var stasis_penalty := StasisBomb.movement_penalty(state, int(unit.squad))
 	return maxf(0.0, float(unit.movement) + bonus + characteristic_bonus - take_to_skies_penalty - stasis_penalty - spent)
+
+static func transdimensional_endpoint_error(state: Dictionary, squad: int) -> String:
+	if not bool(state.get("pending_move", {}).get("transdimensional_displacement", false)) or int(state.pending_move.get("squad", -1)) != squad: return ""
+	for model: int in living(state, squad):
+		for enemy: int in state.units:
+			var target: Dictionary = state.units[enemy]
+			if int(target.get("owner", -1)) == int(state.squads[squad].get("owner", -2)) or int(target.get("wounds", 0)) <= 0 or not target.get("on_battlefield", true): continue
+			if Contact.edge(state.units[model], target) <= 8.001: return "Transdimensional Displacement must end more than 8 inches horizontally from every enemy unit."
+	return ""
 
 static func movement_choice_error(state: Dictionary, player: int, model: int, move_type: String, revision: int) -> String:
 	var continuation_action_id := ""
@@ -525,17 +535,20 @@ static func movement_choice_error_after_command(state: Dictionary, player: int, 
 	if not state.pending_move.is_empty(): return "Finish the selected move before choosing another type."
 	var squad: int = state.units[model].squad
 	if state.squads[squad].moved: return "This squad has already resolved its move."
-	if move_type not in ["normal", "advance", "ordered_retreat", "desperate_escape", "stationary"]:
+	if move_type not in ["normal", "advance", "transdimensional_advance", "ordered_retreat", "desperate_escape", "stationary"]:
 		return "Unsupported movement type."
-	var aircraft_error := AircraftRules.movement_type_error(state, squad, move_type)
+	if move_type == "transdimensional_advance" and not UnitAbilities.has(state, squad, "transdimensional-displacement"):
+		return "Transdimensional Displacement is available only to the Transcendent C’tan."
+	var standard_move_type := "advance" if move_type == "transdimensional_advance" else move_type
+	var aircraft_error := AircraftRules.movement_type_error(state, squad, standard_move_type)
 	if not aircraft_error.is_empty(): return aircraft_error
 	var engaged := _engaged(state, squad)
-	if move_type in ["normal", "advance"] and _engaged_for_normal_advance(state, squad): return "Engaged squads must Fall Back or remain stationary."
-	if move_type in ["ordered_retreat", "desperate_escape"] and not engaged: return "Only engaged squads can Fall Back."
-	if move_type in ["ordered_retreat", "desperate_escape"] and UnitAbilities.black_rage_restricted(state, squad): return "Black Rage prevents this unit from Falling Back unless it is within 6 inches of a Blood Angels Character and within 12 inches of a Chaplain."
-	if move_type == "ordered_retreat" and UnitAbilities.sammael_forces_desperate_escape(state, squad): return "Cut Off Their Escape forces this unit to use Desperate Escape while engaged with Sammael."
-	if move_type == "ordered_retreat" and UnitAbilities.savage_frenzy_forces_desperate_escape(state, squad): return "Savage Frenzy forces this unit to use Desperate Escape while engaged with Wulfen."
-	if move_type == "ordered_retreat" and state.squads[squad].battle_shocked: return "Battle-shocked squads must use Desperate Escape to Fall Back."
+	if standard_move_type in ["normal", "advance"] and _engaged_for_normal_advance(state, squad): return "Engaged squads must Fall Back or remain stationary."
+	if standard_move_type in ["ordered_retreat", "desperate_escape"] and not engaged: return "Only engaged squads can Fall Back."
+	if standard_move_type in ["ordered_retreat", "desperate_escape"] and UnitAbilities.black_rage_restricted(state, squad): return "Black Rage prevents this unit from Falling Back unless it is within 6 inches of a Blood Angels Character and within 12 inches of a Chaplain."
+	if standard_move_type == "ordered_retreat" and UnitAbilities.sammael_forces_desperate_escape(state, squad): return "Cut Off Their Escape forces this unit to use Desperate Escape while engaged with Sammael."
+	if standard_move_type == "ordered_retreat" and UnitAbilities.savage_frenzy_forces_desperate_escape(state, squad): return "Savage Frenzy forces this unit to use Desperate Escape while engaged with Wulfen."
+	if standard_move_type == "ordered_retreat" and state.squads[squad].battle_shocked: return "Battle-shocked squads must use Desperate Escape to Fall Back."
 	return ""
 
 static func _movement_draft(state: Dictionary, squad: int, move_type: String, take_to_skies: bool = false) -> Dictionary:
@@ -740,6 +753,9 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 	var error := movement_choice_error(state, player, model, move_type, revision)
 	if not error.is_empty(): return error
 	var squad: int = state.units[model].squad
+	var requested_move_type := move_type
+	var transdimensional_displacement := move_type == "transdimensional_advance"
+	if transdimensional_displacement: move_type = "advance"
 	if take_to_skies and move_type not in ["normal", "advance", "ordered_retreat", "desperate_escape"]: return "Take to the Skies is available only for a Normal Move, Advance or Fall Back."
 	if take_to_skies and not Terrain.squad_can_fly(state, squad): return "Take to the Skies requires a FLYING unit."
 	if move_type in ["ordered_retreat", "desperate_escape"] and not Mephiston.fallback_resolved(state, squad):
@@ -764,7 +780,7 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 				_event(state, "%s failed its Leadership test under Transfixing Gaze and must Remain Stationary." % state.squads[squad].name)
 				return ""
 	if StasisBomb.should_resolve_movement(state, player, squad, move_type):
-		var continuation := {"model": model, "move_type": move_type, "use_sudden_onslaught": use_sudden_onslaught, "take_to_skies": take_to_skies}
+		var continuation := {"model": model, "move_type": requested_move_type, "use_sudden_onslaught": use_sudden_onslaught, "take_to_skies": take_to_skies}
 		var stasis := StasisBomb.resolve_movement(state, player, squad, model, move_type, roller, continuation)
 		if not str(stasis.get("error", "")).is_empty(): return str(stasis.error)
 		if bool(stasis.get("pending", false)):
@@ -778,7 +794,7 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 	var mobile_choice_available := not unstoppable_resolved and move_type != "stationary" and not use_sudden_onslaught and (DetachmentStratagems.mobile_declaration_available(state, player, squad, DetachmentStratagems.UNSTOPPABLE_ADVANCE) or DetachmentStratagems.mobile_declaration_available(state, player, squad, DetachmentStratagems.KNIGHTS_OF_IRON) or DetachmentStratagems.mobile_declaration_available(state, player, squad, DetachmentStratagems.FLAWLESS_RIDERS) or DetachmentStratagems.mobile_declaration_available(state, player, squad, DetachmentStratagems.MOBILE_LETHALITY, move_type))
 	if mobile_choice_available:
 		if _begin_movement_frame(state, squad, "movement-stratagem-decision").is_empty(): return "Could not open the movement resolution frame."
-		state.unit_abilities.window = {"kind": DetachmentStratagems.UNSTOPPABLE_WINDOW, "owners": [player], "squad": squad, "trigger": "movement", "action": "movement", "model": model, "move_type": move_type, "use_sudden_onslaught": false, "take_to_skies": take_to_skies, "take_to_skies_penalty": 2.0 if take_to_skies and not Terrain.squad_has_hover(state, squad) else 0.0}
+		state.unit_abilities.window = {"kind": DetachmentStratagems.UNSTOPPABLE_WINDOW, "owners": [player], "squad": squad, "trigger": "movement", "action": "movement", "model": model, "move_type": requested_move_type, "use_sudden_onslaught": false, "take_to_skies": take_to_skies, "take_to_skies_penalty": 2.0 if take_to_skies and not Terrain.squad_has_hover(state, squad) else 0.0}
 		var suspend_error := _suspend_movement_frame(state, squad, "movement-stratagem-decision")
 		if not suspend_error.is_empty(): return suspend_error
 		_event(state, "%s is selected to move. Choose an available movement stratagem or decline it before moving." % state.squads[squad].name)
@@ -793,6 +809,7 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 		_event(state, "%s remained stationary." % state.squads[squad].name)
 		return ""
 	var draft := _movement_draft(state, squad, move_type, take_to_skies)
+	if transdimensional_displacement: draft.transdimensional_displacement = true
 	if move_type == "advance" and UnitAbilities.has(state, squad, "wind-walker"):
 		if use_sudden_onslaught: return "Wind Walker already changes this Advance roll to 6."
 		draft.wind_walker_to_six = true
@@ -878,7 +895,11 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 	if move_type == "advance": message += " Advance %s: %d inches." % ["roll: 6 (Sudden Onslaught, 1 CP)" if use_sudden_onslaught else "roll", draft.bonus]
 	if move_type == "desperate_escape" and fortification_hazard_auto_pass: message += " Its Desperate Escape Hazard rolls automatically pass because it is engaged only with FORTIFICATION units."
 	elif move_type == "desperate_escape": message += " Hazard rolls: %s; allocate %d mortal wounds before moving." % [str(draft.hazard_rolls), state.pending_move.hazard_remaining]
-	if take_to_skies: message += " Take to the Skies declared%s; FLY models can move through all models and terrain." % (" with no movement reduction (HOVER)" if float(draft.take_to_skies_penalty) == 0.0 else "; maximum move reduced by 2 inches")
+	if take_to_skies:
+		message += " Take to the Skies declared; FLY models can move through all models and terrain."
+		if transdimensional_displacement: message += " Transdimensional Displacement keeps this Advance unlimited."
+		elif float(draft.take_to_skies_penalty) == 0.0: message += " HOVER ignores the 2-inch maximum-distance reduction."
+		else: message += " Maximum move reduced by 2 inches."
 	_event(state, message)
 	return ""
 
@@ -1010,7 +1031,8 @@ static func validate_move_result(state: Dictionary, player: int, id: int, destin
 	if distance > remaining + 0.001: return _movement_validation_result("exceeds_movement", "Exceeds movement: %.2f inches requested, %.2f remaining." % [distance, remaining], "Choose a destination within the remaining movement allowance.")
 	var move_type := str(state.pending_move.get("move_type", "normal"))
 	var through_enemies: bool = move_type == "desperate_escape"
-	if not Contact.clear_path(state, id, destination, remaining, through_enemies, false, target_elevation, move_type):
+	var through_models: bool = bool(state.pending_move.get("transdimensional_displacement", false))
+	if not Contact.clear_path(state, id, destination, remaining, through_enemies, through_models, target_elevation, move_type):
 		var terrain_error := Terrain.path_error(state, id, destination, target_elevation)
 		if not terrain_error.is_empty(): return _movement_validation_result("terrain_blocked", terrain_error, "Choose a route around the terrain feature.")
 		return _movement_validation_result("path_blocked", "The base cannot cross terrain, a blocking model base, or the board edge.", "Choose a clear route that stays on the battlefield.")
@@ -1045,7 +1067,8 @@ static func move_result(state: Dictionary, player: int, id: int, destination: Ve
 	state.units[id].elevation = target_elevation
 	state.units[id].moved = true
 	var elevation_note := " to elevation %.2f inches" % target_elevation if absf(target_elevation - current_elevation) > 0.001 else ""
-	_event(state, "Model %d: staged %.2f inches of movement%s; %.2f remaining. Confirm squad when ready." % [id, distance, elevation_note, movement_remaining(state, id)])
+	var remaining_text := "no maximum distance" if state.pending_move.get("transdimensional_displacement", false) else "%.2f inches remaining" % movement_remaining(state, id)
+	_event(state, "Model %d: staged %.2f inches of movement%s; %s. Confirm squad when ready." % [id, distance, elevation_note, remaining_text])
 	return _movement_validation_result("valid")
 
 static func move(state: Dictionary, player: int, id: int, destination: Vector2, revision: int, destination_elevation: float = -1.0) -> String:
@@ -1078,6 +1101,8 @@ static func finish_movement_result(state: Dictionary, player: int, revision: int
 	if UnitActions.TargetAuguryWeb.start_decision_pending(state, squad): return _movement_validation_result("pending_unit_ability", "Resolve Target Augury Web before confirming this unit's move.", "Resolve the Vehicle ability choice, then confirm movement.")
 	if state.pending_move.get("hazard_remaining", 0) > 0: return _movement_validation_result("pending_escape_wounds", "Allocate escape mortal wounds before confirming.", "Finish allocating the pending escape wounds, then confirm movement.")
 	if not Contact.coherent(state, squad): return _movement_validation_result("squad_not_coherent", "Squad is not in coherency. Reposition its models or cancel movement.", "Reposition the squad until it meets coherency, then confirm or reset placement.")
+	var transdimensional_error := transdimensional_endpoint_error(state, squad)
+	if not transdimensional_error.is_empty(): return _movement_validation_result("transdimensional_distance", transdimensional_error, "Reposition the C’tan so its base is more than 8 inches horizontally from every enemy unit.")
 	if _engaged(state, squad): return _movement_validation_result("engaged_after_move", "The move must end unengaged. Reposition its models or reset placement.", "Reposition the squad to finish unengaged, or reset placement.")
 	var move_type: String = state.pending_move.get("move_type", "normal")
 	if move_type == "desperate_escape" and not state.squads[squad].battle_shocked:
@@ -1842,8 +1867,14 @@ static func _resume_consolidation(state: Dictionary) -> void:
 static func attack_window_error(state: Dictionary, player: int, attacker: int, revision: int, melee: bool) -> String:
 	var continuation_action_id := _core_reaction_phase_close_action_id(state, player)
 	var resolved_decision_source := ""
+	var hyperspace_squad := int(state.units[attacker].get("squad", -1)) if not melee and state.units.has(attacker) else -1
+	var hyperspace_window: Dictionary = state.get("unit_abilities", {}).get("window", {})
+	var hyperspace_shooter := str(hyperspace_window.get("kind", "")) == "hyperspace-hunters" and int(hyperspace_window.get("active_squad", -1)) == hyperspace_squad
+	var hexmark_shooter := str(hyperspace_window.get("kind", "")) == "multi-threat-eliminator" and int(hyperspace_window.get("active_squad", -1)) == hyperspace_squad
 	if not melee and state.get("phase", "") == "shooting" and DetachmentStratagems.shooting_reaction_actor(state) == player and state.units.has(attacker) and DetachmentStratagems.reactive_shooting_shooter(state, int(state.units[attacker].get("squad", -1))):
 		continuation_action_id = _vengeful_action_id(state)
+		resolved_decision_source = "unit-actions"
+	elif (hyperspace_shooter or hexmark_shooter) and int(hyperspace_window.get("owners", [0])[0]) == player:
 		resolved_decision_source = "unit-actions"
 	var error := _command_error(state, player, revision, continuation_action_id, resolved_decision_source)
 	if not error.is_empty(): return error
@@ -1857,10 +1888,13 @@ static func attack_window_error(state: Dictionary, player: int, attacker: int, r
 		if state.phase != "fight" or state.fight_step not in ["attacks", "consolidation_reaction"]: return "Resolve pile-in decisions before fighting."
 		if squad not in FightQueue.choices(state, player): return "Select an eligible unit in the current priority or reaction queue."
 	else:
-		if not CoreReactions.overwatch_shooter(state, squad) and state.phase != "shooting": return "Attacks are allowed only in the Shooting phase."
+		var hyperspace_attack: Dictionary = state.get("unit_abilities", {}).get("window", {})
+		var hyperspace_active := str(hyperspace_attack.get("kind", "")) == "hyperspace-hunters" and int(hyperspace_attack.get("active_squad", -1)) == squad
+		var hexmark_active := str(hyperspace_attack.get("kind", "")) == "multi-threat-eliminator" and int(hyperspace_attack.get("active_squad", -1)) == squad
+		if not CoreReactions.overwatch_shooter(state, squad) and not hyperspace_active and not hexmark_active and state.phase != "shooting": return "Attacks are allowed only in the Shooting phase."
 		if Actions.shooting_blocked(state, squad) and not CoreReactions.overwatch_shooter(state, squad): return "Starting an action prevents shooting until the turn ends."
-		if state.squads[squad].shot and not DetachmentStratagems.reactive_shooting_shooter(state, squad) and not CoreReactions.overwatch_shooter(state, squad): return "This squad already shot this phase."
-		if state.squads[squad].fell_back and not Doctrines.shoot_after_fallback(state, squad) and not CoreReactions.overwatch_shooter(state, squad): return "A squad that Fell Back needs an effect that allows it to shoot this turn."
+		if state.squads[squad].shot and not DetachmentStratagems.reactive_shooting_shooter(state, squad) and not CoreReactions.overwatch_shooter(state, squad) and not hyperspace_active and not hexmark_active: return "This squad already shot this phase."
+		if state.squads[squad].fell_back and not Doctrines.shoot_after_fallback(state, squad) and not CoreReactions.overwatch_shooter(state, squad) and not hyperspace_active and not hexmark_active: return "A squad that Fell Back needs an effect that allows it to shoot this turn."
 	return ""
 
 static func attack_plan_error(state: Dictionary, player: int, attacker: int, entries: Array, revision: int, melee: bool, use_lethal: bool = true, hail_target: int = -1, indirect_shooting: bool = false) -> String:
@@ -2405,6 +2439,13 @@ static func _commit_finished_attack(state: Dictionary, squad: int, player: int, 
 		if CoreReactions.overwatch_shooter(state, squad):
 			CoreReactions.clear_overwatch(state)
 		else:
+			var hyperspace_commit: Dictionary = state.get("unit_abilities", {}).get("window", {})
+			if str(hyperspace_commit.get("kind", "")) == "hyperspace-hunters" and int(hyperspace_commit.get("active_squad", -1)) == squad:
+				var hyperspace_error := UnitActions.complete_hyperspace_shot(state, squad, roller)
+				if not hyperspace_error.is_empty(): return {"error": hyperspace_error}
+			if str(hyperspace_commit.get("kind", "")) == "multi-threat-eliminator" and int(hyperspace_commit.get("active_squad", -1)) == squad:
+				var hexmark_error := UnitActions.complete_multi_threat_shot(state, squad)
+				if not hexmark_error.is_empty(): return {"error": hexmark_error}
 			state.squads[squad].shot = true
 			state.squads[squad].last_ranged_turn = state.turn
 			if prepared.get("indirect_shooting", false): state.squads[squad].indirect_shooting_block = "%d:%s" % [state.turn, state.phase]
@@ -2428,6 +2469,7 @@ static func _commit_finished_attack(state: Dictionary, squad: int, player: int, 
 		DeathCompanyDreadnought.open_after_enemy_shot(state, squad, resolved.pools)
 		WhirlwindPunishingBombardment.open_after_shot(state, squad, resolved.pools)
 		RazorbackFireSupport.open_after_shot(state, squad, resolved.pools)
+		UnitActions.offer_multi_threat(state, squad, prepared.targets)
 	if melee: WulfenStormShields.offer_after_fight(state, squad, resolved, melee)
 	var names: Array[String] = []
 	for target: int in prepared.targets: names.append(state.squads[target].name)

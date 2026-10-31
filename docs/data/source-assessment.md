@@ -2,7 +2,7 @@
 
 ## Required rules baseline
 
-The target is **Warhammer 40,000 11th edition**. By user decision, [Wahapedia's e11 Core Rules](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/), corresponding `/wh40k11ed/` faction pages and Data Export are the definitive project references. Check the edition, book/chapter, game mode and current revision, and record the selected source/version with each implementation scope.
+The target is **Warhammer 40,000 11th edition**. By user decision, the verified local Wahapedia 11e Data Export snapshot is the definitive working source for rules and datasheet facts. Start with the local extraction and its recorded edition, book/chapter, game mode and revision. Consult the matching current Wahapedia page only when local data is missing, ambiguous or inconsistent; record the page/revision and how the question was resolved.
 
 Official Games Workshop publications may provide context but are not an admission prerequisite and do not override the selected Wahapedia source. Do not mix editions or superseded profiles. Preserve unresolved ambiguities as explicit blockers rather than silently merging incompatible versions.
 
@@ -12,7 +12,7 @@ Do not substitute 10th-edition or superseded Codex rules, combine incompatible v
 
 The project's sole accepted source for local datasheet extraction is the Wahapedia 11th-edition [Data Export](https://wahapedia.ru/wh40k11ed/the-rules/data-export/) page. For purposes of the local data pipeline, a **verified local export snapshot** is the source of record for extracted datasheet fields. OpenHammer, 40kdc-data, memory, search results, and previous-edition packs are not substitutes.
 
-This is a project source policy, not a claim that Wahapedia is an official Games Workshop publication or that an extracted record is automatically complete, licensed for redistribution, implemented, or validated. Use the chosen Wahapedia edition/page/export and its recorded revision as the rules/data baseline. Do not replace it with another source's interpretation. Record ambiguities within that selected source and keep unsupported scope blocked.
+This is a project source policy, not a claim that Wahapedia is an official Games Workshop publication or that an extracted record is automatically complete, licensed for redistribution, implemented, or validated. Use the verified local export and its recorded revision as the rules/data baseline. Do not replace it with another source's interpretation. Record any unresolved ambiguity and keep unsupported scope blocked.
 
 ## Local snapshot layout
 

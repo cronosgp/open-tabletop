@@ -1802,7 +1802,7 @@ static func mortal_wound_triggered(s: Dictionary, squad: int) -> bool:
 		var packet: Dictionary = demise.packets[int(demise.packet_cursor)]
 		if int(packet.get("target", -1)) == squad and int(packet.get("remaining", 0)) > 0: return true
 	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
-	var mortal_windows := ["explosives", "crushing-impact-mortal", "hammer-of-wrath-mortal", "gravis-armoured-impact-mortal", "inner-circle-wrath-of-the-lion-mortal", "tigurius-telepathic-assault-mortal", "incursor-haywire-mortal", PHOBOS_SHADOW_MORTIS_MORTAL_WINDOW, "black-templars-high-marshal-mortal", "blood-angels-death-visions-mortal"]
+	var mortal_windows := ["explosives", "crushing-impact-mortal", "hammer-of-wrath-mortal", "gravis-armoured-impact-mortal", "inner-circle-wrath-of-the-lion-mortal", "tigurius-telepathic-assault-mortal", "incursor-haywire-mortal", PHOBOS_SHADOW_MORTIS_MORTAL_WINDOW, "black-templars-high-marshal-mortal", "necron-scarab-self-destruction-mortal", "blood-angels-death-visions-mortal"]
 	if str(window.get("kind", "")) in mortal_windows and int(window.get("target", -1)) == squad: return true
 	return false
 
