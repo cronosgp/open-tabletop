@@ -1,6 +1,7 @@
 extends SceneTree
 
 const Save = preload("res://scripts/match_save.gd")
+const Recovery = preload("res://scripts/match_recovery.gd")
 const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 
 func _initialize() -> void:
@@ -25,6 +26,8 @@ func run() -> void:
 	assert(read.state == original)
 	assert(read.rng_state == random_state)
 	assert(read.attack_draft == game.attack_draft)
+	var session_marker := Recovery._path(OS.get_process_id())
+	assert(FileAccess.file_exists(session_marker) and Recovery.find().is_empty())
 	# Replacement must work when a previous autosave already exists.
 	assert(game._save_snapshot().is_empty())
 	game.state = game.Rules.initial_state()
@@ -74,18 +77,27 @@ func run() -> void:
 	var next_random: int = game.rng.state
 	assert(resolved.revision > 0)
 	assert(game._save_snapshot().is_empty())
+	var resolved_slot: int = game.active_save_slot
 	game._start_prepared_match()
+	# A new match chooses an empty slot instead of overwriting the old match.
+	assert(game._set_active_save_slot(resolved_slot))
 	game._load_match()
 	assert(game.state == resolved and game.rng.state == next_random)
 	var object := Node.new()
 	assert(not Save.safe({"object": object}))
 	object.free()
+	var previous_backup := Save.read_snapshot_file(Save.PATH + ".bak")
+	assert(not previous_backup.has("error"))
 	var file := FileAccess.open(Save.PATH, FileAccess.WRITE)
 	file.store_string("corrupted")
 	file.close()
-	assert(Save.read().has("error"))
+	assert(Save.read_snapshot_file(Save.PATH).has("error"))
+	var recovered := Save.read()
+	assert(not recovered.has("error") and recovered.get("recovered_from_backup", false))
+	assert(recovered.state == previous_backup.state and recovered.rng_state == previous_backup.rng_state)
 	print("MATCH SAVE: PASS")
 	game.free()
+	assert(not FileAccess.file_exists(session_marker))
 	quit()
 
 func find_unsafe(value: Variant) -> void:

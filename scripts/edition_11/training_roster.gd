@@ -25,25 +25,30 @@ static func definition(faction: String) -> Dictionary:
 				return {"error": "", "unit": unit, "models": spec.models, "cost": int(price.cost), "pack_hash": pack.manifest.units_sha256, "template": spec.template}
 	return {"error": "Training profile, size, or cost is unresolved in the local pack."}
 
-static func inspect(list: Variant, roster_context: Dictionary = {}) -> Dictionary:
+static func inspect(list: Variant, roster_context: Dictionary = {}, use_verified_current: bool = false) -> Dictionary:
 	var error := Roster.validate(list)
 	if not error.is_empty(): return {"error": error}
 	if list.edition != "11e": return {"error": "The training engine only uses the implemented 11th edition pack."}
+	if not SPECS.has(list.faction): return {"error": "This faction is outside local training scope."}
 	var spec: Dictionary = SPECS[list.faction]
+	var current_digest := Capabilities.current_reference_digest(list.faction) if use_verified_current else ""
+	var verified_current: bool = not current_digest.is_empty() and not list.entries.is_empty()
 	var mixed := false
 	var requested := 0
 	for entry: Dictionary in list.entries:
 		requested += int(entry.copies)
+		verified_current = verified_current and entry.source_digest == current_digest and str(entry.unit_id).begins_with("40kdc:11e:")
 		if entry.unit_id not in spec.aliases or entry.get("enhancement_id", "") != "": mixed = true
-	if mixed or requested > 2:
+	if mixed or requested > 2 or verified_current:
 		var entries: Array[Dictionary] = []
 		for entry: Dictionary in list.entries:
 			if entry.faction != list.faction: return {"error": "Mixed factions are unsupported in core-profile training."}
 			var selected := {"definition_id": Capabilities.canonical_id(list.faction, str(entry.unit_id)), "models": int(entry.models), "copies": int(entry.copies)}
 			if entry.get("enhancement_id", "") != "": selected.enhancement_id = str(entry.enhancement_id)
 			if entry.has("composition_choice_id"): selected.composition_choice_id = str(entry.composition_choice_id)
+			if entry.has("intercessor_sergeant_loadouts"): selected.intercessor_sergeant_loadouts = entry.intercessor_sergeant_loadouts.duplicate(true)
 			entries.append(selected)
-		var report := Capabilities.admit({"schema_version": 2, "faction": list.faction, "entries": entries, "category": list.category, "points_limit": int(list.points_limit)}, Capabilities.MAX_SQUADS, roster_context)
+		var report := Capabilities.admit({"schema_version": 2, "faction": list.faction, "entries": entries, "category": list.category, "points_limit": int(list.points_limit)}, Capabilities.MATCH_UNIT_CAP, roster_context)
 		if report.error.is_empty(): report.saved_reference_points = Roster.summary(list).points
 		return report
 	var resolved := definition(list.faction)
@@ -63,7 +68,7 @@ static func inspect(list: Variant, roster_context: Dictionary = {}) -> Dictionar
 	return report
 
 static func admit(selection: Variant, roster_context: Dictionary = {}, prefer_current_reference: bool = true) -> Dictionary:
-	if selection is Dictionary and selection.get("schema_version") == 2: return Capabilities.admit(selection, Capabilities.MAX_SQUADS, roster_context, prefer_current_reference)
+	if selection is Dictionary and selection.get("schema_version") == 2: return Capabilities.admit(selection, Capabilities.MATCH_UNIT_CAP, roster_context, prefer_current_reference)
 	if not selection is Dictionary or selection.size() != 7: return {"error": "Invalid public army selection."}
 	for key: String in ["faction", "definition_id", "category"]:
 		if not selection.get(key) is String: return {"error": "Invalid selection identity."}
@@ -85,7 +90,7 @@ static func admit(selection: Variant, roster_context: Dictionary = {}, prefer_cu
 ## still be inspected or used to reconstruct old saves, but cannot enter new
 ## construction through this boundary.
 static func admit_current_catalog(list: Variant) -> Dictionary:
-	var report := Capabilities.admit(list) if list is Dictionary and list.get("schema_version") == 2 and not list.has("edition") else inspect(list)
+	var report := Capabilities.admit(list, Capabilities.MATCH_UNIT_CAP) if list is Dictionary and list.get("schema_version") == 2 and not list.has("edition") else inspect(list, {}, true)
 	if not report.get("error", "").is_empty(): return report
 	if int(report.selection.get("schema_version", 0)) != 2:
 		return {"error": "This saved list uses a historical training profile and remains a legacy draft."}

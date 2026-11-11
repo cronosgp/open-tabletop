@@ -4,6 +4,10 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 
 ## Guides and gameplay
 
+- [Dataslate menu icon attribution](../assets/ui/icons/dataslate/ATTRIBUTION.md) — Lorc / game-icons.net CC BY 3.0 credit for title-menu icons.
+- [In-match UI redesign and stability](project/in-match-ui-redesign.md) — audit, crash evidence, phased implementation and acceptance limits.
+- [End-to-end gameplay flow audit](project/gameplay-flow-audit.md) — observed five-round hot-seat run, click tally, friction points and prioritized UX opportunities.
+
 - [Tactical training](guides/tactical-training.md) — distinct Marine forces, optional abilities and stratagems, and configuration boundaries.
 
 - [3D combat exercise](guides/3d-combat.md)
@@ -112,6 +116,7 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Data-pack format](data/data-packs.md) — existing format and legacy adapter status.
 - [11e starter lab](data/11e-starter.md) — isolated exercise and its legacy sample inputs.
 - [Faction catalog](data/faction-catalog.md) · [ForceOrg import](data/forceorg-import.md) · [Model import validation](data/model-import-validation.md)
+- [Local model variant database](data/model-variant-database.md) — indexed model/category/weapon inventory, datasheet associations, generated local equipment visuals and recovery of missing saved unit mappings.
 - [Assault Intercessors With Jump Packs sheet audit](marine-assault-intercessors-with-jump-packs.md) · [machine-readable audit](marine-assault-intercessors-with-jump-packs-audit.json)
 - [Bladeguard Veteran Squad sheet audit](marine-bladeguard-veteran-squad.md) · [machine-readable audit](marine-bladeguard-veteran-squad-audit.json)
 - [Desolation Squad sheet audit](marine-desolation-squad.md) · [machine-readable audit](marine-desolation-squad-audit.json)
@@ -148,6 +153,7 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Tactical training experience correction progress](project/tactical-training-experience-progress.md) — implementation findings, local evidence and remaining human/integration gates.
 - [Selection responsiveness and datasheet review](project/selection-datasheet-review.md) — measured selection delay, projection reuse, compact model card and structured datasheet inspector.
 - [Current support matrix](project/support-matrix.md) — what is supported and what is not.
+- [Configuration UI redesign](project/ui-redesign.md) — repository audit, phases, implementation boundaries and verification.
 - [Roadmap](project/roadmap.md) — forward plan and completion criteria.
 - [Backlog](project/backlog.md)
 - [Track A checked-match scope](project/track-a.md) · [Track A5](project/track-a-a5.md)

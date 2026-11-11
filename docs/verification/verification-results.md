@@ -1,3 +1,1004 @@
+## Local model database and equipment selection — 6 November 2026
+
+## Configuration workspaces — 6 November 2026
+
+The current-catalog editor/workspace check passed **5/5 processes** at
+`.tools/verification/20261106T210755697276Z/results.json` (network disabled, no legacy
+starter staged). A broader run including the existing gameplay-layout suite passed
+**6/6** at `.tools/verification/20261106T211402634912Z/results.json` (network disabled;
+its optional historical starter fixture was staged). A focus-warning follow-up
+passed **4/4** at `.tools/verification/20261106T211637224083Z/results.json`
+(configuration and gameplay-layout suites plus import/Python; no focus warnings).
+It covers save/copy/reload,
+current composition edits, imported fixture previews, settings Apply/Revert and
+configuration navigation; it does not certify rules, full army legality or LAN.
+
+The staged native Godot captures cover 1366×768, 1920×1080 and 2560×1440 with
+100/110/120% interface scales. Synthetic keyboard/controller events are checked;
+physical-controller coverage is not claimed. The continuation passed 12/12
+processes for local launch, tactical/result, draft recovery, configuration, model
+transfer and layout checks at `.tools/verification/20261106T223900607426Z/results.json`.
+The old immediate-start training/result failures are superseded by async public-flow
+checks. A worker/race/local-model follow-up passed 5/5 at
+`.tools/verification/20261106T224332353778Z/results.json`. Four real local models
+and a 32,256-entry source were profiled; initial synchronous GLB conversion
+took 4–18 seconds. The subsequent worker conversion run verified three packages
+in 5.6–6.2 seconds each while frames continued (approximately 49 ms maximum
+interval). Explicit source scanning of 32,256 entries also yielded across frames.
+Whole-library transfer, physical devices and separate-machine LAN remain unverified.
+The final async conversion/source/first-run race suite passed 3/3 at
+`.tools/verification/20261106T225133842344Z/results.json` (network disabled). See the
+[full redesign audit, phase record and commands](../project/ui-redesign.md).
+
+The local batch follow-up passed 6/6 processes at
+`.tools/verification/20261106T230038658297Z/results.json`; extended heavy-item and
+appearance cancellation/directory-source checks passed 3/3 at
+`.tools/verification/20261106T230218184539Z/results.json`. All selected checks had
+network disabled. Six defaults and 60 local appearances previously blocked the
+native preparation callback for 11.1 seconds; background planning dispatched in
+1.63 ms and completed across frames with the same ready counts and zero external
+request attempts. Actual heavy cached completion-handler imports and 48-entry,
+long-name/notes layouts are recorded in the redesign audit. This closes the active
+continuation's local acceptance scope; the full release gate remains partial.
+
+### Missing standard-profile mapping recovery — 6 November 2026
+
+The local Godot 4.7.2 config audit reproduced the 144 mapped / 17 missing
+standard-profile discrepancy. All 17 missing profiles had complete candidates
+in the configured local cache. The new recovery tool uses the production matcher,
+cache/component resolver and current base/completeness checks. It preserves
+existing records, makes a local backup, rejects concurrent config changes and
+reads back the temporary and installed settings. An initial full-config save
+rounded one existing Redemptor transform; that attempt was replaced from its
+hash-verified backup. The final tool inserts only new dictionary entries into
+the original text. The final preservation comparison found no differences.
+
+Exact successful commands (run from the project root):
+
+```text
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/reconcile_local_model_mappings.gd -- --output .tools/forceorg-model-table/catalog_v2/mapping-recovery-dry-run-20261106.json
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/reconcile_local_model_mappings.gd -- --apply --output .tools/forceorg-model-table/catalog_v2/mapping-recovery-applied-20261106.json
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script .tools/verify_recovered_mapping_reload.gd
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script .tools/audit_forceorg_source_pose_mappings.gd
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/reconcile_local_model_mappings.gd -- --apply --output .tools/forceorg-model-table/catalog_v2/mapping-recovery-idempotence-20261106.json
+```
+
+All final commands exited **0**. Dry run found 17 recoverable links; apply restored
+17/17. The fresh-process reload created **17/17 Node3D visuals** through
+`ModelImportPanel.visual_for`, which checks saved fingerprints and current base
+gates. All 145 original mapping records, 64 saved variants and other settings
+matched the backup. The standard-profile audit reported **161 profiles, 17
+source-pose pilot, 144 retained legacy, zero missing, zero invalid pilot**. The
+idempotence run found zero missing links and made no save. The 145 original
+records include one profile outside the standard Marine set.
+
+Applied-report SHA-256:
+`b1f383861dc6719ea7de34b9bbca8fbbc858b533a76b2833c21af71cd231e6d2`;
+reload-report SHA-256:
+`cf8308b81c181927d931c2a9293aad3604a387ae23bedf146125adc60239f008`.
+Reports and the local probe scripts remain under ignored `.tools/`. The applied
+report records the exact backup path, original/recovered config hashes and
+ForceOrg source hash. No model files or generated third-party data were added
+to Git. No test suite, network requests or downloads were used. These are
+direct recovery and reload checks, not rendered evidence, TTS parity, full
+161-profile import certification, equipment completeness or multiplayer coverage.
+
+### Schema 8 hierarchy index and association-first search — 6 November 2026
+
+The schema-8 rebuild adds `source_object_parent(parent_path,source_sha256)` to
+the 74,766-row object hierarchy table. Before the index, `EXPLAIN QUERY PLAN`
+reported a full `SCAN source_objects` for a parent-only lookup. The rebuilt
+database now uses `source_object_parent` for both parent-only and exact
+source-plus-parent lookups. The source/category indexes and all data counts are
+preserved. SQLite integrity is `ok`, with zero foreign-key errors; totals remain
+35,884 source variants, 147,384 candidate/identity links, 38,495 visual catalog
+occurrences and 74,766 static objects.
+
+The same schema-8 query audit found that alphabetical ordering put 104
+candidate-only Intercessor/Grenade Launcher rows ahead of ten label/user
+associations. Datasheet-filtered searches now rank confirmed label/user
+associations first, reviewed visual fallbacks second and candidate-only links
+third. Candidates remain visible and keep their status. The focused search now
+returns the ten Intercessor Grenadier label/user associations before the
+Sergeant-labelled candidate rows; it does not certify those candidate loadouts.
+
+The exact rebuild and focused query commands were:
+
+```text
+python tools/forceorg_model_database.py build --catalog .tools/forceorg-model-table/catalog_v2/forceorg_model_weapon_catalog.csv --datasheets .tools/forceorg-model-table/live_20261106_4/forceorg_datasheet_profiles_11e.csv --runtime-profiles .tools/forceorg-model-table/runtime_visual_datasheet_identities.json --relations .tools/forceorg-model-table/live_20261106_4/forceorg_visual_variant_datasheet_candidates.csv --relations .tools/forceorg-model-table/forceorg_source/forceorg_visual_variant_datasheet_candidates.csv --visual-inventory .tools/forceorg-model-table/ForceOrg_catalog_visual_candidates.csv --visual-inventory .tools/forceorg-model-table/live_20261106_4/TS_AutoSave_2_visual_candidates.csv --object-inventory .tools/forceorg-model-table/catalog_v2/workshop-objects.json --object-inventory .tools/forceorg-model-table/catalog_v2/autosave-objects.json --corrections .tools/forceorg-model-table/catalog_v2/visual-corrections-20261106.json --database .tools/forceorg-model-table/catalog_v2/models.sqlite
+python tools/forceorg_model_database.py search --database .tools/forceorg-model-table/catalog_v2/models.sqlite --datasheet 000001157 --weapon grenade-launcher --name Intercessor --limit 12
+python tools/forceorg_model_database.py search --database .tools/forceorg-model-table/catalog_v2/models.sqlite --weapon grenade-launcher --name Intercessor --limit 6
+python tools/forceorg_model_database.py search --database .tools/forceorg-model-table/catalog_v2/models.sqlite --datasheet-role Fortifications --limit 20
+python tools/forceorg_model_database.py objects --database .tools/forceorg-model-table/catalog_v2/models.sqlite --source ea1550037e8ae36aff8225cfc06c24eb9cd0f23a0a150e9688611aa78f70af63 --parent ObjectStates/139 --limit 3
+```
+
+The build exited 0 and stored the schema-8 input fingerprints in SQLite. The
+weapon and Fortifications searches exited 0. The Fortifications query returns
+source role separately from visual category and surfaces associated Gauss Pylon,
+Big'ed Bossbunka, Feculent Gnarlmaw, Mekboy Workshop and Noctilith Crown variants.
+A read-only SQLite audit checked `PRAGMA
+integrity_check`, `PRAGMA foreign_key_check`, index definitions and both parent
+query plans. An inventory of 11 local Workshop JSON saves identified `ForceOrg`
+as the only Warhammer 40,000 catalog source by title; the report is stored under
+`.tools/forceorg-model-table/catalog_v2/`. No test suite, network access or
+download was used.
+
+### Full current-datasheet association coverage — 6 November 2026
+
+The new read-only `datasheet-coverage` command summarizes association evidence
+for every current datasheet, including Character status and whether that sheet
+has label associations, candidate-only rows, reviewed fallbacks or no source
+candidate. Its full report is saved in ignored `.tools/`.
+
+The schema-8 catalog has **1,469 datasheets** and **236 runtime identities**.
+Across all datasheets, **1,057** have source-label associations, **321** are
+candidate-only, **16** have reviewed fallbacks without confirmed label
+associations, and **75** have no miniature candidate. Fifteen of those 16 fallback
+records also have unreviewed candidates. The runtime subset matches the
+established **214 / 16 / 4 / 2** split by status category. Counts describe
+candidate evidence and do not certify a correct sculpt, equipment combination,
+or successful asset import.
+
+The audit also found **704** candidate variant/datasheet links whose normalized
+source label exactly equals the datasheet name, across **89** sheets; all 704
+have a recorded source-faction scope conflict and remain candidates. Of the 321
+candidate-only sheets, **45** have **356** such exact-name links. Search results
+now expose this as `exact_datasheet_name_with_faction_scope_conflict`, separate
+from the candidate's association status. `--review-queue` writes one row per
+exact-name/faction-conflict link with source hashes, fingerprint, occurrence
+GUIDs and paths, weapons, model-role evidence and other confirmed datasheets for
+the same variant. The 704 rows cover 89 datasheets and 504 distinct variants;
+673 rows point to variants already confirmed against another datasheet. The
+queue keeps every target link pending identity and scope review.
+
+```text
+python tools/forceorg_model_database.py datasheet-coverage --database .tools/forceorg-model-table/catalog_v2/models.sqlite --output .tools/forceorg-model-table/catalog_v2/all-datasheet-coverage-schema8-20261106.json --review-queue .tools/forceorg-model-table/catalog_v2/exact-name-scope-review-20261106.csv
+```
+
+The command exited 0. A direct comparison of all 236 runtime rows against
+`runtime-coverage-current.json` matched the status counts after grouping fallback
+rows without confirmed label associations. JSON report SHA-256 is
+`aa198aed4b113e01bb64f2126717619b8bdfeb599808a6c8a5d30436872d9c98`; CSV review
+queue SHA-256 is
+`07042b4664401011e13c2d1cc52919e776d0516fe78f2456eeaa2fd1e34d9429`. Both
+artifacts stay in ignored `.tools/`. No tests or network access were used.
+
+### Datasheet weapon-profile label coverage — 6 November 2026
+
+The new read-only `weapon-coverage` audit compares current datasheet physical
+weapon names with weapon terms found in associated and candidate model labels.
+Fire-mode suffixes are grouped under their shared physical weapon. It does not
+certify that the weapon is visible on a mesh, legal for a specific member or
+present when a label term is missing.
+
+Across all **1,469** datasheets in the selected snapshot, **1,458** have weapon
+profiles. The report contains **538** confirmed datasheet/weapon label pairs,
+**548** candidate-only pairs and **5,682** pairs with no recognized source-label
+term. In the 236 current runtime datasheets, **132** pairs have confirmed label
+evidence, **101** are candidate-only and **744** have no recognized term across
+235 datasheets with weapon profiles; 62 runtime datasheets have at least one
+confirmed weapon term. These counts expose work for review, not actual-sculpt
+coverage.
+
+Intercessor Squad `000001157` has 13 weapon profile rows but ten physical weapon
+names after grouping fire modes. Bolt Rifle has 68 confirmed source variants;
+Grenade Launcher has ten, plus 104 candidate variants. Bolt Pistol has no
+confirmed weapon-label term and four candidate variants. This does not indicate
+that Intercessors lack pistols: the local 11e source equips every model with both
+a Bolt Pistol and Bolt Rifle, while one non-Sergeant model per five may also take
+the Grenade Launcher. The pistol is default equipment and should not be treated as
+an alternative to the rifle for visual selection.
+
+The exact report commands were:
+
+```text
+python tools/forceorg_model_database.py weapon-coverage --database .tools/forceorg-model-table/catalog_v2/models.sqlite --output .tools/forceorg-model-table/catalog_v2/weapon-coverage-schema8-20261106.json
+python tools/forceorg_model_database.py weapon-coverage --database .tools/forceorg-model-table/catalog_v2/models.sqlite --runtime-only --output .tools/forceorg-model-table/catalog_v2/runtime-weapon-coverage-schema8-20261106.json
+python tools/forceorg_model_database.py weapon-coverage --database .tools/forceorg-model-table/catalog_v2/models.sqlite --datasheet 000001157
+```
+
+All three completed with exit code 0. The all-datasheet report SHA-256 is
+`45fdd38f559b8bd556d14fe5b8b2c646e8734f331d83b8ef499f2938327e4b85`; the
+runtime-only report SHA-256 is
+`5fe9985ee2e020d81e0144b1035de38153f47468ad5709b95c26478fb01f6b18`. Both
+generated reports remain in ignored `.tools/`.
+
+### Search by datasheet and weapon label
+
+The local runtime visual index now exposes datasheet names for every admitted
+label/user association, including datasheets outside the 236 runtime-profile
+catalog. The Models importer searches by source model label, role, linked
+datasheet/runtime name and source weapon term/alias. The selected detail separates
+datasheet matches from weapon terms, labels both as source-derived evidence and
+keeps the result count visible after selection.
+
+A staged Godot 4.7.2 capture used two real Necron Warrior objects in a minimal
+fixture and their copied associations from the schema-7 local index. Searching
+`Gauss Reaper` returned the `necron warrior reaper` object and displayed the
+`Necron Warriors` datasheet and `Gauss Reaper` term; the pre-change name-only UI
+returned zero matches for the same query. Captures are in the ignored local report
+`.tools/verification/model-search-ui-20261106/`. The complete-save screenshot
+attempt timed out, so this confirms search presentation only on the two-object
+fixture. The console-only full-save scan and search profile is recorded below; it
+does not verify the full rendered UI. No network was used and no tests were run
+for this UI change.
+
+### Full Workshop catalog profile and association corrections — 6 November 2026
+
+The local Godot 4.7.2 console scanned `ForceOrg.json` (SHA-256
+`ed0b66dc0518f03ea746a485d2739deb57ea2094117d552c02925983c3bcba44`) in **5.379 s**:
+35,936 TTS objects produced 32,256 visual entries and zero parser warnings. Reading
+the 41.3 MiB save and 12.3 MiB visual index took 64.6 ms; parsing, traversal and
+index joining account for the remaining scan time. A cold `Gauss Reaper` search
+returned seven results in **279 ms**; a subsequent `Necron Warriors` query
+returned nine in **43 ms**. The results include an unassociated component and
+candidate-only model labels, which remain distinct from admitted datasheet links.
+The headless profile log and script are under
+`.tools/verification/model-catalog-performance-20261106/`; this is a debug-console
+measurement from before the scan cache and search debounce, not a release-build
+or frame-rate benchmark.
+
+Four local fingerprint corrections now link both `Master Lazarus` visual variants
+to datasheet `000002296` and both misspelled `Overlord with Translcation Shroud`
+variants to `000003693`. A full-source Godot scan found the corrected Overlord
+record by its proper datasheet name while preserving the TTS label. It also
+confirmed the Lazarus link on the whole miniature; the similarly named child
+component remains separate. The correction file SHA-256
+`e6d570512d5c17607faa4a35d2035910feac320461ada5601e6e50042f362563` is recorded in
+SQLite input metadata. At this pre-vehicle-fallback checkpoint, coverage was 214
+label-associated profiles, 14 reviewed-fallback-only, six candidate-only and two
+without a source candidate.
+SQLite integrity is `ok` with zero foreign-key errors. Network was disabled; no
+automated tests were run for these data corrections.
+
+### Repeat source-scan cache and search profile — 6 November 2026
+
+The production scanner now keeps a versioned binary cache of parsed static
+entries in the local `user://` folder. Cache reuse requires the exact source path
+and SHA-256; the source-gated visual index is reapplied on every read. Source-object
+inventory exports bypass the smaller runtime cache. Malformed, stale or
+incompatible cache data falls back to a full scan.
+
+The existing headless profile
+`.tools/verification/model-catalog-performance-20261106/profile_full_catalog.gd`
+ran against `res://ForceOrg.json` in Godot 4.7.2. A cache miss scanned 35,936
+objects into 32,256 visual entries with zero warnings in **6.685 s**, including a
+**1.317 s** binary cache write (53,821,208 bytes). In a new process, a cache hit
+returned the same counts and warnings in **1.353 s**; cache load took 1.138 s and
+the source/index reads took 73 ms. The prior uncached baseline was 5.379 s. The
+cache improves repeat scans by about 75%, at the cost of a 1.306 s first-use write.
+
+On the cache-hit run, direct calls to the inventory filter returned the same
+seven `Gauss Reaper` and nine `Necron Warriors` entries in **256 ms** and **42 ms**.
+The profile calls the filter directly, so those figures exclude the 150 ms UI
+debounce and do not measure rendered-frame behavior. The post-change parser check
+`Godot_v4.7.2-stable_win64_console.exe --headless --editor --path . --quit`
+exited 0. A subsequent cached real-source/index audit using
+`Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/audit_forceorg_visual_catalog.gd -- --source res://ForceOrg.json --output res://.tools/verification/model-catalog-performance-20261106/cache-warm-audit.json --index-only`
+passed **18,485/18,485** indexed Workshop occurrences with zero parser warnings.
+No automated test suite was run and no network was used.
+
+### Vehicle visual fallbacks and local-cache ordering — 6 November 2026
+
+Two explicit visual-only aliases now unblock display for local profiles without
+an exact source sculpt: Land Raider Excelsior (`000000067`) uses `Ultramarine Land
+Raider`, and Relic Razorback (`000002720`) uses `Razorback Lascannon`. They remain
+fallback-only in runtime coverage; the alias does not become a label identity,
+weapon association or certification of the depicted sculpt. The Relic asset's
+Lascannon source label stays separate from its datasheet equipment.
+
+Preflight now ranks locally resolvable assets first only among variants with the
+same visual-choice group. It keeps distinct role/weapon groups and manual choices
+intact. The focused real-source audit selected and parsed the cached Excelsior
+fallback (1/1 option) and a cached Relic Razorback fallback (4/12 equivalent
+options available). This avoids trying an uncached duplicate when a visually
+equivalent candidate is already in the local TTS cache; the remaining Relic
+variants stay available as download candidates.
+
+The renderer previously mistook a flat vehicle underside for a scenic base and
+fitted it to the 60/120 mm gameplay proxy. For non-source-pose profiles marked
+`Use model`, it now preserves the TTS root scale, reports no physical base size,
+and keeps the interaction proxy independent. The UI labels this as source model
+scale, not base measurement. This improves source proportions but does not
+certify exact real-world dimensions or board clearance. The prepared-GLB cache
+key now includes this hull-fit version and its source/user scales, so prior hull
+packages cannot silently keep the old proxy-fitted result.
+
+Four complete local vehicle candidates were rendered through the production OBJ
+parser, composite assembler, fit settings and `Assets.visual`, using the source
+TTS scale (`1.1` for each captured root). The Godot capture is
+`.tools/verification/model-vehicle-render-20261106/candidates.png` (SHA-256
+`2234E5966FA1F596D4D82BE6029B580B17FAA846D3B37EDD92DD24783AA1462C`); its report
+is `render-report.json`. This is a staged source-asset render, not a live match,
+identity review or library certification. Eleven of eleven selected cached
+assemblies parsed, but only the four shown were visually rendered.
+
+The focused runtime and rendering commands were:
+
+```text
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script .tools/forceorg-model-table/catalog_v2/audit_reviewed_vehicle_fallbacks.gd -- res://ForceOrg.json "C:\Users\Warmachine\Documents\My Games\Tabletop Simulator\Mods"
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --path . --script .tools/forceorg-model-table/catalog_v2/capture_cached_vehicle_candidates.gd -- res://ForceOrg.json "C:\Users\Warmachine\Documents\My Games\Tabletop Simulator\Mods" res://.tools/forceorg-model-table/catalog_v2/local-cache-candidate-review-20261106.json
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --editor --path . --quit
+```
+
+The runtime audit exited 0 and selected a locally parsed fallback for each
+datasheet; the actual-renderer capture exited 0; the Godot source check exited 0.
+These runs used local assets, with no downloads or network access. No test suite
+was run. Latest schema-7 coverage is 214 label-associated, 16
+reviewed-fallback-only, four candidate-only and two with no source candidate.
+
+### Additional local ForceOrg source audit — 6 November 2026
+
+The local TTS Workshop cache contains item `3753014527` (`ForceOrg`), SHA-256
+`6293a22c39da3d932d7f062d280ea0c1154709219158286026182cf1dad09f67`. It was
+exported with the production static scanner:
+
+```text
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/export_forceorg_visual_table.gd -- "C:\Users\Warmachine\Documents\My Games\Tabletop Simulator\Mods\Workshop\3753014527.json" res://.tools/forceorg-model-table/catalog_v2/forceorg_workshop_cache_20261106.csv
+```
+
+The export completed with 37,351 parsed objects, 19,154 visual rows, 17,871
+distinct variants, 10,979 embedded static objects and zero parser warnings.
+Comparing its variant export with the current schema-7 catalog found all
+**17,523/17,523** asset fingerprints and all **17,871/17,871** fingerprint/label
+pairs already present. No new visual variants or labels were added.
+
+The three other TTS AutoSave files in the user Saves directory were also compared
+with the indexed AutoSave snapshot. Each had the same **1,543** path/label/GUID/
+asset/tint visual signatures and **47** `objectJSONs` script path/hash pairs.
+Their save hashes differ, but none adds model inventory. The exact filenames and
+hashes plus the local comparison report are recorded in the [database source
+audit](../data/model-variant-database.md). No network or model download was used;
+this comparison does not certify geometry or prove global ForceOrg completeness.
+A separate inventory of cached TTS Workshop JSON saves found ForceOrg and ten
+unrelated tabletop games; it found no additional local Warhammer 40,000 scenery
+source to add to the catalog.
+
+### Intercessor weapon-to-model source audit
+
+The selected local 11e snapshot (`20261021T130623Z`, manifest SHA-256
+`169db99791a91582fd043902303e73c4af83ec63e96c01817ce52cb5ce4deccf`) defines
+Intercessor Squad `000001157` with a Bolt Pistol and Bolt Rifle on every model;
+for every five models, one non-Sergeant Intercessor may also be equipped with a
+Grenade Launcher. The pistol is default equipment, not an either/or sculpt choice.
+
+The latest two-save database rebuild adds five fingerprint-scoped corrections for
+Grenadier-labelled Intercessors. All five are returned with datasheet
+`000001157`, role `Intercessor`, weapon `grenade-launcher` and status
+`user_association`; the correction file SHA-256 is
+`be83119e4d1717725bf421fb8234b407bfa95eadbf4118907dedd99ee5f265d1`. The
+corrections preserve each original TTS label. Sergeant-labelled `Auto-Bolt Rifle
++ GL` candidates remain uncorrected because the local 11e sheet gives the
+Grenade Launcher option to a non-Sergeant Intercessor.
+
+A focused scan of the Workshop save found four runtime Grenadier candidates; two
+of four had complete files in the 5,981-file local TTS cache and parsed through
+the composite importer. The `Intercessor Grenadier` assembly in the Ultramarines
+family was selected by the production `visual_role_variant_for` function and
+loaded through `visual_variant_for` at a 32 mm visual fit. The staged Godot
+capture is
+`.tools/forceorg-model-table/catalog_v2/intercessor-weapon-selection-20261106.png`
+(SHA-256
+`9F7106C4234C0B1BD74C1DC29AFB0029597B871C938FF76F4630CEB7A8B3A1AA`); the
+local report is `intercessor-weapon-selection-20261106.json`. This confirms the
+source assembly and weapon-specific selection path, not sculpt identity or a live
+match.
+
+The selected Iron Hands appearance has no same-family Grenadier. Two complete
+Grenadier candidates in the local Workshop cache parse through the importer, one
+from the Ultramarines family and one with a derived material family; the Raptors
+candidate has no mesh and the AssetBundle candidate is unsupported. Runtime now
+considers already available weapon-compatible variants from other families after
+same-family matches. This fallback uses only files already in local mappings;
+selected-group role preflight does not queue or download cross-family candidates.
+
+The saved user model settings also contain complete generic Intercessor variants;
+the top-level `Primaris Intercessor` mapping is only a detached component and is
+rejected for being too short to represent a full infantry miniature. In the
+selected material family (`materials-v1:11623a8891a8f101b792bd68c75472920a2752279008d2b5fe260ca2dfadf1ce`),
+variant `02ca311d03641cebb41e42c5738771a3f36565496bac5e3c4e20183c04a62aea`
+(`Intercessors`) is a complete shared fallback. The next saved generic candidate
+`6d32cae646e46913abef0381bcdb51b5ecb7dd426a01fc22bbf279774805165d`
+(`Primaris Intercessor`) also renders, but has a different derived material
+family.
+
+A staged Godot capture used the production local variant loader and family-aware
+selectors. It simulated a missing file for the first same-family generic candidate
+in memory only; the saved settings were restored immediately, and the next
+cross-family generic candidate rendered. This confirms recovery through the
+importer when a preferred candidate fails, but does not reproduce an actual file
+failure in a live match or certify matching paint. The capture is
+`.tools/forceorg-model-table/catalog_v2/saved-intercessor-fallback-20261106.png`
+(SHA-256
+`93F4EBA0A5CC695BF9B328259239E47A50B4CB99C303A0C5C9EE9EA9138D513C`); its local
+report is `saved-intercessor-fallback-20261106.json`. Runtime now orders
+same-family generic candidates before any-family generic candidates. Equipment-
+compatible candidates from other families now come before generic recovery.
+Confirm the complete sequence in a live match; automatic cross-family recovery
+can change the visible palette.
+
+### Cross-family weapon-specific fallback — 6 November 2026
+
+The runtime candidate ordering now lives in
+`ModelImportPanel.ordered_equipment_visual_variants_for`; `main.gd` calls this
+same method for local model rendering. This keeps the family and weapon
+priorities in one implementation. The staged Godot capture used that production
+resolver for an Intercessor with Bolt Rifle + Astartes Grenade Launcher. The
+selected appearance family was Iron Hands, it had no same-family Grenadier, and
+the resolver returned the file-ready Ultramarines `Intercessor Grenadier`
+(`1df3f9943d95898acb2955d3ac2c2df33734ff3535348e44a9e53b9784f88899`) as its
+first candidate. The composite importer rendered it with a reported 32 mm base
+fit. The local scan fingerprint is
+`ed0b66dc0518f03ea746a485d2739deb57ea2094117d552c02925983c3bcba44`; the local
+cache index contained 5,981 files. The capture image is
+`.tools/forceorg-model-table/catalog_v2/intercessor-cross-family-weapon-selection-20261106.png`
+(SHA-256
+`9F7106C4234C0B1BD74C1DC29AFB0029597B871C938FF76F4630CEB7A8B3A1AA`), and
+`intercessor-cross-family-weapon-selection-20261106.json` records the candidate
+order and import metadata.
+
+The selected-family generic `Primaris Intercessor` failed to load because its
+mesh was unavailable in that local cache, so the capture demonstrates candidate
+selection and Grenadier loading, not a side-by-side comparison with a usable
+generic model. It is a staged local render, not a live match or a paint-identity
+check. No network or download was used. Cross-family variants are only eligible
+when their files are already available; this fallback does not preflight or fetch
+them.
+
+After the correction rebuild, schema 7 contains **35,884 variants**,
+**147,384 candidate/identity links** and **38,495 visual catalog occurrences**.
+The source-gated runtime index contains **9,107 runtime-associated occurrences**.
+Index-only audits passed for **18,485/18,485** Workshop and **20,010/20,010**
+AutoSave occurrences, with zero identity mismatches. Runtime coverage remains
+214 label-associated, 16 reviewed-fallback-only, four candidate-only and two
+without a source candidate.
+
+The focused commands were:
+
+```text
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script .tools/forceorg-model-table/catalog_v2/audit_intercessor_variants.gd -- res://ForceOrg.json "C:\Users\Warmachine\Documents\My Games\Tabletop Simulator\Mods"
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --path . --script .tools/forceorg-model-table/catalog_v2/capture_intercessor_weapon_selection.gd -- res://ForceOrg.json "C:\Users\Warmachine\Documents\My Games\Tabletop Simulator\Mods"
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/audit_forceorg_visual_catalog.gd -- --source res://ForceOrg.json --output res://.tools/forceorg-model-table/catalog_v2/intercessor-workshop-index-audit-20261106.json --index-only
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/audit_forceorg_visual_catalog.gd -- --source .tools/forceorg-model-table/live_20261106_4/TS_AutoSave_2_latest_snapshot.json --output res://.tools/forceorg-model-table/catalog_v2/intercessor-autosave-index-audit-20261106.json --index-only
+```
+
+All commands used local files only; no network or downloads were used. No test
+suite was run for this data correction or capture.
+
+### Complete bounded static-object inventory
+
+`python -m unittest tests.test_forceorg_model_database` passed **18/18**. New
+cases verify source type precedence (a character-named card remains ignored),
+dimension-only bases, non-mesh terrain versus unknown objects, complete source
+coverage, unique object paths, valid parents and default accessory exclusion in
+object search. The isolated `test_local_models` suite passed with current scanner
+and test files copied into `.tools/verification/20261106T054254959062Z/project`:
+
+```text
+<godot-4.7.2> --headless --path <imported-project> --log-file <report>/test_local_models.engine.log --script tests/test_local_models.gd
+```
+
+Here `<report>` is `.tools/verification/model-source-objects-20261106`.
+`results.json` records exit 0 and no cleanup diagnostics. The new scanner cases
+check opt-in inventory allocation, container/visual/state coverage and actual
+parent paths. Existing loading, transforms, measured-base and source-family
+regressions remain covered by that suite.
+
+Both real saves were exported with
+`<godot> --headless --path <workspace> --script tools/export_forceorg_object_inventory.gd -- <source> res://.tools/forceorg-model-table/catalog_v2/<name>-objects.json`.
+Workshop (`ForceOrg.json`) yielded **35,936 objects**, including **32,256 visual
+entries**; AutoSave (`.tools/forceorg-model-table/live_20261106_4/TS_AutoSave_2_latest_snapshot.json`)
+yielded **38,830 objects**, including **34,751 visual entries**. This includes
+child parts; those visual-entry counts are not the earlier root-candidate counts.
+Both exports exited 0 with no parser warnings (`export-results.json`). No Lua was
+executed and no content downloaded. Exports check that the source did not change.
+
+The database guide's build command with both `--object-inventory` inputs passed
+at schema 7, preserving **35,884 variants**, **147,426 candidate/identity links**
+and **38,495 visual catalog occurrences** at that checkpoint. The later schema-7
+correction rebuild records **147,384** candidate/identity links; its updated
+runtime occurrence count and current source-index audits are documented in the
+Intercessor audit above. Every catalog occurrence matched an
+object's exact source hash/path/label/GUID. All **74,766** object records have
+valid parent hierarchy. Source-object classification is **38,380 miniature
+occurrences, 28,508 components, 1,760 containers, 5,808 ignored objects, 95 bases,
+two terrain-labelled occurrences and 213 unclassified objects**. The two terrain
+occurrences share the label `Shield Wall`; this does not establish a broad scenery
+collection or certify that label against rendered geometry. Fifty-nine visual
+variants with dimension-only names were corrected from miniature to base; none
+had an admitted current-runtime identity association.
+
+SQLite integrity returned `ok`; foreign-key check returned no rows.
+`database-audit.json` records the checkpoint counts. `export-index` and `coverage`
+passed; that checkpoint's 236 runtime profiles comprised 212 label-associated,
+14 fallback-only, eight candidate-only and two without source candidates. The
+current 214/236 coverage split is in the latest schema-7 report above. The source/index audits
+were rerun with `tools/audit_forceorg_visual_catalog.gd --source <source> --output <report>/index-<name>.json --index-only`:
+**18,485/18,485** Workshop and **20,010/20,010** AutoSave catalog occurrences
+matched with zero warnings (`index-results.json`).
+
+The actual commands `python tools/forceorg_model_database.py objects --database
+.tools/forceorg-model-table/catalog_v2/models.sqlite --category terrain --limit 2`
+and the same command with `--category component --name 'necron warrior flayer'
+--limit 1` returned exact source/parent paths, category evidence and supported
+reference status. Object search does not infer a component's own datasheet from
+its parent, admit new army profiles, or claim that a reference can be rendered.
+Coverage is bounded to static literal objects in these two selected saves;
+dynamic Lua-produced objects and external scenery collections are not covered.
+
+### Terrain and Fortifications coverage audit — 6 November 2026
+
+The schema-8 local index has one explicit terrain label, `Shield Wall`, repeated
+once in each selected save. Both variant rows have candidate-only links and no
+confirmed datasheet association. Ten candidate links point to five sheets,
+including Shield-Captain, Wulfen with Storm Shields and Tomb Citadel Walls; these
+name overlaps remain candidates. The separate `Fortifications` datasheet-role
+facet covers 28 current-source sheets: 44 confirmed variant-to-datasheet links
+and 437 candidate links across 319 unique variants. These are searchable via
+`search --datasheet-role Fortifications`; they remain visually categorized as
+miniatures or terrain according to their source-object evidence.
+
+The two Shield Wall occurrences were checked against the local Tabletop Simulator
+cache with the existing offline cache/OBJ audit:
+
+```text
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://.tools/forceorg-model-table/catalog_v2/audit_exact_name_candidate_cache.gd -- 'res://ForceOrg.json' 'res://.tools/forceorg-model-table/live_20261106_4/TS_AutoSave_2_latest_snapshot.json' 'C:\Users\Warmachine\Documents\My Games\Tabletop Simulator\Mods' 'res://.tools/forceorg-model-table/catalog_v2/shield-wall-occurrences-20261106.json' 'res://.tools/forceorg-model-table/catalog_v2/shield-wall-cache-audit-20261106.json'
+```
+
+The command exited 0 and matched both exact source hash/path/GUID occurrences in
+the 5,981-file cache, but neither had its OBJ cached; zero meshes were parsed and
+no association changed. The ignored input SHA-256 is
+`109931599daa5558e2719e48f04d5715a36a76fd7cd09128a5dc02b684be117d`; the report
+`.tools/forceorg-model-table/catalog_v2/shield-wall-cache-audit-20261106.json`
+has SHA-256 `f4bc6f24000179ab0e6cbbebe147d979756947596ea355e0ccb047d6bedab633`.
+No network or download was used and no tests were run. This confirms that the
+sole explicitly terrain-labelled candidate in the selected sources is not
+locally renderable; a separate user-supplied scenery source is still needed to
+expand that category.
+
+### Object-only source ingestion smoke check — 6 November 2026
+
+The database builder now accepts `--object-only-inventory` for an additional
+local static-object source that has no model catalog or datasheet crosswalk. A
+scratch-only smoke check used the locally installed TTS table `The Mind`; it was
+not added to the project’s Warhammer catalog. The production object scanner
+returned 132 objects and zero warnings:
+
+```text
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/export_forceorg_object_inventory.gd -- "C:\Users\Warmachine\Documents\My Games\Tabletop Simulator\Mods\Workshop\1365287616.json" res://.tools/forceorg-model-table/catalog_v2/object-only-smoke-mind-objects.json
+```
+
+The scan output SHA-256 is
+`b911e16acf4edbea8e7710847ee3881361292009654c573b84b2f62b5474f3b3`; its source
+save SHA-256 is
+`9b023bdd82aa166baf6bbff53516bc3236eb3b3a7e2fc08dacc2ec3d9764d741`. Rebuilding
+the usual schema-8 catalog into a separate scratch database with the additional
+object-only input succeeded:
+
+```powershell
+python tools/forceorg_model_database.py build `
+  --catalog .tools/forceorg-model-table/catalog_v2/forceorg_model_weapon_catalog.csv `
+  --datasheets .tools/forceorg-model-table/live_20261106_4/forceorg_datasheet_profiles_11e.csv `
+  --runtime-profiles .tools/forceorg-model-table/runtime_visual_datasheet_identities.json `
+  --relations .tools/forceorg-model-table/live_20261106_4/forceorg_visual_variant_datasheet_candidates.csv `
+  --relations .tools/forceorg-model-table/forceorg_source/forceorg_visual_variant_datasheet_candidates.csv `
+  --visual-inventory .tools/forceorg-model-table/ForceOrg_catalog_visual_candidates.csv `
+  --visual-inventory .tools/forceorg-model-table/live_20261106_4/TS_AutoSave_2_visual_candidates.csv `
+  --object-inventory .tools/forceorg-model-table/catalog_v2/workshop-objects.json `
+  --object-inventory .tools/forceorg-model-table/catalog_v2/autosave-objects.json `
+  --object-only-inventory .tools/forceorg-model-table/catalog_v2/object-only-smoke-mind-objects.json `
+  --corrections .tools/forceorg-model-table/catalog_v2/visual-corrections-20261106.json `
+  --database .tools/forceorg-model-table/catalog_v2/models-object-only-smoke.sqlite
+```
+
+The scratch database retained **35,884 variants** and **147,384 links**, added
+132 source-object rows, and recorded the extra source hash with zero variant or
+datasheet-link rows for it. `objects --category ignored --source
+9b023bdd82aa166baf6bbff53516bc3236eb3b3a7e2fc08dacc2ec3d9764d741 --limit 1`
+returned a TTS Card as `ignored` with no catalog variant IDs. SQLite integrity
+was `ok` with no foreign-key errors. This verifies independent inventory and
+accessory exclusion; it does not validate Warhammer terrain, mesh rendering or
+datasheet matching. The smoke database remains ignored under `.tools/`; no
+network, downloads or test suite were used.
+
+### Source-object category refinement — 6 November 2026
+
+The Godot scanner records `asset_kinds` from the object's explicit TTS asset
+fields. The catalog now marks `Custom_Tile` records with only `CustomImage`
+references as ignored for 3D model selection, after preserving explicit terrain
+labels and existing visual-catalog matches. ForceOrg dropdown, search and
+CleanerBlock controls are also marked ignored from their labels. All records
+remain in `source_objects` with category evidence. The unclassified inventory is
+now four `BlockSquare` records: the generic `BlockSquare` and `Yellow Storage`,
+repeated across two saves. The local ForceOrg Workshop save `3753014527`
+(`6293a22c39da3d932d7f062d280ea0c1154709219158286026182cf1dad09f67`) contains
+`Yellow Machine` at `ObjectStates/115`, GUID `46ccee`, with the same label and
+TTS type. Static inspection of its bundled `Yellow Machine.46ccee.lua` module
+found button and object-spawn functions, supporting its utility classification.
+An exact source-hash/path join found no image-only tile occurrence in the visual
+variant catalog.
+
+The canonical schema-8 rebuild retained **35,884 variants**, **147,384 links**
+and **74,766 source objects**. Object categories are 38,380 miniatures, 28,508
+components, 1,760 containers, 6,017 ignored, 95 bases, two terrain-labelled
+objects and four unclassified. A separate scratch rebuild produced the same
+counts; SQLite integrity was `ok`. Source-object rows and datasheet/model
+associations are unchanged; only object category/evidence changed. No rules
+data, downloads, network checks or test suite were involved.
+
+### Actual weapon models and measured-base priority
+
+The saved local diagnostic at
+`.tools/verification/model-warrior-render-20261106/capture_variants.gd` scans the
+exact Workshop source, builds both actual assemblies from their component plans,
+and registers their real local file paths/fingerprints with the production
+import panel. `equipment_variant_for` selects each equipped weapon's identity;
+`visual_variant_for` loads the selected complete assembly. A staged Godot scene
+captures front and reverse views at 1200×800. This is actual engine rendering,
+not a mockup or a live match screenshot. No player mappings were changed.
+
+The Reaper mesh, base mesh and shared texture were reused from local caches.
+Only the missing Flayer OBJ was downloaded from its existing Workshop object
+reference: 1,192,900 bytes, SHA-256
+`29dbcb40c1a29b8eb347285383d5e97875b74694816fdecf47c58e6caf934e8f`.
+`assets.json` in that report directory records every asset URL, local path and
+hash; all third-party data and images remain ignored local artifacts.
+
+The initial render exposed the Flayer body's estimated footprint overriding the
+separate complete base ring: visual scale **0.8686355**, versus **1.0083712** for
+the Reaper. After measured rims took priority over heuristic estimates, both use
+**1.0083712**, with reported footprint **1.259843 inches** on each axis (the
+32 mm visual-fit target). Source geometry, rules bases and equipment are unchanged.
+`before-front.png`, `before-reverse.png`, `before-report.json`, `front.png`,
+`reverse.png`, and `render-report.json` preserve the same-framing comparison.
+Both final images were inspected: complete models, distinct weapons and shared
+source texture are visible. Source tints are not applied by this OBJ path, so
+the bases render white; this is not exact TTS material/paint parity.
+
+The render command was:
+
+```text
+<godot-4.7.2> --path <workspace> --rendering-method gl_compatibility --resolution 1200x800 --script <report>/capture_variants.gd
+```
+
+`results.json`, `metrics-results.json` and `after-results.json` record successful
+exit-0 renders with isolated user/temp directories and no network during rendering.
+The final diagnostic additionally checked identical uniform scales and `ring`
+detection for both models. The current isolated `test_local_models` and
+`test_model_equipment_visuals` suites also passed via
+`<godot> --headless --path <imported-project> --log-file <report>/<suite>.engine.log --script tests/<suite>.gd`.
+The imported project is `.tools/verification/20261106T054254959062Z/project`;
+current scanner and local-model tests were copied before the run. New regressions
+check that a measured rim retains its footprint and center against a larger
+estimated body outline in either component order. Results are in
+`test-results.json`. This evidence is bounded to local import/rendering and
+selection; it does not certify all weapons, appearance families or network play.
+The separate `test_local_armies_models` run also passed with current code;
+`fallback-test-results.json` records its exit-0 result. It retains the synthetic
+board swap, corrupt-file alternative and explicit-assignment regressions; it is
+not an actual-asset live match input capture.
+
+### Material families for entries without declared groups
+
+Four isolated Godot suites passed: `test_model_equipment_visuals`,
+`test_local_models`, `test_local_armies_models`, and `test_forceorg_catalog`.
+The command for each was:
+
+```text
+<godot-4.7.2> --headless --path <imported-project> --log-file <report>/<suite>.engine.log --script tests/<suite>.gd
+```
+
+`<imported-project>` is `.tools/verification/20261106T054254959062Z/project`, with
+the current scanner, importer and changed suites copied before execution.
+`<report>` is `.tools/verification/model-material-families-20261106`.
+`results.json` records all four exit-0 results, isolated user/temp profiles,
+`network: false` and no cleanup diagnostics. New cases cover shared static
+materials across different meshes, distinct tints/textures, exact geometry for
+untextured parts, unknown bundles/built-in children, preservation of original
+source groups, declared-group priority, cached selection and preparation/runtime
+family agreement. Existing explicit overrides and fallback checks also passed.
+
+The saved diagnostic command
+`<godot-4.7.2> --headless --path <workspace> --script <report>/audit_actual_families.gd`
+passed after correcting an initial diagnostic-only parse error (`Panel` shadowed
+a native class). Both attempts are retained in `actual-results.json` and
+`actual-corrected-results.json`. The final actual-save report
+`actual-families.json` records exact source hashes and zero parser warnings. It
+finds derived material families on **1,665 Workshop** and **2,208 AutoSave**
+runtime-associated occurrences lacking source groups. All five exact
+Flayer/Reaper occurrences per save share one derived family; the production
+role-preparation filter returns five variants and includes both `gauss-flayer`
+and `gauss-reaper`. No files were downloaded or geometry imported. These are
+material-reference, filtering and synthetic-cache checks, not rendered weapon,
+paint, live-input or multiplayer certification.
+
+### Abbreviated weapons after a complete model name
+
+`python -m unittest tests.test_forceorg_model_database` passed **15/15**. New
+cases cover complete model prefixes, unique/ambiguous source suffixes, firing
+modes, unknown modifiers, historical prefixes, extended identities and per-link
+search evidence. The initial real-data build exposed a false interpretation of
+`Burning Chariot of Tzeentch`; it was removed by preserving/rejecting identity
+connectors and adding a regression. A new search-fixture run initially failed
+Windows temporary-directory cleanup because its SQLite connection remained open;
+the fixture now explicitly closes it before cleanup, and the final run passed.
+
+The documented local build command in
+[the database guide](../data/model-variant-database.md#build-and-search), followed
+by its `export-index` command, succeeded with schema 6. There are **91** added
+weapon terms across 91 previously unrecognized variants, with **100** per-link
+resolution records. Integrity check returned `ok`; foreign-key check returned no
+rows. Comparison with the pre-change database found zero removed weapon terms
+and zero changes to variants, occurrences, identity links, runtime identities,
+model roles or visual substitutes. Evidence:
+`.tools/verification/model-label-suffix-20261106/database-diff.json`.
+
+The isolated offline runner executed these commands through Godot 4.7.2:
+
+```text
+<godot> --headless --path <workspace> --script tools/audit_forceorg_visual_catalog.gd -- --source ForceOrg.json --output <report>/workshop-isolated.json --index-only
+<godot> --headless --path <workspace> --script tools/audit_forceorg_visual_catalog.gd -- --source .tools/forceorg-model-table/live_20261106_4/TS_AutoSave_2_latest_snapshot.json --output <report>/autosave-isolated.json --index-only
+<godot> --headless --path <workspace> --script <report>/check_warrior_labels.gd
+```
+
+Here `<report>` is `.tools/verification/model-label-suffix-20261106`.
+All three exited 0. The two index audits matched **18,485/18,485** Workshop and
+**20,010/20,010** AutoSave occurrences with no parser warnings. The saved local
+diagnostic script scanned both real saves and checked all ten exact
+`necron warrior flayer` / `necron warrior reaper` occurrences: matching equipped
+weapon score 10, opposite weapon score -1. Commands/results and individual rows
+are in `results.json` and `warrior-labels.json` there. No downloads or geometry
+imports occurred. These checks establish scanner-to-equipment-score behavior;
+they do not establish appearance-family selection, visual fidelity or networking.
+
+### Unique source-weapon terms and physical-weapon ranking
+
+`python -m unittest tests.test_forceorg_model_database` passed **13/13** after adding
+same-datasheet unique weapon expansions. Tests reject short terms shared by Twin
+and Quad weapons, prefer an existing exact source name, combine firing modes into
+one physical weapon, and keep Auto Bolt Rifle separate from Bolt Rifle.
+
+Schema 5 stores **47** source-bounded alias pairs. The real Hammerfall source rows
+map `heavy-bolter` / `heavy-flamer` to the corresponding full Hammerfall array
+names. The generated index carries those mappings under the relevant definition,
+not as global synonyms. The current identity exporter ran successfully before
+the database rebuild because the matcher hash changed.
+
+An initial equipment-suite attempt at
+`.tools/verification/model-weapon-aliases-20261106/initial-results.json` used an older
+staged import panel and failed because it lacked `equipment_variants_for`. This is
+not a passing run. After copying the current scripts/tests and edition-11 project
+data into the previously imported isolated project, the existing
+`tools.verify.Runner` commands passed **4/4** suites at
+`.tools/verification/model-weapon-aliases-current-20261106/results.json`:
+
+```text
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-weapon-aliases-current-20261106/test_model_equipment_visuals.engine.log --script tests/test_model_equipment_visuals.gd
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-weapon-aliases-current-20261106/test_forceorg_catalog.engine.log --script tests/test_forceorg_catalog.gd
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-weapon-aliases-current-20261106/test_local_armies_models.engine.log --script tests/test_local_armies_models.gd
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-weapon-aliases-current-20261106/test_local_models.engine.log --script tests/test_local_models.gd
+```
+
+The report's hashes match the current runtime scripts. The later index-bridge
+assertion reran the equipment suite with the same command form and log directory
+`.tools/verification/model-weapon-alias-bridge-20261106/`, passing **1/1**; that report
+also verifies current source/test hashes. All runs use separate APPDATA/XDG/TMP
+profiles, network disabled and no cleanup diagnostics. Checks establish that the
+short Hammerfall term matches the equipped Bolter array, is rejected for a Flamer,
+survives the index bridge, and contributes one physical weapon even if both short
+and full labels are present. Existing catalog, board fallback and local-model
+regressions also pass. No actual-asset visual fidelity or network claim is added.
+
+### Literal names, existing proxies and exact occurrence labels
+
+`python -m unittest tests.test_forceorg_model_database` passed **12/12**. The added
+checks keep reviewed substitutes separate from model identity, account for every
+coverage state, restrict literal-name suffixes to the selected sheet's source
+weapons/models/composition, and retain case-sensitive occurrence labels while
+rejecting other-save and duplicate-path inventories.
+
+The updated identity exporter passed in an isolated Godot process at
+`.tools/verification/model-fallback-registry-20261106/results.json`. Its exact
+command is stored in that report; it uses `--script tools/export_runtime_visual_datasheet_identities.gd`
+and `-- --output <absolute local runtime_visual_datasheet_identities.json>`, against
+the previously imported clean-current-catalog project. The output has 236 runtime
+identities and the current matcher SHA-256. Existing substitute labels now have
+their own `fallback_links` table; a changed matcher hash requires re-exporting.
+
+The following is the earlier schema-4 build/export checkpoint, superseded by the
+schema-7 profile and fingerprint corrections recorded at the start of this file.
+At this checkpoint the [database guide](../data/model-variant-database.md)
+reported **35,884 variants**, **147,426 identity/candidate relations** (including
+109 additional literal-name relations), and **326 separate fallback links**.
+Coverage was **212 label-associated**, **14 fallback-only**, **8 candidate-only**
+and **2 with no source candidate**, totalling 236. The index contained 38,495
+occurrences and 9,098 runtime-associated occurrences. These counts describe the
+pre-correction baseline; current schema-7 counts and hashes are in the latest
+profile above and `.tools/forceorg-model-table/catalog_v2/audit.json`.
+
+The offline real-save matcher commands were:
+
+```text
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T060704875991Z/project --log-file .tools/verification/model-real-source-choices-20261106/workshop.engine.log --script tools/audit_forceorg_visual_catalog.gd -- --source ForceOrg.json --output .tools/verification/model-real-source-choices-20261106/workshop-choices.json
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T060704875991Z/project --log-file .tools/verification/model-real-source-choices-20261106/autosave.engine.log --script tools/audit_forceorg_visual_catalog.gd -- --source .tools/forceorg-model-table/live_20261106_4/TS_AutoSave_2_latest_snapshot.json --output .tools/verification/model-real-source-choices-20261106/autosave-choices.json
+```
+
+The runner expands those paths to absolute paths and isolates APPDATA/XDG/TMP per
+process; full argv arrays are stored in
+`.tools/verification/model-real-source-choices-20261106/results.json`. **2/2 passed**,
+with zero parser warnings and source choices for **226/236 Workshop** and
+**227/236 AutoSave** identities. Those counts include existing aliases and runtime
+name normalization; they are distinct from database label-association counts.
+No model downloads, mesh imports, graphical inspection or network checks ran.
+
+That scan exposed one case-variant occurrence per source which the old canonical
+label substitution failed to attach: `Aspiring Champion bolt/chain` versus
+`Aspiring Champion Bolt/Chain`. Detailed inventories now preserve each original
+label, with source hash/GUID/path/fingerprint checks. The index comparison at
+`.tools/verification/model-occurrence-index-20261106/label-differences.json`
+shows only those two label corrections; all definition/weapon/role associations
+are unchanged. The future visual-table exporter also records occurrence labels.
+
+The first index-only helper run failed to parse because an `ok` variable inferred
+its type from a Variant; that failed report remains at
+`.tools/verification/model-occurrence-index-20261106/results.json`. With explicit
+boolean typing, both commands passed using the same script/path/source arguments,
+`--index-only`, and log/report paths under
+`.tools/verification/model-occurrence-index-fixed-20261106/`. Its `results.json`
+stores full argv arrays and the index hash. Godot confirmed **18,485/18,485 Workshop**
+and **20,010/20,010 AutoSave** occurrences, zero parser warnings, **2/2 processes**.
+An independent detailed-CSV comparison also matched all 38,495 labels and GUIDs.
+Index-only mode does not rerun profile choices; the two corrected aliases are
+outside the Marine/Necron runtime identities used by the earlier choice audit.
+
+The changed visual-table exporter was then run through Godot with a synthetic
+two-object save sharing one asset/family but differing in label case. It passed
+**1/1** and its single grouped variant retained both exact occurrence labels.
+Report: `.tools/verification/model-occurrence-export-20261106/results.json`;
+the full argv uses `--script tools/export_forceorg_visual_table.gd -- <synthetic-save.json> <synthetic-visuals.csv>`
+in the same imported isolated project. The report records the successful Python
+CSV/JSON round-trip assertion; no third-party models or network access were used.
+
+These results establish source inventory, identity/proxy distinctions and local
+matcher behavior. They do not certify complete miniatures, weapon fidelity,
+paint, local-file readiness, rules accuracy or separate-machine behavior.
+
+### Model roles, current names and corrupt-asset alternatives
+
+The subsequent `python -m unittest tests.test_forceorg_model_database` passed
+**8/8**. Added checks cover mixed-model role specificity/ties and the source CSV's
+`True`/`true` faction flags. The latter bug previously withheld valid exact-label
+associations. At this schema-6 checkpoint the database had 35,884 variants and
+147,317 candidate relations; the current schema-7 audit is recorded above.
+At this checkpoint, **18,943** relations qualified as label associations,
+covering **203** runtime identities. Its index carried 38,495 total occurrences
+and **8,790** with
+runtime associations. Per-datasheet model-role links remain unresolved when the
+source label cannot distinguish the member; no tied role is selected arbitrarily.
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_model_catalog_names --timeout 300
+```
+
+This clean-current-catalog run passed **3/3 processes** at
+`.tools/verification/20261106T060704875991Z/results.json`, without staging the
+historical starter pack or enabling network access. The Godot suite checked all
+**236 current identities**, reported zero failures, and resolved a Doomsday Ark
+from its current name. The suite is explicitly exempted from legacy staging
+because it asserts that the historical pack is absent; its negative fixture path
+is not an actual runtime dependency. The initial focused attempt, before adding
+that fixture classification, was rejected before execution.
+
+The current scanner/matcher/import-panel/main scripts and updated tests were copied
+to the previously imported isolated project at
+`.tools/verification/20261106T054254959062Z/project`. Using `tools.verify.Runner`
+with separate APPDATA/XDG/TMP profiles, the commands below passed **4/4**:
+
+```text
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-role-fallback-20261106/test_model_equipment_visuals.engine.log --script tests/test_model_equipment_visuals.gd
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-role-fallback-20261106/test_forceorg_catalog.engine.log --script tests/test_forceorg_catalog.gd
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-role-fallback-20261106/test_local_armies_models.engine.log --script tests/test_local_armies_models.gd
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-role-fallback-20261106/test_local_models.engine.log --script tests/test_local_models.gd
+```
+
+Report: `.tools/verification/model-role-fallback-20261106/results.json`, with
+matching current source SHA-256 hashes, exit codes 0, no cleanup diagnostics and
+network disabled. These checks include Chaplain/Cenobyte separation, an unarmed
+companion, indexed Company Heroes roles, ambiguous-role fallback, ranked alternate
+assets and a corrupt leading OBJ falling through to the next compatible miniature
+through the actual board-node rendering path. `local_visual_resolved` scene
+metadata verifies which miniature rendered, rather than only the attempted ID list.
+The authoritative match state is unchanged by rendering. This is headless node
+behavior evidence, not a new visual-inspection or whole-library fidelity claim.
+
+`search --datasheet 000002772 --model-role Ancient --limit 1` returned a source
+Ancient with its Company Heroes role and separate Ancient datasheet association.
+Results now expose weapon terms, all datasheet scores/statuses and role evidence.
+
+### Initial database increment and earlier evidence
+
+`python -m unittest tests.test_forceorg_model_database` passed **6/6** checks:
+raw inventories require an explicit relation join; source mismatches and missing
+rules provenance fail; leading-zero source IDs, existing links and real candidate
+ties survive consolidation; accessories, child paths and mount notes classify
+without the Shrike-without-wall false positive. The sixth check confirms that the
+full export vocabulary recognizes Gauss Reaper while preserving historical Auto
+Bolt Rifle labels separately from current Bolt Rifle equipment.
+
+The local rebuild commands in [the database guide](../data/model-variant-database.md)
+completed with **35,884 variants**, **147,317 candidate relations**, **32,971 rows
+with a best candidate**, and **3,632 exported runtime-associated occurrences**.
+SQLite integrity and foreign-key checks passed within the builder. Searches using
+`search --datasheet 000001157 --weapon grenade-launcher` and
+`search --character --name Captain` returned the expected respective label-based
+entries. Inputs and their SHA-256 hashes are in the database `metadata` table.
+
+The initial command was:
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_model_equipment_visuals --only test_forceorg_catalog --only test_local_models --only test_local_armies_models --timeout 300
+```
+
+Its report `.tools/verification/20261106T054254959062Z/results.json` records import,
+Python, catalog, local-model and army-preparation passes, and a failed new test
+script caused by shadowing Godot's native `Panel` class. That run is **not** an
+overall pass. A preceding `focused` invocation was rejected before execution
+because these dependencies require the staged historical starter fixtures.
+
+After renaming the test constant and adding cached-metadata refresh, the current
+test/import-panel files were copied into that already imported isolated project.
+The existing `tools.verify.Runner` then ran these commands, with a separate
+APPDATA/XDG/TMP profile and engine log for each label:
+
+```text
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-equipment-final-20261106/test_model_equipment_visuals.engine.log --script tests/test_model_equipment_visuals.gd
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-equipment-final-20261106/test_forceorg_catalog.engine.log --script tests/test_forceorg_catalog.gd
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path .tools/verification/20261106T054254959062Z/project --log-file .tools/verification/model-equipment-final-20261106/test_local_armies_models.engine.log --script tests/test_local_armies_models.gd
+```
+
+Final result: **3/3 processes passed**, exit code 0, no cleanup diagnostics,
+network disabled. The final report is
+`.tools/verification/model-equipment-final-20261106/results.json`; its source
+hashes match the current scanner, matcher, import panel, main script and new test.
+Checks cover indexed source gating, a generic Bolt Rifle + GL label, equipped
+weapon instances across profile modes, Sergeant and datasheet boundaries,
+same-group selection, unavailable files, cached metadata refresh and unchanged
+authoritative equipment. Existing catalog and army-preparation regression checks
+also pass. This does not establish complete sculpt identity, mixed-role coverage,
+live visual behavior, matching paint, whole-library coverage or network readiness.
+
+After adding the full weapon vocabulary and carrying accessory categories through
+the generated index, the current-source rerun passed **3/3** at
+`.tools/verification/model-equipment-final-v2-20261106/results.json`. It used the
+same isolated imported project and command forms above, with logs under the new
+report directory. The later board-integration extension reran
+`test_local_armies_models` with the same engine/path/script arguments and
+`--log-file .tools/verification/model-equipment-board-20261106/test_local_armies_models.engine.log`;
+it passed **1/1**, with zero failures and no cleanup diagnostics. Its report at
+`.tools/verification/model-equipment-board-20261106/results.json` records hashes
+matching the current runtime files and the extended test. A generated label
+association changes the actual `LocalModelVisual` through `main.gd`, independently
+of the handwritten Grenadier alias flag; removing the equipped weapon restores
+the shared appearance, and rendering preserves authoritative state.
+
+The final local index carries **38,495 source occurrences**, of which **3,632**
+have runtime associations. Default database searches and the runtime miniature
+picker exclude accessories; automatic unit matching also excludes indexed scenery,
+bases and parts. The raw catalog and all candidate relations are preserved.
+
+An actual Godot run was also inspected using Computer Use. In **Models / Import**,
+the local Workshop save was scanned and the exact search
+`Primaris Intercessor - Bolt Rifle + GL` returned ten source occurrences. The first
+displayed occurrence, GUID `90162d`, downloaded and converted successfully and the
+preview reported **8 OBJ parts** and a **32 × 32 mm** visual base. The observed
+yellow-armoured miniature is visible in the capture
+`.tools/verification/model-equipment-final-20261106/live-gl-import-preview.png`.
+The model is small in that preview, so this is evidence of a loaded assembly and
+searchable label, not a detailed weapon/paint confirmation or live match weapon
+switch. No unit mapping or saved match was overwritten, and the debug session was
+stopped after inspection. Whole-library visual review and network validation
+remain open.
+
 ## Necron C’tan shared rules — 31 October 2026
 
 The four C’tan source profiles now map Necrodermis to the shared allocated-attack Damage resolver, reducing Damage by 1 to a minimum of 1. The Deceiver also maps its source-listed Stealth ability to the existing shared Stealth rule. The four ENSLAVED STAR GOD source rows prevent Warlord selection through direct choice submission and checked-roster sealing. The local App v1.2 export remains authoritative for datasheet facts. Wahapedia’s current Core Rules were checked only to resolve the allocation order around Devastating Wounds; those mortal wounds do not pass through the allocated attack Damage reduction. These shared abilities do not complete any C’tan datasheet; their unique abilities and roster checks remain pending.

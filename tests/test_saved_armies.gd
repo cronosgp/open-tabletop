@@ -103,6 +103,13 @@ func run() -> void:
 	other.saved_army_mode = true
 	other.submitted_army = b.selection
 	other.mode = "client"
+	# The snapshot below uses the historical option defaults. Match the client to
+	# that snapshot so this check reaches the submitted-list comparison.
+	other.unit_abilities = false
+	other.awakened_dynasty = false
+	other.combat_doctrines = false
+	other.reanimation_protocols = false
+	other.core_stratagems = false
 	var wrong := P.initial_state({}, {1: a.selection, 2: a.selection})
 	other.receive_state(wrong)
 	check(other.mode == "local" and "changed its army selection" in other.status.text, "Client rejects a host changing its submitted army")

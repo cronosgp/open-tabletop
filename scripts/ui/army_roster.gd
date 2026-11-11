@@ -85,6 +85,8 @@ func present(match_state: Dictionary, selected_id: int, active_player: int) -> v
 		var empty := Label.new()
 		empty.text = "No units for the active player."
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty.max_lines_visible = -1
+		empty.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 		add_child(empty)
 		return
 	_add_player(match_state, selected_id, active_player, active_player)
@@ -116,6 +118,8 @@ func _add_player(match_state: Dictionary, selected_id: int, owner: int, local_pl
 	var heading := Label.new()
 	heading.text = "Player %d  ·  %d living  ·  %d Battle-shocked" % [owner, living, shocked]
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	heading.max_lines_visible = -1
+	heading.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	heading.add_theme_font_size_override("font_size", 13)
 	heading.add_theme_color_override("font_color", Color("f2df83") if owner == local_player else Color("c4ced1"))
 	heading.tooltip_text = "Living models on the battlefield, and units whose current Battle-shock result is failed."
@@ -239,6 +243,8 @@ func _row(text: String, model_id: int, selected: bool, color: Color) -> Button:
 	button.text = text
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.clip_text = false
+	button.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	button.focus_mode = Control.FOCUS_ALL
 	button.add_theme_font_size_override("font_size", 13)
 	button.add_theme_color_override("font_color", color)

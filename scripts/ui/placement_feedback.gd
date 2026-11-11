@@ -1,5 +1,5 @@
-extends PanelContainer
-## Screen-space feedback projected from a miniature; never validates rules.
+extends Control
+## Rejected-destination marker. The command rail owns explanatory text.
 var model := -1
 var destination := Vector2.ZERO
 var destination_elevation := 0.0
@@ -8,44 +8,16 @@ var heading := "Placement blocked"
 var recovery := "Choose another destination."
 var pinned := false
 var destination_marker := false
-var text_label := Label.new()
-var content := HBoxContainer.new()
-var card_symbol = preload("res://scripts/ui/combat_symbol.gd").new()
 var marker = preload("res://scripts/ui/combat_symbol.gd").new()
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("241b20", 0.98)
-	style.border_color = Color("ed998d")
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(6)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
-	add_theme_stylebox_override("panel", style)
-	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	text_label.custom_minimum_size.x = 260
-	text_label.add_theme_font_size_override("font_size", 16)
-	text_label.add_theme_color_override("font_color", Color("ffe7df"))
-	text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	text_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content.add_theme_constant_override("separation", 8)
-	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_symbol.kind = "Blocked footprint"
-	card_symbol.ink = Color("ff766d")
-	card_symbol.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	content.add_child(card_symbol)
-	content.add_child(text_label)
-	add_child(content)
 	marker.kind = "Blocked footprint"
 	marker.ink = Color("ff766d")
 	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	marker.z_index = 10
 	marker.tooltip_text = "Rejected placement destination"
-	var overlay := get_parent()
-	if overlay != null: overlay.add_child(marker)
+	add_child(marker)
 	marker.visible = false
 	visible = false
 
@@ -60,8 +32,6 @@ func show_reason(id: int, target: Vector2, reason: String, retain: bool = false,
 	recovery = recovery_text if not recovery_text.is_empty() else str(inferred.get("recovery", "Choose another destination."))
 	pinned = retain
 	destination_marker = mark_destination
-	text_label.text = _feedback_text()
-	custom_minimum_size.x = 284.0
 	visible = not reason.is_empty()
 
 func clear() -> void:
@@ -74,111 +44,6 @@ func clear() -> void:
 	pinned = false
 	destination_marker = false
 	marker.visible = false
-
-func place(camera: Camera3D, world: Vector3, base_world: Vector3, base_radius: float, bounds: Rect2) -> void:
-	if not visible:
-		marker.visible = false
-		return
-	var behind_camera := camera.is_position_behind(world)
-	var point := camera.unproject_position(world) if not behind_camera else bounds.get_center()
-	var outside_board_view := behind_camera or not bounds.has_point(point)
-	var direction := point - bounds.get_center()
-	if behind_camera:
-		var camera_local := camera.to_local(world)
-		direction = Vector2(camera_local.x, -camera_local.y)
-		if direction.length_squared() < 0.01: direction = Vector2.DOWN
-		text_label.text = "Model behind camera\n" + _feedback_text()
-	elif outside_board_view:
-		if direction.length_squared() < 0.01: direction = Vector2.UP
-		text_label.text = "Model outside board view · %s\n%s" % [_direction_name(direction), _feedback_text()]
-	else:
-		text_label.text = _feedback_text()
-
-	var inset := Vector2(minf(12.0, bounds.size.x * 0.05), minf(12.0, bounds.size.y * 0.05))
-	var safe_position := bounds.position + inset
-	var safe_end := bounds.end - inset
-	var safe_size := safe_end - safe_position
-	if safe_size.x <= 0.0 or safe_size.y <= 0.0:
-		safe_position = bounds.position
-		safe_end = bounds.end
-		safe_size = safe_end - safe_position
-	if safe_size.x <= 0.0 or safe_size.y <= 0.0:
-		visible = false
-		_place_destination_marker(camera, bounds)
-		return
-
-	custom_minimum_size.x = minf(284.0, safe_size.x)
-	var panel_style := get_theme_stylebox("panel")
-	var horizontal_chrome := panel_style.get_minimum_size().x if panel_style != null else 0.0
-	var symbol_width := card_symbol.get_combined_minimum_size().x + 8.0
-	var available_text_width := safe_size.x - horizontal_chrome - symbol_width
-	if available_text_width <= 1.0:
-		visible = false
-		_place_destination_marker(camera, bounds)
-		return
-	text_label.custom_minimum_size.x = maxf(1.0, minf(260.0, available_text_width))
-	var panel_size := get_combined_minimum_size()
-	panel_size.x = minf(maxf(panel_size.x, minf(284.0, safe_size.x)), safe_size.x)
-	panel_size.y = maxf(panel_size.y, 1.0)
-	if panel_size.y > safe_size.y:
-		visible = false
-		_place_destination_marker(camera, bounds)
-		return
-	size = panel_size
-	var max_position := Vector2(maxf(safe_position.x, safe_end.x - panel_size.x), maxf(safe_position.y, safe_end.y - panel_size.y))
-	var wanted: Vector2
-	if outside_board_view:
-		var ray := direction.normalized()
-		var half_bounds := safe_size * 0.5
-		var distance_x := half_bounds.x / absf(ray.x) if absf(ray.x) > 0.001 else INF
-		var distance_y := half_bounds.y / absf(ray.y) if absf(ray.y) > 0.001 else INF
-		var edge_point := (safe_position + safe_end) * 0.5 + ray * minf(distance_x, distance_y)
-		wanted = edge_point - panel_size * 0.5
-	else:
-		wanted = _clear_position_around_base(camera, point, panel_size, base_world, base_radius, safe_position, max_position)
-	position = _clamp_position(wanted, safe_position, max_position)
-	_place_destination_marker(camera, bounds)
-
-func _clear_position_around_base(camera: Camera3D, point: Vector2, panel_size: Vector2, base_world: Vector3, base_radius: float, safe_position: Vector2, max_position: Vector2) -> Vector2:
-	var preferred := point - Vector2(panel_size.x * 0.5, panel_size.y + 18.0)
-	var candidates: Array[Vector2] = [
-		preferred,
-		point + Vector2(-panel_size.x * 0.5, 18.0),
-		point - Vector2(panel_size.x + 18.0, panel_size.y * 0.5),
-		point + Vector2(18.0, -panel_size.y * 0.5),
-		safe_position,
-		Vector2(max_position.x, safe_position.y),
-		Vector2(safe_position.x, max_position.y),
-		max_position,
-	]
-	var excluded := _project_base_bounds(camera, base_world, base_radius)
-	for candidate: Vector2 in candidates:
-		var clamped := _clamp_position(candidate, safe_position, max_position)
-		if excluded.size == Vector2.ZERO or not Rect2(clamped, panel_size).intersects(excluded):
-			return clamped
-	return _clamp_position(preferred, safe_position, max_position)
-
-func _project_base_bounds(camera: Camera3D, base_world: Vector3, base_radius: float) -> Rect2:
-	if camera.is_position_behind(base_world): return Rect2()
-	var radius := maxf(absf(base_radius), 0.4)
-	var points: Array[Vector2] = []
-	for offset: Vector3 in [Vector3(-radius, 0.0, -radius), Vector3(-radius, 0.0, radius), Vector3(radius, 0.0, -radius), Vector3(radius, 0.0, radius)]:
-		var corner := base_world + offset
-		if not camera.is_position_behind(corner): points.append(camera.unproject_position(corner))
-	if points.is_empty(): return Rect2()
-	var minimum := points[0]
-	var maximum := points[0]
-	for projected: Vector2 in points:
-		minimum = minimum.min(projected)
-		maximum = maximum.max(projected)
-	var padding := Vector2(10.0, 10.0)
-	return Rect2(minimum - padding, maximum - minimum + padding * 2.0)
-
-func _clamp_position(candidate: Vector2, safe_position: Vector2, max_position: Vector2) -> Vector2:
-	return Vector2(clampf(candidate.x, safe_position.x, max_position.x), clampf(candidate.y, safe_position.y, max_position.y))
-
-func _feedback_text() -> String:
-	return "%s · %s\n%s" % [heading, message, recovery]
 
 func _heading_for_error(error_code: String) -> String:
 	match error_code:
@@ -286,7 +151,7 @@ func _details_from_reason(reason: String) -> Dictionary:
 		return {"error_code": "path_blocked", "recovery": "Choose a clear route that stays on the battlefield."}
 	return {}
 
-func _place_destination_marker(camera: Camera3D, bounds: Rect2) -> void:
+func place(camera: Camera3D, bounds: Rect2) -> void:
 	marker.visible = false
 	if not destination_marker or not destination.is_finite() or bounds.size.x < 36.0 or bounds.size.y < 36.0: return
 	var target_world := Vector3(destination.x, destination_elevation + 0.12, destination.y)
@@ -310,9 +175,3 @@ func _place_destination_marker(camera: Camera3D, bounds: Rect2) -> void:
 	var max_position: Vector2 = safe_bounds.end - marker_size
 	marker.position = Vector2(clampf(point.x - marker_size.x * 0.5, safe_bounds.position.x, max_position.x), clampf(point.y - marker_size.y * 0.5, safe_bounds.position.y, max_position.y))
 	marker.visible = true
-
-func _direction_name(direction: Vector2) -> String:
-	if direction.length_squared() < 0.01: return "nearby"
-	var names: Array[String] = ["right", "lower right", "below", "lower left", "left", "upper left", "above", "upper right"]
-	var octant := posmod(roundi(direction.angle() / (PI / 4.0)), names.size())
-	return names[octant]

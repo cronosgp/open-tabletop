@@ -299,8 +299,13 @@ static func _allocate_damage(state: Dictionary, player: int, command: Dictionary
 	else:
 		var selection := _projected_option({}, player, str(command.get("decision_id", "")), str(command.get("option_id", "")))
 		if not selection.error.is_empty(): return selection
+	var previous_attack: Dictionary = state.get("last_attack", {})
 	var error: String = Combat.allocate_hazard(state, player, model, revision, roller) if not pending_hazard.is_empty() else Combat.allocate_damage(state, player, model, revision, roller)
-	var message := "Recipient confirmed. The attacker resolves damage before prevention and casualties." if Combat.Stratagems.pending(state).get("kind") == "after_damage_roll" else "Damage choice accepted; continue allocation or the next action window."
+	var message := "Damage choice accepted."
+	if Combat.Stratagems.pending(state).get("kind") == "after_damage_roll":
+		message = "Recipient confirmed. The attacker resolves damage before prevention and casualties."
+	elif state.get("last_attack", {}) != previous_attack:
+		message = "Attack recorded."
 	return _apply_string_action(error, message)
 
 static func _remove_coherency(state: Dictionary, player: int, command: Dictionary) -> Dictionary:

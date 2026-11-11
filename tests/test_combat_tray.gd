@@ -63,6 +63,15 @@ func run() -> void:
 	check(not tray.skip.visible and "optional" in tray.summary.text and var_to_bytes(state) == before, "Reduced motion preserves the optional decision and match state")
 	tray.sync(state, window, true, false)
 	check(not tray.visible, "Read-only overlays can hide the tray without changing its decision")
+	var full_result := "Armour of Contempt remains pending against the selected unit, and the recorded save still needs allocation. "
+	full_result = full_result.repeat(4).strip_edges()
+	tray.visible = true
+	tray.context_label.text = full_result
+	tray.summary.text = full_result
+	tray.body.custom_minimum_size.x = 280
+	tray.size = Vector2(320, 160)
+	check(tray.context_label.text == full_result and tray.summary.text == full_result and tray.context_label.max_lines_visible < 0 and tray.summary.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING, "A capped combat dock keeps the complete attack context and result")
+	check(tray.body_scroll.is_ancestor_of(tray.summary) and tray.controls_row.get_parent() == tray.column and not tray.body_scroll.is_ancestor_of(tray.skip), "Dice playback stays reachable outside the scrolling result")
 	tray.free()
 	restored.free()
 	await process_frame

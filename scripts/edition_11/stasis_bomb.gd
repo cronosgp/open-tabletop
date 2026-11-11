@@ -111,6 +111,7 @@ static func continuation(state: Dictionary, player: int, selected: Dictionary) -
 
 static func end_movement_phase(state: Dictionary) -> void:
 	if str(state.get("phase", "")) != "movement": return
+	if not state.get("unit_abilities") is Dictionary: return
 	var marks: Dictionary = state.get("unit_abilities", {}).get("stasis_bomb_marks", {})
 	var penalties: Dictionary = state.get("unit_abilities", {}).get("stasis_bomb_penalties", {})
 	for squad: Variant in marks.keys():

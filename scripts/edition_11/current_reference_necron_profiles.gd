@@ -342,7 +342,7 @@ static func profile(source: String) -> Dictionary:
 				{"id": "gauss-flayer-array", "count": 2, "profiles": {"standard": _weapon("Gauss flayer array", 24.0, 5, 3, 4, 0, 1, {"lethal-hits": true, "rapid-fire": 5})}}
 			],
 			[{"id": "armoured-bulk", "profiles": {"standard": _weapon("Armoured bulk", 0.0, 3, 4, 6, 0, 1, {})}}],
-			["Deadly Demise D3", "Reanimation Protocols", "Overwhelming Obliteration", "Damaged 5"], ["deadly-demise-d3", "reanimation-protocols", "damaged-5"], ["Overwhelming Obliteration"], [], [], [], {1: 230})
+			["Deadly Demise D3", "Reanimation Protocols", "Overwhelming Obliteration", "Damaged 5"], ["deadly-demise-d3", "reanimation-protocols", "overwhelming-obliteration", "damaged-5"], [], [], [], [], {1: 230})
 		doomsday_ark.source_damaged_wounds = "1-5"
 		doomsday_ark.source_damaged_description = "While this model has 1-5 wounds remaining, each time this model makes an attack, subtract 1 from the Hit roll."
 		return doomsday_ark

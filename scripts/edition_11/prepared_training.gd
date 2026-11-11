@@ -332,8 +332,7 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 	var index := 0
 	for entry: Dictionary in report.selection.entries:
 		var resolved: Dictionary = report.definitions[entry.definition_id]
-		var configuration_key := "%s:%02d:%s" % [entry.definition_id, int(entry.models), str(entry.get("enhancement_id", ""))]
-		if entry.has("composition_choice_id"): configuration_key += ":" + str(entry.composition_choice_id)
+		var configuration_key := Training.Capabilities.configuration_key(entry)
 		resolved = report.get("configurations", {}).get(configuration_key, resolved)
 		var spec: Dictionary = resolved.spec
 		for copy in range(entry.copies):
@@ -360,6 +359,9 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 				unit.definition_id = entry.definition_id
 				unit.enhancement_id = group.enhancement_id if model == 0 else ""
 				if spec.get("current_reference", false): unit.sergeant = model == 0 and entry.definition_id not in ["40kdc:11e:adeptus-astartes:company-heroes", "40kdc:11e:adeptus-astartes:victrix-honour-guard", "40kdc:11e:adeptus-astartes:crusader-squad", "40kdc:11e:adeptus-astartes:sword-brethren-squad", "40kdc:11e:adeptus-astartes:fortis-kill-team", "40kdc:11e:adeptus-astartes:spectrus-kill-team", "40kdc:11e:adeptus-astartes:indomitor-kill-team", "40kdc:11e:adeptus-astartes:decimus-kill-team", "40kdc:11e:adeptus-astartes:talonstrike-kill-team", "40kdc:11e:adeptus-astartes:wolf-scouts"]
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:intercessor-squad" and unit.get("sergeant", false):
+					unit.intercessor_rifle_choice = str(entry.get("intercessor_rifle_choice", "bolt-rifle"))
+					unit.intercessor_melee_choice = str(entry.get("intercessor_melee_choice", "knives-and-fists"))
 				if entry.definition_id == "40kdc:11e:adeptus-astartes:company-heroes": unit.company_heroes_model = model
 				if entry.definition_id == "40kdc:11e:adeptus-astartes:grey-hunters": unit.grey_hunters_model = model
 				if entry.definition_id == "40kdc:11e:adeptus-astartes:spectrus-kill-team": unit.spectrus_kill_team_model = model
@@ -483,9 +485,10 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 				unit.scout_gun = "boltgun"
 				unit.scout_blade = "combat-knife"
 			if source == "intercessor-squad":
-				unit.intercessor_melee_choice = "knives-and-fists"
-				unit.intercessor_rifle_choice = "bolt-rifle"
+				unit.intercessor_melee_choice = str(unit.get("intercessor_melee_choice", "knives-and-fists"))
+				unit.intercessor_rifle_choice = str(unit.get("intercessor_rifle_choice", "bolt-rifle"))
 				unit.intercessor_grenade_launcher = false
+				Combat.UnitActions._intercessor_weapons(unit)
 			if source == "deathwatch-veterans":
 				unit.deathwatch_veteran_loadout = "default"
 				unit.deathwatch_sergeant_ranged_loadout = "boltgun"

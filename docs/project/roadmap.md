@@ -1,11 +1,118 @@
 # Open Tabletop roadmap
 
+**6 November configuration UI:** the library/editor now share a three-region army
+workspace, local miniature browsing is separated from advanced importer controls,
+and title/match setup, Settings and Guide use the shared configuration style.
+This is presentation scope; rules/admission and network claims are unchanged.
+See the [phase and verification record](ui-redesign.md), including passing local async-launch/draft/result regression, background heavy
+previews, six-default/60-appearance local batch preparation and long-text layout
+checks. Physical-controller, separate-machine LAN, wider device and external
+transfer reviews remain unverified. The full redesign acceptance gate remains
+partial.
+
+**6 November source-object follow-up:** complete bounded static traversal is now
+searchable separately from whole-miniature variants. The selected saves contribute
+74,766 objects with parent hierarchy and category evidence. Cards/decks named
+after characters remain accessories; dimension-only bases no longer enter the
+miniature pool. Image-only tiles and recognized ForceOrg search/control blocks
+stay indexed as ignored objects. Four `BlockSquare` occurrences remain
+unclassified: the generic label and `Yellow Storage` in two saves. Additional
+scenery sources, render support and unresolved model identities remain open.
+
+**6 November real-model follow-up:** staged Godot captures now exercise actual
+Flayer/Reaper asset files through production weapon selection and loading.
+The discovered measured-rim/body-estimate scale conflict is fixed and regression
+checked. Broader library review, source-tint fidelity, live weapon-change input
+and missing model/terrain coverage remain open.
+
+**6 November appearance-family follow-up:** declared groups now have a separate
+static-material fallback, shared by variant preparation and runtime selection.
+The source audit finds 1,665 Workshop and 2,208 AutoSave runtime-associated
+occurrences with derived families and no declared group. Both Necron Warrior
+weapon variants enter same-family preparation. Visual inspection, unknown bundle
+materials and unresolved families remain open; this changes no rules scope.
+
+**6 November source-label suffix follow-up:** schema 6 records 100 source-specific
+weapon-label resolutions across 91 variants. Names, associations and occurrence
+identity are unchanged. Actual-save Flayer/Reaper scoring is checked; resolving
+their missing appearance families and observing actual model weapons remain open.
+
+**6 November weapon-term selection follow-up:** added definition-scoped, unique
+source-weapon expansions for short visual labels and physical-weapon deduplication
+in variant ranking. Hammerfall array choices now match their equipped source names.
+The local build contains 47 alias pairs. Arbitrary synonyms, ambiguous fragments,
+unknown appearance families and broader actual-asset validation remain separate
+work; no rules/admission/network scope changed.
+
+**6 November literal-name and inventory follow-up:** the source database includes
+existing runtime visual substitutes as a separate relation type, recognizes full
+datasheet names with source-bounded weapon/composition suffixes, and retains exact
+per-occurrence labels. At that inventory checkpoint, coverage was 212 of 236
+runtime identities with label associations, 14 fallback-only, eight candidate-only
+and two without a source candidate. Later schema-8 coverage is summarized below.
+All 38,495 source/index occurrences pass the real Godot scan. Source-choice
+success does not mean that a mesh has been imported or reviewed.
+
+**6 November model-role/fallback follow-up:** added per-datasheet source-model roles
+with unresolved/ambiguous states, removed the visual-name dependency on the historical
+starter pack, corrected case-sensitive CSV faction booleans, and changed rendering
+to try remaining compatible sculpts after an asset failure. Role/weapon/datasheet
+evidence is now included in database search results. Exact label coverage is 203/236
+runtime identities, with 8,790 associated source occurrences. Remaining work concerns
+unresolved/ambiguous source associations, unrecognized physical-weapon aliases and
+broader actual-asset visual coverage; network/rules admission scope is unchanged.
+
+**6 November model catalog increment:** fixed the raw-variant consolidation path
+that produced blank datasheet candidates, retained real best-score ties, and built
+the local normalized SQLite inventory with indexed name/category/weapon/datasheet
+search and independent corrections. An optional generated index now connects exact
+label associations to same-family weapon-compatible selection, already available
+cross-family weapon recovery, and existing generic/missing-variant fallbacks;
+already cached miniatures receive rebuilt metadata without a download. This
+supplements the earlier Intercessor-specific path. Next gates are
+real-model visual inspection, ambiguous and missing associations, broader mixed-
+model roles/weapon synonyms and source/paint coverage. No new faction construction,
+rules certification or network readiness is claimed. See the
+[database contract](../data/model-variant-database.md).
+
 This is the plan for remaining work. Current runtime scope and limits live in the [support matrix](support-matrix.md); historical increments and verification evidence live in their topic reports.
 
 ## ForceOrg visual models
 
+**6 November local index search:** the Models importer can search local occurrences
+by source model name, role, linked datasheet/runtime name and source weapon label.
+Selected records display datasheet-name and weapon-term evidence separately. A
+two-object Godot fixture confirmed the Reaper search. Full-save importer timing is
+recorded in the profile below; full rendered-UI behavior, source-wide association
+precision and weapon-specific visual recovery remain open.
+
+**6 November association and full-save profile:** four fingerprint-scoped local
+corrections link two previously candidate-only character models to their exact
+datasheets. The current runtime index covers 214/236 identities by label, with 16
+reviewed fallback-only, four candidate-only and two without a source candidate.
+The uncached Workshop scan took 5.38 seconds; the versioned local parse cache
+reloads it in 1.35 seconds after a 6.68-second first scan that includes cache
+creation. Headless first/subsequent filter queries measured 260/42 ms. The Models
+search waits 150 ms after typing stops and Enter runs it immediately; the filter
+profile invokes search directly, outside that UI debounce. Release-build
+performance and the remaining ambiguous links remain open.
+
+The current local Intercessor source profile confirms the pistol is default gear
+and the Grenade Launcher is an additional option for a non-Sergeant model. Three
+source-specific launcher variants are linked with the correct role constraint;
+Sergeant-labelled launcher candidates stay blocked. The shared/palette visual is
+the fallback when its asset mapping is available; the existing automatic model
+or built-in visual is the final fallback. This path is not visually certified
+for Intercessors; release-search responsiveness and broader loadout/fallback
+capture remain open.
+
 **30–31 October 2026 local audit:** the importer assembles supported static ForceOrg child-OBJ parts with their scanned transforms, retries compatible visual variants after download or base-fit validation failures, and rejects malformed infantry bounds that would place a model outside its base. A four-slice Godot audit renders all 161 current-reference Space Marine profiles on both sides (322 positions) with zero placeholders or import failures. It adds reviewed visual aliases for 24 profiles that lacked a safe automatic matcher result; some links use same-category OBJ substitutes where a safe exact OBJ is unavailable. This provides visual coverage without claiming exact-sculpt coverage. Detected base rings for 153 profiles fit their datasheet bases within 0.5 mm; eight models use height/hull normalization. A separate audit exercised all 45 unique static Unity AssetBundle URLs referenced by 42 profiles: 45 converted with 406 validated parts. Matching secondary bundles now resolve the seven Judiciar CAB material dependencies; all seven reconverted without missing-material warnings, and an old saved Judiciar link repaired automatically to 10 ready parts. All 2,051 catalogued profile variants produced valid import plans, though the full variant set has not been downloaded/rendered. The Invictor/Wulfen meshes passed the bounded 1,000,000-attribute OBJ importer; Rhino's duplicate textures were hard-linked, bringing its 57-part conversion below the 256 MiB output bound. Animated/dynamic bundles remain unsupported. This is local appearance evidence only, not rules or roster certification. Continue reviewing sculpt-facing/height exceptions and exact-sculpt coverage. See the [ForceOrg import limits and audit](../data/model-import-validation.md).
 
+**Training Tools showcase:** the Tools page has an opt-in action to prepare all 161 standard Space Marine profiles and open an in-game visual table, plus a cache-only entry that never starts downloads. It pages through the catalog 24 datasheets at a time across seven pages, placing one representative miniature for each datasheet on both sides (up to 48 positions). Page loads are progressive, share visual resources between sides, and retry only the visuals that fail local validation. OBJ parsing and mesh construction run on a single worker; GPU texture creation and scene changes stay on the main thread. The loader retries texture decoding after an expired weak-cache reference, and the camera returns to overview on page changes. The table marks unavailable visuals and estimated/review base fits and supports base-click focus, zoom/orbit and side filtering. Its colored rings now use numeric local Wahapedia base dimensions, and imported models scale uniformly to fit those bases. A hash-verified audit reconciled all 153 numeric dimensions among the 161 standard datasheets; rows that say `Use model` or omit dimensions remain labelled approximate. The Adrax and Aethon models on page 1 were checked at overview and focus zoom; the Ancient remains marked approximate because its scenic base has no reliable rim. A full pre-fix sweep reached ready state for all 161 profiles; post-fix visual checks reached 24/24 on pages 1, 2 and 5 on both sides with textures visible. Warmed views held 13.33 ms p95 frame time in this debug capture, while page preparation took up to 23.8 seconds and still produced isolated 128–132 ms frame spikes. This is an inspection screen rather than match setup; it does not change rules state, establish roster legality or claim every variant is exact. See the [Training Tools performance and base-fit capture](../data/model-import-validation.md). Cold-download, release-build and GPU-specific measurements remain open because this capture reused the local model cache.
+
+**5 November identity and completeness pass:** duplicate Training Tools names now show datasheet IDs; mixed-size datasheets show their per-role base diameters and counts while the match fit still uses each miniature's assigned radius. Import results expose the TTS source GUID, and a profile-aware height check rejects many detached infantry parts before mapping or prepared-GLB reuse. A fresh Godot 4.7.2 capture of Training Tools row 085 using the saved mapping shows the full Intercessor and a 32 mm ring fit within 0.5 mm. The previous head-only appearance from the user's open app was not reproduced; no matched TTS capture exists, so compare source and render if that appearance returns.
+
+**5–6 November Army Workshop equipment and model preflight:** the workshop now saves supported Intercessor Sergeant rifle/melee choices per unit copy. Those choices pass through current-catalog admission, enter the canonical gameplay roster, materialize the matching weapon profiles, and remain editable through the existing match-preparation controls. The preview selects the matching local role sculpt from the unit copy's chosen TTS source group; an explicit per-model visual override takes precedence over automatic role art. Seven mapped ForceOrg/TTS loadout assemblies are preflighted only when that group is known for local saved-list matches and Tactical Training with automatic model preparation enabled. The exact Bolt Rifle + Power Sword Unity bundle was converted with the project's pinned helper and all seven mappings were previously verified as 7/7 renderable on this machine. Other combinations use a same-group default Sergeant sculpt or retain the shared/built-in miniature. A source-group hint narrows candidates but does not prove paint consistency. The user's tentative label review said all seven labels were probably correct; exact objects and paint consistency still need confirmation. The latest live AutoSave hash is ed862e9dfee8672658fa3e4e8754a5ba66b3dd51ebc168df75e16c70075997b; its parsed visual fields match the preceding capture, so no newly loaded models are evidenced. The rebuilt two-source catalog contains 35,884 source variants over 26,310 exact fingerprints. Its 1,872 AutoSave and 1,766 Workshop weapon-hinted candidates remain pending; none add runtime aliases. Cosmetic assets stay local; separate-machine readiness, visual parity for every loadout and full army legality remain unverified. Focused offline implementation checks are recorded with this change.
 ## Base Space Marines Codex closeout
 
 The requested base-Codex scope is source book `000000139`; Chapter-book supplements and alternate modes are tracked separately. All 85 shared-book identities are cataloged, have complete source-bounded local scopes, and have passing dedicated offline verification artifacts. The latest hash-verified export comparison reports no fixed-data or runtime-source-identity findings across those 85 profiles. The 85-subject source slice is structurally valid with zero scoped errors; the parent export's 68 global findings remain open. This closes the local datasheet-integration scope for the base Space Marines Codex only. Full army legality, catalog-wide live-page checks, network behavior and human playtesting are separate and remain unverified.
@@ -432,6 +539,13 @@ The final integration stage has started with the bounded training profiles. The 
 
 ## Player experience and release quality
 
+The in-match redesign now presents a separate decision owner, pinned action
+controls, deployment and movement feedback, three zoom levels of board labels,
+a recorded dice dock and an optional inspector, guide and diagnostics. The
+allocation crash reproducer, native Continue recovery and loopback outcomes are in the
+[in-match redesign report](in-match-ui-redesign.md). Physical controller and
+cross-machine LAN validation remain open.
+
 | Milestone | Work | Completion condition |
 |---|---|---|
 | D1 — First session | Guide a new player through a bounded sample, setup declarations, deployment and initial actions. | A new player understands the next legal task without needing technical documentation. |
@@ -640,3 +754,13 @@ An exact-destination route on an elevated surface now compares the same-surface 
 
 
 The same case also passes through the public Purge and Sanctify flow: a D6 roll of 6 grants 7 inches, preview leaves live position unchanged, and confirmation commits the model on the same upper floor. `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_fist_god_emperor --timeout 300` passed **3/3 processes** at `.tools/verification/20261029T221352151675Z/results.json` (SHA-256 `492f32a285c6f27fa80b0eb8e4d1b82fa5f3087549562c4550f173679a4881ae`; `network: false`, legacy starter staged, no cleanup diagnostics; Godot process 159.04 seconds).
+
+### Experimental model preparation
+
+The opt-in source-pose preview and runtime reuse of matching local GLB packages are available. An explicit Training Tools ForceOrg batch pilot accepted 149 of 161 profiles and retained 12 previous mappings for mount/base review; ordinary automatic downloads remain unchanged. Reviewed mounts for ambiguous or baseless sculpts, all-sculpt facing review, matching TTS captures, live camera profiling and separate-machine LAN validation remain open. See [model import](../data/forceorg-import.md#experimental-source-pose-and-base-inspection) and the [batch report](../data/model-import-validation.md#opt-in-forceorg-source-pose-batch-4-november-2026).
+
+A read-only audit on 6 November found 144 mapped profiles and 17 missing definitions, conflicting with the historical batch report. Subsequent local-cache recovery restored those 17 links while preserving existing mappings, variants and settings. The saved config now has 161/161 standard-profile mappings: 144 retained records without the pilot tag and 17 recovered source-pose records. All 17 recovered visuals reload through the production importer with current fingerprint/base gates in a fresh headless process. Full visual inspection, equipment/facing review and load validation of all 161 remain open; this does not reinstate the historical 149-profile pilot result. See the [mapping-state reconciliation](../data/model-import-validation.md#current-saved-mapping-reconciliation--6-november-2026).
+
+The manual import preview now targets the mounted base center and eases its Reset/Top/Side views and reset zoom with a reduced-motion bypass. Headless frame-rate checks pass; live Godot inspection and profiling remain open.
+
+Local army assembly and test matches use one shared ForceOrg appearance per unit copy, with an optional per-model override and reviewed paint palette. Intercessor Sergeant and non-Sergeant Grenadier appearances follow live weapon choices: the selector tries compatible same-family sculpts first, then already available weapon-compatible variants from other families before generic appearance recovery. This fallback can change the paint scheme and does not download or queue new assets; role preflight remains limited to the selected source group. Unsupported Sergeant choices use the same-family default or retain the shared sculpt when no compatible prepared variant exists. Cosmetic IDs remain excluded from match traffic. A source-group hint is a candidate filter and does not certify matching paint. The schema-8 source-label audit found 132 confirmed physical weapon/datasheet pairs, 101 candidate-only pairs and 744 pairs with no recognized term across the 236 runtime datasheets; those figures do not certify visible weapons or absent models. The latest two-source inventory contains 35,884 source-specific variants over 26,310 exact fingerprints in `.tools/forceorg-model-table/live_20261106_4/`. The current AutoSave hash `ea1550037e8ae36aff8225cfc06c24eb9cd0f23a0a150e9688611aa78f70af63` has the same 20,010 visual rows and 18,315 variants as the prior indexed capture; no new model paths or aliases were added. Its 1,872 weapon-hinted candidates and the Workshop's 1,766 remain pending visual review. The new Ultramarines Intercessor review batch keeps repeated labels with different asset fingerprints separate. Paint families and most weapon/loadout links remain unreviewed. See [per-unit appearances](../data/forceorg-import.md#per-unit-appearances), the [unified catalog](../data/forceorg-import.md#unified-source-variant-catalog--6-november-2026) and the [current AutoSave queue](../data/forceorg-import.md#live-autosave-inventory-and-11e-candidate-queue--6-november-2026).

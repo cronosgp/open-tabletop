@@ -4,6 +4,20 @@ const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancem
 const EDITIONS := ["10e", "11e"]
 const LIMITS := {"training": 500, "incursion": 1000, "strike_force": 2000, "onslaught": 3000, "custom": 0}
 const CHAPTERS := ["Black Templars", "Blood Angels", "Dark Angels", "Deathwatch", "Imperial Fists", "Iron Hands", "Raven Guard", "Salamanders", "Space Wolves", "Ultramarines", "White Scars"]
+const INTERCESSOR_RIFLE_CHOICES := {
+	"bolt-rifle": "Bolt Rifle",
+	"chainsword": "Chainsword",
+	"hand-flamer": "Hand Flamer",
+	"plasma-pistol": "Plasma Pistol",
+	"power-weapon": "Power Weapon"
+}
+const INTERCESSOR_MELEE_CHOICES := {
+	"knives-and-fists": "Knives and Fists",
+	"chainsword": "Chainsword",
+	"power-fist": "Power Fist",
+	"power-weapon": "Power Weapon",
+	"thunder-hammer": "Thunder Hammer"
+}
 
 static func integer(value: Variant, minimum: int = 0, maximum: int = 1000000) -> bool:
 	return (value is int or value is float) and is_finite(value) and value == floor(value) and value >= minimum and value <= maximum
@@ -127,6 +141,14 @@ static func validate(list: Variant) -> String:
 	if list.category not in LIMITS or not integer(list.get("points_limit"), 100, 100000): return "Invalid points limit."
 	if list.category != "custom" and list.points_limit != LIMITS[list.category]: return "The points limit does not match the category."
 	if not list.get("allow_allies") is bool or not list.get("entries") is Array or list.entries.size() > 100 or list.notes.length() > 5000: return "Invalid list structure or size."
+	var palette: Variant = list.get("visual_palette", {})
+	if not palette is Dictionary or palette.size() > 100: return "Invalid local army paint palette."
+	for definition: Variant in palette:
+		if not definition is String or definition.is_empty() or definition.length() > 160: return "Invalid local paint palette unit."
+		var appearances: Variant = palette[definition]
+		if not appearances is Array or appearances.is_empty() or appearances.size() > 16: return "Invalid local paint palette choices."
+		for appearance: Variant in appearances:
+			if not appearance is String or appearance.is_empty() or appearance.length() > 128: return "Invalid local paint palette choice."
 	for item: Variant in list.entries:
 		if not item is Dictionary: return "Invalid entry."
 		for key in ["unit_id", "name", "edition", "faction", "role", "source_digest"]:
@@ -139,14 +161,125 @@ static func validate(list: Variant) -> String:
 		if item.has("third_plus_cost") and not integer(item.third_plus_cost, 1): return "Invalid third-plus unit cost."
 		if item.has("fourth_plus_cost") and not integer(item.fourth_plus_cost, 1): return "Invalid fourth-plus unit cost."
 		if item.has("composition_choice_id") and (not item.composition_choice_id is String or item.composition_choice_id.is_empty() or item.composition_choice_id.length() > 64): return "Invalid unit composition choice."
+		if item.has("intercessor_sergeant_loadouts"):
+			if not str(item.get("unit_id", "")).ends_with(":intercessor-squad") or not item.intercessor_sergeant_loadouts is Array or item.intercessor_sergeant_loadouts.size() != int(item.copies): return "Invalid Intercessor Sergeant equipment choices."
+			for loadout: Variant in item.intercessor_sergeant_loadouts:
+				if not loadout is Dictionary or loadout.size() != 2 or not INTERCESSOR_RIFLE_CHOICES.has(str(loadout.get("rifle_choice", ""))) or not INTERCESSOR_MELEE_CHOICES.has(str(loadout.get("melee_choice", ""))): return "Invalid Intercessor Sergeant equipment choice."
 		if item.has("wargear_cost") and not integer(item.wargear_cost, 0, 10000): return "Invalid optional wargear cost."
 		if item.has("wargear_cost") != item.has("composition_choice_id"): return "A composition choice and its optional wargear cost must be saved together."
 		if item.has("enhancement_id") and (not item.enhancement_id is String or item.enhancement_id.is_empty() or int(item.copies) != 1): return "An enhancement must be assigned to exactly one unit entry."
 		if item.has("visual_variants"):
-			if not item.visual_variants is Array or item.visual_variants.size() != int(item.models) * int(item.copies): return "Invalid local miniature appearance assignments."
+			if not item.visual_variants is Array or item.visual_variants.size() != int(item.models) * int(item.copies): return "Invalid local unit appearance assignments."
 			for visual_id: Variant in item.visual_variants:
-				if not visual_id is String or visual_id.length() > 128: return "Invalid local miniature appearance assignment."
+				if not visual_id is String or visual_id.length() > 128: return "Invalid local unit appearance assignment."
+		if item.has("visual_model_overrides"):
+			if not item.visual_model_overrides is Array or item.visual_model_overrides.size() != int(item.models) * int(item.copies): return "Invalid local model appearance overrides."
+			for visual_id: Variant in item.visual_model_overrides:
+				if not visual_id is String or visual_id.length() > 128: return "Invalid local model appearance override."
 	return ""
+
+static func intercessor_sergeant_loadout(item: Dictionary, copy_index: int) -> Dictionary:
+	var defaults := {"rifle_choice": "bolt-rifle", "melee_choice": "knives-and-fists"}
+	if copy_index < 0: return defaults
+	var loadouts: Variant = item.get("intercessor_sergeant_loadouts", [])
+	if not loadouts is Array or copy_index >= loadouts.size() or not loadouts[copy_index] is Dictionary: return defaults
+	var loadout: Dictionary = loadouts[copy_index]
+	var rifle := str(loadout.get("rifle_choice", defaults.rifle_choice))
+	var melee := str(loadout.get("melee_choice", defaults.melee_choice))
+	if not INTERCESSOR_RIFLE_CHOICES.has(rifle) or not INTERCESSOR_MELEE_CHOICES.has(melee): return defaults
+	return {"rifle_choice": rifle, "melee_choice": melee}
+
+static func valid_intercessor_sergeant_loadout(loadout: Variant) -> bool:
+	return loadout is Dictionary and loadout.size() == 2 and INTERCESSOR_RIFLE_CHOICES.has(str(loadout.get("rifle_choice", ""))) and INTERCESSOR_MELEE_CHOICES.has(str(loadout.get("melee_choice", "")))
+
+static func set_intercessor_sergeant_loadout(item: Dictionary, copy_index: int, rifle_choice: String, melee_choice: String) -> void:
+	if not str(item.get("unit_id", "")).ends_with(":intercessor-squad") or copy_index < 0 or copy_index >= int(item.get("copies", 0)):
+		return
+	if not INTERCESSOR_RIFLE_CHOICES.has(rifle_choice) or not INTERCESSOR_MELEE_CHOICES.has(melee_choice):
+		return
+	var loadouts := normalize_intercessor_sergeant_loadouts(item)
+	loadouts[copy_index] = {"rifle_choice": rifle_choice, "melee_choice": melee_choice}
+	item.intercessor_sergeant_loadouts = loadouts
+
+static func normalize_intercessor_sergeant_loadouts(item: Dictionary) -> Array:
+	var copies := clampi(int(item.get("copies", 0)), 0, 20)
+	var current: Variant = item.get("intercessor_sergeant_loadouts", [])
+	var loadouts: Array = current.duplicate(true) if current is Array else []
+	while loadouts.size() > copies: loadouts.pop_back()
+	while loadouts.size() < copies: loadouts.append({"rifle_choice": "bolt-rifle", "melee_choice": "knives-and-fists"})
+	for copy_index in range(loadouts.size()):
+		if not loadouts[copy_index] is Dictionary:
+			loadouts[copy_index] = {"rifle_choice": "bolt-rifle", "melee_choice": "knives-and-fists"}
+		else:
+			var loadout: Dictionary = loadouts[copy_index]
+			var rifle := str(loadout.get("rifle_choice", "bolt-rifle"))
+			var melee := str(loadout.get("melee_choice", "knives-and-fists"))
+			loadouts[copy_index] = {"rifle_choice": rifle if INTERCESSOR_RIFLE_CHOICES.has(rifle) else "bolt-rifle", "melee_choice": melee if INTERCESSOR_MELEE_CHOICES.has(melee) else "knives-and-fists"}
+	item.intercessor_sergeant_loadouts = loadouts
+	return loadouts
+
+static func palette_variant(list: Dictionary, definition: String, slot: int) -> String:
+	var palette: Dictionary = list.get("visual_palette", {})
+	var choices: Array = palette.get(definition, [])
+	return str(choices[posmod(slot, choices.size())]) if not choices.is_empty() else ""
+
+static func unit_visual_variant(item: Dictionary, copy_index: int) -> String:
+	var models := int(item.get("models", 0))
+	var slots: Variant = item.get("visual_variants", [])
+	if models <= 0 or copy_index < 0 or not slots is Array: return ""
+	var start := copy_index * models
+	for model_index in range(models):
+		var slot := start + model_index
+		if slot >= slots.size(): break
+		if slots[slot] is String and not str(slots[slot]).is_empty(): return str(slots[slot])
+	return ""
+
+static func set_unit_visual_variant(item: Dictionary, copy_index: int, visual_id: String) -> void:
+	normalize_visual_variants(item)
+	var models := int(item.get("models", 0))
+	if models <= 0 or copy_index < 0 or copy_index >= int(item.get("copies", 0)): return
+	var start := copy_index * models
+	for model_index in range(models): item.visual_variants[start + model_index] = visual_id
+
+static func model_visual_override(item: Dictionary, copy_index: int, model_index: int) -> String:
+	var models := int(item.get("models", 0))
+	var slots: Variant = item.get("visual_model_overrides", [])
+	if models <= 0 or copy_index < 0 or model_index < 0 or model_index >= models or not slots is Array: return ""
+	var slot := copy_index * models + model_index
+	return str(slots[slot]) if slot < slots.size() and slots[slot] is String else ""
+
+static func set_model_visual_override(item: Dictionary, copy_index: int, model_index: int, visual_id: String) -> void:
+	normalize_model_visual_overrides(item)
+	var models := int(item.get("models", 0))
+	if models <= 0 or copy_index < 0 or copy_index >= int(item.get("copies", 0)) or model_index < 0 or model_index >= models: return
+	item.visual_model_overrides[copy_index * models + model_index] = visual_id
+
+static func normalize_model_visual_overrides(item: Dictionary) -> Array:
+	var wanted := mini(maxi(0, int(item.get("models", 0))) * maxi(0, int(item.get("copies", 0))), 20000)
+	var slots: Array = item.get("visual_model_overrides", []) if item.get("visual_model_overrides", []) is Array else []
+	while slots.size() > wanted: slots.pop_back()
+	while slots.size() < wanted: slots.append("")
+	item.visual_model_overrides = slots
+	return slots
+
+static func normalize_visual_variants(item: Dictionary) -> Array:
+	var models := maxi(0, int(item.get("models", 0)))
+	var copies := maxi(0, int(item.get("copies", 0)))
+	var wanted := mini(models * copies, 20000)
+	var slots: Array = item.get("visual_variants", []) if item.get("visual_variants", []) is Array else []
+	while slots.size() > wanted: slots.pop_back()
+	while slots.size() < wanted: slots.append("")
+	for copy_index in range(copies):
+		var start := copy_index * models
+		var selected := ""
+		for model_index in range(models):
+			var candidate: Variant = slots[start + model_index]
+			if candidate is String and not candidate.is_empty():
+				selected = candidate
+				break
+		for model_index in range(models): slots[start + model_index] = selected
+	item.visual_variants = slots
+	return slots
 
 static func reprice(list: Dictionary, catalog: Dictionary) -> Dictionary:
 	var updated := list.duplicate(true)
@@ -171,6 +304,7 @@ static func reprice(list: Dictionary, catalog: Dictionary) -> Dictionary:
 		var refreshed := entry(unit, option, int(old.copies), composition_choice)
 		if old.has("source_scope") and not unit.has("source_scope"): refreshed.source_scope = str(old.source_scope)
 		if old.has("visual_variants"): refreshed.visual_variants = old.visual_variants.duplicate(true)
+		if old.has("visual_model_overrides"): refreshed.visual_model_overrides = old.visual_model_overrides.duplicate(true)
 		if old.has("enhancement_id"): refreshed.enhancement_id = old.enhancement_id
 		updated.entries[index] = refreshed
 	updated.catalog_digest = catalog.digest

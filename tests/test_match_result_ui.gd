@@ -2,6 +2,7 @@ extends SceneTree
 
 const Result = preload("res://scripts/match_result.gd")
 const Restart = preload("res://scripts/match_restart.gd")
+const Launch = preload("res://tests/fixtures/controlled_model_preparer.gd")
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -57,13 +58,16 @@ func run() -> void:
 	check(game._rematch_local("user://result-ui-tests"), "Local rematch starts after preserving the result")
 	check(var_to_str(game.state) == initial and game._save_config() == config and game.attack_draft.is_empty(), "Rematch restores the same fresh scenario/options instead of edited menu controls")
 	check(not game.match_result_panel.visible and game.journal.entries.is_empty() and game.journal.pending_dice.is_empty(), "New match has fresh presentation and history")
-	game._start_guided_first_session()
+	check(Launch.start_tactical_with_fallbacks(game), "Guided setup continues through the public available-models action")
 	check(game.saved_army_mode and game.state.has("saved_army_setup"), "Guided sample provides a saved-army setup")
 	check(game.guided_first_session and not game.checked_rosters_choice.button_pressed and not game.official_mission_choice.button_pressed, "Guided sample starts from current local profiles without the legacy roster check or incompatible CA mission")
 	var guided_armies: Dictionary = game.state.saved_army_setup.get("armies", {})
 	check(guided_armies.size() == 2 and guided_armies[1].faction == "Space Marines" and guided_armies[2].faction == "Space Marines" and game.state.training_points == {1: 290, 2: 235}, "Initial tactical training uses the two distinct current Marine forces")
 	game._open_home()
 	game._menu_start_guided()
+	if game.local_visual_preflight_pending:
+		game.model_imports.finish_preparation(false)
+		game.main_menu.guided_button.pressed.emit()
 	check(not game.main_menu.visible and game.guided_first_session and game.combat_enabled, "Title-screen guided launch closes the menu after its local match starts")
 	var setup: Dictionary = game.state.get("saved_army_setup", {}).duplicate(true)
 	var pack_hash: String = game.state.pack_hash

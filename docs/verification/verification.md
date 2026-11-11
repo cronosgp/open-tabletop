@@ -57,7 +57,7 @@ python tools/verify.py --godot /path/to/Godot_v4.7.2-stable_win64_console.exe --
 
 ### Deferred: cross-machine bounded-match exercise
 
-Separate-machine LAN validation is a final-integration gate, distinct from loopback. `test_current_reference_match_network.gd` can run on two computers. Use the same working-tree revision and Godot 4.7.2 build on both machines. On the host, run:
+Separate-machine LAN validation is a final-integration gate, distinct from loopback. `test_current_reference_match_network.gd` can run on two computers. Use the same working-tree revision and Godot 4.7.2 build on both machines. Set `APPDATA` on Windows or `XDG_DATA_HOME` on Linux to an isolated test directory before launching Godot. The host fixture requires empty save slots because it writes through the normal match save path. On the host, run:
 
 ```text
 godot --headless --path . --script tests/test_current_reference_match_network.gd -- --host-test --cross-machine-test

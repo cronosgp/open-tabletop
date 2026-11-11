@@ -169,7 +169,7 @@ static func choice_error(state: Dictionary, player: int, squad: int, revision: i
 		if window.kind == "after_charge_roll" and window.get("linebreaker_onslaught", false) and not StormlanceEnhancements.linebreaker_onslaught_active(state, squad): return "Linebreaker Onslaught is no longer active for this Charge."
 		if window.kind == "after_advance_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("overcharged_engines", false) or window.get("sudden", false) or window.get("supercharged", false) or window.get("honour_vigilance", false) or window.get("wrath_chapter", false) or window.get("stormseers_wisdom", false) or window.get("righteous_fervour", false) or window.get("bestial_fury", false)): return "This roll belongs to another unit or ability."
 		if window.kind == "after_advance_roll" and window.get("righteous_fervour", false) and not StormlanceEnhancements.righteous_fervour_active(state, squad): return "Righteous Fervour is no longer active for this Advance."
-		if state.phase != ("movement" if window.kind == "after_advance_roll" else "charge"): return "A fase da rolagem mudou."
+		if state.phase != ("movement" if window.kind == "after_advance_roll" else "charge"): return "This roll's phase has changed."
 	elif window.kind in ["after_hit_roll", "after_wound_roll"]:
 		if not state.stratagems.get("attack_rerolls", false) or squad != window.squad or state.get("pending_attack", {}).is_empty(): return "This decision does not match the pending attack."
 	elif window.kind == "after_save_roll":
@@ -211,7 +211,7 @@ static func eligibility_error(state: Dictionary, player: int, squad: int, strata
 	if not state.squads.has(squad) or state.squads[squad].owner != player: return "Invalid stratagem target."
 	if not Morale.can_target_with_friendly_stratagem(state, squad): return "A Battle-shocked unit cannot be targeted by friendly stratagems."
 	var rule: Dictionary = SUPPORTED[stratagem]
-	if state.cp.get(player, 0) < int(rule.cost) - UnitAbilities.potential_discount(state, player, squad): return "CP insuficiente: este estratagema custa %d CP." % int(rule.cost)
+	if state.cp.get(player, 0) < int(rule.cost) - UnitAbilities.potential_discount(state, player, squad): return "Not enough CP: this stratagem costs %d CP." % int(rule.cost)
 	for use: Dictionary in state.stratagems.uses:
 		if use.player != player: continue
 		if use.stratagem == stratagem and rule.once_per_battle: return "You have already used Insane Bravery this battle."

@@ -6,6 +6,7 @@ const Decisions = preload("res://scripts/edition_11/pending_decision_registry.gd
 const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
 const Frames = preload("res://scripts/edition_11/resolution_frame.gd")
+const Launch = preload("res://tests/fixtures/controlled_model_preparer.gd")
 var failures := 0
 var pending_recovery_checked := false
 
@@ -25,7 +26,7 @@ func run() -> void:
 	root.add_child(game)
 	game.match_save_path = "user://matches/tactical-test-%s.save" % Time.get_ticks_usec()
 	game.match_journal_directory = "user://matches/journals/tactical-test-%s" % Time.get_ticks_usec()
-	game.main_menu.guided_button.pressed.emit()
+	check(Launch.start_tactical_with_fallbacks(game), "Asynchronous tactical preparation can continue with available models")
 	check(game.saved_army_mode and game.guided_first_session, "The initial action starts the tactical match")
 	check(game.manual_allocation and game.defender_choice.button_pressed and game.state.get("manual_allocation", false), "Guided entry retains defender-owned recipient selection through match materialization")
 	check(game.state.get("training_points", {}) == {1: 290, 2: 235}, "Points come from the current asymmetric formations")
@@ -43,7 +44,8 @@ func run() -> void:
 	var initial_experiments := Training.Tactical.experiment_progress(game.state)
 	check(not initial_experiments.leader and not initial_experiments.stratagem and not initial_experiments.plasma and not initial_experiments.bladeguard and "PROGRESS: 0 / 4 observed" in game.first_session_experiments.text and "DONE = observed" in game.first_session_experiments.text and "[OPEN] [COMMAND]" in game.first_session_experiments.text, "The tactical checklist starts empty, explains its status labels and marks each optional experiment as open")
 	check(not game.tactical_opportunity_label.visible, "The command-panel opportunity cue stays hidden during preparation")
-	check("290" in game.main_menu.training_summary.text and "235" in game.main_menu.training_summary.text and "Practice:" in game.main_menu.training_summary.text and "stratagems" in game.main_menu.training_summary.text and "Hazardous" in game.main_menu.training_summary.text and "stances" in game.main_menu.training_summary.text, "The title screen discloses both totals and the four practice opportunities")
+	check("290" in game.main_menu.training_summary.text and "235" in game.main_menu.training_summary.text and "Practice:" in game.main_menu.training_summary.text and "stratagems" in game.main_menu.training_summary.text and "Hazardous" in game.main_menu.training_summary.text and "stances" in game.main_menu.training_summary.text, "The title screen still carries both totals and the four practice opportunities")
+	check(game.main_menu.training_teaser == null and game.main_menu.training_swap_choice.visible == false and "Practice:" in game.main_menu.training_swap_choice.tooltip_text and "290" in game.main_menu.training_swap_choice.tooltip_text, "The dataslate drops the teaser line and keeps the full training summary on the swap tooltip")
 	# Exercise both leader associations through projected commands, without editing state.
 	for owner: int in [1, 2]:
 		var leader := -1
@@ -147,7 +149,7 @@ func run() -> void:
 	game._refresh_first_session_guide()
 	check(game.resume_succeeded and game.state.get("training_experiments", {}) == post_experiment_progress and game.rng.state == post_experiment_rng and "PROGRESS: 1 / 4 observed" in game.first_session_experiments.text, "Resume preserves observed experiment progress and its checklist presentation")
 	game._set_training_swap(true)
-	game._start_guided_first_session()
+	check(Launch.start_tactical_with_fallbacks(game), "Swapped tactical forces pass the same available-models continuation")
 	check(game.state.get("training_points", {}) == {1: 235, 2: 290}, "Swapping sides reverses forces without changing their composition")
 	check(game._picked_army(1).id == Training.Tactical.ASSAULT_ID and game._picked_army(2).id == Training.Tactical.FIRE_ID, "The selected lists agree with swapped ownership")
 	print("Tactical training checks: %d failures" % failures)

@@ -1,8 +1,54 @@
 # Gameplay UI
 
+Configuration workspaces, title overlays, settings, guide, model table, army
+builder, model import, match chrome, Tools popup, handoff, results and combat
+tray share the Imperial Dataslate dark/gold theme and credited game-icons.
+**Armies** on the dataslate
+bottom bar opens the library and persistent catalog/roster/inspector editor;
+**New match** opens both side selectors in a larger workspace. The title screen
+keeps only the side-swap control under **Start tactical training** (full force
+summary stays on hover tooltips) without a separate Training details or Army
+Builder primary button. ActionButton / PrimaryButton theme variations are shared
+with in-match Army Preparation controls.
+Settings has Display, Controls and Presentation categories with persistent
+Apply/Revert. Guide has searchable topics. See the
+[Army Builder guide](army-builder.md),
+[icon attribution](../../assets/ui/icons/dataslate/ATTRIBUTION.md) and
+[redesign record](../project/ui-redesign.md) for the changed layout and verification
+boundaries. Successful local preparation now closes the setup workspace and reveals
+the table. Cancelling preparation or changing sides prevents an older completion
+from starting a match; when models remain unavailable, the existing explicit
+available-models continuation stays visible. Configuration navigation also maps
+controller A to confirm, B to Back, the D-pad to directions, and shoulders to
+previous/next focus. Existing keyboard and gameplay bindings retain their meanings.
+
 The title screen includes an **Exit** button that closes the application.
 
-The game opens on a dedicated title screen over the existing 3D battlefield. On first launch, an optional setup asks for a local `ForceOrg.json` model catalog. **Continue without models** keeps automatic downloads off for other local matches. Starting tactical training enables and saves downloads for all six unit types. Compatible ForceOrg miniatures for selected armies download as local match setup begins. The title screen's primary action is **Start tactical training** when no compatible local save exists; a compatible save adds **Continue saved match**. The training summary shows both catalog-derived totals and offers **Swap training sides**. **New match** opens the existing setup flow. **Guide** opens a read-only field guide before a match; it explains the turn rail, controls, optional Keep-result and re-roll costs, the difference between source text and implemented scope, and offers the weapon ability glossary. **Results** opens a read-only list of result summaries explicitly saved on this computer, newest first. Search covers scenario, outcome, score, round, mission, scope and unit names; the selected summary can be copied. The browser distinguishes an empty folder, a location that cannot be opened and damaged or unsupported JSON files. It does not resume or change a match. **Settings** is also available before starting. Armies, Models and Tools remain available through secondary navigation when no match is active. During a match, the board is the primary workspace and contextual commands appear in a collapsible panel on its right edge. The menu, settings, help, mission overview and battle log open separate overlays.
+The game opens on a dedicated Imperial Dataslate title screen over the existing 3D
+battlefield: left branding panel, right primary actions, and a bottom toolbar for
+Armies, Miniatures, Training Tools, Results, Guide and Exit. On first launch, an
+optional setup asks for a local `ForceOrg.json` model catalog. **Continue without
+models** keeps automatic downloads off for other local matches. Starting tactical
+training enables and saves downloads for all six unit types. Compatible ForceOrg
+miniatures for selected armies download as local match setup begins. The title
+screen's primary action is **Start tactical training** when no compatible local
+save exists; a compatible save adds **Continue saved match** / **Saved matches
+(N)** as the gold primary control. A subtle **Swap training sides** control sits under Start tactical training; the
+full force summary remains on hover tooltips. **New match** opens the existing setup flow. **Guide**
+opens a read-only field guide before a match; it
+explains the turn rail, controls, optional Keep-result and re-roll costs, the
+difference between source text and implemented scope, and offers the weapon
+ability glossary. **Results** opens a read-only list of result summaries
+explicitly saved on this computer, newest first. Search covers scenario, outcome,
+score, round, mission, scope and unit names; the selected summary can be copied.
+The browser distinguishes an empty folder, a location that cannot be opened and
+damaged or unsupported JSON files. It does not resume or change a match.
+**Settings** is also available before starting. Armies, Miniatures and Training
+Tools stay on the bottom toolbar when no match is active; there is no duplicate
+Army Builder control in the primary action stack. During a match, the board is
+the primary workspace and contextual commands appear in a collapsible panel on
+its right edge. The menu, settings, help, mission overview and battle log open
+separate overlays.
 
 ## Title screen and combat HUD
 
@@ -16,7 +62,7 @@ The combat HUD stays above the board and remains fixed while details scroll. Its
 
 Full profiles, equipment, ability effects, mission state, raw dice and technical session data remain accessible through tooltips, the technical-details foldout, completed result details, dice tray and Battle log. The attack forecast remains conditional and separate from resolved damage and recorded dice. The HUD only presents engine state; it does not alter validators, host authority or game state.
 
-In local play, a change in decision owner opens a full-screen handoff for the receiving player. The first local state uses Player 1 as the seat that opened the match, so starting or resuming directly into a Player 2 decision opens the same handoff. The prompt names the receiving player and offers Continue as Player N; the decision stays hidden until they continue. Escape opens the local match menu without revealing the pending decision; returning to the match restores the handoff. After confirmation, focus moves to the current command controls. In LAN play, the non-owner continues to see the waiting state and does not receive the local handoff.
+In local play, a change in decision owner opens a full-screen handoff for the receiving player. The first local state uses Player 1 as the seat that opened the match, so starting or resuming directly into a Player 2 decision opens the same handoff. The prompt names the receiving player and offers **Continue as Player N**. The decision stays hidden until they continue. Escape or Cancel opens the local match menu. Returning restores a pending handoff or resumes the already acknowledged seat. After confirmation, focus moves to the current command controls. LAN play uses the waiting state for the player who is waiting to act.
 
 The title screen and in-match **Menu** both offer **Settings**. The in-match menu also offers **Return to current match**, **Save match to slot** and **Exit match to title screen**. Exit ends the current session and returns to the title screen; save first if you want to resume later. Workshop and training tools are unavailable until leaving the match. Returning closes the local overlay and preserves the current phase, selection and command panel. LAN continues while any local screen is open. Settings gather window mode, resolution, interface size (100%, 110% or 120%), six remappable keyboard actions (Datasheet, Focus and four camera pan directions), model wounds/status markers, board/camera motion, decision framing and dice animation. Select a binding and press an unmodified key; if another listed action already uses it, those bindings swap. Reserved menu-navigation keys are rejected, and Escape cancels capture. Reset controls stages the defaults. Interface size scales the 2D controls and text while leaving the 3D tabletop at its current scale. **Apply** saves local preferences and activates staged bindings; **Revert** returns to the last applied values. The binding list scrolls while Apply/Revert remain available. Sound controls are not shown until the game has audio. Saved-match resume availability is computed by the normal save compatibility checks for configuration, rules/data pack, state structure and journal integrity; merely finding a save file does not enable Continue. If the primary snapshot is missing, corrupted or structurally invalid, the slot browser identifies the previous backup and its timestamp before the usual compatibility check. A recoverable backup is also called out under **Continue saved match** when it is the only local save. A save from a newer game version remains a compatibility error. The local save browser keeps selected-slot feedback separate from the current match's resumability notice, so an unassigned autosave warning does not hide whether a slot is empty, compatible or damaged.
 
@@ -85,6 +131,8 @@ Six local suites passed for this increment: guided attacks, contextual action gu
 
 ## Results and history
 
+In **Tools → Log**, a re-roll record shows the original and final dice, the selected die when recorded, and the player who made the decision when the record identifies their unit. The completed attack lists the recipients in allocation order with applied, prevented and discarded damage for each packet. **Show technical record** includes the recorded D6 order.
+
 The latest local/host notice appears before the selection card and action controls. It is separate from the completed-result summary and historical events; a notice is not proof that an entire attack has finished.
 
 The latest attack summary names each attacking unit, weapon and target, then reports grouped target damage and destroyed models, plus prevention and discarded excess when present. The compact tray summary is limited to four lines, with the full summary available as a tooltip; it orders saves, applied damage/casualties and then separate Hazardous losses. During an optional roll decision, the same attacker → weapon → target context remains visible even when the defender owns the choice. Expanded details expose the recorded final D6 faces by stage; they are the host/local resolver result, not a new simulated roll. The animation now holds each tile at a blank rolling face before revealing its recorded value and can be disabled in Settings. The battle log offers the full per-model assignment and attack pool record; its event view uses weapon/target outcome cards for attacks and one round/phase/active-player card per non-attack journal message. The technical record retains full messages, state changes and D6 order. Hazardous wounds lost by the attacker, prevented wounds and unallocated discarded wounds remain separate from defending-target losses. During another pending attack the previous result is identified as previous; partial pending pools are not summarized as complete.
@@ -139,23 +187,27 @@ Default equipment is ready without any extra step. **Customize equipment** stays
 
 The Play tab keeps round/phase, decision owner, objective score and connection in the fixed top strip. The selected unit/model summary now sits in a bordered compact card; phase actions stay contextual, while attack forecasts remain conditional and resolved damage/dice remain separate. The tab stays narrow enough to keep the board visible.
 
-Armies opens a profile-scoped library with points, unit count and a selected roster detail. Editing opens as a focused view with unit composition, copies and per-miniature visual choices. A visual assignment is saved in the local army profile; the rules admission path constructs a canonical selection from rule fields only, so appearance data does not enter match state or LAN snapshots. Changing a unit's model count clears its saved points until recalculated. Saving a planned list does not claim official army legality.
+Armies opens a profile-scoped library with points, unit count and a selected roster detail. Editing opens as a focused view with unit composition, copies, a saved Intercessor Sergeant rifle/melee choice per unit copy, and one shared visual choice per unit copy. The saved Sergeant equipment is validated and enters the canonical gameplay roster; the existing match-preparation controls can still change it. The preview follows the chosen equipment when a matching local sculpt is ready. That role sculpt takes priority over a per-model visual fallback; other models inherit the unit sculpt and paint unless the player selects a reviewed override. Visual assignments are saved in the local army profile; rules admission removes shared appearances, per-model overrides and palettes before constructing the canonical selection, so cosmetic data does not enter match state or LAN snapshots. Changing a unit's model count clears its saved points until recalculated. Saving a planned list does not claim official army legality.
 
-The **Download unit models** action filters the scanned ForceOrg/TTS catalog to compatible complete OBJ variants for the selected unit and downloads missing variants to the local model cache. Each miniature can use a different downloaded variant. Unsupported formats, missing URLs or failed downloads keep that slot on its default miniature and report the reason/status. Existing global unit visuals remain the fallback. Imported assets and file paths remain in local settings/cache; no model is added to the repository.
+In the army builder’s **Appearance** tab, assign one variant to a unit copy or keep **Automatic appearance**. The selected model has a sculpt fallback, with **Use unit appearance** as the default. The Intercessor Sergeant's equipment-role sculpt takes priority whenever a matching local model is ready. **Prepare appearances** loads the selected choice and any fallbacks, or a small set of compatible sculpts. **Automatically prepare added units** opts into background preparation during assembly. Add reviewed paint choices to the army palette to cycle them between copies of the same unit type. Local saved-list matches with automatic model preparation enabled prepare selected visuals and mapped Sergeant variants before opening the board; other appearance assignments stay local. See the [ForceOrg appearance workflow](../data/forceorg-import.md#per-unit-appearances).
 
 The library shows the active local profile only. Existing saved armies remain readable without appearance fields; their empty visual slots are initialized when edited. The saved roster schema does not require a version migration because visual variant IDs are optional local presentation fields and admission strips them before match setup.
 
 The army-preparation interaction was checked in Godot 4.7.2. Focused suites reported zero assertion failures for `test_choice_ownership_ui`, `test_match_result_ui`, `test_current_unit_abilities`, `test_terminator_squad_current`, `test_local_armies_models`, `test_gameplay_layout`, `test_waiting_activity_ui` and `test_guided_turn_ui`. The repository verification wrapper still reports process failure when Godot emits renderer/ObjectDB cleanup leak diagnostics at shutdown, despite those zero-failure suite summaries. Captures of the collapsed panel, expanded choices, a confirmed equipment change and the Player 2 handoff are kept in the ignored `.tools/` folder. The saved-army match entry was rendered and inspected at both 1280×800 and 1024×768; the Start local match action remains visible at both sizes. The LAN army-selection panel was also rendered after the workspace reparenting fix. Guided Step 4 was rendered with its Homer X/Z controls, confirmation and finish action visible. A separate 1920×1080 review remains pending.
 
-## D4 camera focus pilot
+## Match camera
 
-The combat HUD offers **Focus** when a miniature is selected. Clicking it or pressing **F** eases the local camera toward the center of that miniature's visible unit. It uses the board positions already presented in the scene, keeps the current camera height, angle and zoom, and does not move models or submit a match action. The button is disabled without a visible selection. The same HUD names the current phase on the turn rail and states the next action in one line; Play then shows only that step's options. Automatic framing around the active decision and projectile tracers remain future D4 work.
+Open **Tools** for **Board overview**, **Selected unit**, **Active action**, and both player-side views. Board overview fits the table to the clear board area where space allows. Selected unit and the configured Focus binding frame the chosen miniature's living unit. Active action frames the models involved in the current decision when it has a board subject. These views preserve selection and pending orders.
 
 With **Animate board feedback** enabled in Play, state changes can briefly ease a unit's models to their new positions, float a wound delta above a damaged or restored model, or mark a destroyed model as **OUT**. The toggle disables these presentation effects. Cues are derived from the resolved model state and do not perform dice rolls. Projectiles and attack impact flashes are not included yet. This increment has not been run in Godot; movement previews, reanimation, repeated damage and short-window readability still need live review.
 
-A match opens looking from the local seat's side of the table: player 1 from that player's edge in a local or host game, and player 2 from that player's edge on a joined client. Orbit, pan and zoom remain available. Scroll zooms to four table units for a close miniature view, with finer steps near the model. P1 side or P2 side restores that seat's angle and the full table. The edge marks stay visible while the camera turns.
+A match opens looking from the local seat's side of the table. **Player 1 side** and **Player 2 side** change that angle on demand. Orbit, pan and zoom remain available, and the edge marks stay visible while the camera turns.
 
-Decision camera: Help includes Auto-frame decisions and Animate board and camera. Supported unit/target changes frame living models in the board area outside the sidebar, HUD and right guide. Pan, orbit and zoom cancel automatic motion for that decision; selecting another model in the same unit or refreshing a placement does not restart it. F/Focus remains available with automatic framing disabled. Pan/zoom limits scale with board dimensions. This changes presentation only; it does not establish action legality.
+With automatic framing enabled, the camera uses the current action subject and the clear area outside the roster, HUD, action rail and dice dock. Pan, orbit and zoom take control of the current view. Selecting another model in the same unit or refreshing a placement preserves that choice. Manual camera presets remain available with automatic framing disabled.
+
+At wide zoom, player-colored markers identify squads and the selected model keeps its name. At medium zoom, hover or choose an action target to see its unit name. The selected model shows compact wounds and status when the overlay is enabled. Close up, individual wounds and terrain levels appear where they fit. During damage allocation, eligible bases stay highlighted and unrelated labels recede.
+
+During a match, a cancelled or incomplete miniature preparation shows a brief notice and marks **Tools** with an exclamation point. **Tools → Diagnostics → Asset status** shows the preparation details. The marker clears after successful preparation or when the match is reset. **Tools → History** keeps the separate record of gameplay actions.
 
 Resolved attacks have optional, short schematic board feedback: a gold source-to-target arrow and an orange (damage applied) or pale cyan (zero damage) target ring. These summarize completed records, not ballistic paths, individual hits or visibility legality. They share Animate board and camera, expire after 0.8 seconds and do not replay on save restoration or ordinary refresh. Exact results remain in the existing result summary. Weapon-specific projectile/impact effects remain outside this pilot.
 
@@ -171,15 +223,15 @@ While waiting in LAN, Inspect your units lists the local player's living on-boar
 
 Waiting activity: Last recorded shows up to two lines from the latest nonempty public event while waiting in LAN. Its tooltip preserves the full text; View history opens the existing full reader in Help. The HUD separately names the pending decision. This reports recorded activity without implying real-time peer liveness, freshness or action completion beyond the event text.
 
-Army & Models is a centered wide workshop rather than a sidebar workflow. Army and Import models share internal navigation and selected-unit context. Saved and draft rosters show selectable unit rows next to a 3D miniature preview; local mapped assets use existing loaders, and missing assets are labeled placeholders. Roster, Add units, Appearance and Options separate editing tasks. Source & download, Local files and Adjust separate importer tasks. Back to Play restores the compact match sidebar. List validation and visual appearance remain separate from full current-edition army legality.
+Army & Models is a centered wide workshop rather than a sidebar workflow. Army and Import models share internal navigation and selected-unit context. Saved and draft rosters show selectable unit rows next to a 3D miniature preview; local mapped assets use existing loaders, and missing assets are labeled placeholders. Catalog and roster remain visible beside the Unit, Add, Appearance and Army inspector sections. Miniature library, Advanced source, Advanced files and Advanced fit separate browsing from import configuration. Back to Play restores the compact match sidebar. List validation and visual appearance remain separate from full current-edition army legality.
 
-Workshop continuity: Add selects the new roster entry and returns to Roster. Choose appearance next to the preview opens that entry's appearance controls. Saving preserves the selected editor unit and its import context; returning to the saved-library overview reconciles its roster selection. Empty drafts and the read-only overview do not offer the editor-only appearance shortcut.
+Workshop continuity: Add selects the new roster entry and opens its Unit inspector. Choose appearance in the Unit inspector opens that entry's appearance controls. Saving preserves the selected editor unit and its import context; returning to the saved-library overview reconciles its roster selection. Empty drafts and the read-only overview do not offer the editor-only appearance shortcut.
 
 Preview model selects an existing miniature slot without changing its assigned variant. The caption identifies its unit copy and model, and Choose appearance opens that copy's matching assignment. It works in the editor and saved overview, is hidden for unknown composition, and preserves the roster and saved data. Local model-link updates retain the inspected slot.
 
 Save-state feedback appears beside Save: Unsaved changes, Saved locally, a validator reason or retryable write failure. Saved means local persistence only. Preview inspection does not dirty the list, and saving keeps the inspected model. A failed Save a copy preserves the original draft and profile bank for recovery.
 
-Add units separates catalog search from the proposed addition. Its right-hand summary shows composition/copies, added points and projected roster total before submission. Unknown costs remain partial and over-budget additions remain drafts. Candidate selection does not change roster miniature assignments or the importer target; the roster preview returns after adding or leaving Add units.
+The catalog and Add inspector separate search from the proposed addition. Its right-hand summary shows composition/copies, added points and projected roster total before submission. Unknown costs remain partial and over-budget additions remain drafts. Candidate selection does not change roster miniature assignments or the importer target; the roster preview returns after adding or leaving the Add inspector.
 
 Construction catalog policy: Army & Models loads only reconciled local runtime choices; Reload local catalog makes no API request and ignores old API caches. Pending-validation and historical profiles are excluded from new choices, and available sheets accept only declared model counts. Old out-of-scope entries remain explicitly labeled legacy drafts. See construction-catalog-policy.md. Importing a visual never expands the rules catalog.
 

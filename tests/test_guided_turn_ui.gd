@@ -1,5 +1,6 @@
 extends SceneTree
 const Combat = preload("res://scripts/edition_11/combat_scenario.gd")
+const Launch = preload("res://tests/fixtures/controlled_model_preparer.gd")
 
 var failures := 0
 
@@ -29,8 +30,11 @@ func run() -> void:
 	game.saved_army_mode = true
 	game.state.test_winner = 0
 	show_step(game, "charge", "STEP 8 OF 10")
-	check(not game.first_session_panel.visible and game.combat_hud.guide_progress_label.text == "GUIDE 8/10", "Guided progress stays compact in the HUD instead of a persistent Play card")
-	check("2D6" in game.first_session_guide.text and game.first_session_progress.value == 8, "Charge guidance gives the immediate task and correct progress")
+	game.combat_hud._refresh_tools_menu()
+	var tools_menu: PopupMenu = game.combat_hud.tools_button.get_popup()
+	var progress_index := tools_menu.get_item_index(game.CombatHud.Tool.GUIDE_PROGRESS)
+	check(not game.first_session_panel.visible and progress_index >= 0 and tools_menu.get_item_text(progress_index) == "GUIDE 8/10", "Guided progress stays compact in Tools")
+	check("2D6" in game.first_session_guide.text and game.first_session_progress.value == 8 and game.first_session_guide.max_lines_visible < 0 and game.first_session_guide.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING, "Charge guidance gives the complete immediate task and correct progress")
 	show_step(game, "fight", "STEP 9 OF 10", 1, "pile_in")
 	check("pile-in" in game.first_session_guide.text.to_lower(), "Fight guidance follows the current pile-in step")
 	show_step(game, "fight", "STEP 9 OF 10", 1, "attacks")
@@ -66,10 +70,16 @@ func run() -> void:
 	game.state.test_winner = 1
 	game._refresh_first_session_guide()
 	check(game.first_session_heading.text == "MATCH ENDED" and game.first_session_progress.value == 8, "An early match ending does not claim the first-turn steps were completed")
-	game._start_guided_first_session()
+	if not Launch.start_tactical_with_fallbacks(game):
+		check(false, "The guided launch accepts its controlled miniature preflight")
+		game.queue_free()
+		await process_frame
+		quit(1)
+		return
 	check(game.state.get("training_points", {}) == {1: 290, 2: 235}, "The initial training uses distinct current-catalog forces")
 	check(game.core_stratagems and game.combat_doctrines and not game.awakened_dynasty and not game.reanimation_protocols, "Tactical training enables Marine choices without historical Necron options")
 	# The former mirror remains independently selectable for its Homer regression.
+	game.auto_models.set_pressed_no_signal(false)
 	for owner: int in [1, 2]:
 		var picker: OptionButton = game.saved_army_pickers[owner]
 		for index in range(picker.item_count):

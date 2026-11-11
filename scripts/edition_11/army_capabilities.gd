@@ -10,7 +10,10 @@ const UnitAbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalo
 const ID := "mixed-core-profiles-v82-necron-warriors"
 const DIRECTORY := "res://data/imported/starter-11e-v1"
 const MAX_SQUADS := 6
+## Saved current-catalog lists use this ceiling. Direct core-profile calls keep MAX_SQUADS.
+const MATCH_UNIT_CAP := 24
 const STANDARD_COPY_LIMITS := {"incursion": 2, "strike_force": 3}
+const INTERCESSOR_SQUAD_ID := "40kdc:11e:adeptus-astartes:intercessor-squad"
 const SPECS := {
 	"crusade-ancient": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_28"},
 	"execrator": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_28"},
@@ -225,7 +228,7 @@ const SPECS := {
 	"canoptek-spyders": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000551", "source_name": "Canoptek Spyders", "source_scope": "Necrons App v1.2"},
 	"monolith": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000552", "source_name": "Monolith", "source_scope": "Necrons App v1.2"},
 	"annihilation-barge": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000553", "source_name": "Annihilation Barge", "source_scope": "Necrons App v1.2"},
-	"doomsday-ark": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000554", "source_name": "Doomsday Ark", "source_scope": "Necrons App v1.2"},
+	"doomsday-ark": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "gun": ["doomsday-cannon", "Doomsday cannon"], "blade": ["armoured-bulk", "Armoured bulk"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000000554", "source_name": "Doomsday Ark", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
 	"transcendent-ctan": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000555", "source_name": "Transcendent C’tan", "source_scope": "Necrons App v1.2"},
 	"tesseract-vault": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000556", "source_name": "Tesseract Vault", "source_scope": "Necrons App v1.2"},
 	"obelisk": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000557", "source_name": "Obelisk", "source_scope": "Necrons App v1.2"},
@@ -335,6 +338,8 @@ static func current_catalog_choice(unit: Dictionary) -> Dictionary:
 
 static func construction_readiness_note(source: String) -> String:
 	match source:
+		"doomsday-ark":
+			return "Necrons App v1.2 local export: the one-model profile costs 200 points for each of the first two copies and 230 points from the third copy. It has a doomsday cannon, two gauss flayer arrays, armoured bulk and a 4+ invulnerable save on a 60 mm flying base. Deadly Demise D3, Reanimation Protocols, Overwhelming Obliteration and Damaged 5 are bound to the current Doomsday Ark. Overwhelming Obliteration gives the doomsday cannon Devastating Wounds until the end of the turn when the model Remains Stationary in its Movement phase. While the model has 1-5 wounds remaining, each of its attacks subtracts 1 from the Hit roll. Full Necron roster legality remains separate."
 		"canoptek-doomstalker":
 			return "Necrons App v1.2 local export: the one-model profile costs 130 points. It has a doomsday blaster, twin gauss flayer, Doomstalker limbs and a 4+ invulnerable save. Deadly Demise D3, Reanimation Protocols, Sentinel Construct and Damaged 4 are bound to the current Canoptek Doomstalker. Sentinel Construct scores Overwatch hits on unmodified 5+. While the model has 1-4 wounds remaining, each of its attacks subtracts 1 from the Hit roll. Full Necron roster legality remains separate."
 		"hexmark-destroyer":
@@ -431,7 +436,16 @@ static func resolve(faction: String, identity: String, prefer_current_reference:
 			var unit := {"id": canonical, "name": current.name, "stats": current.stats.duplicate(true), "keywords": current.keywords.duplicate(), "base": {"shape": "circle", "radius_inches": current.base_radius_inches}}
 			var gun: Dictionary = current.ranged[0].profiles.values()[0].duplicate(true) if not current.ranged.is_empty() else {}
 			var blade: Dictionary = current.melee[0].profiles.values()[0].duplicate(true) if not current.melee.is_empty() else {}
-			if source == "canoptek-doomstalker": unit.fixed_ranged_weapons = current.ranged.duplicate(true)
+			if source in ["canoptek-doomstalker", "doomsday-ark"]:
+				var expanded_ranged: Array = []
+				for ranged_weapon: Dictionary in current.ranged:
+					var copies := maxi(1, int(ranged_weapon.get("count", 1)))
+					for copy_index in copies:
+						var ranged_copy: Dictionary = ranged_weapon.duplicate(true)
+						ranged_copy.erase("count")
+						if copies > 1: ranged_copy.id = "%s-%d" % [str(ranged_weapon.get("id", "weapon")), copy_index + 1]
+						expanded_ranged.append(ranged_copy)
+				unit.fixed_ranged_weapons = expanded_ranged
 			unit.source_scope = str(current.get("source_scope", ""))
 			return {"error": "", "unit": unit, "spec": spec, "cost": current.points, "models": current.models,
 				"weapons": {"gun": gun, "blade": blade}, "uses_current_reference": true,
@@ -486,14 +500,21 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 	var sheet_epic_hero_counts: Dictionary = {}
 	var sheet_repetition_keywords: Dictionary = {}
 	for entry: Variant in selection.entries:
-		if not entry is Dictionary or entry.size() < 3 or entry.size() > 5 or not entry.get("definition_id") is String or not Roster.integer(entry.get("models"), 1, 20) or not Roster.integer(entry.get("copies"), 1, unit_cap): return {"error": "Invalid mixed army entry."}
+		if not entry is Dictionary or entry.size() < 3 or entry.size() > 7 or not entry.get("definition_id") is String or not Roster.integer(entry.get("models"), 1, 20) or not Roster.integer(entry.get("copies"), 1, unit_cap): return {"error": "Invalid mixed army entry."}
 		for key: Variant in entry:
-			if str(key) not in ["definition_id", "models", "copies", "enhancement_id", "composition_choice_id"]: return {"error": "Unsupported mixed army entry field: " + str(key)}
+			if str(key) not in ["definition_id", "models", "copies", "enhancement_id", "composition_choice_id", "intercessor_sergeant_loadouts", "intercessor_rifle_choice", "intercessor_melee_choice"]: return {"error": "Unsupported mixed army entry field: " + str(key)}
 		if entry.has("enhancement_id") and not entry.enhancement_id is String: return {"error": "Enhancement ID must be a string."}
 		if entry.has("composition_choice_id") and (not entry.composition_choice_id is String or entry.composition_choice_id.is_empty() or entry.composition_choice_id.length() > 64): return {"error": "Invalid source-defined unit composition choice."}
 		var enhancement_id := str(entry.get("enhancement_id", ""))
 		if enhancement_id != "" and int(entry.copies) != 1: return {"error": "Assign an enhancement to one individual unit entry."}
 		var identity := canonical_id(selection.faction, entry.definition_id)
+		if entry.has("intercessor_sergeant_loadouts"):
+			if identity != INTERCESSOR_SQUAD_ID or entry.has("intercessor_rifle_choice") or entry.has("intercessor_melee_choice") or not entry.intercessor_sergeant_loadouts is Array or entry.intercessor_sergeant_loadouts.size() != int(entry.copies): return {"error": "Sergeant equipment choices are supported only for each selected Intercessor Squad copy."}
+			for loadout: Variant in entry.intercessor_sergeant_loadouts:
+				if not Roster.valid_intercessor_sergeant_loadout(loadout): return {"error": "Invalid Intercessor Sergeant equipment choice."}
+		if entry.has("intercessor_rifle_choice") or entry.has("intercessor_melee_choice"):
+			var single_loadout := {"rifle_choice": entry.get("intercessor_rifle_choice", ""), "melee_choice": entry.get("intercessor_melee_choice", "")}
+			if identity != INTERCESSOR_SQUAD_ID or entry.has("intercessor_sergeant_loadouts") or not Roster.valid_intercessor_sergeant_loadout(single_loadout): return {"error": "Invalid canonical Intercessor Sergeant equipment choice."}
 		if enhancement_id != "" and UnitAbilityCatalog.cannot_receive_enhancements(identity): return {"error": "This datasheet cannot be given Enhancements: " + identity}
 		var resolved: Dictionary = definitions.get(identity, {})
 		if resolved.is_empty(): resolved = resolve(selection.faction, identity, prefer_current_reference)
@@ -542,21 +563,34 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 			enhancement_counts[enhancement_id] = true
 			variant.cost = int(variant.cost) + int(StormlanceEnhancements.RECORDS[enhancement_id].cost)
 			variant.enhancement_id = enhancement_id
-		var configuration := "%s:%02d:%s" % [identity, int(entry.models), enhancement_id]
-		if not composition_choice_id.is_empty(): configuration += ":" + composition_choice_id
-		configurations[configuration] = variant
+		var intercessor_sergeant := identity == INTERCESSOR_SQUAD_ID
+		var default_rifle := "bolt-rifle"
+		var default_melee := "knives-and-fists"
+		for copy_index in range(int(entry.copies)):
+			var copy_variant := variant.duplicate(true)
+			copy_variant.definition_id = identity
+			copy_variant.models = int(entry.models)
+			if intercessor_sergeant and (entry.has("intercessor_sergeant_loadouts") or entry.has("intercessor_rifle_choice")):
+				var loadout := Roster.intercessor_sergeant_loadout(entry, copy_index) if entry.has("intercessor_sergeant_loadouts") else {"rifle_choice": str(entry.intercessor_rifle_choice), "melee_choice": str(entry.intercessor_melee_choice)}
+				if str(loadout.rifle_choice) != default_rifle or str(loadout.melee_choice) != default_melee:
+					copy_variant.intercessor_rifle_choice = str(loadout.rifle_choice)
+					copy_variant.intercessor_melee_choice = str(loadout.melee_choice)
+			var configuration := configuration_key(copy_variant)
+			configurations[configuration] = copy_variant
+			if resolved.get("uses_current_reference", false):
+				var premium := int(StormlanceEnhancements.RECORDS[enhancement_id].cost) if enhancement_id != "" else 0
+				var banner_cost := int(composition_choice.get("wargear_cost", 0))
+				var standard_cost := int(source_points.get("points_by_models", current_profile_data.get("points_by_models", {})).get(entry.models, variant.cost - premium - banner_cost)) + premium + banner_cost
+				var second_sizes: Dictionary = source_points.get("second_plus_points_by_models", current_profile_data.get("second_plus_points_by_models", {}))
+				var second_base := int(second_sizes.get(entry.models, standard_cost - premium - banner_cost))
+				var third_sizes: Dictionary = source_points.get("third_plus_points_by_models", current_profile_data.get("third_plus_points_by_models", {}))
+				var fourth_sizes: Dictionary = source_points.get("fourth_plus_points_by_models", third_sizes)
+				pricing[configuration] = {"standard": standard_cost,
+					"second_plus": second_base + premium + banner_cost,
+					"third_plus": int(third_sizes.get(entry.models, second_base)) + premium + banner_cost,
+					"fourth_plus": int(fourth_sizes.get(entry.models, third_sizes.get(entry.models, second_base))) + premium + banner_cost}
+			counts[configuration] = int(counts.get(configuration, 0)) + 1
 		if resolved.get("uses_current_reference", false):
-			var premium := int(StormlanceEnhancements.RECORDS[enhancement_id].cost) if enhancement_id != "" else 0
-			var banner_cost := int(composition_choice.get("wargear_cost", 0))
-			var standard_cost := int(source_points.get("points_by_models", current_profile_data.get("points_by_models", {})).get(entry.models, variant.cost - premium - banner_cost)) + premium + banner_cost
-			var second_sizes: Dictionary = source_points.get("second_plus_points_by_models", current_profile_data.get("second_plus_points_by_models", {}))
-			var second_base := int(second_sizes.get(entry.models, standard_cost - premium - banner_cost))
-			var third_sizes: Dictionary = source_points.get("third_plus_points_by_models", current_profile_data.get("third_plus_points_by_models", {}))
-			var fourth_sizes: Dictionary = source_points.get("fourth_plus_points_by_models", third_sizes)
-			pricing[configuration] = {"standard": standard_cost,
-				"second_plus": second_base + premium + banner_cost,
-				"third_plus": int(third_sizes.get(entry.models, second_base)) + premium + banner_cost,
-				"fourth_plus": int(fourth_sizes.get(entry.models, third_sizes.get(entry.models, second_base))) + premium + banner_cost}
 			var composed_keywords: Array = current_profile_data.get("keywords", []).duplicate()
 			if selection.faction == "Space Marines":
 				sheet_repetition_keywords[identity] = CurrentMarines.roster_keywords(identity.get_slice(":", 3), current_profile_data, {}, marine_detachment)
@@ -565,7 +599,6 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 				sheet_repetition_keywords[identity] = composed_keywords.duplicate()
 			if "EPIC HERO" in composed_keywords:
 				sheet_epic_hero_counts[identity] = int(sheet_epic_hero_counts.get(identity, 0)) + int(entry.copies)
-		counts[configuration] = int(counts.get(configuration, 0)) + int(entry.copies)
 		sheet_counts[identity] = int(sheet_counts.get(identity, 0)) + int(entry.copies)
 	var canonical: Array[Dictionary] = []
 	var warnings: Array[String] = []
@@ -599,6 +632,9 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 		var canonical_entry := {"definition_id": identity, "models": int(resolved.models) if not resolved.get("uses_current_reference", false) else int(configurations[configuration].models), "copies": int(counts[configuration])}
 		if configurations[configuration].has("enhancement_id"): canonical_entry.enhancement_id = str(configurations[configuration].enhancement_id)
 		if configurations[configuration].has("composition_choice_id"): canonical_entry.composition_choice_id = str(configurations[configuration].composition_choice_id)
+		if configurations[configuration].has("intercessor_rifle_choice"):
+			canonical_entry.intercessor_rifle_choice = str(configurations[configuration].intercessor_rifle_choice)
+			canonical_entry.intercessor_melee_choice = str(configurations[configuration].intercessor_melee_choice)
 		canonical.append(canonical_entry)
 		if not resolved.unsupported_abilities.is_empty(): warnings.append(resolved.unit.name + ": " + ", ".join(resolved.unsupported_abilities))
 		if not resolved.get("unsupported_weapon_rules", []).is_empty(): warnings.append(resolved.unit.name + " weapon rules: " + ", ".join(resolved.unsupported_weapon_rules))
@@ -608,6 +644,13 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 	return {"error": "", "selection": {"schema_version": 2, "faction": selection.faction, "entries": canonical, "category": selection.category, "points_limit": int(selection.points_limit)},
 		"total": total, "unit_count": count, "definitions": definitions, "configurations": configurations, "warnings": warnings, "copy_limit_basis": copy_limit_basis,
 		"copy_limit_keyword_context": marine_detachment if roster_context.has("marine_detachment") else "datasheet-keywords"}
+
+static func configuration_key(entry: Dictionary) -> String:
+	var configuration := "%s:%02d:%s" % [str(entry.get("definition_id", "")), int(entry.get("models", 0)), str(entry.get("enhancement_id", ""))]
+	if entry.has("composition_choice_id"): configuration += ":" + str(entry.composition_choice_id)
+	if entry.has("intercessor_rifle_choice") or entry.has("intercessor_melee_choice"):
+		configuration += ":%s:%s" % [str(entry.get("intercessor_rifle_choice", "")), str(entry.get("intercessor_melee_choice", ""))]
+	return configuration
 
 static func reference_army(faction: String) -> Dictionary:
 	if faction not in ["Space Marines", "Necrons"]: return {"error": "No reference army for this faction."}

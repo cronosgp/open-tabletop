@@ -3,6 +3,7 @@ extends PanelContainer
 const AttackFeedback = preload("res://scripts/ui/attack_feedback.gd")
 const DicePipFace = preload("res://scripts/ui/dice_pip_face.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
+const WorkspaceTheme = preload("res://scripts/ui/workspace_theme.gd")
 var heading := Label.new()
 var context_label := Label.new()
 var stage_label := Label.new()
@@ -11,7 +12,6 @@ var dice := HFlowContainer.new()
 var summary := Label.new()
 var outcome_icon = preload("res://scripts/ui/combat_symbol.gd").new()
 var outcome_destroyed := 0
-var stage_strip := HFlowContainer.new()
 var die_detail := Label.new()
 var skip := Button.new()
 var replay := Button.new()
@@ -25,6 +25,10 @@ var final_text := ""
 var animation_enabled := true
 var current_group := -1
 var stage_row := HBoxContainer.new()
+var column: VBoxContainer
+var body_scroll := ScrollContainer.new()
+var body := VBoxContainer.new()
+var controls_row := HFlowContainer.new()
 var dice_scroll := ScrollContainer.new()
 var die_detail_panel := PanelContainer.new()
 var die_detail_content := VBoxContainer.new()
@@ -53,35 +57,37 @@ func _ready() -> void:
 	impact_sound.bus = sfx_bus
 	impact_sound.volume_db = -10
 	impact_sound.stream = _tone(128.0, 0.2, 10.0, 16000.0)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("101a22", 0.98)
-	style.border_color = Color("d9aa4f")
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(8)
-	style.content_margin_left = 14
-	style.content_margin_right = 14
-	style.content_margin_top = 10
-	style.content_margin_bottom = 10
-	add_theme_stylebox_override("panel", style)
-	var column := VBoxContainer.new()
+	theme = WorkspaceTheme.create()
+	add_theme_stylebox_override("panel", WorkspaceTheme.box(WorkspaceTheme.SURFACE, WorkspaceTheme.GOLD, 12, 2, 2))
+	column = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 5)
 	add_child(column)
 	heading.add_theme_font_size_override("font_size", 18)
-	heading.add_theme_color_override("font_color", Color("f2df83"))
-	var title_row := HBoxContainer.new()
+	heading.add_theme_color_override("font_color", WorkspaceTheme.GOLD_HIGHLIGHT)
+	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	heading.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var title_row := HFlowContainer.new()
 	title_row.add_child(heading)
 	expand_button.text = "Hide dice"
 	expand_button.pressed.connect(func(): _set_expanded(not expanded))
+	WorkspaceTheme.decorate_button(expand_button, "focus")
 	title_row.add_child(expand_button)
 	column.add_child(title_row)
+	body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	body_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	body_scroll.follow_focus = true
+	body_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(body_scroll)
+	body.add_theme_constant_override("separation", 5)
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body_scroll.add_child(body)
 	context_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	context_label.max_lines_visible = 2
-	context_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	context_label.max_lines_visible = -1
+	context_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	context_label.add_theme_font_size_override("font_size", 15)
-	column.add_child(context_label)
-	var detail_column := VBoxContainer.new()
-	detail_column.add_theme_constant_override("separation", 5)
+	context_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(context_label)
 	stages.fit_to_longest_item = false
 	stages.item_selected.connect(func(index: int):
 		collapse_when_settled = false
@@ -89,26 +95,27 @@ func _ready() -> void:
 		_set_expanded(true)
 		_show_group(index, true)
 	)
-	detail_column.add_child(stages)
-	stage_label.add_theme_font_size_override("font_size", 17)
+	body.add_child(stages)
+	stage_label.add_theme_font_size_override("font_size", 15)
 	stage_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	stage_label.max_lines_visible = 3
-	stage_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	stage_label.max_lines_visible = -1
+	stage_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	stage_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_row.add_child(stage_icon)
 	stage_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_row.add_child(stage_label)
-	detail_column.add_child(stage_row)
+	body.add_child(stage_row)
 	dice_scroll.custom_minimum_size.y = 72
-	dice_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	dice_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	dice_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	column.add_child(dice_scroll)
-	dice_scroll.add_child(detail_column)
+	dice_scroll.follow_focus = true
+	body.add_child(dice_scroll)
 	dice.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	dice.add_theme_constant_override("h_separation", 6)
 	dice.add_theme_constant_override("v_separation", 6)
-	detail_column.add_child(dice)
+	dice_scroll.add_child(dice)
 	die_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	die_detail.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	# Keep long per-die descriptions in their own bounded scroll area.
 	die_detail.max_lines_visible = -1
 	die_detail.add_theme_font_size_override("font_size", 13)
@@ -117,6 +124,7 @@ func _ready() -> void:
 	die_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	die_detail_heading.text = "SELECTED DIE · Press Enter/Accept to read; use arrows or Page Up/Down; Esc returns."
 	die_detail_heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	die_detail_heading.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	die_detail_heading.add_theme_font_size_override("font_size", 12)
 	die_detail_heading.add_theme_color_override("font_color", Color("9fb2c1"))
 	var die_detail_style := StyleBoxFlat.new()
@@ -140,17 +148,13 @@ func _ready() -> void:
 	die_detail_scroll.focus_exited.connect(func(): die_detail_style.border_color = Color("536874"))
 	die_detail_scroll.visible = false
 	die_detail_content.add_child(die_detail_scroll)
-	column.add_child(die_detail_panel)
+	body.add_child(die_detail_panel)
 	die_detail_scroll.add_child(die_detail)
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	summary.add_theme_font_size_override("font_size", 15)
-	summary.max_lines_visible = 4
-	summary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	summary.max_lines_visible = -1
+	summary.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	stage_strip.add_theme_constant_override("h_separation", 12)
-	stage_strip.add_theme_constant_override("v_separation", 4)
-	stage_strip.visible = false
-	column.add_child(stage_strip)
 	var summary_row := HBoxContainer.new()
 	summary_row.add_theme_constant_override("separation", 8)
 	outcome_icon.kind = "Destroyed"
@@ -158,28 +162,42 @@ func _ready() -> void:
 	outcome_icon.tooltip_text = "Models destroyed in this recorded result."
 	summary_row.add_child(outcome_icon)
 	summary_row.add_child(summary)
-	column.add_child(summary_row)
-	var controls := HFlowContainer.new()
-	column.add_child(controls)
+	body.add_child(summary_row)
+	body.move_child(summary_row, 1)
+	controls_row.add_theme_constant_override("h_separation", 8)
+	controls_row.add_theme_constant_override("v_separation", 8)
+	column.add_child(controls_row)
 	for option: String in ["Normal", "Fast", "Reduced motion"]: speed.add_item(option)
 	speed.tooltip_text = "Presentation speed only. Every rules decision still requires its owner's choice."
 	speed.item_selected.connect(func(_index: int): finish())
-	controls.add_child(speed)
+	controls_row.add_child(speed)
 	skip.text = "Skip animation"
 	skip.tooltip_text = "Finish this presentation now. The recorded result and any pending decision remain unchanged."
 	skip.pressed.connect(finish)
-	controls.add_child(skip)
-	replay.text = "Replay recorded dice"
+	WorkspaceTheme.decorate_button(skip, "close")
+	controls_row.add_child(skip)
+	replay.text = "Replay dice"
 	replay.tooltip_text = "Show the already recorded dice and result again. This does not reroll or change the match."
 	replay.pressed.connect(func(): play())
-	controls.add_child(replay)
-	var replay_note := Label.new()
-	replay_note.text = "Replay shows the saved faces. It does not roll again."
-	replay_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	replay_note.add_theme_font_size_override("font_size", 12)
-	replay_note.add_theme_color_override("font_color", Color("9fb2c1"))
-	column.add_child(replay_note)
+	WorkspaceTheme.decorate_button(replay, "reload")
+	controls_row.add_child(replay)
 	visible = false
+
+func content_height() -> float:
+	var margins := 0.0
+	var style := get_theme_stylebox("panel")
+	if style != null:
+		margins = style.get_content_margin(SIDE_TOP) + style.get_content_margin(SIDE_BOTTOM)
+	var chrome := 0.0
+	var visible_count := 0
+	for child in column.get_children():
+		if not child is Control or not child.visible: continue
+		visible_count += 1
+		if child == body_scroll: continue
+		chrome += child.get_combined_minimum_size().y
+	if visible_count > 1:
+		chrome += column.get_theme_constant("separation") * (visible_count - 1)
+	return margins + chrome + body.get_combined_minimum_size().y
 
 func reset() -> void:
 	if sequence != null: sequence.kill()
@@ -188,7 +206,6 @@ func reset() -> void:
 	visible = false
 	outcome_destroyed = 0
 	outcome_icon.visible = false
-	_refresh_stage_strip(false)
 	stages.disabled = false
 	groups.clear()
 
@@ -207,7 +224,6 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 		signature = ""
 		outcome_destroyed = 0
 		outcome_icon.visible = false
-		_refresh_stage_strip(false)
 		if sequence != null: sequence.kill()
 		stages.disabled = false
 		groups.clear()
@@ -228,14 +244,12 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 	if pending_roll:
 		var names := {"after_hit_roll": "Hits", "after_wound_roll": "Wounds", "after_save_roll": "Saves", "after_damage_roll": "Damage", "after_attack_count_roll": "Attack count", "after_hazardous_roll": "Hazardous", "after_transport_hazard_roll": "Transport Hazard", "after_escape_roll": "Escape hazards", "after_advance_roll": "Advance", "after_charge_roll": "Charge"}
 		heading.text = "Optional · keep or re-roll"
-		context_label.text = "Recorded roll · optional re-roll in Command"
 		var squad := int(window.get("squad", -1))
-		if state.get("squads", {}).has(squad): context_label.text = str(state.squads[squad].name)
 		var current: Dictionary = state.get("pending_attack", {}).get("current", {})
 		var attack_state: Dictionary = state.get("pending_attack", {})
 		var roll_result: Dictionary = current.get("result", {})
 		var checkpoint: Dictionary = current.get("checkpoint", {})
-		var note := "Inspect the dice, then keep or re-roll in Command."
+		var note := "Recorded roll"
 		if window.kind == "after_hit_roll" and roll_result.has("effective_skill"): note = "Skill %d+ · modifier %+d" % [int(roll_result.effective_skill), int(roll_result.get("hit_modifier", 0))]
 		elif window.kind == "after_wound_roll" and roll_result.has("wound_target"): note = "Target %d+ · modifier %+d" % [int(roll_result.wound_target), int(roll_result.get("wound_modifier", 0))]
 		if window.kind == "after_hit_roll" and checkpoint.has("effective_skill"):
@@ -267,7 +281,7 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 		var allocation_optional := allocation_phase == "precision"
 		if allocation_optional: heading.text = "Optional · Precision"
 		elif allocation_phase == "order": heading.text = "Required · choose the next group"
-		elif allocation_phase == "damage": heading.text = "Required · choose a recipient"
+		elif allocation_phase == "damage": heading.text = "Failed save · allocation"
 		else: heading.text = "Required · resolve the decision"
 		context_label.text = str(state.squads.get(allocation.get("target", -1), {}).get("name", "Defending unit"))
 		if allocation.has("weapon"): context_label.text = str(allocation.weapon.get("name", "Weapon")) + " → " + context_label.text
@@ -280,9 +294,8 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 			if cursor < steps.size() and steps[cursor].get("kind", "") == "normal":
 				for group: Dictionary in groups:
 					if group.name == "Saves": group.note = "Save failed · AP %+d · allocation required" % int(allocation.get("weapon", {}).get("ap", 0))
-				final_text = "Save failed · choose a recipient in Command."
-				if allocation.get("phase", "") != "damage": final_text = "Save failed · confirm the damage decision in Command."
-				final_text += "\n%d damage applied so far; this attack's damage is still pending." % int(result.get("damage_applied", 0))
+				final_text = "Save failed · damage is still pending."
+				if int(result.get("damage_applied", 0)) > 0: final_text += "\n%d damage already applied in this attack." % int(result.damage_applied)
 	else:
 		heading.text = "Recorded result"
 		var weapons: Array[String] = []
@@ -329,6 +342,7 @@ func sync(state: Dictionary, window: Dictionary, enabled: bool, presenting: bool
 		if not hazard.get("rolls", []).is_empty():
 			groups.append({"name": "Hazardous", "rolls": hazard.rolls.duplicate(), "note": "%d mortal wounds generated against the attacking unit" % int(hazard.get("total", 0))})
 			final_text += "\nHazardous: %d mortal wounds generated" % int(hazard.get("total", 0))
+		if int(hazard.get("discarded", 0)) > 0: final_text += "\nHazardous: %d unallocated wounds discarded" % int(hazard.discarded)
 		for prevention: Dictionary in hazard.get("prevention", []): _add_prevention_group(prevention)
 	if groups.is_empty(): groups.append({"name": "No dice to reveal", "rolls": [], "note": "Follow the current decision in Command."})
 	collapse_when_settled = not pending_roll and allocation.is_empty()
@@ -398,7 +412,6 @@ func play(start_index: int = 0, collapse_after: bool = false) -> void:
 	summary.text = "Recorded dice · presentation only"
 	summary.tooltip_text = summary.text
 	outcome_icon.visible = false
-	_refresh_stage_strip(false)
 	skip.visible = true
 	replay.visible = false
 	stages.disabled = true
@@ -464,60 +477,6 @@ func _tone(frequency: float, seconds: float, decay: float, level: float) -> Audi
 	wave.data = samples
 	return wave
 
-func _refresh_stage_strip(show_results: bool) -> void:
-	for child in stage_strip.get_children(): child.free()
-	if not show_results:
-		stage_strip.visible = false
-		return
-	var shown := 0
-	for group: Dictionary in groups:
-		var stage_name := str(group.get("name", ""))
-		if stage_name not in ["Hits", "Wounds", "Saves", "Damage"]: continue
-		var entry := HBoxContainer.new()
-		entry.add_theme_constant_override("separation", 4)
-		entry.mouse_filter = Control.MOUSE_FILTER_STOP
-		entry.tooltip_text = _stage_strip_text(group)
-		var icon = preload("res://scripts/ui/combat_symbol.gd").new()
-		icon.kind = stage_name
-		entry.add_child(icon)
-		var caption := Label.new()
-		caption.text = _stage_strip_text(group)
-		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		caption.custom_minimum_size.x = 72
-		caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		caption.add_theme_font_size_override("font_size", 13)
-		if _failed_save_group(group): caption.add_theme_color_override("font_color", Color("ffb0a6"))
-		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		entry.add_child(caption)
-		stage_strip.add_child(entry)
-		shown += 1
-	stage_strip.visible = shown > 0
-
-func _stage_strip_text(group: Dictionary) -> String:
-	var stage_name := str(group.get("name", ""))
-	var note := str(group.get("note", ""))
-	var outcomes: Array = group.get("outcomes", [])
-	var successful := 0
-	var classified := 0
-	for outcome: Variant in outcomes:
-		if not outcome is Dictionary or not outcome.has("success"): continue
-		classified += 1
-		if bool(outcome.get("success", false)): successful += 1
-	if stage_name == "Hits" and classified > 0:
-		return "Hits · %d/%d successful" % [successful, classified] if note.is_empty() else "Hits · %s · %d/%d successful" % [note, successful, classified]
-	if stage_name == "Wounds" and classified > 0:
-		var wounds_total := int(group.get("pool", {}).get("wounds", 0))
-		var wound_counts := "%d/%d successful · %d wounds" % [successful, classified, wounds_total]
-		return "Wounds · %s" % wound_counts if note.is_empty() else "Wounds · %s · %s" % [note, wound_counts]
-	if stage_name == "Saves" and classified > 0:
-		var failed := classified - successful
-		var save_counts := "%d failed · %d passed" % [failed, successful] if failed > 0 else "%d passed" % successful
-		return "Saves · %s" % save_counts if note.is_empty() else "Saves · %s · %s" % [save_counts, note]
-	if stage_name == "Damage":
-		var applied_text := "Damage · %d applied" % int(group.get("applied", 0))
-		return applied_text if note.is_empty() else "%s · %s" % [applied_text, note]
-	return stage_name if note.is_empty() else "%s · %s" % [stage_name, note]
-
 func _apply_outcome_mark() -> void:
 	outcome_icon.visible = outcome_destroyed > 0
 	if outcome_destroyed == 1: outcome_icon.tooltip_text = "1 model destroyed in this recorded result."
@@ -526,11 +485,16 @@ func _apply_outcome_mark() -> void:
 func _settle() -> void:
 	stages.disabled = false
 	if groups.is_empty(): return
-	_show_group(groups.size() - 1, true)
+	var stage_index := groups.size() - 1
+	if signature.begins_with("allocation:"):
+		for index in range(groups.size() - 1, -1, -1):
+			if _failed_save_group(groups[index]):
+				stage_index = index
+				break
+	_show_group(stage_index, true)
 	summary.text = final_text
 	summary.tooltip_text = final_text
 	_apply_outcome_mark()
-	_refresh_stage_strip(true)
 	skip.visible = false
 	replay.visible = true
 	if collapse_when_settled: _set_expanded(false)

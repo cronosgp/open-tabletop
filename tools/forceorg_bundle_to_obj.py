@@ -144,10 +144,12 @@ def _reconcile_material_textures(part_dir: Path) -> None:
 
 
 def _normalize_obj_face_references(mesh_path: Path) -> list[str]:
-    """Normalize UV indices and drop authored normals, which Godot recomputes."""
+    """Keep valid UV and authored normal references."""
     temp_path = mesh_path.with_suffix(mesh_path.suffix + ".normalized")
     vertex_count = 0
     uv_count = 0
+    normal_count = 0
+    invalid_normal_references = 0
     invalid_uv_references = 0
     with mesh_path.open("r", encoding="utf-8", errors="replace") as source, temp_path.open(
         "w", encoding="utf-8", newline="\n"
@@ -159,6 +161,9 @@ def _normalize_obj_face_references(mesh_path: Path) -> list[str]:
                 target.write(line)
             elif words and words[0] == "vt":
                 uv_count += 1
+                target.write(line)
+            elif words and words[0] == "vn":
+                normal_count += 1
                 target.write(line)
             elif words and words[0] == "f":
                 normalized_tokens: list[str] = []
@@ -181,7 +186,17 @@ def _normalize_obj_face_references(mesh_path: Path) -> list[str]:
                         if uv_value == 0 or (uv_value > 0 and uv_value > uv_count) or (uv_value < 0 and -uv_value > uv_count):
                             uv_index = ""
                             invalid_uv_references += 1
-                    normalized_tokens.append(indices[0] + ("/" + uv_index if uv_index else ""))
+                    normal_index = indices[2] if len(indices) > 2 else ""
+                    if normal_index:
+                        try:
+                            normal_value = int(normal_index)
+                        except ValueError:
+                            normal_value = 0
+                        if normal_value == 0 or abs(normal_value) > normal_count:
+                            normal_index = ""
+                            invalid_normal_references += 1
+                    suffix = f"/{uv_index}/{normal_index}" if normal_index else (f"/{uv_index}" if uv_index else "")
+                    normalized_tokens.append(indices[0] + suffix)
                 target.write("f " + " ".join(normalized_tokens) + "\n")
             else:
                 target.write(line)
@@ -197,7 +212,9 @@ def _normalize_obj_face_references(mesh_path: Path) -> list[str]:
 
     warnings: list[str] = []
     if invalid_uv_references:
-        warnings.append(f"Dropped {invalid_uv_references} invalid UV references; normals are recomputed by the runtime.")
+        warnings.append(f"Dropped {invalid_uv_references} invalid UV references.")
+    if invalid_normal_references:
+        warnings.append(f"Dropped {invalid_normal_references} invalid normal references.")
     if uv_count == 0:
         dropped_maps = 0
         for material_path in mesh_path.parent.glob("*.mtl"):

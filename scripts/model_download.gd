@@ -2,6 +2,7 @@ extends Node
 ## Downloads and locally validates ForceOrg OBJ assemblies and supported Unity bundles.
 signal finished(result: Dictionary)
 signal progress(received: int, total: int, label: String)
+signal transfer_completed(elapsed_ms: float, downloaded_bytes: int)
 const Assets = preload("res://scripts/local_models.gd")
 var busy := false
 var jobs: Array[Dictionary] = []
@@ -20,6 +21,9 @@ var converter_job: Dictionary = {}
 var converter_output_path := ""
 var converter_result_path := ""
 var converter_elapsed := 0.0
+var transfer_started_usec := 0
+var downloaded_bytes := 0
+var transfer_reported := false
 
 static func url_error(url: String) -> String:
 	var pattern := RegEx.new()
@@ -72,6 +76,9 @@ func start(entry: Dictionary, directory: String) -> String:
 	active_components.assign(prepared.components)
 	generation += 1
 	position_index = 0
+	transfer_started_usec = Time.get_ticks_usec()
+	downloaded_bytes = 0
+	transfer_reported = false
 	conversion_started = false
 	conversion_queue.clear()
 	conversion_results.clear()
@@ -140,10 +147,12 @@ func _response(result: int, code: int, _headers: PackedStringArray, _body: Packe
 		_finish({"error": "File is empty, unreadable, or larger than 64 MiB."})
 		return
 	file.close()
+	downloaded_bytes += int(FileAccess.get_size(str(completed_job.get("temporary", ""))))
 	position_index += 1
 	if busy and token == generation: _next()
 
 func _complete_files() -> void:
+	_report_transfer_completed()
 	if not conversion_started:
 		for job: Dictionary in jobs:
 			if str(job.kind) != "bundle": continue
@@ -395,6 +404,7 @@ func cancel() -> void:
 	_finish({"error": "Download cancelled. No mappings were changed.", "cancelled": true})
 
 func _finish(result: Dictionary) -> void:
+	_report_transfer_completed()
 	if converter_pid > 0:
 		OS.kill(converter_pid)
 		converter_pid = -1
@@ -423,6 +433,12 @@ func _finish(result: Dictionary) -> void:
 	converter_output_path = ""
 	converter_result_path = ""
 	finished.emit(result)
+
+func _report_transfer_completed() -> void:
+	if transfer_reported or transfer_started_usec <= 0: return
+	transfer_reported = true
+	var elapsed_ms := float(Time.get_ticks_usec() - transfer_started_usec) / 1000.0
+	transfer_completed.emit(elapsed_ms, downloaded_bytes)
 
 func _process(delta: float) -> void:
 	if not busy: return

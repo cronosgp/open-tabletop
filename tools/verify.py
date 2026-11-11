@@ -38,6 +38,9 @@ PRELOAD = re.compile(r'preload\("res://([^"\n]+\.gd)"\)')
 # flow. Their dependency graph also includes the legacy combat constructor,
 # which remains available for separate historical exercises.
 CURRENT_CATALOG_MATCH_SUITES = {
+    # Explicitly asserts absence of the historical pack while checking the
+    # current visual-name catalog. The negative fixture path is not a dependency.
+    "test_model_catalog_names",
     "test_blood_angels_captain",
     "test_sanguinary_priest",
 	"test_baal_predator",
@@ -252,7 +255,12 @@ def needs_legacy_starter(suite):
         return False
     # These UI tests start practice matches through main.tscn at runtime, so
     # their data dependency is not visible to the static preload walker.
-    if suite in {"test_action_guidance", "test_gameplay_layout", "test_unit_choice_help_ui", "test_selection_card"}:
+    if suite in {
+        "test_action_guidance", "test_gameplay_layout", "test_unit_choice_help_ui",
+        "test_selection_card", "test_local_models", "test_match_save",
+        "test_movement_network", "test_attack_plan_network", "test_damage_allocation_network",
+        "test_session_recovery_network",
+    }:
         return True
     if suite in CURRENT_CATALOG_MATCH_SUITES:
         return False
@@ -311,8 +319,10 @@ def stage(destination, profile, selected_suites=()):
     shutil.copy2(ROOT / "project.godot", project)
     if (ROOT / "export_presets.cfg").is_file():
         shutil.copy2(ROOT / "export_presets.cfg", project)
-    for name in ("scripts", "scenes", "tests", "tools"):
-        shutil.copytree(ROOT / name, project / name, ignore=shutil.ignore_patterns("__pycache__"))
+    for name in ("scripts", "scenes", "tests", "tools", "assets", "themes"):
+        source = ROOT / name
+        if source.is_dir():
+            shutil.copytree(source, project / name, ignore=shutil.ignore_patterns("__pycache__"))
     # Offline source-audit tests depend on this small project-authored context file.
     # Do not stage downloaded Wahapedia catalogs or the rest of the documentation.
     (project / "docs").mkdir()

@@ -20,7 +20,7 @@ func run() -> void:
 	var rng_before: int = game.rng.state
 	var journal_before := var_to_str(game.journal.checkpoint())
 	game._refresh()
-	check(game.waiting_activity.visible and game.waiting_activity_text.text == "Movement selected. Placement pending.", "Waiting cue reads public event without implying movement completion")
+	check(game.waiting_activity.visible and game.waiting_activity_text.text == "Movement selected. Placement pending." and game.waiting_activity_text.max_lines_visible < 0, "Waiting cue reads the complete public event without implying movement completion")
 	game._refresh()
 	check(var_to_str(game.state) == before and game.rng.state == rng_before and var_to_str(game.journal.checkpoint()) == journal_before, "Repeated activity refresh preserves state, RNG and journal")
 	game._open_waiting_history()

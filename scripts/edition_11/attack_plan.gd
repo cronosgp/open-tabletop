@@ -498,6 +498,8 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			if not melee and weapon.keywords.get("heavy", false) and UnitAbilities.has(state, squad, "powerful-volley") and _stationary(state, squad): profile.keywords["lethal-hits"] = true
 			if not melee and UnitAbilities.identity(state.units[model]) == "cerberus" and str(row.get("weapon", "")) == "cerberus-neutron-pulse-array" and UnitAbilities.has(state, squad, "atomantic-arc-reactor") and _stationary(state, squad):
 				profile.keywords["lethal-hits"] = true
+			if not melee and str(row.get("weapon", "")).begins_with("doomsday-cannon") and UnitAbilities.has(state, squad, "overwhelming-obliteration") and str(state.squads[squad].get("move_type", "")) == "stationary":
+				profile.keywords["devastating-wounds"] = true
 			if engaged_shooter and Traits.heavy_model(state.units[model]) and not close_target: context.hit_modifier -= 1
 			if Queue.engaged(state, row.target) and Traits.heavy_unit(state, row.target) and _is_owners_shooting_phase(state, squad) and not close_target: context.hit_modifier -= 1
 			if Fortifications.target_engaged_only_with_hammerfall_fortifications(state, row.target, int(state.squads[squad].get("owner", -1))) and not weapon.keywords.get("close-quarters", false): context.hit_modifier -= 1
@@ -762,8 +764,8 @@ static func _prepare_legacy(state: Dictionary, squad: int, melee: bool, entries:
 					profile.keywords["sustained-hits"] = int(profile.keywords.get("sustained-hits", 0)) + 1
 			if MarineEnhancements.champion_of_the_deathwing_active(state, squad) and VowedTarget.target_in_vowed_range(state, int(state.squads[squad].get("owner", -1)), target):
 				profile.keywords["sustained-hits"] = maxi(int(profile.keywords.get("sustained-hits", 0)), 1)
-			profile.attacks = batch.count
 			if melee:
+				profile.attacks = batch.count
 				context.weapon_count = 1
 			else:
 				context.distance_inches = 0.0 if batch.rapid_fire_active else float(weapon.range_inches)

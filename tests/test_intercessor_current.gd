@@ -165,6 +165,25 @@ func run() -> void:
 	check(four_copy_admission.get("error", "").is_empty(), "The current fixed-roster Incursion gate admits four Battleline copies at the source five-model size: %s" % str(four_copy_admission.get("error", "")))
 	four_copy_roster.entries[0].copies = 5
 	check(not str(C.RosterValidation.admit(four_copy_roster).get("error", "")).is_empty(), "The current fixed-roster Incursion gate rejects a fifth Battleline copy")
+	var loadout_roster := {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000,
+		"entries": [{"definition_id": UNIT_ID, "models": 5, "copies": 2, "intercessor_sergeant_loadouts": [
+			{"rifle_choice": "plasma-pistol", "melee_choice": "thunder-hammer"},
+			{"rifle_choice": "bolt-rifle", "melee_choice": "power-weapon"}
+		]}]}
+	var loadout_state := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "marine_detachments": {1: "gladius", 2: "gladius"}}, {1: loadout_roster, 2: loadout_roster.duplicate(true)})
+	var observed_loadouts: Array[String] = []
+	var matching_weapons := 0
+	if not loadout_state.has("error"):
+		for model_id: int in loadout_state.units:
+			var unit: Dictionary = loadout_state.units[model_id]
+			if int(unit.get("owner", -1)) != 1 or str(unit.get("definition_id", "")) != UNIT_ID or not bool(unit.get("sergeant", false)): continue
+			observed_loadouts.append("%s|%s" % [str(unit.get("intercessor_rifle_choice", "")), str(unit.get("intercessor_melee_choice", ""))])
+			var ids := weapon_ids(loadout_state, model_id)
+			if str(unit.intercessor_rifle_choice) == "plasma-pistol" and str(unit.intercessor_melee_choice) == "thunder-hammer" and "plasma-pistol" in ids and "thunder-hammer" in ids: matching_weapons += 1
+			if str(unit.intercessor_rifle_choice) == "bolt-rifle" and str(unit.intercessor_melee_choice) == "power-weapon" and "bolt-rifle" in ids and "power-weapon" in ids: matching_weapons += 1
+	observed_loadouts.sort()
+	check(not loadout_state.has("error") and observed_loadouts == ["bolt-rifle|power-weapon", "plasma-pistol|thunder-hammer"] and matching_weapons == 2,
+		"Saved Sergeant equipment remains distinct per unit copy and materializes its matching gameplay weapons: %s %s" % [str(loadout_state.get("error", "")), str(observed_loadouts)])
 
 	var state := fixture()
 	check(not state.has("error"), "Current Space Marine catalogs materialize for the Intercessor scope: %s" % str(state.get("error", "")))

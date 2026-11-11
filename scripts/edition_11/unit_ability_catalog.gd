@@ -213,7 +213,7 @@ const RULES := {
 	"canoptek-doomstalker": ["deadly-demise-d3", "damaged-4", "sentinel-construct"],
 	"canoptek-reanimator": ["feel-no-pain-4", "nanoscarab-reanimation-beam"],
 	"canoptek-scarab-swarms": ["self-destruction", "chittering-swarm"],
-	"doomsday-ark": ["deadly-demise-d3", "damaged-5"],
+	"doomsday-ark": ["deadly-demise-d3", "damaged-5", "overwhelming-obliteration"],
 	"monolith": ["deep-strike", "deadly-demise-d6"],
 	"overlord": ["leader", "my-will-be-done", "implacable-resilience", "resurrection-orb"],
 	"orikan-the-diviner": ["support"],

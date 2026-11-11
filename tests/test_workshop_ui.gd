@@ -13,7 +13,10 @@ func run() -> void:
 	check(game.match_tabs.is_tab_hidden(2) and game.workshop_tabs.is_ancestor_of(game.army_builder) and game.workshop_tabs.is_ancestor_of(game.model_imports), "Army and import share one workspace")
 	check(game.sidebar_panel.size.x > 900 and not game.action_groups.phase.container.visible, "Workspace is wide and hides match phase actions")
 	game.army_builder._new_empty()
-	game.army_builder._new_training()
+	# This UI fixture uses current construction profiles and needs no historical pack.
+	var current_unit: Dictionary = game.army_builder.source.lookup("40kdc:11e:adeptus-astartes:intercessor-squad")
+	for copy in range(2): game.army_builder.draft.entries.append(game.army_builder.Roster.entry(current_unit, 0))
+	game.army_builder._render_draft()
 	game.army_builder._select_entry(0)
 	var item: Dictionary = game.army_builder.draft.entries[0]
 	check(game.model_imports._definition() == item.unit_id, "Import target follows the roster entry instead of a battlefield model")
@@ -54,17 +57,25 @@ func run() -> void:
 	builder._preview_entry(item)
 	item.copies = 2
 	builder._ensure_visual_slots(item)
-	item.visual_variants[1] = "preview-fixture-variant"
-	game.model_imports.variant_mappings["preview-fixture-variant"] = {"path": path, "fingerprint": asset.fingerprint, "texture_fingerprint": asset.texture_fingerprint, "scale": 2.0}
+	builder.Roster.set_model_visual_override(item, 0, 1, "preview-fixture-variant")
+	game.model_imports.variant_mappings["preview-fixture-variant"] = {"definition": item.unit_id, "path": path, "fingerprint": asset.fingerprint, "texture_fingerprint": asset.texture_fingerprint, "scale": 2.0}
 	game.model_imports.variant_cache["preview-fixture-variant"] = asset
-	builder._preview_entry(item)
+	# Keep the unit choice explicit so automatic appearance recovery cannot select
+	# the only prepared variant as the default for both compared models.
+	game.model_imports.variant_mappings["preview-fixture-base"] = game.model_imports.variant_mappings["preview-fixture-variant"].duplicate(true)
+	game.model_imports.variant_mappings["preview-fixture-base"].scale = 1.0
+	game.model_imports.variant_cache["preview-fixture-base"] = asset
+	builder.Roster.set_unit_visual_variant(item, 0, "preview-fixture-base")
+	builder._select_entry(0)
+	# Compare ordinary models; the Sergeant can legitimately prioritize a role sculpt.
+	builder._preview_entry(item, 2)
 	var first_scale: Vector3 = builder.miniature_preview.visual.get_child(0).scale
 	before = var_to_str(builder.draft)
 	var dirty_before: bool = builder.dirty
 	builder.preview_model_input.value = 2
 	check(builder.preview_slot == 1 and builder.miniature_preview.visual.get_child(0).scale.is_equal_approx(first_scale * 2), "Preview selector displays the distinct assigned local variant")
 	builder.preview_model_input.value = int(item.models) + 1
-	check("Unit 2 · model 1" in builder.miniature_preview.caption.text, "Preview identifies copy boundaries")
+	check("Unit 2 · " + builder._visual_model_role_label(item, 0) in builder.miniature_preview.caption.text, "Preview identifies copy boundaries")
 	builder.appearance_button.pressed.emit()
 	check(builder.visual_copy_picker.selected == 1, "Appearance opens the copy being inspected")
 	check(var_to_str(builder.draft) == before and builder.dirty == dirty_before, "Inspection changes neither assignments nor unsaved status")

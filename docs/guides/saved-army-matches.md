@@ -2,7 +2,7 @@
 
 ## Current scope
 
-New training matches accept lists from the consolidated local Space Marines catalog. **Start tactical training** selects distinct Fire and Manoeuvre / Close Assault forces with current abilities and Gladius/Core stratagems. The general saved-list picker retains the 550-point mirror as its default and offers both tactical forces separately. All use custom 1,000-point ceilings; points and profiles come from the local catalog. Neither scenario certifies complete army legality. See [tactical training](tactical-training.md).
+New training matches accept lists from the consolidated local Space Marines catalog. **Start tactical training** selects distinct Fire and Manoeuvre / Close Assault forces with current abilities and Gladius/Core stratagems. The general saved-list picker retains the 550-point mirror as its default and offers both tactical forces separately. Saved current-catalog lists can start a local match with their own unit count, up to 24 units per player. New match turns on implemented unit abilities for those lists. Both players need the same points category and limit. All use the list's own points ceiling; points and profiles come from the local catalog. Neither scenario certifies complete army legality. See [tactical training](tactical-training.md).
 
 Historical lists, including Necron profiles and MFM-priced rosters, remain readable and editable as legacy drafts. They are not eligible for new matches through the current construction flow. This does not delete or migrate existing saves.
 

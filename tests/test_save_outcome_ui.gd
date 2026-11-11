@@ -28,7 +28,7 @@ func run() -> void:
 				game.reaction_roll.pressed.emit()
 			elif not game.state.get("pending_attack", {}).is_empty():
 				game.combat_tray.finish()
-				check(not saved and "Save failed" in game.combat_tray.summary.text and "damage is still pending" in game.combat_tray.summary.text, "Failed save distinguishes pending allocation from applied damage")
+				check(not saved and "Save failed" in game.combat_tray.summary.text and "damage is still pending" in game.combat_tray.summary.text and "damage applied" not in game.combat_tray.summary.text, "Failed save distinguishes pending allocation from applied damage")
 				if not allocation_captured and "--capture-feedback" in OS.get_cmdline_user_args():
 					await capture("failed-pending")
 					allocation_captured = true
@@ -37,6 +37,7 @@ func run() -> void:
 				game.selected = int(eligible[0])
 				game._refresh()
 				game.allocate_button.pressed.emit()
+				await process_frame
 			else: break
 		game._refresh()
 		game.combat_tray.finish()
