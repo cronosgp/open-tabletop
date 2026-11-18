@@ -21,3 +21,7 @@ The local profile covers both priced sizes, the source role minimum, all per-mod
 ## Verification
 
 The focused checks cover source identity and provenance, characteristics/base/keywords, weapon data, both priced roster sizes, copy limits, all four combinations of per-model replacements, reversible preparation choices, the granted EXPLOSIVES keyword and Core Explosives action, and Annihilator Protocols against its eligible and ineligible target keywords. The local source-slice check and final verification record are linked in the [machine-readable audit](marine-centurion-assault-squad-audit.json) and [verification history](verification/verification-results.md).
+
+## Saved army equipment - 14 November 2026
+
+Source-listed equipment now persists in the Army Builder per stable model/copy, is validated before materialization and cannot be reconfigured during readiness once frozen. Existing rules, Chapter and event boundaries remain. See [source-option review, exact verification reports and Godot captures](verification/heavy-saved-equipment.md).

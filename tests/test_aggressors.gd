@@ -119,9 +119,9 @@ func run() -> void:
 	var stale_loadout := submit_preparation_choice(s, 1, option, str(loadout_decision.decision_id), "stale-option")
 	check(not wrong_owner_loadout.get("error", "").is_empty() and not stale_loadout.get("error", "").is_empty() and before_loadout == var_to_bytes(s), "Wrong-owner and stale loadout options are rejected without mutation")
 	var accepted_loadout := submit_preparation_choice(s, 1, option, str(loadout_decision.decision_id), str(projected_loadout.id))
-	check(not option.is_empty() and accepted_loadout.get("error", "").is_empty(), "Whole-unit alternate loadout uses the public preparation command")
-	for model: int in C.living(s, 1):
-		check(s.units[model].ranged_weapons.size() == 2 and s.units[model].ranged_weapons[0].id == "auto-boltstorm-gauntlets" and s.units[model].ranged_weapons[1].id == "fragstorm-grenade-launcher", "Every Aggressor receives the complete alternate weapon package")
+	check(not option.is_empty() and accepted_loadout.get("error", "").is_empty(), "One miniature's alternate loadout uses the public preparation command")
+	check(s.units[100].ranged_weapons.size() == 2 and s.units[100].ranged_weapons[0].id == "auto-boltstorm-gauntlets" and s.units[100].ranged_weapons[1].id == "fragstorm-grenade-launcher", "The selected Aggressor receives the complete alternate weapon package")
+	check(s.units[101].ranged_weapons.size() == 1 and s.units[101].ranged_weapons[0].id == "flamestorm-gauntlets", "Unselected Aggressors retain their individual Flamestorm package")
 	check(s.units[300].ranged_weapons[0].id == "flamestorm-gauntlets", "A different Aggressor squad retains its chosen equipment")
 	s = bytes_to_var(var_to_bytes(s))
 	check(s.units[100].ranged_weapons[1].id == "fragstorm-grenade-launcher", "Declared loadout survives state serialization")

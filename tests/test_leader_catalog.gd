@@ -1,8 +1,8 @@
 extends SceneTree
 
 const LeaderCatalog = preload("res://scripts/edition_11/leader_catalog.gd")
-const Leaders = preload("res://scripts/edition_11/leaders.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 
 var failures := 0
 
@@ -18,7 +18,7 @@ func _initialize() -> void:
 	}}
 	check(LeaderCatalog.army_has_calgar(state, 1), "Leader catalogue finds Calgar in the requested player's army")
 	check(not LeaderCatalog.army_has_calgar(state, 2), "Leader catalogue does not find another player's Calgar")
-	check(Leaders.ATTACHMENTS == LeaderCatalog.ATTACHMENTS, "Leader setup preserves the public pairing table while using the low-level catalogue")
-	check(UnitAbilities != null, "Rules module loads with the leader catalogue as its low-level identity dependency")
+	check(LeaderCatalog.ATTACHMENTS.has("40kdc:11e:adeptus-astartes:captain"), "Leader setup keeps the public pairing table in the low-level catalogue")
+	check(UnitAbilities != null and UnitActions != null, "Rules modules load with the leader catalogue as their low-level identity dependency")
 	print("Leader catalogue checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

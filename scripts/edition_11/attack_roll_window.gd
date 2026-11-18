@@ -124,11 +124,14 @@ static func advance(checkpoint: Dictionary, revision: int, roller: Callable) -> 
 			var snap_shooting: bool = next.context.get("snap_shooting", false)
 			var passed := value >= int(next.context.get("snap_hit_threshold", 6)) if snap_shooting else Attacks.successful_roll(value, next.effective_skill, next.hit_modifier)
 			var critical := not snap_shooting and passed and value == 6
-			hit_outcomes.append({"roll": value, "success": passed, "critical": critical})
-			if not passed: continue
+			if not passed:
+				hit_outcomes.append({"roll": value, "success": false, "critical": false, "sustained_hits": 0})
+				continue
+			var sustained := Attacks.sustained_hits_amount(keywords.get("sustained-hits", 0), dice) if critical else 0
+			hit_outcomes.append({"roll": value, "success": true, "critical": critical, "sustained_hits": sustained})
 			if critical and keywords.get("lethal-hits", false) and next.context.get("use_lethal_hits", true): automatic += 1
 			else: normal += 1
-			if critical: normal += int(keywords.get("sustained-hits", 0))
+			if critical: normal += sustained
 		if normal + automatic > 10000: return {"error": "Hit pool exceeds prototype limit."}
 		next.hits = normal + automatic
 		next.automatic_wounds = automatic

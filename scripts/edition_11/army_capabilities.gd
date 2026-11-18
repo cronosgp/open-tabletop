@@ -1,19 +1,46 @@
 extends RefCounted
+const SavedEquipment = preload("res://scripts/edition_11/saved_equipment_profiles.gd")
 ## Explicit core-profile admission, independent of display names and API prices.
 const Pack = preload("res://scripts/data_pack.gd")
 const Roster = preload("res://scripts/army_roster.gd")
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const CurrentMarines = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const CurrentNecrons = preload("res://scripts/edition_11/current_reference_necron_profiles.gd")
+const CanoptekMacrocytes = preload("res://scripts/edition_11/canoptek_macrocytes.gd")
+const CanoptekSpyders = preload("res://scripts/edition_11/canoptek_spyders.gd")
+const CanoptekTombCrawlers = preload("res://scripts/edition_11/canoptek_tomb_crawlers.gd")
+const NecronVehicleLoadouts = preload("res://scripts/edition_11/necron_vehicle_loadouts.gd")
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const UnitAbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
-const ID := "mixed-core-profiles-v82-necron-warriors"
+const ID := "mixed-core-profiles-v109-brutalis-saved-equipment"
 const DIRECTORY := "res://data/imported/starter-11e-v1"
 const MAX_SQUADS := 6
 ## Saved current-catalog lists use this ceiling. Direct core-profile calls keep MAX_SQUADS.
 const MATCH_UNIT_CAP := 24
 const STANDARD_COPY_LIMITS := {"incursion": 2, "strike_force": 3}
 const INTERCESSOR_SQUAD_ID := "40kdc:11e:adeptus-astartes:intercessor-squad"
+const ELIMINATOR_SQUAD_ID := "40kdc:11e:adeptus-astartes:eliminator-squad"
+const OUTRIDER_SQUAD_ID := "40kdc:11e:adeptus-astartes:outrider-squad"
+const RAVENWING_DARKSHROUD_ID := "40kdc:11e:adeptus-astartes:ravenwing-darkshroud"
+const LAND_SPEEDER_ID := "40kdc:11e:adeptus-astartes:land-speeder"
+const LAND_SPEEDER_VENGEANCE_ID := "40kdc:11e:adeptus-astartes:land-speeder-vengeance"
+const BAAL_PREDATOR_ID := "40kdc:11e:adeptus-astartes:baal-predator"
+const PREDATOR_DESTRUCTOR_ID := "40kdc:11e:adeptus-astartes:predator-destructor"
+const PREDATOR_ANNIHILATOR_ID := "40kdc:11e:adeptus-astartes:predator-annihilator"
+const HELLBLASTER_SQUAD_ID := "40kdc:11e:adeptus-astartes:hellblaster-squad"
+const ASSAULT_INTERCESSOR_SQUAD_ID := "40kdc:11e:adeptus-astartes:assault-intercessor-squad"
+const HEAVY_INTERCESSOR_SQUAD_ID := "40kdc:11e:adeptus-astartes:heavy-intercessor-squad"
+const INCEPTOR_SQUAD_ID := "40kdc:11e:adeptus-astartes:inceptor-squad"
+const INVADER_ATV_ID := "40kdc:11e:adeptus-astartes:invader-atvs"
+const REIVER_SQUAD_ID := "40kdc:11e:adeptus-astartes:reiver-squad"
+const SCOUT_SQUAD_ID := "40kdc:11e:adeptus-astartes:scout-squad"
+const NECRON_WARRIORS_ID := "40kdc:11e:necrons:necron-warriors"
+const IMMORTALS_ID := "40kdc:11e:necrons:immortals"
+const CANOPTEK_MACROCYTES_ID := "40kdc:11e:necrons:canoptek-macrocytes"
+const CANOPTEK_SPIDERS_ID := "40kdc:11e:necrons:canoptek-spyders"
+const CANOPTEK_TOMB_CRAWLERS_ID := "40kdc:11e:necrons:canoptek-tomb-crawlers"
+const NECRON_ANNIHILATION_BARGE_ID := "40kdc:11e:necrons:annihilation-barge"
+const NECRON_MONOLITH_ID := "40kdc:11e:necrons:monolith"
 const SPECS := {
 	"crusade-ancient": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_28"},
 	"execrator": {"faction": "Space Marines", "folder": "adeptus-astartes", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_28"},
@@ -216,44 +243,44 @@ const SPECS := {
 	"lychguard": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000536", "source_name": "Lychguard", "source_scope": "Necrons App v1.2"},
 	"deathmarks": {"faction": "Necrons", "folder": "necrons", "models": 5, "template": 2, "aliases": [], "gun": ["synaptic-disintegrator", "Synaptic disintegrator"], "blade": ["close-combat-weapon-deathmarks", "Close combat weapon"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000000537", "source_name": "Deathmarks", "source_scope": "Necrons App v1.2", "construction_model_sizes": [5, 10]},
 	"flayed-ones": {"faction": "Necrons", "folder": "necrons", "models": 5, "template": 2, "aliases": [], "blade": ["flayer-claws", "Flayer claws"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000000538", "source_name": "Flayed Ones", "source_scope": "Necrons App v1.2", "construction_model_sizes": [5, 10]},
-	"triarch-praetorians": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000539", "source_name": "Triarch Praetorians", "source_scope": "Necrons App v1.2"},
-	"triarch-stalker": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000540", "source_name": "Triarch Stalker", "source_scope": "Necrons App v1.2"},
-	"ctan-shard-of-the-nightbringer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000541", "source_name": "C’tan Shard of the Nightbringer", "source_scope": "Necrons App v1.2"},
-	"ctan-shard-of-the-deceiver": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000542", "source_name": "C’tan Shard of the Deceiver", "source_scope": "Necrons App v1.2"},
+	"triarch-praetorians": {"faction": "Necrons", "folder": "necrons", "models": 5, "template": 2, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000000539", "source_name": "Triarch Praetorians", "source_scope": "Necrons App v1.2", "construction_model_sizes": [5, 10]},
+	"triarch-stalker": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000000540", "source_name": "Triarch Stalker", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
+	"ctan-shard-of-the-nightbringer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000000541", "source_name": "C’tan Shard of the Nightbringer", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
+	"ctan-shard-of-the-deceiver": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000000542", "source_name": "C’tan Shard of the Deceiver", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
 	"ghost-ark": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000543", "source_name": "Ghost Ark", "source_scope": "Necrons App v1.2"},
 	"night-scythe": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000544", "source_name": "Night Scythe", "source_scope": "Necrons App v1.2"},
-	"doom-scythe": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000545", "source_name": "Doom Scythe", "source_scope": "Necrons App v1.2"},
+	"doom-scythe": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000000545", "source_name": "Doom Scythe", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
 	"canoptek-wraiths": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000546", "source_name": "Canoptek Wraiths", "source_scope": "Necrons App v1.2"},
 	"tomb-blades": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000548", "source_name": "Tomb Blades", "source_scope": "Necrons App v1.2"},
-	"canoptek-spyders": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000551", "source_name": "Canoptek Spyders", "source_scope": "Necrons App v1.2"},
-	"monolith": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000552", "source_name": "Monolith", "source_scope": "Necrons App v1.2"},
-	"annihilation-barge": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000553", "source_name": "Annihilation Barge", "source_scope": "Necrons App v1.2"},
+	"canoptek-spyders": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000000551", "source_name": "Canoptek Spyders", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1, 2]},
+	"monolith": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000000552", "source_name": "Monolith", "source_scope": "Necrons App v1.2"},
+	"annihilation-barge": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000000553", "source_name": "Annihilation Barge", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
 	"doomsday-ark": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "gun": ["doomsday-cannon", "Doomsday cannon"], "blade": ["armoured-bulk", "Armoured bulk"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000000554", "source_name": "Doomsday Ark", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
-	"transcendent-ctan": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000555", "source_name": "Transcendent C’tan", "source_scope": "Necrons App v1.2"},
+	"transcendent-ctan": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000000555", "source_name": "Transcendent C’tan", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
 	"tesseract-vault": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000556", "source_name": "Tesseract Vault", "source_scope": "Necrons App v1.2"},
-	"obelisk": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000000557", "source_name": "Obelisk", "source_scope": "Necrons App v1.2"},
+	"obelisk": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000000557", "source_name": "Obelisk", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
 	"illuminor-szeras": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002092", "source_name": "Illuminor Szeras", "source_scope": "Necrons App v1.2"},
 	"plasmancer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002108", "source_name": "Plasmancer", "source_scope": "Necrons App v1.2"},
 	"skorpekh-lord": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002109", "source_name": "Skorpekh Lord", "source_scope": "Necrons App v1.2"},
-	"skorpekh-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002110", "source_name": "Skorpekh Destroyers", "source_scope": "Necrons App v1.2"},
-	"cryptothralls": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002111", "source_name": "Cryptothralls", "source_scope": "Necrons App v1.2"},
+	"skorpekh-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 3, "template": 1, "aliases": [], "blade": ["skorpekh-hyperphase-weapons", "Skorpekh hyperphase weapons"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000002110", "source_name": "Skorpekh Destroyers", "source_scope": "Necrons App v1.2", "construction_model_sizes": [3, 6]},
+	"cryptothralls": {"faction": "Necrons", "folder": "necrons", "models": 2, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000002111", "source_name": "Cryptothralls", "source_scope": "Necrons App v1.2", "construction_model_sizes": [2]},
 	"canoptek-reanimator": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000002112", "source_name": "Canoptek Reanimator", "source_scope": "Necrons App v1.2"},
 	"canoptek-scarab-swarms": {"faction": "Necrons", "folder": "necrons", "models": 3, "template": 2, "aliases": [], "blade": ["feeder-mandibles", "Feeder mandibles"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000002114", "source_name": "Canoptek Scarab Swarms", "source_scope": "Necrons App v1.2", "construction_model_sizes": [3, 6]},
 	"canoptek-doomstalker": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "gun": ["doomsday-blaster", "Doomsday blaster"], "blade": ["doomstalker-limbs", "Doomstalker limbs"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000002115", "source_name": "Canoptek Doomstalker", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
-	"lokhust-heavy-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002116", "source_name": "Lokhust Heavy Destroyers", "source_scope": "Necrons App v1.2"},
+	"lokhust-heavy-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "gun": ["gauss-destructor", "Gauss destructor"], "blade": ["close-combat-weapon-lokhust-heavy", "Close combat weapon"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000002116", "source_name": "Lokhust Heavy Destroyers", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1, 2, 3]},
 	"lokhust-lord": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002351", "source_name": "Lokhust Lord", "source_scope": "Necrons App v1.2"},
 	"technomancer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002352", "source_name": "Technomancer", "source_scope": "Necrons App v1.2"},
 	"psychomancer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002353", "source_name": "Psychomancer", "source_scope": "Necrons App v1.2"},
 	"chronomancer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002354", "source_name": "Chronomancer", "source_scope": "Necrons App v1.2"},
 	"hexmark-destroyer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "gun": ["enmitic-disintegrator-pistols", "Enmitic disintegrator pistols"], "blade": ["close-combat-weapon-hexmark", "Close combat weapon"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_10_31", "source_datasheet_id": "000002355", "source_name": "Hexmark Destroyer", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
-	"ctan-shard-of-the-void-dragon": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002357", "source_name": "C’tan Shard of the Void Dragon", "source_scope": "Necrons App v1.2"},
-	"ophydian-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002358", "source_name": "Ophydian Destroyers", "source_scope": "Necrons App v1.2"},
-	"lokhust-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002359", "source_name": "Lokhust Destroyers", "source_scope": "Necrons App v1.2"},
+	"ctan-shard-of-the-void-dragon": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000002357", "source_name": "C’tan Shard of the Void Dragon", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1]},
+	"ophydian-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 3, "template": 1, "aliases": [], "blade": ["ophydian-hyperphase-weapons", "Ophydian hyperphase weapons"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000002358", "source_name": "Ophydian Destroyers", "source_scope": "Necrons App v1.2", "construction_model_sizes": [3, 6]},
+	"lokhust-destroyers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "gun": ["gauss-cannon", "Gauss cannon"], "blade": ["close-combat-weapon-lokhust", "Close combat weapon"], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000002359", "source_name": "Lokhust Destroyers", "source_scope": "Necrons App v1.2", "construction_model_sizes": [1, 2, 3, 6]},
 	"the-silent-king": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002360", "source_name": "The Silent King", "source_scope": "Necrons App v1.2"},
 	"convergence-of-dominion": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000002361", "source_name": "Convergence Of Dominion", "source_scope": "Necrons App v1.2"},
 	"overlord-with-translocation-shroud": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000003693", "source_name": "Overlord with translocation shroud", "source_scope": "Necrons App v1.2"},
-	"canoptek-macrocytes": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000004176", "source_name": "Canoptek Macrocytes", "source_scope": "Necrons App v1.2"},
-	"canoptek-tomb-crawlers": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000004177", "source_name": "Canoptek Tomb Crawlers", "source_scope": "Necrons App v1.2"},
+	"canoptek-macrocytes": {"faction": "Necrons", "folder": "necrons", "models": 5, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000004176", "source_name": "Canoptek Macrocytes", "source_scope": "Necrons App v1.2", "construction_model_sizes": [5]},
+	"canoptek-tomb-crawlers": {"faction": "Necrons", "folder": "necrons", "models": 2, "template": 1, "aliases": [], "current_reference": true, "validation_status": "source_bounded_local_scope_passed_2026_11_12", "source_datasheet_id": "000004177", "source_name": "Canoptek Tomb Crawlers", "source_scope": "Necrons App v1.2", "construction_model_sizes": [2]},
 	"geomancer": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000004178", "source_name": "Geomancer", "source_scope": "Necrons App v1.2"},
 	"nekrosor-ammentar": {"faction": "Necrons", "folder": "necrons", "models": 1, "template": 1, "aliases": [], "current_reference": true, "validation_status": "implemented_local_checks_pending", "source_datasheet_id": "000004186", "source_name": "Nekrosor Ammentar", "source_scope": "Necrons App v1.2"}}
 
@@ -338,6 +365,26 @@ static func current_catalog_choice(unit: Dictionary) -> Dictionary:
 
 static func construction_readiness_note(source: String) -> String:
 	match source:
+		"annihilation-barge":
+			return "Necrons App v1.2 local export: the one-model profile costs 100 points and has a 60 mm flying base. Its Gauss cannon can be replaced by a Tesla cannon; the twin Tesla destructor and Armoured bulk remain. Reanimation Protocols, Deadly Demise 1 and Malevolent Arcing are bound to the current Annihilation Barge. Malevolent Arcing rolls for its selected target and each other enemy unit within 3 inches; each 5+ unit suffers a separate D3 mortal-wound packet after the Barge resolves attacks against that target. The defender allocates each packet through mortal-wound prevention. Full Necron roster legality remains separate."
+		"transcendent-ctan":
+			return "Necrons App v1.2 local export: the one-model profile costs 340 points for the first copy and 360 points for each additional copy, on a 60 mm flying base. Seismic assault and Crackling tendrils are fixed. Reanimation Protocols, Deadly Demise D6, Deep Strike, Feel No Pain 5+, Necrodermis, ENSLAVED STAR GOD, C’TAN SHARD and Transdimensional Displacement are bound to the current Transcendent C’tan. C’TAN SHARD forbids Enhancements; ENSLAVED STAR GOD forbids Warlord selection. Transdimensional Displacement is a special Advance with no distance cap that may pass through models and must finish more than 8 inches from every enemy unit. Full Necron roster legality remains separate."
+		"cryptothralls":
+			return "Necrons App v1.2 local export: the two-model profile costs 60 points on 32 mm bases with Scouring eye and Scythed limbs. Reanimation Protocols, Bound Creation, Systematic Vigour and Cryptek Retinue are bound to the current Cryptothralls. Bound Creation grants Feel No Pain 4+ to a Cryptek that shares the unit. Systematic Vigour lets a Cryptothrall destroyed by a melee attack before it has fought remain on a 2+ to fight after the attacking unit finishes, then be removed. Cryptek Retinue joins a Cryptek-led bodyguard at Declare Battle Formations and cannot share that unit with Canoptek Tomb Crawlers or another Cryptothralls unit. Full Necron roster legality remains separate."
+		"obelisk":
+			return "Necrons App v1.2 local export: the one-model profile costs 280 points for the first copy and 310 points for each additional copy, on a labelled 92 mm circle for its 120 x 92 mm flying base. Four Tesla spheres and Armoured bulk are fixed. Reanimation Protocols, Deadly Demise D6, Deep Strike, Gravitic Pulse and Damaged 8 are bound to the current Obelisk. Gravitic Pulse at the start of the opponent's Movement phase halves Move and Advance/Charge rolls until the end of that turn, and marked FLY units take D3 mortal wounds on a 4+ after ending moves until the Obelisk owner's next Movement phase. Full Necron roster legality remains separate."
+		"triarch-stalker":
+			return "Necrons App v1.2 local export: the one-model profile costs 110 points for each of the first two copies and 120 points from the third copy. Heat ray (dispersed/focused) and Stalker's forelimbs are default; the per-copy particle shredder and heavy gauss cannon array replacements are saved. Deadly Demise D3, Scouts 8, Reanimation Protocols and Targeting Relay are bound to the current Triarch Stalker. After its Shooting attacks, Targeting Relay selects one hit enemy unit so it cannot have the Benefit of Cover for the rest of the phase. The source says Use model; runtime uses a labelled 120 mm circular proxy. Full Necron roster legality remains separate."
+		"triarch-praetorians":
+			return "Necrons App v1.2 local export: the 5/10-model profiles cost 80/160 points on 32 mm bases with Rod of covenant. Deep Strike, Reanimation Protocols and Relentless Combatants are bound to the current Triarch Praetorians. Relentless Combatants lets the unit re-roll Charge rolls and remain eligible to declare a charge after Falling Back. The per-model Particle Caster and Voidblade replacements are saved. Full Necron roster legality remains separate."
+		"lokhust-destroyers":
+			return "Necrons App v1.2 local export: priced 1/2/3/6-model profiles cost 40/55/80/190 for the first two copies and 70/85/110/220 from the third copy. Gauss cannon and close combat weapon are fixed. Reanimation Protocols and Hard-wired for Destruction are bound to the current Lokhust Destroyers. Hard-wired re-rolls Hit rolls of 1 against the closest eligible enemy, or all Hit rolls when that target is within range of an objective marker the opponent controls. Unpriced 4- and 5-model sizes remain gated. Full Necron roster legality remains separate."
+		"lokhust-heavy-destroyers":
+			return "Necrons App v1.2 local export: priced 1/2/3-model profiles cost 50/100/165 for the first two copies and 60/110/175 from the third copy. Gauss destructor is default; any model may replace it with an Enmitic exterminator. Reanimation Protocols and Optimised for Slaughter are bound to the current Lokhust Heavy Destroyers. Optimised re-rolls Wound rolls of 1 for Enmitic exterminator attacks against non-MONSTER/VEHICLE targets, and for Gauss destructor attacks against MONSTER or VEHICLE targets. Full Necron roster legality remains separate."
+		"ophydian-destroyers":
+			return "Necrons App v1.2 local export: priced 3/6-model profiles cost 80/150 for the first two copies and 90/160 from the third copy on 50 mm bases. Ophydian hyperphase weapons are fixed. Deep Strike, Reanimation Protocols, Plasmacyte and Tunnelling Horrors are bound to the current Ophydian Destroyers. The unit starts with one Plasmacyte token per three models; when selected to fight it may spend one token once per battle per token to give its melee weapons Devastating Wounds for the phase. At the end of the opponent's Fight phase an unengaged unit may enter Strategic Reserves and must ingress in its next Movement phase, including battle round 1. Full Necron roster legality remains separate."
+		"skorpekh-destroyers":
+			return "Necrons App v1.2 local export: priced 3/6-model profiles cost 85/170 for the first two copies and 95/180 from the third copy on 50 mm bases. Skorpekh hyperphase weapons are fixed. Reanimation Protocols, Plasmacyte and Whirling Onslaught are bound to the current Skorpekh Destroyers. The unit starts with one Plasmacyte token per three models; when selected to fight it may spend one token once per battle per token to give its melee weapons Devastating Wounds for the phase. Whirling Onslaught re-rolls melee Hit rolls of 1, or the Hit roll if the unit charged this turn. Full Necron roster legality remains separate."
 		"doomsday-ark":
 			return "Necrons App v1.2 local export: the one-model profile costs 200 points for each of the first two copies and 230 points from the third copy. It has a doomsday cannon, two gauss flayer arrays, armoured bulk and a 4+ invulnerable save on a 60 mm flying base. Deadly Demise D3, Reanimation Protocols, Overwhelming Obliteration and Damaged 5 are bound to the current Doomsday Ark. Overwhelming Obliteration gives the doomsday cannon Devastating Wounds until the end of the turn when the model Remains Stationary in its Movement phase. While the model has 1-5 wounds remaining, each of its attacks subtracts 1 from the Hit roll. Full Necron roster legality remains separate."
 		"canoptek-doomstalker":
@@ -436,7 +483,7 @@ static func resolve(faction: String, identity: String, prefer_current_reference:
 			var unit := {"id": canonical, "name": current.name, "stats": current.stats.duplicate(true), "keywords": current.keywords.duplicate(), "base": {"shape": "circle", "radius_inches": current.base_radius_inches}}
 			var gun: Dictionary = current.ranged[0].profiles.values()[0].duplicate(true) if not current.ranged.is_empty() else {}
 			var blade: Dictionary = current.melee[0].profiles.values()[0].duplicate(true) if not current.melee.is_empty() else {}
-			if source in ["canoptek-doomstalker", "doomsday-ark"]:
+			if source in ["canoptek-doomstalker", "doomsday-ark", "doom-scythe", "monolith"]:
 				var expanded_ranged: Array = []
 				for ranged_weapon: Dictionary in current.ranged:
 					var copies := maxi(1, int(ranged_weapon.get("count", 1)))
@@ -500,9 +547,17 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 	var sheet_epic_hero_counts: Dictionary = {}
 	var sheet_repetition_keywords: Dictionary = {}
 	for entry: Variant in selection.entries:
-		if not entry is Dictionary or entry.size() < 3 or entry.size() > 7 or not entry.get("definition_id") is String or not Roster.integer(entry.get("models"), 1, 20) or not Roster.integer(entry.get("copies"), 1, unit_cap): return {"error": "Invalid mixed army entry."}
+		if not entry is Dictionary or entry.size() < 3 or entry.size() > 20 or not entry.get("definition_id") is String or not Roster.integer(entry.get("models"), 1, 20) or not Roster.integer(entry.get("copies"), 1, unit_cap): return {"error": "Invalid mixed army entry."}
 		for key: Variant in entry:
-			if str(key) not in ["definition_id", "models", "copies", "enhancement_id", "composition_choice_id", "intercessor_sergeant_loadouts", "intercessor_rifle_choice", "intercessor_melee_choice"]: return {"error": "Unsupported mixed army entry field: " + str(key)}
+			if str(key) not in ["definition_id", "models", "copies", "enhancement_id", "composition_choice_id", "intercessor_sergeant_loadouts", "intercessor_grenade_launcher_loadouts", "intercessor_rifle_choice", "intercessor_melee_choice", "eliminator_sergeant_loadouts", "eliminator_trooper_loadouts", "outrider_loadouts", "ravenwing_darkshroud_loadouts", "land_speeder_loadouts", "land_speeder_vengeance_loadouts", "baal_predator_loadouts", "predator_destructor_loadouts", "predator_annihilator_loadouts", "saved_model_loadouts", "saved_unit_loadouts", "hellblaster_sergeant_pistol_loadouts", "assault_intercessor_sergeant_loadouts", "heavy_intercessor_bolter_loadouts", "inceptor_loadouts", "invader_atv_loadouts", "reiver_loadouts", "aggressor_loadouts", "scout_loadouts", "necron_warrior_loadouts", "immortal_loadouts", "canoptek_macrocytes_loadouts", "canoptek_spyders_loadouts", "canoptek_tomb_crawlers_loadouts", "necron_annihilation_barge_loadouts", "necron_monolith_loadouts"]: return {"error": "Unsupported mixed army entry field: " + str(key)}
+		if entry.has("saved_unit_loadouts"):
+			if not SavedEquipment.supports_unit(identity_for_saved_entry(selection, entry)) or not entry.saved_unit_loadouts is Array or entry.saved_unit_loadouts.size() != int(entry.copies): return {"error": "Invalid saved unit loadout copies."}
+			for equipment: Variant in entry.saved_unit_loadouts:
+				if not SavedEquipment.valid_unit(identity_for_saved_entry(selection, entry), equipment): return {"error": "Unsupported saved unit equipment."}
+		if entry.has("saved_model_loadouts"):
+			if not SavedEquipment.supports(identity_for_saved_entry(selection, entry)) or not entry.saved_model_loadouts is Array or entry.saved_model_loadouts.size() != int(entry.copies): return {"error": "Invalid saved model loadout copies."}
+			for equipment: Variant in entry.saved_model_loadouts:
+				if not SavedEquipment.valid_saved_loadout(identity_for_saved_entry(selection, entry), equipment, int(entry.models)): return {"error": "Unsupported saved model equipment."}
 		if entry.has("enhancement_id") and not entry.enhancement_id is String: return {"error": "Enhancement ID must be a string."}
 		if entry.has("composition_choice_id") and (not entry.composition_choice_id is String or entry.composition_choice_id.is_empty() or entry.composition_choice_id.length() > 64): return {"error": "Invalid source-defined unit composition choice."}
 		var enhancement_id := str(entry.get("enhancement_id", ""))
@@ -512,9 +567,146 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 			if identity != INTERCESSOR_SQUAD_ID or entry.has("intercessor_rifle_choice") or entry.has("intercessor_melee_choice") or not entry.intercessor_sergeant_loadouts is Array or entry.intercessor_sergeant_loadouts.size() != int(entry.copies): return {"error": "Sergeant equipment choices are supported only for each selected Intercessor Squad copy."}
 			for loadout: Variant in entry.intercessor_sergeant_loadouts:
 				if not Roster.valid_intercessor_sergeant_loadout(loadout): return {"error": "Invalid Intercessor Sergeant equipment choice."}
+		if entry.has("intercessor_grenade_launcher_loadouts"):
+			if identity != INTERCESSOR_SQUAD_ID or not entry.intercessor_grenade_launcher_loadouts is Array or entry.intercessor_grenade_launcher_loadouts.size() != int(entry.copies): return {"error": "Intercessor Grenade Launcher choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.intercessor_grenade_launcher_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Intercessor Grenade Launcher choices must match every model."}
+				var launcher_count := 0
+				for model_index in range(copy_loadouts.size()):
+					var equipped: Variant = copy_loadouts[model_index]
+					if not equipped is bool or (model_index == 0 and bool(equipped)) or (model_index > 0 and not Roster.valid_model_equipment(identity, model_index, {"intercessor_grenade_launcher": equipped}, int(entry.models))): return {"error": "Only non-Sergeant Intercessors can select the source-listed Grenade Launcher."}
+					if equipped: launcher_count += 1
+				if launcher_count > int(int(entry.models) / 5.0): return {"error": "An Intercessor unit exceeds its per-five-model Grenade Launcher limit."}
 		if entry.has("intercessor_rifle_choice") or entry.has("intercessor_melee_choice"):
 			var single_loadout := {"rifle_choice": entry.get("intercessor_rifle_choice", ""), "melee_choice": entry.get("intercessor_melee_choice", "")}
 			if identity != INTERCESSOR_SQUAD_ID or entry.has("intercessor_sergeant_loadouts") or not Roster.valid_intercessor_sergeant_loadout(single_loadout): return {"error": "Invalid canonical Intercessor Sergeant equipment choice."}
+		if entry.has("eliminator_sergeant_loadouts"):
+			if identity != ELIMINATOR_SQUAD_ID or not entry.eliminator_sergeant_loadouts is Array or entry.eliminator_sergeant_loadouts.size() != int(entry.copies): return {"error": "Eliminator Sergeant equipment choices must match each selected Eliminator Squad copy."}
+			for weapon_choice: Variant in entry.eliminator_sergeant_loadouts:
+				if not weapon_choice is String or not Roster.ELIMINATOR_SERGEANT_WEAPONS.has(weapon_choice): return {"error": "Invalid Eliminator Sergeant ranged weapon choice."}
+		if entry.has("eliminator_trooper_loadouts"):
+			if identity != ELIMINATOR_SQUAD_ID or not entry.eliminator_trooper_loadouts is Array or entry.eliminator_trooper_loadouts.size() != int(entry.copies): return {"error": "Eliminator trooper equipment choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.eliminator_trooper_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models) - 1: return {"error": "Eliminator trooper equipment choices must match each ordinary model."}
+				for weapon_choice: Variant in copy_loadouts:
+					if not weapon_choice is String or weapon_choice not in ["sniper", "las"]: return {"error": "Ordinary Eliminators can select only a Bolt Sniper Rifle or Las Fusil."}
+		if entry.has("necron_warrior_loadouts"):
+			if identity != NECRON_WARRIORS_ID or not entry.necron_warrior_loadouts is Array or entry.necron_warrior_loadouts.size() != int(entry.copies): return {"error": "Necron Warrior equipment choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.necron_warrior_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Necron Warrior equipment choices must match every model."}
+				for weapon_choice: Variant in copy_loadouts:
+					if not weapon_choice is String or weapon_choice not in Roster.NECRON_WARRIOR_WEAPONS: return {"error": "Necron Warriors can select only the source-listed Gauss flayer or Gauss reaper."}
+		if entry.has("immortal_loadouts"):
+			if identity != IMMORTALS_ID or not entry.immortal_loadouts is Array or entry.immortal_loadouts.size() != int(entry.copies): return {"error": "Immortal equipment choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.immortal_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Immortal equipment choices must match every model."}
+				for weapon_choice: Variant in copy_loadouts:
+					if not weapon_choice is String or weapon_choice not in Roster.IMMORTAL_WEAPONS: return {"error": "Immortals can select only the source-listed Gauss blaster or Tesla carbine."}
+		if entry.has("canoptek_macrocytes_loadouts"):
+			if identity != CANOPTEK_MACROCYTES_ID or not entry.canoptek_macrocytes_loadouts is Array or entry.canoptek_macrocytes_loadouts.size() != int(entry.copies): return {"error": "Canoptek Macrocytes equipment choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.canoptek_macrocytes_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Canoptek Macrocytes equipment choices must match every model."}
+				var atomiser_count := 0
+				var accelerator_count := 0
+				for weapon_choice: Variant in copy_loadouts:
+					if not weapon_choice is String or weapon_choice not in CanoptekMacrocytes.LOADOUTS: return {"error": "Canoptek Macrocytes can select only source-listed model equipment."}
+					if weapon_choice == CanoptekMacrocytes.ATOMISER_PROJECTOR: atomiser_count += 1
+					if weapon_choice == CanoptekMacrocytes.ACCELERATOR_MANDIBLE: accelerator_count += 1
+				if atomiser_count > 1 or accelerator_count > 1: return {"error": "A Canoptek Macrocytes unit can have at most one Atomiser beam + Nanoscarab Projector and one Accelerator Mandible."}
+		if entry.has("canoptek_spyders_loadouts"):
+			if identity != CANOPTEK_SPIDERS_ID or not entry.canoptek_spyders_loadouts is Array or entry.canoptek_spyders_loadouts.size() != int(entry.copies): return {"error": "Canoptek Spyders equipment choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.canoptek_spyders_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Canoptek Spyders equipment choices must match every model."}
+				for model_index in range(copy_loadouts.size()):
+					if not Roster.valid_model_equipment(CANOPTEK_SPIDERS_ID, model_index, copy_loadouts[model_index], int(entry.models)): return {"error": "Canoptek Spyders can select only source-listed per-model equipment."}
+		if entry.has("canoptek_tomb_crawlers_loadouts"):
+			if identity != CANOPTEK_TOMB_CRAWLERS_ID or not entry.canoptek_tomb_crawlers_loadouts is Array or entry.canoptek_tomb_crawlers_loadouts.size() != int(entry.copies): return {"error": "Canoptek Tomb Crawlers equipment choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.canoptek_tomb_crawlers_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Canoptek Tomb Crawlers equipment choices must match every model."}
+				var isolator_count := 0
+				for model_index in range(copy_loadouts.size()):
+					var equipment: Variant = copy_loadouts[model_index]
+					if not Roster.valid_model_equipment(CANOPTEK_TOMB_CRAWLERS_ID, model_index, equipment, int(entry.models)): return {"error": "Canoptek Tomb Crawlers can select only the twin gauss reaper or transdimensional isolator."}
+					if str(equipment.get("canoptek_tomb_crawlers_loadout", CanoptekTombCrawlers.GAUSS_REAPER)) == CanoptekTombCrawlers.ISOLATOR: isolator_count += 1
+				if isolator_count > 1: return {"error": "Only one Canoptek Tomb Crawler per unit may equip the transdimensional isolator."}
+		if entry.has("necron_annihilation_barge_loadouts"):
+			if identity != NECRON_ANNIHILATION_BARGE_ID or not entry.necron_annihilation_barge_loadouts is Array or entry.necron_annihilation_barge_loadouts.size() != int(entry.copies): return {"error": "Annihilation Barge cannon choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.necron_annihilation_barge_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Annihilation Barge cannon choices must match every model."}
+				for weapon_choice: Variant in copy_loadouts:
+					if not weapon_choice is String or not NecronVehicleLoadouts.valid_choice(identity, weapon_choice): return {"error": "Annihilation Barge can select only the source-listed Gauss cannon or Tesla cannon."}
+		if entry.has("necron_monolith_loadouts"):
+			if identity != NECRON_MONOLITH_ID or not entry.necron_monolith_loadouts is Array or entry.necron_monolith_loadouts.size() != int(entry.copies): return {"error": "Monolith weapon choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.necron_monolith_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Monolith weapon choices must match every model."}
+				for weapon_choice: Variant in copy_loadouts:
+					if not weapon_choice is String or not NecronVehicleLoadouts.valid_choice(identity, weapon_choice): return {"error": "Monolith can select only four Gauss Flux Arcs or four Death Rays."}
+		if entry.has("outrider_loadouts"):
+			if identity != OUTRIDER_SQUAD_ID or not entry.outrider_loadouts is Array or entry.outrider_loadouts.size() != int(entry.copies): return {"error": "Outrider equipment choices must match each selected unit copy."}
+			for copy_loadout: Variant in entry.outrider_loadouts:
+				if not Roster.valid_outrider_loadout(copy_loadout, int(entry.models)): return {"error": "Outriders may replace their Sergeant's Chainsword with a Power Weapon or Thunder Hammer and take at most one Plasma Pistol per three models."}
+		if entry.has("ravenwing_darkshroud_loadouts"):
+			if identity != RAVENWING_DARKSHROUD_ID or int(entry.models) != 1 or not entry.ravenwing_darkshroud_loadouts is Array or entry.ravenwing_darkshroud_loadouts.size() != int(entry.copies): return {"error": "Ravenwing Darkshroud weapon choices must match each selected one-model copy."}
+			for weapon_choice: Variant in entry.ravenwing_darkshroud_loadouts:
+				if not weapon_choice is String or weapon_choice not in ["heavy-bolter", "assault-cannon"]: return {"error": "Ravenwing Darkshroud can select only the source-listed Heavy Bolter or Assault Cannon."}
+		if entry.has("land_speeder_loadouts"):
+			if identity != LAND_SPEEDER_ID or int(entry.models) != 1 or not entry.land_speeder_loadouts is Array or entry.land_speeder_loadouts.size() != int(entry.copies): return {"error": "Land Speeder cannon choices must match each selected one-model copy."}
+			for weapon_choice: Variant in entry.land_speeder_loadouts:
+				if not weapon_choice is String or weapon_choice not in ["onslaught", "pyrecannon"]: return {"error": "Land Speeder can select only the source-listed Onslaught Gatling Cannon or Pyrecannon."}
+		if entry.has("land_speeder_vengeance_loadouts"):
+			if identity != LAND_SPEEDER_VENGEANCE_ID or int(entry.models) != 1 or not entry.land_speeder_vengeance_loadouts is Array or entry.land_speeder_vengeance_loadouts.size() != int(entry.copies): return {"error": "Land Speeder Vengeance cannon choices must match each selected one-model copy."}
+			for weapon_choice: Variant in entry.land_speeder_vengeance_loadouts:
+				if not weapon_choice is String or weapon_choice not in ["heavy-bolter", "assault-cannon"]: return {"error": "Land Speeder Vengeance can select only the source-listed Heavy Bolter or Assault Cannon."}
+		if entry.has("baal_predator_loadouts"):
+			if identity != BAAL_PREDATOR_ID or int(entry.models) != 1 or not entry.baal_predator_loadouts is Array or entry.baal_predator_loadouts.size() != int(entry.copies): return {"error": "Baal Predator equipment choices must match each selected one-model copy."}
+			for copy_loadout: Variant in entry.baal_predator_loadouts:
+				if not Roster.valid_model_equipment(identity, 0, copy_loadout, 1): return {"error": "Baal Predator can select only its source-listed cannon, paired sponson package, Storm Bolter and Hunter-killer Missile options."}
+		if entry.has("predator_destructor_loadouts"):
+			if identity != PREDATOR_DESTRUCTOR_ID or int(entry.models) != 1 or not entry.predator_destructor_loadouts is Array or entry.predator_destructor_loadouts.size() != int(entry.copies): return {"error": "Predator Destructor equipment choices must match each selected one-model copy."}
+			for copy_loadout: Variant in entry.predator_destructor_loadouts:
+				if not Roster.valid_model_equipment(identity, 0, copy_loadout, 1): return {"error": "Predator Destructor can select only its source-listed sponson replacement, Storm Bolter and Hunter-killer Missile options."}
+		if entry.has("predator_annihilator_loadouts"):
+			if identity != PREDATOR_ANNIHILATOR_ID or int(entry.models) != 1 or not entry.predator_annihilator_loadouts is Array or entry.predator_annihilator_loadouts.size() != int(entry.copies): return {"error": "Predator Annihilator equipment choices must match each selected one-model copy."}
+			for copy_loadout: Variant in entry.predator_annihilator_loadouts:
+				if not Roster.valid_model_equipment(identity, 0, copy_loadout, 1): return {"error": "Predator Annihilator can select only its source-listed sponson replacement, Storm Bolter and Hunter-killer Missile options."}
+		if entry.has("hellblaster_sergeant_pistol_loadouts"):
+			if identity != HELLBLASTER_SQUAD_ID or not entry.hellblaster_sergeant_pistol_loadouts is Array or entry.hellblaster_sergeant_pistol_loadouts.size() != int(entry.copies): return {"error": "Hellblaster Sergeant pistol choices must match each selected Squad copy."}
+			for pistol_choice: Variant in entry.hellblaster_sergeant_pistol_loadouts:
+				if not pistol_choice is String or pistol_choice not in ["bolt-pistol", "plasma-pistol"]: return {"error": "A Hellblaster Sergeant can select only the source-listed Bolt Pistol or Plasma Pistol."}
+		if entry.has("assault_intercessor_sergeant_loadouts"):
+			if identity != ASSAULT_INTERCESSOR_SQUAD_ID or not entry.assault_intercessor_sergeant_loadouts is Array or entry.assault_intercessor_sergeant_loadouts.size() != int(entry.copies): return {"error": "Assault Intercessor Sergeant choices must match each selected Squad copy."}
+			for loadout: Variant in entry.assault_intercessor_sergeant_loadouts:
+				if not Roster.valid_assault_intercessor_sergeant_loadout(loadout): return {"error": "An Assault Intercessor Sergeant can select only the source-listed pistol and melee replacements."}
+		if entry.has("heavy_intercessor_bolter_loadouts"):
+			if identity != HEAVY_INTERCESSOR_SQUAD_ID or not entry.heavy_intercessor_bolter_loadouts is Array or entry.heavy_intercessor_bolter_loadouts.size() != int(entry.copies): return {"error": "Heavy Intercessor Heavy Bolter choices must match each selected Squad copy."}
+			for copy_loadouts: Variant in entry.heavy_intercessor_bolter_loadouts:
+				if not Roster.valid_heavy_intercessor_bolter_loadout(copy_loadouts, int(entry.models)): return {"error": "Each Heavy Intercessor unit can equip one Heavy Bolter per five models on a non-Sergeant."}
+		if entry.has("inceptor_loadouts"):
+			if identity != INCEPTOR_SQUAD_ID or not entry.inceptor_loadouts is Array or entry.inceptor_loadouts.size() != int(entry.copies): return {"error": "Inceptor weapon choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.inceptor_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Inceptor weapon choices must match every model in the unit."}
+				for weapon_choice: Variant in copy_loadouts:
+					if not weapon_choice is String or weapon_choice not in ["assault-bolters", "plasma-exterminators"]: return {"error": "Inceptors can select only source-listed Assault Bolters or Plasma Exterminators."}
+		if entry.has("invader_atv_loadouts"):
+			if identity != INVADER_ATV_ID or not entry.invader_atv_loadouts is Array or entry.invader_atv_loadouts.size() != int(entry.copies): return {"error": "Invader ATV weapon choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.invader_atv_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Invader ATV weapon choices must match every model in the unit."}
+				for multi_melta: Variant in copy_loadouts:
+					if not multi_melta is bool: return {"error": "Each Invader ATV model can select only its source-listed Onslaught Gatling Cannon or Multi-melta."}
+		if entry.has("reiver_loadouts"):
+			if identity != REIVER_SQUAD_ID or not entry.reiver_loadouts is Array or entry.reiver_loadouts.size() != int(entry.copies): return {"error": "Reiver equipment choices must match each selected unit copy."}
+			for reiver_loadout: Variant in entry.reiver_loadouts:
+				if not Roster.valid_unit_equipment(identity, reiver_loadout): return {"error": "Reivers can select only the source-listed Grav-chutes and Grapnel Launchers."}
+		if entry.has("aggressor_loadouts"):
+			if identity != "40kdc:11e:adeptus-astartes:aggressor-squad" or not entry.aggressor_loadouts is Array or entry.aggressor_loadouts.size() != int(entry.copies): return {"error": "Aggressor model weapon choices must match each selected unit copy."}
+			for copy_loadouts: Variant in entry.aggressor_loadouts:
+				if not copy_loadouts is Array or copy_loadouts.size() != int(entry.models): return {"error": "Aggressor weapon choices must match every model in the unit."}
+				for boltstorm: Variant in copy_loadouts:
+					if not boltstorm is bool: return {"error": "Aggressors can select only the source-listed Flamestorm or Boltstorm/Fragstorm package."}
+		if entry.has("scout_loadouts"):
+			if identity != SCOUT_SQUAD_ID or not entry.scout_loadouts is Array or entry.scout_loadouts.size() != int(entry.copies): return {"error": "Scout weapon choices must match each selected unit copy."}
+			for scout_loadout: Variant in entry.scout_loadouts:
+				if not Roster.valid_scout_loadout(identity, scout_loadout, int(entry.models)): return {"error": "Scout equipment must match the source-listed model choices and one-per-five-model specialist limits."}
 		if enhancement_id != "" and UnitAbilityCatalog.cannot_receive_enhancements(identity): return {"error": "This datasheet cannot be given Enhancements: " + identity}
 		var resolved: Dictionary = definitions.get(identity, {})
 		if resolved.is_empty(): resolved = resolve(selection.faction, identity, prefer_current_reference)
@@ -564,31 +756,99 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 			variant.cost = int(variant.cost) + int(StormlanceEnhancements.RECORDS[enhancement_id].cost)
 			variant.enhancement_id = enhancement_id
 		var intercessor_sergeant := identity == INTERCESSOR_SQUAD_ID
+		var eliminator_sergeant := identity == ELIMINATOR_SQUAD_ID
+		var outrider_squad := identity == OUTRIDER_SQUAD_ID
+		var ravenwing_darkshroud := identity == RAVENWING_DARKSHROUD_ID
 		var default_rifle := "bolt-rifle"
 		var default_melee := "knives-and-fists"
 		for copy_index in range(int(entry.copies)):
 			var copy_variant := variant.duplicate(true)
 			copy_variant.definition_id = identity
 			copy_variant.models = int(entry.models)
+			if entry.has("saved_model_loadouts"): copy_variant.saved_model_equipment = entry.saved_model_loadouts[copy_index].duplicate(true)
+			if entry.has("saved_unit_loadouts"): copy_variant.saved_unit_equipment = entry.saved_unit_loadouts[copy_index].duplicate(true)
 			if intercessor_sergeant and (entry.has("intercessor_sergeant_loadouts") or entry.has("intercessor_rifle_choice")):
 				var loadout := Roster.intercessor_sergeant_loadout(entry, copy_index) if entry.has("intercessor_sergeant_loadouts") else {"rifle_choice": str(entry.intercessor_rifle_choice), "melee_choice": str(entry.intercessor_melee_choice)}
 				if str(loadout.rifle_choice) != default_rifle or str(loadout.melee_choice) != default_melee:
 					copy_variant.intercessor_rifle_choice = str(loadout.rifle_choice)
 					copy_variant.intercessor_melee_choice = str(loadout.melee_choice)
+			if intercessor_sergeant and entry.has("intercessor_grenade_launcher_loadouts"):
+				copy_variant.intercessor_grenade_launcher_choices = entry.intercessor_grenade_launcher_loadouts[copy_index].duplicate(true)
+			if eliminator_sergeant and entry.has("eliminator_sergeant_loadouts"):
+				copy_variant.eliminator_sergeant_weapon_choice = str(entry.eliminator_sergeant_loadouts[copy_index])
+			if eliminator_sergeant and entry.has("eliminator_trooper_loadouts"):
+				copy_variant.eliminator_trooper_weapon_choices = entry.eliminator_trooper_loadouts[copy_index].duplicate(true)
+			if outrider_squad and entry.has("outrider_loadouts"):
+				var outrider_loadout: Dictionary = entry.outrider_loadouts[copy_index]
+				copy_variant.outrider_sergeant_melee_choice = str(outrider_loadout.sergeant_melee_choice)
+				copy_variant.outrider_plasma_pistol_choices = outrider_loadout.plasma_pistol_choices.duplicate(true)
+			if ravenwing_darkshroud and entry.has("ravenwing_darkshroud_loadouts"):
+				copy_variant.ravenwing_darkshroud_cannon_choice = str(entry.ravenwing_darkshroud_loadouts[copy_index])
+			if identity == LAND_SPEEDER_ID and entry.has("land_speeder_loadouts"):
+				copy_variant.land_speeder_cannon_choice = str(entry.land_speeder_loadouts[copy_index])
+			if identity == LAND_SPEEDER_VENGEANCE_ID and entry.has("land_speeder_vengeance_loadouts"):
+				copy_variant.land_speeder_vengeance_cannon_choice = str(entry.land_speeder_vengeance_loadouts[copy_index])
+			if identity == BAAL_PREDATOR_ID and entry.has("baal_predator_loadouts"):
+				copy_variant.baal_predator_model_loadout = entry.baal_predator_loadouts[copy_index].duplicate(true)
+			if identity == PREDATOR_DESTRUCTOR_ID and entry.has("predator_destructor_loadouts"):
+				copy_variant.predator_destructor_model_loadout = entry.predator_destructor_loadouts[copy_index].duplicate(true)
+			if identity == PREDATOR_ANNIHILATOR_ID and entry.has("predator_annihilator_loadouts"):
+				copy_variant.predator_annihilator_model_loadout = entry.predator_annihilator_loadouts[copy_index].duplicate(true)
+			if identity == HELLBLASTER_SQUAD_ID and entry.has("hellblaster_sergeant_pistol_loadouts"):
+				copy_variant.hellblaster_sergeant_pistol_choice = str(entry.hellblaster_sergeant_pistol_loadouts[copy_index])
+			if identity == ASSAULT_INTERCESSOR_SQUAD_ID and entry.has("assault_intercessor_sergeant_loadouts"):
+				var assault_intercessor_loadout: Dictionary = entry.assault_intercessor_sergeant_loadouts[copy_index]
+				copy_variant.assault_intercessor_sergeant_pistol_choice = str(assault_intercessor_loadout.pistol_choice)
+				copy_variant.assault_intercessor_sergeant_melee_choice = str(assault_intercessor_loadout.melee_choice)
+			if identity == HEAVY_INTERCESSOR_SQUAD_ID and entry.has("heavy_intercessor_bolter_loadouts"):
+				copy_variant.heavy_intercessor_bolter_choices = entry.heavy_intercessor_bolter_loadouts[copy_index].duplicate(true)
+			if identity == INCEPTOR_SQUAD_ID and entry.has("inceptor_loadouts"):
+				copy_variant.inceptor_weapon_choices = entry.inceptor_loadouts[copy_index].duplicate(true)
+			if identity == INVADER_ATV_ID and entry.has("invader_atv_loadouts"):
+				copy_variant.invader_atv_multi_melta_choices = entry.invader_atv_loadouts[copy_index].duplicate(true)
+			if identity == REIVER_SQUAD_ID and entry.has("reiver_loadouts"):
+				copy_variant.reiver_loadout = entry.reiver_loadouts[copy_index].duplicate(true)
+			if identity == "40kdc:11e:adeptus-astartes:aggressor-squad" and entry.has("aggressor_loadouts"):
+				copy_variant.aggressor_boltstorm_choices = entry.aggressor_loadouts[copy_index].duplicate(true)
+			if identity == SCOUT_SQUAD_ID and entry.has("scout_loadouts"):
+				copy_variant.scout_weapon_choices = entry.scout_loadouts[copy_index].duplicate(true)
+			if identity == NECRON_WARRIORS_ID and entry.has("necron_warrior_loadouts"):
+				copy_variant.necron_warrior_weapon_choices = entry.necron_warrior_loadouts[copy_index].duplicate(true)
+			if identity == IMMORTALS_ID and entry.has("immortal_loadouts"):
+				copy_variant.immortal_weapon_choices = entry.immortal_loadouts[copy_index].duplicate(true)
+			if identity == CANOPTEK_MACROCYTES_ID and entry.has("canoptek_macrocytes_loadouts"):
+				copy_variant.canoptek_macrocytes_loadout_choices = entry.canoptek_macrocytes_loadouts[copy_index].duplicate(true)
+			if identity == CANOPTEK_SPIDERS_ID and entry.has("canoptek_spyders_loadouts"):
+				copy_variant.canoptek_spyders_model_choices = entry.canoptek_spyders_loadouts[copy_index].duplicate(true)
+			if identity == CANOPTEK_TOMB_CRAWLERS_ID and entry.has("canoptek_tomb_crawlers_loadouts"):
+				copy_variant.canoptek_tomb_crawlers_model_choices = entry.canoptek_tomb_crawlers_loadouts[copy_index].duplicate(true)
+			if identity == NECRON_ANNIHILATION_BARGE_ID and entry.has("necron_annihilation_barge_loadouts"):
+				copy_variant.necron_annihilation_barge_model_choices = entry.necron_annihilation_barge_loadouts[copy_index].duplicate(true)
+			if identity == NECRON_MONOLITH_ID and entry.has("necron_monolith_loadouts"):
+				copy_variant.necron_monolith_model_choices = entry.necron_monolith_loadouts[copy_index].duplicate(true)
 			var configuration := configuration_key(copy_variant)
 			configurations[configuration] = copy_variant
 			if resolved.get("uses_current_reference", false):
 				var premium := int(StormlanceEnhancements.RECORDS[enhancement_id].cost) if enhancement_id != "" else 0
 				var banner_cost := int(composition_choice.get("wargear_cost", 0))
-				var standard_cost := int(source_points.get("points_by_models", current_profile_data.get("points_by_models", {})).get(entry.models, variant.cost - premium - banner_cost)) + premium + banner_cost
+				var model_wargear_cost := 0
+				if copy_variant.has("saved_model_equipment"):
+					model_wargear_cost += SavedEquipment.points_for_loadout(identity, copy_variant.saved_model_equipment, int(entry.models))
+				if identity == INVADER_ATV_ID and copy_variant.has("invader_atv_multi_melta_choices"):
+					var multi_melta_choices: Array = copy_variant.invader_atv_multi_melta_choices
+					var multi_melta_count := 0
+					for equipped: bool in multi_melta_choices:
+						if equipped: multi_melta_count += 1
+					model_wargear_cost = multi_melta_count * int(current_profile_data.get("wargear_costs", {}).get("multi-melta", 0))
+				var standard_cost := int(source_points.get("points_by_models", current_profile_data.get("points_by_models", {})).get(entry.models, variant.cost - premium - banner_cost)) + premium + banner_cost + model_wargear_cost
 				var second_sizes: Dictionary = source_points.get("second_plus_points_by_models", current_profile_data.get("second_plus_points_by_models", {}))
-				var second_base := int(second_sizes.get(entry.models, standard_cost - premium - banner_cost))
+				var second_base := int(second_sizes.get(entry.models, standard_cost - premium - banner_cost - model_wargear_cost))
 				var third_sizes: Dictionary = source_points.get("third_plus_points_by_models", current_profile_data.get("third_plus_points_by_models", {}))
 				var fourth_sizes: Dictionary = source_points.get("fourth_plus_points_by_models", third_sizes)
 				pricing[configuration] = {"standard": standard_cost,
-					"second_plus": second_base + premium + banner_cost,
-					"third_plus": int(third_sizes.get(entry.models, second_base)) + premium + banner_cost,
-					"fourth_plus": int(fourth_sizes.get(entry.models, third_sizes.get(entry.models, second_base))) + premium + banner_cost}
+					"second_plus": second_base + premium + banner_cost + model_wargear_cost,
+					"third_plus": int(third_sizes.get(entry.models, second_base)) + premium + banner_cost + model_wargear_cost,
+					"fourth_plus": int(fourth_sizes.get(entry.models, third_sizes.get(entry.models, second_base))) + premium + banner_cost + model_wargear_cost}
 			counts[configuration] = int(counts.get(configuration, 0)) + 1
 		if resolved.get("uses_current_reference", false):
 			var composed_keywords: Array = current_profile_data.get("keywords", []).duplicate()
@@ -630,11 +890,121 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 		total += int(Roster.tiered_cost(identity_pricing.standard, identity_pricing.third_plus, configuration_copies, already_counted, identity_pricing.fourth_plus, identity_pricing.second_plus))
 		priced_counts[identity] = already_counted + configuration_copies
 		var canonical_entry := {"definition_id": identity, "models": int(resolved.models) if not resolved.get("uses_current_reference", false) else int(configurations[configuration].models), "copies": int(counts[configuration])}
+		if configurations[configuration].has("saved_unit_equipment"):
+			var unit_loadouts: Array = []
+			for _copy in range(int(counts[configuration])): unit_loadouts.append(configurations[configuration].saved_unit_equipment.duplicate(true))
+			canonical_entry.saved_unit_loadouts = unit_loadouts
+		if configurations[configuration].has("saved_model_equipment"):
+			var loadouts: Array = []
+			for _copy in range(int(counts[configuration])): loadouts.append(configurations[configuration].saved_model_equipment.duplicate(true))
+			canonical_entry.saved_model_loadouts = loadouts
 		if configurations[configuration].has("enhancement_id"): canonical_entry.enhancement_id = str(configurations[configuration].enhancement_id)
 		if configurations[configuration].has("composition_choice_id"): canonical_entry.composition_choice_id = str(configurations[configuration].composition_choice_id)
 		if configurations[configuration].has("intercessor_rifle_choice"):
 			canonical_entry.intercessor_rifle_choice = str(configurations[configuration].intercessor_rifle_choice)
 			canonical_entry.intercessor_melee_choice = str(configurations[configuration].intercessor_melee_choice)
+		if configurations[configuration].has("intercessor_grenade_launcher_choices"):
+			var launcher_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): launcher_loadouts.append(configurations[configuration].intercessor_grenade_launcher_choices.duplicate(true))
+			canonical_entry.intercessor_grenade_launcher_loadouts = launcher_loadouts
+		if configurations[configuration].has("outrider_sergeant_melee_choice"):
+			var outrider_loadouts: Array[Dictionary] = []
+			for _copy in range(int(counts[configuration])):
+				outrider_loadouts.append({"sergeant_melee_choice": str(configurations[configuration].outrider_sergeant_melee_choice), "plasma_pistol_choices": configurations[configuration].outrider_plasma_pistol_choices.duplicate(true)})
+			canonical_entry.outrider_loadouts = outrider_loadouts
+		if configurations[configuration].has("ravenwing_darkshroud_cannon_choice"):
+			var darkshroud_loadouts: Array[String] = []
+			for _copy in range(int(counts[configuration])): darkshroud_loadouts.append(str(configurations[configuration].ravenwing_darkshroud_cannon_choice))
+			canonical_entry.ravenwing_darkshroud_loadouts = darkshroud_loadouts
+		if configurations[configuration].has("land_speeder_cannon_choice"):
+			var land_speeder_loadouts: Array[String] = []
+			for _copy in range(int(counts[configuration])): land_speeder_loadouts.append(str(configurations[configuration].land_speeder_cannon_choice))
+			canonical_entry.land_speeder_loadouts = land_speeder_loadouts
+		if configurations[configuration].has("land_speeder_vengeance_cannon_choice"):
+			var land_speeder_vengeance_loadouts: Array[String] = []
+			for _copy in range(int(counts[configuration])): land_speeder_vengeance_loadouts.append(str(configurations[configuration].land_speeder_vengeance_cannon_choice))
+			canonical_entry.land_speeder_vengeance_loadouts = land_speeder_vengeance_loadouts
+		if configurations[configuration].has("baal_predator_model_loadout"):
+			var baal_loadouts: Array[Dictionary] = []
+			for _copy in range(int(counts[configuration])): baal_loadouts.append(configurations[configuration].baal_predator_model_loadout.duplicate(true))
+			canonical_entry.baal_predator_loadouts = baal_loadouts
+		if configurations[configuration].has("predator_destructor_model_loadout"):
+			var destructor_loadouts: Array[Dictionary] = []
+			for _copy in range(int(counts[configuration])): destructor_loadouts.append(configurations[configuration].predator_destructor_model_loadout.duplicate(true))
+			canonical_entry.predator_destructor_loadouts = destructor_loadouts
+		if configurations[configuration].has("predator_annihilator_model_loadout"):
+			var annihilator_loadouts: Array[Dictionary] = []
+			for _copy in range(int(counts[configuration])): annihilator_loadouts.append(configurations[configuration].predator_annihilator_model_loadout.duplicate(true))
+			canonical_entry.predator_annihilator_loadouts = annihilator_loadouts
+		if configurations[configuration].has("hellblaster_sergeant_pistol_choice"):
+			var hellblaster_loadouts: Array[String] = []
+			for _copy in range(int(counts[configuration])): hellblaster_loadouts.append(str(configurations[configuration].hellblaster_sergeant_pistol_choice))
+			canonical_entry.hellblaster_sergeant_pistol_loadouts = hellblaster_loadouts
+		if configurations[configuration].has("assault_intercessor_sergeant_pistol_choice"):
+			var assault_intercessor_loadouts: Array[Dictionary] = []
+			for _copy in range(int(counts[configuration])):
+				assault_intercessor_loadouts.append({"pistol_choice": str(configurations[configuration].assault_intercessor_sergeant_pistol_choice), "melee_choice": str(configurations[configuration].assault_intercessor_sergeant_melee_choice)})
+			canonical_entry.assault_intercessor_sergeant_loadouts = assault_intercessor_loadouts
+		if configurations[configuration].has("heavy_intercessor_bolter_choices"):
+			var heavy_intercessor_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): heavy_intercessor_loadouts.append(configurations[configuration].heavy_intercessor_bolter_choices.duplicate(true))
+			canonical_entry.heavy_intercessor_bolter_loadouts = heavy_intercessor_loadouts
+		if configurations[configuration].has("inceptor_weapon_choices"):
+			var inceptor_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): inceptor_loadouts.append(configurations[configuration].inceptor_weapon_choices.duplicate(true))
+			canonical_entry.inceptor_loadouts = inceptor_loadouts
+		if configurations[configuration].has("invader_atv_multi_melta_choices"):
+			var invader_atv_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): invader_atv_loadouts.append(configurations[configuration].invader_atv_multi_melta_choices.duplicate(true))
+			canonical_entry.invader_atv_loadouts = invader_atv_loadouts
+		if configurations[configuration].has("reiver_loadout"):
+			var reiver_loadouts: Array[Dictionary] = []
+			for _copy in range(int(counts[configuration])): reiver_loadouts.append(configurations[configuration].reiver_loadout.duplicate(true))
+			canonical_entry.reiver_loadouts = reiver_loadouts
+		if configurations[configuration].has("aggressor_boltstorm_choices"):
+			var aggressor_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): aggressor_loadouts.append(configurations[configuration].aggressor_boltstorm_choices.duplicate(true))
+			canonical_entry.aggressor_loadouts = aggressor_loadouts
+		if configurations[configuration].has("scout_weapon_choices"):
+			var scout_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): scout_loadouts.append(configurations[configuration].scout_weapon_choices.duplicate(true))
+			canonical_entry.scout_loadouts = scout_loadouts
+		if configurations[configuration].has("eliminator_sergeant_weapon_choice"):
+			var eliminator_loadouts: Array[String] = []
+			for _copy in range(int(counts[configuration])): eliminator_loadouts.append(str(configurations[configuration].eliminator_sergeant_weapon_choice))
+			canonical_entry.eliminator_sergeant_loadouts = eliminator_loadouts
+		if configurations[configuration].has("eliminator_trooper_weapon_choices"):
+			var trooper_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): trooper_loadouts.append(configurations[configuration].eliminator_trooper_weapon_choices.duplicate(true))
+			canonical_entry.eliminator_trooper_loadouts = trooper_loadouts
+		if configurations[configuration].has("necron_warrior_weapon_choices"):
+			var warrior_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): warrior_loadouts.append(configurations[configuration].necron_warrior_weapon_choices.duplicate(true))
+			canonical_entry.necron_warrior_loadouts = warrior_loadouts
+		if configurations[configuration].has("immortal_weapon_choices"):
+			var immortal_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): immortal_loadouts.append(configurations[configuration].immortal_weapon_choices.duplicate(true))
+			canonical_entry.immortal_loadouts = immortal_loadouts
+		if configurations[configuration].has("canoptek_macrocytes_loadout_choices"):
+			var macrocyte_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): macrocyte_loadouts.append(configurations[configuration].canoptek_macrocytes_loadout_choices.duplicate(true))
+			canonical_entry.canoptek_macrocytes_loadouts = macrocyte_loadouts
+		if configurations[configuration].has("canoptek_spyders_model_choices"):
+			var spyder_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): spyder_loadouts.append(configurations[configuration].canoptek_spyders_model_choices.duplicate(true))
+			canonical_entry.canoptek_spyders_loadouts = spyder_loadouts
+		if configurations[configuration].has("canoptek_tomb_crawlers_model_choices"):
+			var tomb_crawler_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): tomb_crawler_loadouts.append(configurations[configuration].canoptek_tomb_crawlers_model_choices.duplicate(true))
+			canonical_entry.canoptek_tomb_crawlers_loadouts = tomb_crawler_loadouts
+		if configurations[configuration].has("necron_annihilation_barge_model_choices"):
+			var barge_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): barge_loadouts.append(configurations[configuration].necron_annihilation_barge_model_choices.duplicate(true))
+			canonical_entry.necron_annihilation_barge_loadouts = barge_loadouts
+		if configurations[configuration].has("necron_monolith_model_choices"):
+			var monolith_loadouts: Array[Array] = []
+			for _copy in range(int(counts[configuration])): monolith_loadouts.append(configurations[configuration].necron_monolith_model_choices.duplicate(true))
+			canonical_entry.necron_monolith_loadouts = monolith_loadouts
 		canonical.append(canonical_entry)
 		if not resolved.unsupported_abilities.is_empty(): warnings.append(resolved.unit.name + ": " + ", ".join(resolved.unsupported_abilities))
 		if not resolved.get("unsupported_weapon_rules", []).is_empty(): warnings.append(resolved.unit.name + " weapon rules: " + ", ".join(resolved.unsupported_weapon_rules))
@@ -642,14 +1012,151 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 	if total > selection.points_limit: return {"error": "The list exceeds the training-pack budget: %d/%d." % [total, selection.points_limit]}
 	var copy_limit_basis := "wahapedia-e11-core-rules-25.03" if STANDARD_COPY_LIMITS.has(selection.category) else "project-local-supported-copy-ceiling"
 	return {"error": "", "selection": {"schema_version": 2, "faction": selection.faction, "entries": canonical, "category": selection.category, "points_limit": int(selection.points_limit)},
-		"total": total, "unit_count": count, "definitions": definitions, "configurations": configurations, "warnings": warnings, "copy_limit_basis": copy_limit_basis,
+		"total": total, "unit_count": count, "definitions": definitions, "configurations": configurations, "configuration_pricing": pricing, "warnings": warnings, "copy_limit_basis": copy_limit_basis,
 		"copy_limit_keyword_context": marine_detachment if roster_context.has("marine_detachment") else "datasheet-keywords"}
 
 static func configuration_key(entry: Dictionary) -> String:
 	var configuration := "%s:%02d:%s" % [str(entry.get("definition_id", "")), int(entry.get("models", 0)), str(entry.get("enhancement_id", ""))]
+	if entry.has("saved_unit_equipment"): configuration += ":unit-saved=" + JSON.stringify(entry.saved_unit_equipment)
+	elif entry.has("saved_unit_loadouts") and not entry.saved_unit_loadouts.is_empty(): configuration += ":unit-saved=" + JSON.stringify(entry.saved_unit_loadouts[0])
+	if entry.has("saved_model_equipment"): configuration += ":saved=" + JSON.stringify(entry.saved_model_equipment)
+	elif entry.has("saved_model_loadouts") and not entry.saved_model_loadouts.is_empty(): configuration += ":saved=" + JSON.stringify(entry.saved_model_loadouts[0])
 	if entry.has("composition_choice_id"): configuration += ":" + str(entry.composition_choice_id)
 	if entry.has("intercessor_rifle_choice") or entry.has("intercessor_melee_choice"):
 		configuration += ":%s:%s" % [str(entry.get("intercessor_rifle_choice", "")), str(entry.get("intercessor_melee_choice", ""))]
+	var intercessor_launcher_choices: Variant = entry.get("intercessor_grenade_launcher_choices", null)
+	if intercessor_launcher_choices == null:
+		var launcher_loadouts: Variant = entry.get("intercessor_grenade_launcher_loadouts", [])
+		if launcher_loadouts is Array and not launcher_loadouts.is_empty(): intercessor_launcher_choices = launcher_loadouts[0]
+	if intercessor_launcher_choices is Array: configuration += ":grenade-launchers=" + JSON.stringify(intercessor_launcher_choices)
+	var outrider_melee_choice := str(entry.get("outrider_sergeant_melee_choice", ""))
+	var outrider_plasma_choices: Variant = entry.get("outrider_plasma_pistol_choices", null)
+	if outrider_melee_choice.is_empty() or outrider_plasma_choices == null:
+		var outrider_loadouts: Variant = entry.get("outrider_loadouts", [])
+		if outrider_loadouts is Array and not outrider_loadouts.is_empty() and outrider_loadouts[0] is Dictionary:
+			if outrider_melee_choice.is_empty(): outrider_melee_choice = str(outrider_loadouts[0].get("sergeant_melee_choice", ""))
+			if outrider_plasma_choices == null: outrider_plasma_choices = outrider_loadouts[0].get("plasma_pistol_choices", null)
+	if not outrider_melee_choice.is_empty() or outrider_plasma_choices is Array:
+		configuration += ":outrider=%s:%s" % [outrider_melee_choice, JSON.stringify(outrider_plasma_choices)]
+	var darkshroud_choice := str(entry.get("ravenwing_darkshroud_cannon_choice", ""))
+	if darkshroud_choice.is_empty():
+		var darkshroud_loadouts: Variant = entry.get("ravenwing_darkshroud_loadouts", [])
+		if darkshroud_loadouts is Array and not darkshroud_loadouts.is_empty(): darkshroud_choice = str(darkshroud_loadouts[0])
+	if not darkshroud_choice.is_empty(): configuration += ":darkshroud=" + darkshroud_choice
+	var land_speeder_choice := str(entry.get("land_speeder_cannon_choice", ""))
+	if land_speeder_choice.is_empty():
+		var land_speeder_loadouts: Variant = entry.get("land_speeder_loadouts", [])
+		if land_speeder_loadouts is Array and not land_speeder_loadouts.is_empty(): land_speeder_choice = str(land_speeder_loadouts[0])
+	if not land_speeder_choice.is_empty(): configuration += ":land-speeder=" + land_speeder_choice
+	var land_speeder_vengeance_choice := str(entry.get("land_speeder_vengeance_cannon_choice", ""))
+	if land_speeder_vengeance_choice.is_empty():
+		var land_speeder_vengeance_loadouts: Variant = entry.get("land_speeder_vengeance_loadouts", [])
+		if land_speeder_vengeance_loadouts is Array and not land_speeder_vengeance_loadouts.is_empty(): land_speeder_vengeance_choice = str(land_speeder_vengeance_loadouts[0])
+	if not land_speeder_vengeance_choice.is_empty(): configuration += ":land-speeder-vengeance=" + land_speeder_vengeance_choice
+	var baal_loadout: Variant = entry.get("baal_predator_model_loadout", null)
+	if baal_loadout == null:
+		var baal_loadouts: Variant = entry.get("baal_predator_loadouts", [])
+		if baal_loadouts is Array and not baal_loadouts.is_empty(): baal_loadout = baal_loadouts[0]
+	if baal_loadout is Dictionary: configuration += ":baal-predator=" + JSON.stringify(baal_loadout)
+	var destructor_loadout: Variant = entry.get("predator_destructor_model_loadout", null)
+	if destructor_loadout == null:
+		var destructor_loadouts: Variant = entry.get("predator_destructor_loadouts", [])
+		if destructor_loadouts is Array and not destructor_loadouts.is_empty(): destructor_loadout = destructor_loadouts[0]
+	if destructor_loadout is Dictionary: configuration += ":predator-destructor=" + JSON.stringify(destructor_loadout)
+	var annihilator_loadout: Variant = entry.get("predator_annihilator_model_loadout", null)
+	if annihilator_loadout == null:
+		var annihilator_loadouts: Variant = entry.get("predator_annihilator_loadouts", [])
+		if annihilator_loadouts is Array and not annihilator_loadouts.is_empty(): annihilator_loadout = annihilator_loadouts[0]
+	if annihilator_loadout is Dictionary: configuration += ":predator-annihilator=" + JSON.stringify(annihilator_loadout)
+	var hellblaster_pistol_choice := str(entry.get("hellblaster_sergeant_pistol_choice", ""))
+	if hellblaster_pistol_choice.is_empty():
+		var hellblaster_loadouts: Variant = entry.get("hellblaster_sergeant_pistol_loadouts", [])
+		if hellblaster_loadouts is Array and not hellblaster_loadouts.is_empty(): hellblaster_pistol_choice = str(hellblaster_loadouts[0])
+	if not hellblaster_pistol_choice.is_empty(): configuration += ":hellblaster-pistol=" + hellblaster_pistol_choice
+	var assault_intercessor_pistol_choice := str(entry.get("assault_intercessor_sergeant_pistol_choice", ""))
+	var assault_intercessor_melee_choice := str(entry.get("assault_intercessor_sergeant_melee_choice", ""))
+	if assault_intercessor_pistol_choice.is_empty() or assault_intercessor_melee_choice.is_empty():
+		var assault_intercessor_loadouts: Variant = entry.get("assault_intercessor_sergeant_loadouts", [])
+		if assault_intercessor_loadouts is Array and not assault_intercessor_loadouts.is_empty() and assault_intercessor_loadouts[0] is Dictionary:
+			if assault_intercessor_pistol_choice.is_empty(): assault_intercessor_pistol_choice = str(assault_intercessor_loadouts[0].get("pistol_choice", ""))
+			if assault_intercessor_melee_choice.is_empty(): assault_intercessor_melee_choice = str(assault_intercessor_loadouts[0].get("melee_choice", ""))
+	if not assault_intercessor_pistol_choice.is_empty() or not assault_intercessor_melee_choice.is_empty():
+		configuration += ":assault-intercessor=%s:%s" % [assault_intercessor_pistol_choice, assault_intercessor_melee_choice]
+	var heavy_intercessor_choices: Variant = entry.get("heavy_intercessor_bolter_choices", null)
+	if heavy_intercessor_choices == null:
+		var heavy_intercessor_loadouts: Variant = entry.get("heavy_intercessor_bolter_loadouts", [])
+		if heavy_intercessor_loadouts is Array and not heavy_intercessor_loadouts.is_empty(): heavy_intercessor_choices = heavy_intercessor_loadouts[0]
+	if heavy_intercessor_choices is Array: configuration += ":heavy-intercessors=" + JSON.stringify(heavy_intercessor_choices)
+	var inceptor_choices: Variant = entry.get("inceptor_weapon_choices", null)
+	if inceptor_choices == null:
+		var inceptor_loadouts: Variant = entry.get("inceptor_loadouts", [])
+		if inceptor_loadouts is Array and not inceptor_loadouts.is_empty(): inceptor_choices = inceptor_loadouts[0]
+	if inceptor_choices is Array: configuration += ":inceptors=" + JSON.stringify(inceptor_choices)
+	var invader_atv_choices: Variant = entry.get("invader_atv_multi_melta_choices", null)
+	if invader_atv_choices == null:
+		var invader_atv_loadouts: Variant = entry.get("invader_atv_loadouts", [])
+		if invader_atv_loadouts is Array and not invader_atv_loadouts.is_empty(): invader_atv_choices = invader_atv_loadouts[0]
+	if invader_atv_choices is Array: configuration += ":invader-atv=" + JSON.stringify(invader_atv_choices)
+	var reiver_loadout: Variant = entry.get("reiver_loadout", null)
+	if reiver_loadout == null:
+		var reiver_loadouts: Variant = entry.get("reiver_loadouts", [])
+		if reiver_loadouts is Array and not reiver_loadouts.is_empty(): reiver_loadout = reiver_loadouts[0]
+	if reiver_loadout is Dictionary: configuration += ":reiver=" + JSON.stringify(reiver_loadout)
+	var aggressor_choices: Variant = entry.get("aggressor_boltstorm_choices", null)
+	if aggressor_choices == null:
+		var aggressor_loadouts: Variant = entry.get("aggressor_loadouts", [])
+		if aggressor_loadouts is Array and not aggressor_loadouts.is_empty(): aggressor_choices = aggressor_loadouts[0]
+	if aggressor_choices is Array: configuration += ":aggressor-model-packages=" + JSON.stringify(aggressor_choices)
+	var scout_choices: Variant = entry.get("scout_weapon_choices", null)
+	if scout_choices == null:
+		var scout_loadouts: Variant = entry.get("scout_loadouts", [])
+		if scout_loadouts is Array and not scout_loadouts.is_empty(): scout_choices = scout_loadouts[0]
+	if scout_choices is Array: configuration += ":scouts=" + JSON.stringify(scout_choices)
+	var eliminator_choice := str(entry.get("eliminator_sergeant_weapon_choice", ""))
+	if eliminator_choice.is_empty():
+		var eliminator_loadouts: Variant = entry.get("eliminator_sergeant_loadouts", [])
+		if eliminator_loadouts is Array and not eliminator_loadouts.is_empty(): eliminator_choice = str(eliminator_loadouts[0])
+	if not eliminator_choice.is_empty(): configuration += ":" + eliminator_choice
+	var trooper_choices: Variant = entry.get("eliminator_trooper_weapon_choices", null)
+	if trooper_choices == null:
+		var trooper_loadouts: Variant = entry.get("eliminator_trooper_loadouts", [])
+		if trooper_loadouts is Array and not trooper_loadouts.is_empty(): trooper_choices = trooper_loadouts[0]
+	if trooper_choices is Array: configuration += ":troopers=" + JSON.stringify(trooper_choices)
+	var warrior_choices: Variant = entry.get("necron_warrior_weapon_choices", null)
+	if warrior_choices == null:
+		var warrior_loadouts: Variant = entry.get("necron_warrior_loadouts", [])
+		if warrior_loadouts is Array and not warrior_loadouts.is_empty(): warrior_choices = warrior_loadouts[0]
+	if warrior_choices is Array: configuration += ":warriors=" + JSON.stringify(warrior_choices)
+	var immortal_choices: Variant = entry.get("immortal_weapon_choices", null)
+	if immortal_choices == null:
+		var immortal_loadouts: Variant = entry.get("immortal_loadouts", [])
+		if immortal_loadouts is Array and not immortal_loadouts.is_empty(): immortal_choices = immortal_loadouts[0]
+	if immortal_choices is Array: configuration += ":immortals=" + JSON.stringify(immortal_choices)
+	var macrocyte_choices: Variant = entry.get("canoptek_macrocytes_loadout_choices", null)
+	if macrocyte_choices == null:
+		var macrocyte_loadouts: Variant = entry.get("canoptek_macrocytes_loadouts", [])
+		if macrocyte_loadouts is Array and not macrocyte_loadouts.is_empty(): macrocyte_choices = macrocyte_loadouts[0]
+	if macrocyte_choices is Array: configuration += ":macrocytes=" + JSON.stringify(macrocyte_choices)
+	var spyder_choices: Variant = entry.get("canoptek_spyders_model_choices", null)
+	if spyder_choices == null:
+		var spyder_loadouts: Variant = entry.get("canoptek_spyders_loadouts", [])
+		if spyder_loadouts is Array and not spyder_loadouts.is_empty(): spyder_choices = spyder_loadouts[0]
+	if spyder_choices is Array: configuration += ":spyders=" + JSON.stringify(spyder_choices)
+	var tomb_crawler_choices: Variant = entry.get("canoptek_tomb_crawlers_model_choices", null)
+	if tomb_crawler_choices == null:
+		var tomb_crawler_loadouts: Variant = entry.get("canoptek_tomb_crawlers_loadouts", [])
+		if tomb_crawler_loadouts is Array and not tomb_crawler_loadouts.is_empty(): tomb_crawler_choices = tomb_crawler_loadouts[0]
+	if tomb_crawler_choices is Array: configuration += ":tomb-crawlers=" + JSON.stringify(tomb_crawler_choices)
+	var barge_choices: Variant = entry.get("necron_annihilation_barge_model_choices", null)
+	if barge_choices == null:
+		var barge_loadouts: Variant = entry.get("necron_annihilation_barge_loadouts", [])
+		if barge_loadouts is Array and not barge_loadouts.is_empty(): barge_choices = barge_loadouts[0]
+	if barge_choices is Array: configuration += ":annihilation-barge=" + JSON.stringify(barge_choices)
+	var monolith_choices: Variant = entry.get("necron_monolith_model_choices", null)
+	if monolith_choices == null:
+		var monolith_loadouts: Variant = entry.get("necron_monolith_loadouts", [])
+		if monolith_loadouts is Array and not monolith_loadouts.is_empty(): monolith_choices = monolith_loadouts[0]
+	if monolith_choices is Array: configuration += ":monolith=" + JSON.stringify(monolith_choices)
 	return configuration
 
 static func reference_army(faction: String) -> Dictionary:
@@ -668,3 +1175,6 @@ static func reference_army(faction: String) -> Dictionary:
 			"role": Roster.role(resolved.unit.keywords), "models": resolved.models, "cost": resolved.cost,
 			"copies": 4 if source == "necron-warriors" else 2, "source_digest": resolved.pack_hash})
 	return {"error": "", "list": list}
+
+static func identity_for_saved_entry(selection: Dictionary, entry: Dictionary) -> String:
+	return canonical_id(str(selection.faction), str(entry.definition_id))

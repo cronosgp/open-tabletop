@@ -3,6 +3,8 @@
 builds/
 __pycache__/
 data/imported/
+*.translation
+docs/**/*.import
 .agents/
 # Keep the project game-design guidance and selected Godot/game-design skills portable.
 !.agents/

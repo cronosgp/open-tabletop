@@ -39,3 +39,7 @@ The focused current-catalog verification passed **6/6 processes** at `.tools/ver
 The separate Hammer of Wrath behavior run passed **3/3 processes** at `.tools/verification/20261028T014532504875Z/results.json` (SHA-256 `20bcec476b1f747895e86c94288ef52f5f6ece19411418b02c296ba2943efcb3`; `network: false`, `legacy_starter_staged: true`). Both commands and scope boundaries are preserved in the machine audit.
 
 This closes only this datasheet's declared shared-book local scope. The two-copy admission cap remains a known construction limit; full Chapter and army legality, all possible Leader combinations, network behavior, complete-match certification and human playtesting remain open.
+
+## Saved model equipment — 14 November 2026
+
+Army Builder now saves source-listed weapons per stable miniature/copy with leader-role restrictions. Existing sizes and construction copy gates are unchanged. Saved matches apply these records before Deployment and reject repeated equipment setup; live formation/combat abilities remain available. See the [saved-equipment source and regression audit](verification/sergeant-squad-saved-equipment.md).

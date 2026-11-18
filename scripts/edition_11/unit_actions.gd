@@ -23,6 +23,7 @@ const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const NecronProfiles = preload("res://scripts/edition_11/current_reference_necron_profiles.gd")
+const NecronVehicleLoadouts = preload("res://scripts/edition_11/necron_vehicle_loadouts.gd")
 const DamoclesUplink = preload("res://scripts/edition_11/gauntlet_damocles_uplink.gd")
 const Actions = preload("res://scripts/edition_11/actions.gd")
 const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
@@ -39,6 +40,9 @@ const CommanderDante = preload("res://scripts/edition_11/commander_dante.gd")
 const Sanguinor = preload("res://scripts/edition_11/sanguinor.gd")
 const Mephiston = preload("res://scripts/edition_11/mephiston.gd")
 const DeadlyDemise = preload("res://scripts/edition_11/deadly_demise.gd")
+const NightbringerDrainLife = preload("res://scripts/edition_11/nightbringer_drain_life.gd")
+const VoidDragonMatterAbsorption = preload("res://scripts/edition_11/void_dragon_matter_absorption.gd")
+const NecronDoomScythe = preload("res://scripts/edition_11/necron_doom_scythe.gd")
 const CombiLieutenant = preload("res://scripts/edition_11/combi_lieutenant.gd")
 const Techmarine = preload("res://scripts/edition_11/techmarine.gd")
 const TargetAuguryWeb = preload("res://scripts/edition_11/target_augury_web.gd")
@@ -54,6 +58,8 @@ const SwordBrethren = preload("res://scripts/edition_11/sword_brethren.gd")
 const VictrixHonourGuard = preload("res://scripts/edition_11/victrix_honour_guard.gd")
 const WatchCaptainArtemis = preload("res://scripts/edition_11/watch_captain_artemis.gd")
 const WulfenStormShields = preload("res://scripts/edition_11/wulfen_storm_shields.gd")
+const NecronTriarchStalker = preload("res://scripts/edition_11/necron_triarch_stalker.gd")
+const NecronOphydian = preload("res://scripts/edition_11/necron_ophydian_destroyers.gd")
 const HeresyRetribution = preload("res://scripts/edition_11/heresy_retribution.gd")
 const CrusaderSurge = preload("res://scripts/edition_11/crusader_surge.gd")
 const DeathCompanyDreadnought = preload("res://scripts/edition_11/death_company_dreadnought.gd")
@@ -75,6 +81,11 @@ const BloodAngelsCharacters = preload("res://scripts/edition_11/blood_angels_cha
 const Execrator = preload("res://scripts/edition_11/execrator.gd")
 const Hyperspace = preload("res://scripts/edition_11/hyperspace_hunters.gd")
 const Hexmark = preload("res://scripts/edition_11/hexmark_destroyer.gd")
+const CanoptekMacrocytes = preload("res://scripts/edition_11/canoptek_macrocytes.gd")
+const CanoptekSpyders = preload("res://scripts/edition_11/canoptek_spyders.gd")
+const CanoptekTombCrawlers = preload("res://scripts/edition_11/canoptek_tomb_crawlers.gd")
+const NecronCryptothralls = preload("res://scripts/edition_11/necron_cryptothralls.gd")
+const NecronObelisk = preload("res://scripts/edition_11/necron_obelisk.gd")
 
 static func key(state: Dictionary) -> String:
 	return "%d:%s" % [state.turn, state.phase]
@@ -98,8 +109,19 @@ static func pending(state: Dictionary) -> Dictionary:
 static func open_death_visions(state: Dictionary, attacker: int) -> bool:
 	return BloodAngelsCharacters.after_fight(state, attacker)
 
+static func open_systematic_vigour(state: Dictionary, attacker: int) -> bool:
+	return NecronCryptothralls.after_attacker_fight(state, attacker)
+
+static func finish_systematic_vigour(state: Dictionary, squad: int) -> void:
+	NecronCryptothralls.finish_active_fight(state, squad)
+
+static func resolve_gravitic_pulse_after_move(state: Dictionary, squad: int, roller: Callable) -> Dictionary:
+	return NecronObelisk.after_move(state, squad, roller)
+
 static func window_state_error(state: Dictionary) -> String:
 	var kind := str(pending(state).get("kind", ""))
+	if kind == NightbringerDrainLife.MORTAL_WINDOW and state.get("pending_drain_life", {}).is_empty(): return "The active Drain Life mortal-wound continuation is missing."
+	if kind == VoidDragonMatterAbsorption.MORTAL_WINDOW and state.get("pending_matter_absorption", {}).is_empty(): return "The active Matter Absorption mortal-wound continuation is missing."
 	if kind in [WhirlwindPunishingBombardment.TARGET_WINDOW, WhirlwindPunishingBombardment.REROLL_WINDOW]: return WhirlwindPunishingBombardment.window_error(state)
 	if kind == RazorbackFireSupport.WINDOW: return RazorbackFireSupport.window_error(state)
 	if kind == HeresyRetribution.WINDOW: return HeresyRetribution.window_error(state)
@@ -111,9 +133,9 @@ static func window_state_error(state: Dictionary) -> String:
 ## Keep unknown kinds out of the generic phase-window decline path.
 static func supported_window_kind(kind: String) -> bool:
 	return kind in [
-		"start", "end", "counter", "demi", "vehement-aggression-reroll", Mephiston.FALLBACK_WINDOW,
+		"start", "end", "counter", "demi", "vehement-aggression-reroll", Mephiston.FALLBACK_WINDOW, NightbringerDrainLife.MORTAL_WINDOW, VoidDragonMatterAbsorption.MORTAL_WINDOW,
 		"damage-reroll", "aquilon-hit", "machine-spirit-hit", "machine-spirit-wound", "armoured-wrath-hit", "armoured-wrath-wound", "martial-paragon-hit", "martial-paragon-wound", "wound", "nightforged-attack-count", "nightforged-hazard",
-		DeadlyDemise.WINDOW, DetachmentStratagems.VENGEFUL_ANIMUS_WINDOW, DetachmentStratagems.LAYERED_CERAMITE_WINDOW, CorvusBlackstar.WINDOW, WulfenStormShields.WINDOW,
+		DeadlyDemise.WINDOW, DetachmentStratagems.VENGEFUL_ANIMUS_WINDOW, DetachmentStratagems.LAYERED_CERAMITE_WINDOW, CorvusBlackstar.WINDOW, WulfenStormShields.WINDOW, NecronTriarchStalker.WINDOW,
 		"evade-and-survive", "evade-placement", CatoSicarius.WINDOW, CatoSicarius.PLACEMENT, FenrisianWolves.WINDOW, FenrisianWolves.PLACEMENT, SwordBrethren.WINDOW, SwordBrethren.PLACEMENT,
 		TacticalFluidity.WINDOW, TacticalFluidity.PLACEMENT, PurgationRun.WINDOW, PurgationRun.PLACEMENT, PhobosShadowMasters.WINDOW, PhobosExecuteRedeploy.WINDOW,
 		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, HeresyRetribution.WINDOW, CrusaderSurge.WINDOW, CrusaderSurge.TARGET_WINDOW, CrusaderSurge.PLACEMENT, DeathCompanyDreadnought.WINDOW, DeathCompanyDreadnought.TARGET_WINDOW, DeathCompanyDreadnought.PLACEMENT, WhirlwindPunishingBombardment.TARGET_WINDOW, WhirlwindPunishingBombardment.REROLL_WINDOW, RazorbackFireSupport.WINDOW, "forward-assault-mark",
@@ -126,7 +148,7 @@ static func supported_window_kind(kind: String) -> bool:
 		"healing", "healing-order", TransportRules.EMERGENCY_WINDOW, TransportRules.DISEMBARK_WINDOW, TransportRules.COMBAT_EMBARKATION_WINDOW,
 		"bladeguard", "phobos-shrouding", NjalStormcaller.STORM_CALLER_WINDOW, Ezekiel.TARGET_WINDOW, Ezekiel.REROLL_WINDOW, Incursors.DIVINATOR_WINDOW, Incursors.MINE_WINDOW,
 		CoreReactions.TIGURIUS_MORTAL, "scouts", "strategium-command",
-		"driven-from-cover", "hailstrike", "shattered-defences", "tactics", "eternal", "ingress", Hyperspace.KIND, Hexmark.KIND,
+		"driven-from-cover", "hailstrike", "shattered-defences", "tactics", "eternal", "ingress", Hyperspace.KIND, Hexmark.KIND, NecronDoomScythe.WINDOW, NecronCryptothralls.WINDOW, NecronObelisk.MORTAL_WINDOW,
 		CoreReactions.CRUSHING, DetachmentStratagems.MOVEMENT_REACTION_WINDOW
 	]
 
@@ -366,7 +388,7 @@ static func wolf_guard_headtaker_shield_choices(state: Dictionary, player: int) 
 	if setup_actor(state) != player: return result
 	for model: int in state.get("units", {}):
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "wolf-guard-headtakers" or str(unit.get("wolf_guard_headtaker_role", "")) != "wolf-guard-headtaker": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "wolf-guard-headtakers" or str(unit.get("wolf_guard_headtaker_role", "")) != "wolf-guard-headtaker" or bool(unit.get("mixed_space_wolves_loadout_locked", false)): continue
 		var shield := bool(unit.get("wolf_guard_headtaker_storm_shield", false))
 		result.append(choice("Wolf Guard Headtaker %d: %s" % [model, "restore Paired Master-crafted Power Weapons" if shield else "replace Paired Master-crafted Power Weapons with Master-crafted Power Weapon + Storm Shield (4+ invulnerable save)"], "wolf-guard-headtaker-storm-shield", model, int(unit.squad), "off" if shield else "on"))
 	return result
@@ -468,7 +490,7 @@ static func baal_predator_loadout_choices(state: Dictionary, player: int) -> Arr
 	if data.is_empty(): return result
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "baal-predator": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "baal-predator" or bool(unit.get("baal_predator_loadout_locked", false)): continue
 		var primary := str(unit.get("baal_predator_primary_cannon", "twin-assault-cannon"))
 		for package: String in data.options.primary_cannon:
 			if package == primary: continue
@@ -490,7 +512,7 @@ static func necron_warrior_loadout_choices(state: Dictionary, player: int) -> Ar
 	if setup_actor(state) != player or not _has_current_necron_profile_source(state): return result
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "necron-warriors": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "necron-warriors" or bool(unit.get("necron_warrior_loadout_locked", false)): continue
 		var weapons: Array = unit.get("ranged_weapons", [])
 		if weapons.size() != 1: continue
 		var current_weapon := _necron_warrior_weapon_kind(weapons[0])
@@ -505,7 +527,7 @@ static func necron_immortal_loadout_choices(state: Dictionary, player: int) -> A
 	if setup_actor(state) != player or not _has_current_necron_profile_source(state): return result
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "immortals": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "immortals" or bool(unit.get("immortal_loadout_locked", false)): continue
 		var weapons: Array = unit.get("ranged_weapons", [])
 		if weapons.size() != 1: continue
 		var current_weapon := _necron_immortal_weapon_kind(weapons[0])
@@ -513,6 +535,104 @@ static func necron_immortal_loadout_choices(state: Dictionary, player: int) -> A
 			result.append(choice("Immortal %d: replace Gauss blaster with Tesla carbine" % model, "necron-immortal-tesla-carbine", model, int(unit.get("squad", -1)), "tesla"))
 		elif current_weapon == "tesla":
 			result.append(choice("Immortal %d: restore Gauss blaster" % model, "necron-immortal-tesla-carbine", model, int(unit.get("squad", -1)), "gauss"))
+	return result
+
+static func necron_lokhust_heavy_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if setup_actor(state) != player or not _has_current_necron_profile_source(state): return result
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "lokhust-heavy-destroyers" or bool(unit.get("lokhust_heavy_loadout_locked", false)): continue
+		var weapons: Array = unit.get("ranged_weapons", [])
+		if weapons.size() != 1: continue
+		var current_weapon := _necron_lokhust_heavy_weapon_kind(weapons[0])
+		if current_weapon == "destructor":
+			result.append(choice("Lokhust Heavy Destroyer %d: replace Gauss destructor with Enmitic exterminator" % model, "necron-lokhust-heavy-enmitic", model, int(unit.get("squad", -1)), "enmitic"))
+		elif current_weapon == "enmitic":
+			result.append(choice("Lokhust Heavy Destroyer %d: restore Gauss destructor" % model, "necron-lokhust-heavy-enmitic", model, int(unit.get("squad", -1)), "destructor"))
+	return result
+
+static func necron_monolith_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if setup_actor(state) != player or not _has_current_necron_profile_source(state): return result
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "monolith" or bool(unit.get("monolith_loadout_locked", false)): continue
+		var has_flux_arcs := false
+		var has_death_rays := false
+		for weapon: Dictionary in unit.get("ranged_weapons", []):
+			var weapon_id := str(weapon.get("id", ""))
+			var weapon_name := str(weapon.get("profiles", {}).get("standard", {}).get("name", "")).to_lower()
+			if weapon_id.begins_with("gauss-flux-arc") or weapon_name == "gauss flux arc": has_flux_arcs = true
+			if weapon_id.begins_with("death-ray") or weapon_name == "death ray": has_death_rays = true
+		if has_flux_arcs:
+			result.append(choice("Monolith %d: replace all four Gauss Flux Arcs with four Death Rays" % model, "necron-monolith-death-rays", model, int(unit.get("squad", -1)), "death-rays"))
+		elif has_death_rays:
+			result.append(choice("Monolith %d: restore all four Gauss Flux Arcs" % model, "necron-monolith-death-rays", model, int(unit.get("squad", -1)), "flux-arcs"))
+	return result
+
+static func _necron_annihilation_barge_cannon_kind(weapon: Dictionary) -> String:
+	var weapon_id := str(weapon.get("id", ""))
+	var weapon_name := str(weapon.get("profiles", {}).get("standard", {}).get("name", "")).to_lower()
+	if weapon_id in ["source-ranged-1", "gauss-cannon"] or weapon_name == "gauss cannon": return "gauss"
+	if weapon_id in ["source-ranged-2", "tesla-cannon"] or weapon_name == "tesla cannon": return "tesla"
+	return ""
+
+static func necron_annihilation_barge_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if setup_actor(state) != player or not _has_current_necron_profile_source(state): return result
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "annihilation-barge" or bool(unit.get("annihilation_barge_loadout_locked", false)): continue
+		var cannon_kind := ""
+		for weapon: Dictionary in unit.get("ranged_weapons", []):
+			var candidate := _necron_annihilation_barge_cannon_kind(weapon)
+			if candidate in ["gauss", "tesla"]:
+				cannon_kind = candidate
+				break
+		if cannon_kind == "gauss":
+			result.append(choice("Annihilation Barge %d: replace Gauss cannon with Tesla cannon" % model, "necron-annihilation-barge-tesla-cannon", model, int(unit.get("squad", -1)), "tesla"))
+		elif cannon_kind == "tesla":
+			result.append(choice("Annihilation Barge %d: restore Gauss cannon" % model, "necron-annihilation-barge-tesla-cannon", model, int(unit.get("squad", -1)), "gauss"))
+	return result
+
+static func _necron_annihilation_barge_ranged_weapons(profile: Dictionary, tesla_cannon: bool) -> Array[Dictionary]:
+	var choice_id := NecronVehicleLoadouts.BARGE_TESLA if tesla_cannon else NecronVehicleLoadouts.BARGE_GAUSS
+	return NecronVehicleLoadouts.ranged_weapons(NecronVehicleLoadouts.ANNIHILATION_BARGE_DEFINITION_ID, choice_id, profile)
+
+static func _necron_monolith_ranged_weapons(profile: Dictionary, death_rays: bool) -> Array[Dictionary]:
+	var choice_id := NecronVehicleLoadouts.MONOLITH_RAYS if death_rays else NecronVehicleLoadouts.MONOLITH_ARCS
+	return NecronVehicleLoadouts.ranged_weapons(NecronVehicleLoadouts.MONOLITH_DEFINITION_ID, choice_id, profile)
+
+static func _eternity_gate_target_eligible(state: Dictionary, owner: int, source_model: int, target: int) -> bool:
+	if not state.get("squads", {}).has(target) or not state.get("units", {}).has(source_model): return false
+	var source: Dictionary = state.units[source_model]
+	var source_squad := int(source.get("squad", -1))
+	if int(source.get("owner", -1)) != owner or int(source.get("wounds", 0)) <= 0 or not source.get("on_battlefield", true): return false
+	if A.identity(source) != "monolith" or not A.has(state, source_squad, "eternity-gate") or state.phase != "movement" or int(state.get("active", -1)) != owner or int(state.get("round", 0)) <= 1: return false
+	if int(state.unit_abilities.get("used", {}).get("eternity-gate:%d" % source_model, -1)) == int(state.get("turn", -2)): return false
+	var target_squad: Dictionary = state.squads[target]
+	var living_models := _living_squad_models(state, target)
+	if int(target_squad.get("owner", -1)) != owner or target == source_squad or living_models.is_empty() or TransportRules.squad_embarked(state, target): return false
+	var reserve_records: Dictionary = state.unit_abilities.get("reserves", {})
+	var in_reserves := reserve_records.has(target)
+	var reserve_record: Dictionary = reserve_records.get(target, {})
+	if in_reserves and str(reserve_record.get("source", "")) not in ["", "strategic-reserves"]: return false
+	var all_on_battlefield := true
+	for member: int in living_models:
+		var unit: Dictionary = state.units[member]
+		if bool(unit.get("on_battlefield", true)) != (not in_reserves): return false
+		var keywords: Array = unit.get("keywords", [])
+		if "NECRONS" not in keywords or "INFANTRY" not in keywords: return false
+		all_on_battlefield = all_on_battlefield and bool(unit.get("on_battlefield", true))
+	return in_reserves or all_on_battlefield
+
+static func _living_squad_models(state: Dictionary, squad: int) -> Array[int]:
+	var result: Array[int] = []
+	for model: int in state.get("units", {}):
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("squad", -1)) == squad and int(unit.get("wounds", 0)) > 0: result.append(model)
+	result.sort()
 	return result
 
 static func _has_current_necron_profile_source(state: Dictionary) -> bool:
@@ -535,10 +655,18 @@ static func _necron_immortal_weapon_kind(weapon: Dictionary) -> String:
 	if weapon_id == "tesla-carbine" or name == "tesla carbine": return "tesla"
 	return ""
 
+static func _necron_lokhust_heavy_weapon_kind(weapon: Dictionary) -> String:
+	var weapon_id := str(weapon.get("id", "")).to_lower()
+	var name := str(weapon.get("profiles", {}).get("standard", {}).get("name", "")).to_lower()
+	if weapon_id == "gauss-destructor" or name == "gauss destructor": return "destructor"
+	if weapon_id == "enmitic-exterminator" or name == "enmitic exterminator": return "enmitic"
+	return ""
+
 static func _configure_baal_predator_loadout(state: Dictionary, player: int, model: int, category: int, value: String) -> String:
 	if setup_actor(state) != player or not state.units.has(model): return "Baal Predator equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "baal-predator": return "Choose a living Baal Predator from your army."
+	if bool(unit.get("baal_predator_loadout_locked", false)): return "This saved Baal Predator equipment is fixed for the match. Edit the saved army before starting another match."
 	var profile := MarineProfiles.profile("baal-predator")
 	if profile.is_empty(): return "The local Blood Angels Baal Predator profile is missing."
 	var primary := str(unit.get("baal_predator_primary_cannon", "twin-assault-cannon"))
@@ -575,7 +703,7 @@ static func death_company_dreadnought_loadout_choices(state: Dictionary, player:
 	if data.is_empty(): return result
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "death-company-dreadnought": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "death-company-dreadnought" or bool(unit.get("death_company_dreadnought_loadout_locked", false)): continue
 		var multi_melta := bool(unit.get("death_company_twin_multi_melta", false))
 		result.append(choice("Death Company Dreadnought %d: select %s" % [model, "Twin Heavy Bolter" if multi_melta else "Twin Multi-melta"], "death-company-dreadnought-loadout", model, 0, "twin-heavy-bolter" if multi_melta else "twin-multi-melta"))
 		var blood_talons := bool(unit.get("death_company_blood_talons", false))
@@ -586,7 +714,7 @@ static func space_wolves_walker_loadout_choices(state: Dictionary, player: int) 
 	var result: Array[Dictionary] = []
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0: continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or bool(unit.get("space_wolves_walker_loadout_locked", false)): continue
 		var identity := A.identity(unit)
 		if identity == "bjorn-the-fell-handed":
 			var primary := str(unit.get("space_wolves_walker_primary", "assault-cannon"))
@@ -626,6 +754,7 @@ static func rapier_carrier_loadout_choices(state: Dictionary, player: int) -> Ar
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "rapier-carrier": continue
+		if bool(unit.get("rapier_carrier_loadout_locked", false)): continue
 		var primary := str(unit.get("rapier_carrier_primary", "quad-heavy-bolter"))
 		for option: String in ["quad-heavy-bolter", "graviton-cannon", "laser-destroyer", "quad-launcher"]:
 			if option == primary: continue
@@ -638,6 +767,7 @@ static func centurion_devastator_loadout_choices(state: Dictionary, player: int)
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "centurion-devastator-squad": continue
+		if bool(unit.get("centurion_loadout_locked", false)): continue
 		var sergeant := bool(unit.get("sergeant", false))
 		var label := "Devastator Centurion Sergeant" if sergeant else "Devastator Centurion"
 		var bolters := str(unit.get("centurion_devastator_bolters", "centurion-bolters"))
@@ -656,6 +786,7 @@ static func centurion_assault_loadout_choices(state: Dictionary, player: int) ->
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "centurion-assault-squad": continue
+		if bool(unit.get("centurion_loadout_locked", false)): continue
 		var sergeant := bool(unit.get("sergeant", false))
 		var label := "Assault Centurion Sergeant" if sergeant else "Assault Centurion"
 		var has_launcher := bool(unit.get("centurion_assault_launcher", false))
@@ -672,7 +803,7 @@ static func vindicator_loadout_choices(state: Dictionary, player: int) -> Array[
 	var result: Array[Dictionary] = []
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "vindicator": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "vindicator" or unit.get("vindicator_loadout_locked", false): continue
 		var missile := bool(unit.get("vindicator_hunter_killer_missile", false))
 		result.append(choice("Vindicator %d: %s Hunter-killer Missile" % [model, "remove" if missile else "add"], "vindicator-loadout", model, 0, "off" if missile else "on"))
 		var storm_bolter := bool(unit.get("vindicator_storm_bolter", false))
@@ -683,7 +814,7 @@ static func predator_annihilator_loadout_choices(state: Dictionary, player: int)
 	var result: Array[Dictionary] = []
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "predator-annihilator": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "predator-annihilator" or bool(unit.get("predator_annihilator_loadout_locked", false)): continue
 		var heavy_bolters := bool(unit.get("predator_annihilator_heavy_bolters", false))
 		result.append(choice("Predator Annihilator %d: %s sponson Lascannons" % [model, "restore" if heavy_bolters else "replace with 2 Heavy Bolters"], "predator-annihilator-loadout", model, 0, "off" if heavy_bolters else "on"))
 		var missile := bool(unit.get("predator_annihilator_hunter_killer_missile", false))
@@ -696,7 +827,7 @@ static func predator_destructor_loadout_choices(state: Dictionary, player: int) 
 	var result: Array[Dictionary] = []
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "predator-destructor": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "predator-destructor" or bool(unit.get("predator_destructor_loadout_locked", false)): continue
 		var heavy_bolters := bool(unit.get("predator_destructor_heavy_bolters", false))
 		result.append(choice("Predator Destructor %d: %s sponson Lascannons" % [model, "restore" if heavy_bolters else "replace with 2 Heavy Bolters"], "predator-destructor-loadout", model, 0, "off" if heavy_bolters else "on"))
 		var missile := bool(unit.get("predator_destructor_hunter_killer_missile", false))
@@ -709,7 +840,7 @@ static func whirlwind_loadout_choices(state: Dictionary, player: int) -> Array[D
 	var result: Array[Dictionary] = []
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "whirlwind": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "whirlwind" or unit.get("whirlwind_loadout_locked", false): continue
 		var missile := bool(unit.get("whirlwind_hunter_killer_missile", false))
 		result.append(choice("Whirlwind %d: %s Hunter-killer Missile" % [model, "remove" if missile else "add"], "whirlwind-loadout", model, 0, "off" if missile else "on"))
 		var storm_bolter := bool(unit.get("whirlwind_storm_bolter", false))
@@ -720,7 +851,7 @@ static func hammerfall_loadout_choices(state: Dictionary, player: int) -> Array[
 	var result: Array[Dictionary] = []
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "hammerfall-bunker": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "hammerfall-bunker" or unit.get("hammerfall_loadout_locked", false): continue
 		var uses_flamer := bool(unit.get("hammerfall_heavy_flamer_array", false))
 		var label := "restore Heavy Bolter Array" if uses_flamer else "replace Heavy Bolter Array with Heavy Flamer Array"
 		result.append(choice("Hammerfall Bunker %d: %s" % [model, label], "hammerfall-loadout", model, 0, "heavy-bolter" if uses_flamer else "heavy-flamer"))
@@ -730,7 +861,7 @@ static func stormhawk_interceptor_loadout_choices(state: Dictionary, player: int
 	var result: Array[Dictionary] = []
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "stormhawk-interceptor": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "stormhawk-interceptor" or bool(unit.get("stormhawk_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		var icarus := bool(unit.get("stormhawk_icarus_stormcannon", false))
 		result.append(choice("Stormhawk Interceptor %d: %s" % [model, "restore Las-talon" if icarus else "replace Las-talon with Icarus Stormcannon"], "stormhawk-primary-loadout", model, squad, "las-talon" if icarus else "icarus-stormcannon"))
@@ -745,7 +876,7 @@ static func stormtalon_gunship_loadout_choices(state: Dictionary, player: int) -
 	var result: Array[Dictionary] = []
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "stormtalon-gunship": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "stormtalon-gunship" or bool(unit.get("stormtalon_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		var current := str(unit.get("stormtalon_missile_launcher", "skyhammer-missile-launcher"))
 		var labels := {"skyhammer-missile-launcher": "Skyhammer Missile Launcher", "twin-heavy-bolter": "Twin Heavy Bolter", "twin-lascannon": "Twin Lascannon", "typhoon-missile-launcher": "Typhoon Missile Launcher"}
@@ -760,7 +891,7 @@ static func cerberus_loadout_choices(state: Dictionary, player: int) -> Array[Di
 	var pair_labels := {"none": "no optional pair", "two-heavy-bolters": "2 Heavy Bolters", "two-lascannons": "2 Lascannons"}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "cerberus": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "cerberus" or unit.get("cerberus_loadout_locked", false): continue
 		var squad := int(unit.get("squad", -1))
 		var current_weapon := str(unit.get("cerberus_optional_weapon", "none"))
 		for option: String in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]:
@@ -776,7 +907,7 @@ static func typhon_loadout_choices(state: Dictionary, player: int) -> Array[Dict
 	var hull_labels := {"none": "no optional hull weapon", "heavy-bolter": "Heavy Bolter", "heavy-flamer": "Heavy Flamer", "multi-melta": "Multi-melta", "storm-bolter": "Storm Bolter"}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "typhon": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "typhon" or unit.get("typhon_loadout_locked", false): continue
 		var squad := int(unit.get("squad", -1))
 		var current_sponsons := str(unit.get("typhon_sponsons", "none"))
 		for option: String in ["none", "two-heavy-bolters", "two-lascannons"]:
@@ -793,7 +924,7 @@ static func falchion_loadout_choices(state: Dictionary, player: int) -> Array[Di
 	var twin_labels := {"twin-heavy-bolter": "Twin Heavy Bolter", "twin-heavy-flamer": "Twin Heavy Flamer"}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "falchion": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "falchion" or unit.get("falchion_loadout_locked", false): continue
 		var squad := int(unit.get("squad", -1))
 		var optional_weapon := str(unit.get("falchion_optional_weapon", "none"))
 		for option: String in ["none", "heavy-bolter", "heavy-flamer", "multi-melta", "storm-bolter"]:
@@ -813,7 +944,7 @@ static func dreadnought_loadout_choices(state: Dictionary, player: int) -> Array
 	var secondary_labels := {"none": "keep Storm Bolter", "heavy-flamer": "replace Storm Bolter with Heavy Flamer"}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "dreadnought": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "dreadnought" or bool(unit.get("dreadnought_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		if not state.squads.has(squad): continue
 		var current_primary := str(unit.get("dreadnought_primary", "assault-cannon"))
@@ -837,7 +968,7 @@ static func venerable_dreadnought_legends_loadout_choices(state: Dictionary, pla
 	var package_labels := {"fist-and-storm-bolter": "Dreadnought Fist + Storm Bolter", "heavy-flamer-and-fist": "Heavy Flamer + Dreadnought Fist", "missile-launcher": "Missile Launcher", "twin-autocannon": "Twin Autocannon"}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "venerable-dreadnought-legends": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "venerable-dreadnought-legends" or bool(unit.get("venerable_dreadnought_legends_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		if not state.squads.has(squad): continue
 		var current_primary := str(unit.get("venerable_dreadnought_legends_primary", "assault-cannon"))
@@ -853,6 +984,7 @@ static func tarantula_sentry_battery_loadout_choices(state: Dictionary, player: 
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "tarantula-sentry-battery": continue
+		if bool(unit.get("tarantula_sentry_loadout_locked", false)): continue
 		var primary := str(unit.get("tarantula_sentry_primary", "twin-heavy-bolter"))
 		for option: String in ["twin-heavy-bolter", "twin-lascannon"]:
 			if option == primary: continue
@@ -866,6 +998,7 @@ static func death_company_marines_loadout_choices(state: Dictionary, player: int
 		var unit: Dictionary = state.units[model]
 		var identity := A.identity(unit)
 		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or identity not in ["death-company-marines", "death-company-marines-with-jump-packs"]: continue
+		if bool(unit.get("death_company_saved_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		if not state.squads.has(squad): continue
 		var model_name := "Death Company Marine with Jump Pack" if identity == "death-company-marines-with-jump-packs" else "Death Company Marine"
@@ -903,7 +1036,7 @@ static func deathwatch_veterans_loadout_choices(state: Dictionary, player: int) 
 	}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "deathwatch-veterans": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "deathwatch-veterans" or bool(unit.get("deathwatch_saved_model_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		if not state.squads.has(squad): continue
 		if unit.get("sergeant", false):
@@ -949,6 +1082,7 @@ static func _deathwatch_veteran_loadout_valid(state: Dictionary, squad: int, cha
 	return storm_shields <= 2 * blocks
 
 static func _configure_deathwatch_veteran_loadout(state: Dictionary, player: int, model: int, squad: int, action: String, value: String) -> String:
+	if state.units.has(model) and bool(state.units[model].get("deathwatch_saved_model_loadout_locked", false)): return "Saved Deathwatch equipment is fixed for this match. Edit the saved army list to change it."
 	if setup_actor(state) != player or not state.units.has(model): return "Deathwatch equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "deathwatch-veterans":
@@ -984,6 +1118,7 @@ static func _configure_death_company_dreadnought_loadout(state: Dictionary, play
 	if setup_actor(state) != player or not state.units.has(model): return "Death Company Dreadnought equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "death-company-dreadnought": return "Choose a living Death Company Dreadnought from your army."
+	if bool(unit.get("death_company_dreadnought_loadout_locked", false)): return "Edit saved equipment in the Army Workshop before starting another match."
 	var multi_melta := bool(unit.get("death_company_twin_multi_melta", false))
 	var blood_talons := bool(unit.get("death_company_blood_talons", false))
 	match category:
@@ -1008,6 +1143,7 @@ static func _configure_space_wolves_walker_loadout(state: Dictionary, player: in
 	var unit: Dictionary = state.units[model]
 	var identity := A.identity(unit)
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or identity not in ["bjorn-the-fell-handed", "venerable-dreadnought", "wulfen-dreadnought"]: return "Choose a living Space Wolves Dreadnought from your army."
+	if bool(unit.get("space_wolves_walker_loadout_locked", false)): return "Edit saved equipment in the Army Workshop before starting another match."
 	var primary := str(unit.get("space_wolves_walker_primary", "assault-cannon"))
 	var secondary := str(unit.get("space_wolves_walker_secondary", "storm-bolter"))
 	var melee_package := str(unit.get("space_wolves_walker_melee_package", "combat-weapon" if identity == "venerable-dreadnought" else "fenrisian-great-axe"))
@@ -1052,6 +1188,7 @@ static func _configure_rapier_carrier_loadout(state: Dictionary, player: int, mo
 	if setup_actor(state) != player or not state.units.has(model): return "Rapier Carrier equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "rapier-carrier": return "Choose a living Rapier Carrier from your army."
+	if bool(unit.get("rapier_carrier_loadout_locked", false)): return "This saved Rapier Carrier equipment is fixed for the match. Edit the saved army before starting another match."
 	if category != 0: return "The Rapier Carrier has one replaceable Quad Heavy Bolter slot."
 	var weapons := MarineProfiles.rapier_carrier_weapons(value)
 	if weapons.is_empty(): return "Choose the Quad Heavy Bolter, Graviton Cannon, Laser Destroyer or Quad Launcher listed on the Rapier Carrier datasheet."
@@ -1064,6 +1201,7 @@ static func _configure_centurion_devastator_loadout(state: Dictionary, player: i
 	if setup_actor(state) != player or not state.units.has(model): return "Centurion Devastator equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "centurion-devastator-squad": return "Choose a living Centurion Devastator from your army."
+	if bool(unit.get("centurion_loadout_locked", false)): return "This saved Centurion equipment is fixed for the match. Edit the saved army before starting another match."
 	var bolters := str(unit.get("centurion_devastator_bolters", "centurion-bolters"))
 	var support := str(unit.get("centurion_devastator_support", "grav-cannon"))
 	if category == 0:
@@ -1086,6 +1224,7 @@ static func _configure_centurion_assault_loadout(state: Dictionary, player: int,
 	if setup_actor(state) != player or not state.units.has(model): return "Centurion Assault equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "centurion-assault-squad": return "Choose a living Centurion Assault model from your army."
+	if bool(unit.get("centurion_loadout_locked", false)): return "This saved Centurion equipment is fixed for the match. Edit the saved army before starting another match."
 	var assault_launcher := bool(unit.get("centurion_assault_launcher", false))
 	var twin_meltagun := bool(unit.get("centurion_twin_meltagun", false))
 	if category == 0:
@@ -1112,6 +1251,7 @@ static func _configure_vindicator_loadout(state: Dictionary, player: int, model:
 	if setup_actor(state) != player or not state.units.has(model): return "Vindicator equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "vindicator": return "Choose a living Vindicator from your army."
+	if unit.get("vindicator_loadout_locked", false): return "Edit saved equipment in the Army Workshop before starting another match."
 	if value not in ["on", "off"]: return "Choose whether to add the source-listed optional weapon."
 	var missile := bool(unit.get("vindicator_hunter_killer_missile", false))
 	var storm_bolter := bool(unit.get("vindicator_storm_bolter", false))
@@ -1130,6 +1270,7 @@ static func _configure_predator_annihilator_loadout(state: Dictionary, player: i
 	if setup_actor(state) != player or not state.units.has(model): return "Predator Annihilator equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "predator-annihilator": return "Choose a living Predator Annihilator from your army."
+	if bool(unit.get("predator_annihilator_loadout_locked", false)): return "This saved Predator Annihilator equipment is fixed for the match. Edit the saved army before starting another match."
 	if value not in ["on", "off"]: return "Choose whether the source-listed Predator Annihilator option is equipped."
 	var heavy_bolters := bool(unit.get("predator_annihilator_heavy_bolters", false))
 	var missile := bool(unit.get("predator_annihilator_hunter_killer_missile", false))
@@ -1152,6 +1293,7 @@ static func _configure_predator_destructor_loadout(state: Dictionary, player: in
 	if setup_actor(state) != player or not state.units.has(model): return "Predator Destructor equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "predator-destructor": return "Choose a living Predator Destructor from your army."
+	if bool(unit.get("predator_destructor_loadout_locked", false)): return "This saved Predator Destructor equipment is fixed for the match. Edit the saved army before starting another match."
 	if value not in ["on", "off"]: return "Choose whether the source-listed Predator Destructor option is equipped."
 	var heavy_bolters := bool(unit.get("predator_destructor_heavy_bolters", false))
 	var missile := bool(unit.get("predator_destructor_hunter_killer_missile", false))
@@ -1174,6 +1316,7 @@ static func _configure_whirlwind_loadout(state: Dictionary, player: int, model: 
 	if setup_actor(state) != player or not state.units.has(model): return "Whirlwind equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "whirlwind": return "Choose a living Whirlwind from your army."
+	if unit.get("whirlwind_loadout_locked", false): return "Edit saved equipment in the Army Workshop before starting another match."
 	if value not in ["on", "off"]: return "Choose whether to add the source-listed optional weapon."
 	var missile := bool(unit.get("whirlwind_hunter_killer_missile", false))
 	var storm_bolter := bool(unit.get("whirlwind_storm_bolter", false))
@@ -1192,6 +1335,7 @@ static func _configure_hammerfall_loadout(state: Dictionary, player: int, model:
 	if setup_actor(state) != player or not state.units.has(model): return "Hammerfall Bunker equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "hammerfall-bunker": return "Choose a living Hammerfall Bunker from your army."
+	if unit.get("hammerfall_loadout_locked", false): return "Edit saved equipment in the Army Workshop before starting another match."
 	if category != 0 or value not in ["heavy-bolter", "heavy-flamer"]: return "Choose the source-listed Heavy Bolter Array or Heavy Flamer Array."
 	var use_flamer := value == "heavy-flamer"
 	var weapons := MarineProfiles.hammerfall_weapons(use_flamer)
@@ -1206,6 +1350,7 @@ static func _configure_tarantula_sentry_battery_loadout(state: Dictionary, playe
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "tarantula-sentry-battery": return "Choose a living Tarantula Sentry Battery model from your army."
 	if int(unit.get("squad", -1)) != category: return "Choose the selected Tarantula Sentry Battery model from its own unit."
+	if bool(unit.get("tarantula_sentry_loadout_locked", false)): return "This saved Tarantula equipment is fixed for the match. Edit the saved army before starting another match."
 	var weapons := MarineProfiles.tarantula_sentry_battery_weapons(value)
 	if weapons.is_empty(): return "Choose the Twin Heavy Bolter or its datasheet-listed Twin Lascannon replacement."
 	unit.tarantula_sentry_primary = value
@@ -1238,6 +1383,7 @@ static func _configure_death_company_marine_loadout(state: Dictionary, player: i
 	var identity := A.identity(unit)
 	if int(unit.get("owner", -1)) != player or int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0 or identity not in ["death-company-marines", "death-company-marines-with-jump-packs"]:
 		return "Choose a living Death Company Marines model from your army."
+	if bool(unit.get("death_company_saved_loadout_locked", false)): return "This saved Death Company equipment is fixed for the match. Edit the saved army before starting another match."
 	var melee_package := str(unit.get("death_company_melee_package", "chainsword"))
 	var pistol_package := str(unit.get("death_company_pistol_package", "heavy-bolt-pistol"))
 	var grenade_launcher := bool(unit.get("death_company_grenade_launcher", false))
@@ -1285,7 +1431,7 @@ static func models(state: Dictionary, player: int, ability: String) -> Array[int
 	return result
 
 static func ingress_round_allowed(state: Dictionary, squad: int) -> bool:
-	return StormlanceEnhancements.ingress_round_allowed(state, squad) or A.high_king_fenris_selected(state, squad)
+	return StormlanceEnhancements.ingress_round_allowed(state, squad) or A.high_king_fenris_selected(state, squad) or NecronOphydian.early_ingress_allowed(state, squad)
 
 static func is_support_identity(state: Dictionary, unit: Dictionary) -> bool:
 	var calgar_in_army := LeaderCatalog.army_has_calgar(state, int(unit.get("owner", -1)))
@@ -1443,7 +1589,7 @@ static func wolf_guard_terminator_loadout_choices(state: Dictionary, player: int
 	var labels := {"default": "Storm Bolter + Master-crafted Power Weapon", "storm-shield": "Storm Shield (+1 Wound, +5 points)", "assault-cannon-power-fist": "Assault Cannon + Power Fist", "relic-greataxe": "Relic Greataxe", "twin-lightning-claws": "Twin Lightning Claws"}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "wolf-guard-terminators": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "wolf-guard-terminators" or bool(unit.get("terminator_saved_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		var current := str(unit.get("wolf_guard_terminator_loadout", "default"))
 		var options: Array = MarineProfiles.profile("wolf-guard-terminators").options.pack_leader_loadouts if unit.get("sergeant", false) else MarineProfiles.profile("wolf-guard-terminators").options.terminator_loadouts
@@ -1463,6 +1609,7 @@ static func wolf_guard_battle_leader_loadout_choices(state: Dictionary, player: 
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "wolf-guard-battle-leader": continue
+		if bool(unit.get("wolf_guard_battle_leader_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		var ranged_current := str(unit.get("wolf_guard_battle_leader_ranged_loadout", "plasma-pistol"))
 		var melee_current := str(unit.get("wolf_guard_battle_leader_melee_loadout", "master-crafted-power-weapon"))
@@ -1498,7 +1645,7 @@ static func thunderwolf_cavalry_loadout_choices(state: Dictionary, player: int) 
 	var labels := {"default": "Bolt Pistol", "plasma-pistol": "Plasma Pistol", "boltgun-storm-shield": "Boltgun + Storm Shield (+5 points, 4+ invulnerable save)"}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "thunderwolf-cavalry": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "thunderwolf-cavalry" or bool(unit.get("space_wolves_squad_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		var current := str(unit.get("thunderwolf_cavalry_loadout", "default"))
 		for next_loadout: String in MarineProfiles.profile("thunderwolf-cavalry").options.loadouts:
@@ -1521,7 +1668,7 @@ static func wulfen_loadout_choices(state: Dictionary, player: int) -> Array[Dict
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		var identity := A.identity(unit)
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or identity not in ["wulfen", "wulfen-with-storm-shields"]: continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or identity not in ["wulfen", "wulfen-with-storm-shields"] or bool(unit.get("space_wolves_squad_loadout_locked", false)): continue
 		var profile := MarineProfiles.profile(identity)
 		if profile.is_empty(): continue
 		var squad := int(unit.get("squad", -1))
@@ -1568,7 +1715,7 @@ static func wolf_scouts_loadout_choices(state: Dictionary, player: int) -> Array
 	var labels := {"default": "restore Plasma Pistol + Combat Knife", "bolt-pistol": "Bolt Pistol (replaces both weapons)", "runic-stave": "Runic Stave (replaces both weapons)", "thunderclap": "Thunderclap (replaces both weapons)", "instigator-bolt-carbine": "Instigator Bolt Carbine", "plasma-gun": "Plasma Gun"}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "wolf-scouts": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "wolf-scouts" or bool(unit.get("mixed_space_wolves_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		if not state.squads.has(squad): continue
 		var role := str(unit.get("wolf_scouts_role", ""))
@@ -1590,6 +1737,7 @@ static func _configure_wolf_scouts_choice(state: Dictionary, player: int, select
 	var squad := int(selected.get("target", -1))
 	var bearer: Dictionary = state.units.get(model, {})
 	if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != squad or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "wolf-scouts": return {"error": "Wolf Scouts equipment is selected during your army preparations."}
+	if bool(bearer.get("mixed_space_wolves_loadout_locked", false)): return {"error": "Saved mixed Space Wolves equipment is fixed for this match. Edit the saved army list to change it."}
 	var role := str(bearer.get("wolf_scouts_role", ""))
 	if selected.action == "wolf-scouts-loadout":
 		var next_loadout := str(selected.get("value", ""))
@@ -1634,7 +1782,7 @@ static func deathwatch_terminator_loadout_choices(state: Dictionary, player: int
 	}
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "deathwatch-terminator-squad": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "deathwatch-terminator-squad" or bool(unit.get("deathwatch_saved_model_loadout_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		var current_package := str(unit.get("deathwatch_terminator_melee_package", "power-fist"))
 		for package: String in profile.get("options", {}).get("melee_packages", []):
@@ -1662,6 +1810,7 @@ static func fortis_kill_team_loadout_choices(state: Dictionary, player: int) -> 
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "fortis-kill-team": continue
+		if bool(unit.get("fortis_saved_equipment_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		if not state.squads.has(squad): continue
 		var model_index := int(unit.get("fortis_kill_team_model", -1))
@@ -1713,6 +1862,7 @@ static func _configure_fortis_kill_team_loadout(state: Dictionary, player: int, 
 	if setup_actor(state) != player or not state.units.has(model): return "Fortis Kill Team equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "fortis-kill-team": return "Choose a living Fortis Kill Team model from your army."
+	if bool(unit.get("fortis_saved_equipment_locked", false)): return "Edit saved Fortis Kill Team equipment in the Army Workshop before starting another match."
 	var model_index := int(unit.get("fortis_kill_team_model", -1))
 	var profile := MarineProfiles.profile("fortis-kill-team")
 	var sergeant_melee := str(unit.get("fortis_kill_team_sergeant_melee", "knives-and-fists"))
@@ -1771,6 +1921,7 @@ static func talonstrike_kill_team_loadout_choices(state: Dictionary, player: int
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "talonstrike-kill-team": continue
+		if bool(unit.get("talonstrike_saved_equipment_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		if not state.squads.has(squad): continue
 		var model_index := int(unit.get("talonstrike_kill_team_model", -1))
@@ -1811,6 +1962,7 @@ static func _configure_talonstrike_kill_team_loadout(state: Dictionary, player: 
 	if setup_actor(state) != player or not state.units.has(model): return "Talonstrike Kill Team equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "talonstrike-kill-team": return "Choose a living Talonstrike Kill Team model from your army."
+	if bool(unit.get("talonstrike_saved_equipment_locked", false)): return "Edit saved Talonstrike Kill Team equipment in the Army Workshop before starting another match."
 	var model_index := int(unit.get("talonstrike_kill_team_model", -1))
 	var profile := MarineProfiles.profile("talonstrike-kill-team")
 	var sergeant_melee := str(unit.get("talonstrike_sergeant_melee", "chainsword"))
@@ -1856,7 +2008,7 @@ static func indomitor_kill_team_loadout_choices(state: Dictionary, player: int) 
 	if profile.is_empty(): return result
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "indomitor-kill-team": continue
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "indomitor-kill-team" or bool(unit.get("indomitor_saved_equipment_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		if not state.squads.has(squad): continue
 		var model_index := int(unit.get("indomitor_kill_team_model", -1))
@@ -1881,6 +2033,7 @@ static func spectrus_kill_team_loadout_choices(state: Dictionary, player: int) -
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "spectrus-kill-team": continue
+		if bool(unit.get("spectrus_saved_equipment_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		if not state.squads.has(squad): continue
 		var model_index := int(unit.get("spectrus_kill_team_model", -1))
@@ -1914,6 +2067,7 @@ static func _configure_spectrus_kill_team_loadout(state: Dictionary, player: int
 	if setup_actor(state) != player or not state.units.has(model): return "Spectrus Kill Team equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "spectrus-kill-team": return "Choose a living Spectrus Kill Team model from your army."
+	if bool(unit.get("spectrus_saved_equipment_locked", false)): return "Edit saved Spectrus Kill Team equipment in the Army Workshop before starting another match."
 	if not state.squads.has(squad) or int(state.squads[squad].get("starting_strength", 0)) != 10: return "Spectrus Kill Team equipment requires its fixed 10-model unit."
 	var model_index := int(unit.get("spectrus_kill_team_model", -1))
 	var sniper_weapon := str(unit.get("spectrus_sniper_weapon", "bolt-sniper-rifle"))
@@ -1960,6 +2114,7 @@ static func _configure_indomitor_kill_team_loadout(state: Dictionary, player: in
 	if setup_actor(state) != player or not state.units.has(model): return "Indomitor Kill Team equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "indomitor-kill-team": return "Choose a living Indomitor Kill Team model from your army."
+	if bool(unit.get("indomitor_saved_equipment_locked", false)): return "This match keeps the Indomitor Kill Team equipment saved in the army list."
 	if not state.squads.has(squad) or int(state.squads[squad].get("starting_strength", 0)) != 10: return "Indomitor Kill Team equipment requires its fixed 10-model unit."
 	var model_index := int(unit.get("indomitor_kill_team_model", -1))
 	var auto_boltstorm := bool(unit.get("indomitor_auto_boltstorm", false))
@@ -2001,6 +2156,7 @@ static func decimus_kill_team_loadout_choices(state: Dictionary, player: int) ->
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "decimus-kill-team": continue
+		if bool(unit.get("decimus_saved_equipment_locked", false)): continue
 		var squad := int(unit.get("squad", -1))
 		if not state.squads.has(squad): continue
 		if int(state.squads[squad].get("starting_strength", 0)) != 10: continue
@@ -2038,6 +2194,7 @@ static func _configure_decimus_kill_team_loadout(state: Dictionary, player: int,
 	if setup_actor(state) != player or not state.units.has(model): return "Decimus Kill Team equipment is selected during your army preparations."
 	var unit: Dictionary = state.units[model]
 	if int(unit.get("owner", -1)) != player or int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "decimus-kill-team": return "Choose a living Decimus Kill Team model from your army."
+	if bool(unit.get("decimus_saved_equipment_locked", false)): return "Edit this saved Decimus Kill Team equipment in the Army Workshop before starting a match."
 	if not state.squads.has(squad) or int(state.squads[squad].get("starting_strength", 0)) != 10:
 		return "Decimus Kill Team equipment requires the reconciled 10-model size; the five-model source row is blocked by its minimum-composition conflict."
 	var role := str(unit.get("decimus_kill_team_role", ""))
@@ -2100,9 +2257,168 @@ static func _reserve_required_drop_pods(state: Dictionary, player: int) -> Strin
 		state.deployment.order.erase(squad)
 	return ""
 
+static func saved_army_intercessor_loadout_locked(state: Dictionary, unit: Dictionary) -> bool:
+	if A.identity(unit) != "intercessor-squad": return false
+	var setup: Variant = state.get("saved_army_setup", {})
+	if not setup is Dictionary or int(setup.get("schema_version", 0)) != 1: return false
+	var armies: Variant = setup.get("armies", {})
+	if not armies is Dictionary: return false
+	var owner := int(unit.get("owner", -1))
+	var roster: Variant = armies.get(owner, armies.get(str(owner), {}))
+	if not roster is Dictionary: return false
+	var entries: Variant = roster.get("entries", [])
+	if not entries is Array: return false
+	for entry: Variant in entries:
+		if not entry is Dictionary: continue
+		var definition_id := str(entry.get("definition_id", entry.get("unit_id", "")))
+		if definition_id == "40kdc:11e:adeptus-astartes:intercessor-squad": return true
+	return false
+
+static func saved_army_outrider_loadout_locked(state: Dictionary, unit: Dictionary) -> bool:
+	if A.identity(unit) != "outrider-squad": return false
+	var setup: Variant = state.get("saved_army_setup", {})
+	if not setup is Dictionary or int(setup.get("schema_version", 0)) != 1: return false
+	var armies: Variant = setup.get("armies", {})
+	if not armies is Dictionary: return false
+	var owner := int(unit.get("owner", -1))
+	var roster: Variant = armies.get(owner, armies.get(str(owner), {}))
+	if not roster is Dictionary: return false
+	var entries: Variant = roster.get("entries", [])
+	if not entries is Array: return false
+	for entry: Variant in entries:
+		if not entry is Dictionary: continue
+		var definition_id := str(entry.get("definition_id", entry.get("unit_id", "")))
+		if definition_id == "40kdc:11e:adeptus-astartes:outrider-squad": return true
+	return false
+
+static func saved_army_ravenwing_darkshroud_loadout_locked(state: Dictionary, unit: Dictionary) -> bool:
+	if A.identity(unit) != "ravenwing-darkshroud": return false
+	var setup: Variant = state.get("saved_army_setup", {})
+	if not setup is Dictionary or int(setup.get("schema_version", 0)) != 1: return false
+	var armies: Variant = setup.get("armies", {})
+	if not armies is Dictionary: return false
+	var owner := int(unit.get("owner", -1))
+	var roster: Variant = armies.get(owner, armies.get(str(owner), {}))
+	if not roster is Dictionary: return false
+	var entries: Variant = roster.get("entries", [])
+	if not entries is Array: return false
+	for entry: Variant in entries:
+		if not entry is Dictionary: continue
+		var definition_id := str(entry.get("definition_id", entry.get("unit_id", "")))
+		if definition_id == "40kdc:11e:adeptus-astartes:ravenwing-darkshroud": return true
+	return false
+
+static func saved_army_inceptor_loadout_locked(state: Dictionary, unit: Dictionary) -> bool:
+	if A.identity(unit) != "inceptor-squad": return false
+	var setup: Variant = state.get("saved_army_setup", {})
+	if not setup is Dictionary or int(setup.get("schema_version", 0)) != 1: return false
+	var armies: Variant = setup.get("armies", {})
+	if not armies is Dictionary: return false
+	var owner := int(unit.get("owner", -1))
+	var roster: Variant = armies.get(owner, armies.get(str(owner), {}))
+	if not roster is Dictionary: return false
+	var entries: Variant = roster.get("entries", [])
+	if not entries is Array: return false
+	for entry: Variant in entries:
+		if not entry is Dictionary: continue
+		var definition_id := str(entry.get("definition_id", entry.get("unit_id", "")))
+		if definition_id == "40kdc:11e:adeptus-astartes:inceptor-squad": return true
+	return false
+
+static func saved_army_land_speeder_loadout_locked(state: Dictionary, unit: Dictionary) -> bool:
+	if A.identity(unit) != "land-speeder": return false
+	if bool(unit.get("land_speeder_loadout_locked", false)): return true
+	var setup: Variant = state.get("saved_army_setup", {})
+	if not setup is Dictionary or int(setup.get("schema_version", 0)) != 1: return false
+	var armies: Variant = setup.get("armies", {})
+	if not armies is Dictionary: return false
+	var owner := int(unit.get("owner", -1))
+	var roster: Variant = armies.get(owner, armies.get(str(owner), {}))
+	if not roster is Dictionary: return false
+	var entries: Variant = roster.get("entries", [])
+	if not entries is Array: return false
+	for entry: Variant in entries:
+		if not entry is Dictionary: continue
+		var definition_id := str(entry.get("definition_id", entry.get("unit_id", "")))
+		if definition_id == "40kdc:11e:adeptus-astartes:land-speeder" and entry.has("land_speeder_loadouts"): return true
+	return false
+
+static func saved_army_land_speeder_vengeance_loadout_locked(state: Dictionary, unit: Dictionary) -> bool:
+	if A.identity(unit) != "land-speeder-vengeance": return false
+	if bool(unit.get("land_speeder_vengeance_loadout_locked", false)): return true
+	var setup: Variant = state.get("saved_army_setup", {})
+	if not setup is Dictionary or int(setup.get("schema_version", 0)) != 1: return false
+	var armies: Variant = setup.get("armies", {})
+	if not armies is Dictionary: return false
+	var owner := int(unit.get("owner", -1))
+	var roster: Variant = armies.get(owner, armies.get(str(owner), {}))
+	if not roster is Dictionary: return false
+	var entries: Variant = roster.get("entries", [])
+	if not entries is Array: return false
+	for entry: Variant in entries:
+		if not entry is Dictionary: continue
+		var definition_id := str(entry.get("definition_id", entry.get("unit_id", "")))
+		if definition_id == "40kdc:11e:adeptus-astartes:land-speeder-vengeance" and entry.has("land_speeder_vengeance_loadouts"): return true
+	return false
+
+static func saved_army_hellblaster_loadout_locked(state: Dictionary, unit: Dictionary) -> bool:
+	if A.identity(unit) != "hellblaster-squad" or not bool(unit.get("sergeant", false)): return false
+	if bool(unit.get("hellblaster_loadout_locked", false)): return true
+	var setup: Variant = state.get("saved_army_setup", {})
+	if not setup is Dictionary or int(setup.get("schema_version", 0)) != 1: return false
+	var armies: Variant = setup.get("armies", {})
+	if not armies is Dictionary: return false
+	var owner := int(unit.get("owner", -1))
+	var roster: Variant = armies.get(owner, armies.get(str(owner), {}))
+	if not roster is Dictionary: return false
+	var entries: Variant = roster.get("entries", [])
+	if not entries is Array: return false
+	for entry: Variant in entries:
+		if not entry is Dictionary: continue
+		var definition_id := str(entry.get("definition_id", entry.get("unit_id", "")))
+		if definition_id == "40kdc:11e:adeptus-astartes:hellblaster-squad" and entry.has("hellblaster_sergeant_pistol_loadouts"): return true
+	return false
+
+static func saved_army_assault_intercessor_loadout_locked(state: Dictionary, unit: Dictionary) -> bool:
+	if A.identity(unit) != "assault-intercessor-squad" or not bool(unit.get("sergeant", false)): return false
+	if bool(unit.get("assault_intercessor_loadout_locked", false)): return true
+	var setup: Variant = state.get("saved_army_setup", {})
+	if not setup is Dictionary or int(setup.get("schema_version", 0)) != 1: return false
+	var armies: Variant = setup.get("armies", {})
+	if not armies is Dictionary: return false
+	var owner := int(unit.get("owner", -1))
+	var roster: Variant = armies.get(owner, armies.get(str(owner), {}))
+	if not roster is Dictionary: return false
+	var entries: Variant = roster.get("entries", [])
+	if not entries is Array: return false
+	for entry: Variant in entries:
+		if not entry is Dictionary: continue
+		var definition_id := str(entry.get("definition_id", entry.get("unit_id", "")))
+		if definition_id == "40kdc:11e:adeptus-astartes:assault-intercessor-squad" and entry.has("assault_intercessor_sergeant_loadouts"): return true
+	return false
+
+static func saved_army_heavy_intercessor_loadout_locked(state: Dictionary, unit: Dictionary) -> bool:
+	if A.identity(unit) != "heavy-intercessor-squad" or bool(unit.get("sergeant", false)): return false
+	if bool(unit.get("heavy_intercessor_loadout_locked", false)): return true
+	var setup: Variant = state.get("saved_army_setup", {})
+	if not setup is Dictionary or int(setup.get("schema_version", 0)) != 1: return false
+	var armies: Variant = setup.get("armies", {})
+	if not armies is Dictionary: return false
+	var owner := int(unit.get("owner", -1))
+	var roster: Variant = armies.get(owner, armies.get(str(owner), {}))
+	if not roster is Dictionary: return false
+	var entries: Variant = roster.get("entries", [])
+	if not entries is Array: return false
+	for entry: Variant in entries:
+		if not entry is Dictionary: continue
+		var definition_id := str(entry.get("definition_id", entry.get("unit_id", "")))
+		if definition_id == "40kdc:11e:adeptus-astartes:heavy-intercessor-squad" and entry.has("heavy_intercessor_bolter_loadouts"): return true
+	return false
+
 static func choices(state: Dictionary, player: int) -> Array:
 	var result: Array = []
 	if state.get("test_winner", 0) != 0: return result
+	if not CanoptekSpyders.pending(state).is_empty(): return CanoptekSpyders.return_choices(state, player)
 	if not CommandBattleShock.pending(state).is_empty(): return CommandBattleShock.choices(state, player)
 	if DetachmentStratagems.sacrifice_actor(state) == player:
 		var sacrifice_options := DetachmentStratagems.in_sacrifice_choices(state, player)
@@ -2115,8 +2431,17 @@ static func choices(state: Dictionary, player: int) -> Array:
 	if not ability_window.is_empty() and not supported_window_kind(str(ability_window.get("kind", ""))): return []
 	if ability_window.get("kind", "") == CorvusBlackstar.WINDOW: return CorvusBlackstar.choices(state, player)
 	if ability_window.get("kind", "") == WulfenStormShields.WINDOW: return WulfenStormShields.choices(state, player)
+	if ability_window.get("kind", "") == NecronTriarchStalker.WINDOW: return NecronTriarchStalker.choices(state, player)
 	if ability_window.get("kind", "") == CoreReactions.CORVUS_CLUSTER_MORTAL:
 		result.append_array(CoreReactions.mortal_allocations(state, player, CoreReactions.CORVUS_CLUSTER_MORTAL))
+		result.append_array(DetachmentStratagems.mortal_wound_stratagem_choices(state, player))
+		return result
+	if ability_window.get("kind", "") == NightbringerDrainLife.MORTAL_WINDOW:
+		result.append_array(NightbringerDrainLife.allocation_choices(state, player))
+		result.append_array(DetachmentStratagems.mortal_wound_stratagem_choices(state, player))
+		return result
+	if ability_window.get("kind", "") == VoidDragonMatterAbsorption.MORTAL_WINDOW:
+		result.append_array(VoidDragonMatterAbsorption.allocation_choices(state, player))
 		result.append_array(DetachmentStratagems.mortal_wound_stratagem_choices(state, player))
 		return result
 	if ability_window.get("kind", "") == "vehement-aggression-reroll":
@@ -2150,7 +2475,12 @@ static func choices(state: Dictionary, player: int) -> Array:
 		result.append_array(CoreReactions.mortal_allocations(state, player, Scarabs.MORTAL_WINDOW))
 		result.append_array(DetachmentStratagems.mortal_wound_stratagem_choices(state, player))
 		return result
+	if ability_window.get("kind", "") == NecronObelisk.MORTAL_WINDOW:
+		result.append_array(CoreReactions.mortal_allocations(state, player, NecronObelisk.MORTAL_WINDOW))
+		result.append_array(DetachmentStratagems.mortal_wound_stratagem_choices(state, player))
+		return result
 	if ability_window.get("kind", "") == BloodAngelsCharacters.DEATH_VISIONS_WINDOW: return BloodAngelsCharacters.choices(state, player)
+	if ability_window.get("kind", "") == NecronCryptothralls.WINDOW: return NecronCryptothralls.choices(state, player)
 	if ability_window.get("kind", "") == BloodAngelsCharacters.DEATH_VISIONS_MORTAL:
 		result.append_array(CoreReactions.mortal_allocations(state, player, BloodAngelsCharacters.DEATH_VISIONS_MORTAL))
 		result.append_array(DetachmentStratagems.mortal_wound_stratagem_choices(state, player))
@@ -2404,6 +2734,11 @@ static func choices(state: Dictionary, player: int) -> Array:
 		result.append_array(death_company_dreadnought_loadout_choices(state, player))
 		result.append_array(space_wolves_walker_loadout_choices(state, player))
 		result.append_array(rapier_carrier_loadout_choices(state, player))
+		result.append_array(CanoptekMacrocytes.loadout_choices(state, player))
+		result.append_array(CanoptekSpyders.loadout_choices(state, player))
+		result.append_array(CanoptekTombCrawlers.loadout_choices(state, player))
+		result.append_array(CanoptekTombCrawlers.retinue_choices(state, player))
+		result.append_array(NecronCryptothralls.retinue_choices(state, player))
 		result.append_array(centurion_devastator_loadout_choices(state, player))
 		result.append_array(centurion_assault_loadout_choices(state, player))
 		result.append_array(vindicator_loadout_choices(state, player))
@@ -2434,9 +2769,13 @@ static func choices(state: Dictionary, player: int) -> Array:
 		result.append_array(decimus_kill_team_loadout_choices(state, player))
 		result.append_array(necron_warrior_loadout_choices(state, player))
 		result.append_array(necron_immortal_loadout_choices(state, player))
+		result.append_array(necron_lokhust_heavy_loadout_choices(state, player))
+		result.append_array(necron_monolith_loadout_choices(state, player))
+		result.append_array(necron_annihilation_barge_loadout_choices(state, player))
 		for crusader_model: int in state.units:
 			var crusader_unit: Dictionary = state.units[crusader_model]
 			if int(crusader_unit.get("owner", -1)) != player or int(crusader_unit.get("wounds", 0)) <= 0 or A.identity(crusader_unit) != "crusader-squad": continue
+			if bool(crusader_unit.get("crusader_squad_saved_equipment_locked", false)): continue
 			var crusader_squad := int(crusader_unit.get("squad", -1))
 			if not state.squads.has(crusader_squad): continue
 			var crusader_count := int(state.squads[crusader_squad].get("starting_strength", 0))
@@ -2452,6 +2791,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 		for sword_brethren_model: int in state.units:
 			var sword_brethren_unit: Dictionary = state.units[sword_brethren_model]
 			if int(sword_brethren_unit.get("owner", -1)) != player or int(sword_brethren_unit.get("wounds", 0)) <= 0 or A.identity(sword_brethren_unit) != "sword-brethren-squad": continue
+			if bool(sword_brethren_unit.get("sword_brethren_saved_model_loadout_locked", false)): continue
 			var sword_brethren_squad := int(sword_brethren_unit.get("squad", -1))
 			if not state.squads.has(sword_brethren_squad): continue
 			var sword_brethren_count := int(state.squads[sword_brethren_squad].get("starting_strength", 0))
@@ -2464,6 +2804,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 		for execrator_model: int in state.units:
 			var execrator_unit: Dictionary = state.units[execrator_model]
 			if int(execrator_unit.get("owner", -1)) != player or int(execrator_unit.get("wounds", 0)) <= 0 or A.identity(execrator_unit) != "execrator": continue
+			if bool(execrator_unit.get("execrator_loadout_locked", false)): continue
 			var execrator_squad := int(execrator_unit.get("squad", -1))
 			var pistol_package := str(execrator_unit.get("execrator_pistol_package", "absolvor-bolt-pistol"))
 			var extra_power_weapon := bool(execrator_unit.get("execrator_mastercrafted_power_weapon", false))
@@ -2475,7 +2816,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 				var power_label := "remove the additional Master-crafted Power Weapon" if extra_power_weapon else "add the Extra Attacks Master-crafted Power Weapon"
 				result.append(choice("Execrator %d: %s" % [execrator_model, power_label], "execrator-extra-melee", execrator_model, execrator_squad, "off" if extra_power_weapon else "on"))
 		for squad: int in state.squads:
-			if int(state.squads[squad].get("owner", -1)) != player: continue
+			if int(state.squads[squad].get("owner", -1)) != player or bool(state.squads[squad].get("deathwing_saved_unit_loadout_locked", false)): continue
 			var watcher_identity := ""
 			for model: int in G.alive(state, squad):
 				var identity := A.identity(state.units[model])
@@ -2486,7 +2827,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 			result.append(choice("%s: %s Watcher in the Dark" % [state.squads[squad].name, "remove" if watcher_equipped else "equip"], "deathwing-knights-watcher", -1, squad, "off" if watcher_equipped else "on"))
 		for model: int in state.units:
 			var knight: Dictionary = state.units[model]
-			if int(knight.get("owner", -1)) != player or int(knight.get("wounds", 0)) <= 0 or A.identity(knight) != "deathwing-knights": continue
+			if int(knight.get("owner", -1)) != player or int(knight.get("wounds", 0)) <= 0 or A.identity(knight) != "deathwing-knights" or bool(knight.get("deathwing_saved_model_loadout_locked", false)): continue
 			var melee_choice := str(knight.get("deathwing_knight_melee", "great-weapon-of-the-unforgiven" if knight.get("sergeant", false) else "mace-of-absolution"))
 			var weapon_options: Array[String] = []
 			if knight.get("sergeant", false): weapon_options.append_array(["great-weapon-of-the-unforgiven", "relic-weapon"])
@@ -2505,41 +2846,52 @@ static func choices(state: Dictionary, player: int) -> Array:
 			for target_squad: int in state.squads:
 				if state.squads[target_squad].owner != player or not thunderhawk_target_eligible(state, target_squad): continue
 				result.append(choice("Thunderhawk Insertion %d: grant Deep Strike to %s" % [model, state.squads[target_squad].name], "thunderhawk-insertion", model, target_squad))
-		for squad: int in state.squads:
-			if state.squads[squad].owner != player or not A.has(state, squad, "close-quarters-firestorm"): continue
-			var boltstorm: bool = state.squads[squad].get("boltstorm_loadout", false)
-			result.append(choice("Aggressors %d: all %s" % [squad, "Flamestorm" if boltstorm else "Boltstorm/Fragstorm"], "aggressor-loadout", -1, squad, "flame" if boltstorm else "bolt"))
+		for model: int in state.units:
+			var aggressor: Dictionary = state.units[model]
+			var squad := int(aggressor.get("squad", -1))
+			if int(aggressor.get("owner", -1)) != player or int(aggressor.get("wounds", 0)) <= 0 or A.identity(aggressor) != "aggressor-squad": continue
+			if not state.squads.has(squad) or int(state.squads[squad].get("owner", -1)) != player or not A.has(state, squad, "close-quarters-firestorm"): continue
+			if bool(aggressor.get("aggressor_loadout_locked", false)): continue
+			var boltstorm := bool(aggressor.get("aggressor_boltstorm_loadout", state.squads[squad].get("boltstorm_loadout", false)))
+			var ranged: Array = aggressor.get("ranged_weapons", [])
+			if not ranged.is_empty(): boltstorm = str(ranged[0].get("id", "")) == "auto-boltstorm-gauntlets"
+			result.append(choice("Aggressor %d: %s" % [model, "Flamestorm Gauntlets" if boltstorm else "Boltstorm/Fragstorm"], "aggressor-loadout", model, squad, "flame" if boltstorm else "bolt"))
 		for model: int in state.units:
 			var inceptor: Dictionary = state.units[model]
 			if inceptor.owner != player or inceptor.wounds <= 0 or A.identity(inceptor) != "inceptor-squad": continue
+			if saved_army_inceptor_loadout_locked(state, inceptor): continue
 			var plasma: bool = inceptor.get("inceptor_plasma_exterminators", false)
 			result.append(choice("Inceptor %d: %s" % [model, "Assault Bolters" if plasma else "Plasma Exterminators"], "inceptor-loadout", model, inceptor.squad, "bolters" if plasma else "plasma"))
 		for model: int in state.units:
 			var speeder: Dictionary = state.units[model]
 			if speeder.owner != player or speeder.wounds <= 0 or A.identity(speeder) != "land-speeder": continue
+			if saved_army_land_speeder_loadout_locked(state, speeder): continue
 			var pyrecannon: bool = speeder.get("land_speeder_pyrecannon", false)
 			result.append(choice("Land Speeder %d: %s" % [model, "Onslaught Gatling Cannon" if pyrecannon else "Pyrecannon"], "land-speeder-cannon", model, speeder.squad, "onslaught" if pyrecannon else "pyrecannon"))
 		for model: int in state.units:
 			var vengeance: Dictionary = state.units[model]
 			if vengeance.owner != player or vengeance.wounds <= 0 or A.identity(vengeance) != "land-speeder-vengeance": continue
+			if saved_army_land_speeder_vengeance_loadout_locked(state, vengeance): continue
 			var assault_cannon: bool = vengeance.get("land_speeder_vengeance_assault_cannon", false)
 			result.append(choice("Land Speeder Vengeance %d: %s" % [model, "Heavy Bolter" if assault_cannon else "Assault Cannon"], "land-speeder-vengeance-cannon", model, vengeance.squad, "heavy-bolter" if assault_cannon else "assault-cannon"))
 		for model: int in state.units:
 			var darkshroud: Dictionary = state.units[model]
 			if darkshroud.owner != player or darkshroud.wounds <= 0 or A.identity(darkshroud) != "ravenwing-darkshroud": continue
-			var assault_cannon: bool = darkshroud.get("ravenwing_darkshroud_assault_cannon", false)
-			result.append(choice("Ravenwing Darkshroud %d: %s" % [model, "Heavy Bolter" if assault_cannon else "Assault Cannon"], "ravenwing-darkshroud-cannon", model, darkshroud.squad, "heavy-bolter" if assault_cannon else "assault-cannon"))
+			if not saved_army_ravenwing_darkshroud_loadout_locked(state, darkshroud):
+				var assault_cannon: bool = darkshroud.get("ravenwing_darkshroud_assault_cannon", false)
+				result.append(choice("Ravenwing Darkshroud %d: %s" % [model, "Heavy Bolter" if assault_cannon else "Assault Cannon"], "ravenwing-darkshroud-cannon", model, darkshroud.squad, "heavy-bolter" if assault_cannon else "assault-cannon"))
 		for model: int in state.units:
 			var intercessor: Dictionary = state.units[model]
 			if intercessor.owner != player or intercessor.wounds <= 0 or A.identity(intercessor) != "intercessor-squad": continue
 			if intercessor.get("sergeant", false):
-				var melee_choice: String = intercessor.get("intercessor_melee_choice", "knives-and-fists")
-				for kind: String in ["knives-and-fists", "chainsword", "power-fist", "power-weapon", "thunder-hammer"]:
-					if kind != melee_choice: result.append(choice("Intercessor Sergeant %d: %s" % [model, {"knives-and-fists": "Knives and Fists", "chainsword": "Chainsword (melee replacement)", "power-fist": "Power Fist", "power-weapon": "Power Weapon", "thunder-hammer": "Thunder Hammer"}[kind]], "intercessor-melee", model, intercessor.squad, kind))
-				var rifle_choice: String = intercessor.get("intercessor_rifle_choice", "bolt-rifle")
-				for kind: String in ["bolt-rifle", "chainsword", "hand-flamer", "plasma-pistol", "power-weapon"]:
-					if kind != rifle_choice: result.append(choice("Intercessor Sergeant: replace Bolt Rifle with %s" % {"bolt-rifle": "Bolt Rifle", "chainsword": "Chainsword", "hand-flamer": "Hand Flamer", "plasma-pistol": "Plasma Pistol", "power-weapon": "Power Weapon"}[kind], "intercessor-rifle", model, intercessor.squad, kind))
-			if not intercessor.get("sergeant", false):
+				if not saved_army_intercessor_loadout_locked(state, intercessor):
+					var melee_choice: String = intercessor.get("intercessor_melee_choice", "knives-and-fists")
+					for kind: String in ["knives-and-fists", "chainsword", "power-fist", "power-weapon", "thunder-hammer"]:
+						if kind != melee_choice: result.append(choice("Intercessor Sergeant %d: %s" % [model, {"knives-and-fists": "Knives and Fists", "chainsword": "Chainsword (melee replacement)", "power-fist": "Power Fist", "power-weapon": "Power Weapon", "thunder-hammer": "Thunder Hammer"}[kind]], "intercessor-melee", model, intercessor.squad, kind))
+					var rifle_choice: String = intercessor.get("intercessor_rifle_choice", "bolt-rifle")
+					for kind: String in ["bolt-rifle", "chainsword", "hand-flamer", "plasma-pistol", "power-weapon"]:
+						if kind != rifle_choice: result.append(choice("Intercessor Sergeant: replace Bolt Rifle with %s" % {"bolt-rifle": "Bolt Rifle", "chainsword": "Chainsword", "hand-flamer": "Hand Flamer", "plasma-pistol": "Plasma Pistol", "power-weapon": "Power Weapon"}[kind], "intercessor-rifle", model, intercessor.squad, kind))
+			if not intercessor.get("sergeant", false) and not saved_army_intercessor_loadout_locked(state, intercessor):
 				var equipped: bool = intercessor.get("intercessor_grenade_launcher", false)
 				var equipped_count := 0
 				for member: int in G.alive(state, intercessor.squad):
@@ -2550,6 +2902,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 		for model: int in state.units:
 			var heavy_intercessor: Dictionary = state.units[model]
 			if heavy_intercessor.owner != player or heavy_intercessor.wounds <= 0 or A.identity(heavy_intercessor) != "heavy-intercessor-squad" or heavy_intercessor.get("sergeant", false): continue
+			if saved_army_heavy_intercessor_loadout_locked(state, heavy_intercessor): continue
 			var equipped: bool = heavy_intercessor.get("heavy_intercessor_heavy_bolter", false)
 			var equipped_count := 0
 			for member: int in G.alive(state, heavy_intercessor.squad):
@@ -2560,7 +2913,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 		for model: int in state.units:
 			var terminator: Dictionary = state.units[model]
 			var identity := A.identity(terminator)
-			if terminator.owner != player or terminator.wounds <= 0 or identity not in ["terminator-squad", "deathwing-terminator-squad", "deathwatch-terminator-squad"]: continue
+			if terminator.owner != player or terminator.wounds <= 0 or identity not in ["terminator-squad", "deathwing-terminator-squad", "deathwatch-terminator-squad"] or bool(terminator.get("terminator_saved_loadout_locked", false)) or bool(terminator.get("deathwing_saved_model_loadout_locked", false)) or bool(terminator.get("deathwatch_saved_model_loadout_locked", false)): continue
 			if identity == "deathwatch-terminator-squad":
 				if terminator.get("sergeant", false): continue
 				var equipped: String = terminator.get("terminator_special_weapon", "")
@@ -2592,26 +2945,28 @@ static func choices(state: Dictionary, player: int) -> Array:
 				result.append(choice("%s %d: %s" % [unit_label, model, special_labels[kind]], "terminator-special-weapon", model, terminator.squad, kind))
 		for model: int in state.units:
 			var assault_terminator: Dictionary = state.units[model]
-			if assault_terminator.owner != player or assault_terminator.wounds <= 0 or A.identity(assault_terminator) != "terminator-assault-squad": continue
+			if assault_terminator.owner != player or assault_terminator.wounds <= 0 or A.identity(assault_terminator) != "terminator-assault-squad" or bool(assault_terminator.get("terminator_saved_loadout_locked", false)): continue
 			var shielded: bool = assault_terminator.get("terminator_assault_storm_shield", false)
 			result.append(choice("Terminator Assault %d: %s" % [model, "Storm Shield + Thunder Hammer" if not shielded else "Twin Lightning Claws"], "terminator-assault-loadout", model, assault_terminator.squad, "off" if shielded else "on"))
 		for model: int in state.units:
 			var outrider: Dictionary = state.units[model]
 			if outrider.owner != player or outrider.wounds <= 0 or A.identity(outrider) != "outrider-squad": continue
-			if outrider.get("sergeant", false):
-				var outrider_melee: String = outrider.get("outrider_melee_choice", "chainsword")
-				for kind: String in ["chainsword", "power-weapon", "thunder-hammer"]:
-					if kind != outrider_melee: result.append(choice("Outrider Sergeant %d: %s" % [model, {"chainsword": "Chainsword", "power-weapon": "Power Weapon", "thunder-hammer": "Thunder Hammer"}[kind]], "outrider-melee", model, outrider.squad, kind))
-			var plasma_equipped: bool = outrider.get("outrider_plasma_pistol", false)
-			var plasma_count := 0
-			for member: int in state.units:
-				if state.units[member].squad == outrider.squad and A.identity(state.units[member]) == "outrider-squad" and state.units[member].get("outrider_plasma_pistol", false): plasma_count += 1
-			var plasma_limit := int(state.squads[outrider.squad].starting_strength / 3.0)
-			if plasma_equipped or plasma_count < plasma_limit:
-				result.append(choice("Outrider %d: %s Plasma Pistol" % [model, "restore Heavy Bolt Pistol" if plasma_equipped else "replace Heavy Bolt Pistol with"], "outrider-plasma-pistol", model, outrider.squad, "off" if plasma_equipped else "on"))
+			if not saved_army_outrider_loadout_locked(state, outrider):
+				if outrider.get("sergeant", false):
+					var outrider_melee: String = outrider.get("outrider_melee_choice", "chainsword")
+					for kind: String in ["chainsword", "power-weapon", "thunder-hammer"]:
+						if kind != outrider_melee: result.append(choice("Outrider Sergeant %d: %s" % [model, {"chainsword": "Chainsword", "power-weapon": "Power Weapon", "thunder-hammer": "Thunder Hammer"}[kind]], "outrider-melee", model, outrider.squad, kind))
+				var plasma_equipped: bool = outrider.get("outrider_plasma_pistol", false)
+				var plasma_count := 0
+				for member: int in state.units:
+					if state.units[member].squad == outrider.squad and A.identity(state.units[member]) == "outrider-squad" and state.units[member].get("outrider_plasma_pistol", false): plasma_count += 1
+				var plasma_limit := int(state.squads[outrider.squad].starting_strength / 3.0)
+				if plasma_equipped or plasma_count < plasma_limit:
+					result.append(choice("Outrider %d: %s Plasma Pistol" % [model, "restore Heavy Bolt Pistol" if plasma_equipped else "replace Heavy Bolt Pistol with"], "outrider-plasma-pistol", model, outrider.squad, "off" if plasma_equipped else "on"))
 		for model: int in state.units:
 			var scout_biker: Dictionary = state.units[model]
 			if scout_biker.owner != player or scout_biker.wounds <= 0 or A.identity(scout_biker) != "scout-bike-squad": continue
+			if bool(scout_biker.get("scout_bike_saved_model_loadout_locked", false)): continue
 			var grenade_launcher_equipped := bool(scout_biker.get("scout_bike_grenade_launcher", false))
 			result.append(choice("Scout Biker %d: %s Grenade Launcher" % [model, "restore Twin Boltgun or replace it with" if grenade_launcher_equipped else "replace Twin Boltgun with"], "scout-bike-grenade-launcher", model, scout_biker.squad, "off" if grenade_launcher_equipped else "on"))
 			if scout_biker.get("sergeant", false):
@@ -2622,6 +2977,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 		for model: int in state.units:
 			var guard: Dictionary = state.units[model]
 			if guard.owner != player or guard.wounds <= 0 or A.identity(guard) != "sanguinary-guard": continue
+			if bool(guard.get("sanguinary_guard_loadout_locked", false)): continue
 			var inferno_equipped := bool(guard.get("sanguinary_guard_inferno_pistol", false))
 			var inferno_count := 0
 			for member: int in state.units:
@@ -2633,6 +2989,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 		for model: int in state.units:
 			var black_knight: Dictionary = state.units[model]
 			if black_knight.owner != player or black_knight.wounds <= 0 or A.identity(black_knight) != "ravenwing-black-knights": continue
+			if bool(black_knight.get("ravenwing_saved_model_loadout_locked", false)): continue
 			var launcher_equipped: bool = black_knight.get("black_knight_grenade_launcher", false)
 			var launcher_count := 0
 			for member: int in state.units:
@@ -2643,6 +3000,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 		for model: int in state.units:
 			var command_model: Dictionary = state.units[model]
 			if command_model.owner != player or command_model.wounds <= 0 or A.identity(command_model) != "ravenwing-command-squad": continue
+			if bool(command_model.get("ravenwing_saved_model_loadout_locked", false)): continue
 			var launcher_equipped: bool = command_model.get("ravenwing_command_grenade_launcher", false)
 			var launcher_count := 0
 			for member: int in state.units:
@@ -2659,16 +3017,18 @@ static func choices(state: Dictionary, player: int) -> Array:
 				if A.identity(state.units[model]) != "eliminator-squad": continue
 				if not state.units[model].get("sergeant", false):
 					eliminator_ordinal += 1
+					if state.units[model].get("eliminator_trooper_loadout_locked", false): continue
 					var fusil: bool = not state.units[model].ranged_weapons.is_empty() and str(state.units[model].ranged_weapons[0].get("id", "")) == "las-fusil"
 					if fusil or (not state.units[model].ranged_weapons.is_empty() and str(state.units[model].ranged_weapons[0].get("id", "")) == "bolt-sniper-rifle"):
 						var label := "Eliminator %d: Restore Bolt Sniper Rifle" % eliminator_ordinal if fusil else "Eliminator %d: Replace Bolt Sniper Rifle with Las Fusil" % eliminator_ordinal
 						result.append(choice(label, "eliminator-troopers", model, squad, "sniper" if fusil else "las"))
 					continue
-				for kind: String in ["sniper", "las", "carbine"]:
-					result.append(choice("Eliminator Sergeant: %s" % {"sniper": "Bolt Sniper Rifle", "las": "Las Fusil", "carbine": "Instigator Bolt Carbine"}[kind], "eliminator-sergeant", model, squad, kind))
+				if not state.units[model].get("eliminator_sergeant_loadout_locked", false):
+					for kind: String in ["sniper", "las", "carbine"]:
+						result.append(choice("Eliminator Sergeant: %s" % {"sniper": "Bolt Sniper Rifle", "las": "Las Fusil", "carbine": "Instigator Bolt Carbine"}[kind], "eliminator-sergeant", model, squad, kind))
 		for model: int in state.units:
 			var veteran: Dictionary = state.units[model]
-			if veteran.owner != player or veteran.wounds <= 0 or A.identity(veteran) != "sternguard-veteran-squad": continue
+			if veteran.owner != player or veteran.wounds <= 0 or A.identity(veteran) != "sternguard-veteran-squad" or bool(veteran.get("specialist_squad_loadout_locked", false)): continue
 			if veteran.get("sergeant", false):
 				for kind: String in ["chain", "fist", "power"]:
 					result.append(choice("Sternguard Sergeant %d: %s" % [model, {"chain": "Chainsword", "fist": "Power Fist", "power": "Power Weapon"}[kind]], "sternguard-melee", model, veteran.squad, kind))
@@ -2683,16 +3043,17 @@ static func choices(state: Dictionary, player: int) -> Array:
 					for kind: String in ["firearm", "heavy", "pyre"]:
 						result.append(choice("Sternguard %d: %s" % [model, {"firearm": "Artificer Firearm", "heavy": "Heavy Bolter", "pyre": "Pyrecannon"}[kind]], "sternguard-gun", model, veteran.squad, kind))
 		for model: int in state.units:
-			if state.units[model].owner == player and A.identity(state.units[model]) == "ancient":
+			if state.units[model].owner == player and A.identity(state.units[model]) == "ancient" and not state.units[model].get("ancient_loadout_locked", false):
 				result.append(choice("Ancient %d: %s" % [model, "Bolt Rifle" if state.units[model].get("ancient_power", false) else "Power Weapon"], "ancient-loadout", model, state.units[model].squad, "rifle" if state.units[model].get("ancient_power", false) else "power"))
 		for model: int in state.units:
 			var veteran: Dictionary = state.units[model]
-			if veteran.owner == player and veteran.wounds > 0 and veteran.get("sergeant", false) and A.identity(veteran) == "bladeguard-veteran-squad":
+			if veteran.owner == player and veteran.wounds > 0 and veteran.get("sergeant", false) and A.identity(veteran) == "bladeguard-veteran-squad" and not bool(veteran.get("bladeguard_loadout_locked", false)):
 				for kind: String in ["heavy", "volkite", "plasma"]:
 					result.append(choice("Bladeguard Sergeant %d: %s" % [model, {"heavy": "Heavy Bolt Pistol", "volkite": "Neo-volkite Pistol", "plasma": "Plasma Pistol"}[kind]], "bladeguard-pistol", model, veteran.squad, kind))
 		for model: int in state.units:
 			var scout: Dictionary = state.units[model]
 			if scout.owner != player or scout.wounds <= 0 or A.identity(scout) != "scout-squad": continue
+			if bool(scout.get("scout_loadout_locked", false)): continue
 			for gun: String in _scout_gun_options(state, model):
 				result.append(choice("Scout %d: %s" % [model, {"boltgun": "Boltgun", "shotgun": "Shotgun", "sniper-rifle": "Sniper Rifle", "heavy-bolter": "Heavy Bolter", "missile-launcher": "Missile Launcher"}[gun]], "scout-gun", model, scout.squad, gun))
 			if scout.get("sergeant", false):
@@ -2700,6 +3061,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 					if blade != scout.get("scout_blade", "combat-knife"): result.append(choice("Scout Sergeant %d: %s" % [model, "Combat Knife" if blade == "combat-knife" else "Chainsword"], "scout-blade", model, scout.squad, blade))
 		for squad: int in state.squads:
 			if state.squads[squad].owner != player or G.alive(state, squad).is_empty(): continue
+			if bool(state.squads[squad].get("reiver_loadout_locked", false)): continue
 			var reiver := false
 			for model: int in G.alive(state, squad):
 				if A.identity(state.units[model]) == "reiver-squad": reiver = true
@@ -2709,34 +3071,35 @@ static func choices(state: Dictionary, player: int) -> Array:
 			result.append(choice("Reiver Squad %d: %s Grav-chutes" % [squad, "remove" if grav else "equip"], "reiver-grav-chutes", -1, squad, "off" if grav else "on"))
 			result.append(choice("Reiver Squad %d: %s Grapnel Launchers" % [squad, "remove" if grapnel else "equip"], "reiver-grapnel-launchers", -1, squad, "off" if grapnel else "on"))
 		for model: int in state.units:
-			if state.units[model].owner != player or state.units[model].wounds <= 0 or A.identity(state.units[model]) != "firestrike-servo-turrets": continue
+			if state.units[model].owner != player or state.units[model].wounds <= 0 or A.identity(state.units[model]) != "firestrike-servo-turrets" or bool(state.units[model].get("firestrike_loadout_locked", false)): continue
 			var autocannon: bool = state.units[model].get("firestrike_autocannon", false)
 			result.append(choice("Firestrike Servo-turret %d: %s" % [model, "Twin Firestrike Las-talon" if autocannon else "Twin Firestrike Autocannon"], "firestrike-gun", model, state.units[model].squad, "las-talon" if autocannon else "autocannon"))
 		for model: int in state.units:
 			var dreadnought: Dictionary = state.units[model]
 			if dreadnought.owner != player or dreadnought.wounds <= 0 or A.identity(dreadnought) != "redemptor-dreadnought": continue
+			if bool(dreadnought.get("redemptor_loadout_locked", false)): continue
 			result.append(choice("Redemptor %d: %s" % [model, "Storm Bolters" if dreadnought.get("redemptor_fragstorm", true) else "Fragstorm Grenade Launchers"], "redemptor-fragstorm", model, dreadnought.squad, "fragstorm" if not dreadnought.get("redemptor_fragstorm", true) else "storm-bolters"))
 			result.append(choice("Redemptor %d: %s" % [model, "Onslaught Gatling Cannon" if dreadnought.get("redemptor_heavy_flamer", true) else "Heavy Flamer"], "redemptor-auxiliary", model, dreadnought.squad, "heavy-flamer" if not dreadnought.get("redemptor_heavy_flamer", true) else "onslaught"))
 			result.append(choice("Redemptor %d: %s" % [model, "Macro Plasma Incinerator (+10 points)" if not dreadnought.get("redemptor_macro_plasma", false) else "Heavy Onslaught Gatling Cannon"], "redemptor-main", model, dreadnought.squad, "macro-plasma" if not dreadnought.get("redemptor_macro_plasma", false) else "heavy-onslaught"))
 			result.append(choice("Redemptor %d: %s" % [model, "Icarus Rocket Pod" if not dreadnought.get("redemptor_icarus", false) else "remove Icarus Rocket Pod"], "redemptor-icarus", model, dreadnought.squad, "on" if not dreadnought.get("redemptor_icarus", false) else "off"))
 		for model: int in state.units:
 			var brutalis: Dictionary = state.units[model]
-			if brutalis.owner != player or brutalis.wounds <= 0 or A.identity(brutalis) != "brutalis-dreadnought": continue
+			if brutalis.owner != player or brutalis.wounds <= 0 or A.identity(brutalis) != "brutalis-dreadnought" or bool(brutalis.get("brutalis_loadout_locked", false)): continue
 			result.append(choice("Brutalis %d: %s" % [model, "Brutalis Fists + Bolt Rifles" if brutalis.get("brutalis_talons", false) else "Brutalis Talons"], "brutalis-melee", model, brutalis.squad, "fists" if brutalis.get("brutalis_talons", false) else "talons"))
 			result.append(choice("Brutalis %d: %s" % [model, "Twin Heavy Bolter" if brutalis.get("brutalis_multi_melta", false) else "Twin Multi-melta"], "brutalis-ranged", model, brutalis.squad, "heavy-bolter" if brutalis.get("brutalis_multi_melta", false) else "multi-melta"))
 		for model: int in state.units:
 			var invictor: Dictionary = state.units[model]
-			if invictor.owner != player or invictor.wounds <= 0 or A.identity(invictor) != "invictor-tactical-warsuit": continue
+			if invictor.owner != player or invictor.wounds <= 0 or A.identity(invictor) != "invictor-tactical-warsuit" or invictor.get("invictor_loadout_locked", false): continue
 			result.append(choice("Invictor %d: %s" % [model, "Incendium Cannon" if invictor.get("invictor_autocannon", false) else "Twin Ironhail Autocannon"], "invictor-gun", model, invictor.squad, "incendium" if invictor.get("invictor_autocannon", false) else "autocannon"))
 		for model: int in state.units:
 			var desolation: Dictionary = state.units[model]
-			if desolation.owner != player or desolation.wounds <= 0 or A.identity(desolation) != "desolation-squad": continue
+			if desolation.owner != player or desolation.wounds <= 0 or A.identity(desolation) != "desolation-squad" or bool(desolation.get("specialist_squad_loadout_locked", false)): continue
 			var rocket: String = desolation.get("desolation_rocket", "superfrag")
 			for option: String in (["superfrag", "superkrak", "vengor"] if desolation.get("sergeant", false) else ["superfrag", "superkrak"]):
 				if option != rocket: result.append(choice("Desolation %d: %s" % [model, {"superfrag": "Superfrag Rocket Launcher", "superkrak": "Superkrak Rocket Launcher", "vengor": "Vengor Launcher (+5 points)"}[option]], "desolation-rocket", model, desolation.squad, option))
 		for model: int in state.units:
 			var bearer: Dictionary = state.units[model]
-			if bearer.owner != player or bearer.wounds <= 0 or A.identity(bearer) != "eradicator-squad-with-melta-rifles": continue
+			if bearer.owner != player or bearer.wounds <= 0 or A.identity(bearer) != "eradicator-squad-with-melta-rifles" or bool(bearer.get("specialist_squad_loadout_locked", false)) or bool(bearer.get("sergeant", false)): continue
 			var multi: bool = bearer.get("multi_melta", false)
 			var equipped := 0
 			for other: int in state.units:
@@ -2749,8 +3112,9 @@ static func choices(state: Dictionary, player: int) -> Array:
 			var unit: Dictionary = state.units[model]
 			if unit.owner == player and unit.get("sergeant", false) and A.identity(unit) == "hellblaster-squad":
 				var plasma: bool = unit.get("plasma_pistol", false)
-				result.append(choice("Sergeant %d: equip %s (free)" % [model, "Bolt Pistol" if plasma else "Plasma Pistol"], "hellblaster-pistol", model, unit.squad, "bolt" if plasma else "plasma"))
-			if unit.owner == player and unit.get("sergeant", false) and A.identity(unit) == "assault-intercessor-squad":
+				if not saved_army_hellblaster_loadout_locked(state, unit):
+					result.append(choice("Sergeant %d: equip %s (free)" % [model, "Bolt Pistol" if plasma else "Plasma Pistol"], "hellblaster-pistol", model, unit.squad, "bolt" if plasma else "plasma"))
+			if unit.owner == player and unit.get("sergeant", false) and A.identity(unit) == "assault-intercessor-squad" and not saved_army_assault_intercessor_loadout_locked(state, unit):
 				var current_pistol := str(unit.get("ranged_weapons", [{}])[0].get("id", "heavy-bolt-pistol")) if not unit.get("ranged_weapons", []).is_empty() else "heavy-bolt-pistol"
 				for kind: String in ["heavy-bolt-pistol", "hand-flamer", "plasma-pistol"]:
 					if kind == current_pistol: continue
@@ -2761,12 +3125,12 @@ static func choices(state: Dictionary, player: int) -> Array:
 					if kind == current_melee: continue
 					var melee_label := "restore Chainsword" if kind == "chainsword" else "replace Chainsword with %s" % {"power-fist": "Power Fist", "power-weapon": "Power Weapon", "thunder-hammer": "Thunder Hammer"}[kind]
 					result.append(choice("Assault Intercessor Sergeant %d: %s" % [model, melee_label], "assault-intercessor-melee", model, unit.squad, kind))
-			if unit.owner == player and unit.get("sergeant", false) and A.identity(unit) == "assault-intercessors-with-jump-packs":
+			if unit.owner == player and unit.get("sergeant", false) and A.identity(unit) == "assault-intercessors-with-jump-packs" and not bool(unit.get("sergeant_squad_loadout_locked", false)):
 				for kind: String in ["heavy-bolt-pistol", "hand-flamer", "plasma-pistol"]:
 					result.append(choice("Jump Intercessor Sergeant %d: %s" % [model, {"heavy-bolt-pistol": "Heavy Bolt Pistol", "hand-flamer": "Hand Flamer", "plasma-pistol": "Plasma Pistol"}[kind]], "jump-pack-sergeant-pistol", model, unit.squad, kind))
 				for kind: String in ["chainsword", "power-fist", "power-weapon"]:
 					result.append(choice("Jump Intercessor Sergeant %d: %s" % [model, {"chainsword": "Chainsword", "power-fist": "Power Fist", "power-weapon": "Power Weapon"}[kind]], "jump-pack-sergeant-melee", model, unit.squad, kind))
-			if unit.owner == player and not unit.get("sergeant", false) and A.identity(unit) == "assault-intercessors-with-jump-packs":
+			if unit.owner == player and not unit.get("sergeant", false) and A.identity(unit) == "assault-intercessors-with-jump-packs" and not bool(unit.get("sergeant_squad_loadout_locked", false)):
 				var plasma_bearers := 0
 				for member: int in G.alive(state, unit.squad):
 					if A.identity(state.units[member]) == "assault-intercessors-with-jump-packs" and state.units[member].get("jump_plasma_pistol", false): plasma_bearers += 1
@@ -2779,41 +3143,41 @@ static func choices(state: Dictionary, player: int) -> Array:
 		for model: int in state.units:
 			var unit: Dictionary = state.units[model]
 			if unit.owner != player: continue
-			if A.identity(unit) == "nephilim-jetfighter":
+			if A.identity(unit) == "nephilim-jetfighter" and not unit.get("nephilim_loadout_locked", false):
 				var lascannons := bool(unit.get("nephilim_lascannons", false))
 				result.append(choice("Nephilim Jetfighter %d: %s" % [model, "restore Twin Heavy Bolter" if lascannons else "replace Twin Heavy Bolter with Nephilim Lascannons"], "nephilim-jetfighter-loadout", model, unit.squad, "twin-heavy-bolter" if lascannons else "lascannons"))
-			if A.identity(unit) == "captain-with-jump-pack":
+			if A.identity(unit) == "captain-with-jump-pack" and not bool(unit.get("jump_captain_loadout_locked", false)):
 				var jump_loadouts := {"default": "Heavy Bolt Pistol + Chainsword", "hand-flamer": "Hand Flamer + Chainsword", "plasma-pistol": "Plasma Pistol + Chainsword", "power-fist": "Heavy Bolt Pistol + Power Fist", "relic-weapon": "Heavy Bolt Pistol + Relic Weapon", "thunder-hammer-shield": "Thunder Hammer + Relic Shield", "chainsword-shield": "Chainsword + Relic Shield"}
 				for loadout: String in jump_loadouts:
 					if loadout != unit.get("jump_captain_loadout", "default"):
 						result.append(choice("Jump Captain %d: %s" % [model, jump_loadouts[loadout]], "jump-pack-captain-loadout", model, unit.squad, loadout))
-			if A.identity(unit) == "captain-on-bike":
+			if A.identity(unit) == "captain-on-bike" and not bool(unit.get("captain_bike_loadout_locked", false)):
 				result.append(choice("Bike Captain %d: %s" % [model, "Heavy Bolt Pistol" if unit.get("captain_bike_plasma_pistol", false) else "Plasma Pistol"], "captain-bike-pistol", model, unit.squad, "bolt" if unit.get("captain_bike_plasma_pistol", false) else "plasma"))
 				result.append(choice("Bike Captain %d: %s" % [model, "Master-crafted Power Weapon" if unit.get("captain_bike_thunder_hammer", false) else "Thunder Hammer"], "captain-bike-melee", model, unit.squad, "power-weapon" if unit.get("captain_bike_thunder_hammer", false) else "thunder-hammer"))
-			if A.identity(unit) == "vanguard-veteran-squad-with-jump-packs":
+			if A.identity(unit) == "vanguard-veteran-squad-with-jump-packs" and not bool(unit.get("sergeant_squad_loadout_locked", false)):
 				var current_pistol: String = unit.get("vanguard_pistol", "heavy-bolt-pistol")
 				for kind: String in ["heavy-bolt-pistol", "plasma-pistol", "combat-shield"]:
 					if kind == current_pistol: continue
 					if kind == "plasma-pistol" and not unit.get("sergeant", false) and _vanguard_plasma_count(state, unit.squad, model) >= int(state.squads[unit.squad].starting_strength / 5.0) * 2: continue
 					result.append(choice("Vanguard Veteran %d: %s" % [model, {"heavy-bolt-pistol": "Heavy Bolt Pistol", "plasma-pistol": "Plasma Pistol", "combat-shield": "Combat Shield (5+ invulnerable save)"}[kind]], "vanguard-veteran-pistol", model, unit.squad, kind))
-			if A.identity(unit) == "vanguard-veteran-squad":
+			if A.identity(unit) == "vanguard-veteran-squad" and not bool(unit.get("vanguard_veteran_squad_loadout_locked", false)):
 				var current_loadout := str(unit.get("vanguard_veteran_squad_loadout", "bolt-pistol"))
 				var labels := {"bolt-pistol": "Bolt Pistol", "storm-shield": "Storm Shield (4+ invulnerable save)", "grav-pistol": "Grav-pistol", "hand-flamer": "Hand Flamer", "inferno-pistol": "Inferno Pistol", "plasma-pistol": "Plasma Pistol"}
 				for kind: String in MarineProfiles.profile("vanguard-veteran-squad").options.pistol_replacements:
 					if kind != current_loadout: result.append(choice("Vanguard Veteran %d: %s" % [model, labels[kind]], "vanguard-veteran-squad-loadout", model, unit.squad, kind))
-			if A.identity(unit) == "vanguard-veteran-squad-with-jump-packs" and unit.get("sergeant", false):
+			if A.identity(unit) == "vanguard-veteran-squad-with-jump-packs" and unit.get("sergeant", false) and not bool(unit.get("sergeant_squad_loadout_locked", false)):
 				for kind: String in ["relic-blade", "power-fist", "thunder-hammer"]:
 					if kind != unit.get("vanguard_melee", "default"):
 						result.append(choice("Vanguard Veteran Sergeant %d: %s" % [model, {"relic-blade": "Relic Blade", "power-fist": "Power Fist", "thunder-hammer": "Thunder Hammer"}[kind]], "vanguard-veteran-melee", model, unit.squad, kind))
-			if A.identity(unit) == "lieutenant-in-phobos-armour": result.append(choice("Phobos Lieutenant %d: %s" % [model, "Precision pistol" if unit.get("phobos_carbine", false) else "Bolt carbine"], "phobos-lieutenant-gun", model, unit.squad, "pistol" if unit.get("phobos_carbine", false) else "carbine"))
-			if A.identity(unit) == "infiltrator-squad": result.append(choice("Infiltrator %d: %s Helix" % [model, "remove" if unit.get("helix_gauntlet", false) else "carry"], "helix-bearer", model, unit.squad, "off" if unit.get("helix_gauntlet", false) else "on"))
-			if A.identity(unit) == "captain-in-gravis-armour":
+			if A.identity(unit) == "lieutenant-in-phobos-armour" and not bool(unit.get("phobos_lieutenant_loadout_locked", false)): result.append(choice("Phobos Lieutenant %d: %s" % [model, "Precision pistol" if unit.get("phobos_carbine", false) else "Bolt carbine"], "phobos-lieutenant-gun", model, unit.squad, "pistol" if unit.get("phobos_carbine", false) else "carbine"))
+			if A.identity(unit) == "infiltrator-squad" and not bool(unit.get("infiltrator_loadout_locked", false)): result.append(choice("Infiltrator %d: %s Helix" % [model, "remove" if unit.get("helix_gauntlet", false) else "carry"], "helix-bearer", model, unit.squad, "off" if unit.get("helix_gauntlet", false) else "on"))
+			if A.identity(unit) == "captain-in-gravis-armour" and not bool(unit.get("gravis_loadout_locked", false)):
 				for loadout: String in ["rifle", "blade", "chainsword", "fist"]:
 					if loadout != unit.get("gravis_loadout", "rifle"): result.append(choice("Gravis Captain %d: %s" % [model, {"rifle": "Rifle + power weapon", "blade": "Gauntlet + relic blade", "chainsword": "Gauntlet + chainsword", "fist": "Gauntlet + relic fist"}[loadout]], "gravis-captain-loadout", model, unit.squad, loadout))
-			if A.identity(unit) == "captain-in-terminator-armour":
+			if A.identity(unit) == "captain-in-terminator-armour" and not bool(unit.get("terminator_captain_loadout_locked", false)):
 				result.append(choice("Captain %d: %s" % [model, "Storm Bolter" if unit.get("terminator_combi", false) else "Combi-weapon"], "terminator-captain-gun", model, unit.squad, "bolter" if unit.get("terminator_combi", false) else "combi"))
 				result.append(choice("Captain %d: %s" % [model, "Relic Weapon" if unit.get("terminator_fist", false) else "Relic Fist"], "terminator-captain-blade", model, unit.squad, "weapon" if unit.get("terminator_fist", false) else "fist"))
-			if A.identity(unit) == "captain":
+			if A.identity(unit) == "captain" and not bool(unit.get("captain_loadout_locked", false)):
 				var ranged_loadout: String = unit.get("captain_ranged_loadout", "default")
 				for loadout: String in ["default", "neo-volkite", "plasma-pistol", "relic-shield"]:
 					if loadout == "relic-shield" and unit.get("captain_power_fist", false): continue
@@ -2821,26 +3185,26 @@ static func choices(state: Dictionary, player: int) -> Array:
 				if ranged_loadout != "relic-shield":
 					var fist: bool = unit.get("captain_power_fist", false)
 					result.append(choice("Captain %d: %s" % [model, "Master-crafted Power Weapon" if fist else "Power Fist"], "captain-melee-loadout", model, unit.squad, "power-weapon" if fist else "power-fist"))
-			if A.identity(unit) == "blood-angels-captain":
+			if A.identity(unit) == "blood-angels-captain" and not bool(unit.get("blood_angels_captain_loadout_locked", false)):
 				var pistol_package: String = str(unit.get("blood_angels_captain_pistol_package", "heavy-bolt-pistol"))
 				for package: String in ["heavy-bolt-pistol", "inferno-pistol"]:
 					if package != pistol_package: result.append(choice("Blood Angels Captain %d: %s" % [model, {"heavy-bolt-pistol": "Heavy Bolt Pistol", "inferno-pistol": "Inferno Pistol"}[package]], "blood-angels-captain-ranged-loadout", model, unit.squad, package))
 				var melee_package: String = str(unit.get("blood_angels_captain_melee_package", "master-crafted-chainsword"))
 				for package: String in ["master-crafted-chainsword", "power-fist", "relic-weapon"]:
 					if package != melee_package: result.append(choice("Blood Angels Captain %d: %s" % [model, {"master-crafted-chainsword": "Master-crafted Chainsword", "power-fist": "Power Fist", "relic-weapon": "Relic Weapon"}[package]], "blood-angels-captain-melee-loadout", model, unit.squad, package))
-			if A.identity(unit) == "death-company-captain":
+			if A.identity(unit) == "death-company-captain" and not bool(unit.get("death_company_captain_loadout_locked", false)):
 				var pistol_package: String = str(unit.get("death_company_captain_pistol_package", "heavy-bolt-pistol"))
 				for package: String in ["heavy-bolt-pistol", "inferno-pistol"]:
 					if package != pistol_package: result.append(choice("Death Company Captain %d: %s" % [model, {"heavy-bolt-pistol": "Heavy Bolt Pistol", "inferno-pistol": "Inferno Pistol"}[package]], "death-company-captain-ranged-loadout", model, unit.squad, package))
 				var melee_package: String = str(unit.get("death_company_captain_melee_package", "master-crafted-chainsword"))
 				for package: String in ["master-crafted-chainsword", "power-fist", "relic-weapon"]:
 					if package != melee_package: result.append(choice("Death Company Captain %d: %s" % [model, {"master-crafted-chainsword": "Master-crafted Chainsword", "power-fist": "Power Fist", "relic-weapon": "Relic Weapon"}[package]], "death-company-captain-melee-loadout", model, unit.squad, package))
-			if A.identity(unit) == "death-company-captain-with-jump-pack":
+			if A.identity(unit) == "death-company-captain-with-jump-pack" and not bool(unit.get("death_company_jump_captain_loadout_locked", false)):
 				var packages := {"default": "Heavy Bolt Pistol + Chainsword", "hand-flamer-power-fist": "Hand Flamer + Power Fist", "plasma-pistol-power-fist": "Plasma Pistol + Power Fist", "heavy-bolt-pistol-power-fist": "Heavy Bolt Pistol + Power Fist", "hand-flamer-relic-weapon": "Hand Flamer + Relic Weapon", "plasma-pistol-relic-weapon": "Plasma Pistol + Relic Weapon", "heavy-bolt-pistol-relic-weapon": "Heavy Bolt Pistol + Relic Weapon", "thunder-hammer-shield": "Thunder Hammer + Relic Shield", "chainsword-shield": "Chainsword + Relic Shield"}
 				var current_package: String = str(unit.get("death_company_jump_captain_loadout", "default"))
 				for package: String in MarineProfiles.profile("death-company-captain-with-jump-pack").options.loadout_packages:
 					if package != current_package: result.append(choice("Death Company Jump Captain %d: %s" % [model, packages[package]], "death-company-jump-captain-loadout", model, unit.squad, package))
-			if A.identity(unit) == "lieutenant":
+			if A.identity(unit) == "lieutenant" and not bool(unit.get("lieutenant_loadout_locked", false)):
 				var current_package: String = unit.get("lieutenant_weapon_package", "default")
 				var package_labels := {"default": "Bolt Pistol + Master-crafted Bolter", "heavy-bolt-pistol": "Heavy Bolt Pistol + Master-crafted Bolter", "power-weapon": "Bolt Pistol + Master-crafted Power Weapon", "heavy-pistol-power-weapon": "Heavy Bolt Pistol + Master-crafted Power Weapon", "plasma-pistol": "Bolt Pistol + Plasma Pistol", "heavy-pistol-plasma-pistol": "Heavy Bolt Pistol + Plasma Pistol", "power-fist": "Bolt Pistol + Power Fist", "heavy-pistol-power-fist": "Heavy Bolt Pistol + Power Fist", "neo-volkite": "Neo-volkite Pistol + Master-crafted Power Weapon"}
 				for package: String in MarineProfiles.profile("lieutenant").options.ranged_packages:
@@ -2851,52 +3215,51 @@ static func choices(state: Dictionary, player: int) -> Array:
 				if current_package == "neo-volkite":
 					var shield: bool = unit.get("lieutenant_storm_shield", false)
 					result.append(choice("Lieutenant %d: %s" % [model, "unequip Storm Shield" if shield else "equip Storm Shield (4+ invulnerable save)"], "lieutenant-storm-shield", model, unit.squad, "off" if shield else "on"))
-			if A.identity(unit) == "blood-claws" and unit.get("sergeant", false):
+			if A.identity(unit) == "blood-claws" and unit.get("sergeant", false) and not bool(unit.get("sergeant_squad_loadout_locked", false)):
 				var pistol_package := str(unit.get("blood_claws_pack_leader_pistol", "bolt-pistol"))
 				for package: String in MarineProfiles.profile("blood-claws").options.pack_leader_ranged_packages:
 					if package != pistol_package: result.append(choice("Blood Claw Pack Leader %d: %s" % [model, "Bolt Pistol" if package == "bolt-pistol" else "Plasma Pistol"], "blood-claws-pack-leader-pistol", model, unit.squad, package))
 				var melee_package := str(unit.get("blood_claws_pack_leader_melee", "chainsword"))
 				for package: String in MarineProfiles.profile("blood-claws").options.pack_leader_melee_packages:
 					if package != melee_package: result.append(choice("Blood Claw Pack Leader %d: %s" % [model, "Chainsword" if package == "chainsword" else "Power Weapon"], "blood-claws-pack-leader-melee", model, unit.squad, package))
-			if A.identity(unit) == "grey-hunters" and unit.get("sergeant", false):
+			if A.identity(unit) == "grey-hunters" and unit.get("sergeant", false) and not bool(unit.get("sergeant_squad_loadout_locked", false)):
 				var pistol_package := str(unit.get("grey_hunters_pack_leader_pistol", "bolt-pistol"))
 				for package: String in MarineProfiles.profile("grey-hunters").options.pack_leader_ranged_packages:
 					if package != pistol_package: result.append(choice("Grey Hunter Pack Leader %d: %s" % [model, "Bolt Pistol" if package == "bolt-pistol" else "Plasma Pistol"], "grey-hunters-pack-leader-pistol", model, unit.squad, package))
 				var melee_package := str(unit.get("grey_hunters_pack_leader_melee", "chainsword"))
 				for package: String in MarineProfiles.profile("grey-hunters").options.pack_leader_melee_packages:
 					if package != melee_package: result.append(choice("Grey Hunter Pack Leader %d: %s" % [model, {"chainsword": "Chainsword", "power-fist": "Power Fist", "power-weapon": "Power Weapon"}[package]], "grey-hunters-pack-leader-melee", model, unit.squad, package))
-			if A.identity(unit) == "castellan":
+			if A.identity(unit) == "castellan" and not bool(unit.get("castellan_loadout_locked", false)):
 				var ranged_package: String = str(unit.get("castellan_ranged_package", "combi-weapon"))
 				var melee_package: String = str(unit.get("castellan_melee_package", "master-crafted-power-weapon"))
 				if ranged_package == "combi-weapon": result.append(choice("Castellan %d: replace Combi-weapon with Heavy Bolt Pistol" % model, "castellan-ranged-loadout", model, unit.squad, "heavy-bolt-pistol"))
 				else: result.append(choice("Castellan %d: restore Combi-weapon" % model, "castellan-ranged-loadout", model, unit.squad, "combi-weapon"))
 				if melee_package == "master-crafted-power-weapon": result.append(choice("Castellan %d: replace Master-crafted Power Weapon with Chainsword" % model, "castellan-melee-loadout", model, unit.squad, "chainsword"))
 				else: result.append(choice("Castellan %d: restore Master-crafted Power Weapon" % model, "castellan-melee-loadout", model, unit.squad, "master-crafted-power-weapon"))
-			if A.identity(unit) == "marshal":
+			if A.identity(unit) == "marshal" and not bool(unit.get("marshal_loadout_locked", false)):
 				var ranged_package: String = str(unit.get("marshal_ranged_package", "plasma-pistol"))
 				if ranged_package == "plasma-pistol": result.append(choice("Marshal %d: replace Plasma Pistol with Combi-weapon" % model, "marshal-ranged-loadout", model, unit.squad, "combi-weapon"))
 				else: result.append(choice("Marshal %d: restore Plasma Pistol" % model, "marshal-ranged-loadout", model, unit.squad, "plasma-pistol"))
 			if A.identity(unit) == "invader-atvs":
-				var multi_melta: bool = unit.get("invader_atv_multi_melta", false)
-				result.append(choice("Invader ATV %d: %s" % [model, "Onslaught Gatling Cannon" if multi_melta else "Multi-melta (+5 points)"], "invader-atv-gun", model, unit.squad, "onslaught" if multi_melta else "multi-melta"))
-			if A.identity(unit) == "chaplain-in-terminator-armour":
+				if not bool(unit.get("invader_atv_loadout_locked", false)):
+					var multi_melta: bool = unit.get("invader_atv_multi_melta", false)
+					result.append(choice("Invader ATV %d: %s" % [model, "Onslaught Gatling Cannon" if multi_melta else "Multi-melta (+5 points)"], "invader-atv-gun", model, unit.squad, "onslaught" if multi_melta else "multi-melta"))
+			if A.identity(unit) == "chaplain-in-terminator-armour" and not bool(unit.get("terminator_chaplain_loadout_locked", false)):
 				var shield: bool = unit.get("relic_shield", false)
 				result.append(choice("Chaplain %d: equip %s" % [model, "Storm Bolter" if shield else "Relic Shield (+1 W)"], "terminator-chaplain-shield", model, unit.squad, "bolter" if shield else "shield"))
 			var source := A.identity(unit)
 			if (source in ["lieutenant-in-phobos-armour", "librarian", "librarian-in-phobos-armour", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "aethon-shaan", "captain-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "iron-father-feirros", "caanok-var", "ancient-in-terminator-armour", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "librarian-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "judiciar", "captain", "chaplain", "chaplain-on-bike", "captain-on-bike", "sammael", "suboden-khan", "chaplain-with-jump-pack", "lieutenant", "apothecary-biologis", "captain-with-jump-pack", "death-company-captain", "death-company-captain-with-jump-pack", "astorath", "lemartes", "adrax-agatone", "kaius-konorius", "vulkan-hestan", "asmodai", "lazarus", "azrael", "belial", "ezekiel", "overlord", "royal-warden", "roboute-guilliman", "lion-eljonson", "emperor-s-champion", "castellan", "marshal", "marneus-calgar", "captain-titus", "techmarine", "arjac-rockfist", "logan-grimnar", "ragnar-blackmane", "ulrik-the-slayer", "njal-stormcaller"] or "transhuman-strategist" in A.RULES.get(source, [])) and source != "murderfang" and (source != "cato-sicarius" or not LeaderCatalog.army_has_calgar(state, player)) and (required_warlord == -1 or model == required_warlord): result.append(choice("Warlord: model %d" % model, "warlord", model))
-			if (MarineLeaderLinks.TARGETS.has(source) or MarineLeaderLinks.CHAPTER_TARGETS.has(source) or source in ["overlord", "royal-warden"]) and not unit.has("attachment_role"):
+			if (MarineLeaderLinks.TARGETS.has(source) or MarineLeaderLinks.CHAPTER_TARGETS.has(source) or source in ["overlord", "royal-warden"] or is_support_identity(state, unit) or source == CanoptekTombCrawlers.IDENTITY) and not unit.has("attachment_role"):
 					for target: int in state.squads:
 						if attachment_allowed(state, model, target): result.append(choice("Attach %s %d to %s" % [source, model, state.squads[target].name], "attach", model, target))
 		for squad: int in state.squads:
 			if state.squads[squad].owner != player: continue
 			var unassigned_support := false
 			for unit: Dictionary in state.units.values():
-				if unit.squad == squad and is_support_identity(state, unit) and unit.get("attachment_role", "") != "support": unassigned_support = true
+				if unit.squad == squad and is_support_identity(state, unit) and unit.get("attachment_role", "") not in ["support", "leader"]: unassigned_support = true
 			if unassigned_support: continue
-			if AircraftRules.is_aircraft(state, squad): continue
-			var reserve_eligible := TransportRules.is_drop_pod(state, squad) or A.every_model_has(state, squad, "deep-strike") or A.scout_distance(state, squad) > 0
-			if reserve_eligible:
-				if not state.unit_abilities.reserves.has(squad): result.append(choice("Place %s in strategic reserves" % state.squads[squad].name, "reserve", -1, squad))
+			if AircraftRules.is_aircraft(state, squad) or Actions.keyword(state, squad, ["fortification"]): continue
+			if not state.unit_abilities.reserves.has(squad): result.append(choice("Place %s in strategic reserves" % state.squads[squad].name, "reserve", -1, squad))
 
 		return result
 	if not DetachmentStratagems.adamantine_pending(state).is_empty(): return DetachmentStratagems.adamantine_decision_choices(state, player)
@@ -2934,6 +3297,10 @@ static func choices(state: Dictionary, player: int) -> Array:
 	var window := pending(state)
 	if not window.is_empty():
 		if window.owners[0] != player: return result
+		if window.kind == NecronDoomScythe.WINDOW:
+			result.append(choice("Stand firm: successful unmodified 5+ ranged hits are Critical Hits this phase", NecronDoomScythe.ACTION, -1, int(window.target), NecronDoomScythe.STAND_FIRM))
+			result.append(choice("Duck for cover: subtract 1 from this unit’s Hit rolls until its next Shooting phase", NecronDoomScythe.ACTION, -1, int(window.target), NecronDoomScythe.DUCK_FOR_COVER))
+			return result
 		if window.kind == DetachmentStratagems.HEADHUNTER_WINDOW:
 			result.append_array(DetachmentStratagems.choices(state, player))
 			result.append(choice("Decline Headhunter Doctrine", "head-hunter-pass", -1, int(window.squad)))
@@ -3084,8 +3451,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 			result.append(choice("Confirm Eternal Revenant set-up", "eternal-confirm", window.model, window.squad))
 			return result
 		if window.kind == "ingress":
-			for model: int in state.units:
-				if state.units[model].squad == window.squad: result.append(choice("Ingress model %d: preview at X/Z" % model, "ingress-place", model, window.squad))
+			for model: int in _living_squad_models(state, int(window.squad)):
+				result.append(choice("Ingress model %d: preview at X/Z" % model, "ingress-place", model, window.squad))
 			result.append(choice("Confirm ingress positions", "ingress-confirm"))
 			result.append(choice("Cancel ingress preview", "ingress-cancel"))
 			return result
@@ -3102,6 +3469,10 @@ static func choices(state: Dictionary, player: int) -> Array:
 			result.append_array(Scarabs.choices(state, player))
 			result.append_array(ChaplainGrimaldus.choices(state, player))
 			result.append_array(Mephiston.start_choices(state, player))
+			result.append_array(VoidDragonMatterAbsorption.choices(state, player))
+			result.append_array(NecronObelisk.choices(state, player))
+			result.append_array(CanoptekMacrocytes.fight_start_choices(state, player))
+			result.append_array(CanoptekSpyders.command_start_choices(state, player))
 			if state.phase == "command" and state.active == player:
 				for model: int in models(state, player, "primarch-of-the-first-legion"):
 					var squad: int = int(state.units[model].squad)
@@ -3121,6 +3492,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 				for target: int in _engrammatic_logic_targets(state, player, model):
 					result.append(choice("Engrammatic Logic %d: clear %s Battle-shock" % [model, state.squads[target].name], "logic", model, target))
 		if window.kind == "end":
+			result.append_array(NightbringerDrainLife.choices(state, player))
 			var artemis_placement := WatchCaptainArtemis.placement_choices(state, player)
 			if not artemis_placement.is_empty(): return artemis_placement
 			result.append_array(WatchCaptainArtemis.choices(state, player))
@@ -3137,6 +3509,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 				result.append(choice("Spectrus Doctrines: place %s in Strategic Reserves" % state.squads[squad].name, "spectrus-doctrines-reserve", -1, squad))
 			for squad: int in parabolic_jetleap_squads(state, player):
 				result.append(choice("Parabolic Jetleap: place %s in Strategic Reserves" % state.squads[squad].name, "parabolic-jetleap", -1, squad))
+			for squad: int in NecronOphydian.tunnelling_squads(state, player):
+				result.append(choice("Tunnelling Horrors: place %s in Strategic Reserves" % state.squads[squad].name, "tunnelling-horrors", -1, squad))
 			for model: int in models(state, player, "resurrection-orb"):
 				var squad: int = state.units[model].squad
 				if R.enabled(state) and R.supported_unit(state, squad) and not state.unit_abilities.used.has("orb:%d" % squad) and state.unit_abilities.used.get("resurrect-turn:%d" % player, -1) != state.turn:
@@ -3267,6 +3641,9 @@ static func choices(state: Dictionary, player: int) -> Array:
 	for model: int in models(state, player, "righteous-fury"):
 		var squad: int = state.units[model].squad
 		if state.phase == "fight" and state.fight_actor == player and state.fight_step == "attacks" and squad in FightQueue.choices(state, player) and not state.squads[squad].fought and not state.unit_abilities.used.has("righteous-used:%d" % player): result.append(choice("Righteous Fury: Captain Titus %d (+1 melee Strength; heal after fighting)" % model, "righteous-fury", model, squad))
+	for squad: int in state.get("squads", {}):
+		if NecronOphydian.can_use_plasmacyte(state, player, squad):
+			result.append(choice("Plasmacyte: %s gains Devastating Wounds (1 token)" % state.squads[squad].name, "ophydian-plasmacyte", -1, squad))
 	for model: int in models(state, player, "vehement-aggression"):
 		var squad: int = state.units[model].squad
 		var previous_test: Dictionary = state.unit_abilities.used.get("vehement-aggression:%d" % squad, {})
@@ -3315,6 +3692,10 @@ static func choices(state: Dictionary, player: int) -> Array:
 				if not state.unit_abilities.reserves.has(squad) or int(state.squads[squad].get("owner", -1)) != player: continue
 				if not A.has_living_unit_keyword(state, squad, "SPACE WOLVES") or A.high_king_fenris_selected(state, squad): continue
 				result.append(choice("Logan Grimnar: High King of Fenris — select %s in Strategic Reserves" % state.squads[squad].name, "high-king-fenris", model, squad))
+		for monolith: int in models(state, player, "eternity-gate"):
+			for squad: int in state.squads:
+				if not _eternity_gate_target_eligible(state, player, monolith, squad): continue
+				result.append(choice("Monolith %d: Eternity Gate — select %s" % [monolith, state.squads[squad].name], "eternity-gate-ingress", monolith, squad))
 	if DetachmentStratagems.undying_actor(state) == player:
 		result.append(choice("Decline Undying Legions for this attack", "undying-pass"))
 	return result
@@ -3384,6 +3765,8 @@ static func attachment_allowed(state: Dictionary, model: int, target: int) -> bo
 	if target == source.squad or source.owner != state.squads[target].owner: return false
 	if state.unit_abilities.get("reserves", {}).has(source.squad) or state.unit_abilities.get("reserves", {}).has(target): return false
 	var name := A.identity(source)
+	if name == CanoptekTombCrawlers.IDENTITY: return CanoptekTombCrawlers.retinue_error(state, model, target).is_empty()
+	if name == NecronCryptothralls.IDENTITY: return NecronCryptothralls.retinue_error(state, model, target).is_empty()
 	var allowed: Array = MarineLeaderLinks.targets(name)
 	if allowed.is_empty() and name in ["overlord", "royal-warden"]: allowed = ["necron-warriors", "immortals"]
 	for support_target: String in Supports.BODYGUARDS.get(name, []):
@@ -3410,6 +3793,7 @@ static func attachment_allowed(state: Dictionary, model: int, target: int) -> bo
 
 static func _attachment_role_for_target(state: Dictionary, source: Dictionary, target: int) -> String:
 	var source_identity := A.identity(source)
+	if source_identity == CanoptekTombCrawlers.IDENTITY or source_identity == NecronCryptothralls.IDENTITY: return "support"
 	var target_models: Array[int] = G.alive(state, target)
 	if target_models.is_empty(): return "support" if is_support_identity(state, source) else "leader"
 	var target_identity := A.identity(state.units[target_models[0]])
@@ -3484,15 +3868,17 @@ static func reconcile(state: Dictionary) -> void:
 		a.phase_start = state.revision + 1
 		a.anchors = {}
 		for squad: int in state.squads: a.anchors[squad] = G.alive(state, squad)
+		if state.phase == "movement": NecronObelisk.clear_fly_at_owner_movement_start(state)
 		var owners: Array = []
 		for owner in [state.active, 3 - int(state.active)]:
 			var lion_command: bool = state.phase == "command" and int(state.active) == int(owner) and not models(state, int(owner), "primarch-of-the-first-legion").is_empty()
-			if logic_available(state, owner) or CoreReactions.start_available(state, owner) or not spiritual_choices(state, owner).is_empty() or not rampart_choices(state, owner).is_empty() or HighMarshalHelbrecht.start_available(state, int(owner)) or Scarabs.start_available(state, int(owner)) or ChaplainGrimaldus.start_available(state, int(owner)) or Mephiston.start_available(state, int(owner)) or not DetachmentStratagems.adamantine_squads(state, owner).is_empty() or lion_command: owners.append(owner)
+			var canoptek_swarm: bool = state.phase == "command" and int(state.active) == int(owner) and CanoptekSpyders.command_start_required(state, int(owner))
+			if logic_available(state, owner) or CoreReactions.start_available(state, owner) or not spiritual_choices(state, owner).is_empty() or not rampart_choices(state, owner).is_empty() or HighMarshalHelbrecht.start_available(state, int(owner)) or Scarabs.start_available(state, int(owner)) or ChaplainGrimaldus.start_available(state, int(owner)) or Mephiston.start_available(state, int(owner)) or VoidDragonMatterAbsorption.start_available(state, int(owner)) or NecronObelisk.start_available(state, int(owner)) or CanoptekMacrocytes.fight_start_available(state, int(owner)) or canoptek_swarm or not DetachmentStratagems.adamantine_squads(state, owner).is_empty() or lion_command: owners.append(owner)
 		if not owners.is_empty(): a.window = {"kind": "start", "owners": owners}
 	if state.round > 3:
 		for squad: int in a.reserves.keys():
 			var reserve_record: Dictionary = a.reserves.get(squad, {})
-			if bool(reserve_record.get("has_ingressed", false)) or bool(a.get("ingress_history", {}).get(squad, false)) or str(reserve_record.get("source", "")) in ["parabolic-jetleap", "echo-of-ravenspire"]: continue
+			if bool(reserve_record.get("has_ingressed", false)) or bool(a.get("ingress_history", {}).get(squad, false)) or str(reserve_record.get("source", "")) in ["parabolic-jetleap", "echo-of-ravenspire", "tunnelling-horrors"]: continue
 			for unit: Dictionary in state.units.values():
 				if unit.squad == squad: unit.wounds = 0
 			a.reserves.erase(squad)
@@ -3507,7 +3893,8 @@ static func open_end(state: Dictionary) -> bool:
 		var gauntlet_duty_is_never_done: bool = state.phase == "fight" and not TransportRules.gauntlet_duty_candidates(state, owner, false).is_empty()
 		var phobos_tactical_withdrawal: bool = not DetachmentStratagems.phobos_tactical_withdrawal_squads(state, owner).is_empty()
 		var spectrus_doctrines: bool = state.phase == "fight" and not spectrus_doctrine_squads(state, int(owner)).is_empty()
-		if WatchCaptainArtemis.pending(state, int(owner)) or orb_available(state, owner) or DetachmentStratagems.eternal_pending(state, owner) or CoreReactions.end_available(state, owner) or not rapid_ingress_squads(state, owner).is_empty() or not Sanguinor.choices(state, int(owner)).is_empty() or stand_unyielding or phobos_mortis_snares or gauntlet_storm_and_secure or gauntlet_duty_is_never_done or spectrus_doctrines or StasisBomb.has_candidates(state, owner) or (state.phase == "fight" and owner != state.active and (not parabolic_jetleap_squads(state, owner).is_empty() or not echo_ravenspire_squads(state, owner).is_empty() or not DetachmentStratagems.withdraw_and_regroup_squads(state, owner).is_empty() or not DetachmentStratagems.gunship_extraction_squads(state, owner).is_empty())) or phobos_tactical_withdrawal or (state.phase == "fight" and (not DetachmentStratagems.wind_swift_squads(state, owner).is_empty() or not TacticalFluidity.end_fight_squads(state, owner).is_empty())): owners.append(owner)
+		var tunnelling_horrors: bool = state.phase == "fight" and owner != state.active and not NecronOphydian.tunnelling_squads(state, int(owner)).is_empty()
+		if WatchCaptainArtemis.pending(state, int(owner)) or orb_available(state, owner) or DetachmentStratagems.eternal_pending(state, owner) or CoreReactions.end_available(state, owner) or NightbringerDrainLife.available(state, int(owner)) or not rapid_ingress_squads(state, owner).is_empty() or not Sanguinor.choices(state, int(owner)).is_empty() or stand_unyielding or phobos_mortis_snares or gauntlet_storm_and_secure or gauntlet_duty_is_never_done or spectrus_doctrines or StasisBomb.has_candidates(state, owner) or (state.phase == "fight" and owner != state.active and (not parabolic_jetleap_squads(state, owner).is_empty() or not echo_ravenspire_squads(state, owner).is_empty() or not DetachmentStratagems.withdraw_and_regroup_squads(state, owner).is_empty() or not DetachmentStratagems.gunship_extraction_squads(state, owner).is_empty())) or tunnelling_horrors or phobos_tactical_withdrawal or (state.phase == "fight" and (not DetachmentStratagems.wind_swift_squads(state, owner).is_empty() or not TacticalFluidity.end_fight_squads(state, owner).is_empty())): owners.append(owner)
 	state.unit_abilities.end_done = key(state)
 	if not owners.is_empty(): state.unit_abilities.window = {"kind": "end", "owners": owners}
 	if owners.is_empty(): return false
@@ -3597,6 +3984,39 @@ static func point_error(state: Dictionary, point: Vector2, radius: float) -> Str
 	return ""
 
 static func apply(state: Dictionary, player: int, selected: Dictionary, point: Vector2, roller: Callable, destination_elevation: float = -1.0) -> Dictionary:
+	if str(pending(state).get("kind", "")) == NecronDoomScythe.WINDOW:
+		if str(selected.get("action", "")) != NecronDoomScythe.ACTION: return {"error": "Choose Stand firm or Duck for cover to resume the Heavy death ray."}
+		return NecronDoomScythe.apply_response(state, player, selected)
+	if str(selected.get("action", "")) == CanoptekTombCrawlers.LOADOUT_ACTION:
+		var crawler_loadout_error := CanoptekTombCrawlers.configure_model(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not crawler_loadout_error.is_empty(): return {"error": crawler_loadout_error}
+		return {"error": "", "message": "Canoptek Tomb Crawlers equipment updated from the local Necrons datasheet."}
+	if str(selected.get("action", "")) == CanoptekTombCrawlers.RETINUE_ACTION:
+		var retinue_error := CanoptekTombCrawlers.retinue_error(state, int(selected.get("model", -1)), int(selected.get("target", -1)))
+		if not retinue_error.is_empty(): return {"error": retinue_error}
+		attach(state, int(selected.get("model", -1)), int(selected.get("target", -1)))
+		return {"error": "", "message": "Canoptek Tomb Crawlers joined the Cryptek-led unit for this battle."}
+	if str(selected.get("action", "")) == NecronCryptothralls.RETINUE_ACTION:
+		var cryptothrall_retinue_error := NecronCryptothralls.retinue_error(state, int(selected.get("model", -1)), int(selected.get("target", -1)))
+		if not cryptothrall_retinue_error.is_empty(): return {"error": cryptothrall_retinue_error}
+		attach(state, int(selected.get("model", -1)), int(selected.get("target", -1)))
+		return {"error": "", "message": "Cryptothralls joined the Cryptek-led unit for this battle."}
+	if str(selected.get("action", "")) in [NecronCryptothralls.FIGHT_ACTION, NecronCryptothralls.PASS_ACTION]:
+		return NecronCryptothralls.apply(state, player, selected)
+	if str(selected.get("action", "")) in [NecronObelisk.ACTION, NecronObelisk.PASS_ACTION]:
+		return NecronObelisk.apply(state, player, selected)
+	if str(selected.get("action", "")) == "canoptek-macrocytes-loadout":
+		var macrocyte_loadout_error := CanoptekMacrocytes.configure_model(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
+		if not macrocyte_loadout_error.is_empty(): return {"error": macrocyte_loadout_error}
+		return {"error": "", "message": "Canoptek Macrocytes equipment updated from the local Necrons datasheet."}
+	if str(selected.get("action", "")) in [CanoptekSpyders.LOADOUT_ACTION, CanoptekSpyders.SWARM_ACTION, CanoptekSpyders.PLACE_ACTION, CanoptekSpyders.UNPLACEABLE_ACTION, CanoptekSpyders.RESET_ACTION, CanoptekSpyders.CONFIRM_ACTION]:
+		return CanoptekSpyders.apply(state, player, selected, point)
+	if str(selected.get("action", "")) == "canoptek-accelerator-mandible":
+		var mandible_error := CanoptekMacrocytes.apply_fight_start_choice(state, player, selected)
+		if not mandible_error.is_empty(): return {"error": mandible_error}
+		return {"error": "", "message": "Accelerator Mandible improves the selected Canoptek unit’s melee Weapon Skill by 1 for this Fight phase."}
+	if str(selected.get("action", "")) in [NightbringerDrainLife.ACTION, NightbringerDrainLife.ALLOCATE]: return NightbringerDrainLife.apply(state, player, selected, roller)
+	if str(selected.get("action", "")) in [VoidDragonMatterAbsorption.ACTION, VoidDragonMatterAbsorption.ALLOCATE]: return VoidDragonMatterAbsorption.apply(state, player, selected, roller)
 	if str(selected.get("action", "")) == Hexmark.KIND: return Hexmark.apply(state, player, selected)
 	if str(selected.get("action", "")) == Hyperspace.KIND:
 		var hyperspace_result := Hyperspace.apply(state, player, selected)
@@ -3607,6 +4027,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 	if str(selected.get("action", "")) == RazorbackFireSupport.ACTION: return RazorbackFireSupport.apply(state, player, selected)
 	if str(selected.get("action", "")).begins_with("corvus-cluster-"): return CorvusBlackstar.apply(state, player, selected, roller)
 	if selected.get("action", "") in [WulfenStormShields.USE, WulfenStormShields.PASS]: return WulfenStormShields.apply(state, player, selected)
+	if selected.get("action", "") == NecronTriarchStalker.ACTION: return NecronTriarchStalker.apply(state, player, selected)
 	if selected.get("action", "") in [WatchCaptainArtemis.USE, WatchCaptainArtemis.PASS]: return WatchCaptainArtemis.apply_choice(state, player, selected, roller)
 	if selected.get("action", "") in [WatchCaptainArtemis.PLACE, WatchCaptainArtemis.CONFIRM]: return WatchCaptainArtemis.apply_placement(state, player, selected, point)
 	if str(selected.get("action", "")) in [Execrator.KEEP_ACTION, Execrator.REROLL_ACTION]: return Execrator.resolve(state, player, selected, roller)
@@ -3708,6 +4129,8 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		if not state.get("pending_deadly_demise", {}).is_empty() and state.get("unit_abilities", {}).get("transport_window", {}).is_empty():
 			var destruction := DeadlyDemise.pump(state, roller)
 			if not destruction.get("error", "").is_empty(): return destruction
+			NightbringerDrainLife.resume_after_nested_destruction(state)
+			VoidDragonMatterAbsorption.resume_after_nested_destruction(state)
 			if destruction.get("complete", false) and not state.get("pending_attack", {}).is_empty(): return {"resume_attack": true, "message": "Emergency Disembark resolved; resume destruction effects."}
 		if str(selected.get("action", "")) == "transport-disembark-start-aggressive": return {"message": "Aggressive Disembarkation: set up each model within the Transport's set-up distance; the disembark mode's other restrictions still apply."}
 		if str(selected.get("action", "")) == "transport-emergency-aggressive-use": return {"message": "Aggressive Disembarkation: each Emergency Disembark model may be set up within 6 inches of the Transport, while still as close as possible."}
@@ -3978,38 +4401,56 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if not state.squads.has(target) or state.squads[target].owner != player or selected.value not in ["on", "off"]: return {"error": "This option belongs to a Reiver Squad unit."}
 			var members := G.alive(state, target)
 			if members.is_empty() or A.identity(state.units[members[0]]) != "reiver-squad": return {"error": "This option belongs to a Reiver Squad unit."}
+			if bool(state.squads[target].get("reiver_loadout_locked", false)): return {"error": "This saved Reiver equipment is fixed for the match. Edit the saved army before starting another match."}
 			if selected.action == "reiver-grav-chutes": state.squads[target].reiver_grav_chutes = selected.value == "on"
 			else: state.squads[target].reiver_grapnel_launchers = selected.value == "on"
 		"inceptor-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "inceptor-squad" or selected.value not in ["bolters", "plasma"]: return {"error": "This option belongs to an Inceptor model."}
+			if saved_army_inceptor_loadout_locked(state, bearer): return {"error": "This saved Inceptor equipment is fixed for the match. Edit the saved army before starting another match."}
 			var profile := MarineProfiles.profile("inceptor-squad")
-			var ranged: Dictionary = profile.ranged[0].duplicate(true) if selected.value == "bolters" else profile.additional_weapon_profiles.ranged[0].duplicate(true)
+			var default_profiles: Array = profile.get("ranged", [])
+			var replacement_profiles: Array = profile.get("additional_weapon_profiles", {}).get("ranged", [])
+			if default_profiles.size() != 1 or str(default_profiles[0].get("id", "")) != "assault-bolters" or replacement_profiles.size() != 1 or str(replacement_profiles[0].get("id", "")) != "plasma-exterminators": return {"error": "The complete local Inceptor weapon profiles are unavailable."}
+			var ranged: Dictionary = default_profiles[0].duplicate(true) if selected.value == "bolters" else replacement_profiles[0].duplicate(true)
 			bearer.ranged_weapons = [ranged]
+			bearer.inceptor_plasma_exterminators = selected.value == "plasma"
 		"land-speeder-cannon":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or A.identity(bearer) != "land-speeder" or selected.value not in ["onslaught", "pyrecannon"]: return {"error": "This option belongs to a Land Speeder."}
+			if saved_army_land_speeder_loadout_locked(state, bearer): return {"error": "This saved Land Speeder equipment is fixed for the match. Edit the saved army before starting another match."}
 			var profile := MarineProfiles.profile("land-speeder")
 			var ranged: Array = profile.ranged.duplicate(true)
 			if selected.value == "pyrecannon":
+				var onslaught_found := ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "onslaught-gatling-cannon")
+				var replacements: Array = profile.get("additional_weapon_profiles", {}).get("ranged", [])
+				if not onslaught_found or replacements.size() != 1 or str(replacements[0].get("id", "")) != "pyrecannon": return {"error": "The complete local Land Speeder cannon profiles are unavailable."}
 				ranged = ranged.filter(func(weapon: Dictionary) -> bool: return weapon.get("id", "") != "onslaught-gatling-cannon")
-				ranged.append(profile.additional_weapon_profiles.ranged[0].duplicate(true))
+				ranged.append(replacements[0].duplicate(true))
+			elif not ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "onslaught-gatling-cannon"):
+				return {"error": "The complete local Land Speeder Onslaught Gatling Cannon profile is unavailable."}
 			bearer.ranged_weapons = ranged
 			bearer.land_speeder_pyrecannon = selected.value == "pyrecannon"
-			bearer.inceptor_plasma_exterminators = selected.value == "plasma"
 		"land-speeder-vengeance-cannon":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "land-speeder-vengeance" or selected.value not in ["heavy-bolter", "assault-cannon"]: return {"error": "This option belongs to a living Land Speeder Vengeance."}
+			if saved_army_land_speeder_vengeance_loadout_locked(state, bearer): return {"error": "This saved Land Speeder Vengeance equipment is fixed for the match. Edit the saved army before starting another match."}
 			var profile := MarineProfiles.profile("land-speeder-vengeance")
 			var ranged: Array = profile.ranged.duplicate(true)
 			if selected.value == "assault-cannon":
+				var heavy_bolter_found := ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "heavy-bolter")
+				var replacements: Array = profile.get("additional_weapon_profiles", {}).get("ranged", [])
+				if not heavy_bolter_found or replacements.size() != 1 or str(replacements[0].get("id", "")) != "assault-cannon": return {"error": "The complete local Land Speeder Vengeance cannon profiles are unavailable."}
 				ranged = ranged.filter(func(weapon: Dictionary) -> bool: return weapon.get("id", "") != "heavy-bolter")
-				ranged.append(profile.additional_weapon_profiles.ranged[0].duplicate(true))
+				ranged.append(replacements[0].duplicate(true))
+			elif not ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "heavy-bolter"):
+				return {"error": "The complete local Land Speeder Vengeance Heavy Bolter profile is unavailable."}
 			bearer.ranged_weapons = ranged
 			bearer.land_speeder_vengeance_assault_cannon = selected.value == "assault-cannon"
 		"ravenwing-darkshroud-cannon":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "ravenwing-darkshroud" or selected.value not in ["heavy-bolter", "assault-cannon"]: return {"error": "This option belongs to a living Ravenwing Darkshroud."}
+			if saved_army_ravenwing_darkshroud_loadout_locked(state, bearer): return {"error": "This saved Darkshroud equipment is fixed for the match. Edit the saved army before starting another match."}
 			var profile := MarineProfiles.profile("ravenwing-darkshroud")
 			var ranged: Array = profile.ranged.duplicate(true)
 			if selected.value == "assault-cannon":
@@ -4020,6 +4461,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"invader-atv-gun":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "invader-atvs" or selected.value not in ["multi-melta", "onslaught"]: return {"error": "This option belongs to a living Invader ATV model."}
+			if bool(bearer.get("invader_atv_loadout_locked", false)): return {"error": "This saved Invader ATV weapon choice is fixed for the match. Edit the saved army before starting another match."}
 			bearer.invader_atv_multi_melta = selected.value == "multi-melta"
 			bearer.ranged_weapons = MarineProfiles.invader_atv_weapons(bearer.invader_atv_multi_melta)
 			var source_profile := MarineProfiles.profile("invader-atvs")
@@ -4030,6 +4472,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"necron-warrior-gauss-reaper":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "necron-warriors": return {"error": "Choose a living Necron Warrior from your army preparations."}
+			if bool(bearer.get("necron_warrior_loadout_locked", false)): return {"error": "This saved Necron Warrior weapon choice is fixed for the match. Edit the saved army before starting another match."}
 			if not _has_current_necron_profile_source(state): return {"error": "Gauss Reaper replacement is available only for a current Necrons App profile."}
 			if selected.value not in ["flayer", "reaper"]: return {"error": "Choose a Gauss flayer or the source-listed Gauss reaper replacement."}
 			var weapons: Array = bearer.get("ranged_weapons", [])
@@ -4044,6 +4487,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"necron-immortal-tesla-carbine":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "immortals": return {"error": "Choose a living Immortal from your army preparations."}
+			if bool(bearer.get("immortal_loadout_locked", false)): return {"error": "This saved Immortal weapon choice is fixed for the match. Edit the saved army before starting another match."}
 			if not _has_current_necron_profile_source(state): return {"error": "Tesla carbine replacement is available only for a current Necrons App profile."}
 			if selected.value not in ["gauss", "tesla"]: return {"error": "Choose a Gauss blaster or the source-listed Tesla carbine replacement."}
 			var weapons: Array = bearer.get("ranged_weapons", [])
@@ -4055,9 +4499,63 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var entries: Array = profile.get("ranged", []) if selected.value == "gauss" else profile.get("additional_weapon_profiles", {}).get("ranged", [])
 			if entries.size() != 1: return {"error": "The local Immortals weapon profile is incomplete."}
 			bearer.ranged_weapons = [entries[0].duplicate(true)]
+		"necron-lokhust-heavy-enmitic":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "lokhust-heavy-destroyers": return {"error": "Choose a living Lokhust Heavy Destroyer from its owner's army preparations."}
+			if bool(bearer.get("lokhust_heavy_loadout_locked", false)): return {"error": "This saved Lokhust Heavy Destroyer weapon choice is fixed for the match. Edit the saved army before starting another match."}
+			if not _has_current_necron_profile_source(state): return {"error": "Enmitic exterminator replacement is available only for a current Necrons App profile."}
+			if str(selected.get("value", "")) not in ["destructor", "enmitic"]: return {"error": "Choose a Gauss destructor or the source-listed Enmitic exterminator replacement."}
+			var weapons: Array = bearer.get("ranged_weapons", [])
+			if weapons.size() != 1: return {"error": "This Lokhust Heavy Destroyer does not have the expected single ranged weapon."}
+			var current_weapon := _necron_lokhust_heavy_weapon_kind(weapons[0])
+			var required_current := "destructor" if selected.value == "enmitic" else "enmitic"
+			if current_weapon != required_current: return {"error": "This Lokhust Heavy Destroyer cannot take that replacement from its current ranged weapon."}
+			var profile := NecronProfiles.profile("lokhust-heavy-destroyers")
+			var entries: Array = profile.get("ranged", []) if selected.value == "destructor" else profile.get("additional_weapon_profiles", {}).get("ranged", [])
+			if entries.size() != 1: return {"error": "The local Lokhust Heavy Destroyers weapon profile is incomplete."}
+			bearer.ranged_weapons = [entries[0].duplicate(true)]
+		"necron-monolith-death-rays":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "monolith": return {"error": "Choose a living Monolith from its owner's army preparations."}
+			if bool(bearer.get("monolith_loadout_locked", false)): return {"error": "This saved Monolith weapon choice is fixed for the match. Edit the saved army before starting another match."}
+			if not _has_current_necron_profile_source(state): return {"error": "The Monolith weapon replacement is available only for a current Necrons App profile."}
+			if str(selected.get("value", "")) not in ["flux-arcs", "death-rays"]: return {"error": "Choose all four Gauss Flux Arcs or all four Death Rays."}
+			var current_flux := false
+			var current_rays := false
+			for weapon: Dictionary in bearer.get("ranged_weapons", []):
+				var weapon_id := str(weapon.get("id", ""))
+				var weapon_name := str(weapon.get("profiles", {}).get("standard", {}).get("name", "")).to_lower()
+				if weapon_id.begins_with("gauss-flux-arc") or weapon_name == "gauss flux arc": current_flux = true
+				if weapon_id.begins_with("death-ray") or weapon_name == "death ray": current_rays = true
+			if selected.value == "death-rays" and not current_flux: return {"error": "Replace the Monolith's current four Gauss Flux Arcs."}
+			if selected.value == "flux-arcs" and not current_rays: return {"error": "Restore the Monolith's current four Death Rays."}
+			var profile := NecronProfiles.profile("monolith")
+			var ranged := _necron_monolith_ranged_weapons(profile, str(selected.value) == "death-rays")
+			if ranged.size() != 5: return {"error": "The local Monolith weapon replacement is incomplete."}
+			bearer.ranged_weapons = ranged
+		"necron-annihilation-barge-tesla-cannon":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "annihilation-barge": return {"error": "Choose a living Annihilation Barge from its owner's army preparations."}
+			if bool(bearer.get("annihilation_barge_loadout_locked", false)): return {"error": "This saved Annihilation Barge cannon is fixed for the match. Edit the saved army before starting another match."}
+			if not _has_current_necron_profile_source(state): return {"error": "The cannon replacement is available only for a current Necrons App profile."}
+			if str(selected.get("value", "")) not in ["gauss", "tesla"]: return {"error": "Choose the Gauss cannon or its source-listed Tesla cannon replacement."}
+			var current_kind := ""
+			for weapon: Dictionary in bearer.get("ranged_weapons", []):
+				var candidate := _necron_annihilation_barge_cannon_kind(weapon)
+				if candidate in ["gauss", "tesla"]:
+					current_kind = candidate
+					break
+			var required_current := "gauss" if str(selected.value) == "tesla" else "tesla"
+			if current_kind != required_current: return {"error": "The Barge cannot take that cannon replacement from its current cannon."}
+			var profile := NecronProfiles.profile("annihilation-barge")
+			var ranged := _necron_annihilation_barge_ranged_weapons(profile, str(selected.value) == "tesla")
+			if ranged.size() != 2: return {"error": "The local Annihilation Barge cannon replacement is incomplete."}
+			bearer.ranged_weapons = ranged
 		"intercessor-melee", "intercessor-rifle", "intercessor-grenade-launcher":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "intercessor-squad": return {"error": "This equipment choice belongs to an Intercessor model."}
+			if saved_army_intercessor_loadout_locked(state, bearer):
+				return {"error": "This saved Intercessor equipment is fixed for the match. Edit the saved army before starting another match."}
 			if selected.action == "intercessor-melee":
 				if not bearer.get("sergeant", false) or selected.value not in ["knives-and-fists", "chainsword", "power-fist", "power-weapon", "thunder-hammer"]: return {"error": "Only the Intercessor Sergeant may replace Knives and Fists with the listed melee weapon."}
 				bearer.intercessor_melee_choice = selected.value
@@ -4078,6 +4576,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"heavy-intercessor-bolter":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "heavy-intercessor-squad" or bearer.get("sergeant", false): return {"error": "Only a living Heavy Intercessor model, not its Sergeant, may take this option."}
+			if saved_army_heavy_intercessor_loadout_locked(state, bearer): return {"error": "This saved Heavy Intercessor equipment is fixed for the match. Edit the saved army before starting another match."}
 			if selected.value not in ["on", "off"]: return {"error": "Invalid Heavy Bolter choice."}
 			var equipped_count := 0
 			for member: int in G.alive(state, target):
@@ -4088,6 +4587,8 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.heavy_intercessor_heavy_bolter = selected.value == "on"
 			_heavy_intercessor_weapons(bearer)
 		"terminator-melee":
+			if bool(state.units.get(model, {}).get("deathwing_saved_model_loadout_locked", false)): return {"error": "Saved Deathwing equipment is fixed for this match. Edit the saved army list to change it."}
+			if bool(state.units.get(model, {}).get("terminator_saved_loadout_locked", false)): return {"error": "Saved Terminator equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			var identity := A.identity(bearer)
 			var allowed: Array = ["power-fist", "chainfist", "power-weapon"] if bearer.get("sergeant", false) else ["power-fist", "chainfist"]
@@ -4096,6 +4597,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			_terminator_weapons(bearer)
 		"deathwatch-terminator-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
+			if bool(bearer.get("deathwatch_saved_model_loadout_locked", false)): return {"error": "Saved Deathwatch equipment is fixed for this match. Edit the saved army list to change it."}
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "deathwatch-terminator-squad": return {"error": "Choose a living Deathwatch Terminator from your army preparations."}
 			var package := str(selected.value)
 			if package not in MarineProfiles.profile("deathwatch-terminator-squad").get("options", {}).get("melee_packages", []) or not _deathwatch_terminator_loadout_valid(state, target, model, package): return {"error": "Choose a source-listed Deathwatch Terminator melee-and-shield package compatible with its Storm Bolter options."}
@@ -4113,6 +4615,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.deathwatch_terminator_melee_package = package
 			_terminator_weapons(bearer)
 		"terminator-assault-loadout":
+			if bool(state.units.get(model, {}).get("terminator_saved_loadout_locked", false)): return {"error": "Saved Terminator equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "terminator-assault-squad" or selected.value not in ["on", "off"]: return {"error": "This equipment choice belongs to a living Terminator Assault model."}
 			var old_shield: bool = bearer.get("terminator_assault_storm_shield", false)
@@ -4132,6 +4635,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"wolf-guard-battle-leader-ranged", "wolf-guard-battle-leader-melee":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "wolf-guard-battle-leader": return {"error": "Choose your living Wolf Guard Battle Leader during army preparations."}
+			if bool(bearer.get("wolf_guard_battle_leader_loadout_locked", false)): return {"error": "This saved Wolf Guard Battle Leader equipment is fixed for the match. Edit the saved army before starting another match."}
 			var profile := MarineProfiles.profile("wolf-guard-battle-leader")
 			var ranged_loadout := str(bearer.get("wolf_guard_battle_leader_ranged_loadout", "plasma-pistol"))
 			var melee_loadout := str(bearer.get("wolf_guard_battle_leader_melee_loadout", "master-crafted-power-weapon"))
@@ -4156,6 +4660,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.ranged_weapons = weapons.ranged
 			bearer.melee_weapons = weapons.melee
 		"wolf-guard-terminator-loadout":
+			if bool(state.units.get(model, {}).get("terminator_saved_loadout_locked", false)): return {"error": "Saved Terminator equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "wolf-guard-terminators": return {"error": "Choose a living Wolf Guard Terminator from your army preparations."}
 			var next_loadout := str(selected.get("value", ""))
@@ -4180,6 +4685,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.melee_weapons = weapons.melee
 		"thunderwolf-cavalry-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
+			if bool(bearer.get("space_wolves_squad_loadout_locked", false)): return {"error": "Saved Space Wolves equipment is fixed for this match. Edit the saved army list to change it."}
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "thunderwolf-cavalry": return {"error": "Choose a living Thunderwolf Cavalry model from your army preparations."}
 			var next_loadout := str(selected.get("value", ""))
 			if not _thunderwolf_cavalry_loadout_valid(state, target, model, next_loadout): return {"error": "Choose a source-listed Thunderwolf Cavalry loadout that respects its per-three-model Plasma Pistol limit."}
@@ -4200,6 +4706,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.melee_weapons = weapons.melee
 		"wulfen-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
+			if bool(bearer.get("space_wolves_squad_loadout_locked", false)): return {"error": "Saved Space Wolves equipment is fixed for this match. Edit the saved army list to change it."}
 			var identity := A.identity(bearer)
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or identity not in ["wulfen", "wulfen-with-storm-shields"]: return {"error": "Choose a living Wulfen model from your army preparations."}
 			var next_loadout := str(selected.get("value", ""))
@@ -4215,6 +4722,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"outrider-melee", "outrider-plasma-pistol":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "outrider-squad": return {"error": "This equipment choice belongs to a living Outrider model."}
+			if saved_army_outrider_loadout_locked(state, bearer): return {"error": "This saved Outrider equipment is fixed for the match. Edit the saved army before starting another match."}
 			if selected.action == "outrider-melee":
 				if not bearer.get("sergeant", false) or selected.value not in ["chainsword", "power-weapon", "thunder-hammer"]: return {"error": "Only the Outrider Sergeant may replace its Chainsword with a listed melee weapon."}
 				bearer.outrider_melee_choice = selected.value
@@ -4233,6 +4741,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"scout-bike-sergeant-option", "scout-bike-grenade-launcher":
 			if setup_actor(state) != player: return {"error": "Scout Bike Squad wargear is selected during your army preparation."}
 			var bearer: Dictionary = state.units.get(model, {})
+			if bool(bearer.get("scout_bike_saved_model_loadout_locked", false)): return {"error": "Saved Scout Bike equipment is fixed for this match. Edit the saved army list to change it."}
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "scout-bike-squad": return {"error": "Choose a living model from your Scout Bike Squad."}
 			if selected.action == "scout-bike-sergeant-option":
 				if not bearer.get("sergeant", false) or selected.value not in ["bolt-pistol", "boltgun", "combi-weapon", "chainsword", "grav-pistol", "hand-flamer", "inferno-pistol", "plasma-pistol", "power-fist", "power-weapon", "storm-bolter", "thunder-hammer"]: return {"error": "Only the Scout Biker Sergeant can choose one of the listed Bolt Pistol replacements."}
@@ -4248,6 +4757,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"sanguinary-guard-inferno-pistol":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "sanguinary-guard": return {"error": "Choose a living Sanguinary Guard model during your army preparation."}
+			if bool(bearer.get("sanguinary_guard_loadout_locked", false)): return {"error": "This saved Sanguinary Guard equipment is fixed for the match. Edit the saved army before starting another match."}
 			if selected.value not in ["on", "off"]: return {"error": "Choose whether this model replaces its Angelus Boltgun with an Inferno Pistol."}
 			var currently_equipped := bool(bearer.get("sanguinary_guard_inferno_pistol", false))
 			if selected.value == "on" and currently_equipped: return {"error": "This model already has an Inferno Pistol."}
@@ -4271,6 +4781,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.ranged_weapons = weapons.ranged
 			bearer.melee_weapons = weapons.melee
 		"black-knight-grenade-launcher":
+			if bool(state.units.get(model, {}).get("ravenwing_saved_model_loadout_locked", false)): return {"error": "Saved Ravenwing equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "ravenwing-black-knights": return {"error": "This equipment choice belongs to a living Ravenwing Black Knight."}
 			if selected.value not in ["on", "off"]: return {"error": "Invalid Grenade Launcher replacement."}
@@ -4286,6 +4797,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.ranged_weapons = weapons.ranged
 			bearer.melee_weapons = weapons.melee
 		"ravenwing-command-grenade-launcher":
+			if bool(state.units.get(model, {}).get("ravenwing_saved_model_loadout_locked", false)): return {"error": "Saved Ravenwing equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "ravenwing-command-squad" or str(bearer.get("ravenwing_command_role", "")) not in ["Ravenwing Ancient", "Ravenwing Apothecary", "Ravenwing Champion"]: return {"error": "This equipment choice belongs to a living Ravenwing Command Squad model."}
 			if selected.value not in ["on", "off"]: return {"error": "Invalid Ravenwing Command Squad Grenade Launcher replacement."}
@@ -4301,6 +4813,9 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.ranged_weapons = weapons.ranged
 			bearer.melee_weapons = weapons.melee
 		"terminator-special-weapon":
+			if bool(state.units.get(model, {}).get("deathwing_saved_model_loadout_locked", false)): return {"error": "Saved Deathwing equipment is fixed for this match. Edit the saved army list to change it."}
+			if bool(state.units.get(model, {}).get("terminator_saved_loadout_locked", false)): return {"error": "Saved Terminator equipment is fixed for this match. Edit the saved army list to change it."}
+			if bool(state.units.get(model, {}).get("deathwatch_saved_model_loadout_locked", false)): return {"error": "Saved Deathwatch equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			var identity := A.identity(bearer)
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or identity not in ["terminator-squad", "deathwing-terminator-squad", "deathwatch-terminator-squad"] or bearer.get("sergeant", false): return {"error": "Only a living Terminator model, not its Sergeant, may replace its Storm Bolter."}
@@ -4322,6 +4837,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"captain-bike-pistol", "captain-bike-melee":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "captain-on-bike": return {"error": "This weapon choice belongs to a living Captain on Bike."}
+			if bool(bearer.get("captain_bike_loadout_locked", false)): return {"error": "This saved Captain on Bike equipment is fixed for the match. Edit the saved army before starting another match."}
 			if selected.action == "captain-bike-pistol":
 				if selected.value not in ["bolt", "plasma"]: return {"error": "Unsupported Captain on Bike pistol replacement."}
 				bearer.captain_bike_plasma_pistol = selected.value == "plasma"
@@ -4332,6 +4848,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.ranged_weapons = bike_weapons.ranged
 			bearer.melee_weapons = bike_weapons.melee
 		"firestrike-gun":
+			if bool(state.units.get(model, {}).get("firestrike_loadout_locked", false)): return {"error": "Saved Firestrike equipment is fixed for this match. Edit the saved army list to change it."}
 			if not state.units.has(model) or state.units[model].owner != player or state.units[model].squad != target or A.identity(state.units[model]) != "firestrike-servo-turrets" or selected.value not in ["autocannon", "las-talon"]: return {"error": "This weapon choice belongs to a Firestrike Servo-turret."}
 			var weapon: Dictionary = MarineProfiles.firestrike_autocannon() if selected.value == "autocannon" else MarineProfiles.profile("firestrike-servo-turrets").ranged[0].duplicate(true)
 			state.units[model].firestrike_autocannon = selected.value == "autocannon"
@@ -4339,6 +4856,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"redemptor-fragstorm", "redemptor-auxiliary", "redemptor-main", "redemptor-icarus":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "redemptor-dreadnought": return {"error": "This equipment choice belongs to a living Redemptor Dreadnought."}
+			if bool(bearer.get("redemptor_loadout_locked", false)): return {"error": "This saved Redemptor equipment is fixed for the match. Edit the saved army before starting another match."}
 			var old_macro: bool = bearer.get("redemptor_macro_plasma", false)
 			var new_macro: bool = selected.value == "macro-plasma" if selected.action == "redemptor-main" else old_macro
 			if selected.action == "redemptor-fragstorm" and selected.value not in ["fragstorm", "storm-bolters"]: return {"error": "Unsupported Redemptor primary weapon replacement."}
@@ -4357,6 +4875,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"brutalis-melee", "brutalis-ranged":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "brutalis-dreadnought": return {"error": "This equipment choice belongs to a living Brutalis Dreadnought."}
+			if bool(bearer.get("brutalis_loadout_locked", false)): return {"error": "This saved Brutalis equipment is fixed for the match. Edit the saved army before starting another match."}
 			if selected.action == "brutalis-melee":
 				if selected.value not in ["fists", "talons"]: return {"error": "Unsupported Brutalis melee replacement."}
 				bearer.brutalis_talons = selected.value == "talons"
@@ -4369,10 +4888,12 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"invictor-gun":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "invictor-tactical-warsuit": return {"error": "This equipment choice belongs to a living Invictor Tactical Warsuit."}
+			if bearer.get("invictor_loadout_locked", false): return {"error": "Edit this saved equipment in the Army Workshop before starting a match."}
 			if selected.value not in ["incendium", "autocannon"]: return {"error": "Unsupported Invictor weapon replacement."}
 			bearer.invictor_autocannon = selected.value == "autocannon"
 			bearer.ranged_weapons = MarineProfiles.invictor_weapons(bearer.invictor_autocannon)
 		"desolation-rocket":
+			if bool(state.units.get(model, {}).get("specialist_squad_loadout_locked", false)): return {"error": "Saved specialist squad equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "desolation-squad": return {"error": "This rocket choice belongs to a living Desolation Marine."}
 			if selected.value not in (["superfrag", "superkrak", "vengor"] if bearer.get("sergeant", false) else ["superfrag", "superkrak"]): return {"error": "Only the Desolation Sergeant may take a Vengor Launcher."}
@@ -4446,6 +4967,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if not split_error.is_empty(): return {"error": split_error}
 		"wolf-guard-headtaker-storm-shield":
 			var bearer: Dictionary = state.units.get(model, {})
+			if bool(bearer.get("mixed_space_wolves_loadout_locked", false)): return {"error": "Saved mixed Space Wolves equipment is fixed for this match. Edit the saved army list to change it."}
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or A.identity(bearer) != "wolf-guard-headtakers" or str(bearer.get("wolf_guard_headtaker_role", "")) != "wolf-guard-headtaker" or selected.value not in ["on", "off"]: return {"error": "Choose Storm Shield equipment for a Wolf Guard Headtaker during your army preparations."}
 			var shield_equipped: bool = selected.value == "on"
 			var headtaker_loadout := MarineProfiles.wolf_guard_headtaker_model_loadout("wolf-guard-headtaker", shield_equipped)
@@ -4455,15 +4977,18 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.defense = {"toughness": headtaker_loadout.stats.toughness, "save_target": headtaker_loadout.stats.save_target, "invulnerable_target": headtaker_loadout.stats.invulnerable_target}
 		"scout-gun":
 			if A.identity(state.units[model]) != "scout-squad" or target != state.units[model].squad or selected.value not in _scout_gun_options(state, model): return {"error": "This Scout ranged replacement exceeds its source option limits."}
+			if bool(state.units[model].get("scout_loadout_locked", false)): return {"error": "This saved Scout equipment is fixed for the match. Edit the saved army before starting another match."}
 			state.units[model].scout_gun = selected.value
 			state.units[model].ranged_weapons = MarineProfiles.scout_ranged(selected.value)
 		"scout-blade":
 			if A.identity(state.units[model]) != "scout-squad" or not state.units[model].get("sergeant", false) or target != state.units[model].squad or selected.value not in ["combat-knife", "chainsword"]: return {"error": "Only the Scout Sergeant may replace its Combat Knife with a Chainsword."}
+			if bool(state.units[model].get("scout_loadout_locked", false)): return {"error": "This saved Scout equipment is fixed for the match. Edit the saved army before starting another match."}
 			state.units[model].scout_blade = selected.value
 			state.units[model].melee_weapons = MarineProfiles.scout_melee(selected.value)
 		"assault-intercessor-pistol", "assault-intercessor-melee":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "assault-intercessor-squad" or not bearer.get("sergeant", false): return {"error": "This replacement belongs to a living Assault Intercessor Sergeant."}
+			if saved_army_assault_intercessor_loadout_locked(state, bearer): return {"error": "This saved Assault Intercessor Sergeant equipment is fixed for the match. Edit the saved army before starting another match."}
 			if selected.action == "assault-intercessor-pistol":
 				if selected.value not in ["heavy-bolt-pistol", "hand-flamer", "plasma-pistol"]: return {"error": "Unsupported Assault Intercessor Sergeant pistol replacement."}
 				var pistol := MarineProfiles.assault_intercessor_sergeant_pistol(str(selected.value))
@@ -4477,9 +5002,15 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"scout-move", "scout-setup", "scout-pass", "scout-place", "scout-cancel", "scout-confirm", "strategium-select", "strategium-finish", "strategium-redeploy", "strategium-reserve", "strategium-place", "strategium-cancel", "strategium-confirm":
 			return {"error": ScoutMoves.apply(state, selected.action, model, target, point)}
 		"phobos-lieutenant-gun":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "lieutenant-in-phobos-armour": return {"error": "Choose Phobos Lieutenant equipment during its owner's army preparation."}
+			if bool(bearer.get("phobos_lieutenant_loadout_locked", false)): return {"error": "This saved Phobos Lieutenant equipment is fixed for the match. Edit the saved army before starting another match."}
+			if str(selected.get("value", "")) not in ["pistol", "carbine"]: return {"error": "Choose the Special-issue Bolt Pistol or Master-crafted Bolt Carbine."}
 			state.units[model].phobos_carbine = selected.value == "carbine"
 			state.units[model].ranged_weapons = MarineProfiles.phobos_lieutenant_gun(selected.value == "carbine")
 		"helix-bearer":
+			for member: int in state.units:
+				if state.units[member].squad == target and bool(state.units[member].get("infiltrator_loadout_locked", false)): return {"error": "Saved Infiltrator equipment is fixed for this match. Edit the saved army list to change it."}
 			for member: int in state.units:
 				if state.units[member].squad == target and A.identity(state.units[member]) == "infiltrator-squad": state.units[member].helix_gauntlet = selected.value == "on" and member == model
 		"helix-heal":
@@ -4494,14 +5025,19 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if not a.has("detected"): a.detected = {}
 			a.detected[target] = {"phase_key": key(state), "source": model}
 		"gravis-captain-loadout":
-			var weapons := MarineProfiles.gravis_captain_weapons(selected.value)
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "captain-in-gravis-armour": return {"error": "Choose source-listed Gravis Captain equipment during your army preparation."}
+			if bool(bearer.get("gravis_loadout_locked", false)): return {"error": "This saved Gravis Captain equipment is fixed for the match. Edit the saved army before starting another match."}
+			if selected.value not in ["rifle", "blade", "chainsword", "fist"]: return {"error": "Unsupported Gravis Captain loadout."}
+			var weapons := MarineProfiles.gravis_captain_weapons(str(selected.value))
 			if weapons.is_empty(): return {"error": "Unknown Gravis Captain loadout."}
-			state.units[model].ranged_weapons = weapons.ranged
-			state.units[model].melee_weapons = weapons.melee
-			state.units[model].gravis_loadout = selected.value
+			bearer.ranged_weapons = weapons.ranged
+			bearer.melee_weapons = weapons.melee
+			bearer.gravis_loadout = selected.value
 		"captain-ranged-loadout", "captain-melee-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "captain": return {"error": "Choose source-listed Captain equipment during your army preparation."}
+			if bool(bearer.get("captain_loadout_locked", false)): return {"error": "This saved Captain equipment is fixed for the match. Edit the saved army before starting another match."}
 			var ranged_loadout: String = str(bearer.get("captain_ranged_loadout", "default"))
 			var power_fist: bool = bool(bearer.get("captain_power_fist", false))
 			if selected.action == "captain-ranged-loadout":
@@ -4524,6 +5060,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"blood-angels-captain-ranged-loadout", "blood-angels-captain-melee-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "blood-angels-captain": return {"error": "Choose source-listed Blood Angels Captain equipment during your army preparation."}
+			if bool(bearer.get("blood_angels_captain_loadout_locked", false)): return {"error": "This saved Blood Angels Captain equipment is fixed for the match. Edit the saved army before starting another match."}
 			var pistol_package: String = str(bearer.get("blood_angels_captain_pistol_package", "heavy-bolt-pistol"))
 			var melee_package: String = str(bearer.get("blood_angels_captain_melee_package", "master-crafted-chainsword"))
 			if selected.action == "blood-angels-captain-ranged-loadout":
@@ -4541,6 +5078,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"death-company-captain-ranged-loadout", "death-company-captain-melee-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "death-company-captain": return {"error": "Choose source-listed Death Company Captain equipment during your army preparation."}
+			if bool(bearer.get("death_company_captain_loadout_locked", false)): return {"error": "This saved Death Company Captain equipment is fixed for the match. Edit the saved army before starting another match."}
 			var pistol_package: String = str(bearer.get("death_company_captain_pistol_package", "heavy-bolt-pistol"))
 			var melee_package: String = str(bearer.get("death_company_captain_melee_package", "master-crafted-chainsword"))
 			if selected.action == "death-company-captain-ranged-loadout":
@@ -4558,6 +5096,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"death-company-jump-captain-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "death-company-captain-with-jump-pack": return {"error": "Choose source-listed Death Company Captain with Jump Pack equipment during your army preparation."}
+			if bool(bearer.get("death_company_jump_captain_loadout_locked", false)): return {"error": "This saved Death Company Jump Captain equipment is fixed for the match. Edit the saved army before starting another match."}
 			var weapons := MarineProfiles.death_company_jump_captain_weapons(str(selected.value))
 			if weapons.is_empty(): return {"error": "Unsupported Death Company Captain with Jump Pack equipment choice."}
 			bearer.death_company_jump_captain_loadout = str(selected.value)
@@ -4569,6 +5108,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"lieutenant-ranged-loadout", "lieutenant-melee-loadout", "lieutenant-storm-shield":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "lieutenant": return {"error": "Choose source-listed Lieutenant equipment during army preparation."}
+			if bool(bearer.get("lieutenant_loadout_locked", false)): return {"error": "This saved Lieutenant equipment is fixed for the match. Edit the saved army before starting another match."}
 			if selected.action == "lieutenant-ranged-loadout":
 				if selected.value not in MarineProfiles.profile("lieutenant").options.ranged_packages: return {"error": "Unsupported Lieutenant ranged equipment package."}
 				bearer.lieutenant_weapon_package = selected.value
@@ -4582,6 +5122,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var loadout_error := _apply_lieutenant_loadout(state, model)
 			if not loadout_error.is_empty(): return {"error": loadout_error}
 		"blood-claws-pack-leader-pistol", "blood-claws-pack-leader-melee":
+			if bool(state.units.get(model, {}).get("sergeant_squad_loadout_locked", false)): return {"error": "Saved squad equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "blood-claws" or not bearer.get("sergeant", false): return {"error": "Choose source-listed Blood Claws Pack Leader equipment during army preparation."}
 			var pistol_package := str(bearer.get("blood_claws_pack_leader_pistol", "bolt-pistol"))
@@ -4600,6 +5141,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.ranged_weapons = blood_claws_weapons.ranged
 			bearer.melee_weapons = blood_claws_weapons.melee
 		"grey-hunters-pack-leader-pistol", "grey-hunters-pack-leader-melee":
+			if bool(state.units.get(model, {}).get("sergeant_squad_loadout_locked", false)): return {"error": "Saved squad equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "grey-hunters" or not bearer.get("sergeant", false): return {"error": "Choose source-listed Grey Hunters Pack Leader equipment during army preparation."}
 			var pistol_package := str(bearer.get("grey_hunters_pack_leader_pistol", "bolt-pistol"))
@@ -4645,6 +5187,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"castellan-ranged-loadout", "castellan-melee-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "castellan": return {"error": "Choose Castellan equipment during your army preparation."}
+			if bool(bearer.get("castellan_loadout_locked", false)): return {"error": "This saved Castellan equipment is fixed for the match. Edit the saved army before starting another match."}
 			var ranged_package := str(bearer.get("castellan_ranged_package", "combi-weapon"))
 			var melee_package := str(bearer.get("castellan_melee_package", "master-crafted-power-weapon"))
 			if selected.action == "castellan-ranged-loadout":
@@ -4662,6 +5205,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"marshal-ranged-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "marshal": return {"error": "Choose Marshal equipment during your army preparation."}
+			if bool(bearer.get("marshal_loadout_locked", false)): return {"error": "This saved Marshal equipment is fixed for the match. Edit the saved army before starting another match."}
 			if selected.value not in MarineProfiles.profile("marshal").options.ranged_packages: return {"error": "Choose the Plasma Pistol or its Combi-weapon replacement."}
 			var weapons := MarineProfiles.marshal_weapons(str(selected.value))
 			if weapons.is_empty(): return {"error": "The selected Marshal equipment is not listed on its source datasheet."}
@@ -4671,12 +5215,14 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"nephilim-jetfighter-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or A.identity(bearer) != "nephilim-jetfighter": return {"error": "Nephilim Jetfighter weapons are selected during army preparation."}
+			if bearer.get("nephilim_loadout_locked", false): return {"error": "Edit saved equipment in the Army Workshop before starting another match."}
 			if selected.value not in ["twin-heavy-bolter", "lascannons"]: return {"error": "Choose the Twin Heavy Bolter or Nephilim Lascannons replacement."}
 			bearer.nephilim_lascannons = selected.value == "lascannons"
 			bearer.ranged_weapons = MarineProfiles.nephilim_jetfighter_weapons(bearer.nephilim_lascannons)
 		"stormhawk-primary-loadout", "stormhawk-missile-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or A.identity(bearer) != "stormhawk-interceptor": return {"error": "Stormhawk Interceptor weapons are selected during army preparation."}
+			if bool(bearer.get("stormhawk_loadout_locked", false)): return {"error": "Edit saved equipment in the Army Workshop before starting another match."}
 			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Stormhawk Interceptor from its own unit."}
 			var icarus := bool(bearer.get("stormhawk_icarus_stormcannon", false))
 			var missile := str(bearer.get("stormhawk_missile_launcher", "skyhammer-missile-launcher"))
@@ -4694,6 +5240,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"stormtalon-loadout":
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or A.identity(bearer) != "stormtalon-gunship": return {"error": "Stormtalon Gunship weapons are selected during army preparation."}
+			if bool(bearer.get("stormtalon_loadout_locked", false)): return {"error": "Edit saved equipment in the Army Workshop before starting another match."}
 			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Stormtalon Gunship from its own unit."}
 			if selected.value not in ["skyhammer-missile-launcher", "twin-heavy-bolter", "twin-lascannon", "typhoon-missile-launcher"]: return {"error": "Choose the Skyhammer Missile Launcher or one of its datasheet-listed replacements."}
 			var weapons := MarineProfiles.stormtalon_gunship_weapons(str(selected.value))
@@ -4704,6 +5251,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "cerberus": return {"error": "Cerberus weapons are selected during army preparation."}
 			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Cerberus from its own unit."}
+			if bearer.get("cerberus_loadout_locked", false): return {"error": "Edit saved equipment in the Army Workshop before starting another match."}
 			var optional_weapon := str(bearer.get("cerberus_optional_weapon", "none"))
 			var optional_pair := str(bearer.get("cerberus_optional_pair", "none"))
 			if selected.action == "cerberus-optional-weapon":
@@ -4722,6 +5270,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "falchion": return {"error": "Falchion weapons are selected during army preparation."}
 			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Falchion from its own unit."}
+			if bearer.get("falchion_loadout_locked", false): return {"error": "Edit saved equipment in the Army Workshop before starting another match."}
 			var optional_weapon := str(bearer.get("falchion_optional_weapon", "none"))
 			var main_armament := str(bearer.get("falchion_main_armament", "quad-lascannons"))
 			var twin_replacement := str(bearer.get("falchion_twin_replacement", "twin-heavy-bolter"))
@@ -4746,6 +5295,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "typhon": return {"error": "Typhon weapons are selected during army preparation."}
 			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Typhon from its own unit."}
+			if bearer.get("typhon_loadout_locked", false): return {"error": "Edit saved equipment in the Army Workshop before starting another match."}
 			var sponsons := str(bearer.get("typhon_sponsons", "none"))
 			var hull_weapon := str(bearer.get("typhon_hull_weapon", "none"))
 			if selected.action == "typhon-sponsons":
@@ -4764,6 +5314,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "venerable-dreadnought-legends": return {"error": "Venerable Dreadnought Legends weapons are selected during army preparation."}
 			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Venerable Dreadnought Legends from its own unit."}
+			if bool(bearer.get("venerable_dreadnought_legends_loadout_locked", false)): return {"error": "Edit this saved equipment in the Army Workshop before starting another match."}
 			var primary := str(bearer.get("venerable_dreadnought_legends_primary", "assault-cannon"))
 			var package := str(bearer.get("venerable_dreadnought_legends_package", "fist-and-storm-bolter"))
 			if selected.action == "venerable-dreadnought-legends-primary":
@@ -4782,6 +5333,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "dreadnought": return {"error": "Dreadnought weapons are selected during army preparation."}
 			if int(bearer.get("squad", -1)) != target: return {"error": "Choose the selected Dreadnought from its own unit."}
+			if bool(bearer.get("dreadnought_loadout_locked", false)): return {"error": "Edit this saved equipment in the Army Workshop before starting another match."}
 			var primary := str(bearer.get("dreadnought_primary", "assault-cannon"))
 			var melee_package := str(bearer.get("dreadnought_melee_package", "dreadnought-fist"))
 			var secondary := str(bearer.get("dreadnought_secondary", "none"))
@@ -4802,21 +5354,33 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.ranged_weapons = weapons.ranged
 			bearer.melee_weapons = weapons.melee
 		"terminator-captain-gun", "terminator-captain-blade":
-			var bearer: Dictionary = state.units[model]
-			if selected.action == "terminator-captain-gun": bearer.terminator_combi = selected.value == "combi"
-			else: bearer.terminator_fist = selected.value == "fist"
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "captain-in-terminator-armour": return {"error": "Choose source-listed Terminator Captain equipment during your army preparation."}
+			if bool(bearer.get("terminator_captain_loadout_locked", false)): return {"error": "This saved Terminator Captain equipment is fixed for the match. Edit the saved army before starting another match."}
+			if selected.action == "terminator-captain-gun":
+				if selected.value not in ["bolter", "combi"]: return {"error": "Unsupported Terminator Captain ranged weapon."}
+				bearer.terminator_combi = selected.value == "combi"
+			else:
+				if selected.value not in ["fist", "weapon"]: return {"error": "Unsupported Terminator Captain melee weapon."}
+				bearer.terminator_fist = selected.value == "fist"
 			var weapons := MarineProfiles.terminator_captain_weapons(bearer.get("terminator_combi", false), bearer.get("terminator_fist", false))
+			if weapons.is_empty(): return {"error": "Unknown Terminator Captain loadout."}
 			bearer.ranged_weapons = weapons.ranged
 			bearer.melee_weapons = weapons.melee
 		"terminator-chaplain-shield":
-			var bearer: Dictionary = state.units[model]
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "chaplain-in-terminator-armour": return {"error": "Choose Terminator Chaplain equipment during its owner's army preparation."}
+			if bool(bearer.get("terminator_chaplain_loadout_locked", false)): return {"error": "This saved Terminator Chaplain equipment is fixed for the match. Edit the saved army before starting another match."}
+			if str(selected.get("value", "")) not in ["shield", "bolter"]: return {"error": "Choose the Storm Bolter or Relic Shield."}
 			var shield: bool = selected.value == "shield"
 			bearer.relic_shield = shield
 			bearer.ranged_weapons = [] if shield else MarineProfiles.profile("chaplain-in-terminator-armour").ranged.duplicate(true)
 			bearer.max_wounds = 6 if shield else 5
 			bearer.wounds = bearer.max_wounds
 		"jump-pack-captain-loadout":
-			var bearer: Dictionary = state.units[model]
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "captain-with-jump-pack": return {"error": "Choose source-listed Jump Pack Captain equipment during your army preparation."}
+			if bool(bearer.get("jump_captain_loadout_locked", false)): return {"error": "This saved Jump Pack Captain equipment is fixed for the match. Edit the saved army before starting another match."}
 			var weapons := MarineProfiles.jump_pack_captain_weapons(selected.value)
 			if weapons.is_empty(): return {"error": "Unknown Jump Pack Captain loadout."}
 			bearer.ranged_weapons = weapons.ranged.duplicate(true)
@@ -4827,6 +5391,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			bearer.jump_captain_loadout = selected.value
 		"vanguard-veteran-pistol":
 			var bearer: Dictionary = state.units[model]
+			if bool(bearer.get("sergeant_squad_loadout_locked", false)): return {"error": "Saved Vanguard Veteran equipment is fixed for this match. Edit the saved army before starting another match."}
 			if selected.value not in ["heavy-bolt-pistol", "plasma-pistol", "combat-shield"]: return {"error": "Unsupported Vanguard Veteran pistol/shield option."}
 			if selected.value == "plasma-pistol" and not bearer.get("sergeant", false) and _vanguard_plasma_count(state, target, model) >= int(state.squads[target].starting_strength / 5.0) * 2: return {"error": "Vanguard Veteran Plasma Pistols exceed the source limit."}
 			bearer.vanguard_pistol = selected.value
@@ -4841,13 +5406,18 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var bearer: Dictionary = state.units.get(model, {})
 			var allowed_loadouts: Array = MarineProfiles.profile("vanguard-veteran-squad").get("options", {}).get("pistol_replacements", [])
 			if setup_actor(state) != player or bearer.is_empty() or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "vanguard-veteran-squad" or selected.value not in allowed_loadouts: return {"error": "Choose a source-listed Vanguard Veteran Squad Bolt Pistol replacement during your army preparations."}
+			if bool(bearer.get("vanguard_veteran_squad_loadout_locked", false)): return {"error": "Saved Vanguard Veteran Squad equipment is fixed for this match. Edit the saved army before starting another match."}
 			var weapons := MarineProfiles.vanguard_veteran_squad_weapons(str(selected.value))
 			if weapons.is_empty(): return {"error": "Could not resolve the source-listed Vanguard Veteran Squad replacement."}
 			bearer.vanguard_veteran_squad_loadout = str(selected.value)
 			bearer.ranged_weapons = weapons.ranged.duplicate(true)
 			bearer.melee_weapons = weapons.melee.duplicate(true)
+			var defense: Dictionary = bearer.get("defense", {}).duplicate(true)
+			defense.invulnerable_target = int(weapons.get("invulnerable_target", 0))
+			bearer.defense = defense
 		"vanguard-veteran-melee":
 			var bearer: Dictionary = state.units[model]
+			if bool(bearer.get("sergeant_squad_loadout_locked", false)): return {"error": "Saved Vanguard Veteran equipment is fixed for this match. Edit the saved army before starting another match."}
 			if not bearer.get("sergeant", false) or selected.value not in ["relic-blade", "power-fist", "thunder-hammer"]: return {"error": "Unsupported Vanguard Veteran Sergeant melee option."}
 			var pistol_kind: String = bearer.get("vanguard_pistol", "heavy-bolt-pistol")
 			var shield: bool = bearer.get("combat_shield", false)
@@ -4885,6 +5455,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"heal-wound", "heal-revive", "heal-place", "heal-unplaceable", "heal-reset", "heal-confirm":
 			return Healing.apply(state, selected.action, model, point)
 		"ancient-loadout":
+			if state.units.get(model, {}).get("ancient_loadout_locked", false): return {"error": "Edit this saved equipment in the Army Workshop before starting a match."}
 			var weapons := MarineProfiles.ancient_weapons(selected.value == "power")
 			state.units[model].ranged_weapons = weapons.ranged
 			state.units[model].melee_weapons = weapons.melee
@@ -4892,6 +5463,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"crusader-squad-loadout":
 			var crusader_unit: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or crusader_unit.is_empty() or int(crusader_unit.get("owner", -1)) != player or int(crusader_unit.get("squad", -1)) != target or int(crusader_unit.get("wounds", 0)) <= 0 or A.identity(crusader_unit) != "crusader-squad": return {"error": "Crusader Squad equipment is selected during its owner's army preparation."}
+			if bool(crusader_unit.get("crusader_squad_saved_equipment_locked", false)): return {"error": "Edit this saved Crusader Squad equipment in the Army Workshop before starting a match."}
 			var crusader_count := int(state.squads[target].get("starting_strength", 0))
 			var crusader_index := int(crusader_unit.get("crusader_squad_model", -1))
 			var current_loadout := str(crusader_unit.get("crusader_squad_loadout", "default"))
@@ -4906,6 +5478,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"execrator-pistol-loadout", "execrator-extra-melee":
 			var execrator_unit: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or execrator_unit.is_empty() or int(execrator_unit.get("owner", -1)) != player or int(execrator_unit.get("squad", -1)) != target or int(execrator_unit.get("wounds", 0)) <= 0 or A.identity(execrator_unit) != "execrator": return {"error": "Execrator equipment is selected during its owner's army preparation."}
+			if bool(execrator_unit.get("execrator_loadout_locked", false)): return {"error": "This saved Execrator equipment is fixed for the match. Edit the saved army before starting another match."}
 			var pistol_package := str(execrator_unit.get("execrator_pistol_package", "absolvor-bolt-pistol"))
 			var extra_power_weapon := bool(execrator_unit.get("execrator_mastercrafted_power_weapon", false))
 			if selected.action == "execrator-pistol-loadout":
@@ -4925,6 +5498,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"sword-brethren-loadout":
 			var sword_brethren_unit: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or sword_brethren_unit.is_empty() or int(sword_brethren_unit.get("owner", -1)) != player or int(sword_brethren_unit.get("squad", -1)) != target or int(sword_brethren_unit.get("wounds", 0)) <= 0 or A.identity(sword_brethren_unit) != "sword-brethren-squad": return {"error": "Sword Brethren equipment is selected during its owner's army preparation."}
+			if bool(sword_brethren_unit.get("sword_brethren_saved_model_loadout_locked", false)): return {"error": "Saved Sword Brethren equipment is fixed for this match. Edit the saved army list to change it."}
 			var sword_brethren_count := int(state.squads[target].get("starting_strength", 0))
 			var sword_brethren_index := int(sword_brethren_unit.get("sword_brethren_model", -1))
 			var sword_brethren_loadout_id := str(selected.get("value", ""))
@@ -4937,21 +5511,26 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			sword_brethren_unit.melee_weapons = sword_brethren_loadout.melee.duplicate(true)
 		"bladeguard": return Bladeguard.choose(state, selected.value)
 		"bladeguard-pistol":
+			if bool(state.units.get(model, {}).get("bladeguard_loadout_locked", false)): return {"error": "Saved Bladeguard equipment is fixed for this match. Edit the saved army list to change it."}
 			state.units[model].ranged_weapons = [MarineProfiles.bladeguard_pistol(selected.value)]
 		"sternguard-melee":
+			if bool(state.units.get(model, {}).get("specialist_squad_loadout_locked", false)): return {"error": "Saved specialist squad equipment is fixed for this match. Edit the saved army list to change it."}
 			state.units[model].melee_weapons = [MarineProfiles.sternguard_melee(selected.value)]
 		"sternguard-gun":
+			if bool(state.units.get(model, {}).get("specialist_squad_loadout_locked", false)): return {"error": "Saved specialist squad equipment is fixed for this match. Edit the saved army list to change it."}
 			state.units[model].ranged_weapons[0] = MarineProfiles.sternguard_gun(selected.value)
 			state.units[model].sternguard_special = selected.value != "firearm"
 		"eliminator-sergeant":
 			var sergeant: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or sergeant.is_empty() or sergeant.owner != player or sergeant.squad != target or sergeant.wounds <= 0 or A.identity(sergeant) != "eliminator-squad" or not sergeant.get("sergeant", false): return {"error": "Choose a living Eliminator Sergeant during your army preparation."}
+			if sergeant.get("eliminator_sergeant_loadout_locked", false): return {"error": "This Eliminator Sergeant's ranged weapon was saved with the army and cannot be changed during match preparation."}
 			if selected.value not in ["sniper", "las", "carbine"]: return {"error": "Unsupported Eliminator Sergeant replacement."}
 			if sergeant.ranged_weapons.is_empty() or str(sergeant.ranged_weapons[0].get("id", "")) not in ["bolt-sniper-rifle", "las-fusil", "instigator-bolt-carbine"]: return {"error": "The Sergeant's current ranged weapon cannot be replaced through this datasheet option."}
 			sergeant.ranged_weapons[0] = MarineProfiles.eliminator_gun(selected.value)
 		"eliminator-troopers":
 			var trooper: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or trooper.is_empty() or trooper.owner != player or trooper.squad != target or trooper.wounds <= 0 or A.identity(trooper) != "eliminator-squad" or trooper.get("sergeant", false): return {"error": "Choose a living ordinary Eliminator during your army preparation."}
+			if trooper.get("eliminator_trooper_loadout_locked", false): return {"error": "This Eliminator's ranged weapon was saved with the army and cannot be changed during match preparation."}
 			if selected.value not in ["sniper", "las"]: return {"error": "Ordinary Eliminators may exchange only their Bolt Sniper Rifle for a Las Fusil."}
 			if trooper.ranged_weapons.is_empty() or str(trooper.ranged_weapons[0].get("id", "")) not in ["bolt-sniper-rifle", "las-fusil"]: return {"error": "The Eliminator's current ranged weapon cannot be replaced through this datasheet option."}
 			trooper.ranged_weapons[0] = MarineProfiles.eliminator_gun(selected.value)
@@ -4965,29 +5544,58 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if not a.has("overlap_targets"): a.overlap_targets = {}
 			a.overlap_targets[state.units[model].squad] = {"phase_key": key(state), "target": target}
 		"aggressor-loadout":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or not state.squads.has(target) or int(state.squads[target].get("owner", -1)) != player or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "aggressor-squad" or not A.has(state, target, "close-quarters-firestorm"):
+				return {"error": "Choose a living Aggressor model in a Squad you control during Army Preparation."}
+			if bool(bearer.get("aggressor_loadout_locked", false)):
+				return {"error": "This saved Aggressor model's weapon package is fixed for the match. Edit the saved army before starting another match."}
+			if selected.value not in ["bolt", "flame"]: return {"error": "Aggressors can select only the source-listed Flamestorm or Boltstorm/Fragstorm package."}
+			var current_boltstorm := bool(bearer.get("aggressor_boltstorm_loadout", state.squads[target].get("boltstorm_loadout", false)))
+			var current_ranged: Array = bearer.get("ranged_weapons", [])
+			if not current_ranged.is_empty(): current_boltstorm = str(current_ranged[0].get("id", "")) == "auto-boltstorm-gauntlets"
 			var boltstorm: bool = selected.value == "bolt"
+			if boltstorm == current_boltstorm: return {"error": "This Aggressor model already has the selected weapon package."}
 			var inventory := MarineProfiles.aggressor_ranged(boltstorm)
-			for id: int in G.alive(state, target):
-				if A.identity(state.units[id]) == "aggressor-squad": state.units[id].ranged_weapons = inventory.duplicate(true)
-			state.squads[target].weapon = inventory[0].profiles.values()[0].duplicate(true)
-			state.squads[target].boltstorm_loadout = boltstorm
+			if boltstorm and (inventory.size() != 2 or str(inventory[0].get("id", "")) != "auto-boltstorm-gauntlets" or str(inventory[1].get("id", "")) != "fragstorm-grenade-launcher"):
+				return {"error": "The complete Boltstorm/Fragstorm package is unavailable in the local source profile."}
+			if not boltstorm and (inventory.size() != 1 or str(inventory[0].get("id", "")) != "flamestorm-gauntlets"):
+				return {"error": "The complete Flamestorm default package is unavailable in the local source profile."}
+			bearer.ranged_weapons = inventory.duplicate(true)
+			bearer.aggressor_boltstorm_loadout = boltstorm
+			var living_aggressors := G.alive(state, target).filter(func(id: int) -> bool: return A.identity(state.units[id]) == "aggressor-squad")
+			if not living_aggressors.is_empty():
+				var primary: Array = state.units[living_aggressors[0]].get("ranged_weapons", [])
+				if not primary.is_empty(): state.squads[target].weapon = primary[0].profiles.values()[0].duplicate(true)
 		"hellblaster-pistol":
+			var bearer: Dictionary = state.units.get(model, {})
+			if setup_actor(state) != player or bearer.is_empty() or not state.squads.has(target) or int(state.squads[target].get("owner", -1)) != player or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "hellblaster-squad" or not bool(bearer.get("sergeant", false)) or selected.value not in ["bolt", "plasma"]: return {"error": "Choose the source-listed Bolt Pistol or Plasma Pistol for your living Hellblaster Sergeant during Army Preparation."}
+			if saved_army_hellblaster_loadout_locked(state, bearer): return {"error": "This saved Hellblaster Sergeant pistol is fixed for the match. Edit the saved army before starting another match."}
 			var plasma: bool = selected.value == "plasma"
-			state.units[model].ranged_weapons[1] = MarineProfiles.hellblaster_pistol(plasma)
-			state.units[model].plasma_pistol = plasma
+			var pistol := MarineProfiles.hellblaster_pistol(plasma)
+			if pistol.is_empty() or str(pistol.get("id", "")) != ("plasma-pistol" if plasma else "bolt-pistol"): return {"error": "The selected Hellblaster pistol profile is missing from the verified local source."}
+			var ranged: Array = bearer.get("ranged_weapons", []).duplicate(true)
+			if ranged.size() != 2 or str(ranged[1].get("id", "")) not in ["bolt-pistol", "plasma-pistol"]: return {"error": "The local Hellblaster Sergeant pistol slot is incomplete."}
+			ranged[1] = pistol
+			bearer.ranged_weapons = ranged
+			bearer.plasma_pistol = plasma
 		"jump-pack-sergeant-pistol":
+			if bool(state.units.get(model, {}).get("sergeant_squad_loadout_locked", false)): return {"error": "Saved squad equipment is fixed for this match. Edit the saved army list to change it."}
 			if selected.value not in ["heavy-bolt-pistol", "hand-flamer", "plasma-pistol"]: return {"error": "Unknown Jump Intercessor Sergeant pistol."}
 			state.units[model].ranged_weapons = [MarineProfiles.jump_pack_pistol(selected.value)]
 		"jump-pack-sergeant-melee":
+			if bool(state.units.get(model, {}).get("sergeant_squad_loadout_locked", false)): return {"error": "Saved squad equipment is fixed for this match. Edit the saved army list to change it."}
 			if selected.value not in ["chainsword", "power-fist", "power-weapon"]: return {"error": "Unknown Jump Intercessor Sergeant melee weapon."}
 			state.units[model].melee_weapons = [MarineProfiles.jump_pack_sergeant_melee(selected.value)]
 		"jump-pack-trooper-pistol":
+			if bool(state.units.get(model, {}).get("sergeant_squad_loadout_locked", false)): return {"error": "Saved squad equipment is fixed for this match. Edit the saved army list to change it."}
 			if selected.value not in ["heavy-bolt-pistol", "plasma-pistol"] or state.units[model].get("sergeant", false): return {"error": "Invalid Jump Intercessor pistol selection."}
 			state.units[model].jump_plasma_pistol = selected.value == "plasma-pistol"
 			state.units[model].ranged_weapons = [MarineProfiles.jump_pack_pistol(selected.value)]
 		"eradicator-melta":
+			if bool(state.units.get(model, {}).get("specialist_squad_loadout_locked", false)): return {"error": "Saved specialist squad equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or not state.squads.has(target) or int(state.squads[target].owner) != player or int(bearer.get("owner", -1)) != player or int(bearer.get("squad", -1)) != target or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "eradicator-squad-with-melta-rifles": return {"error": "Choose a living model in your Melta Rifle Eradicator squad during army preparation."}
+			if bool(bearer.get("sergeant", false)): return {"error": "Only an ordinary Eradicator model can take the source-listed Multi-melta replacement."}
 			if selected.value not in ["multi", "rifle"] or bearer.get("ranged_weapons", []).is_empty(): return {"error": "Choose a supported Melta Rifle or Multi-melta loadout."}
 			var current_weapon := str(bearer.ranged_weapons[0].get("id", ""))
 			var equip_multi: bool = selected.value == "multi"
@@ -5080,6 +5688,8 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"stasis-movement-resume": return StasisBomb.continuation(state, player, selected)
 		"deadly-demise-allocate":
 			var demise := DeadlyDemise.allocate(state, player, selected, roller)
+			NightbringerDrainLife.resume_after_nested_destruction(state)
+			VoidDragonMatterAbsorption.resume_after_nested_destruction(state)
 			if demise.get("error", "").is_empty() and state.phase == "charge" and CoreReactions.charge_closed(state) and state.get("unit_abilities", {}).get("window", {}).is_empty(): CoreReactions.reopen_heroic_choices(state)
 			return demise
 		"deadly-demise-vengeful-pass":
@@ -5093,6 +5703,8 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			a.window = {}
 			var declined_demise := DeadlyDemise.pump(state, roller)
 			if not declined_demise.get("error", "").is_empty(): return declined_demise
+			NightbringerDrainLife.resume_after_nested_destruction(state)
+			VoidDragonMatterAbsorption.resume_after_nested_destruction(state)
 			if declined_demise.get("complete", false) and not state.get("pending_attack", {}).is_empty(): return {"error": "", "resume_attack": true, "message": "Deadly Demise resolved; resume the attack sequence."}
 			return {"error": "", "message": str(declined_demise.get("message", "Rolling Deadly Demise without Vengeful Animus."))}
 		"explosives-allocate": return CoreReactions.allocate_explosives(state, player, selected, roller)
@@ -5130,6 +5742,8 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				a.window = {}
 				var vengeful_demise := DeadlyDemise.pump(state, roller)
 				if not vengeful_demise.get("error", "").is_empty(): return vengeful_demise
+				NightbringerDrainLife.resume_after_nested_destruction(state)
+				VoidDragonMatterAbsorption.resume_after_nested_destruction(state)
 				if vengeful_demise.get("complete", false) and not state.get("pending_attack", {}).is_empty(): return {"error": "", "resume_attack": true, "message": str(spent.get("message", "Vengeful Animus resolved."))}
 				return {"error": "", "message": str(vengeful_demise.get("message", spent.get("message", "Vengeful Animus resolved.")))}
 			if reaction_window.get("kind", "") == DetachmentStratagems.LAYERED_CERAMITE_WINDOW:
@@ -5441,6 +6055,8 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"legion-keep", "legion-reroll": return R.accept_roll(state, selected.action == "legion-reroll", roller)
 		"pass":
 			var kind: String = a.window.kind
+			if kind == "start" and VoidDragonMatterAbsorption.available(state, player): return {"error": "Resolve Matter Absorption by selecting an enemy Vehicle before passing the Shooting phase start window."}
+			if kind == "end" and NightbringerDrainLife.available(state, player): return NightbringerDrainLife.resolve(state, player, roller)
 			if kind == DetachmentStratagems.UNSTOPPABLE_WINDOW:
 				var mobile_declaration: Dictionary = a.window.duplicate(true)
 				a.window = {}
@@ -5460,7 +6076,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var aircraft_reserve_error := AircraftRules.force_reserves(state, player)
 			if not aircraft_reserve_error.is_empty(): return {"error": aircraft_reserve_error}
 			for unit: Dictionary in state.units.values():
-				if unit.owner == player and is_support_identity(state, unit) and unit.get("attachment_role", "") != "support": return {"error": "Support units must be attached to an eligible bodyguard."}
+				if unit.owner == player and is_support_identity(state, unit) and unit.get("attachment_role", "") not in ["support", "leader"]: return {"error": "Support units must be attached to an eligible bodyguard."}
 			var character := false
 			for unit: Dictionary in state.units.values():
 				if unit.owner == player and Groups.character(unit): character = true
@@ -5479,6 +6095,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				state.phase = "mission_first_turn" if state.get("mission", {}).get("id", "") == "ca-2026-27-dominance-hammer-fixed-v1" else "pre_battle"
 				if state.phase == "pre_battle": ScoutMoves.begin(state)
 		"deathwing-knights-watcher":
+			if bool(state.squads.get(target, {}).get("deathwing_saved_unit_loadout_locked", false)): return {"error": "Saved Deathwing unit equipment is fixed for this match. Edit the saved army list to change it."}
 			if setup_actor(state) != player or not state.squads.has(target) or int(state.squads[target].get("owner", -1)) != player or selected.value not in ["on", "off"]: return {"error": "Watcher in the Dark is selected during army preparation for one Deathwing unit."}
 			var watcher_identity := ""
 			for member: int in G.alive(state, target):
@@ -5490,6 +6107,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if bool(state.squads[target].get(watcher_field, false)) == equip_watcher: return {"error": "That Watcher in the Dark loadout is already selected."}
 			state.squads[target][watcher_field] = equip_watcher
 		"deathwing-knights-melee":
+			if bool(state.units.get(model, {}).get("deathwing_saved_model_loadout_locked", false)): return {"error": "Saved Deathwing equipment is fixed for this match. Edit the saved army list to change it."}
 			var bearer: Dictionary = state.units.get(model, {})
 			if setup_actor(state) != player or bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "deathwing-knights": return {"error": "Deathwing Knights melee replacements are selected during army preparation for a living model."}
 			var allowed_weapons: Array = ["great-weapon-of-the-unforgiven", "relic-weapon"] if bearer.get("sergeant", false) else ["mace-of-absolution", "power-weapon"]
@@ -5526,13 +6144,16 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			a.homers[target] = point
 			a.used["homer-set:%d" % target] = true
 		"reserve":
+			if not state.squads.has(target) or int(state.squads[target].get("owner", -1)) != player: return {"error": "Only your own units can be placed in Strategic Reserves."}
+			if AircraftRules.is_aircraft(state, target) or Actions.keyword(state, target, ["fortification"]): return {"error": "Aircraft are placed in Strategic Reserves automatically; Fortifications cannot be placed in Strategic Reserves."}
+			if a.reserves.has(target): return {"error": "This unit is already in Strategic Reserves."}
 			var spent := 0
 			for squad: int in a.reserves:
 				if state.squads[squad].owner == player: spent += a.reserves[squad].cost
 			var cost: int = state.squads[target].get("training_cost", 0)
 			if cost <= 0: return {"error": "Missing reserve points for this unit."}
 			if spent + cost > int(state.get("points_limit", 500)) / 2: return {"error": "Strategic reserves cannot exceed half the battle points limit."}
-			a.reserves[target] = {"cost": cost, "deep_strike": A.every_model_has(state, target, "deep-strike")}
+			a.reserves[target] = {"cost": cost, "source": "strategic-reserves", "deep_strike": A.every_model_has(state, target, "deep-strike")}
 			for unit: Dictionary in state.units.values():
 				if unit.squad == target: unit.on_battlefield = false
 			state.deployment.order.erase(target)
@@ -5544,6 +6165,16 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			for unit: Dictionary in state.units.values():
 				if unit.squad == target: unit.on_battlefield = false
 			state.deployment.order.erase(target)
+		"tunnelling-horrors":
+			if target not in NecronOphydian.tunnelling_squads(state, player): return {"error": "Tunnelling Horrors requires an unengaged Ophydian Destroyers unit at the end of the opponent's Fight phase."}
+			var tunnelling_cost := int(state.squads[target].get("training_cost", 0))
+			if tunnelling_cost <= 0: return {"error": "The Ophydian Destroyers unit is missing its admitted reserve cost."}
+			a.reserves[target] = {"cost": tunnelling_cost, "source": "tunnelling-horrors", "deep_strike": true, "must_ingress": true}
+			for unit: Dictionary in state.units.values():
+				if unit.squad == target: unit.on_battlefield = false
+			state.deployment.order.erase(target)
+		"ophydian-plasmacyte":
+			return NecronOphydian.use_plasmacyte(state, player, target)
 		"echo-of-ravenspire":
 			if target not in echo_ravenspire_squads(state, player): return {"error": "Echo of the Ravenspire requires Kayvaan Shrike's unengaged unit at the end of your opponent's Fight phase."}
 			var reserve_cost := int(state.squads[target].get("training_cost", 0))
@@ -5802,18 +6433,21 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if not a.has("high_king_fenris"): a.high_king_fenris = {}
 			a.high_king_fenris[target] = {"owner": player, "source_model": model, "source_squad": source_squad, "selected_round": int(state.round)}
 			a.used[use_key] = int(state.round)
-		"ingress", "homer-ingress", "relic-teleportarium-ingress":
-			if not state.squads.has(target) or int(state.squads[target].get("owner", -1)) != player: return {"error": "Select one of your own reserve units to ingress."}
+		"ingress", "homer-ingress", "relic-teleportarium-ingress", "eternity-gate-ingress":
+			var eternity_gate := str(selected.get("action", "")) == "eternity-gate-ingress"
+			if not state.squads.has(target) or int(state.squads[target].get("owner", -1)) != player: return {"error": "Select one of your own units to ingress."}
 			var reserves_value: Variant = state.get("unit_abilities", {}).get("reserves", {})
-			if typeof(reserves_value) != TYPE_DICTIONARY or not reserves_value.has(target): return {"error": "This unit is not in strategic reserves."}
+			if eternity_gate:
+				if not _eternity_gate_target_eligible(state, player, model, target): return {"error": "Eternity Gate requires a living friendly NECRONS INFANTRY unit on the battlefield or in Strategic Reserves, and is unavailable in the first battle round or after this Monolith has used it this turn."}
+			elif typeof(reserves_value) != TYPE_DICTIONARY or not reserves_value.has(target): return {"error": "This unit is not in strategic reserves."}
 			var teleportarium := str(selected.get("action", "")) == "relic-teleportarium-ingress"
 			if teleportarium:
 				var teleportarium_error := DetachmentStratagems.error(state, player, target, DetachmentStratagems.INNER_CIRCLE_RELIC_TELEPORTARIUM)
 				if not teleportarium_error.is_empty(): return {"error": teleportarium_error}
 			var early_ingress_enhancement := first_movement_phase_ingress_enhancement(state, target, player)
-			var reserve_record: Dictionary = reserves_value[target]
+			var reserve_record: Dictionary = reserves_value.get(target, {}) if typeof(reserves_value) == TYPE_DICTIONARY else {}
 			var lion_mist_ingress: bool = str(reserve_record.get("source", "")) == "mist-wreathed-shadow-realms" and int(reserve_record.get("ingress_turn", -1)) == int(state.turn) and state.phase == "movement" and int(state.active) == player
-			if not TransportRules.is_drop_pod(state, target) and not ingress_round_allowed(state, target) and early_ingress_enhancement.is_empty() and not lion_mist_ingress: return {"error": "This unit cannot make an ingress move before battle round 2."}
+			if not eternity_gate and not TransportRules.is_drop_pod(state, target) and not ingress_round_allowed(state, target) and early_ingress_enhancement.is_empty() and not lion_mist_ingress: return {"error": "This unit cannot make an ingress move before battle round 2."}
 			var parent_frame := ResolutionFrames.current(state)
 			if int(state.get("active", -1)) != player and str(parent_frame.get("kind", "")) == "phase-close" and str(parent_frame.get("status", "")) == "resolving":
 				var parent_suspend_error := ResolutionFrames.suspend(state, str(parent_frame.get("frame_id", "")), "opponent-rapid-ingress")
@@ -5832,9 +6466,10 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				if not use_result.get("error", "").is_empty():
 					ResolutionFrames.complete(state, ingress_frame_id)
 					return use_result
-			var deep_strike_ingress := bool(reserve_record.get("deep_strike", _reserve_unit_has_deep_strike(state, target))) and not teleportarium
-			a.window = {"kind": "ingress", "owners": [player], "squad": target, "positions": {}, "homer": homer, "deep_strike": deep_strike_ingress, "outflank": A.has(state, target, "outflank"), "relic_teleportarium": teleportarium, "resolution_frame_id": ingress_frame_id, "return_window": a.window.duplicate(true)}
+			var deep_strike_ingress := eternity_gate or (bool(reserve_record.get("deep_strike", _reserve_unit_has_deep_strike(state, target))) and not teleportarium)
+			a.window = {"kind": "ingress", "owners": [player], "squad": target, "positions": {}, "homer": homer, "deep_strike": deep_strike_ingress, "outflank": A.has(state, target, "outflank"), "relic_teleportarium": teleportarium, "eternity_gate": eternity_gate, "eternity_gate_source": model if eternity_gate else -1, "resolution_frame_id": ingress_frame_id, "return_window": a.window.duplicate(true)}
 			if teleportarium: return {"error": "", "message": "Relic Teleportarium: set up more than 6 inches from every enemy; this unit cannot declare a Charge this turn."}
+			if eternity_gate: return {"error": "", "message": "Eternity Gate: set up the selected unit wholly within 6 inches of the Monolith and more than 8 inches from enemy models; it cannot declare a Charge this turn."}
 		"ingress-place":
 			var error := ingress_position_error(state, model, point)
 			if not error.is_empty(): return {"error": error}
@@ -5850,9 +6485,11 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var window: Dictionary = a.window
 			var frame_error := _ingress_frame_error(state, window)
 			if not frame_error.is_empty(): return {"error": frame_error}
+			if bool(window.get("eternity_gate", false)) and not _eternity_gate_target_eligible(state, player, int(window.get("eternity_gate_source", -1)), int(window.get("squad", -1))): return {"error": "Eternity Gate is no longer eligible to resolve."}
 			var projected := state.duplicate(true)
-			for id: int in state.units:
-				if state.units[id].squad != window.squad: continue
+			if bool(window.get("eternity_gate", false)):
+				for id: int in _living_squad_models(projected, int(window.squad)): projected.units[id].on_battlefield = false
+			for id: int in _living_squad_models(state, int(window.squad)):
 				if not window.positions.has(id): return {"error": "Preview every model before confirming ingress."}
 				var error := ingress_position_error(state, id, window.positions[id])
 				if not error.is_empty(): return {"error": error}
@@ -5864,6 +6501,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 					if window.positions[id].distance_to(a.homers[window.squad]) - float(state.units[id].radius) <= 3.001: in_range = true
 				if not in_range: return {"error": "The arriving unit must be within 3 inches of its Teleport Homer."}
 			if not G.coherent(projected, window.squad): return {"error": "Ingress must leave the unit coherent."}
+			if bool(window.get("eternity_gate", false)) and FightQueue.engaged(projected, int(window.squad)): return {"error": "Eternity Gate must set up the unit unengaged."}
 			if bool(window.get("miraculous_saviour", false)):
 				var engaged_enemy := int(window.get("engaged_enemy", -1))
 				if engaged_enemy not in Sanguinor.charged_enemy_squads(state, player): return {"error": "Miraculous Saviour requires the selected enemy to remain a unit that made a Charge move this phase."}
@@ -5874,6 +6512,10 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			state.squads[window.squad].moved = true
 			state.squads[window.squad].move_type = "ingress"
 			state.squads[window.squad].set_up_this_turn = true
+			if bool(window.get("eternity_gate", false)):
+				var gate_source := int(window.get("eternity_gate_source", -1))
+				state.squads[window.squad].cannot_charge_until_turn = int(state.turn)
+				a.used["eternity-gate:%d" % gate_source] = int(state.turn)
 			if not a.has("ingress_history"): a.ingress_history = {}
 			a.ingress_history[window.squad] = true
 			a.reserves.erase(window.squad)
@@ -5923,9 +6565,15 @@ static func _start_deferred_drop_pod(state: Dictionary, hyperspace_result: Dicti
 static func ingress_position_error(state: Dictionary, model: int, point: Vector2) -> String:
 	var window := pending(state)
 	var unit: Dictionary = state.units[model]
+	if int(unit.get("wounds", 0)) <= 0 or int(unit.get("squad", -1)) != int(window.get("squad", -2)): return "Only a living model in the selected unit can make this ingress move."
 	var enemy_clearance := 6.0 if bool(window.get("relic_teleportarium", false)) else 8.0
 	var error := point_error(state, point, float(unit.radius))
 	if not error.is_empty(): return error
+	if bool(window.get("eternity_gate", false)):
+		var source: Dictionary = state.units.get(int(window.get("eternity_gate_source", -1)), {})
+		if source.is_empty() or int(source.get("wounds", 0)) <= 0 or not source.get("on_battlefield", true) or A.identity(source) != "monolith": return "The Monolith must remain alive and on the battlefield while using Eternity Gate."
+		var farthest_base_distance := point.distance_to(source.position) + float(unit.radius) - float(source.get("radius", 0.0))
+		if farthest_base_distance > 6.001: return "Every arriving model must be wholly within 6 inches of the Monolith."
 	var uses_deep_strike := bool(window.get("deep_strike", false)) and not bool(window.get("relic_teleportarium", false))
 	if not uses_deep_strike:
 		var half: Vector2 = state.board_size / 2.0
@@ -5947,12 +6595,15 @@ static func ingress_position_error(state: Dictionary, model: int, point: Vector2
 	for other: int in state.units:
 		if other == model: continue
 		var enemy: Dictionary = state.units[other]
+		if bool(window.get("eternity_gate", false)) and int(enemy.get("squad", -1)) == int(window.get("squad", -2)) and not window.positions.has(other): continue
 		if enemy.wounds <= 0 or (not enemy.get("on_battlefield", true) and not window.positions.has(other)): continue
 		var position: Vector2 = window.positions.get(other, enemy.position)
 		var distance: float = point.distance_to(position) - float(unit.radius) - float(enemy.radius)
 		if distance < -0.001: return "Ingress bases cannot overlap."
 		if enemy.owner != unit.owner and not bool(window.get("miraculous_saviour", false)) and distance <= enemy_clearance + 0.001: return "Ingress requires more than %d inches from every enemy unit." % int(enemy_clearance)
 	var projected := state.duplicate(true)
+	if bool(window.get("eternity_gate", false)):
+		for member: int in G.alive(projected, int(window.squad)): projected.units[member].on_battlefield = false
 	projected.units[model].on_battlefield = true
 	projected.units[model].position = point
 	return T.path_error(projected, model, point)

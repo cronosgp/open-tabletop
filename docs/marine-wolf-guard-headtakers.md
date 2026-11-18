@@ -48,3 +48,7 @@ The focused three-sheet run passed **5/5 processes** on 30 October at `.tools/ve
 The 30 October role-aware price audit reconciles each duplicate export cost row against the official MFM role mapping and checks selectable prices only for the two compatible, priced constructions. It passes as part of the **161/161** strict fixed-data comparison. The 30 October targeted batch passed **9/9 processes** at `.tools/verification/20261030T035752327644Z/results.json` (SHA-256 `467535c10b9f27f1fcfa99407abdf9a4f2470923e41ebb1820ba5a7c967f9768`; offline; no cleanup diagnostics). This closes the duplicate-row comparison issue; unpriced legal role mixes and exact oval geometry still keep the local scope partial.
 
 Latest linked-sheet regression passed **15/15 processes** at `.tools/verification/20261030T102146906553Z/results.json` (SHA-256 `daa3134c46d55086618e0a01ec438cbd5e431470fef33759c66a01e2cbdd5cde`; `network: false`, legacy starter staged, no cleanup diagnostics). It rechecks the two admitted MFM-priced mixes; other role mixes without explicit MFM prices and exact oval-base geometry remain open.
+
+## Saved Army Builder equipment — 14 November 2026
+
+The existing admitted compositions now save legal equipment per model and copy. Hunting Wolves retain fixed weapons; readiness cannot reconfigure the saved records. The migration preserves this document's source and composition limitations. See the [equipment audit and bounded verification](verification/mixed-space-wolves-saved-equipment.md).

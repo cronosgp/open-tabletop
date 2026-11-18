@@ -16,6 +16,10 @@ Snapshot `20261021T130623Z`, retrieved `2026-10-21T19:46:58Z`; `Last_update.csv`
 - The exported RAVENWING keyword stays Chapter-contextual in prepared matches. The test confirms it is absent outside Dark Angels context and granted in Dark Angels context, in line with [The Ravenwing rule](https://wahapedia.ru/wh40k11ed/factions/space-marines/#The-Ravenwing) and the project's keyword-context audit.
 - Both players' current catalogs materialize one- and two-model units. The test checks first/tiered copy pricing in construction and saved-list summaries, including split rows. The export and runtime Leader/Support maps contain no attachment links for this datasheet.
 
+## Army Builder saved equipment
+
+The Army Builder now saves the Onslaught Gatling Cannon/Multi-melta choice separately for every ATV model under its stable model ID. Each Multi-melta adds the source-listed 5-point surcharge in saved-list totals and current-catalog admission. Saved matches install the selected local weapon profile before Deployment and lock out the duplicate Army Preparation choice; standalone exercises retain the existing setup option. Appearance matching uses local weapon hints only and keeps the fallback when no compatible sculpt is ready. This new saved-list path has not had a focused runtime regression; the earlier Invader verification record does not cover this builder integration.
+
 The source labels the base size “Use model.” For flat-board contact calculations, the runtime uses a labelled 90 × 52 mm oval footprint proxy. That proxy is not a verified physical base size.
 
 Focused offline verification passed **5/5 processes** with `network: false`, no legacy starter staged and no cleanup diagnostics. The run includes the Invader suite, conditional weapon-trait checks and the shared Leader/Support relation regression. See `.tools/verification/20261028T061032408179Z/results.json` (SHA-256 `2789e8f3c1ec39549d7be5ea344a93f7b653ae6edcef43417e4adefb49e7871b`).

@@ -18,4 +18,8 @@ The source lists Captain, Chaplain, Librarian, Techmarine, Watch Master and Watc
 
 The focused Fortis suite checks source identity and hashes, profile and weapon data, composition, construction price, public setup options and their limits, ownership rejection, attack modifiers at all three target-strength tiers, and the one-model damaged-target boundary. Fortis, construction catalog, capabilities, current unit abilities, Marine Leader links and contact actions passed 8/8 targeted processes at `.tools/verification/20261028T230231390978Z/results.json` (SHA-256 `876e1b8ec45263712179e9cb46a36fca342833c7bccae2bb2fcb436a5f8e2995`; network disabled, legacy starter staged, no cleanup diagnostics).
 
+## Saved-equipment migration — 15 November 2026
+
+The per-model Army Workshop migration is documented separately in [Fortis saved-equipment evidence](verification/fortis-saved-equipment.md). It binds the exact saved fields and option groups to the verified local 11e export while retaining the profile factory's earlier origin snapshot. The implementation reuses the existing factory, copy prices, composition and Fortis rules; this migration adds neither rules effects nor points. Its local verifier and actual UI captures do not certify complete Fortis rules, army legality, event costs or sculpt matching.
+
 This closes only Fortis's declared source-bounded local scope. Network validation, human playtesting, complete Space Marine army legality and full-match certification remain open. The current chapter inventory still lacks seven Deathwatch and 21 Space Wolves runtime profiles. Forge World, Legends, Boarding Actions and other modes remain separate inventories. See the [machine-readable source/hash audit](marine-fortis-kill-team-audit.json).

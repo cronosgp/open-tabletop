@@ -15,6 +15,8 @@ const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const LeaderCatalog = preload("res://scripts/edition_11/leader_catalog.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
+const CanoptekMacrocytes = preload("res://scripts/edition_11/canoptek_macrocytes.gd")
+const NecronDoomScythe = preload("res://scripts/edition_11/necron_doom_scythe.gd")
 const RagnarBlackmane = preload("res://scripts/edition_11/ragnar_blackmane.gd")
 const UlrikTheSlayer = preload("res://scripts/edition_11/ulrik_the_slayer.gd")
 const ID := AbilityCatalog.ID
@@ -297,6 +299,16 @@ static func near_objective(state: Dictionary, squad: int, controlled: bool = fal
 			if Objectives.in_range(state.units[model], objective): return true
 	return false
 
+static func near_enemy_controlled_objective(state: Dictionary, relative_to_owner: int, squad: int) -> bool:
+	## True when any living model in squad is in range of an objective controlled by an opponent of relative_to_owner.
+	if not state.get("squads", {}).has(squad): return false
+	for objective: Dictionary in state.get("mission", {}).get("objectives", []):
+		var controller := int(objective.get("controller", 0))
+		if controller == 0 or controller == relative_to_owner: continue
+		for model: int in Geometry.alive(state, squad):
+			if Objectives.in_range(state.units[model], objective): return true
+	return false
+
 static func seeker_of_the_unfound_active(state: Dictionary, model: int) -> bool:
 	if not enabled(state) or not state.units.has(model) or identity(state.units[model]) != "vulkan-hestan": return false
 	var selected: int = int(state.get("unit_abilities", {}).get("seeker_objectives", {}).get(model, -1))
@@ -323,7 +335,9 @@ static func hit_bonus(state: Dictionary, squad: int, target: int, melee: bool, m
 	var meteoric_descent := 1 if not melee and has(state, squad, "meteoric-descent") and state.squads[squad].get("move_type", "") == "ingress" else 0
 	var outrider_hammer := 1 if melee and has(state, squad, "full-throttle-assault") and state.squads[squad].get("charged", false) and model >= 0 and identity(state.units[model]) == "outrider-squad" and str(weapon.get("name", "")) == "Thunder Hammer" else 0
 	var ulrik_oathbound := UlrikTheSlayer.oathbound_hit_bonus(state, squad, melee)
-	return Bladeguard.hit_modifier(state, squad, target, melee) + shrouding_penalty + tempests_wrath_penalty + obstinacy_penalty + braziers_penalty + angelic_visage_penalty + character_bonus + interceptor_bonus + strafing_run_bonus + inspirational_exemplar + meteoric_descent + outrider_hammer + ulrik_oathbound + (1 if not melee and state.phase == "shooting" and state.active == state.squads[squad].owner and has(state, squad, "bolter-discipline") and (near_objective(state, squad) or near_objective(state, target)) else 0)
+	var harassment_swarm_penalty := -1 if CanoptekMacrocytes.harassment_swarm_applies(state, squad, target) else 0
+	var atavistic_penalty := NecronDoomScythe.duck_for_cover_hit_penalty(state, squad)
+	return Bladeguard.hit_modifier(state, squad, target, melee) + shrouding_penalty + tempests_wrath_penalty + obstinacy_penalty + braziers_penalty + angelic_visage_penalty + harassment_swarm_penalty + atavistic_penalty + character_bonus + interceptor_bonus + strafing_run_bonus + inspirational_exemplar + meteoric_descent + outrider_hammer + ulrik_oathbound + (1 if not melee and state.phase == "shooting" and state.active == state.squads[squad].owner and has(state, squad, "bolter-discipline") and (near_objective(state, squad) or near_objective(state, target)) else 0)
 
 static func slayer_oath_targets(state: Dictionary, owner: int) -> Array[int]:
 	return UlrikTheSlayer.initial_targets(state, owner)

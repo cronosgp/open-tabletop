@@ -33,6 +33,10 @@ The raw export remains ignored under `.tools`; these hashes identify the recorde
 - The Tank Shock flow uses the common command and defender allocation window: the test checks the Toughness-based dice pool, six-mortal-wound cap, defender-owned allocation, suspended Charge continuation, save/restore of the pending decision and frame, wrong-owner rejection and completion before another reaction.
 - Both Brutalis and Redemptor materialize from the current Space Marines catalog on both sides of the fixture. Admission, source characteristics, Damaged 4, options and copy limit are checked locally.
 
+## Saved Army Workshop equipment
+
+Each Brutalis copy can save the linked replacement of Bolt Rifles + Brutalis Fists with Brutalis Talons and independently replace the Twin Heavy Bolter with a Twin Multi-melta. The local saved-equipment adapter validates all four combinations through `brutalis_weapons`, installs the exact profile before Deployment and locks duplicate preparation edits. The existing three-copy ceiling is unchanged. The Workshop does not certify sculpt parity.
+
 ## Validation and limits
 
 The dedicated offline command passed **3/3 processes** (project import, Python checks and `test_brutalis_dreadnought`), with `network: false`, `legacy_starter_staged: false` and no cleanup diagnostics, at `.tools/verification/20261027T061109103709Z/results.json`:

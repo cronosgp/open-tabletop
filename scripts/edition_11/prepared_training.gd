@@ -1,4 +1,5 @@
 extends RefCounted
+const SavedEquipment = preload("res://scripts/edition_11/saved_equipment_profiles.gd")
 ## Versioned custom setup; does not claim legal official army construction.
 const Combat = preload("res://scripts/edition_11/combat_scenario.gd")
 const Battlefield = preload("res://scripts/edition_11/test_battlefield.gd")
@@ -6,9 +7,47 @@ const Deployment = preload("res://scripts/edition_11/deployment.gd")
 const Training = preload("res://scripts/edition_11/training_roster.gd")
 const MatchManifest = preload("res://scripts/edition_11/match_manifest.gd")
 const CurrentMarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const CurrentNecronProfiles = preload("res://scripts/edition_11/current_reference_necron_profiles.gd")
+const CanoptekMacrocytes = preload("res://scripts/edition_11/canoptek_macrocytes.gd")
+const CanoptekSpyders = preload("res://scripts/edition_11/canoptek_spyders.gd")
+const CanoptekTombCrawlers = preload("res://scripts/edition_11/canoptek_tomb_crawlers.gd")
+const NecronVehicleLoadouts = preload("res://scripts/edition_11/necron_vehicle_loadouts.gd")
 const ChapterRules = preload("res://scripts/edition_11/chapter_rules.gd")
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const ID := "prepared-objective-training-v2"
+
+static func quick_match_options() -> Dictionary:
+	return {
+		"manual_allocation": false,
+		"varied_equipment": false,
+		"core_stratagems": false,
+		"movement_rerolls": false,
+		"attack_rerolls": false,
+		"save_rerolls": false,
+		"damage_rerolls": false,
+		"hazard_rerolls": false,
+		"escape_rerolls": false,
+		"count_rerolls": false,
+		"objective_secured": false,
+		"implacable_eradication": false,
+		"hail_of_bolts": false,
+		"oath_of_moment": false,
+		"reanimation_protocols": false,
+		"combat_doctrines": false,
+		"marine_detachment": "none",
+		"marine_detachments": {1: "none", 2: "none"},
+		"marine_chapters": {1: "", 2: ""},
+		"awakened_dynasty": false,
+		"unit_abilities": true,
+		"official_mission": false,
+		"primary_mission": "battlefield-dominance",
+		"primary_missions": {1: "battlefield-dominance", 2: "battlefield-dominance"},
+		"primary_overrides": {1: true, 2: true},
+		"force_dispositions": {},
+		"secondary_pair": Combat.Mission.DEFAULT_SECONDARY_PAIR,
+		"terrain_layout": Combat.Terrain.DEFAULT_LAYOUT,
+		"checked_rosters": false,
+	}
 
 static func force_disposition_error(reports: Dictionary, force_dispositions: Dictionary) -> String:
 	if force_dispositions.is_empty(): return ""
@@ -95,7 +134,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		if options.get("official_mission", false) and selected_detachment not in ["gladius", "fist-of-the-god-emperor", "vow-sworn-crusaders"]: return {"error": "This Space Marine detachment is not reconciled for the selected CA mission."}
 	if options.get("combat_doctrines", false) and options.get("oath_of_moment", false): return {"error": "11e Combat Doctrines replaces the historical Oath of Moment profile; these options cannot be combined."}
 	for key: Variant in options:
-		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "primary_overrides", "secondary_pair", "force_dispositions", "sealed_force_disposition_reveal", "training_scenario_id"]: continue
+		if key in ["marine_detachment", "marine_detachments", "marine_chapters", "terrain_layout", "primary_mission", "primary_missions", "primary_overrides", "secondary_pair", "force_dispositions", "sealed_force_disposition_reveal", "training_scenario_id", "army_declarations"]: continue
 		if key not in ["manual_allocation", "varied_equipment", "core_stratagems", "movement_rerolls", "attack_rerolls", "save_rerolls", "damage_rerolls", "hazard_rerolls", "count_rerolls", "objective_secured", "implacable_eradication", "escape_rerolls", "hail_of_bolts", "oath_of_moment", "reanimation_protocols", "combat_doctrines", "awakened_dynasty", "unit_abilities", "official_mission", "checked_rosters", "legacy_necron_reference"]: return {"error": "Unsupported match option: " + str(key)}
 		if not options[key] is bool: return {"error": "Match options must be boolean: " + str(key)}
 	if options.get("unit_abilities", false) and (options.get("hail_of_bolts", false) or options.get("objective_secured", false) or options.get("oath_of_moment", false)): return {"error": "Current datasheets cannot combine with historical Hail of Bolts, Objective Secured or Oath profiles."}
@@ -157,7 +196,7 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 	if not disposition_error.is_empty(): return {"error": disposition_error}
 	if force_dispositions.values().any(func(value: Variant) -> bool: return str(value) == "purge-the-foe") and primary_overrides != {1: true, 2: true}:
 		return {"error": "Purge the Foe requires direct primary-mission selections for both players; its matchup defaults are not implemented."}
-	var use_current_templates := current_marine_templates or _current_marine_setup(selections)
+	var use_current_templates := current_marine_templates or _current_reference_setup(selections, bool(options.get("legacy_necron_reference", false)))
 	var state := Battlefield.apply(Combat.initial_state(terrain_layout, Combat.Objectives.TRAINING, 2, manual, varied, use_current_templates))
 	if state.has("error"): return state
 	if core: Combat.Stratagems.enable(state, movement_rerolls, attack_rerolls, save_rerolls, damage_rerolls, hazard_rerolls, count_rerolls, escape_rerolls)
@@ -188,6 +227,9 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 		state.training_points = {1: reports[1].total, 2: reports[2].total}
 		state.saved_army_setup = {"schema_version": 1, "options": {"manual_allocation": manual, "varied_equipment": false, "terrain_layout": terrain_layout},
 			"armies": {1: reports[1].selection, 2: reports[2].selection}}
+		if options.has("army_declarations"):
+			if not options.army_declarations is Dictionary: return {"error": "Saved army declarations must be a per-player map."}
+			state.saved_army_setup.options.army_declarations = options.army_declarations.duplicate(true)
 		if options.get("legacy_necron_reference", false): state.saved_army_setup.options.legacy_necron_reference = true
 		state.saved_army_setup.options.marine_detachments = marine_detachments.duplicate(true)
 		if marine_detachments.get(1, "") == marine_detachments.get(2, "") and marine_detachments.get(1, "") != "none": state.saved_army_setup.options.marine_detachment = marine_detachment
@@ -305,8 +347,73 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 	Combat.Doctrines.apply_detachment_roster_keywords(state)
 	MatchManifest.seal(state, options, reports, manifest_options, ID)
 	Deployment.begin(state)
+	var saved_declaration_error := _apply_saved_warlords(state, options.get("army_declarations", {}))
+	if not saved_declaration_error.is_empty(): return {"error": saved_declaration_error}
 	Combat.Awakened.begin_setup(state)
 	return state
+
+static func _apply_saved_warlords(state: Dictionary, declarations: Variant) -> String:
+	if not declarations is Dictionary: return "Saved army declarations must be a per-player map."
+	if declarations.is_empty(): return ""
+	if not Combat.UnitAbilities.enabled(state): return "Saved Warlord or attachment choices require current unit abilities in this match."
+	for raw_owner: Variant in declarations:
+		var owner := int(raw_owner)
+		if owner not in [1, 2]: return "Saved Warlord declarations must belong to Player 1 or Player 2."
+		var declaration: Variant = declarations[raw_owner]
+		if not declaration is Dictionary or declaration.is_empty() or declaration.size() > 2:
+			return "Player %d has invalid saved army declarations." % owner
+		for declaration_key: Variant in declaration:
+			if str(declaration_key) not in ["warlord", "attachments"]: return "Player %d has an unsupported saved army declaration." % owner
+		if declaration.has("warlord") and not declaration.warlord is Dictionary: return "Player %d's saved Warlord reference is invalid." % owner
+		var attachments: Variant = declaration.get("attachments", [])
+		if not attachments is Array or attachments.size() > 100: return "Player %d's saved Leader assignments are invalid." % owner
+		var setup_players: Array = state.unit_abilities.get("setup_players", []).duplicate()
+		state.unit_abilities.setup_players = [1] if owner == 2 else []
+		var harmless_roll := func(_count: int) -> int: return 1
+		for attachment: Variant in attachments:
+			if not attachment is Dictionary or attachment.size() != 2 or not attachment.get("leader", null) is Dictionary or not attachment.get("target_unit_index", null) is int:
+				return "Player %d has an invalid saved Leader assignment." % owner
+			var leader_ref: Dictionary = attachment.leader
+			if leader_ref.size() != 2 or not leader_ref.get("unit_index", null) is int or not leader_ref.get("model_index", null) is int:
+				return "Player %d's saved Leader miniature reference is invalid." % owner
+			var leader_unit_index := int(leader_ref.unit_index)
+			var leader_model_index := int(leader_ref.model_index)
+			var target_unit_index := int(attachment.target_unit_index)
+			if min(leader_unit_index, leader_model_index, target_unit_index) < 0: return "Player %d's saved Leader assignment is outside the selected army." % owner
+			var leader_squad := owner + leader_unit_index * 2
+			var leader_model := leader_squad * 100 + leader_model_index
+			var target_squad := owner + target_unit_index * 2
+			if not state.squads.has(leader_squad) or not state.units.has(leader_model) or not state.squads.has(target_squad) or int(state.units[leader_model].get("owner", -1)) != owner:
+				return "Player %d's saved Leader assignment no longer maps to the selected army." % owner
+			var attach_choice: Dictionary = {}
+			for candidate: Dictionary in Combat.UnitActions.choices(state, owner):
+				if str(candidate.get("action", "")) == "attach" and int(candidate.get("model", -1)) == leader_model and int(candidate.get("target", -1)) == target_squad:
+					attach_choice = candidate
+					break
+			if attach_choice.is_empty(): return "Player %d's saved Leader or Support assignment is not legal under the current army rules. Review the Battle Formation tab." % owner
+			var attachment_result: Dictionary = Combat.UnitActions.apply(state, owner, attach_choice, Vector2.ZERO, harmless_roll)
+			if not str(attachment_result.get("error", "")).is_empty(): return "Player %d's saved Leader assignment could not be applied: %s" % [owner, str(attachment_result.error)]
+		if declaration.has("warlord"):
+			var reference: Dictionary = declaration.warlord
+			if reference.size() != 2 or not reference.get("unit_index", null) is int or not reference.get("model_index", null) is int:
+				return "Player %d's saved Warlord reference is invalid." % owner
+			var unit_index := int(reference.unit_index)
+			var model_index := int(reference.model_index)
+			if unit_index < 0 or model_index < 0: return "Player %d's saved Warlord reference is outside the selected army." % owner
+			var squad := owner + unit_index * 2
+			var model := squad * 100 + model_index
+			if not state.units.has(model) or int(state.units[model].get("owner", -1)) != owner:
+				return "Player %d's saved Warlord no longer maps to the selected army." % owner
+			var choice: Dictionary = {}
+			for candidate: Dictionary in Combat.UnitActions.choices(state, owner):
+				if str(candidate.get("action", "")) == "warlord" and int(candidate.get("model", -1)) == model:
+					choice = candidate
+					break
+			if choice.is_empty(): return "Player %d's saved Warlord is not available under the current army rules. Review the army before starting." % owner
+			var applied: Dictionary = Combat.UnitActions.apply(state, owner, choice, Vector2.ZERO, harmless_roll)
+			if not str(applied.get("error", "")).is_empty(): return "Player %d's saved Warlord could not be applied: %s" % [owner, str(applied.error)]
+		state.unit_abilities.setup_players = setup_players
+	return ""
 
 static func waiting(options: Dictionary) -> Dictionary:
 	var state := initial_state(options, {}, true, true)
@@ -321,15 +428,23 @@ static func from_setup(setup: Variant) -> Dictionary:
 	if not setup is Dictionary or setup.size() != 3 or setup.get("schema_version") != 1 or not setup.get("options") is Dictionary or not setup.get("armies") is Dictionary: return {"error": "Invalid public training setup."}
 	return initial_state(setup.options, setup.armies)
 
-static func _current_marine_setup(selections: Dictionary) -> bool:
+static func _current_reference_setup(selections: Dictionary, legacy_necron_reference: bool = false) -> bool:
 	if selections.size() != 2: return false
+	var has_necrons := false
 	for owner in [1, 2]:
 		var selection: Variant = selections.get(owner, selections.get(str(owner), {}))
-		if not selection is Dictionary or int(selection.get("schema_version", 0)) != 2 or str(selection.get("faction", "")) != "Space Marines": return false
+		if not selection is Dictionary or int(selection.get("schema_version", 0)) != 2: return false
+		var faction := str(selection.get("faction", ""))
+		if faction == "Necrons":
+			has_necrons = true
+		elif faction != "Space Marines":
+			return false
+	if has_necrons and legacy_necron_reference: return false
 	return true
 
 static func _materialize_mixed(state: Dictionary, original: Dictionary, report: Dictionary, owner: int) -> void:
 	var index := 0
+	var priced_counts: Dictionary = {}
 	for entry: Dictionary in report.selection.entries:
 		var resolved: Dictionary = report.definitions[entry.definition_id]
 		var configuration_key := Training.Capabilities.configuration_key(entry)
@@ -340,6 +455,11 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 			var group: Dictionary = original.squads[spec.template].duplicate(true)
 			group.name = resolved.unit.name + " %d" % (copy + 1)
 			group.training_cost = resolved.cost
+			var pricing: Dictionary = report.get("configuration_pricing", {}).get(configuration_key, {})
+			if not pricing.is_empty():
+				group.training_cost = Training.Roster.tiered_cost(pricing.standard, pricing.third_plus, 1, int(priced_counts.get(entry.definition_id, 0)), pricing.fourth_plus, pricing.second_plus)
+				group.training_cost_from_roster = true
+			priced_counts[entry.definition_id] = int(priced_counts.get(entry.definition_id, 0)) + 1
 			group.enhancement_id = str(entry.get("enhancement_id", ""))
 			group.owner = owner
 			group.faction = report.selection.faction
@@ -348,6 +468,14 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 			group.weapon = resolved.weapons.gun.duplicate(true)
 			group.melee_weapon = resolved.weapons.blade.duplicate(true)
 			group.disabled_abilities = resolved.unsupported_abilities.duplicate()
+			if entry.definition_id == "40kdc:11e:adeptus-astartes:reiver-squad" and entry.has("reiver_loadouts"):
+				var reiver_loadout: Dictionary = entry.reiver_loadouts[copy]
+				group.reiver_grav_chutes = bool(reiver_loadout.get("reiver_grav_chutes", false))
+				group.reiver_grapnel_launchers = bool(reiver_loadout.get("reiver_grapnel_launchers", false))
+				group.reiver_loadout_locked = true
+			if entry.has("saved_unit_loadouts"):
+				group.saved_unit_equipment = entry.saved_unit_loadouts[copy].duplicate(true)
+				group.saved_unit_definition_id = str(entry.definition_id)
 			state.squads[squad] = group
 			var spacing: float = maxf(1.3, float(resolved.unit.base.radius_inches) * 2.0 + 0.1)
 			if entry.definition_id == "40kdc:11e:adeptus-astartes:wolf-scouts": spacing = maxf(spacing, 60.0 / 25.4 + 0.1)
@@ -362,6 +490,128 @@ static func _materialize_mixed(state: Dictionary, original: Dictionary, report: 
 				if entry.definition_id == "40kdc:11e:adeptus-astartes:intercessor-squad" and unit.get("sergeant", false):
 					unit.intercessor_rifle_choice = str(entry.get("intercessor_rifle_choice", "bolt-rifle"))
 					unit.intercessor_melee_choice = str(entry.get("intercessor_melee_choice", "knives-and-fists"))
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:intercessor-squad":
+					unit.intercessor_grenade_launcher = false
+					var launcher_loadouts: Variant = entry.get("intercessor_grenade_launcher_loadouts", [])
+					if launcher_loadouts is Array and copy < launcher_loadouts.size() and launcher_loadouts[copy] is Array and model < launcher_loadouts[copy].size():
+						unit.intercessor_grenade_launcher = bool(launcher_loadouts[copy][model])
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:eliminator-squad" and model == 0 and entry.has("eliminator_sergeant_loadouts"):
+					var eliminator_loadouts: Array = entry.eliminator_sergeant_loadouts
+					unit.eliminator_sergeant_weapon_choice = str(eliminator_loadouts[copy])
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:eliminator-squad" and model > 0 and entry.has("eliminator_trooper_loadouts"):
+					var trooper_loadouts: Array = entry.eliminator_trooper_loadouts[copy]
+					unit.eliminator_trooper_weapon_choice = str(trooper_loadouts[model - 1])
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:outrider-squad" and entry.has("outrider_loadouts"):
+					var outrider_loadouts: Array = entry.outrider_loadouts
+					var outrider_loadout: Dictionary = outrider_loadouts[copy]
+					var plasma_choices: Array = outrider_loadout.plasma_pistol_choices
+					unit.outrider_plasma_pistol = bool(plasma_choices[model])
+					if model == 0: unit.outrider_melee_choice = str(outrider_loadout.sergeant_melee_choice)
+					unit.outrider_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:ravenwing-darkshroud" and entry.has("ravenwing_darkshroud_loadouts"):
+					var darkshroud_loadouts: Array = entry.ravenwing_darkshroud_loadouts
+					unit.ravenwing_darkshroud_assault_cannon = str(darkshroud_loadouts[copy]) == "assault-cannon"
+					unit.ravenwing_darkshroud_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:land-speeder" and entry.has("land_speeder_loadouts"):
+					var land_speeder_loadouts: Array = entry.land_speeder_loadouts
+					unit.land_speeder_pyrecannon = str(land_speeder_loadouts[copy]) == "pyrecannon"
+					unit.land_speeder_loadout_locked = true
+				if entry.has("saved_model_loadouts"):
+					unit.saved_equipment_model_index = model
+					var saved_copy_loadout: Variant = entry.saved_model_loadouts[copy]
+					if saved_copy_loadout is Array and model < saved_copy_loadout.size() and saved_copy_loadout[model] is Dictionary:
+						unit.saved_model_equipment = saved_copy_loadout[model].duplicate(true)
+					elif saved_copy_loadout is Dictionary:
+						unit.saved_model_equipment = saved_copy_loadout.duplicate(true)
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:land-speeder-vengeance" and entry.has("land_speeder_vengeance_loadouts"):
+					var vengeance_loadouts: Array = entry.land_speeder_vengeance_loadouts
+					unit.land_speeder_vengeance_assault_cannon = str(vengeance_loadouts[copy]) == "assault-cannon"
+					unit.land_speeder_vengeance_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:baal-predator" and entry.has("baal_predator_loadouts"):
+					var baal_loadouts: Array = entry.baal_predator_loadouts
+					var baal_loadout: Dictionary = baal_loadouts[copy]
+					unit.baal_predator_primary_cannon = str(baal_loadout.get("baal_predator_primary_cannon", "twin-assault-cannon"))
+					unit.baal_predator_sponson_package = str(baal_loadout.get("baal_predator_sponson_package", "none"))
+					unit.baal_predator_storm_bolter = bool(baal_loadout.get("baal_predator_storm_bolter", false))
+					unit.baal_predator_hunter_killer_missile = bool(baal_loadout.get("baal_predator_hunter_killer_missile", false))
+					unit.baal_predator_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:predator-destructor" and entry.has("predator_destructor_loadouts"):
+					var destructor_loadouts: Array = entry.predator_destructor_loadouts
+					var destructor_loadout: Dictionary = destructor_loadouts[copy]
+					unit.predator_destructor_heavy_bolters = bool(destructor_loadout.get("predator_destructor_heavy_bolters", false))
+					unit.predator_destructor_hunter_killer_missile = bool(destructor_loadout.get("predator_destructor_hunter_killer_missile", false))
+					unit.predator_destructor_storm_bolter = bool(destructor_loadout.get("predator_destructor_storm_bolter", false))
+					unit.predator_destructor_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:predator-annihilator" and entry.has("predator_annihilator_loadouts"):
+					var annihilator_loadouts: Array = entry.predator_annihilator_loadouts
+					var annihilator_loadout: Dictionary = annihilator_loadouts[copy]
+					unit.predator_annihilator_heavy_bolters = bool(annihilator_loadout.get("predator_annihilator_heavy_bolters", false))
+					unit.predator_annihilator_hunter_killer_missile = bool(annihilator_loadout.get("predator_annihilator_hunter_killer_missile", false))
+					unit.predator_annihilator_storm_bolter = bool(annihilator_loadout.get("predator_annihilator_storm_bolter", false))
+					unit.predator_annihilator_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:hellblaster-squad" and entry.has("hellblaster_sergeant_pistol_loadouts") and model == 0:
+					unit.hellblaster_sergeant_pistol_choice = str(entry.hellblaster_sergeant_pistol_loadouts[copy])
+					unit.hellblaster_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:assault-intercessor-squad" and entry.has("assault_intercessor_sergeant_loadouts") and model == 0:
+					var assault_intercessor_loadouts: Array = entry.assault_intercessor_sergeant_loadouts
+					var assault_intercessor_loadout: Dictionary = assault_intercessor_loadouts[copy]
+					unit.assault_intercessor_sergeant_pistol_choice = str(assault_intercessor_loadout.pistol_choice)
+					unit.assault_intercessor_sergeant_melee_choice = str(assault_intercessor_loadout.melee_choice)
+					unit.assault_intercessor_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:heavy-intercessor-squad" and entry.has("heavy_intercessor_bolter_loadouts"):
+					var heavy_intercessor_loadouts: Array = entry.heavy_intercessor_bolter_loadouts
+					var heavy_intercessor_choices: Array = heavy_intercessor_loadouts[copy]
+					unit.heavy_intercessor_saved_bolter_choice = bool(heavy_intercessor_choices[model])
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:inceptor-squad" and entry.has("inceptor_loadouts"):
+					var inceptor_loadouts: Array = entry.inceptor_loadouts[copy]
+					unit.inceptor_plasma_exterminators = str(inceptor_loadouts[model]) == "plasma-exterminators"
+					unit.inceptor_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:invader-atvs" and entry.has("invader_atv_loadouts"):
+					var invader_atv_loadouts: Array = entry.invader_atv_loadouts[copy]
+					unit.invader_atv_multi_melta = bool(invader_atv_loadouts[model])
+					unit.invader_atv_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:aggressor-squad" and entry.has("aggressor_loadouts"):
+					var aggressor_loadouts: Array = entry.aggressor_loadouts[copy]
+					unit.aggressor_saved_boltstorm_choice = bool(aggressor_loadouts[model])
+					unit.aggressor_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:adeptus-astartes:scout-squad" and entry.has("scout_loadouts"):
+					var scout_model_loadout: Dictionary = entry.scout_loadouts[copy][model]
+					unit.scout_saved_gun_choice = str(scout_model_loadout.get("scout_gun", "boltgun"))
+					if model == 0: unit.scout_saved_blade_choice = str(scout_model_loadout.get("scout_sergeant_blade", "combat-knife"))
+					unit.scout_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:necrons:necron-warriors" and entry.has("necron_warrior_loadouts"):
+					var warrior_loadouts: Array = entry.necron_warrior_loadouts[copy]
+					unit.necron_warrior_weapon_choice = str(warrior_loadouts[model])
+					unit.necron_warrior_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:necrons:immortals" and entry.has("immortal_loadouts"):
+					var immortal_loadouts: Array = entry.immortal_loadouts[copy]
+					unit.immortal_weapon_choice = str(immortal_loadouts[model])
+					unit.immortal_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:necrons:canoptek-macrocytes" and entry.has("canoptek_macrocytes_loadouts"):
+					var macrocyte_loadouts: Array = entry.canoptek_macrocytes_loadouts[copy]
+					unit.canoptek_macrocytes_loadout = str(macrocyte_loadouts[model])
+					unit.canoptek_macrocytes_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:necrons:canoptek-spyders" and entry.has("canoptek_spyders_loadouts"):
+					var spyder_loadouts: Array = entry.canoptek_spyders_loadouts[copy]
+					var spyder_equipment: Dictionary = spyder_loadouts[model]
+					for equipment_field: Variant in spyder_equipment:
+						unit[str(equipment_field)] = bool(spyder_equipment[equipment_field])
+					unit.canoptek_spyders_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:necrons:canoptek-tomb-crawlers" and entry.has("canoptek_tomb_crawlers_loadouts"):
+					var tomb_crawler_loadouts: Array = entry.canoptek_tomb_crawlers_loadouts[copy]
+					var tomb_crawler_equipment: Dictionary = tomb_crawler_loadouts[model]
+					unit.canoptek_tomb_crawlers_loadout = str(tomb_crawler_equipment.get("canoptek_tomb_crawlers_loadout", CanoptekTombCrawlers.GAUSS_REAPER))
+					unit.canoptek_tomb_crawlers_loadout_locked = true
+				if entry.definition_id == "40kdc:11e:necrons:annihilation-barge" and entry.has("necron_annihilation_barge_loadouts"):
+					var barge_loadouts: Array = entry.necron_annihilation_barge_loadouts[copy]
+					var barge_choice := str(barge_loadouts[model])
+					var barge_error := NecronVehicleLoadouts.prepare_model(unit, entry.definition_id, barge_choice)
+					if not barge_error.is_empty(): state.setup_error = barge_error
+				if entry.definition_id == "40kdc:11e:necrons:monolith" and entry.has("necron_monolith_loadouts"):
+					var monolith_loadouts: Array = entry.necron_monolith_loadouts[copy]
+					var monolith_choice := str(monolith_loadouts[model])
+					var monolith_error := NecronVehicleLoadouts.prepare_model(unit, entry.definition_id, monolith_choice)
+					if not monolith_error.is_empty(): state.setup_error = monolith_error
 				if entry.definition_id == "40kdc:11e:adeptus-astartes:company-heroes": unit.company_heroes_model = model
 				if entry.definition_id == "40kdc:11e:adeptus-astartes:grey-hunters": unit.grey_hunters_model = model
 				if entry.definition_id == "40kdc:11e:adeptus-astartes:spectrus-kill-team": unit.spectrus_kill_team_model = model
@@ -429,7 +679,7 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 			if marine_profile.is_empty(): return "No current-reference fixed loadout is recorded for " + source
 			var squad: int = unit.squad
 			state.squads[squad].stats = marine_profile.stats.duplicate(true)
-			if marine_profile.has("points"): state.squads[squad].training_cost = int(marine_profile.get("points_by_models", {}).get(state.squads[squad].starting_strength, marine_profile.points))
+			if marine_profile.has("points") and not bool(state.squads[squad].get("training_cost_from_roster", false)): state.squads[squad].training_cost = int(marine_profile.get("points_by_models", {}).get(state.squads[squad].starting_strength, marine_profile.points))
 			if not marine_profile.ranged.is_empty():
 				var ranged_profiles: Dictionary = marine_profile.ranged[0].profiles
 				state.squads[squad].weapon = ranged_profiles.values()[0].duplicate(true)
@@ -447,6 +697,118 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 			if marine_profile.has("base_radius_inches"): unit.radius = float(marine_profile.base_radius_inches)
 			unit.ranged_weapons = marine_profile.ranged.duplicate(true)
 			unit.melee_weapons = marine_profile.melee.duplicate(true)
+			if source == "inceptor-squad":
+				var inceptor_plasma := bool(unit.get("inceptor_plasma_exterminators", false))
+				var inceptor_default: Array = marine_profile.get("ranged", [])
+				var inceptor_alternatives: Array = marine_profile.get("additional_weapon_profiles", {}).get("ranged", [])
+				if inceptor_default.size() != 1 or str(inceptor_default[0].get("id", "")) != "assault-bolters": return "Inceptor Squad requires its source-listed Assault Bolters default profile."
+				if inceptor_plasma:
+					if inceptor_alternatives.size() != 1 or str(inceptor_alternatives[0].get("id", "")) != "plasma-exterminators": return "Inceptor Plasma Exterminators require their complete source-listed weapon profiles."
+					unit.ranged_weapons = [inceptor_alternatives[0].duplicate(true)]
+				else:
+					unit.ranged_weapons = [inceptor_default[0].duplicate(true)]
+				unit.inceptor_plasma_exterminators = inceptor_plasma
+			if source == "aggressor-squad" and unit.has("aggressor_saved_boltstorm_choice"):
+				var boltstorm := bool(unit.aggressor_saved_boltstorm_choice)
+				var aggressor_ranged := CurrentMarineProfiles.aggressor_ranged(boltstorm)
+				if boltstorm:
+					if aggressor_ranged.size() != 2 or str(aggressor_ranged[0].get("id", "")) != "auto-boltstorm-gauntlets" or str(aggressor_ranged[1].get("id", "")) != "fragstorm-grenade-launcher": return "Aggressor Boltstorm/Fragstorm requires its complete source-listed weapon package."
+				else:
+					if aggressor_ranged.size() != 1 or str(aggressor_ranged[0].get("id", "")) != "flamestorm-gauntlets": return "Aggressor Squad requires its complete source-listed Flamestorm default profile."
+				unit.ranged_weapons = aggressor_ranged.duplicate(true)
+				if bool(unit.get("sergeant", false)): state.squads[squad].weapon = aggressor_ranged[0].profiles.values()[0].duplicate(true)
+			if source == "land-speeder":
+				var land_speeder_pyrecannon := bool(unit.get("land_speeder_pyrecannon", false))
+				var land_speeder_ranged: Array = marine_profile.get("ranged", []).duplicate(true)
+				var land_speeder_additional: Array = marine_profile.get("additional_weapon_profiles", {}).get("ranged", [])
+				if land_speeder_ranged.size() != 3 or not land_speeder_ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "onslaught-gatling-cannon"):
+					return "Land Speeder requires its complete source-listed Onslaught Gatling Cannon default profile."
+				if land_speeder_pyrecannon:
+					if land_speeder_additional.size() != 1 or str(land_speeder_additional[0].get("id", "")) != "pyrecannon":
+						return "Land Speeder Pyrecannon requires its complete source-listed replacement profile."
+					land_speeder_ranged = land_speeder_ranged.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) != "onslaught-gatling-cannon")
+					land_speeder_ranged.append(land_speeder_additional[0].duplicate(true))
+				if land_speeder_ranged.size() != 3 or land_speeder_ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "onslaught-gatling-cannon") == land_speeder_pyrecannon:
+					return "Land Speeder saved cannon choice did not resolve to its source-listed weapon package."
+				unit.ranged_weapons = land_speeder_ranged
+				unit.land_speeder_pyrecannon = land_speeder_pyrecannon
+			if source == "land-speeder-vengeance":
+				var vengeance_assault_cannon := bool(unit.get("land_speeder_vengeance_assault_cannon", false))
+				var vengeance_ranged: Array = marine_profile.get("ranged", []).duplicate(true)
+				var vengeance_additional: Array = marine_profile.get("additional_weapon_profiles", {}).get("ranged", [])
+				if vengeance_ranged.size() != 2 or not vengeance_ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "heavy-bolter"):
+					return "Land Speeder Vengeance requires its source-listed Heavy Bolter default profile."
+				if vengeance_assault_cannon:
+					if vengeance_additional.size() != 1 or str(vengeance_additional[0].get("id", "")) != "assault-cannon":
+						return "Land Speeder Vengeance Assault Cannon requires its complete source-listed replacement profile."
+					vengeance_ranged = vengeance_ranged.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) != "heavy-bolter")
+					vengeance_ranged.append(vengeance_additional[0].duplicate(true))
+				if vengeance_ranged.size() != 2 or vengeance_ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "heavy-bolter") == vengeance_assault_cannon:
+					return "Land Speeder Vengeance saved cannon choice did not resolve to its source-listed weapon package."
+				unit.ranged_weapons = vengeance_ranged
+				unit.land_speeder_vengeance_assault_cannon = vengeance_assault_cannon
+			if source == "baal-predator" and unit.has("baal_predator_primary_cannon"):
+				var baal_weapons := CurrentMarineProfiles.baal_predator_weapons(
+					str(unit.get("baal_predator_primary_cannon", "twin-assault-cannon")),
+					str(unit.get("baal_predator_sponson_package", "none")),
+					bool(unit.get("baal_predator_storm_bolter", false)),
+					bool(unit.get("baal_predator_hunter_killer_missile", false)))
+				if baal_weapons.is_empty(): return "Baal Predator equipment does not resolve to a complete source-listed weapon package."
+				unit.ranged_weapons = baal_weapons
+				unit.baal_predator_loadout_locked = true
+			if source == "predator-destructor" and unit.has("predator_destructor_heavy_bolters"):
+				var destructor_weapons := CurrentMarineProfiles.predator_destructor_weapons(
+					bool(unit.get("predator_destructor_heavy_bolters", false)),
+					bool(unit.get("predator_destructor_hunter_killer_missile", false)),
+					bool(unit.get("predator_destructor_storm_bolter", false)))
+				if destructor_weapons.is_empty(): return "Predator Destructor equipment does not resolve to a complete source-listed weapon package."
+				unit.ranged_weapons = destructor_weapons.ranged
+				unit.melee_weapons = destructor_weapons.melee
+				unit.predator_destructor_loadout_locked = true
+			if source == "predator-annihilator" and unit.has("predator_annihilator_heavy_bolters"):
+				var annihilator_weapons := CurrentMarineProfiles.predator_annihilator_weapons(
+					bool(unit.get("predator_annihilator_heavy_bolters", false)),
+					bool(unit.get("predator_annihilator_hunter_killer_missile", false)),
+					bool(unit.get("predator_annihilator_storm_bolter", false)))
+				if annihilator_weapons.is_empty(): return "Predator Annihilator equipment does not resolve to a complete source-listed weapon package."
+				unit.ranged_weapons = annihilator_weapons.ranged
+				unit.melee_weapons = annihilator_weapons.melee
+				unit.predator_annihilator_loadout_locked = true
+			if source == "hellblaster-squad" and unit.get("sergeant", false) and unit.has("hellblaster_sergeant_pistol_choice"):
+				var pistol_choice := str(unit.hellblaster_sergeant_pistol_choice)
+				if pistol_choice not in ["bolt-pistol", "plasma-pistol"]: return "Hellblaster Sergeant pistol choice is outside the local source-listed options."
+				if unit.ranged_weapons.size() != 2 or str(unit.ranged_weapons[1].get("id", "")) != "bolt-pistol": return "Hellblaster Squad requires its complete local Bolt Pistol default profile."
+				var pistol := CurrentMarineProfiles.hellblaster_pistol(pistol_choice == "plasma-pistol")
+				if pistol.is_empty() or str(pistol.get("id", "")) != pistol_choice: return "The selected Hellblaster Sergeant pistol profile is missing from the verified local source."
+				unit.ranged_weapons[1] = pistol
+				unit.plasma_pistol = pistol_choice == "plasma-pistol"
+				unit.hellblaster_loadout_locked = true
+			if source == "assault-intercessor-squad" and unit.get("sergeant", false) and unit.has("assault_intercessor_sergeant_pistol_choice"):
+				var pistol_choice := str(unit.assault_intercessor_sergeant_pistol_choice)
+				var melee_choice := str(unit.assault_intercessor_sergeant_melee_choice)
+				if pistol_choice not in ["heavy-bolt-pistol", "hand-flamer", "plasma-pistol"] or melee_choice not in ["chainsword", "power-fist", "power-weapon", "thunder-hammer"]: return "Assault Intercessor Sergeant equipment is outside the local source-listed options."
+				if unit.ranged_weapons.size() != 1 or str(unit.ranged_weapons[0].get("id", "")) != "heavy-bolt-pistol" or unit.melee_weapons.size() != 1 or str(unit.melee_weapons[0].get("id", "")) != "chainsword": return "Assault Intercessor Sergeant requires its complete local default weapon profiles."
+				var pistol := CurrentMarineProfiles.assault_intercessor_sergeant_pistol(pistol_choice)
+				var melee := CurrentMarineProfiles.assault_intercessor_sergeant_melee(melee_choice)
+				if pistol.is_empty() or str(pistol.get("id", "")) != pistol_choice or melee.is_empty() or str(melee.get("id", "")) != melee_choice: return "The selected Assault Intercessor Sergeant weapon profile is missing from the verified local source."
+				unit.ranged_weapons = [pistol]
+				unit.melee_weapons = [melee]
+				unit.assault_intercessor_loadout_locked = true
+			if source == "eliminator-squad" and unit.get("sergeant", false) and unit.has("eliminator_sergeant_weapon_choice"):
+				var resolved_eliminator_weapon := CurrentMarineProfiles.eliminator_gun(str(unit.eliminator_sergeant_weapon_choice))
+				if resolved_eliminator_weapon.is_empty(): return "Eliminator Sergeant weapon choice is not present in the verified current profile."
+				unit.ranged_weapons[0] = resolved_eliminator_weapon
+				unit.eliminator_sergeant_loadout_locked = true
+			if source == "eliminator-squad" and not unit.get("sergeant", false) and unit.has("eliminator_trooper_weapon_choice"):
+				var resolved_trooper_weapon := CurrentMarineProfiles.eliminator_gun(str(unit.eliminator_trooper_weapon_choice))
+				if resolved_trooper_weapon.is_empty(): return "Eliminator trooper weapon choice is not present in the verified current profile."
+				unit.ranged_weapons[0] = resolved_trooper_weapon
+				unit.eliminator_trooper_loadout_locked = true
+				if source == "eliminator-squad" and unit.get("sergeant", false) and unit.has("eliminator_sergeant_weapon_choice"):
+					var eliminator_gun := CurrentMarineProfiles.eliminator_gun(str(unit.eliminator_sergeant_weapon_choice))
+					if eliminator_gun.is_empty(): return "Eliminator Sergeant weapon choice is not present in the verified current profile."
+					unit.ranged_weapons[0] = eliminator_gun
+					unit.eliminator_sergeant_loadout_locked = true
 			if source == "cerberus":
 				unit.cerberus_optional_weapon = "none"
 				unit.cerberus_optional_pair = "none"
@@ -482,12 +844,19 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 				unit.core_abilities = marine_profile.core_abilities.duplicate(true)
 			if source == "sternguard-veteran-squad" and unit.get("sergeant", false): unit.melee_weapons = [CurrentMarineProfiles.sternguard_melee("chain")]
 			if source == "scout-squad":
-				unit.scout_gun = "boltgun"
-				unit.scout_blade = "combat-knife"
+				var scout_gun := str(unit.get("scout_saved_gun_choice", "boltgun"))
+				var scout_blade := str(unit.get("scout_saved_blade_choice", "combat-knife")) if unit.get("sergeant", false) else "combat-knife"
+				var scout_ranged := CurrentMarineProfiles.scout_ranged(scout_gun)
+				var scout_melee := CurrentMarineProfiles.scout_melee(scout_blade)
+				if scout_ranged.is_empty() or scout_melee.is_empty(): return "Scout saved equipment does not resolve to the verified local weapon profiles."
+				unit.scout_gun = scout_gun
+				unit.scout_blade = scout_blade
+				unit.ranged_weapons = scout_ranged
+				unit.melee_weapons = scout_melee
+				unit.scout_loadout_locked = unit.has("scout_saved_gun_choice")
 			if source == "intercessor-squad":
 				unit.intercessor_melee_choice = str(unit.get("intercessor_melee_choice", "knives-and-fists"))
 				unit.intercessor_rifle_choice = str(unit.get("intercessor_rifle_choice", "bolt-rifle"))
-				unit.intercessor_grenade_launcher = false
 				Combat.UnitActions._intercessor_weapons(unit)
 			if source == "deathwatch-veterans":
 				unit.deathwatch_veteran_loadout = "default"
@@ -631,8 +1000,18 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 				unit.ranged_weapons = lieutenant_weapons.ranged
 				unit.melee_weapons = lieutenant_weapons.melee
 			if source == "invader-atvs":
-				unit.invader_atv_multi_melta = false
-				unit.ranged_weapons = CurrentMarineProfiles.invader_atv_weapons()
+				var has_saved_invader_atv_loadout := bool(unit.get("invader_atv_loadout_locked", false))
+				var invader_atv_multi_melta := bool(unit.get("invader_atv_multi_melta", false)) if has_saved_invader_atv_loadout else false
+				unit.invader_atv_multi_melta = invader_atv_multi_melta
+				unit.invader_atv_loadout_locked = has_saved_invader_atv_loadout
+				unit.ranged_weapons = CurrentMarineProfiles.invader_atv_weapons(invader_atv_multi_melta)
+				if has_saved_invader_atv_loadout and not bool(state.squads[unit.squad].get("training_cost_from_roster", false)):
+					var equipped_count := 0
+					for member: int in state.units:
+						if int(state.units[member].get("squad", -1)) == int(unit.squad) and str(state.units[member].get("definition_id", "")).ends_with(":invader-atvs") and bool(state.units[member].get("invader_atv_multi_melta", false)): equipped_count += 1
+					var atv_profile := CurrentMarineProfiles.profile("invader-atvs")
+					var base_cost := int(atv_profile.get("points_by_models", {}).get(int(state.squads[unit.squad].get("starting_strength", 1)), atv_profile.get("points", 0)))
+					state.squads[unit.squad].training_cost = base_cost + equipped_count * int(atv_profile.get("wargear_costs", {}).get("multi-melta", 0))
 			if source == "company-heroes":
 				var model_index := int(unit.get("company_heroes_model", -1))
 				var heroes_loadouts: Array = marine_profile.get("model_loadouts", [])
@@ -781,9 +1160,12 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 				unit.ranged_weapons = execrator_weapons.ranged
 				unit.melee_weapons = execrator_weapons.melee
 			if source == "outrider-squad":
-				unit.outrider_plasma_pistol = false
-				unit.outrider_melee_choice = "chainsword"
-				var outrider_weapons := CurrentMarineProfiles.outrider_weapons(false, "chainsword")
+				var outrider_plasma_pistol := bool(unit.get("outrider_plasma_pistol", false))
+				var outrider_melee_choice := str(unit.get("outrider_melee_choice", "chainsword")) if unit.get("sergeant", false) else "chainsword"
+				unit.outrider_plasma_pistol = outrider_plasma_pistol
+				unit.outrider_melee_choice = outrider_melee_choice
+				var outrider_weapons := CurrentMarineProfiles.outrider_weapons(outrider_plasma_pistol, outrider_melee_choice)
+				if outrider_weapons.is_empty(): return "Outrider equipment choice is not present in the verified current profile."
 				unit.ranged_weapons = outrider_weapons.ranged
 				unit.melee_weapons = outrider_weapons.melee
 			if source == "scout-bike-squad":
@@ -807,9 +1189,39 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 				unit.ravenwing_command_grenade_launcher = false
 				unit.ranged_weapons = command_loadout.ranged.duplicate(true)
 				unit.melee_weapons = command_loadout.melee.duplicate(true)
-			if source == "ravenwing-darkshroud": unit.ravenwing_darkshroud_assault_cannon = false
+			if source == "ravenwing-darkshroud":
+				var darkshroud_assault_cannon := bool(unit.get("ravenwing_darkshroud_assault_cannon", false))
+				var darkshroud_profile := CurrentMarineProfiles.profile("ravenwing-darkshroud")
+				var darkshroud_ranged: Array = darkshroud_profile.get("ranged", []).duplicate(true)
+				var additional_darkshroud_ranged: Array = darkshroud_profile.get("additional_weapon_profiles", {}).get("ranged", [])
+				if darkshroud_ranged.size() != 1 or str(darkshroud_ranged[0].get("id", "")) != "heavy-bolter" or (darkshroud_assault_cannon and additional_darkshroud_ranged.size() != 1):
+					return "Ravenwing Darkshroud requires its complete local Heavy Bolter and Assault Cannon weapon profiles."
+				if darkshroud_assault_cannon:
+					darkshroud_ranged = darkshroud_ranged.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) != "heavy-bolter")
+					darkshroud_ranged.append(additional_darkshroud_ranged[0].duplicate(true))
+					if darkshroud_ranged.size() != 1 or str(darkshroud_ranged[0].get("id", "")) != "assault-cannon":
+						return "Ravenwing Darkshroud Assault Cannon replacement did not resolve to its source-listed weapon."
+				unit.ravenwing_darkshroud_assault_cannon = darkshroud_assault_cannon
+				unit.ranged_weapons = darkshroud_ranged
 			if source == "heavy-intercessor-squad":
-				unit.heavy_intercessor_heavy_bolter = false
+				var heavy_intercessor_profile := CurrentMarineProfiles.profile("heavy-intercessor-squad")
+				var heavy_intercessor_ranged: Array = heavy_intercessor_profile.get("ranged", []).duplicate(true)
+				var heavy_intercessor_melee: Array = heavy_intercessor_profile.get("melee", []).duplicate(true)
+				if heavy_intercessor_ranged.size() != 2 or not heavy_intercessor_ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "heavy-bolt-rifle") or not heavy_intercessor_ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "bolt-pistol") or heavy_intercessor_melee.size() != 1:
+					return "Heavy Intercessor requires its complete source-listed default weapon profiles."
+				var selected_heavy_bolter := bool(unit.get("heavy_intercessor_saved_bolter_choice", false)) and not bool(unit.get("sergeant", false))
+				if selected_heavy_bolter:
+					var heavy_intercessor_additional: Array = heavy_intercessor_profile.get("additional_weapon_profiles", {}).get("ranged", [])
+					if heavy_intercessor_additional.size() != 1 or str(heavy_intercessor_additional[0].get("id", "")) != "heavy-bolter": return "Heavy Intercessor Heavy Bolter requires its complete source-listed replacement profile."
+					heavy_intercessor_ranged = heavy_intercessor_ranged.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) != "heavy-bolt-rifle")
+					heavy_intercessor_ranged.append(heavy_intercessor_additional[0].duplicate(true))
+					if heavy_intercessor_ranged.size() != 2 or heavy_intercessor_ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "heavy-bolt-rifle") or not heavy_intercessor_ranged.any(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) == "heavy-bolter"):
+						return "Heavy Intercessor saved Heavy Bolter choice did not resolve to its source-listed weapon package."
+				unit.ranged_weapons = heavy_intercessor_ranged
+				unit.melee_weapons = heavy_intercessor_melee
+				unit.heavy_intercessor_heavy_bolter = selected_heavy_bolter
+				unit.heavy_intercessor_loadout_locked = unit.has("heavy_intercessor_saved_bolter_choice")
+				unit.erase("heavy_intercessor_saved_bolter_choice")
 			if source == "brutalis-dreadnought":
 				unit.brutalis_talons = false
 				unit.brutalis_multi_melta = false
@@ -824,8 +1236,8 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 				unit.ranged_weapons = death_company_weapons.ranged
 				unit.melee_weapons = death_company_weapons.melee
 			if source == "invictor-tactical-warsuit":
-				unit.invictor_autocannon = false
-				unit.ranged_weapons = CurrentMarineProfiles.invictor_weapons()
+				unit.invictor_autocannon = bool(unit.get("invictor_autocannon", false))
+				unit.ranged_weapons = CurrentMarineProfiles.invictor_weapons(unit.invictor_autocannon)
 			if source == "desolation-squad":
 				unit.desolation_rocket = "superfrag"
 				unit.ranged_weapons = CurrentMarineProfiles.desolation_weapons()
@@ -843,6 +1255,8 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 				if veteran_weapons.is_empty(): return "Vanguard Veteran Squad requires its source-listed default equipment."
 				unit.ranged_weapons = veteran_weapons.ranged
 				unit.melee_weapons = veteran_weapons.melee
+			if unit.has("saved_model_equipment"):
+				SavedEquipment.prepare(unit, "40kdc:11e:adeptus-astartes:" + source, unit.saved_model_equipment, int(state.squads[squad].starting_strength), int(unit.get("saved_equipment_model_index", unit.get("wolf_scouts_model", unit.get("wolf_guard_headtaker_model", -1)))))
 			marine_profiles_used = true
 			continue
 		var owner_source_key := "%d:%s" % [int(unit.get("owner", -1)), str(unit.get("definition_id", ""))]
@@ -858,6 +1272,21 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 		var resolved: Dictionary = cache[owner_source_key]
 		if resolved.get("requires_current_abilities", false):
 			current_reference_digests[str(resolved.spec.faction)] = str(resolved.get("pack_hash", ""))
+		if source == "canoptek-macrocytes":
+			unit.canoptek_macrocytes_loadout = str(unit.get("canoptek_macrocytes_loadout", CanoptekMacrocytes.GAUSS_SCALPEL))
+			var macrocyte_weapons := CanoptekMacrocytes.weapons(str(unit.canoptek_macrocytes_loadout))
+			if macrocyte_weapons.is_empty(): return "Canoptek Macrocytes requires a source-listed local equipment profile."
+			unit.ranged_weapons = macrocyte_weapons.ranged
+			unit.melee_weapons = macrocyte_weapons.melee
+			continue
+		if source == "canoptek-spyders":
+			var spyder_error := CanoptekSpyders.prepare_model(unit)
+			if not spyder_error.is_empty(): return spyder_error
+			continue
+		if source == "canoptek-tomb-crawlers":
+			var crawler_error := CanoptekTombCrawlers.prepare_model(unit)
+			if not crawler_error.is_empty(): return crawler_error
+			continue
 		var profiles := {"standard": resolved.weapons.gun.duplicate(true)}
 		var has_ranged: bool = resolved.weapons.gun is Dictionary and resolved.weapons.gun.has("name")
 		if source == "intercessor-squad":
@@ -867,6 +1296,14 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 				for profile: Dictionary in weapon.profiles:
 					profiles[profile.name.to_snake_case()] = Training.Capabilities.weapon(resolved.unit, [weapon.id, profile.name])
 		unit.ranged_weapons = [{"id": "primary", "profiles": profiles}] if has_ranged else []
+		if source in ["necron-warriors", "immortals"]:
+			var is_warrior := source == "necron-warriors"
+			var choice_key := "necron_warrior_weapon_choice" if is_warrior else "immortal_weapon_choice"
+			if unit.has(choice_key):
+				if not resolved.get("uses_current_reference", false) or str(resolved.get("pack_hash", "")) != CurrentNecronProfiles.digest(): return "Saved Necron model equipment requires the matching verified 11e local profile."
+				var selected_weapon := _necron_model_weapon(CurrentNecronProfiles.profile(source), str(unit[choice_key]))
+				if selected_weapon.is_empty(): return "The saved Necron model weapon is not present in the current local datasheet profile."
+				unit.ranged_weapons = [selected_weapon]
 		var fixed_ranged: Array = resolved.unit.get("fixed_ranged_weapons", [])
 		if not fixed_ranged.is_empty():
 			unit.ranged_weapons = []
@@ -884,9 +1321,29 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 			if source == "lieutenant": pistol.strength = 5
 			unit.ranged_weapons.append({"id": "pistol", "profiles": {"standard": pistol}})
 		unit.melee_weapons = [{"id": "melee", "profiles": {"standard": resolved.weapons.blade.duplicate(true)}}]
+		var definition_id := str(unit.get("definition_id", ""))
+		if definition_id.begins_with("40kdc:11e:necrons:") and unit.has("saved_model_equipment") and SavedEquipment.supports(definition_id):
+			if not resolved.get("uses_current_reference", false) or str(resolved.get("pack_hash", "")) != CurrentNecronProfiles.digest():
+				return "Saved Necron model equipment requires the matching verified 11e local profile."
+			var saved_squad_id := int(unit.get("squad", -1))
+			var saved_model_count := int(state.squads.get(saved_squad_id, {}).get("starting_strength", 0))
+			SavedEquipment.prepare(unit, definition_id, unit.saved_model_equipment, saved_model_count, int(unit.get("saved_equipment_model_index", -1)))
+			if not bool(unit.get("necron_saved_equipment_locked", false)):
+				return "The saved Necron weapon choice is missing from the matching local datasheet profile."
+	for squad: Dictionary in state.get("squads", {}).values():
+		if squad.has("saved_unit_equipment"): SavedEquipment.prepare_unit(squad, str(squad.get("saved_unit_definition_id", "")), squad.saved_unit_equipment)
 	if marine_profiles_used:
 		state.pack_hash = str(state.get("pack_hash", "")) + ":" + CurrentMarineProfiles.ID + ":" + CurrentMarineProfiles.digest()
 	for faction: String in current_reference_digests:
 		if faction == "Space Marines": continue
 		state.pack_hash = str(state.get("pack_hash", "")) + ":" + Training.Capabilities.ID + ":" + faction + ":" + current_reference_digests[faction]
 	return ""
+
+static func _necron_model_weapon(profile: Dictionary, weapon_id: String) -> Dictionary:
+	for weapon: Dictionary in profile.get("ranged", []):
+		if str(weapon.get("id", "")) == weapon_id: return weapon.duplicate(true)
+	var additional: Variant = profile.get("additional_weapon_profiles", {}).get("ranged", [])
+	if additional is Array:
+		for weapon: Variant in additional:
+			if weapon is Dictionary and str(weapon.get("id", "")) == weapon_id: return weapon.duplicate(true)
+	return {}

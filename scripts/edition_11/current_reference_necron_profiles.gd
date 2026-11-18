@@ -227,7 +227,6 @@ static func profile(source: String) -> Dictionary:
 			["Leader", "Reanimation Protocols", "Ancient Collector", "Surrogate Hosts"],
 			["leader"], ["Reanimation Protocols", "Ancient Collector", "Surrogate Hosts"],
 			[], ["000000534", "000000536", "000000535"], [])
-		trazyn.unsupported_weapon_rules = ["Empathic Obliterator: Sustained Hits D3"]
 		return trazyn
 	if source == "lychguard":
 		return _record("lychguard", "Lychguard", "000000536", "Lychguard", {5: 80, 10: 160}, 5, 32,
@@ -259,20 +258,25 @@ static func profile(source: String) -> Dictionary:
 			["NECRONS", "FLY", "TRIARCH", "PRAETORIANS", "INFANTRY"],
 			[{"id": "rod-of-covenant", "profiles": {"standard": _weapon("Rod of covenant", 12.0, 1, 3, 5, -2, 2, {})}}],
 			[{"id": "rod-of-covenant", "profiles": {"standard": _weapon("Rod of covenant", 0.0, 3, 3, 5, -2, 2, {})}}],
-			["Deep Strike", "Reanimation Protocols", "Relentless Combatants"], ["deep-strike", "reanimation-protocols"], ["Relentless Combatants"], [], [],
-			[{"id": "praetorians-rod-replacement", "kind": "all_models_linked_weapon_replacement", "from": ["rod-of-covenant-ranged", "rod-of-covenant-melee"], "to": ["particle-caster", "voidblade"], "implemented": false}])
+			["Deep Strike", "Reanimation Protocols", "Relentless Combatants"], ["deep-strike", "reanimation-protocols", "relentless-combatants"], [], [], [],
+			[{"id": "praetorians-rod-replacement", "kind": "all_models_linked_weapon_replacement", "from": ["rod-of-covenant-ranged", "rod-of-covenant-melee"], "to": ["particle-caster", "voidblade"], "implemented": true}])
 		praetorians.additional_weapon_profiles = {
 			"ranged": [{"id": "particle-caster", "profiles": {"standard": _weapon("Particle caster", 12.0, 3, 3, 5, 0, 1, {"devastating-wounds": true, "pistol": true})}}],
 			"melee": [{"id": "voidblade", "profiles": {"standard": _weapon("Voidblade", 0.0, 4, 3, 5, -2, 1, {})}}]
 		}
+		praetorians.pending_source_checks = []
+		praetorians.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
 		return praetorians
 	if source == "skorpekh-destroyers":
-		return _record("skorpekh-destroyers", "Skorpekh Destroyers", "000002110", "Skorpekh-Destroyers", {3: 85, 6: 170}, 3, 50,
+		var skorpekh := _record("skorpekh-destroyers", "Skorpekh Destroyers", "000002110", "Skorpekh-Destroyers", {3: 85, 6: 170}, 3, 50,
 			{"movement_inches": 8, "toughness": 6, "save_target": 3, "wounds": 3, "leadership_target": 7, "objective_control": 2, "invulnerable_target": 0},
 			["NECRONS", "INFANTRY", "SKORPEKH DESTROYERS", "DESTROYER CULT"], [],
 			[{"id": "skorpekh-hyperphase-weapons", "profiles": {"standard": _weapon("Skorpekh hyperphase weapons", 0.0, 4, 3, 7, -2, 2, {})}}],
-			["Reanimation Protocols", "Plasmacyte", "Whirling Onslaught"], ["reanimation-protocols"], ["Plasmacyte", "Whirling Onslaught"], ["000002109"], [],
-			[{"id": "skorpekh-plasmacytes", "kind": "optional-unit-equipment", "item": "Plasmacyte", "maximum": "one-per-three-models", "implemented": false}], {3: 95, 6: 180})
+			["Reanimation Protocols", "Plasmacyte", "Whirling Onslaught"], ["reanimation-protocols", "plasmacyte", "whirling-onslaught"], [], ["000002109"], [],
+			[{"id": "skorpekh-plasmacyte-count", "kind": "size_scaled_wargear_count", "models_per_wargear": 3, "wargear": "Plasmacyte", "implemented": true}], {3: 95, 6: 180})
+		skorpekh.pending_source_checks = []
+		skorpekh.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return skorpekh
 	if source == "canoptek-scarab-swarms":
 		return _record("canoptek-scarab-swarms", "Canoptek Scarab Swarms", "000002114", "Canoptek-Scarab-Swarms", {3: 40, 6: 80}, 3, 40,
 			{"movement_inches": 10, "toughness": 2, "save_target": 6, "wounds": 4, "leadership_target": 8, "objective_control": 0, "invulnerable_target": 0},
@@ -355,12 +359,12 @@ static func profile(source: String) -> Dictionary:
 				{"id": "particle-whip", "profiles": {"standard": _weapon("Particle whip", 24.0, "3D6", 3, 8, -1, 2, {"blast": true, "devastating-wounds": true})}}
 			],
 			[{"id": "portal-of-exile", "profiles": {"standard": _weapon("Portal of exile", 0.0, 6, 2, 8, -2, 3, {})}}],
-			["Deadly Demise D6", "Deep Strike", "Reanimation Protocols", "Eternity Gate", "Damaged"], ["deadly-demise-d6", "deep-strike", "reanimation-protocols"], ["Eternity Gate", "Damaged profile: Objective Control and Hit penalties"], [], [], [
-				{"id": "monolith-gauss-flux-arc-replacement", "kind": "all_models_weapon_replacement", "from": "4 gauss flux arcs", "to": "4 death rays", "implemented": false}
+			["Deadly Demise D6", "Deep Strike", "Reanimation Protocols", "Eternity Gate", "Damaged"], ["deadly-demise-d6", "deep-strike", "reanimation-protocols", "eternity-gate", "damaged-7"], [], [], [], [
+				{"id": "monolith-gauss-flux-arc-replacement", "kind": "all_models_weapon_replacement", "from": "4 gauss flux arcs", "to": "4 death rays", "implemented": true}
 			])
 		monolith.additional_weapon_profiles = {"ranged": [{"id": "death-ray", "profiles": {"standard": _weapon("Death ray", 24.0, 1, 3, 12, -4, "D6+1", {"sustained-hits": "D3"})}}]}
-		monolith.unsupported_weapon_rules = ["Death ray: Sustained Hits D3"]
 		monolith.source_repeat_copy_costs = {"2ND+": {1: 440}}
+		monolith.second_plus_points_by_models = {1: 440}
 		monolith.source_damaged_wounds = "1-7"
 		monolith.source_damaged_description = "While this model has 1-7 wounds remaining, subtract 4 from its Objective Control characteristic and each time this model makes an attack, subtract 1 from the Hit roll."
 		return monolith
@@ -396,14 +400,16 @@ static func profile(source: String) -> Dictionary:
 			}}],
 			[{"id": "stalkers-forelimbs", "profiles": {"standard": _weapon("Stalker’s forelimbs", 0.0, 4, 3, 7, -1, 3, {})}}],
 			["Deadly Demise D3", "Scouts 8", "Reanimation Protocols", "Targeting Relay"],
-			["deadly-demise-d3", "scouts-8", "reanimation-protocols"], ["Targeting Relay"], [], [], [
-				{"id": "triarch-stalker-heat-ray-replacement", "kind": "weapon_replacement", "from": "heat-ray", "choices": ["particle-shredder", "heavy-gauss-cannon-array"], "implemented": false}
+			["deadly-demise-d3", "scouts-8", "reanimation-protocols", "targeting-relay"], [], [], [], [
+				{"id": "triarch-stalker-heat-ray-replacement", "kind": "weapon_replacement", "from": "heat-ray", "choices": ["particle-shredder", "heavy-gauss-cannon-array"], "implemented": true}
 			], {1: 120})
 		stalker.erase("base_size_source_mm")
 		stalker.source_base_size_label = "Use model"
 		stalker.base_size_proxy_mm = 120
-		stalker.base_size_proxy_note = "The local sheet does not specify model dimensions; runtime uses a labelled 120 mm circular proxy pending footprint validation."
+		stalker.base_size_proxy_note = "The local sheet does not specify model dimensions; runtime uses a labelled 120 mm circular proxy. Exact hull distance is not certified."
 		stalker.unsupported_geometry = ["Exact Triarch Stalker model footprint and base clearance"]
+		stalker.pending_source_checks = []
+		stalker.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
 		stalker.additional_weapon_profiles = {"ranged": [
 			{"id": "particle-shredder", "profiles": {"standard": _weapon("Particle shredder", 18.0, "D6+6", 2, 7, 0, 1, {"blast": true, "devastating-wounds": true})}},
 			{"id": "heavy-gauss-cannon-array", "profiles": {"standard": _weapon("Heavy gauss cannon array", 24.0, 6, 3, 8, -2, 2, {"lethal-hits": true})}}
@@ -418,29 +424,40 @@ static func profile(source: String) -> Dictionary:
 			["Deep Strike", "Lone Operative", "Reanimation Protocols", "Inescapable Death", "Multi-threat Eliminator"],
 			["deep-strike", "lone-operative", "reanimation-protocols", "inescapable-death", "multi-threat-eliminator"], [], [], [], [])
 	if source == "ophydian-destroyers":
-		return _record("ophydian-destroyers", "Ophydian Destroyers", "000002358", "Ophydian-Destroyers", {3: 80, 6: 150}, 3, 50,
+		var ophydian := _record("ophydian-destroyers", "Ophydian Destroyers", "000002358", "Ophydian-Destroyers", {3: 80, 6: 150}, 3, 50,
 			{"movement_inches": 10, "toughness": 5, "save_target": 4, "wounds": 3, "leadership_target": 7, "objective_control": 2, "invulnerable_target": 0},
 			["NECRONS", "OPHYDIAN DESTROYERS", "DESTROYER CULT", "INFANTRY"], [],
 			[{"id": "ophydian-hyperphase-weapons", "profiles": {"standard": _weapon("Ophydian hyperphase weapons", 0.0, 5, 3, 4, -2, 2, {})}}],
-			["Deep Strike", "Reanimation Protocols", "Plasmacyte", "Tunnelling Horrors"], ["deep-strike", "reanimation-protocols"], ["Plasmacyte", "Tunnelling Horrors"], [], [], [
-				{"id": "ophydian-plasmacyte-count", "kind": "size_scaled_wargear_count", "models_per_wargear": 3, "wargear": "Plasmacyte", "implemented": false}
+			["Deep Strike", "Reanimation Protocols", "Plasmacyte", "Tunnelling Horrors"], ["deep-strike", "reanimation-protocols", "plasmacyte", "tunnelling-horrors"], [], [], [], [
+				{"id": "ophydian-plasmacyte-count", "kind": "size_scaled_wargear_count", "models_per_wargear": 3, "wargear": "Plasmacyte", "implemented": true}
 			], {3: 90, 6: 160})
+		ophydian.pending_source_checks = []
+		ophydian.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return ophydian
 	if source == "lokhust-destroyers":
-		return _record("lokhust-destroyers", "Lokhust Destroyers", "000002359", "Lokhust-Destroyers", {1: 40, 2: 55, 3: 80, 6: 190}, 1, 60,
+		# Source lists 1/2/3/6 only; 4- and 5-model sizes remain gated.
+		var lokhust := _record("lokhust-destroyers", "Lokhust Destroyers", "000002359", "Lokhust-Destroyers", {1: 40, 2: 55, 3: 80, 6: 190}, 1, 60,
 			{"movement_inches": 8, "toughness": 6, "save_target": 3, "wounds": 3, "leadership_target": 7, "objective_control": 2, "invulnerable_target": 0},
 			["NECRONS", "MOUNTED", "FLY", "DESTROYER CULT", "LOKHUST DESTROYERS"],
 			[{"id": "gauss-cannon", "profiles": {"standard": _weapon("Gauss cannon", 24.0, 3, 3, 5, -2, 2, {"lethal-hits": true})}}],
 			[{"id": "close-combat-weapon-lokhust", "profiles": {"standard": _weapon("Close combat weapon", 0.0, 2, 3, 4, 0, 1, {})}}],
-			["Reanimation Protocols", "Hard-wired for Destruction"], ["reanimation-protocols"], ["Hard-wired for Destruction"], ["000002351"], [],
-			[{"id": "lokhust-unpriced-sizes-and-third-plus-six-model-cost", "kind": "unpriced-composition-or-copy-tier", "unpriced_sizes": [4, 5], "missing_third_plus_size": 6, "implemented": false}], {1: 70, 2: 85, 3: 110})
+			["Reanimation Protocols", "Hard-wired for Destruction"], ["reanimation-protocols", "hard-wired-for-destruction"], [], ["000002351"], [],
+			[{"id": "lokhust-unpriced-sizes", "kind": "unpriced-composition", "unpriced_sizes": [4, 5], "implemented": false}], {1: 70, 2: 85, 3: 110, 6: 220})
+		lokhust.pending_source_checks = []
+		lokhust.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return lokhust
 	if source == "lokhust-heavy-destroyers":
-		return _record("lokhust-heavy-destroyers", "Lokhust Heavy Destroyers", "000002116", "Lokhust-Heavy-Destroyers", {1: 50, 2: 100, 3: 165}, 1, 60,
+		var heavy := _record("lokhust-heavy-destroyers", "Lokhust Heavy Destroyers", "000002116", "Lokhust-Heavy-Destroyers", {1: 50, 2: 100, 3: 165}, 1, 60,
 			{"movement_inches": 8, "toughness": 6, "save_target": 3, "wounds": 4, "leadership_target": 7, "objective_control": 2, "invulnerable_target": 0},
 			["NECRONS", "DESTROYER CULT", "MOUNTED", "LOKHUST HEAVY DESTROYERS", "FLY"],
 			[{"id": "gauss-destructor", "profiles": {"standard": _weapon("Gauss destructor", 48.0, 1, 3, 14, -4, 6, {"heavy": true, "lethal-hits": true})}}],
 			[{"id": "close-combat-weapon-lokhust-heavy", "profiles": {"standard": _weapon("Close combat weapon", 0.0, 2, 3, 4, 0, 1, {})}}],
-			["Reanimation Protocols", "Optimised for Slaughter"], ["reanimation-protocols"], ["Optimised for Slaughter"], ["000002351"], [],
-			[{"id": "lokhust-heavy-enmitic-replacement", "kind": "per-model-weapon-replacement", "from": "gauss-destructor", "to": "enmitic-exterminator", "maximum": "unit_size", "implemented": false}], {1: 60, 2: 110, 3: 175})
+			["Reanimation Protocols", "Optimised for Slaughter"], ["reanimation-protocols", "optimised-for-slaughter"], [], ["000002351"], [],
+			[{"id": "lokhust-heavy-enmitic-replacement", "kind": "per_model_weapon_replacement", "from": "gauss-destructor", "to": "enmitic-exterminator", "minimum": 0, "maximum": "unit_size", "implemented": true}], {1: 60, 2: 110, 3: 175})
+		heavy.additional_weapon_profiles = {"ranged": [{"id": "enmitic-exterminator", "profiles": {"standard": _weapon("Enmitic exterminator", 36.0, 6, 3, 6, -1, 1, {"heavy": true, "rapid-fire": 6, "sustained-hits": 1})}}]}
+		heavy.pending_source_checks = []
+		heavy.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return heavy
 	if source == "imotekh-the-stormlord":
 		return _record("imotekh-the-stormlord", "Imotekh The Stormlord", "000000522", "Imotekh-The-Stormlord", {1: 100}, 1, 40,
 			{"movement_inches": 5, "toughness": 5, "save_target": 2, "wounds": 6, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},

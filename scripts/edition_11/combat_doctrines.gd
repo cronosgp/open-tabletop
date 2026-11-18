@@ -284,7 +284,7 @@ static func shoot_after_fallback(state: Dictionary, squad: int) -> bool:
 
 static func charge_error(state: Dictionary, squad: int) -> String:
 	if state.squads[squad].advanced and not has_doctrine(state, squad, "assault") and not AbilityCatalog.has(state, squad, "spear-of-chogoris") and not AbilityCatalog.has(state, squad, "remorseless-persecution") and not AbilityCatalog.has(state, squad, "berserk-charge") and not AbilityCatalog.has(state, squad, "strategic-knowledge") and not RagnarBlackmane.headtakers_war_howl_active(state, squad): return "A unit that Advanced needs Assault Doctrine to declare a charge."
-	if state.squads[squad].fell_back and not has_doctrine(state, squad, "tactical") and not AbilityCatalog.has(state, squad, "adaptive-strategy") and not AbilityCatalog.has(state, squad, "strategic-knowledge"): return "A unit that Fell Back needs Tactical Doctrine to declare a charge."
+	if state.squads[squad].fell_back and not has_doctrine(state, squad, "tactical") and not AbilityCatalog.has(state, squad, "adaptive-strategy") and not AbilityCatalog.has(state, squad, "strategic-knowledge") and not AbilityCatalog.has(state, squad, "relentless-combatants"): return "A unit that Fell Back needs Tactical Doctrine to declare a charge."
 	return ""
 
 static func advance_bonus(state: Dictionary, squad: int) -> int:

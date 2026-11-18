@@ -31,6 +31,8 @@ The raw export remains in the ignored `.tools` directory. These recorded hashes 
 - Support/attachment behavior is exercised with an allowed Intercessor bodyguard and a rejected Heavy Intercessor bodyguard. Tactical Precision excludes MONSTER and VEHICLE targets. Demi-company Commander is exercised after a Captain's Strategic Acumen choice, including its once-per-turn boundary.
 - The profile is selectable from the consolidated local construction catalog.
 
+The Army Workshop saves the Lieutenant's nine ranged packages, three Ceramite Fists replacements and optional Storm Shield on the stable model copy. Its schema validates all 30 factory-allowed combinations, keeps the shield exclusive to the Neo-volkite package, and applies the 4+ invulnerable save only to the Lieutenant model. When the Workshop leaves Neo-volkite, it first clears the shield to keep the draft valid. Saved-list matches install the exact local ranged/melee profiles and suppress duplicate preparation edits. This does not change the runtime copy limit. See the [saved-equipment verification](verification/verification-results.md#lieutenant-saved-equipment--13-november-2026).
+
 ## Validation and limits
 
 The dedicated current-catalog run passed **3/3 processes** (import, Python checks and Lieutenant suite), with `network: false` and `legacy_starter_staged: false`: `.tools/verification/20261027T050300064874Z/results.json`.

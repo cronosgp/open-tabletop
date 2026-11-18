@@ -27,6 +27,8 @@ The one-model vehicle costs 135 points for its first two copies and 150 points f
 
 The default equipment is one Twin Assault Cannon and Armoured Tracks. Army Preparation can replace the cannon with a Baal Flamestorm Cannon; select a paired package of two Heavy Bolters, two Heavy Flamers or no sponson weapons; and add/remove a Storm Bolter and Hunter-killer Missile. Replacing the sponson package replaces both weapons, so mixed pairs cannot be selected. These equipment choices do not change the source cost.
 
+The saved Army Builder path now records all four equipment choices on the vehicle's stable model ID, preserves different choices across copies, and installs the exact local weapon package before Deployment. The saved package is locked during the match so setup does not ask for it again. The Workshop visual matcher uses the resulting weapon metadata as evidence only; it does not certify that a local sculpt depicts the exact package.
+
 The registered abilities are Damaged 4, Deadly Demise D3, Combat Doctrines and Overcharged Engines. Damaged 4 applies the shared -1 Hit modifier at four or fewer remaining wounds. Deadly Demise uses the shared D3 value. Overcharged Engines offers the player a free Advance re-roll in the shared pending-roll decision, uses the host's die source and does not consume CP or record a stratagem use.
 
 The source requires the model itself for footprint measurement. Runtime placement currently uses a **provisional 90 mm circular collision proxy**. That value is a gameplay approximation, not an exported base dimension or a tabletop-measurement claim.

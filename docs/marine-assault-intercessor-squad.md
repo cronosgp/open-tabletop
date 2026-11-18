@@ -32,6 +32,7 @@ The runtime profile retains its `2026-10-16T21:03:46+03:00` source-export stamp.
   - Chainsword → Power Fist, Power Weapon or Thunder Hammer.
 - The setup selector offers only replacements for the living Sergeant. Tests reject a normal model, another player's command and a stale option without changing the loadout. Changing the Sergeant's choice leaves every other model's equipment untouched.
 - Every ranged and melee profile is checked through `Equipment` and `AttackPlan`. The Plasma Pistol retains Standard and Hazardous Supercharge profiles; the Thunder Hammer retains Devastating Wounds.
+- The Army Builder now saves the Sergeant's selected pistol and melee replacements against the stable model ID. Saved-list admission carries them through canonical copy grouping and local match setup applies both profiles before Deployment; standalone exercises still expose the existing preparation choices. The new saved-list path has not yet received a focused runtime regression.
 - `Targeted Intercession` adds +1 Strength and +1 AP to this unit's melee attacks after it makes a charge move. It also applies to the selected Thunder Hammer, leaves its printed profile intact and does not alter ranged attacks.
 - The selectable Captain-to-Assault-Intercessor Leader link is exercised in the materialized match. The paired `test_space_marine_leader_links` suite checks the complete 153-link local map, including this target.
 - The current local construction catalog admits the source-priced five- and ten-model sizes and rejects an unsupported six-model size.

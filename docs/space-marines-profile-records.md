@@ -336,7 +336,7 @@ The linked Victrix attachment target and Calgar-dependent Support replacement pa
 
 `marine-chaplain-with-jump-pack.md`
 
-Implemented from the local Wahapedia 11th-edition extraction. Source book `000000139`, datasheet `000000112`, export revision `2026-10-16T21:03:46+03:00`. Wahapedia remains the sole rules authority under [project policy](rules-source-policy.md).
+Implemented from the local Wahapedia 11th-edition extraction. Source book `000000139`, datasheet `000000112`, export revision `2026-10-16T21:03:46+03:00`. Wahapedia remains the sole rules authority under [project policy](data/source-assessment.md).
 
 ## Admitted scope
 
@@ -682,10 +682,10 @@ Reviewed 18 October 2026 from the shared App Space Marines e11 [Aggressor Squad]
 
 | Unit | Admitted scope | Rule |
 |---|---|---|
-| Aggressor Squad | 3/6 models, 90/180 points, 40mm bases; Flamestorm Gauntlets with Close Quarters/Ranged modes and Twin Power Fists; optional whole-unit Auto Boltstorm Gauntlets + Fragstorm Grenade Launcher package | Close-quarters Firestorm: +1 Strength to unit attacks targeting a unit within 9 inches, including melee and attached Support attacks |
+| Aggressor Squad | 3/6 models, 90/180 points, 40mm bases; Flamestorm Gauntlets with Close Quarters/Ranged modes and Twin Power Fists; each model may replace its Flamestorm Gauntlets with Auto Boltstorm Gauntlets plus a Fragstorm Grenade Launcher | Close-quarters Firestorm: +1 Strength to unit attacks targeting a unit within 9 inches, including melee and attached Support attacks |
 | Apothecary Biologis | One model, 60 points, 40mm base; Absolvor Bolt Pistol and Servo-armature; mandatory Support on admitted Aggressors, Heavy Intercessors, Eradicators with Heavy Bolters or Eradicators with Melta Rifles | Vivispectral Analysis Targeting: unit attacks gain Lethal Hits against non-Vehicle targets; Monsters remain eligible |
 
-Aggressor range is measured from the unit: one living nearby model suffices for another model's attack. It is not a bonus per source/model and does not stack. Destroyed models cannot establish the range. Flamestorm Ranged has Blast 2; its Close Quarters mode has no Blast. The alternate package replaces the whole unit's ranged inventory, and updates the squad's displayed primary weapon. No EXPLOSIVES keyword is invented from weapon names. Torrent weapons use the existing unused numeric skill placeholder for their printed dash.
+Aggressor range is measured from the unit: one living nearby model suffices for another model's attack. It is not a bonus per source/model and does not stack. Destroyed models cannot establish the range. Flamestorm Ranged has Blast 2; its Close Quarters mode has no Blast. The alternate package replaces only the selected model's ranged inventory; combat resolves each model from its own weapon records. The legacy squad weapon field remains a compatibility/display summary. No EXPLOSIVES keyword is invented from weapon names. Torrent weapons use the existing unused numeric skill placeholder for their printed dash.
 
 Support preparation, formation sealing and Warlord selection now handle Biologis explicitly. Its legal bodyguards are tracked separately from Lieutenant bodyguards when admitting a roster. One Support slot per bodyguard remains enforced. The regular Captain and Lieutenant are not admitted onto Gravis bodyguards by this change. Both Eradicator variants are now admitted Gravis bodyguards. Indomitor Kill Team remains outside current roster admission. A living Biologis propagates the trait through its attached unit; its death removes the benefit from future declarations. Existing attack resolution freezes declared effects. The shared Lethal Hits resolver is reused; this increment does not add a per-critical-hit manual decline window.
 
@@ -693,7 +693,7 @@ Prices come from the selected Wahapedia snapshot. Construction metadata now reco
 
 Validation: `tests/test_aggressors.gd` covers Aggressor admission, sizes, prices, base geometry, 9-inch boundaries, living range sources, both weapon packages, engagement restrictions, attack generation and wound rerolls. `tests/test_biologis.gd` checks current-catalog Biologis admission, fixed profile and weapons, all four shared-book Support links, Vivispectral target/source lifetime and AttackPlan integration; its 6/6-process report is `.tools/verification/20261027T093653231740Z/results.json`. The standalone Aggressor scope now checks every ranged and melee profile against AttackPlan; see the [Aggressor Squad sheet audit](marine-aggressor-squad.md) for the verified snapshot hashes and the dedicated 3/3 offline artifact. [Combined Gravis audit evidence](marine-gravis-audit.json) records the earlier shared suites and source hashes. Network validation remains deferred by user request; full army and faction certification remain false.
 
-UI brief: reuse Play → Mission and unit choices. Expose one whole-unit Aggressor equipment change during preparations, with an inverse choice to restore Flamestorm. Keep layout, colors and confirmation controls. The shortened label names the unit, the destination package and that it applies to all models. Real staged Godot captures at 1600×1000 were inspected: `.tools/gravis-setup-before.png` showed truncation; `.tools/gravis-setup-after.png` shows the complete shortened label. These capture a setup fixture, not a played mission or a small-window usability test.
+Historical UI brief: the original setup flow exposed one whole-unit Aggressor change during preparations, with an inverse choice to restore Flamestorm. Its staged Godot captures at 1600×1000 (`.tools/gravis-setup-before.png` and `.tools/gravis-setup-after.png`) predate per-model configuration and do not show the current Army Workshop controls. Current saved-list configuration and standalone setup both operate on one miniature at a time; the focused regression covers the Builder controls and per-model command behavior.
 
 ---
 

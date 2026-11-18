@@ -13,3 +13,7 @@ This closes the shared-book 11th-edition local datasheet scope for [Land Raider 
 ## Limits
 
 The source gives the vehicle's base as “Use model”; runtime uses a labelled 150 mm circular proxy, not exact model geometry. The three-copy catalog ceiling is a local construction rule, not the complete current-edition army limit. The source has no shared-book Leader or Support links for this datasheet. Chapter-book content, full army legality, network behavior, complete-match certification and human playtesting remain outside this scope; network validation is deferred to final integration.
+
+## Saved army equipment - 14 November 2026
+
+Equipment options now save per stable vehicle copy in the Army Workshop, pass canonical source-price validation and materialize before Deployment. Frozen saved choices cannot be reconfigured during readiness. Source-book, event, geometry and ability boundaries above remain. See [reviewed source options, exact tests and actual Godot captures](verification/transport-saved-equipment.md).

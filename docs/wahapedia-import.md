@@ -1,6 +1,6 @@
 # Wahapedia e11 snapshot importer
 
-The [definitive source policy](rules-source-policy.md) is now backed by `tools/import_wahapedia.py`, a standard-library Python importer for all 22 CSV files linked by the export specification. It is an offline content/audit tool, not a runtime network dependency or an executable rule interpreter.
+The [definitive source policy](data/source-assessment.md) is now backed by `tools/import_wahapedia.py`, a standard-library Python importer for all 22 CSV files linked by the export specification. It is an offline content/audit tool, not a runtime network dependency or an executable rule interpreter.
 
 ## Capture and inspect
 

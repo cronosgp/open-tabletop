@@ -14,6 +14,10 @@ static func begin(s: Dictionary) -> void:
 	var redeploy_sources: Array[Dictionary] = []
 	for owner in [int(s.get("first_player", 1)), 3 - int(s.get("first_player", 1))]:
 		for squad: int in s.squads:
+			if int(s.squads[squad].owner) == owner and A.has(s, squad, "grand-illusion") and not G.alive(s, squad).is_empty():
+				redeploy_sources.append({"owner": owner, "source": "grand-illusion"})
+				break
+		for squad: int in s.squads:
 			if int(s.squads[squad].owner) == owner and A.has(s, squad, "strategium-command") and not G.alive(s, squad).is_empty():
 				redeploy_sources.append({"owner": owner, "source": "strategium-command"})
 				break
@@ -24,6 +28,8 @@ static func begin(s: Dictionary) -> void:
 	if not redeploy_sources.is_empty():
 		s.unit_abilities.strategium_used = {}
 		s.unit_abilities.strategium_count = {}
+		s.unit_abilities.grand_illusion_used = {}
+		s.unit_abilities.grand_illusion_count = {}
 		s.unit_abilities.cyber_familiar_used = {}
 		s.unit_abilities.cyber_familiar_count = {}
 		var current: Dictionary = redeploy_sources.pop_front()
@@ -309,22 +315,31 @@ static func _redeploy_target(s: Dictionary, squad: int, source: String) -> bool:
 	if not s.squads.has(squad) or G.alive(s, squad).is_empty() or s.get("unit_abilities", {}).get("reserves", {}).has(squad) or TransportRules.squad_embarked(s, squad): return false
 	var has_astartes := false
 	var has_infantry := false
+	var all_necrons := true
 	for model: int in G.alive(s, squad):
 		var unit: Dictionary = s.units[model]
 		if not unit.get("on_battlefield", true): return false
 		var keywords: Array = unit.get("keywords", [])
 		if "ADEPTUS ASTARTES" in keywords: has_astartes = true
 		if "INFANTRY" in keywords: has_infantry = true
+		if "NECRONS" not in keywords: all_necrons = false
+	if source == "grand-illusion": return all_necrons
 	return has_astartes and (source != "cyber-familiar" or has_infantry)
 
 static func _redeploy_label(source: String) -> String:
-	return "Cyber-familiar" if source == "cyber-familiar" else "Strategium Command"
+	if source == "cyber-familiar": return "Cyber-familiar"
+	if source == "grand-illusion": return "Grand Illusion"
+	return "Strategium Command"
 
 static func _redeploy_used_key(source: String) -> String:
-	return "cyber_familiar_used" if source == "cyber-familiar" else "strategium_used"
+	if source == "cyber-familiar": return "cyber_familiar_used"
+	if source == "grand-illusion": return "grand_illusion_used"
+	return "strategium_used"
 
 static func _redeploy_count_key(source: String) -> String:
-	return "cyber_familiar_count" if source == "cyber-familiar" else "strategium_count"
+	if source == "cyber-familiar": return "cyber_familiar_count"
+	if source == "grand-illusion": return "grand_illusion_count"
+	return "strategium_count"
 
 static func _redeploy_used(s: Dictionary, source: String, player: int) -> Array:
 	return s.get("unit_abilities", {}).get(_redeploy_used_key(source), {}).get(player, [])

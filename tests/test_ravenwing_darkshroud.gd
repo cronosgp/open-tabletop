@@ -9,6 +9,9 @@ const Detection = preload("res://scripts/edition_11/detection_rules.gd")
 const AttackPlan = preload("res://scripts/edition_11/attack_plan.gd")
 const Equipment = preload("res://scripts/edition_11/equipment.gd")
 const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
+const ArmyRoster = preload("res://scripts/army_roster.gd")
+const ArmyTrainingRoster = preload("res://scripts/edition_11/training_roster.gd")
+const BuilderPanel = preload("res://scripts/army_builder_panel.gd")
 const UNIT := "ravenwing-darkshroud"
 const UNIT_ID := "40kdc:11e:adeptus-astartes:ravenwing-darkshroud"
 const A = C.UnitAbilities
@@ -34,6 +37,7 @@ func prepared() -> Dictionary:
 	}
 	var state: Dictionary = F.P.initial_state(options, selection())
 	if state.has("error"): return state
+	state.erase("saved_army_setup")
 	state.phase = "deployment"
 	state.active = 1
 	return state
@@ -74,6 +78,44 @@ func _initialize() -> void:
 	call_deferred("run")
 
 func run() -> void:
+	var builder_list := ArmyRoster.new_list("11e", "Space Marines", "custom", 3000)
+	var builder_unit := Catalog.current_catalog_choice({"id": UNIT_ID, "edition": "11e", "faction": "Space Marines"})
+	builder_unit.role = ArmyRoster.role(builder_unit.get("keywords", []))
+	var builder_item := ArmyRoster.entry(builder_unit, 0)
+	ArmyRoster.set_model_equipment(builder_item, 0, 0, "ravenwing_darkshroud_cannon", "assault-cannon")
+	builder_list.entries.append(builder_item)
+	var builder_report := ArmyTrainingRoster.inspect(builder_list, {}, true)
+	var saved_loadouts: Array = builder_report.get("selection", {}).get("entries", [{}])[0].get("ravenwing_darkshroud_loadouts", []) if builder_report.get("error", "") == "" else []
+	check(ArmyRoster.validate(builder_list).is_empty() and builder_report.get("error", "").is_empty() and saved_loadouts == ["assault-cannon"], "The Army Builder saves and canonically admits the Darkshroud Assault Cannon replacement")
+	var stable_refs := ArmyTrainingRoster.stable_model_refs(builder_list, builder_report.get("selection", {})) if builder_report.get("error", "") == "" else {"error": "Builder admission failed."}
+	check(stable_refs.get("error", "").is_empty() and stable_refs.get("models", {}).size() == 1, "The saved weapon choice retains its stable miniature-to-match model mapping")
+	var builder_panel = BuilderPanel.new()
+	var assault_cannon_hint := {"visual_definitions": [UNIT_ID], "visual_weapons": ["Assault Cannon"], "ready": true}
+	var heavy_bolter_hint := {"visual_definitions": [UNIT_ID], "visual_weapons": ["Heavy Bolter"], "ready": true}
+	var matching_rationale := builder_panel._appearance_model_match_rationale(assault_cannon_hint, builder_item, 0, 0)
+	var conflicting_rationale := builder_panel._appearance_model_match_rationale(heavy_bolter_hint, builder_item, 0, 0)
+	builder_panel.free()
+	check(matching_rationale.contains("match this Darkshroud's saved Assault Cannon") and conflicting_rationale.contains("conflict with this Darkshroud's saved Assault Cannon"), "The appearance gallery explains matching and conflicting recorded cannon hints")
+	var saved_selections := F.current_marine_selections()
+	if builder_report.get("error", "").is_empty(): saved_selections[1] = builder_report.selection
+	saved_selections[2].category = "custom"
+	saved_selections[2].points_limit = 3000
+	var saved_state: Dictionary = F.P.initial_state({"checked_rosters": false, "official_mission": false, "unit_abilities": true, "combat_doctrines": false, "manual_allocation": false, "marine_chapters": {1: "DARK ANGELS"}}, saved_selections)
+	var saved_darkshrouds: Array = models(saved_state, UNIT, 1) if not saved_state.has("error") else []
+	var saved_cannon_locked := false
+	if saved_darkshrouds.size() == 1:
+		var saved_model: int = saved_darkshrouds[0]
+		var saved_unit: Dictionary = saved_state.units[saved_model]
+		saved_cannon_locked = bool(saved_unit.get("ravenwing_darkshroud_loadout_locked", false)) and saved_unit.get("ranged_weapons", []).map(func(item: Dictionary) -> String: return str(item.get("id", ""))).has("assault-cannon")
+		saved_state.phase = "deployment"
+		saved_state.active = 1
+		var available_saved_changes := choice_for(saved_state, 1, "ravenwing-darkshroud-cannon", saved_model, int(saved_unit.squad), "heavy-bolter")
+		var forced_change := PublicUnitCommand.submit(saved_state, 1, {"action": "ravenwing-darkshroud-cannon", "model": saved_model, "target": int(saved_unit.squad), "value": "heavy-bolter"})
+		check(available_saved_changes.is_empty() and not str(forced_change.get("error", "")).is_empty() and saved_unit.get("ranged_weapons", []).map(func(item: Dictionary) -> String: return str(item.get("id", ""))).has("assault-cannon"), "Saved-list equipment is materialized, omitted from match choices and cannot be changed mid-match")
+	else:
+		check(false, "The saved Darkshroud list materializes without an error: %s" % str(saved_state.get("error", "Missing Darkshroud model.")))
+	check(saved_cannon_locked, "The saved Assault Cannon profile reaches the deployed model")
+
 	var profile := Profiles.profile(UNIT)
 	check(profile.get("source_book_id") == "000000023" and profile.get("source_datasheet_id") == "000000238" and profile.get("source_export_updated_at") == "2026-10-21T16:06:23+03:00", "The profile identifies Ravenwing Darkshroud's pinned Dark Angels App row")
 	check(profile.get("points_by_models", {}) == {1: 80} and profile.get("models") == 1 and profile.get("base_size_source", "").begins_with("Large Flying Base"), "The 1-model, 80-point composition keeps its base dimensions explicitly unresolved")

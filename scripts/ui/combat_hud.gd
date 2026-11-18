@@ -71,6 +71,7 @@ var objective_label: Label
 var menu_button: Button
 var command_panel_button: Button
 var step_labels: Dictionary = {}
+var step_panels: Dictionary = {}
 var header_panel: PanelContainer
 
 func _ready() -> void:
@@ -107,13 +108,23 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 6)
 	bar.add_child(column)
 	var steps := HFlowContainer.new()
-	steps.add_theme_constant_override("h_separation", 6)
-	steps.add_theme_constant_override("v_separation", 4)
+	steps.add_theme_constant_override("h_separation", 8)
+	steps.add_theme_constant_override("v_separation", 6)
 	column.add_child(steps)
+	var phase_divider := ColorRect.new()
+	phase_divider.color = WorkspaceTheme.BORDER
+	phase_divider.custom_minimum_size.y = 1
+	phase_divider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	phase_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(phase_divider)
 	var utility := HBoxContainer.new()
 	utility.name = "HudUtilityRow"
 	utility.add_theme_constant_override("separation", 6)
 	column.add_child(utility)
+	var turn_panel := PanelContainer.new()
+	turn_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	turn_panel.add_theme_stylebox_override("panel", WorkspaceTheme.box(WorkspaceTheme.ELEVATED, WorkspaceTheme.GOLD, 8, 1, 2, 4))
+	steps.add_child(turn_panel)
 	round_label = Label.new()
 	round_label.size_flags_horizontal = Control.SIZE_SHRINK_END
 	round_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -121,8 +132,12 @@ func _build() -> void:
 	round_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	round_label.add_theme_font_size_override("font_size", 16)
 	round_label.add_theme_color_override("font_color", WorkspaceTheme.TEXT)
-	steps.add_child(round_label)
+	turn_panel.add_child(round_label)
 	for step_id: String in STEP_ORDER:
+		var chip_panel := PanelContainer.new()
+		chip_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		chip_panel.add_theme_stylebox_override("panel", WorkspaceTheme.box(WorkspaceTheme.SURFACE, WorkspaceTheme.BORDER, 6, 1, 2, 4))
+		steps.add_child(chip_panel)
 		var chip := Label.new()
 		chip.text = STEP_LABELS[step_id]
 		chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -131,8 +146,9 @@ func _build() -> void:
 		chip.tooltip_text = "Turn phase %d of %d" % [STEP_ORDER.find(step_id) + 1, STEP_ORDER.size()]
 		chip.add_theme_font_size_override("font_size", 15)
 		chip.add_theme_color_override("font_color", WorkspaceTheme.MUTED)
-		steps.add_child(chip)
+		chip_panel.add_child(chip)
 		step_labels[step_id] = chip
+		step_panels[step_id] = chip_panel
 	objective_label = Label.new()
 	objective_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	objective_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -159,20 +175,29 @@ func _build() -> void:
 	tools_button = MenuButton.new()
 	tools_button.text = "Tools"
 	tools_button.focus_mode = Control.FOCUS_ALL
+	tools_button.flat = false
 	tools_button.custom_minimum_size = Vector2(84, 40)
 	tools_button.tooltip_text = "Camera, army, mission, guide and history. These tools do not commit a decision."
 	WorkspaceTheme.decorate_button(tools_button, "tools")
+	tools_button.add_theme_stylebox_override("normal", WorkspaceTheme.button_box(WorkspaceTheme.ELEVATED, WorkspaceTheme.GOLD))
+	tools_button.add_theme_stylebox_override("hover", WorkspaceTheme.button_box(WorkspaceTheme.HOVER, WorkspaceTheme.GOLD_HIGHLIGHT))
+	tools_button.add_theme_stylebox_override("pressed", WorkspaceTheme.button_box(WorkspaceTheme.HOVER.darkened(0.08), WorkspaceTheme.GOLD))
+	tools_button.add_theme_stylebox_override("focus", WorkspaceTheme.button_box(Color.TRANSPARENT, WorkspaceTheme.GOLD_HIGHLIGHT))
+	tools_button.add_theme_stylebox_override("disabled", WorkspaceTheme.button_box(WorkspaceTheme.BASE, WorkspaceTheme.BORDER))
 	utility.add_child(tools_button)
 	utility.move_child(tools_button, menu_button.get_index())
 	asset_badge = Label.new()
 	asset_badge.text = "!"
+	asset_badge.custom_minimum_size = Vector2(18, 16)
+	asset_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	asset_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	asset_badge.add_theme_color_override("font_color", WorkspaceTheme.GOLD)
 	asset_badge.add_theme_font_size_override("font_size", 14)
 	asset_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	asset_badge.anchor_left = 1.0
 	asset_badge.anchor_right = 1.0
-	asset_badge.offset_left = -12.0
-	asset_badge.offset_top = 1.0
+	asset_badge.offset_left = -18.0
+	asset_badge.offset_top = 0.0
 	asset_badge.hide()
 	tools_button.add_child(asset_badge)
 	tools_button.about_to_popup.connect(_refresh_tools_menu)
@@ -187,6 +212,12 @@ func _build() -> void:
 	popup.add_theme_constant_override("item_end_padding", 10)
 	popup.add_theme_constant_override("h_separation", 8)
 	popup.id_pressed.connect(_activate_tool)
+	var utility_divider := ColorRect.new()
+	utility_divider.color = WorkspaceTheme.BORDER
+	utility_divider.custom_minimum_size.y = 1
+	utility_divider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	utility_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(utility_divider)
 	header_panel.minimum_size_changed.connect(func():
 		header_panel.offset_bottom = header_panel.offset_top + header_panel.get_combined_minimum_size().y
 		_position_asset_toast()
@@ -272,22 +303,16 @@ func set_steps(phase: String, round_number: int, active_player: int, decision_pl
 	for index in STEP_ORDER.size():
 		var step_id: String = STEP_ORDER[index]
 		var chip: Label = step_labels[step_id]
+		var chip_panel: PanelContainer = step_panels[step_id]
 		var color := WorkspaceTheme.MUTED.darkened(0.12)
-		var background := StyleBoxFlat.new()
-		background.bg_color = Color.TRANSPARENT
-		background.set_corner_radius_all(2)
-		background.content_margin_left = 8
-		background.content_margin_right = 8
-		background.content_margin_top = 5
-		background.content_margin_bottom = 5
+		var background := WorkspaceTheme.box(WorkspaceTheme.SURFACE, WorkspaceTheme.BORDER, 6, 1, 2, 4)
 		if current_index >= 0 and index < current_index:
 			color = WorkspaceTheme.MUTED
+			background = WorkspaceTheme.box(WorkspaceTheme.ELEVATED, WorkspaceTheme.BORDER, 6, 1, 2, 4)
 		elif index == current_index:
 			color = WorkspaceTheme.GOLD_HIGHLIGHT
-			background.bg_color = Color("2a2518")
-			background.border_color = WorkspaceTheme.GOLD
-			background.set_border_width_all(1)
-		chip.add_theme_stylebox_override("normal", background)
+			background = WorkspaceTheme.box(Color("2a2518"), WorkspaceTheme.GOLD, 6, 1, 2, 4)
+		chip_panel.add_theme_stylebox_override("panel", background)
 		chip.add_theme_color_override("font_color", color)
 	_format_step_captions(get_viewport_rect().size.x < 1280.0)
 
@@ -424,6 +449,10 @@ func _fit_hud() -> void:
 		chip.add_theme_font_size_override("font_size", 14 if compact else 15)
 	_format_step_captions(compact)
 	round_label.add_theme_font_size_override("font_size", 15 if compact else 16)
-	command_panel_button.custom_minimum_size.x = 64
+	for button: Control in [command_panel_button, tools_button, menu_button]:
+		button.custom_minimum_size.x = 0
+	var utility_button_width := maxf(command_panel_button.get_combined_minimum_size().x, maxf(tools_button.get_combined_minimum_size().x, menu_button.get_combined_minimum_size().x))
+	for button: Control in [command_panel_button, tools_button, menu_button]:
+		button.custom_minimum_size.x = utility_button_width
 	_format_score()
 	layout_changed.emit()

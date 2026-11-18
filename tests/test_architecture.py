@@ -73,13 +73,9 @@ class ArchitectureDependencyTests(unittest.TestCase):
 
     def test_leader_identity_catalog_stays_below_rules_and_setup(self):
         graph = edition_11_graph()
-        self.assertIn("leader_catalog", graph["leaders"])
         self.assertIn("leader_catalog", graph["unit_abilities"])
         self.assertIn("leader_catalog", graph["unit_actions"])
-        self.assertNotIn("leaders", graph["unit_abilities"])
-        self.assertNotIn("leaders", graph["unit_actions"])
-        self.assertFalse(reachable(graph, "unit_abilities", "leaders"))
-        self.assertFalse(reachable(graph, "unit_actions", "leaders"))
+        self.assertEqual(graph["leader_catalog"], set(), "leader_catalog has no edition_11 dependencies")
 
     def test_match_actor_resolver_does_not_depend_on_combat_facade(self):
         graph = edition_11_graph()

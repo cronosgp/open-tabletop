@@ -29,6 +29,7 @@ const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const AircraftRules = preload("res://scripts/edition_11/aircraft_rules.gd")
 const StasisBomb = preload("res://scripts/edition_11/stasis_bomb.gd")
+const CanoptekMacrocytes = preload("res://scripts/edition_11/canoptek_macrocytes.gd")
 
 ## The facade supplies journal/fight hooks to keep this coordinator below it in the dependency graph.
 static func advance_after_admission(state: Dictionary, roller: Callable, hooks: Dictionary) -> String:
@@ -108,7 +109,9 @@ static func advance_after_admission(state: Dictionary, roller: Callable, hooks: 
 				return ""
 			state.events.append({"revision": state.revision + 1, "message": scoring})
 	if not PhaseProgression.ends_turn(state.phase):
-		if state.phase == "fight": DetachmentStratagems.remove_lingering(state)
+		if state.phase == "fight":
+			DetachmentStratagems.remove_lingering(state)
+			CanoptekMacrocytes.clear_fight_modifiers(state)
 		if state.phase == "movement":
 			for squad: int in state.squads:
 				if state.squads[squad].owner == state.active and not state.squads[squad].moved:

@@ -32,6 +32,15 @@ static func wound_target(strength: int, toughness: int) -> int:
 	if strength * 2 <= toughness: return 6
 	return 5
 
+static func sustained_hits_amount(value: Variant, dice: Dice) -> int:
+	var definition := RandomStat.spec(value)
+	if not definition.error.is_empty(): return 0
+	var total := int(definition.bonus)
+	for index in range(int(definition.count)):
+		var roll := dice.d6()
+		total += ceili(float(roll) / 2.0) if int(definition.sides) == 3 else roll
+	return total
+
 static func anti_critical(roll: int, weapon: Dictionary, context: Dictionary) -> bool:
 	var keywords: Dictionary = weapon.get("keywords", {})
 	var targets: Array = context.get("target_keywords", [])
@@ -68,8 +77,10 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 	var keywords: Dictionary = weapon.get("keywords", {})
 	for keyword: Variant in weapon.get("keywords", {}):
 		if keyword not in SUPPORTED_KEYWORDS: return "Unsupported weapon mechanic: " + str(keyword)
-		if keyword in ["rapid-fire", "sustained-hits", "cleave", "melta"] or keyword in ANTI_KEYWORDS:
+		if keyword in ["rapid-fire", "cleave", "melta"] or keyword in ANTI_KEYWORDS:
 			if not _positive_integer(weapon.keywords[keyword]): return "Keyword requires a positive integer: " + keyword
+		if keyword == "sustained-hits" and not RandomStat.spec(weapon.keywords[keyword]).error.is_empty():
+			return "Invalid Sustained Hits characteristic."
 		if keyword not in ["rapid-fire", "sustained-hits", "blast", "hunter", "cleave", "melta"] and keyword not in ANTI_KEYWORDS and not weapon.keywords[keyword] is bool:
 			return "Keyword flag requires a boolean: " + keyword
 	var hunter_error := Traits.hunter_error(weapon, context.get("target_keywords"))
@@ -130,6 +141,10 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 		var value: Variant = context.get(key, 0)
 		if not (value is int or value is float) or not is_finite(value) or value != floor(value) or absf(value) > 1:
 			return "Only final roll modifiers between -1 and +1 are accepted."
+	if context.has("critical_hit_threshold"):
+		var critical_threshold: Variant = context.critical_hit_threshold
+		if not critical_threshold is int or critical_threshold < 2 or critical_threshold > 6:
+			return "Critical Hit thresholds must be unmodified values from 2 to 6."
 	if context.has("snap_hit_threshold"):
 		var snap_threshold: Variant = context.snap_hit_threshold
 		if not context.get("snap_shooting", false) or not snap_threshold is int or snap_threshold < 2 or snap_threshold > 6:
@@ -183,18 +198,22 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 			continue
 		if context.get("snap_shooting", false):
 			var snap_hit: bool = roll >= int(context.get("snap_hit_threshold", 6))
-			hit_outcomes.append({"roll": roll, "success": snap_hit, "critical": false})
+			var snap_critical := snap_hit and context.has("critical_hit_threshold") and roll >= int(context.critical_hit_threshold)
+			hit_outcomes.append({"roll": roll, "success": snap_hit, "critical": snap_critical})
 			if not snap_hit: continue
 			normal_hits += 1
 			continue
 		var hit: bool = successful_roll(roll, effective_skill, hit_modifier)
-		var critical_hit: bool = hit and (roll == 6 or bool(context.get("successful_hits_are_critical", false)))
-		hit_outcomes.append({"roll": roll, "success": hit, "critical": critical_hit})
-		if not hit: continue
+		var critical_hit: bool = hit and (roll >= int(context.get("critical_hit_threshold", 6)) or bool(context.get("successful_hits_are_critical", false)))
+		if not hit:
+			hit_outcomes.append({"roll": roll, "success": false, "critical": false, "sustained_hits": 0})
+			continue
+		var sustained := sustained_hits_amount(keywords.get("sustained-hits", 0), dice) if critical_hit else 0
+		hit_outcomes.append({"roll": roll, "success": true, "critical": critical_hit, "sustained_hits": sustained})
 		if critical_hit and keywords.get("lethal-hits", false) and context.get("use_lethal_hits", true):
 			automatic_wounds += 1
 		else: normal_hits += 1
-		if critical_hit: normal_hits += int(keywords.get("sustained-hits", 0))
+		if critical_hit: normal_hits += sustained
 	if normal_hits + automatic_wounds > 10000:
 		return {"error": "Hit pool exceeds prototype limit."}
 	var wounds := automatic_wounds

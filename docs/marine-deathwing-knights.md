@@ -29,3 +29,7 @@
 Focused offline verification passed 7/7 processes at `.tools/verification/20261028T113916146828Z/results.json`. The dedicated suite checks source identity, composition, points, characteristics, weapon profiles, role-specific loadout choices, optional Watcher behavior and mortal-wound prevention, Inner Circle attack Damage and the Fortitude restriction, Teleport Homer declaration and zero-CP Rapid Ingress, and Leader/Support links. The Belial, Deathwing Terminator Squad, common Leader/Support and shared Terminator regressions passed in the same run. Capability and Azrael regressions passed 4/4 targeted processes at `.tools/verification/20261028T113948965947Z/results.json`.
 
 The checks are local and offline. They do not certify complete Dark Angels or Space Marines roster legality, network behavior, complete-match behavior or human playtesting. Forge World, Legends, Boarding Actions and other alternate modes are outside this scope.
+
+## Saved unit/model equipment — 14 November 2026
+
+Army Builder now saves source weapons by stable miniature and Watcher in the Dark once per unit copy. Saved records apply before Deployment and cannot be reconfigured in the match. Triggered Watcher activation remains live. Existing construction, source and combat boundaries are preserved; unsaved unit records retain their legacy preparation route. See the [Deathwing saved-equipment audit](verification/deathwing-saved-equipment.md).

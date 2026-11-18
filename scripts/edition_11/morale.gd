@@ -39,6 +39,8 @@ static func objective_control(state: Dictionary, id: int) -> int:
 	var squad: Dictionary = state.squads[state.units[id].squad]
 	if squad.battle_shocked: return 0
 	var value := int(state.units[id].get("objective_control", squad.stats.objective_control))
+	if UnitAbilities.has(state, int(state.units[id].squad), "damaged-7") and int(state.units[id].get("wounds", 0)) <= 7: value = maxi(0, value - 4)
+	if UnitAbilities.has(state, int(state.units[id].squad), "damaged-8") and int(state.units[id].get("wounds", 0)) <= 8: value = maxi(0, value - 4)
 	if Scarabs.cryptek_sets_unit_oc(state, int(state.units[id].squad)): value = 1
 	var chittering := Scarabs.chittering_penalty(state, id)
 	if chittering > 0 and value > 0: value = maxi(1, value - chittering)

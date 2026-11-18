@@ -169,9 +169,27 @@ func run() -> void:
 		"entries": [{"definition_id": UNIT_ID, "models": 5, "copies": 2, "intercessor_sergeant_loadouts": [
 			{"rifle_choice": "plasma-pistol", "melee_choice": "thunder-hammer"},
 			{"rifle_choice": "bolt-rifle", "melee_choice": "power-weapon"}
+		], "intercessor_grenade_launcher_loadouts": [
+			[false, false, true, false, false],
+			[false, false, false, false, false]
 		]}]}
+	var loadout_admission := F.P.Training.Capabilities.admit(loadout_roster)
+	var canonical_launcher_copy := false
+	for canonical_entry: Dictionary in loadout_admission.get("selection", {}).get("entries", []):
+		var canonical_loadouts: Variant = canonical_entry.get("intercessor_grenade_launcher_loadouts", [])
+		if canonical_loadouts is Array and not canonical_loadouts.is_empty() and canonical_loadouts[0] is Array and canonical_loadouts[0].size() == 5 and canonical_loadouts[0][2] == true:
+			canonical_launcher_copy = true
+	var over_limit_roster: Dictionary = loadout_roster.duplicate(true)
+	over_limit_roster.entries[0].intercessor_grenade_launcher_loadouts[0][1] = true
+	var sergeant_launcher_roster: Dictionary = loadout_roster.duplicate(true)
+	sergeant_launcher_roster.entries[0].intercessor_grenade_launcher_loadouts[0][0] = true
+	check(loadout_admission.get("error", "").is_empty() and canonical_launcher_copy and loadout_admission.get("configurations", {}).size() == 2,
+		"Canonical admission keeps per-copy Grenade Launcher choices and groups the two distinct Intercessor configurations")
+	check(not str(F.P.Training.Capabilities.admit(over_limit_roster).get("error", "")).is_empty() and not str(F.P.Training.Capabilities.admit(sergeant_launcher_roster).get("error", "")).is_empty(),
+		"Canonical admission rejects a second five-model Grenade Launcher and a Sergeant Grenade Launcher")
 	var loadout_state := F.P.initial_state({"unit_abilities": true, "combat_doctrines": true, "marine_detachments": {1: "gladius", 2: "gladius"}}, {1: loadout_roster, 2: loadout_roster.duplicate(true)})
 	var observed_loadouts: Array[String] = []
+	var equipped_launcher_models: Array[int] = []
 	var matching_weapons := 0
 	if not loadout_state.has("error"):
 		for model_id: int in loadout_state.units:
@@ -181,11 +199,63 @@ func run() -> void:
 			var ids := weapon_ids(loadout_state, model_id)
 			if str(unit.intercessor_rifle_choice) == "plasma-pistol" and str(unit.intercessor_melee_choice) == "thunder-hammer" and "plasma-pistol" in ids and "thunder-hammer" in ids: matching_weapons += 1
 			if str(unit.intercessor_rifle_choice) == "bolt-rifle" and str(unit.intercessor_melee_choice) == "power-weapon" and "bolt-rifle" in ids and "power-weapon" in ids: matching_weapons += 1
+		for model_id: int in loadout_state.units:
+			var unit: Dictionary = loadout_state.units[model_id]
+			if int(unit.get("owner", -1)) == 1 and str(unit.get("definition_id", "")) == UNIT_ID and bool(unit.get("intercessor_grenade_launcher", false)):
+				equipped_launcher_models.append(model_id)
+				if "grenade-launcher" in weapon_ids(loadout_state, model_id): matching_weapons += 1
 	observed_loadouts.sort()
-	check(not loadout_state.has("error") and observed_loadouts == ["bolt-rifle|power-weapon", "plasma-pistol|thunder-hammer"] and matching_weapons == 2,
-		"Saved Sergeant equipment remains distinct per unit copy and materializes its matching gameplay weapons: %s %s" % [str(loadout_state.get("error", "")), str(observed_loadouts)])
+	check(not loadout_state.has("error") and observed_loadouts == ["bolt-rifle|power-weapon", "plasma-pistol|thunder-hammer"] and equipped_launcher_models.size() == 1 and matching_weapons == 3,
+		"Saved Intercessor Sergeant and Grenade Launcher equipment remain distinct per copy and materialize matching gameplay weapons: %s %s" % [str(loadout_state.get("error", "")), str(observed_loadouts)])
+	var saved_sergeant := -1
+	var saved_sergeant_squad := -1
+	var saved_launcher_model := -1
+	var saved_launcher_squad := -1
+	var saved_setup_choices: Array = []
+	if not loadout_state.has("error"):
+		saved_setup_choices = C.unit_choices(loadout_state, 1)
+		for model_id: int in loadout_state.units:
+			var unit: Dictionary = loadout_state.units[model_id]
+			if int(unit.get("owner", -1)) == 1 and bool(unit.get("sergeant", false)) and C.UnitActions.saved_army_intercessor_loadout_locked(loadout_state, unit):
+				saved_sergeant = model_id
+				saved_sergeant_squad = int(unit.get("squad", -1))
+				break
+		for model_id: int in loadout_state.units:
+			var unit: Dictionary = loadout_state.units[model_id]
+			if int(unit.get("owner", -1)) == 1 and bool(unit.get("intercessor_grenade_launcher", false)):
+				saved_launcher_model = model_id
+				saved_launcher_squad = int(unit.get("squad", -1))
+	check(saved_sergeant > 0 and not saved_setup_choices.any(func(option: Dictionary) -> bool: return str(option.get("action", "")) in ["intercessor-rifle", "intercessor-melee"]),
+		"Saved-list Sergeant rifle and melee choices are not repeated in match preparation")
+	check(not saved_setup_choices.any(func(option: Dictionary) -> bool: return str(option.get("action", "")) in ["intercessor-rifle", "intercessor-melee", "intercessor-grenade-launcher"]),
+		"Saved-list Intercessor equipment is not repeated in match preparation")
+	if saved_sergeant > 0:
+		var stale_rifle := C.UnitActions.choice("Stale saved-list rifle change", "intercessor-rifle", saved_sergeant, saved_sergeant_squad, "chainsword")
+		var before_stale_rifle := var_to_bytes(loadout_state)
+		var rejected_stale_rifle: Dictionary = C.UnitActions.apply(loadout_state, 1, stale_rifle, Vector2.ZERO, Callable())
+		check(not str(rejected_stale_rifle.get("error", "")).is_empty() and before_stale_rifle == var_to_bytes(loadout_state),
+			"A stale saved-list Sergeant choice is rejected without mutating its match loadout")
+		var public_stale_melee := C.UnitActions.choice("Stale saved-list melee change", "intercessor-melee", saved_sergeant, saved_sergeant_squad, "chainsword")
+		var before_public_stale := var_to_bytes(loadout_state)
+		check(not PublicUnitCommand.error(loadout_state, 1, public_stale_melee).is_empty() and before_public_stale == var_to_bytes(loadout_state),
+			"The public match command boundary rejects a removed saved-list choice without mutation")
+	if saved_launcher_model > 0:
+		var stale_launcher := C.UnitActions.choice("Stale saved-list Grenade Launcher change", "intercessor-grenade-launcher", saved_launcher_model, saved_launcher_squad, "off")
+		var before_stale_launcher := var_to_bytes(loadout_state)
+		check(not str(C.UnitActions.apply(loadout_state, 1, stale_launcher, Vector2.ZERO, Callable()).get("error", "")).is_empty() and before_stale_launcher == var_to_bytes(loadout_state),
+			"A stale saved-list Grenade Launcher removal is rejected without mutating the match loadout")
+		check(not PublicUnitCommand.error(loadout_state, 1, stale_launcher).is_empty() and before_stale_launcher == var_to_bytes(loadout_state),
+			"The public command boundary rejects stale saved-list Grenade Launcher changes")
+	var unsaved_setup_state: Dictionary = loadout_state.duplicate(true)
+	unsaved_setup_state.erase("saved_army_setup")
+	var legacy_sergeant := saved_sergeant
+	var legacy_setup_choices: Array = C.unit_choices(unsaved_setup_state, 1) if legacy_sergeant > 0 else []
+	check(legacy_sergeant > 0 and legacy_setup_choices.any(func(option: Dictionary) -> bool: return str(option.get("action", "")) == "intercessor-rifle" and int(option.get("model", -1)) == legacy_sergeant) and legacy_setup_choices.any(func(option: Dictionary) -> bool: return str(option.get("action", "")) == "intercessor-melee" and int(option.get("model", -1)) == legacy_sergeant) and legacy_setup_choices.any(func(option: Dictionary) -> bool: return str(option.get("action", "")) == "intercessor-grenade-launcher"),
+		"Non-saved training still offers Sergeant and per-model Intercessor setup choices")
 
 	var state := fixture()
+	# The saved-list path is covered above; keep this rules exercise in legacy prep mode.
+	state.erase("saved_army_setup")
 	check(not state.has("error"), "Current Space Marine catalogs materialize for the Intercessor scope: %s" % str(state.get("error", "")))
 	if state.has("error"):
 		print("Current Intercessor checks: %d failures" % (failures + 1))

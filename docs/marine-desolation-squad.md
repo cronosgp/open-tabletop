@@ -29,3 +29,7 @@ python tools/verify.py --godot C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.
 Both player rosters use the consolidated Space Marines catalog. Network validation was not run and the optional historical starter was not staged. The [machine audit](marine-desolation-squad-audit.json) records the source revision, local snapshot, file hashes, report hash, checks and limits.
 
 This result closes only the source-bounded local datasheet scope. It does not certify full Chapter/faction or army legality, network behavior, complete matches or human playtesting. Network validation remains deferred to final integration.
+
+## Saved model equipment — 14 November 2026
+
+Army Builder now saves exact source-listed specialist weapons per stable miniature/copy, with role eligibility, whole-unit caps and paid Vengor pricing where applicable. Source records apply before Deployment and are locked for the match. Existing construction gates and combat abilities are preserved; Eradicator Sergeant Multi-melta eligibility was corrected. See the [saved-equipment source resolution and regression audit](verification/specialist-squad-saved-equipment.md).

@@ -5,6 +5,8 @@ const C = F.C
 const Profiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/edition_11/roster_validation.gd")
+const ArmyRoster = preload("res://scripts/army_roster.gd")
+const ArmyTrainingRoster = preload("res://scripts/edition_11/training_roster.gd")
 const LeaderLinks = preload("res://scripts/edition_11/marine_leader_links.gd")
 const SupportAttachments = preload("res://scripts/edition_11/support_attachments.gd")
 const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
@@ -44,6 +46,7 @@ func fixture(model_count: int = 3, chapters: Dictionary = {}) -> Dictionary:
 	if not chapters.is_empty(): options.marine_chapters = chapters.duplicate(true)
 	var state: Dictionary = F.P.initial_state(options, selections(model_count))
 	if state.has("error"): return state
+	state.erase("saved_army_setup")
 	state.phase = "deployment"
 	state.active = 1
 	return state
@@ -126,6 +129,22 @@ func run() -> void:
 	var three_copies := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 1000, "entries": [entry(UNIT, 3, 3)]})
 	var four_copies := Catalog.admit({"schema_version": 2, "faction": "Space Marines", "category": "custom", "points_limit": 1000, "entries": [entry(UNIT, 3, 4)]})
 	check(three_copies.get("error", "").is_empty() and int(three_copies.get("total", -1)) == 240 and not str(four_copies.get("error", "")).is_empty(), "Custom-list admission prices the third copy correctly and enforces the local three-copy cap")
+	var builder_list := ArmyRoster.new_list("11e", "Space Marines", "custom", 3000)
+	var builder_unit := catalog_choice.duplicate(true)
+	builder_unit.role = ArmyRoster.role(builder_unit.get("keywords", []))
+	var builder_item := ArmyRoster.entry(builder_unit, 0)
+	ArmyRoster.set_outrider_plasma_pistol(builder_item, 0, 2, true)
+	ArmyRoster.set_model_equipment(builder_item, 0, 0, "outrider_sergeant_melee", "power-weapon")
+	builder_list.entries.append(builder_item)
+	var builder_report := ArmyTrainingRoster.inspect(builder_list, {}, true)
+	var saved_loadout: Dictionary = builder_report.get("selection", {}).get("entries", [{}])[0].get("outrider_loadouts", [{}])[0] if builder_report.get("error", "") == "" else {}
+	check(ArmyRoster.validate(builder_list).is_empty() and builder_report.get("error", "").is_empty() and saved_loadout.get("sergeant_melee_choice", "") == "power-weapon" and saved_loadout.get("plasma_pistol_choices", []) == [false, false, true], "Army Builder Outrider choices pass local admission and project into the canonical match roster")
+	var stable_refs := ArmyTrainingRoster.stable_model_refs(builder_list, builder_report.get("selection", {})) if builder_report.get("error", "") == "" else {"error": "Builder admission failed."}
+	check(stable_refs.get("error", "").is_empty() and stable_refs.get("models", {}).size() == 3, "Outrider loadout signatures preserve stable saved-model to canonical-model references")
+	var invalid_outrider_selection: Dictionary = builder_report.get("selection", {}).duplicate(true) if builder_report.get("error", "") == "" else {}
+	if not invalid_outrider_selection.is_empty(): invalid_outrider_selection.entries[0].outrider_loadouts[0].plasma_pistol_choices[1] = true
+	var invalid_outrider_report := Catalog.admit(invalid_outrider_selection) if not invalid_outrider_selection.is_empty() else {"error": "Builder admission failed."}
+	check(not str(invalid_outrider_report.get("error", "")).is_empty(), "Current-catalog admission rejects a saved three-model Outrider loadout with two Plasma Pistols")
 
 	var leader_targets: Array[String] = []
 	for leader: String in LeaderLinks.TARGETS:
@@ -153,6 +172,18 @@ func run() -> void:
 	var captain := captains[0] if not captains.is_empty() else -1
 	check(riders.size() == 3 and opposing_riders.size() == 3 and int(state.squads[rider_squad].training_cost) == 80 and target_squad > 0, "Both players materialize three-model squads at 80 points")
 	check(state.units[riders[0]].get("sergeant", false) and not state.units[riders[1]].get("sergeant", false), "Exactly one model receives the Sergeant role")
+	var saved_match_options := {"unit_abilities": true, "combat_doctrines": false, "manual_allocation": false}
+	var saved_match := F.P.initial_state(saved_match_options, {1: builder_report.selection, 2: builder_report.selection}) if builder_report.get("error", "") == "" else {"error": "Builder admission failed."}
+	var saved_riders := models(saved_match, UNIT, 1) if not saved_match.has("error") else []
+	var saved_squad := squad_for(saved_match, UNIT, 1) if not saved_match.has("error") else -1
+	var saved_configuration_applied := saved_riders.size() == 3
+	if saved_configuration_applied:
+		saved_configuration_applied = saved_match.units[saved_riders[0]].get("outrider_melee_choice", "") == "power-weapon" and saved_match.units[saved_riders[2]].get("outrider_plasma_pistol", false) and saved_match.units[saved_riders[0]].melee_weapons[0].id == "power-weapon" and saved_match.units[saved_riders[2]].ranged_weapons[0].id == "plasma-pistol"
+	check(not saved_match.has("error") and saved_configuration_applied and ArmyRoster.validate(builder_list).is_empty(), "A saved match snapshots Outrider model equipment into the expected weapon profiles")
+	if saved_configuration_applied:
+		check(U.saved_army_outrider_loadout_locked(saved_match, saved_match.units[saved_riders[0]]) and U.choices(saved_match, 1).filter(func(candidate: Dictionary) -> bool: return str(candidate.get("action", "")).begins_with("outrider-")).is_empty(), "Saved Outrider match equipment is fixed and removed from setup choices")
+		var forbidden_change := PublicUnitCommand.submit(saved_match, 1, {"action": "outrider-melee", "model": saved_riders[0], "target": saved_squad, "value": "thunder-hammer"})
+		check(not str(forbidden_change.get("error", "")).is_empty() and saved_match.units[saved_riders[0]].melee_weapons[0].id == "power-weapon", "The public command boundary rejects changes to snapshotted Outrider equipment")
 	var default_loadouts_match := true
 	for model: int in riders:
 		if state.units[model].ranged_weapons.map(func(w: Dictionary) -> String: return w.id) != ["heavy-bolt-pistol", "twin-bolt-rifle"] or state.units[model].melee_weapons.map(func(w: Dictionary) -> String: return w.id) != ["chainsword"]:

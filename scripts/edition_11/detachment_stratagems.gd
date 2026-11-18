@@ -1802,7 +1802,7 @@ static func mortal_wound_triggered(s: Dictionary, squad: int) -> bool:
 		var packet: Dictionary = demise.packets[int(demise.packet_cursor)]
 		if int(packet.get("target", -1)) == squad and int(packet.get("remaining", 0)) > 0: return true
 	var window: Dictionary = s.get("unit_abilities", {}).get("window", {})
-	var mortal_windows := ["explosives", "crushing-impact-mortal", "hammer-of-wrath-mortal", "gravis-armoured-impact-mortal", "inner-circle-wrath-of-the-lion-mortal", "tigurius-telepathic-assault-mortal", "incursor-haywire-mortal", PHOBOS_SHADOW_MORTIS_MORTAL_WINDOW, "black-templars-high-marshal-mortal", "necron-scarab-self-destruction-mortal", "blood-angels-death-visions-mortal"]
+	var mortal_windows := ["explosives", "crushing-impact-mortal", "hammer-of-wrath-mortal", "gravis-armoured-impact-mortal", "inner-circle-wrath-of-the-lion-mortal", "tigurius-telepathic-assault-mortal", "incursor-haywire-mortal", PHOBOS_SHADOW_MORTIS_MORTAL_WINDOW, "black-templars-high-marshal-mortal", "necron-scarab-self-destruction-mortal", "gravitic-pulse-mortal", "blood-angels-death-visions-mortal"]
 	if str(window.get("kind", "")) in mortal_windows and int(window.get("target", -1)) == squad: return true
 	return false
 
@@ -2831,6 +2831,9 @@ static func hold_destroyed(s: Dictionary, model: int, roller: Callable) -> Dicti
 	var current_abilities: Dictionary = s.get("unit_abilities", {})
 	var identity := str(unit.get("definition_id", "")).get_slice(":", 3)
 	var squad := int(unit.get("squad", -1))
+	var Cryptothralls = load("res://scripts/edition_11/necron_cryptothralls.gd")
+	var systematic: Dictionary = Cryptothralls.hold_destroyed(s, model, roller)
+	if not str(systematic.get("error", "")).is_empty() or bool(systematic.get("held", false)) or systematic.has("roll"): return systematic
 	if current_abilities.get("implementation", "") == A.ID and _has_keyword(unit, "WULFEN") and unit.get("on_battlefield", true) and not unit.get("murder_maker_used", false) and s.phase == "fight" and s.squads.has(squad) and not s.squads[squad].fought and int(s.get("fight_selected", -1)) != squad:
 		var murderfang_nearby := false
 		for source_squad: int in s.squads:
@@ -2991,6 +2994,11 @@ static func remove_lingering(s: Dictionary, squad: int = -1) -> void:
 		if unit.get("titus_honour_lingering", false) and (squad == -1 or unit.squad == squad):
 			unit.wounds = 0
 			unit.erase("titus_honour_lingering")
+			unit.erase("lingering")
+			record_destroyed(s, model)
+		if unit.get("systematic_vigour_lingering", false) and (squad == -1 or unit.squad == squad):
+			unit.wounds = 0
+			unit.erase("systematic_vigour_lingering")
 			unit.erase("lingering")
 			record_destroyed(s, model)
 	for model: int in s.units:

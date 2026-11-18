@@ -249,29 +249,33 @@ func run() -> void:
 	var six_models := models_in_squad(state, large)
 	var three_options := C.unit_choices(state, 1).filter(func(choice: Dictionary) -> bool: return choice.get("action", "") == "eradicator-melta" and int(choice.get("target", -1)) == small and choice.get("value", "") == "multi")
 	var six_options := C.unit_choices(state, 1).filter(func(choice: Dictionary) -> bool: return choice.get("action", "") == "eradicator-melta" and int(choice.get("target", -1)) == large and choice.get("value", "") == "multi")
-	check(three_options.size() == 3 and six_options.size() == 6, "One Multi-melta may be selected per three-model group, with every eligible carrier offered")
+	check(three_options.size() == 2 and six_options.size() == 5, "One Multi-melta may be selected per three-model group, with every eligible carrier offered")
 	check(three_options.all(func(choice: Dictionary) -> bool: return str(choice.get("label", "")) == "Equip Multi-melta"), "Compact player-facing choice text names the replacement weapon")
-	var selected := choice_for(state, small, sergeant, "multi")
+	var sergeant_before := var_to_bytes(state)
+	check(choice_for(state, small, sergeant, "multi").is_empty() and not str(C.UnitActions.apply(state, 1, {"action": "eradicator-melta", "model": sergeant, "target": small, "value": "multi"}, Vector2.ZERO, Callable()).get("error", "")).is_empty() and sergeant_before == var_to_bytes(state), "Source names ordinary Eradicator models; Sergeant cannot take Multi-melta")
+	var selected := choice_for(state, small, ordinary_model, "multi")
 	var wrong_owner_before := var_to_bytes(state)
 	check(not selected.is_empty() and not PublicUnitCommand.error(state, 2, selected).is_empty() and wrong_owner_before == var_to_bytes(state), "Opponent cannot submit the Eradicator equipment choice")
-	check(PublicUnitCommand.error(state, 1, selected).is_empty() and state.units[sergeant].ranged_weapons[0].id == "multi-melta" and state.units[sergeant].multi_melta, "Public preparation command equips the Sergeant with a Multi-melta")
+	check(PublicUnitCommand.error(state, 1, selected).is_empty() and state.units[ordinary_model].ranged_weapons[0].id == "multi-melta" and state.units[ordinary_model].multi_melta, "Public preparation command equips an ordinary Eradicator with a Multi-melta")
 	var cap_options := C.unit_choices(state, 1).filter(func(choice: Dictionary) -> bool: return choice.get("action", "") == "eradicator-melta" and int(choice.get("target", -1)) == small and choice.get("value", "") == "multi")
-	check(cap_options.size() == 0 and C.unit_choices(state, 1).any(func(choice: Dictionary) -> bool: return choice.get("action", "") == "eradicator-melta" and int(choice.get("model", -1)) == sergeant and choice.get("value", "") == "rifle" and str(choice.get("label", "")) == "Restore Melta Rifle"), "Three-model copy exposes restoration and blocks a second Multi-melta")
-	var second_model := ordinary_model
+	check(cap_options.size() == 0 and C.unit_choices(state, 1).any(func(choice: Dictionary) -> bool: return choice.get("action", "") == "eradicator-melta" and int(choice.get("model", -1)) == ordinary_model and choice.get("value", "") == "rifle" and str(choice.get("label", "")) == "Restore Melta Rifle"), "Three-model copy exposes restoration and blocks a second Multi-melta")
+	var second_model := -1
+	for candidate: int in three_models:
+		if candidate != ordinary_model and not state.units[candidate].sergeant: second_model = candidate; break
 	var malformed := {"action": "eradicator-melta", "model": second_model, "target": small, "value": "multi"}
 	var over_cap_before := var_to_bytes(state)
 	check(not str(C.UnitActions.apply(state, 1, malformed, Vector2.ZERO, Callable()).get("error", "")).is_empty() and over_cap_before == var_to_bytes(state), "Direct over-cap choice is rejected without changing state")
 	var malformed_value := {"action": "eradicator-melta", "model": second_model, "target": small, "value": "heavy-bolter"}
 	var malformed_before := var_to_bytes(state)
 	check(not str(C.UnitActions.apply(state, 1, malformed_value, Vector2.ZERO, Callable()).get("error", "")).is_empty() and malformed_before == var_to_bytes(state), "Unsupported equipment value is rejected without changing state")
-	var restore := choice_for(state, small, sergeant, "rifle")
-	check(not restore.is_empty() and PublicUnitCommand.error(state, 1, restore).is_empty() and state.units[sergeant].ranged_weapons[0].id == "melta-rifle" and not state.units[sergeant].multi_melta, "Public preparation command can restore the Melta Rifle")
-	var large_first := model_for(state, large, true)
+	var restore := choice_for(state, small, ordinary_model, "rifle")
+	check(not restore.is_empty() and PublicUnitCommand.error(state, 1, restore).is_empty() and state.units[ordinary_model].ranged_weapons[0].id == "melta-rifle" and not state.units[ordinary_model].multi_melta, "Public preparation command can restore the Melta Rifle")
+	var large_first := model_for(state, large, false)
 	var large_choice := choice_for(state, large, large_first, "multi")
 	check(not large_choice.is_empty() and PublicUnitCommand.error(state, 1, large_choice).is_empty(), "Six-model copy permits its first Multi-melta")
 	var large_second := -1
 	for candidate: int in six_models:
-		if candidate != large_first: large_second = candidate; break
+		if candidate != large_first and not state.units[candidate].sergeant: large_second = candidate; break
 	var large_choice_second := choice_for(state, large, large_second, "multi")
 	check(not large_choice_second.is_empty() and PublicUnitCommand.error(state, 1, large_choice_second).is_empty(), "Six-model copy permits its second Multi-melta")
 	var large_cap_options := C.unit_choices(state, 1).filter(func(choice: Dictionary) -> bool: return choice.get("action", "") == "eradicator-melta" and int(choice.get("target", -1)) == large and choice.get("value", "") == "multi")

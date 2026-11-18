@@ -20,6 +20,7 @@ const MenuTheme = preload("res://scripts/ui/menu_theme.gd")
 const ICON_DIR := "res://assets/ui/icons/dataslate/"
 
 var resume_button: Button
+var resume_action_available := false
 var _resume_icon_gold: Texture2D
 var _resume_icon_on_gold: Texture2D
 var _guided_icon_gold: Texture2D
@@ -29,7 +30,16 @@ var recovery_actions: VBoxContainer
 var recovery_note: Label
 var recovery_browse: Button
 var status_label: Label
+var preparation_progress_label: Label
+var preparation_progress_bar: ProgressBar
+var preparation_continue_button: Button
+var preparation_continue_pending := false
 var guided_button: Button
+var compact_actions: VBoxContainer
+var compact_resume_button: Button
+var compact_guided_button: Button
+var compact_new_match_button: Button
+var compact_settings_button: Button
 var training_swap_choice: CheckBox
 var training_summary: Label
 var training_teaser: Label
@@ -44,6 +54,11 @@ var match_section: VBoxContainer
 var match_status: Label
 var menu_frame: PanelContainer
 var menu_body: HBoxContainer
+var main_content: MarginContainer
+var left_panel: PanelContainer
+var left_margin: MarginContainer
+var left_vbox: VBoxContainer
+var right_margin: MarginContainer
 var title_label: Label
 var subtitle_label: Label
 var hint_label: Label
@@ -62,6 +77,8 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_build()
+	get_viewport().size_changed.connect(_apply_responsive_layout)
+	call_deferred("_apply_responsive_layout")
 
 func _build() -> void:
 	var background := ColorRect.new()
@@ -70,7 +87,7 @@ func _build() -> void:
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	background.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(background)
-	var main_content := MarginContainer.new()
+	main_content = MarginContainer.new()
 	main_content.name = "MainContent"
 	main_content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main_content.offset_bottom = -88.0
@@ -78,6 +95,10 @@ func _build() -> void:
 		main_content.add_theme_constant_override("margin_" + side, 56)
 	main_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(main_content)
+	_resume_icon_gold = _load_icon("saved_matches.svg")
+	_resume_icon_on_gold = _load_icon("saved_matches_on_gold.svg")
+	_guided_icon_gold = _load_icon("start_training.svg")
+	_guided_icon_on_gold = _load_icon("start_training_on_gold.svg")
 	var main_hbox := HBoxContainer.new()
 	main_hbox.name = "MainHBox"
 	menu_body = main_hbox
@@ -89,19 +110,19 @@ func _build() -> void:
 	_build_bottom_bar()
 
 func _build_left_panel(parent: HBoxContainer) -> void:
-	var left_panel := PanelContainer.new()
+	left_panel = PanelContainer.new()
 	left_panel.name = "LeftPanel"
 	menu_frame = left_panel
 	left_panel.custom_minimum_size = Vector2(520, 0)
 	left_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left_panel.size_flags_stretch_ratio = 0.9
 	parent.add_child(left_panel)
-	var left_margin := MarginContainer.new()
+	left_margin = MarginContainer.new()
 	left_margin.name = "LeftMargin"
 	for side in ["left", "right", "top", "bottom"]:
 		left_margin.add_theme_constant_override("margin_" + side, 28)
 	left_panel.add_child(left_margin)
-	var left_vbox := VBoxContainer.new()
+	left_vbox = VBoxContainer.new()
 	left_vbox.name = "LeftVBox"
 	title_identity = left_vbox
 	left_vbox.add_theme_constant_override("separation", 16)
@@ -145,6 +166,41 @@ func _build_left_panel(parent: HBoxContainer) -> void:
 	status_label.add_theme_color_override("font_color", MenuTheme.GOLD_HIGHLIGHT)
 	status_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	left_vbox.add_child(status_label)
+	preparation_progress_label = Label.new()
+	preparation_progress_label.add_theme_font_size_override("font_size", 13)
+	preparation_progress_label.add_theme_color_override("font_color", MenuTheme.TEXT_SECONDARY)
+	preparation_progress_label.visible = false
+	left_vbox.add_child(preparation_progress_label)
+	preparation_progress_bar = ProgressBar.new()
+	preparation_progress_bar.min_value = 0.0
+	preparation_progress_bar.max_value = 1.0
+	preparation_progress_bar.show_percentage = false
+	preparation_progress_bar.custom_minimum_size.y = 12
+	preparation_progress_bar.add_theme_stylebox_override("background", _progress_style(Color("26333d")))
+	preparation_progress_bar.add_theme_stylebox_override("fill", _progress_style(MenuTheme.GOLD))
+	preparation_progress_bar.visible = false
+	left_vbox.add_child(preparation_progress_bar)
+	preparation_continue_button = _action_button(left_vbox, "Start with available models", "Continue with the available unit defaults.", false, false, _guided_icon_gold)
+	preparation_continue_button.name = "PreparationContinueButton"
+	preparation_continue_button.visible = false
+	preparation_continue_button.pressed.connect(func(): start_guided_requested.emit())
+	compact_actions = VBoxContainer.new()
+	compact_actions.name = "CompactActions"
+	compact_actions.add_theme_constant_override("separation", 8)
+	compact_actions.visible = false
+	left_vbox.add_child(compact_actions)
+	compact_resume_button = _action_button(compact_actions, "Saved matches", "Resume or inspect a local saved match.", false, true, _resume_icon_gold)
+	compact_resume_button.name = "CompactSavedMatchesButton"
+	compact_resume_button.pressed.connect(func(): resume_requested.emit())
+	compact_guided_button = _action_button(compact_actions, "Start tactical training", "Fire and Manoeuvre vs Close Assault. Select this to continue with available model visuals.", false, true, _guided_icon_gold)
+	compact_guided_button.name = "CompactStartTrainingButton"
+	compact_guided_button.pressed.connect(func(): start_guided_requested.emit())
+	compact_new_match_button = _action_button(compact_actions, "New match", "Choose a local exercise, saved armies or LAN setup.", false, true, _load_icon("new_match.svg"))
+	compact_new_match_button.name = "CompactNewMatchButton"
+	compact_new_match_button.pressed.connect(func(): new_match_requested.emit())
+	compact_settings_button = _action_button(compact_actions, "Settings", "Adjust local display and presentation options before starting.", false, true, _load_icon("settings.svg"))
+	compact_settings_button.name = "CompactSettingsButton"
+	compact_settings_button.pressed.connect(func(): settings_requested.emit())
 	match_status = Label.new()
 	match_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	match_status.add_theme_color_override("font_color", MenuTheme.GOLD_HIGHLIGHT)
@@ -158,7 +214,7 @@ func _build_left_panel(parent: HBoxContainer) -> void:
 	left_vbox.add_child(footer_label)
 
 func _build_right_actions(parent: HBoxContainer) -> void:
-	var right_margin := MarginContainer.new()
+	right_margin = MarginContainer.new()
 	right_margin.name = "RightMargin"
 	right_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right_margin.size_flags_stretch_ratio = 1.1
@@ -184,10 +240,6 @@ func _build_right_actions(parent: HBoxContainer) -> void:
 	heading_rule.custom_minimum_size = Vector2(0, 1)
 	heading_rule.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right_vbox.add_child(heading_rule)
-	_resume_icon_gold = _load_icon("saved_matches.svg")
-	_resume_icon_on_gold = _load_icon("saved_matches_on_gold.svg")
-	_guided_icon_gold = _load_icon("start_training.svg")
-	_guided_icon_on_gold = _load_icon("start_training_on_gold.svg")
 	resume_button = _action_button(right_vbox, "Saved matches (0)", "Resume or inspect a local saved match.", true, false, _resume_icon_on_gold)
 	resume_button.name = "SavedMatchesButton"
 	resume_button.pressed.connect(func(): resume_requested.emit())
@@ -315,6 +367,7 @@ func refresh_training_presentation() -> void:
 		training_swap_choice.tooltip_text = "Player 1 commands Close Assault instead of Fire and Manoeuvre.\n\n%s" % full
 
 func set_resume_state(available: bool, explanation: String = "", live_match: bool = false, save_count: int = 1) -> void:
+	resume_action_available = available
 	resume_button.visible = available
 	var backup_recovery := available and explanation.contains("previous backup")
 	resume_note.visible = not available or backup_recovery
@@ -328,21 +381,29 @@ func set_resume_state(available: bool, explanation: String = "", live_match: boo
 	resume_button.tooltip_text = explanation if not explanation.is_empty() else "Resume or inspect a local saved match."
 	resume_note.text = _resume_note_text(explanation)
 	resume_note.tooltip_text = explanation if not explanation.is_empty() else "No compatible saved match found."
-	_set_emphasis(resume_button, available)
-	_set_emphasis(guided_button, not available)
+	_sync_compact_actions()
+	_apply_responsive_layout()
 	focus_primary_action()
 
 func focus_primary_action() -> void:
 	if not visible or not is_inside_tree():
 		return
 	var target: Control = null
-	if match_section != null and match_section.visible and resume_button != null and resume_button.visible:
+	if preparation_continue_button != null and preparation_continue_button.is_visible_in_tree():
+		target = preparation_continue_button
+	elif preparation_continue_pending and compact_guided_button != null and compact_guided_button.is_visible_in_tree():
+		target = compact_guided_button
+	elif compact_resume_button != null and compact_resume_button.is_visible_in_tree():
+		target = compact_resume_button
+	elif compact_guided_button != null and compact_guided_button.is_visible_in_tree():
+		target = compact_guided_button
+	elif match_section != null and match_section.visible and resume_button != null and resume_button.is_visible_in_tree():
 		target = resume_button
-	elif resume_button != null and resume_button.visible:
+	elif resume_button != null and resume_button.is_visible_in_tree():
 		target = resume_button
-	elif guided_button != null and guided_button.visible:
+	elif guided_button != null and guided_button.is_visible_in_tree():
 		target = guided_button
-	elif new_match_button != null and new_match_button.visible:
+	elif new_match_button != null and new_match_button.is_visible_in_tree():
 		target = new_match_button
 	if target != null and target.is_inside_tree() and target.is_visible_in_tree():
 		target.grab_focus()
@@ -353,10 +414,11 @@ func set_recovery_notice(message: String, browse_available: bool = false, diagno
 	recovery_actions.visible = not message.is_empty() and not match_section.visible
 	recovery_browse.visible = browse_available
 	if recovery_actions.visible:
+		resume_action_available = true
 		resume_button.text = "Resume recovered match"
 		resume_button.tooltip_text = message
 		resume_note.visible = false
-	_set_emphasis(resume_button, true)
+	_apply_responsive_layout()
 
 func _resume_note_text(explanation: String) -> String:
 	if explanation == "The saved match requires a different rules version or local data pack.":
@@ -366,11 +428,47 @@ func _resume_note_text(explanation: String) -> String:
 	return explanation if not explanation.is_empty() else "No compatible saved match found."
 
 func show_status(message: String) -> void:
+	clear_preparation_progress()
 	status_label.text = message
 	status_label.visible = not match_section.visible and not message.is_empty()
 	if match_section.visible:
 		match_status.text = message if not message.is_empty() else "The match stays active while this local menu is open."
 		match_status.visible = true
+
+func show_preparation_progress(message: String, ready: int, total: int, unit_ready: int, unit_total: int, variant_ready: int, variant_total: int, preparation_finished: bool = false) -> void:
+	status_label.text = message
+	status_label.visible = not match_section.visible and not message.is_empty()
+	if match_section.visible:
+		match_status.text = message
+		match_status.visible = not message.is_empty()
+	preparation_progress_label.text = "Checking selected model sources…" if total <= 0 else "%d/%d visual assets · unit types %d/%d · appearances %d/%d" % [clampi(ready, 0, total), total, clampi(unit_ready, 0, unit_total), unit_total, clampi(variant_ready, 0, variant_total), variant_total]
+	preparation_progress_label.tooltip_text = "This counts local visual files for selected unit types and weapon appearances, not battlefield miniatures."
+	preparation_progress_label.visible = not match_section.visible
+	preparation_progress_bar.max_value = float(maxi(1, total))
+	preparation_progress_bar.value = float(maxi(1, total)) if preparation_finished else clampf(float(ready), 0.0, float(maxi(1, total)))
+	preparation_progress_bar.indeterminate = total <= 0
+	preparation_progress_bar.visible = not match_section.visible
+
+func clear_preparation_progress() -> void:
+	if preparation_progress_label != null: preparation_progress_label.visible = false
+	if preparation_progress_bar != null:
+		preparation_progress_bar.visible = false
+		preparation_progress_bar.indeterminate = false
+	set_preparation_continue_action(false)
+
+func set_preparation_continue_action(available: bool) -> void:
+	preparation_continue_pending = available
+	if is_inside_tree(): _apply_responsive_layout()
+
+func _progress_style(color: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.set_corner_radius_all(5)
+	style.content_margin_left = 0
+	style.content_margin_right = 0
+	style.content_margin_top = 0
+	style.content_margin_bottom = 0
+	return style
 
 func show_first_run_model_setup(choose: Callable, skip: Callable) -> void:
 	if first_run_model_setup != null and is_instance_valid(first_run_model_setup):
@@ -474,9 +572,75 @@ func set_in_match_mode(active: bool) -> void:
 	resume_button.visible = active or resume_button.visible
 	resume_note.visible = not active and not recovery_actions.visible and (not resume_button.visible or resume_note.tooltip_text.contains("previous backup"))
 	if active:
+		resume_action_available = true
 		match_status.text = "The match stays active while this local menu is open."
 		_set_emphasis(resume_button, true)
+	_apply_responsive_layout()
 	focus_primary_action()
+
+func _apply_responsive_layout() -> void:
+	if main_content == null or left_panel == null or right_margin == null: return
+	var viewport_width := get_window().size.x
+	var compact := viewport_width < 1000.0
+	var horizontal_margin := 8 if compact else 56
+	var vertical_margin := 16 if compact else 56
+	for side: String in ["left", "right"]:
+		main_content.add_theme_constant_override("margin_" + side, horizontal_margin)
+	for side: String in ["top", "bottom"]:
+		main_content.add_theme_constant_override("margin_" + side, vertical_margin)
+	main_content.offset_bottom = -88.0
+	menu_body.add_theme_constant_override("separation", 12 if compact else 56)
+	left_panel.custom_minimum_size.x = minf(520.0, maxf(0.0, viewport_width - horizontal_margin * 2)) if compact else 520.0
+	for side: String in ["left", "right", "top", "bottom"]:
+		left_margin.add_theme_constant_override("margin_" + side, 16 if compact else 28)
+	left_vbox.add_theme_constant_override("separation", 8 if compact or preparation_continue_pending else 16)
+	right_margin.visible = not compact
+	if hint_label != null: hint_label.visible = not compact and not preparation_continue_pending
+	if footer_label != null: footer_label.visible = not compact and not match_section.visible
+	if compact_actions != null: compact_actions.visible = compact and not match_section.visible
+	if preparation_continue_button != null: preparation_continue_button.visible = preparation_continue_pending and not compact and not match_section.visible
+	if guided_button != null: guided_button.visible = not compact and not preparation_continue_pending and not match_section.visible
+	if edition_label != null: edition_label.add_theme_font_size_override("font_size", 36 if compact else 15)
+	if subtitle_label != null: subtitle_label.add_theme_font_size_override("font_size", 32 if compact else 14)
+	if status_label != null: status_label.add_theme_font_size_override("font_size", 42 if compact else 16)
+	if preparation_progress_label != null: preparation_progress_label.add_theme_font_size_override("font_size", 29 if compact else 13)
+	if preparation_continue_button != null: preparation_continue_button.add_theme_font_size_override("font_size", 36 if compact else 17)
+	if compact_actions != null:
+		for action: Node in compact_actions.get_children():
+			if action is Button: action.add_theme_font_size_override("font_size", 36 if compact else 15)
+	if title_label != null:
+		var title_size := 48 if match_section.visible else 68
+		if compact: title_size = 132
+		title_label.add_theme_font_size_override("font_size", title_size)
+	_sync_compact_actions()
+	if preparation_continue_pending:
+		_set_emphasis(resume_button, false)
+		_set_emphasis(compact_resume_button, false)
+		_set_emphasis(guided_button, false)
+		_set_emphasis(compact_guided_button, true)
+		_set_emphasis(preparation_continue_button, true)
+	else:
+		_set_emphasis(resume_button, resume_action_available)
+		_set_emphasis(compact_resume_button, resume_action_available)
+		_set_emphasis(guided_button, not resume_action_available)
+		_set_emphasis(compact_guided_button, not resume_action_available)
+	call_deferred("focus_primary_action")
+
+func _sync_compact_actions() -> void:
+	if compact_guided_button == null or guided_button == null: return
+	compact_resume_button.text = resume_button.text
+	compact_resume_button.visible = resume_button.visible
+	compact_resume_button.disabled = resume_button.disabled
+	compact_resume_button.tooltip_text = resume_button.tooltip_text
+	compact_guided_button.text = guided_button.text
+	compact_guided_button.disabled = guided_button.disabled
+	compact_guided_button.tooltip_text = guided_button.tooltip_text
+	compact_new_match_button.text = new_match_button.text
+	compact_new_match_button.disabled = new_match_button.disabled
+	compact_new_match_button.tooltip_text = new_match_button.tooltip_text
+	compact_settings_button.text = title_settings_button.text
+	compact_settings_button.disabled = title_settings_button.disabled
+	compact_settings_button.tooltip_text = title_settings_button.tooltip_text
 
 func _set_emphasis(button: Button, emphasized: bool) -> void:
 	if button == null:
@@ -491,8 +655,10 @@ func _set_emphasis(button: Button, emphasized: bool) -> void:
 		button.remove_theme_color_override("font_pressed_color")
 	if button == resume_button:
 		button.icon = _resume_icon_on_gold if emphasized else _resume_icon_gold
-	elif button == guided_button:
+	elif button == guided_button or button == compact_guided_button:
 		button.icon = _guided_icon_on_gold if emphasized else _guided_icon_gold
+	elif button == compact_resume_button:
+		button.icon = _resume_icon_on_gold if emphasized else _resume_icon_gold
 
 func _load_icon(file_name: String) -> Texture2D:
 	var path := ICON_DIR + file_name
@@ -513,8 +679,8 @@ func _action_button(parent: Node, caption: String, tip: String, primary: bool, c
 	button.text = caption
 	button.tooltip_text = tip
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.custom_minimum_size.y = 40 if compact else 56
-	button.add_theme_font_size_override("font_size", 15 if compact else 18)
+	button.custom_minimum_size.y = 40 if compact else 48
+	button.add_theme_font_size_override("font_size", 15 if compact else 17)
 	button.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	button.clip_text = false
 	button.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING

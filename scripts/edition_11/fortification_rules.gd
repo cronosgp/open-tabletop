@@ -51,6 +51,9 @@ static func fall_back_hazard_auto_pass(state: Dictionary, target_squad: int) -> 
 	if not state.get("squads", {}).has(target_squad) or bool(state.squads[target_squad].get("battle_shocked", false)): return false
 	return target_engaged_only_with_hammerfall_fortifications(state, target_squad)
 
+static func blocks_line_of_sight(observer: Dictionary, target: Dictionary, blocker: Dictionary) -> bool:
+	return _intervenes(observer, target, blocker)
+
 static func _intervenes(observer: Dictionary, target: Dictionary, blocker: Dictionary) -> bool:
 	var delta: Vector2 = target.position - observer.position
 	var length_squared := delta.length_squared()

@@ -32,3 +32,7 @@ The report records `network: false`, `legacy_starter_staged: false` and no clean
 ## Limits
 
 This closes only the Invictor Tactical Warsuit's source-bounded local shared-book scope. The test covers the Scouts distance boundary and reserve eligibility, not every terrain-placement case. This does not certify whole-army legality, Chapter-book adaptations, Forge World, Legends, network behavior, a complete match or human playtesting. Network validation remains deferred to final integration.
+
+## Army Workshop persistence — 13 November 2026
+
+The source-listed weapon replacement is now stored per stable model in Army Workshop lists. Current-catalog admission keeps differently configured copies separate; saved-list match creation applies the exact selected package and locks duplicate preparation changes before Deployment. Standalone exercises retain their public preparation choice. This adds persistence to the existing local scope and does not extend rules certification. See the [Army Builder guide](guides/army-builder.md#invictor-and-ancient-equipment).

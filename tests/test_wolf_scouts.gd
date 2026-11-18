@@ -129,7 +129,14 @@ func run() -> void:
 	var other_enemy := enemy[1]
 	var models := models_for(state, squad)
 	var twelve_models := models_for(state, twelve_squad)
-	check(models.size() == 6 and twelve_models.size() == 12 and int(state.squads[squad].training_cost) == 95 and int(state.squads[twelve_squad].training_cost) == 190 and int(state.squads[remaining_six_squad].training_cost) == 95, "Prepared model counts and size-specific first/second copy costs match the datasheet")
+	var scout_total := 0
+	for ordinal in range(friendly.size()):
+		var candidate: int = friendly[ordinal]
+		var size := models_for(state, candidate).size()
+		var expected: int = profile.points_by_models[size] if ordinal < 2 else profile.third_plus_points_by_models[size]
+		check(int(state.squads[candidate].training_cost) == expected, "Canonical Scout copy uses its source size and actual copy tier")
+		scout_total += int(state.squads[candidate].training_cost)
+	check(models.size() == 6 and twelve_models.size() == 12 and scout_total == 390, "Two six-model and one twelve-model Scout units total the source-tier 390 points")
 	var pack_leader := model_with_role(state, squad, "Wolf Scout Pack Leader")
 	var hunting_wolf := model_with_role(state, squad, "Hunting Wolf")
 	var regular_scout := model_with_role(state, squad, "Wolf Scout")

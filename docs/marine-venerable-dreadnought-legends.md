@@ -59,3 +59,7 @@ The focused command `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-st
 The connected profile/catalog/ability/combat regression passed **14/14 processes** at `.tools/verification/20261030T101420116731Z/results.json` (SHA-256 `1BCB63A5924CE923B803656B0990D2869C0483524EB6C56C7308F60D9487FAF2`; `network: false`, legacy starter staged, no cleanup diagnostics). The runtime identity export contains **177 profiles**, includes source ID `000000120`, and has zero missing source IDs at `.tools/space-marine-runtime-identities-full-audit-next-20261030-v11.json` (SHA-256 `968283C5C46710C91172886BC5EF0CC19E53E83FB5A669CE4C9421C033EB8588`).
 
 This closes the local source-bounded Venerable Legends datasheet scope. Final network integration and event-pack checks remain pending; full army legality and human playtesting are separate gates.
+
+## Army Workshop saved loadout
+
+Each Venerable Dreadnought (Legends) copy can save its primary weapon replacement and its Dreadnought Fist/ranged-weapon package against its stable model identity. The shared Army Builder adapter accepts all 32 combinations produced by the existing local source factory, installs the matching ranged and melee profiles before Deployment, and suppresses repeated preparation choices for a saved list. A separate-process restart fixture also confirms that a configured Dreadnought survives profile reopen and stays frozen in its match snapshot. This does not change the Legends event-use condition or certify competitive eligibility.

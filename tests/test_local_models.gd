@@ -30,6 +30,23 @@ func run() -> void:
 	for record: Dictionary in object_scan.source_objects: object_paths[record.path] = record
 	check(object_scan.source_objects.size() == object_scan.objects and object_scan.objects == 3, "Optional inventory includes containers, visuals and alternate states exactly once")
 	check(object_paths["ObjectStates/0/ContainedObjects/0"].parent_path == "ObjectStates/0" and object_paths["ObjectStates/0/ContainedObjects/0/States/2"].parent_path == "ObjectStates/0/ContainedObjects/0", "Object inventory preserves actual object parents across containment and states")
+	var source_path := ROOT.path_join("ForceOrg.json")
+	var source_fingerprint := FileAccess.get_sha256(source_path)
+	var scan_cache_path := ProjectSettings.globalize_path("user://forceorg-scan-cache-v1.bin")
+	var corrupt_scan_cache := FileAccess.open(scan_cache_path, FileAccess.WRITE)
+	if corrupt_scan_cache != null:
+		corrupt_scan_cache.store_var({"version": Assets.CATALOG_SCAN_CACHE_VERSION, "source": source_path, "fingerprint": source_fingerprint,
+			"objects": 3, "embedded_objects": 0, "warnings": [], "entries": "corrupt catalog entries"}, false)
+		corrupt_scan_cache.close()
+	var recovered_scan := Assets.scan(ROOT)
+	var repaired_cache_file := FileAccess.open(scan_cache_path, FileAccess.READ)
+	var repaired_cache: Variant = repaired_cache_file.get_var(false) if repaired_cache_file != null else null
+	if repaired_cache_file != null: repaired_cache_file.close()
+	var cached_scan := Assets.scan(ROOT)
+	check(recovered_scan.error.is_empty() and recovered_scan.entries.size() == scanned.entries.size() and cached_scan.entries.size() == scanned.entries.size(),
+		"A malformed but readable local catalog cache is discarded, rebuilt from source and reused")
+	check(repaired_cache is Dictionary and repaired_cache.get("entries", null) is Array and str(repaired_cache.get("fingerprint", "")) == source_fingerprint,
+		"Cache recovery replaces the malformed record with a schema-valid source fingerprint")
 	var grouped_save := {"ObjectStates": [
 		{"GUID": "menu01", "LuaScript": "Ultramarines = getObjectFromGUID(\"abc123\")"},
 		{"GUID": "abc123", "Nickname": "Intercessor", "CustomMesh": {"MeshURL": "https://example.invalid/grouped.obj"}}
@@ -125,7 +142,13 @@ func run() -> void:
 			"texture_fingerprint": mesh.texture_fingerprint, "prepared_key": packaged.key}
 		var prepared_visual := package_panel.visual_for("prepared-fixture", 1.0)
 		check(prepared_visual != null and not package_panel.cache.has("prepared-fixture"), "Match visual uses the GLB without parsing the original mesh")
+		var prepared_visual_second := package_panel.visual_for("prepared-fixture", 1.0)
+		var first_mesh_nodes: Array[Node] = prepared_visual.find_children("*", "MeshInstance3D", true, false) if prepared_visual != null else []
+		var second_mesh_nodes: Array[Node] = prepared_visual_second.find_children("*", "MeshInstance3D", true, false) if prepared_visual_second != null else []
+		var shared_cached_glb_mesh := first_mesh_nodes.size() == 1 and second_mesh_nodes.size() == 1 and first_mesh_nodes[0] != second_mesh_nodes[0] and (first_mesh_nodes[0] as MeshInstance3D).mesh == (second_mesh_nodes[0] as MeshInstance3D).mesh
+		check(prepared_visual != null and prepared_visual_second != null and shared_cached_glb_mesh, "Separate miniature instances reuse the prepared GLB mesh resource without sharing scene nodes")
 		if prepared_visual != null: prepared_visual.free()
+		if prepared_visual_second != null: prepared_visual_second.free()
 		var fallback_visual := package_panel.visual_for("prepared-fixture", 1.25)
 		check(fallback_visual != null and package_panel.cache.has("prepared-fixture"), "A different match base falls back to the original mesh")
 		if fallback_visual != null: fallback_visual.free()

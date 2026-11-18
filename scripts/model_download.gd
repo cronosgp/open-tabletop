@@ -4,6 +4,8 @@ signal finished(result: Dictionary)
 signal progress(received: int, total: int, label: String)
 signal transfer_completed(elapsed_ms: float, downloaded_bytes: int)
 const Assets = preload("res://scripts/local_models.gd")
+const BUNDLE_CONVERSION_TIMEOUT_SECONDS := 300.0
+const RECOVERY_DIRECTORY := "user://forceorg-model-download-recovery"
 var busy := false
 var jobs: Array[Dictionary] = []
 var active_components: Array[Dictionary] = []
@@ -21,9 +23,86 @@ var converter_job: Dictionary = {}
 var converter_output_path := ""
 var converter_result_path := ""
 var converter_elapsed := 0.0
+var converter_status_elapsed := 0.0
 var transfer_started_usec := 0
 var downloaded_bytes := 0
 var transfer_reported := false
+var recovery_pid := -1
+var recovery_token := ""
+var recovery_revision := -1
+var recovery_paths: Array[String] = []
+
+func _ready() -> void:
+	recover_interrupted_sessions()
+
+static func recover_interrupted_sessions() -> int:
+	var recovery_directory := ProjectSettings.globalize_path(RECOVERY_DIRECTORY)
+	var directory := DirAccess.open(recovery_directory)
+	if directory == null: return 0
+	if directory.list_dir_begin() != OK: return 0
+	var filename := directory.get_next()
+	var pattern := RegEx.new()
+	pattern.compile("^session-([0-9]+)-([a-f0-9]{24})-([0-9]+)\\.json(?:\\.writing)?$")
+	var candidates: Array[String] = []
+	while not filename.is_empty():
+		if not directory.current_is_dir() and pattern.search(filename) != null:
+			candidates.append(filename)
+		filename = directory.get_next()
+	directory.list_dir_end()
+	var recovered := 0
+	for candidate: String in candidates:
+		var match := pattern.search(candidate)
+		if match == null: continue
+		var owner_pid := int(match.get_string(1))
+		var token := match.get_string(2)
+		if owner_pid <= 0 or OS.is_process_running(owner_pid): continue
+		var manifest_path := recovery_directory.path_join(candidate)
+		if _recover_manifest_file(manifest_path, owner_pid, token):
+			DirAccess.remove_absolute(manifest_path)
+			recovered += 1
+	return recovered
+
+static func _recover_manifest_file(manifest_path: String, owner_pid: int, token: String) -> bool:
+	var file := FileAccess.open(manifest_path, FileAccess.READ)
+	if file == null: return false
+	var parser := JSON.new()
+	var parse_status := parser.parse(file.get_as_text())
+	file.close()
+	if parse_status != OK or not parser.data is Dictionary: return false
+	var manifest: Dictionary = parser.data
+	if int(manifest.get("version", 0)) != 1 or int(manifest.get("pid", -1)) != owner_pid or str(manifest.get("token", "")) != token:
+		return false
+	var paths: Variant = manifest.get("paths", null)
+	if not paths is Array: return false
+	for value: Variant in paths:
+		if not value is String or not _is_recovery_path_safe(str(value), owner_pid, token): return false
+	for value: String in paths:
+		if FileAccess.file_exists(value): DirAccess.remove_absolute(value)
+		elif DirAccess.dir_exists_absolute(value): _remove_recovered_directory(value)
+		if FileAccess.file_exists(value) or DirAccess.dir_exists_absolute(value): return false
+	return true
+
+static func _is_recovery_path_safe(path: String, owner_pid: int, token: String) -> bool:
+	if not path.is_absolute_path() or path != path.simplify_path(): return false
+	var name := path.get_file()
+	var allowed := RegEx.new()
+	allowed.compile("^(?:\\.model-%d-%s-[0-9]+\\.part|\\.forceorg-convert-%d-%s-[0-9]+(?:\\.result\\.json)?)$" % [owner_pid, token, owner_pid, token])
+	return allowed.search(name) != null
+
+static func _remove_recovered_directory(path: String) -> void:
+	if not DirAccess.dir_exists_absolute(path): return
+	var directory := DirAccess.open(path)
+	if directory == null or directory.list_dir_begin() != OK: return
+	var name := directory.get_next()
+	while not name.is_empty():
+		var child := path.path_join(name)
+		if directory.current_is_dir() and not directory.is_link(name):
+			_remove_recovered_directory(child)
+		else:
+			DirAccess.remove_absolute(child)
+		name = directory.get_next()
+	directory.list_dir_end()
+	DirAccess.remove_absolute(path)
 
 static func url_error(url: String) -> String:
 	var pattern := RegEx.new()
@@ -70,6 +149,8 @@ func start(entry: Dictionary, directory: String) -> String:
 		if str(job.get("kind", "")) == "bundle" and not FileAccess.file_exists(_converter_path()):
 			return "This model uses a Unity bundle. Install the optional ForceOrg bundle converter in user://forceorg-converter and retry."
 	if directory.strip_edges().is_empty(): return "Choose a folder for the models."
+	directory = ProjectSettings.globalize_path(directory.simplify_path())
+	if not directory.is_absolute_path(): return "Choose an absolute folder path for the models."
 	var error := DirAccess.make_dir_recursive_absolute(directory)
 	if error != OK: return "Could not create the download folder: " + error_string(error)
 	jobs.assign(prepared.jobs)
@@ -85,12 +166,77 @@ func start(entry: Dictionary, directory: String) -> String:
 	converter_job = {}
 	converter_output_path = ""
 	converter_result_path = ""
-	for index in range(jobs.size()):
-		jobs[index].temporary = directory.path_join(".model-%d-%d-%d.part" % [get_instance_id(), generation, index])
-		jobs[index].directory = directory
+	for job: Dictionary in jobs: job.directory = directory
+	if not _begin_recovery_session():
+		_clear_recovery_session()
+		jobs.clear()
+		active_components.clear()
+		return "Could not record temporary model files for interruption recovery."
 	busy = true
 	_next()
 	return ""
+
+func _begin_recovery_session() -> bool:
+	recovery_pid = OS.get_process_id()
+	recovery_token = ("%d:%d:%d:%d" % [recovery_pid, Time.get_ticks_usec(), randi(), get_instance_id()]).sha256_text().substr(0, 24)
+	recovery_revision = -1
+	recovery_paths.clear()
+	for index in range(jobs.size()):
+		jobs[index].temporary = str(jobs[index].get("directory", "")).path_join(".model-%d-%s-%d.part" % [recovery_pid, recovery_token, index])
+		recovery_paths.append(str(jobs[index].temporary))
+	return _write_recovery_manifest()
+
+func _write_recovery_manifest() -> bool:
+	if recovery_pid <= 0 or recovery_token.is_empty(): return false
+	var recovery_directory := ProjectSettings.globalize_path(RECOVERY_DIRECTORY)
+	if DirAccess.make_dir_recursive_absolute(recovery_directory) != OK: return false
+	var next_revision := recovery_revision + 1
+	var manifest_path := recovery_directory.path_join("session-%d-%s-%d.json" % [recovery_pid, recovery_token, next_revision])
+	var writing_path := manifest_path + ".writing"
+	var file := FileAccess.open(writing_path, FileAccess.WRITE)
+	if file == null: return false
+	file.store_string(JSON.stringify({"version": 1, "pid": recovery_pid, "token": recovery_token, "paths": recovery_paths}))
+	var write_error := file.get_error()
+	file.close()
+	if write_error != OK:
+		DirAccess.remove_absolute(writing_path)
+		return false
+	if DirAccess.rename_absolute(writing_path, manifest_path) != OK:
+		DirAccess.remove_absolute(writing_path)
+		return false
+	var previous_path := ""
+	if recovery_revision >= 0:
+		previous_path = recovery_directory.path_join("session-%d-%s-%d.json" % [recovery_pid, recovery_token, recovery_revision])
+	recovery_revision = next_revision
+	if not previous_path.is_empty(): DirAccess.remove_absolute(previous_path)
+	return true
+
+func _register_recovery_path(path: String) -> bool:
+	if path in recovery_paths: return true
+	recovery_paths.append(path)
+	if _write_recovery_manifest(): return true
+	recovery_paths.pop_back()
+	return false
+
+func _clear_recovery_session() -> void:
+	if recovery_pid <= 0 or recovery_token.is_empty(): return
+	var recovery_directory := ProjectSettings.globalize_path(RECOVERY_DIRECTORY)
+	var directory := DirAccess.open(recovery_directory)
+	if directory != null and directory.list_dir_begin() == OK:
+		var prefix := "session-%d-%s-" % [recovery_pid, recovery_token]
+		var filename := directory.get_next()
+		var owned_manifests: Array[String] = []
+		while not filename.is_empty():
+			if not directory.current_is_dir() and filename.begins_with(prefix) and (filename.ends_with(".json") or filename.ends_with(".json.writing")):
+				owned_manifests.append(filename)
+			filename = directory.get_next()
+		directory.list_dir_end()
+		for owned_manifest: String in owned_manifests:
+			DirAccess.remove_absolute(recovery_directory.path_join(owned_manifest))
+	recovery_pid = -1
+	recovery_token = ""
+	recovery_revision = -1
+	recovery_paths.clear()
 
 func _next() -> void:
 	if not busy: return
@@ -183,9 +329,13 @@ func _start_next_bundle_conversion() -> void:
 		_finish({"error": "This model uses a Unity bundle. Install the optional ForceOrg bundle converter in user://forceorg-converter and retry."})
 		return
 	converter_job = conversion_queue.pop_front()
-	converter_output_path = str(converter_job.directory).path_join(".forceorg-convert-%d-%d-%d" % [get_instance_id(), generation, conversion_results.size()])
+	converter_output_path = str(converter_job.directory).path_join(".forceorg-convert-%d-%s-%d" % [recovery_pid, recovery_token, conversion_results.size()])
 	converter_result_path = converter_output_path + ".result.json"
+	if not _register_recovery_path(converter_output_path) or not _register_recovery_path(converter_result_path):
+		_finish({"error": "Could not record temporary Unity conversion files for interruption recovery."})
+		return
 	converter_elapsed = 0.0
+	converter_status_elapsed = 0.0
 	var arguments := PackedStringArray(["--input", str(converter_job.temporary), "--output", converter_output_path, "--result", converter_result_path])
 	for dependency_url: String in converter_job.get("dependency_urls", []):
 		var dependency_path := ""
@@ -419,12 +569,19 @@ func _finish(result: Dictionary) -> void:
 		request_node.queue_free()
 		request_node = null
 	for job: Dictionary in jobs:
-		if FileAccess.file_exists(job.temporary): DirAccess.remove_absolute(job.temporary)
+		var temporary := str(job.get("temporary", ""))
+		if not temporary.is_empty() and FileAccess.file_exists(temporary): DirAccess.remove_absolute(temporary)
 	if not converter_output_path.is_empty(): _remove_generated_directory(converter_output_path)
 	if not converter_result_path.is_empty() and FileAccess.file_exists(converter_result_path): DirAccess.remove_absolute(converter_result_path)
 	for converted: Variant in conversion_results.values():
 		if converted is Dictionary and not bool(converted.get("preserved", false)):
 			_remove_generated_directory(str(converted.get("output_path", "")))
+	var leftovers := false
+	for path: String in recovery_paths:
+		if FileAccess.file_exists(path) or DirAccess.dir_exists_absolute(path):
+			leftovers = true
+			break
+	if not leftovers: _clear_recovery_session()
 	busy = false
 	active_components.clear()
 	conversion_queue.clear()
@@ -443,11 +600,17 @@ func _report_transfer_completed() -> void:
 func _process(delta: float) -> void:
 	if not busy: return
 	if converter_pid > 0:
+		if not OS.is_process_running(converter_pid):
+			_poll_bundle_conversion()
+			return
 		converter_elapsed += delta
-		if converter_elapsed >= 0.5:
-			converter_elapsed = 0.0
-			progress.emit(0, -1, "Converting Unity model bundle • " + str(converter_job.get("label", "model")))
-		if not OS.is_process_running(converter_pid): _poll_bundle_conversion()
+		if converter_elapsed >= BUNDLE_CONVERSION_TIMEOUT_SECONDS:
+			_finish({"error": "Unity bundle conversion exceeded the five-minute limit: " + str(converter_job.get("label", "model"))})
+			return
+		converter_status_elapsed += delta
+		if converter_status_elapsed >= 1.0:
+			converter_status_elapsed = 0.0
+			progress.emit(0, -1, "Converting Unity model bundle • %s • %ds elapsed" % [str(converter_job.get("label", "model")), int(converter_elapsed)])
 		return
 	if not is_instance_valid(request_node): return
 	elapsed += delta

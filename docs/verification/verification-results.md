@@ -1,3 +1,329 @@
+### Necron prepared-match template and Triarch scope reconciliation — 18 November 2026
+
+`Prepared.initial_state` now uses embedded current-reference templates whenever both players supply `schema_version: 2` Space Marines or Necrons selections without `legacy_necron_reference`, so current-catalog Necron prepared matches (`test_necron_saved_equipment`) no longer read `res://data/imported/starter-11e-v1` before `_materialize_mixed` replaces the placeholder squads and units. `test_necron_saved_equipment` is restored to `CURRENT_CATALOG_MATCH_SUITES`, while `test_necron_warriors_current` is classified under `targeted`/`full` because its C’tan Warlord and historical Warrior checks intentionally exercise the legacy starter pack. Triarch Praetorians (`000000539`) and Triarch Stalker (`000000540`) capability notes, coverage rows and the `test_necron_warriors_current` Praetorian option assertion are reconciled with the verified local Necrons App v1.2 export (`.tools/wahapedia/11e/necrons/20261031T053336Z`, `Datasheets_options.csv`) and the implemented saved-equipment schemas. In addition, `tests/test_prepared_match.gd` now explicitly sets `unit_abilities_choice.button_pressed = false` before starting its baseline historical prepared-match UI check (matching `tests/test_decision_ui.gd`), and `tests/test_space_marine_leader_links.gd` now validates the five Necron Cryptek Support identities in `Supports.BODYGUARDS` (11 Necron pairs alongside the 96 static Space Marine pairs) against their `current_reference_necron_profiles.gd` `source_bodyguard_datasheet_ids`.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_leader_catalog --only test_kor_sarro_khan --only test_implemented_catalog --only test_necron_saved_equipment --only test_saved_match_interruption --only test_necron_triarch_praetorians --only test_necron_triarch_stalker --timeout 300
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_necron_warriors_current --only test_capabilities --timeout 300
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_space_marine_leader_links --timeout 300
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_prepared_match --only test_space_marine_leader_links --timeout 300
+```
+
+The focused data-free run passed **9/9 processes** at `.tools/verification/20261118T132355989993Z/results.json` (SHA-256 `D207867DE02C5E988626D14D8C9509A22C239111ED51FDF19F207C52051235B2`; `legacy_starter_staged: false`, `network: false`; `test_implemented_catalog` and `test_saved_match_interruption` reported headless RID cleanup diagnostics at shutdown). The targeted run passed **4/4 processes** at `.tools/verification/20261118T132750030808Z/results.json` (SHA-256 `3EBFB37DE6C2C0F4504F4B8A404C263B7778301558F84F261876993220ADDE92`; `legacy_starter_staged: true`, `network: false`, no cleanup diagnostics). The coverage export (`213` admitted profiles, `120/120` reviewed schemas, `93` fixed profiles) and `python -B -m unittest discover -s tests -p "test_*.py"` (`124` tests) passed. The focused Leader/Support link run passed **3/3 processes** at `.tools/verification/20261118T140015762834Z/results.json` (SHA-256 `EC83FC928BC2AE445E79AEED38B172625340EF7E4F3724EF4F4128D0FAC5A663`; `legacy_starter_staged: false`, `network: false`, no cleanup diagnostics), and the targeted prepared-match and Leader/Support batch passed **4/4 processes** at `.tools/verification/20261118T140051063197Z/results.json` (SHA-256 `785B9270580D9125F7FF6167E2B136B693CC834D6154F11ADF0F557E9BE6A9E5`; `legacy_starter_staged: true`, `network: false`; `test_prepared_match` reported headless RID cleanup diagnostics at shutdown). Exact Triarch Stalker FRAME geometry, separate-machine LAN and full Necron army legality remain uncertified.
+
+### Saved mission-pair resume — 17 November 2026
+
+`tests/test_saved_mission_pair_resume.gd` now starts a saved-army Chapter Approved match from the real UI with a non-default fixed pair, `engage-tempting-target`. The match freezes `secondary_pair_id`, both cards and the `terrain` stage in its checkpoint. A separate Godot process resumes the save and confirms the official mission, selected pair, cards, Event Companion terrain layout and pending stage are restored from the file. Back in the original process, resolving terrain enters `tempting-target-p1` for Player 2; both opponents' declarations then resolve in order to `roles-roll`. The fixture also covers the mission option path change: `_saved_match_options`, `_initial_state`, `_try_saved_armies` and `_start_prepared_match` now route official missions through `_match_terrain_layout()`, so the selected Event Companion layout reaches saved, prepared and LAN option builders instead of the unrelated training terrain default.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_saved_mission_pair_resume --timeout 600
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_saved_match_interruption --only test_saved_armies --only test_saved_mission_pair_resume --timeout 600
+```
+
+The focused run passed **3/3 processes** at `.tools/verification/20261117T150234739814Z/results.json` (SHA-256 `FCD93B398F708262E689948F7A95972620FC9A89BC4AB91B10E261B85E43BA86`; `network: false`, legacy starter not staged). The adjacent saved-match batch passed **5/5 processes** at `.tools/verification/20261117T150602157919Z/results.json` (SHA-256 `267018C909163ECF1047AE92A18BE9EE15C4FFC1FE0F1DD90C04A08F514D8EEF`; `network: false`, legacy starter not staged). `tests/test_saved_mission_pair_resume.gd` hashed `85C3124E5C902E44AC53E56F7B20A6F83B2173DF9FA508F5AE43CE4887837F09`. This covers one non-default pair and its first two declaration stages; it does not complete the declaration matrix or establish separate-machine behavior.
+
+### Chapter Approved mission fixture repair — 17 November 2026
+
+The all-units Chapter Approved suite now passes again. Diagnosis showed `tests/all_units_fixture.gd` includes the `overlord`, whose current capability status is `implemented_local_checks_pending`, so current-catalog admission rejected it; the mission test now opts into `legacy_necron_reference`, matching how the fixture's own `fresh()` path already treats that data. The suite also needed an explicit Event Companion layout for official missions, per-player `primary_ids` when synthetic scoring blocks replace a primary, and the current generic Secure Asset home-objective error plus its per-player action list. These are test-fixture corrections, not new rules support or current-catalog certification of the Overlord.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_chapter_approved --timeout 600
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_chapter_approved --only test_saved_mission_pair_resume --only test_saved_match_interruption --only test_saved_armies --only test_army_builder --timeout 600
+```
+
+The focused run passed **3/3 processes** at `.tools/verification/20261117T151930706939Z/results.json` (SHA-256 `497A3B18D403A52F712B0324EEFF2383B0FA84D0DF8C89D773FB2D0EB152A227`; `network: false`, legacy starter not staged) with `Chapter Approved checks: 0 failures`. The combined batch passed **7/7 processes** at `.tools/verification/20261117T152023523046Z/results.json` (SHA-256 `D76312563C774BFB75B2FFADC063FC65259FE02A04C76AB3609305C9C766AAF7`; `network: false`, legacy starter not staged). `tests/test_chapter_approved.gd` hashed `EA6FEE9F551C0B6382C69E4105AD4ED26DEC87D7F96F0E096C387929CA085A62`. This restores the bounded mission test; it does not admit the Overlord to new current-catalog construction or add new mission rules.
+
+### Army-profile bank incompatibility boundary — 17 November 2026
+
+The Army Builder profile regression now writes a valid profile bank with `schema_version: 2` and a second bank with no `schema_version`, then opens each through `ArmyProfiles`. Both are refused with the explicit `Incompatible profile format; file preserved.` error. The newer-schema bank is not partially read, `save_list` refuses to write, no temporary file remains and the original bytes are unchanged. The unversioned bank also refuses a profile-creation commit, so an older or newer external format cannot be silently extended in place. A `BuilderPanel` opened on the newer bank disables saving and shows `Cannot save · Incompatible profile format; file preserved.` instead of offering a write path. This establishes an explicit refusal boundary for the profile bank; it does not add migration or numeric-schema support.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_army_builder --timeout 600
+```
+
+The focused run passed **3/3 processes** at `.tools/verification/20261117T143257508948Z/results.json` (SHA-256 `83EF2BC146D5C57CF5A7B2FC3DCAE8CE6D44D5C46CFA54066C0DBFD5BBC7E793`; `network: false`, legacy starter not staged). `tests/test_army_builder.gd` hashed `65CEB49BA8DAD72851B8B32DB69F9C65F6736C7A5CEEA4F2B6C5274110F4C967` at this run. Godot emitted shutdown RID diagnostics after the suite reported zero failures. This covers two unsupported bank headers and the Builder's blocked-save state, not every historical army-profile shape or a human recovery workflow. The same suite re-passed **3/3 processes** at `.tools/verification/20261117T151115384217Z/results.json` (SHA-256 `E44B691053D430390DC57C4085CEAEB23BBB5BDE74901DBC82217D3E610F4B8A`) after the mission-pair option change.
+
+### Saved Leader attachment readiness — 17 November 2026
+
+The Chapter Approved readiness fixture now saves a Leader attachment in each army profile: the Space Marine Captain joins the Intercessor Squad and the Royal Warden joins the Necron Warriors. Opening the match applies both attachments from the saved profile without a reselection step, sets the leader role on each attached model, marks both bodyguard squads as attached and raises their starting strength to 6 and 11. The same match still opens the mission preparation decision for Player 1, and the saved Warlord mapping remains intact. This pairs with the existing Warlord coverage: persistent Warlord and Leader choices come from the saved army, while the mission declaration stays in readiness.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_battle_readiness_ui --timeout 600
+```
+
+The focused run passed **3/3 processes** at `.tools/verification/20261117T034448231863Z/results.json` (SHA-256 `63A897186E811EF70F36F795B35B53ACE2443369C0939E2ED26A0835B19ED49B`; `network: false`). `tests/test_battle_readiness_ui.gd` hashed `2FF793BDCE28462BFDE9D98DDC5D737F4AAA4149F11859042BAD6CF21D53E976` at this run. This covers two saved Leader attachments in one mission pair; it does not verify every Leader/Support link or replace human usability review.
+
+### Bring It Down readiness gate — 17 November 2026
+
+The Chapter Approved readiness fixture now gives each mission roster a qualifying 10+ Wound model: a Space Marine Impulsor (11 Wounds) and a Necron Canoptek Doomstalker (12 Wounds). With `secondary_pair = "engage-bring-it-down"`, `Prepared.initial_state` builds both armies without an error, both rosters report a Bring It Down target, and the mission preparation decision opens for Player 1 with legal options. The fixture then resolves terrain, the role roll-off, the Attacker/Defender choice and both Battle Ready declarations to Formations, confirms both Bring It Down cards are registered, rechecks both target predicates and verifies the saved Warlords did not change. A control copy that reduces the opposing models' `max_wounds` to 9 removes the target, so the assertion fails if the predicate stops discriminating. An earlier fixture used an Annihilation Barge, which the local snapshot gives 9 Wounds; `Prepared.initial_state` rejected that pair with "Bring It Down requires each opposing roster to include at least one model with 10 or more Wounds.", confirming the readiness gate is enforced rather than bypassed.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_battle_readiness_ui --timeout 600
+```
+
+The focused run passed **3/3 processes** at `.tools/verification/20261117T033518133247Z/results.json` (SHA-256 `A584C221C40BBAE177D594DF7BA9BAC56E5F9990F8AD269071C48694DF3B2B2D`; `network: false`). `tests/test_battle_readiness_ui.gd` hashed `31C549EF0DF90D9E7EC563363DEEE927D59B2AC7518C1ECC12F7322D14DE88FB` at this run. This covers one additional mission-specific pair; it does not complete the declaration matrix, verify every secondary pair, or replace human readiness/usability review.
+
+### Broader legacy profile restart fixture — 17 November 2026
+
+The separate-process legacy restart fixture now includes a third saved profile, an Aggressor Squad with a flat appearance array and no stable identity or mode keys. Reopening assigns a copy identity, preserves the unit appearance and the per-model sculpt, and keeps the untouched model in Auto mode. Saving and reopening a second time retains the same copy identity and appearance values.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_saved_loadout_restart --timeout 600
+```
+
+The focused run passed **3/3 processes** at `.tools/verification/20261117T032028566417Z/results.json` (SHA-256 `B09C930B77BA69C077C23878BA13F4B8637AC87DAA3E4FAECFD41B616B2D5077`; `network: false`). This adds one profile to the legacy fixture; it does not certify every historical profile or match format.
+
+### Legacy whole-unit equipment migration — 17 November 2026
+
+The legacy restart fixture now includes a fourth saved profile that uses the former whole-unit Aggressor equipment record, `unit_equipment_by_copy_id`, keyed to an existing legacy copy identity. Before the change the fixture covered only flat appearance arrays. On reopen the reader converts the whole-unit `aggressor_boltstorm` value into per-model `model_equipment_by_id` records for all three models, removes the obsolete whole-unit key, and preserves the copy identity. Saving and reopening a second time retains all three per-model values and still has no whole-unit equipment key. Boltstorm is `true` on every model, which distinguishes real migration from the `false` default a dropped record would produce.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_saved_loadout_restart --timeout 600
+```
+
+The focused run passed **3/3 processes** at `.tools/verification/20261117T033936088014Z/results.json` (SHA-256 `D8C44E16AFB3D5C15A4866F2AB7655E9A2C553CCF04971EF165E55C82AD1FB6D`; `network: false`). `tests/test_saved_loadout_restart.gd` hashed `BFE8D9E20076175B74EB16EA848D4A64BEE518F668DF3E4E28AD3C840E4BC723` at this run. This exercises one supported historical equipment record; it does not cover every legacy schema, match format or human review.
+
+### Appearance gallery ready-only filter — 17 November 2026
+
+The Appearance gallery now lists ready local looks before candidates that still need local preparation and adds a `Ready only` checkbox. The checkbox reports the ready/total count and hides unready candidates, while Automatic stays visible and a saved unready choice remains visible even when other unready looks are hidden. The preference survives copy/model re-renders for the session. Filtering is presentation-only: it does not change equipment, points, saved assignments or unsaved draft state. The regression injects synthetic ready and pending variants, checks Automatic-first/ready-first ordering, hides the pending card only while the filter is active, re-renders the appearance pane and confirms the filter and hidden card survive, keeps a saved pending choice visible while hiding a different pending look, clears that choice and confirms it hides again, and compares the draft string around every filter action.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_workshop_ui --timeout 600
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_workshop_ui --only test_army_builder --only test_model_equipment_visuals --only test_saved_armies --only test_match_save --only test_saved_loadout_restart --only test_local_models --only test_local_armies_models --timeout 600
+```
+
+The focused run passed **3/3 processes** at `.tools/verification/20261117T024709935017Z/results.json` (SHA-256 `56C6D21BC9CC77CDD03E482158E3CD2DF63ECB4595F0BDF109A17B480B65111E`; `network: false`, no legacy starter). The regression batch passed **10/10 processes** at `.tools/verification/20261117T024852603517Z/results.json` (SHA-256 `08A8BB6385126E877ED98CDB4251E0855CBFCE3627A62BE192090E593ADA3408`; `network: false`, legacy starter staged). Godot emitted shutdown RID/ObjectDB cleanup diagnostics after several suites still reported passing. These are synthetic metadata checks; they do not replace real-asset captures, small-window layout review or human usability review.
+
+### Unequal-cache saved-army LAN loopback — 17 November 2026
+
+The saved-army network fixture now gives only the host renderable local sculpts for both its saved unit appearance and a saved per-model override. The client keeps the same saved reference values but has no matching local files. Both processes still admit the same 20 units at the same points, reach Deployment, and retain their own local appearance references. The host resolves the unit and model sculpts; the client reports fallback warnings and stays playable. This covers local visual availability remaining outside synchronized gameplay state, not a separate-machine session.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --network --only test_saved_armies_network --timeout 600
+```
+
+The final run passed **22/22 processes** at `.tools/verification/20261117T030633389741Z/results.json` (SHA-256 `BA690BEEE0D18CC0CE2D2EEA247F49A92143D3D79AD0302ECBDA542D6368062A`). An earlier run with the same change stopped on the `save-rerolls` host/client pair at a Deployment coordination timeout (`.tools/verification/20261117T025438598227Z/results.json`, SHA-256 `7AFB549CBB2C93D3312DDA28C390DD084A1048C7FEE74DFC2AE32FF25AA6CD64`); it passed on the isolated verifier rerun above, so the timeout is recorded as an observed flake rather than a confirmed pass. It remains loopback evidence with synthetic local assets; real separate-machine LAN, asset transfer and human visual review remain open.
+
+The Appearance control regression was updated to select the unit-copy picker before checking the `Unit 2` preview caption. The focused run passed **3/3 processes** at `.tools/verification/20261117T021219235207Z/results.json` (SHA-256 `908069BA75D9B156BB93C1C019C3A9927521023DDC562C3DC666EEB1A5A21F34`).
+
+### Ravenwing saved equipment — 15 November 2026
+
+Ravenwing Black Knights and Ravenwing Command Squad now persist their source-listed, free Plasma Talon replacement against each stable model and copy. Validation preserves one Grenade Launcher per three models, including two distinct bearers for a six-model Black Knight unit. Local role factories, the 3/6-model prices, third-plus copy tiers and saved match locks are retained. The actual Workshop uses stacked model cards; top and lower scroll captures were inspected at 1280×800.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_ravenwing_saved_equipment --only test_ravenwing_black_knights --only test_ravenwing_command_squad --only test_sammael --only test_captain_on_bike --only test_outrider_squad_current --only test_deathwatch_saved_loadouts --only test_vanguard_saved_equipment --only test_model_equipment_visuals --only test_army_builder --only test_implemented_catalog --timeout 300
+python -m unittest discover -s tests -p test_army_builder_coverage.py
+```
+
+The final Godot batch passed **13/13 processes** at `.tools/verification/20261115T070347136336Z/results.json` (SHA-256 `338DF731C8DDC0E3BFAEE4DA46EE0A81BA6CB99305791CEFBD373F0CBAB2B82A`; `network: false`, historical starter staged). Army Builder and implemented-catalog checks exited successfully with their existing headless cleanup diagnostics; all other selected processes were clean. The Python coverage suite passed 6/6. The refreshed 213-profile ledger has 109 detected schemas (50 explicit source-option reviews), 75 fixed-equipment reviews, 8 option-bearing migrations pending, 12 stale reviews, 9 unclassified profiles and 59 schemas still awaiting completeness review. Actual staged captures exited 0; their Texture RID and 55-ObjectDB shutdown diagnostics are recorded in the [source/visual audit](ravenwing-saved-equipment.md). This does not certify full Ravenwing/Chapter army legality, separate-machine LAN, human usability or completion of the wider plan.
+
+### Vanguard Veteran saved equipment — 15 November 2026
+
+Both the Warhammer Legends Vanguard Veteran Squad and the Jump Pack variant now persist source-listed choices per model. The saved path validates Sergeant-only melee replacements, the ordinary two-per-five Plasma allowance, all local factory combinations, zero equipment surcharges and existing copy tiers. Match preparation applies the selected weapons and shield-bearer saves before Deployment, then suppresses and rejects reconfiguration. The Jump Pack Workshop shows stacked model cards so the model names remain visible above both fields; the Legends variant retains one control row per model.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_vanguard_saved_equipment --only test_vanguard_veterans --only test_vanguard_veteran_squad_legends --only test_deathwatch_saved_loadouts --only test_deathwatch_terminator_squad --only test_deathwatch_veterans --only test_terminator_saved_loadouts --only test_deathwing_saved_loadouts --only test_specialist_squad_saved_loadouts --only test_model_equipment_visuals --only test_army_builder --only test_implemented_catalog --timeout 300
+& .tools/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tools/export_army_builder_coverage.gd -- --output .tools/army-builder-coverage.json
+python tools/render_army_builder_coverage.py --input .tools/army-builder-coverage.json --output docs/project
+python -m unittest discover -s tests -p test_army_builder_coverage.py
+```
+
+The final verifier batch passed 14/14 at `.tools/verification/20261115T062111845814Z/results.json`, SHA-256 `9f2416bb7390f1c4260e18aaeebab5317a17710373f04c9e0e8a00d3b3c9ad33`; network was disabled and the historical starter was staged. The Army Builder and catalog checks exited successfully with the cleanup diagnostics listed in the [migration record](vanguard-veteran-saved-equipment.md). The Python ledger suite passed 6/6. Two actual 1280×800 Godot Compatibility captures were inspected; both capture processes exited 0 and reported Texture RID/ObjectDB cleanup warnings at shutdown. Focused regressions include separate-process list reopen and prepared-match model comparisons for every admitted copy and model.
+
+The refreshed 213-profile ledger reports 107 detected schemas, 48 explicit option-completeness reviews, 75 fixed-equipment reviews, 10 option-bearing migrations pending, 12 stale reviews, 9 unclassified profiles and 59 incomplete-schema reviews. Those stale/unclassified records and the plan-wide integration gates remain open. This does not certify full rules coverage, official army legality, sculpt parity, human usability or network play.
+
+### Saved Space Wolves squad equipment - 14 November 2026
+
+Thunderwolf Cavalry and both Wulfen profiles now persist per-model source packages with Plasma caps, shield prices, exact weapons and actual bearer/totem effects. The exhaustive matrix checks 2,868 complete distributions and 2,628 legal outcomes. A mixed army retains 1,165 points through the builder, admission, separate-process reopen and both players' materialized squad sums. Saved setup choices are suppressed, forced edits return the saved-lock error without mutation, and later source-army edits do not change the match.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_space_wolves_squad_saved_loadouts --only test_squad_specialist_saved_loadouts --only test_implemented_catalog --timeout 300
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_thunderwolf_cavalry --only test_wulfen --only test_wulfen_storm_shields --timeout 300
+python -m unittest discover -s tests -p test_army_builder_coverage.py
+```
+
+The new/specialist/catalog batch passed 5/5 at `.tools/verification/20261114T150607965939Z/results.json`, SHA-256 `48657e78bf75e51b41f0a8d49c71271af834462923c8df8a7c1dd8005ed7e03c`; only catalog cleanup diagnostics. Corrected source tests passed 5/5 at `.tools/verification/20261114T150852426899Z/results.json`, SHA-256 `751c24e9ec784feebac8a48342e29847f8fd61c85967820d9cfe0c76c0202e7a`, without cleanup diagnostics. Both disabled network and staged the historical starter. Python ledger checks passed six tests. The initial 3/6 batch remains failed evidence for three old tests that expected first-two prices on all three units; source tables and canonical admission prove the corrected tier expectations. Runtime source profiles/pricing rules were not changed to satisfy those tests. Six actual Godot captures were inspected. The ledger has 90 detected schemas, 31 explicit equipment completeness audits, 87 fixed profiles and 27 migrations without stale/unclassified records; 59 other schemas still need review. See [all source hashes, commands, failure records, capture context and limits](space-wolves-squad-saved-equipment.md). Full army legality, human usability and separate-machine LAN remain open.
+
+### Saved aircraft/heavy transport equipment - 14 November 2026
+
+Corvus Blackstar and Mastodon now save all 24 reviewed equipment packages, including whole launcher/weapon pairs, fixed weapons, Corvus Auspex effects and unchanged source prices. Shared code now distinguishes a boolean pair from a named-choice group; the existing legacy Corvus paired-launcher defect was reproduced and corrected. Stable configured/default copies reopen in another Godot process, materialize for both players at 1,440 points and remain independent of later source-army edits.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_large_transport_saved_loadouts --only test_transport_saved_loadouts --only test_implemented_catalog --timeout 300
+python -m unittest discover -s tests -p test_army_builder_coverage.py
+```
+
+The final batch passed 5/5 at `.tools/verification/20261114T144856361862Z/results.json`, SHA-256 `e50d8966472d0808d9c0dd1577e8bf475b73e51a121a117668ec708a9ea3fc9b`; network disabled, historical starter staged, catalog shutdown diagnostics. Python ledger checks passed six tests. The original 3/4 batch remains failed evidence for the legacy Corvus defect. The next 6/7 batch remains failed evidence for an array-type error in the new fixture; both existing source suites, previous transports and catalog passed there. Four actual Godot before/after captures were inspected; both capture processes exited 0 with render shutdown diagnostics. The ledger now has 87 detected schemas, 28 explicit equipment completeness audits, 87 fixed profiles and 30 migrations, without stale/unclassified records. The other 59 schemas still need review. Source profiles/digest were unchanged. See [all source hashes, commands, failed/successful reports, capture context and limits](large-transport-saved-equipment.md). Full army legality, geometry, human usability and separate-machine LAN remain open.
+
+### Saved Black Templars Gladiator equipment - 14 November 2026
+
+BT Lancer, Reaper and Valiant save their additional Multi-melta per independent copy and retain exact fixed weapons. Pricing counts every equipped source-listed weapon, including Valiant's fixed pair. The Workshop Add form now includes default equipment in the unit/copy-tier labels and addition arithmetic; this also fixes the existing common Executioner default Laser preview. The nine-copy fixture totals exactly 1,605 through save/reopen, admission and both players' materialized squads.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_templar_gladiator_saved_loadouts --only test_army_builder --only test_transport_saved_loadouts --only test_implemented_catalog --timeout 300
+python -m unittest discover -s tests -p test_army_builder_coverage.py
+```
+
+The final batch passed 6/6 at `.tools/verification/20261114T143332223037Z/results.json`, SHA-256 `ae8d4f7a6189cf95e2d9b7f7d2a09248caac7dd090de7276aecdff1df9bac472`; network disabled, historical starter staged. Army Builder/catalog shutdown diagnostics remain recorded. The preceding source/copy-price batch passed 5/5 without cleanup diagnostics; Python ledger checks passed six tests. The ledger now has 85 detected schemas, 26 exact-field source reviews, 87 fixed profiles and 32 migrations, without stale/unclassified records. The other 59 schemas still need review. Eight actual Godot captures show saved selectors and the corrected Add preview (165 default, 350 added, 515 total). Source profiles/digest were unchanged. See [all source hashes, commands, both reports, capture context and limits](templar-gladiator-saved-equipment.md). Full army legality, human usability and separate-machine LAN remain open.
+
+### Saved squad specialist equipment - 14 November 2026
+
+Firestrike Servo-turrets, Infiltrators and Bladeguard now save per-model equipment with exact source sizes, the single Helix bearer and Sergeant-only pistol replacements. The new matrix checks 1,818 distributions and 29 legal outcomes, separate-process reopen, exact source weapons, real Workshop signals, frozen setup locks and immutable matches. Both players retain the mixed army's 1,180-point total, including the third Bladeguard copy tier.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_squad_specialist_saved_loadouts --only test_transport_saved_loadouts --only test_implemented_catalog --timeout 300
+python -m unittest discover -s tests -p test_army_builder_coverage.py
+```
+
+The corrected final Godot batch passed 5/5 at `.tools/verification/20261114T060841774860Z/results.json`, SHA-256 `1fa170e41e51ab0ed7324c87559473b01aa94419be2279c2cb234b0e79e83c31`; network disabled, historical starter staged. Only the catalog process reported cleanup diagnostics. Python ledger checks passed six tests. The initial batch remains failed 5/6 evidence for an untyped local variable in the new fixture; all three existing source suites passed. The source profiles and Marine digest were unchanged. The ledger now has 82 detected schemas, 23 explicit completeness reviews, 87 fixed profiles and 35 migrations, with no stale/unclassified records. The other 59 schemas still need completeness review. See [source hashes, both report commands, exact scope and visual evidence](squad-specialist-saved-equipment.md). Full army legality, human usability and separate-machine LAN remain open.
+
+### Saved transport equipment - 14 November 2026
+
+Twelve Land Raider, Razorback, Repulsor and Impulsor identities now save per-copy equipment through canonical validation, materialization and frozen setup locks. All 126 independently enumerated source packages are covered. The local export resolved missing BT Multi-melta choices, the Impulsor pintle is exclusive, common/BT Executioner prices remain distinct, and legacy paid edits keep squad and army costs aligned. A 4,290-point mixed army survives separate-process reopen and match snapshots; actual Workshop signals and 24 inspected Godot captures cover the visible controls.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_black_templars_vehicles --only test_marine_impulsor_options --only test_marine_repulsor_loadouts --only test_transport_saved_loadouts --timeout 300
+python -m unittest discover -s tests -p test_army_builder_coverage.py
+```
+
+The final Godot batch passed 6/6 at `.tools/verification/20261114T055542565213Z/results.json`, SHA-256 `73538a316b34e09056949a3c7883067c2d7ecee83062173b53936f8bb380b9a4`; network disabled, historical starter staged, no cleanup diagnostics. The preceding catalog/heavy/transport regression passed 6/6 at `.tools/verification/20261114T054839722669Z/results.json`, SHA-256 `89cd9cedb4b340d09420ae6f59a8f93211b0578c013c001bde26da83ea757e61`, with catalog shutdown diagnostics. Python ledger checks passed six tests after checked digest continuity: 182/185 Marine profiles are exactly unchanged, three BT transport metadata records were re-audited, and 133 registry bindings were updated only after proving that scope. The ledger now has 79 detected schemas, 20 explicit source-option reviews, 87 fixed profiles, 38 migrations and no stale/unclassified records. The other 59 schemas still need completeness review. A direct root whitelist check also passed twelve valid and 24 malformed identities.
+
+The initial 5/6 batch remains failed evidence for a new fixture's wrong catalog preload/type inference. All exact commands, five reports, source hashes, digest continuity, capture context and limits are in [the transport migration record](transport-saved-equipment.md). Full army legality, human usability, broader recovery and separate-machine LAN remain open.
+
+### Heavy and Space Wolves saved equipment - 14 November 2026
+
+Redemptor, both Centurion squads and Wolf Guard Battle Leader now persist all source-listed equipment groups. Preparation retains canonical per-copy equipment prices and copy tiers, including the existing ATV surcharge. The ledger has 67 detected schemas, eight explicit source-option reviews, 87 fixed profiles and 50 migrations pending; 59 other schemas still need completeness review.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_heavy_saved_loadouts --only test_unit_reserves --only test_space_marine_copy_cost_parity --only test_invader_atvs --timeout 300
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_heavy_saved_loadouts --only test_character_artillery_saved_loadouts --only test_implemented_catalog --timeout 300
+python -m unittest discover -s tests -p test_army_builder_coverage.py
+```
+
+The pricing/reserve/ATV run passed 6/6 at `.tools/verification/20261114T052112897287Z/results.json`, SHA-256 `09251e763f5cd877d86c11480d53c7c4c730a62647687194d82298bfcdbc139b`. The final run passed 5/5 at `.tools/verification/20261114T052554738295Z/results.json`, SHA-256 `35d85648f56db05fb472d2086fb85e54c17b855cc64999ce64c772a21e2e90d3`. Both disabled network and staged the historical starter; only the final catalog process reported cleanup diagnostics. Python ledger checks passed six tests. The initial 6/7 run remains failed evidence for a new fixture's incorrect assumption about model-row topology; all four source regressions passed. Thirty equipment packages, separate-process reopen, immutable matches, forced-edit rejection and real Workshop signals are covered. See [all commands, source hashes, failed/successful reports and eight inspected actual Godot captures](heavy-saved-equipment.md). Human review, broader recovery and separate-machine LAN remain open.
+
+### Character and artillery saved equipment — 14 November 2026
+
+Execrator, Phobos Lieutenant, Terminator Chaplain and Rapier Carrier now persist all source-listed equipment groups per stable copy, apply exact weapons and the Chaplain shield Wound before Deployment, and reject repeated setup changes. The catalog ledger has 63 detected schemas, four exact-field-bound source-option reviews, 87 fixed-equipment profiles and 54 migrations pending. Existing costs, copy limits, Chapter scope and Legends/geometry boundaries remain unchanged.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_character_artillery_saved_loadouts --only test_phobos_lieutenant --only test_unit_reserves --timeout 300
+python -m unittest discover -s tests -p test_army_builder_coverage.py
+```
+
+The final Godot run passed **5/5 processes** at `.tools/verification/20261114T044537078478Z/results.json`, SHA-256 `e829619848a5f4889ee54e094b6e95afbeca9c52d2bfd18f1b915855b82d2849`; network disabled, historical starter staged, no cleanup diagnostics. The Python suite passed **6 tests**. The preceding catalog batch passed 4/4 with catalog shutdown diagnostics; the initial batch remains failed evidence for a fixture parse error and an outdated Phobos reserve expectation. The corrected Phobos test submits ordinary reserves through the public command path and checks the mixed unit does not gain Deep Strike. All exact commands, source hashes, failed/successful reports, limits and eight inspected Godot before/after captures are in [the migration record](character-artillery-saved-equipment.md). No full army legality, human playtest, sculpt parity or separate-machine LAN claim follows.
+
+### Army Builder source classification and Battle Readiness UI — 14 November 2026
+
+The 105-profile local export classification returned 47 additional fixed-equipment profiles and 58 option-bearing migrations. The ledger now separates 59 detected schemas, 87 fixed-equipment records and 58 migrations; no profile without a saved schema remains unclassified. Four focused Python source-review tests passed. See [exact commands, source manifests and scope](army-builder-equipment-classification.md).
+
+Battle Readiness now places finish before the equipment summary, omits the applied Warlord from presentation choices and labels remaining alternatives optional only when the existing rules probe permits finish. The first new UI test run failed because the fixture omitted the normalized submission envelope; its saved-army regression passed. After correcting the fixture to use the actual UI payload, focused verification passed 3/3 processes at `.tools/verification/20261114T042644029990Z/results.json`, SHA-256 `f5e0ac6fa86c33234d574ace20322937c21c61e85f26e080c1e1d2166e629e32`. Network was disabled; UI and saved-army runs retain RID/ObjectDB shutdown diagnostics. Actual Godot Compatibility captures at 1280×800 show the saved mixed army reaching initial Deployment with missing-visual fallback and no weapon/Warlord reselection. This is scripted runtime evidence, not a human playtest, complete deployment or LAN certification. Exact commands, the failed report and capture context are in [readiness evidence](../project/battle-readiness-ui.md).
+
+### Army Builder equipment provenance and workflow review — 14 November 2026
+
+The local equipment-continuity audit reconciled 29 fixed-equipment reviews to existing runtime verification provenance. Both raw snapshots' manifest files were hash-checked (23 earlier files and 22 current CSVs); all reviewed default loadouts and source identities agree and neither options table contains rows for these datasheets. The ledger now has 204 admitted profiles: 59 detected schemas, 40 fixed-equipment reviews, zero stale equipment reviews and 105 unclassified profiles. The additional schema is the existing Rhino Primaris path in the working tree, not an equipment implementation from this increment. Exact source identities, file hashes, audit command and limits are in the [provenance record](army-builder-equipment-provenance.md).
+
+```powershell
+python -m unittest discover -s tests -p test_army_builder_coverage.py
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_saved_loadout_restart --only test_saved_armies --only test_match_save --only test_model_equipment_visuals --timeout 300
+```
+
+The three focused Python tests passed. The combined verifier reported **5/6 processes passed**, not an overall pass: import, Python, saved armies, match save and model-equipment visuals passed, while the restart fixture failed because it assumed differently equipped Rhino copies remain grouped in one canonical entry. Report: `.tools/verification/20261114T030417445529Z/results.json`, SHA-256 `6e0c09c527a68f61d6adb0ef0ce42ff14d254b109796fa638de16e16c7681dd3`; network disabled, historical starter staged. Saved-army and match-save processes reported RID/ObjectDB cleanup diagnostics at exit; other selected processes did not.
+
+The fixture now counts every canonical copy and verifies exactly one equipped and one default loadout for each Rhino datasheet, independently of canonical grouping/order. A failure exits nonzero. It retains separate-process army reopening, mixed infantry/vehicle equipment, exact frozen setup comparison after source-list edits, match save/reload and shared editor-signal checks.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_saved_loadout_restart --timeout 300
+```
+
+The corrected restart run passed **3/3 processes** at `.tools/verification/20261114T030652693724Z/results.json`, SHA-256 `07a3c82bb593c6e2709b3c4671cf8146f4e22b00caad500749fbce5377bd8e7d`; network disabled, historical starter not staged, no cleanup diagnostics. The earlier run's other successful suites were not rerun because the correction only changes the restart fixture. This establishes bounded local workflow evidence, not full army legality, broad legacy migration, human usability or separate-machine LAN.
+
+
+Actual Godot Compatibility captures at 1280×800 also cover a scripted mixed saved army through Workshop, readiness, the two player-finish actions and initial Deployment using built-in fallbacks with one unavailable manual visual. The fixture exited 0; render shutdown diagnostics remain in the capture log. No equipment or Warlord was reselected. The preparation panel still labels the saved Warlord as a required declaration despite allowing finish; this presentation follow-up remains open. See the [captures, exact fixture context and limits](army-builder-equipment-provenance.md#observed-godot-workflow).
+
+### Local appearance availability and retry recovery — 13 November 2026
+
+The focused local-army and model verifier passed **3/3 processes** at
+`.tools/verification/20261113T163900992280Z/results.json` (SHA-256
+`84674E954D96D408BA8A7AE165CF3E89157F621351B6BAD01C08FE1F676AAFCC`):
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_local_armies_models --timeout 300
+```
+
+The offline regression verifies that the resolver records per-candidate
+`download_pending`, `downloading`, `missing` and `conversion_failed` states and
+their reasons while retaining deterministic fallback order. It checks that the
+datasheet's saved default miniature is the final traced local fallback, and
+that a repaired saved appearance replaces the currently rendered fallback
+without changing the stable appearance ID or gameplay state. The targeted
+profile staged its legacy starter fixture and used no network. Godot still
+reports RID/ObjectDB cleanup diagnostics when this suite exits; the suite itself
+reports zero assertion failures. No live match visual-parity or separate-machine
+asset-availability check was performed.
+
+### Strategic Reserves round-three ingress timing — 13 November 2026
+
+The focused reserve verifier passed **3/3 processes** at
+`.tools/verification/20261113T161600334384Z/results.json` (SHA-256
+`F499FB864D38F31474065E955F11F6A341349D292962802746BC5F329BAD8149`):
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_unit_reserves --timeout 300
+```
+
+The targeted run staged the legacy starter fixture and reported `network: false`.
+The reserve regression now verifies both timing sides: ordinary Strategic
+Reserves are rejected inside the opponent’s deployment zone before round three,
+then can arrive there during round three when every model remains within 6 inches
+of a battlefield edge and more than 8 inches from enemy units. Deep Strike’s
+round-two enemy-zone formation remains separately checked. This does not certify
+Necron-specific ingress, transport/passenger interactions, full army legality or
+separate-machine networking.
+
+### Strategic Reserves declaration and ingress distinction — 13 November 2026
+
+The focused reserve, capability and Aircraft verifier passed **5/5 processes**
+at `.tools/verification/20261113T160446212620Z/results.json` (SHA-256
+`59B5E20FA76F01295F3FC7A53C3A7AD255D58E76001AC9DA2268E6030206D87D`):
+
+```text
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_unit_reserves --only test_capabilities --only test_nephilim_jetfighter --timeout 300
+```
+
+The targeted run staged the legacy starter fixture and reported `network: false`.
+It confirms that a non-Deep-Strike Intercessor can be declared into Strategic
+Reserves, a synthetic FORTIFICATION-tagged unit is withheld, combined local
+reserve costs stay under the 50% cap, and AIRCRAFT continue through their
+mandatory reserve path. The Terminator placement checks allow a complete Deep
+Strike unit into the opponent’s deployment zone when each model is more than 8
+inches from enemies, while ordinary Strategic Reserves remain excluded from
+that zone before round three even at a legal battlefield edge. The 11e Core
+Rules page (June 2026 revision) was checked for §§20.01, 20.04 and 24.09. The
+checks do not certify Necron-specific ingress, all transport/passenger
+interactions, official price recency, full army legality or separate-machine
+network behavior.
+
+### Aggressor Army Builder equipment integration — 13 November 2026
+
+The focused saved-list, combat, visual-metadata and Army Builder regressions passed **6/6 processes** at
+`.tools/verification/20261113T130119170273Z/results.json`:
+
+```text
+python tools/verify.py --godot C:/Godot/4.7.2/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_aggressor_saved_loadout --only test_aggressors --only test_model_equipment_visuals --only test_army_builder --timeout 300
+```
+
+The verifier reported `network: false`; the targeted profile staged its optional
+legacy starter fixture. The saved-list regression covers per-miniature save/reopen,
+stable model and unit-copy IDs, migration of the former whole-squad preview record,
+Army Workshop controls, mixed-model canonical admission, pre-Deployment weapon
+materialization, Battle Readiness counts, setup suppression and standalone per-model
+choices. The combat regression covers the current source weapon profiles, Close-quarters
+Firestorm and attack resolution. The visual regression checks metadata-based package
+matching and rejects conflicting equipment hints; the Army Builder suite checks the
+existing builder flow. These are local path checks, not full army legality, actual
+Aggressor sculpt parity or separate-machine LAN validation.
+
 ## Local model database and equipment selection — 6 November 2026
 
 ## Configuration workspaces — 6 November 2026
@@ -2666,3 +2992,1068 @@ The integrated offline run `python tools/verify.py --godot .tools/godot/Godot_v4
 Canoptek Doomstalker (`000002115`) now has a source-bounded local scope for its one-model/130-point configuration, Doomsday blaster, Twin gauss flayer, Doomstalker limbs, 4+ invulnerable save, Deadly Demise D3, Reanimation Protocols, Sentinel Construct and Damaged 4. Sentinel Construct scores Fire Overwatch hits on unmodified 5+. The Stratagem still costs 1CP and keeps the normal once-per-phase limit. The Damaged 1–4 wound penalty subtracts 1 from normal Hit rolls and does not change the unmodified Overwatch threshold. Deadly Demise uses the shared 6-inch resolver. The local export was unambiguous, so no extra online page was required. Current construction has nine checked Necron sheets; 42 remain gated. Full faction roster legality remains open.
 
 The integrated offline run `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 1200 --only test_necron_doomstalker --only test_necron_warriors_current --only test_current_unit_abilities --only test_capabilities --only test_implemented_catalog --only test_reanimation_protocols --only test_core_reactions` passed **9/9 processes** at `.tools/verification/20261031T202516905119Z/results.json` (SHA-256 `a2c95f1a2fd9f2a3c3123dadbcd1084e729405245e9f81078177b14d38e76130`; `network: false`, legacy starter staged, no cleanup diagnostics). It covers the current Doomstalker profile, Damaged threshold, Sentinel Construct and Deadly Demise, plus connected Necron, catalog, Reanimation and core Overwatch regressions. Network validation, full Necron army legality, human playtesting and the other 42 datasheet scopes remain open.
+
+### Canoptek Macrocytes integration verification — 12 November 2026
+
+The integrated offline run `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 1200 --only test_necron_macrocytes --only test_necron_warriors_current --only test_capabilities --only test_implemented_catalog --only test_current_unit_abilities --only test_reanimation_protocols --only test_necron_void_dragon` passed **9/9 processes** at `.tools/verification/20261112T060950914459Z/results.json` (SHA-256 `1C97AB6E7A872DFF8CD26AC1501A0E4C90FF9E5E7BFA8E25AA710DBF433F85E6`; `network: false`, legacy starter staged). The Macrocytes suite and import completed without cleanup diagnostics. The catalog, current-unit-abilities and Reanimation suites reported Godot shutdown RID/ObjectDB cleanup diagnostics, but exited successfully and did not stop on error. This covers the Macrocytes source profile, current admission, loadouts, Harassment Swarm, Accelerator Mandible and Nanoscarab Projector with connected shared regressions. It does not certify full Necrons roster legality, network play or event legality.
+
+### Canoptek Spyders local scope — 12 November 2026
+
+Canoptek Spyders (000000551) now have a source-bounded local scope for both priced unit sizes, all three per-model equipment choices, Deadly Demise 1, Fabricator Claw Array, Gloom Prism, Reanimation Protocols and optional Command-phase Canoptek Swarm placement. The datasheet facts use the verified local Necrons App v1.2 export. The local Swarm sentence does not specify whether destroyed Spyder models count; the runtime uses surviving Spyders as a scoped reading. Wahapedia Core Rules §01.02.03 was checked only for returned-model setup constraints; this research and the interpretation are recorded in the [Necrons coverage ledger](../data/necrons-coverage.md).
+
+The integrated offline run `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 1200 --only test_necron_spyders --only test_necron_scarab_swarms --only test_necron_warriors_current --only test_current_unit_abilities --only test_capabilities --only test_implemented_catalog --only test_reanimation_protocols --only test_necron_macrocytes` passed **10/10 processes** at `.tools/verification/20261112T224920767547Z/results.json` (SHA-256 `dd201d247ac474ea4e27943bf9addee01da6f647d09557d931eb33b01ad2c45f`; `network: false`, legacy starter staged). Import, Python checks, the Spyders suite and connected Scarab, current Necron, ability, capability, catalog, Reanimation and Macrocytes suites passed. The current-unit-abilities, implemented-catalog and Reanimation processes reported shutdown RID/ObjectDB cleanup diagnostics; they exited successfully without stopping on error. The focused Spyders suite had no cleanup diagnostics. This does not certify full Necron roster legality, network play, human playtesting or event legality.
+
+### Canoptek Tomb Crawlers integration verification — 12 November 2026
+
+The integrated offline run was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 1200 --only test_necron_tomb_crawlers --only test_necron_warriors_current --only test_capabilities --only test_implemented_catalog --only test_current_unit_abilities --only test_reanimation_protocols --only test_attached_reanimation --only test_necron_spyders --only test_necron_macrocytes
+```
+
+It passed **11/11 processes** at `.tools/verification/20261112T233108511621Z/results.json` (SHA-256 `5DEF9672948F54800C2F938CFC660A46D2482DAEC3EA9732D82855BB426C53CC`; `network: false`, legacy starter staged). The Tomb Crawlers suite covers the source profile and 2/60 admission, the isolator's one-model-per-unit cap, optional Retinue through the public setup choice, Cryptothralls and duplicate-unit restrictions, per-model ranged modifier ignoring through the 12-inch boundary, and Reanimation on the supported attached composition. Catalog, capability, current Necron profile, Reanimation and existing Canoptek regressions passed. `test_implemented_catalog`, `test_current_unit_abilities` and `test_reanimation_protocols` reported Godot shutdown RID/ObjectDB cleanup diagnostics; they exited successfully and did not stop on error. Import, Python checks, the focused Tomb Crawlers test and other selected suites had no cleanup diagnostics. The run remains local scope validation; it does not certify full roster legality, network play, human playtesting or event legality.
+
+
+### Doom Scythe integration verification — 12 November 2026
+
+The integrated offline check was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --timeout 1200 --only test_necron_doom_scythe --only test_necron_warriors_current --only test_capabilities --only test_implemented_catalog --only test_current_unit_abilities --only test_reanimation_protocols --only test_attached_reanimation --only test_necron_doomstalker --only test_necron_doomsday_ark --only test_attack_plan --only test_necron_tomb_crawlers
+```
+
+It passed **13/13 processes** at `.tools/verification/20261113T000938285746Z/results.json` (SHA-256 `d68dc663ca6f38ae782173bad4b2ce696c796844f985be3fd519a61732ca0f65`; `network: false`, legacy starter staged). The focused Doom Scythe suite covers its source profile and 1/200 admission, both fixed weapons, Aircraft identity, Reanimation, Damaged 4, Deadly Demise D3, the mandatory target-controller choice, both stances and duration, Stand firm critical Hits, and weapon-specific triggering. The expanded ledger suite confirms its mapped source abilities and admitted catalog status. `test_implemented_catalog`, `test_current_unit_abilities` and `test_reanimation_protocols` reported Godot shutdown RID/ObjectDB cleanup diagnostics; all exited successfully without stopping on error. This validates only the local scope. It does not certify full Necron roster legality, all Aircraft movement interactions, network play, human playtesting or event legality.
+
+### Saved Intercessor Sergeant match loadouts — 12 November 2026
+
+The focused offline run `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_intercessor_current --only test_army_builder --only test_match_command_service --timeout 300` passed **5/5 processes** at `.tools/verification/20261113T014118425608Z/results.json` (SHA-256 `849960AFDD8EF1E750E152E35676F109C1FE84C32A1202D19EA7A097B499D27F`; `network: false`, legacy starter staged). Intercessor checks cover per-copy saved weapon materialization, omitted saved-list rifle/melee preparation choices, rejection of stale direct and public commands without mutation, retained Grenade Launcher preparation and the legacy setup-choice path. Army Builder and match-command regressions passed. `test_army_builder` reported Godot shutdown RID/ObjectDB cleanup diagnostics after its successful exit; import, Python checks, Intercessor and match-command processes had none. This verifies the local UX/data path only; full army legality, visual parity for each loadout and network validation remain open.
+
+### Army Builder local identity foundation — 12 November 2026
+
+Saved unit copies now receive stable local IDs, with stable model-slot IDs derived from each copy ID. Repricing and splitting a saved copy preserve its identity, equipment and appearance assignments; new copies receive fresh identities. Legacy lists gain IDs in memory and persist them on their next save. These IDs remain local and are removed from gameplay roster projections.
+
+The focused offline run `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_army_builder --only test_saved_armies --only test_local_armies_models --timeout 300` passed **5/5 processes** at `.tools/verification/20261113T022600140619Z/results.json` (SHA-256 `7F50EE402FBCF93EB46087E12636F8C323A3902337D8814749C231CEDDC84918`; `network: false`, legacy starter staged). Import, Python checks and all three focused suites exited successfully without stopping on error. The three Godot test processes emitted shutdown RID/ObjectDB cleanup diagnostics. This verifies identity persistence and compatibility paths; broader model equipment editing, visual resolution, snapshots, Quick Match and full-plan acceptance coverage remain open.
+
+### Stable model appearance references and visual resolver — 12 November 2026
+
+Manual per-model sculpt references now use stable model IDs derived from saved unit-copy IDs. Legacy model-slot arrays migrate in memory and remain available as a compatibility view; resize, save/reload, repricing and splitting a copied entry preserve assigned sculpt references. The local board resolver records the chosen variant/source, rationale and fallback warning, and preserves an unavailable manual selection while it tries a compatible local appearance or the built-in miniature. Rules equipment and gameplay state are unchanged.
+
+The focused offline run `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_army_builder --only test_saved_armies --only test_local_armies_models --timeout 300` passed **5/5 processes** at `.tools/verification/20261113T023957755172Z/results.json` (SHA-256 `F6EF7AB567288CBEDB81D2A4FC237502A69A5418D3E3F0E50E50EFF65A81D53D`; `network: false`, legacy starter staged). Import, Python checks and all focused suites exited successfully without stopping on error. The three Godot test processes reported shutdown RID/ObjectDB cleanup diagnostics. The tests cover legacy override migration, stable IDs through resize/split/reload, local-only projection, resolver priority/fallback and rendering. General per-model rules loadouts, visible gallery rationale, Warlord/Leader list assignments, readiness/Quick Match and broad asset-failure coverage remain open.
+
+### Per-model Eliminator equipment in saved armies — 13 November 2026
+
+`python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_army_builder --only test_eliminators --only test_saved_armies --timeout 300` passed **5/5 processes** at `.tools/verification/20261113T031636910470Z/results.json` (SHA-256 `8F46B3A6A9900EE9E37B9F26DEF0739FE2DC159F0DEBE901DAC9E1E56FD51D3D`; `network: false`, legacy starter staged). The Army Builder, Eliminator and saved-army suites passed; all three emitted shutdown-only RID/ObjectDB cleanup diagnostics. Coverage checks independent saved identities and UI controls for the Sergeant and ordinary Eliminators, per-copy configuration grouping/admission, saved weapon materialization, suppressed/rejected repeat setup choices, and separation of the frozen match selection from later source-list edits. Import and Python checks passed without cleanup diagnostics. This covers the supported Eliminator profile and existing Intercessor Sergeant path, not all loadout-bearing datasheets, Warlord/Leader editing, immutable visual references, full readiness/Quick Match migration, complete army legality or LAN validation.
+
+### Saved Warlord and Leader/Support formation candidates — 13 November 2026
+
+`python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_army_builder --only test_saved_armies --timeout 300` passed **4/4 processes** at `.tools/verification/20261113T042914812877Z/results.json` (SHA-256 `F5973CA413E144E2A163A1DE10B6058E18F37733A7E2990FF906995A48B9E64C`; `network: false`, legacy starter staged). Army Builder checks cover the Warlord and attachment candidate controls and stable IDs. Saved-army integration maps those IDs to canonical units/models, replays Warlord and attachment choices through the current public rules choices for both players, rejects an illegal pairing, and reconstructs the declarations from the saved match setup. Both Godot test processes emitted shutdown-only RID/ObjectDB cleanup diagnostics; import and Python processes passed without them. This is local setup evidence only; LAN still uses in-match declarations, and it does not establish full army legality or broader rules coverage.
+
+### Quick Match saved-army route — 13 November 2026
+
+`python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_army_builder --only test_saved_armies --timeout 300` passed **4/4 processes** at `.tools/verification/20261113T044555628143Z/results.json` (SHA-256 `fa21c59b4d396bffac549dd7309c7840eb9066135537d4751e6d2ebe1d755d2e`; `network: false`, legacy starter staged). The saved-army integration starts the explicit standard Quick Match preset from two current-catalog lists, confirms current unit abilities are enabled while official mission/core stratagem options are disabled, and confirms automatic damage allocation before deployment. The Army Builder and saved-army suites passed; both Godot processes emitted shutdown-only RID/ObjectDB cleanup diagnostics. This result predates the 13 November follow-up that compacts the visible precheck and adds appearance candidate explanations. The compact readiness and appearance inspector were viewed in Godot at 1280×800; the latest saved-equipment-to-visual-hint comparison is only parser checked and still needs a refreshed in-game review. Neither the test report nor the UI review certifies complete army legality, every rules interaction, cross-machine LAN or visual parity.
+
+### Eliminator appearance batch action — 13 November 2026
+
+The Appearance tab now offers an explicit batch action when the selected model is an Eliminator Squad member with another model in the same unit copy that has the same Sergeant/trooper role and saved ranged weapon. It copies or clears only the local visual override for those matching model IDs; gameplay equipment, other unit copies and match state are unchanged. This initial version received only a Godot 4.7.2 headless editor parse/import and `git diff --check`; no test suite or refreshed in-game capture was run for the action.
+
+### Per-model Necron equipment and shared appearance batching — 13 November 2026
+
+The Army Builder stores Gauss flayer/Gauss reaper choices for each Necron Warrior, Gauss blaster/Tesla carbine choices for each Immortal, and one of four source-listed packages per Canoptek Macrocyte against stable model IDs. Current-catalog admission validates the model counts and choices, including the one-per-unit Atomiser and Accelerator Mandible caps; canonical grouping keeps differently equipped copies distinct. Local saved-army construction resolves these choices through the verified Necrons App v1.2 profiles, locks the corresponding Army Preparation choices, and reports saved equipment in the readiness summary. Ranged and melee records are passed to the local ForceOrg matcher; if there is no exact ready visual, the normal miniature fallback remains.
+
+Appearance batching now uses a saved role/equipment key and applies only within the selected unit copy. The supported model schemas are Eliminators, Necron Warriors, Immortals and Canoptek Macrocytes. It copies or clears visual overrides only; loadouts, other copies, match state and network state are unchanged. Rules facts use local snapshot `20261031T053336Z`, Necrons App book `000000029`, version 1.2; see the [Necrons coverage ledger](../data/necrons-coverage.md).
+
+Static verification: `& 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --quit` exited 0 after the final script changes, and `git diff --check` exited 0. No test suite was run or added for this increment, and no refreshed in-game capture was made. This confirms editor parse/import only; it does not verify UI behavior, save/reload integration, visual matching, broad rules coverage, full army legality or LAN behavior.
+
+### Canoptek Spyder equipment in saved armies — 13 November 2026
+
+The Army Builder now stores the three independent source-listed Canoptek Spyders options for each stable model ID. Current-catalog admission checks the unit-copy/model array shape and option fields; the canonical roster includes each model's chosen combination. Local saved-army construction applies the saved equipment before Deployment, locks it against duplicate Army Preparation changes, and includes it in the readiness summary. The appearance preview checks the resulting ranged/melee equipment against local ForceOrg hints; identical model roles and equipment can share an appearance override within the same unit copy. The scope is based on local Wahapedia Necrons App v1.2 sheet `000000551`; the scoped surviving-Spyder interpretation for Canoptek Swarm remains unchanged.
+
+Static verification: the Godot 4.7.2 headless editor parse/import and `git diff --check` exited 0. No test suite was run or added, and no in-game UI capture was made for this increment. The checks establish parser/import success only; runtime save/reload, equipment application, visual matching, full army legality and LAN behavior remain unverified here.
+
+The gameplay roster projection now materializes both Spyder and Tomb Crawler saved choices into their canonical fields before removing local model IDs. This closes a serialization omission found during code review; it is not evidence of a successful network session.
+
+### Canoptek Tomb Crawler equipment in saved armies — 13 November 2026
+
+The Army Builder stores the Twin gauss reaper or transdimensional isolator per model against stable IDs, and current-catalog admission rejects more than one isolator per unit. Local match materialization applies and locks these choices before Deployment. The local visual matcher receives the selected ranged profile plus fixed melee profile; a missing exact sculpt keeps the standard appearance. The code review also found and fixed the LAN roster projection so it emits canonical Spyder and Tomb Crawler equipment arrays before stripping local model IDs. Cross-machine LAN behavior remains unvalidated.
+
+Static verification after the projection change: `& 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --quit` exited 0 and `git diff --check` exited 0. No test suite was run or added, and no in-game capture was made for this increment. This confirms parser/import and whitespace checks only; it does not establish runtime save/reload, network behavior, full army legality or visual parity.
+
+### Annihilation Barge and Monolith saved weapons — 13 November 2026
+
+The Army Builder now persists the Barge's Gauss cannon or source-listed Tesla cannon and the Monolith's four Gauss Flux Arcs or four Death Rays by stable model identity. Admission validates those choices against the local Necrons App v1.2 profiles; canonical selections carry them into local match materialization and gameplay roster projection. Saved-list matches apply and lock the choice before Deployment. The preview matcher receives the selected ranged records and retains the normal fallback when no exact visual is ready. The legacy Army Preparation replacement handlers now use canonical datasheet IDs when calling the shared profile adapter.
+
+Rules facts use local snapshot `20261031T053336Z`, Necrons App book `000000029`, version 1.2; the source identity, retrieval metadata and hashes are recorded in the [Necrons coverage ledger](../data/necrons-coverage.md). Static verification with `& 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --quit` exited 0, and `git diff --check` exited 0. No test suite was run or added. A live Army Workshop capture showed its existing Space Marines list and preview, not these vehicle controls; the control behavior remains visually unverified. These checks establish parser/import success only, not runtime save/reload, network behavior, complete army legality or visual parity.
+
+### Appearance availability feedback — 13 November 2026
+
+The Army Builder gallery now labels local assets as ready, queued/download-pending, downloading, missing or conversion/validation-failed. Candidate tooltips explain the state and fallback. A failed preparation is tracked for the current local session and is cleared when that candidate is retried or successfully prepared; saved visual assignments remain intact.
+
+Static verification with `& 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --quit` exited 0 and `git diff --check` exited 0. No test suite was run or added. No refreshed in-game capture was made for the new status labels. The implementation is scoped to gallery candidates and the local preparation session; comprehensive cache-corruption, import-failure persistence and end-to-end recovery remain unverified.
+
+### Immutable saved-match visual-copy binding — 13 November 2026
+
+Local match creation now maps every saved copy ID to its canonical match unit index and preserves the source-list appearance ordinal. Version 2 local appearance snapshots retain those references and validate that every frozen unit is represented exactly once by the matching datasheet and model count. The board resolves manual and shared visual choices by the mapped copy; version 1 snapshots retain their previous count-based compatibility path. Mapping metadata remains inside the match's local `presentation` section and is not projected into gameplay or LAN roster data.
+
+The focused regression command was:
+
+```powershell
+python tools/verify.py --godot 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --profile targeted --only test_saved_armies --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_saved_armies`) at `.tools/verification/20261113T072801330803Z/results.json` (SHA-256 `6BEB4DB85A2F3D177702FDC87F4E84BF5E09993C38A61A602CD55DB90CE1ADAD`; `network: false`, legacy starter staged). The added regression reverses default and alternate Intercessor copy order, saves and selects that profile through the local New Match flow, checks canonical index bindings and per-copy visual resolution, restores version 2 snapshot data, rejects duplicate match-unit indices, and confirms later source-list equipment/appearance edits do not affect the frozen match. The Godot process reported shutdown RID/ObjectDB cleanup diagnostics and exited successfully. `git diff --check` exited 0 with only Git line-ending normalization warnings. No in-game capture was made; actual rendered visual review, separate-machine LAN validation and full plan acceptance remain open.
+
+### Explicit per-model appearance mode and schema v3 — 13 November 2026
+
+Army Builder profiles now persist Auto/Manual for every miniature using its stable model ID. A saved manual sculpt remains selected when its local files are missing; the normal visual resolver fallback stays visible. Legacy overrides infer Manual and all other legacy models infer Auto on profile normalization. Frozen local appearance snapshots now use schema v3 for model modes and copy bindings; v1 unbound and v2 copy-bound snapshots remain supported.
+
+Static verification with `& 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --quit` exited 0. The production Army Workshop panel was captured in a staged Godot runtime at 1280×800 under `.tools/visual-review/army_builder_visual_mode_capture.png`; it shows a saved Intercessor Grenadier manual appearance, the unavailable-asset explanation and fallback. The fixture uses the local runtime catalog and does not read/write a user profile or model cache. `git diff --check` exited 0 with only the repository's LF/CRLF normalization warnings. No targeted suite was run after this mode/snapshot increment; earlier Intercessor/saved-army results predate this change. Separate-machine LAN and broader plan acceptance remain open.
+
+### Outrider persistent loadouts — 13 November 2026
+
+The Army Builder now saves the Outrider Sergeant's melee replacement and each model's Plasma Pistol choice by stable ID. Current-catalog admission validates the source-listed options and one-per-three cap, groups distinct unit-copy configurations, and preserves stable model references. Local match creation applies the selected weapons before Deployment and blocks duplicate setup changes for saved lists. The preview sends the saved weapon profiles to the local visual matcher; unavailable exact variants retain the normal fallback. Rules facts remain bounded to the verified local Wahapedia e11 Outrider profile documented in [the datasheet audit](../marine-outrider-squad.md).
+
+The focused offline command was:
+
+```powershell
+python tools/verify.py --godot 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --profile targeted --only test_outrider_squad_current --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_outrider_squad_current`) at `.tools/verification/20261113T084632291390Z/results.json` (SHA-256 `0530DDEB38EE70C199633C820547AC0C832631F1D029CDE505E39F7F3EDCB012`; `network: false`, legacy starter not staged, no shutdown cleanup diagnostics). The regression covers saved-list admission, per-model canonical choices, stable model mapping, the per-three-model cap, match materialization and blocked setup changes. The actual Army Workshop was captured at 1280×800 in `.tools/visual-review/army_builder_outrider_equipment_capture.png`; the staged list shows the saved Sergeant weapon and model-specific Plasma Pistol, including the disabled state when the unit cap is reached. The capture used the local runtime catalog without reading or writing a user profile or model cache. This does not verify exact sculpt parity, cross-machine LAN, complete army legality or the remaining plan acceptance criteria.
+
+### Ravenwing Darkshroud saved weapon — 13 November 2026
+
+The Army Builder now persists each Darkshroud's Heavy Bolter or Assault Cannon choice against the stable model ID. Canonical admission and stable miniature mapping include the per-copy selection; local saved-list materialization applies the source-listed weapon before Deployment, reports it in readiness and blocks the duplicate Army Preparation change. Missing local equipment-matched assets continue to use the visual fallback.
+
+The focused offline command was:
+
+```powershell
+python tools/verify.py --godot 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --profile targeted --only test_ravenwing_darkshroud --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_ravenwing_darkshroud`) at `.tools/verification/20261113T090810306673Z/results.json` (SHA-256 `8A279EFF690B7C10F926D806F3A6957275B528745577D6BF45B8A8A1E15E1773`; `network: false`, legacy starter not staged, no shutdown cleanup diagnostics). In addition to the earlier datasheet checks, the regression covers saved builder admission, canonical equipment projection, stable model mapping, Assault Cannon materialization, the saved-list lock, suppression of duplicate setup choices and gallery explanations for matching/conflicting cannon hints. The actual 1280×800 Godot Army Workshop capture is `.tools/visual-review/army_builder_darkshroud_equipment_capture.png`; it shows the production Unit Inspector with Assault Cannon selected. The capture fixture used the local runtime catalog and did not read or write a user profile or model cache. This does not verify exact sculpt parity, Darkshroud deep strike/Deadly Demise end-to-end behavior, cross-machine LAN, full army legality or the remaining plan acceptance criteria.
+
+### Inceptor per-model saved weapons — 13 November 2026
+
+The Army Builder now stores each Inceptor's Assault Bolters or Plasma Exterminators choice against its stable model ID. Current-catalog admission validates a complete per-model choice array and canonical grouping preserves it. Local saved-list materialization installs each exact source profile before Deployment and suppresses the duplicate Army Preparation choice; standalone exercises retain the setup choice. The preview passes the selected weapon to the local visual matcher, and gallery hints explain matching or conflicting equipment metadata without claiming sculpt certification.
+
+The focused offline command was:
+
+```powershell
+python tools/verify.py --godot 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --profile targeted --only test_inceptor_squad --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_inceptor_squad`) at `.tools/verification/20261113T093531737235Z/results.json` (SHA-256 `0D0D7F70231303CE0A214C0659553EC416AF929A8EAEFD4350EC32653825E59E`; `network: false`, legacy starter not staged, no shutdown cleanup diagnostics). The regression checks stable model mapping, invalid loadout rejection, saved model materialization and locking, separate weapon state for models with the same loadout, standalone setup fallback, builder summaries and appearance-hint rationale. The production Army Workshop capture is `.tools/visual-review/army_builder_inceptor_equipment_capture.png` at 1280×800; it shows per-model selections of Plasma Exterminators, Assault Bolters and Plasma Exterminators. Its fixture uses the local runtime catalog and does not read or write a user profile or model cache. This does not establish exact sculpt parity, cross-machine LAN, full army legality or completion of the remaining plan scope.
+
+### Land Speeder saved cannon — 13 November 2026
+
+The Army Builder saves the Land Speeder's Onslaught Gatling Cannon or Pyrecannon against each copy's stable model ID. Local catalog admission preserves differently configured copies, and saved-list matches install the selected weapon before Deployment and suppress the duplicate preparation action. Gallery hints compare the selection with local weapon labels while leaving sculpt suitability unresolved.
+
+The focused offline command was:
+
+```powershell
+python tools/verify.py --godot 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --profile targeted --only test_land_speeder_saved_loadout --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_land_speeder_saved_loadout`) at `.tools/verification/20261113T095441032750Z/results.json` (SHA-256 `B9DC202769A761E414A670E7B7A560CE1C0B845E74DF70788CA231BFD18CF365`; `network: false`, legacy starter staged, no shutdown cleanup diagnostics). The regression covers admission and copy separation, stable miniature mapping, appearance-hint rationale, exact weapon materialization, setup suppression and rejection of a forced mid-match change. The production Army Workshop was captured at 1280×800 in `.tools/visual-review/army_builder_land_speeder_equipment_capture.png`; Unit 2 shows Pyrecannon selected. The preview uses the current local fallback and does not certify a matching sculpt. A separate run of `test_land_speeder` reaches its older Purgation fixture and exits because the local Overlord profile is pending validation. This result does not establish full army legality or cross-machine LAN behavior.
+
+### Land Speeder Vengeance saved cannon — 13 November 2026
+
+The Army Builder saves each one-model Vengeance copy's Heavy Bolter or Assault Cannon selection by stable model ID. Admission and canonical grouping preserve unlike copies; saved-list matches install the exact replacement profile before Deployment and suppress the second preparation prompt. The appearance matcher compares local weapon labels without treating them as sculpt certification.
+
+The focused offline command was:
+
+```powershell
+python tools/verify.py --godot 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --profile targeted --only test_land_speeder_vengeance_saved_loadout --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_land_speeder_vengeance_saved_loadout`) at `.tools/verification/20261113T100156220705Z/results.json` (SHA-256 `03114F8007A62B87B2016D30B17BEF44B05071769645402E55D0F35342790FE4`; `network: false`, legacy starter staged, no shutdown cleanup diagnostics). The regression checks stable mapping, distinct copy choices, appearance-hint rationale, exact profile materialization, setup suppression and rejection of a forced change. The production 1280×800 Workshop capture is `.tools/visual-review/army_builder_land_speeder_vengeance_capture.png`; Unit 2 shows Assault Cannon selected while the local fallback remains visible. This does not establish exact sculpt parity, full army legality or cross-machine LAN behavior.
+
+### Hellblaster saved Sergeant pistol — 13 November 2026
+
+The Army Builder now saves each Hellblaster Squad copy's Sergeant Bolt Pistol or free Plasma Pistol choice against the stable Sergeant model ID. Local catalog admission preserves differently configured copies, and saved-list matches install the selected profile before Deployment, lock it for the match and suppress the duplicate preparation choice. The match readiness summary reports the saved pistol counts. Equipment hints use local weapon labels and do not certify sculpt parity.
+
+The focused offline command was:
+
+```powershell
+python tools/verify.py --godot 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --profile targeted --only test_hellblaster_saved_loadout --only test_hellblaster_squad --timeout 300
+```
+
+It passed **4/4 processes** (import, Python, `test_hellblaster_saved_loadout` and `test_hellblaster_squad`) at `.tools/verification/20261113T102156369274Z/results.json` (SHA-256 `77DD877A20629487AE4085991BA5CA5D2E3FC2D4CE67824DF39E4BBE9109A71B`; `network: false`, legacy starter staged, no shutdown cleanup diagnostics). The saved-loadout regression covers admission, distinct copy choices, stable model references, readiness reporting, weapon installation, setup suppression and forced-change rejection. The production Army Workshop capture at 1280×800 is `.tools/visual-review/army_builder_hellblaster_equipment_capture.png`; it shows the Unit Inspector's Plasma Pistol choice. The local fallback preview is visible only in part at this scroll position, so the capture verifies the control and selection but not sculpt parity or gallery coverage. Full army legality, cross-machine LAN and the remaining plan scope stay open.
+
+### Assault Intercessor saved Sergeant weapons — 13 November 2026
+
+The Army Builder now stores the Sergeant's source-listed pistol and melee replacement against the stable model ID. Saved-list admission retains distinct combinations across copies, and match construction installs both selected profiles before Deployment while suppressing the duplicate setup choices. The production Army Workshop capture at 1280×800 is `.tools/visual-review/army_builder_assault_intercessor_equipment_capture.png`; Unit 2 shows Hand Flamer and Thunder Hammer selected. This capture verifies the controls and displayed choices, not saved-list admission, match materialization or sculpt parity.
+
+Static Godot project import completed successfully with:
+
+```powershell
+& 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --quit
+```
+
+At the time of this Workshop capture, the saved-list runtime path had not yet had a focused regression run. The later combined local regression is recorded below; this capture itself does not establish match behavior, full army legality, cross-machine LAN or the remaining plan scope.
+
+### Heavy Intercessor saved Heavy Bolters — 13 November 2026
+
+The Army Builder now records Heavy Bolter replacements by eligible non-Sergeant model ID and applies the verified one-per-five limit to each squad copy. Admission carries the per-model choices into saved-list match construction, which installs the local Heavy Bolter profile before Deployment and locks the saved loadout. The production Army Workshop capture at 1280×800 is `.tools/visual-review/army_builder_heavy_intercessor_equipment_capture.png`; it shows the second eligible model's Heavy Bolter selected and the remaining choices disabled at the squad cap. The capture verifies the controls and limit feedback, not saved-list admission or match materialization.
+
+Static Godot project import completed successfully with:
+
+```powershell
+& 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --quit
+```
+
+At the time of this Workshop capture, the saved-list runtime path had not yet had a focused regression run. The later combined local regression is recorded below; this capture itself does not establish match behavior, full army legality, cross-machine LAN or the remaining plan scope.
+
+### Invader ATV saved Multi-meltas — 13 November 2026
+
+The Army Builder now stores each model's Onslaught Gatling Cannon or Multi-melta choice by stable model ID. Each Multi-melta adds the verified 5-point local source cost to the saved-list summary and current-catalog admission; canonical configuration grouping retains distinct model choices. Saved-list match construction applies the chosen profile before Deployment, accounts for its surcharge in match points and locks the duplicate Army Preparation choice. The production Army Workshop capture at 1280×800 is `.tools/visual-review/army_builder_invader_atv_equipment_capture.png`; it shows the two-model control state, the second ATV's checked Multi-melta and a 135/1000-point total. The preview is only the partial local fallback in this capture, so it verifies neither an exact sculpt nor weapon visibility.
+
+Static Godot project import completed with exit code 0 and no script parse errors using:
+
+```powershell
+& 'C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe' --headless --path . --editor --quit
+```
+
+At the time of this Workshop capture, the focused saved-list runtime regression had not yet been run. The later combined local regression is recorded below; this import and capture themselves do not establish admission/materialization behavior, full army legality, cross-machine LAN or the remaining plan scope.
+
+### Saved-list runtime coverage for Scout, Reiver, Invader ATV, Assault and Heavy Intercessors — 13 November 2026
+
+The Army Workshop now has focused local runtime coverage across five saved-list loadout paths. The regression starts from the current consolidated local Space Marines catalog, configures a Scout Sergeant and trooper, two Reiver copies with different squad gear, a mixed two-model Invader ATV unit, two Assault Intercessor Sergeant packages and two Heavy Intercessors with Heavy Bolters. It saves and reopens the army profile, checks the actual Workshop controls reflect the stored choices, validates the list against current local capabilities, and materializes the selections into a match before Deployment. It verifies the Invader ATV 5-point surcharge, per-five-model Heavy Bolter cap, exact weapon IDs and saved-loadout locks.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot C:/Godot/4.7.2/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_marine_saved_loadouts --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_marine_saved_loadouts`) at `.tools/verification/20261113T131439856174Z/results.json` (SHA-256 `4BF2B46D391623310539EBAE3237016A5262E73BC4D30003F1D8081A7A114200`; `network: false`, legacy starter staged, no shutdown cleanup diagnostics). This validates only the listed local profiles and match path. It does not establish complete army legality, exact sculpt parity, every option-bearing datasheet or separate-machine LAN behavior.
+
+### Local visual resolution, mesh reuse and saved-loadout regressions — 13 November 2026
+
+The combined local run includes synthetic prepared-GLB coverage and the Army Workshop/import suites. Two separate miniature scene instances share the same cached Mesh resource while retaining distinct scene roots and MeshInstance nodes. The saved-list suite covers the five Marine profiles described above. Local fallback/recovery checks include unavailable manual appearances, corrupt equipment-candidate fallback, failed downloads and invalid OBJ import; separate-machine assets and visual parity are not established.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot C:/Godot/4.7.2/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_local_models --only test_local_armies_models --only test_marine_saved_loadouts --timeout 300
+```
+
+It passed **5/5 processes** (import, Python and the three selected suites) at `.tools/verification/20261113T132357529928Z/results.json` (SHA-256 `0E8B6C9A6732A2874F1935C9FEE74216534048C70515A0E0636EB0200141B0DA`; `network: false`, legacy starter staged). The two local model suites reported headless RID cleanup diagnostics and exited successfully; the saved-loadout suite had no cleanup diagnostics. The targeted corrupt-variant retry regression was added and run separately afterward.
+
+### Corrupt saved-variant retry preserves its assignment — 13 November 2026
+
+The local asset regression now injects an invalid cached OBJ for a manually selectable variant, confirms parsing rejects it, then invokes the explicit retry path. The retry clears the failed in-memory cache and forces a source refresh even though the old file and mapping still exist. A deliberately invalid non-HTTPS source makes the retry fail offline; the saved mapping remains unchanged and the actionable URL error is retained. This verifies retry selection and failure preservation, not successful repair from a replacement source.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot C:/Godot/4.7.2/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_local_armies_models --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_local_armies_models`) at `.tools/verification/20261113T133005563752Z/results.json` (SHA-256 `75159E1D45DBFE6E738A8D19EA1D2AEBBFB5BF4AAF144BD6C8D8428FD727C231`; `network: false`, legacy starter staged). The suite reported headless RID/ObjectDB cleanup diagnostics and exited successfully. The regression does not verify a successful repaired asset, default-mapping recovery, separate-machine asset behavior, visual parity or full army legality.
+
+### Manual sculpt mismatch feedback after equipment changes — 13 November 2026
+
+The Army Builder regression saves a Hellblaster Sergeant's manual Bolt Pistol sculpt, changes its saved equipment to Plasma Pistol, and checks the gallery rationale flags the known equipment conflict without clearing the manual appearance. Restoring Bolt Pistol updates the rationale to a match while retaining the same saved variant identity. The comparison is bounded by local variant metadata and does not certify sculpt parity.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot C:/Godot/4.7.2/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_army_builder --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_army_builder`) at `.tools/verification/20261113T133524846439Z/results.json` (SHA-256 `E2EC8CD459CE2343543DA21CD93BE999136428B02F71030DFD54F544610AC358`; `network: false`, legacy starter not staged). The Godot test process reported headless RID/ObjectDB cleanup diagnostics and exited successfully. Broader model-role combinations, actual sculpt parity, full army legality and separate-machine LAN remain outside this result.
+
+### Responsive appearance workspace — 13 November 2026
+
+At 1280×800, opening a selected entry's Appearance view activates the compact Unit Inspector region. The Appearance tab keeps the live miniature preview and model selector beside the local gallery; candidate looks are placed before optional preparation and palette controls. The screenshot shows the built-in placeholder and a preserved unavailable manual appearance because this isolated fixture links no local asset.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot C:/Godot/4.7.2/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_army_builder --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_army_builder`) at `.tools/verification/20261113T140309689520Z/results.json` (SHA-256 `7C91A908A20828409EE0B126B466E9F04AE35F23FBB8E7A143CD3D9A58CC8968`; `network: false`, legacy starter not staged). The Godot test process reported headless RID/ObjectDB cleanup diagnostics and exited successfully. The actual 1280×800 Godot capture is `.tools/visual-review/army_builder_live_appearance_capture.png`; the staged screenshot uses an isolated list/catalog path and does not read or write the user profile or model cache. Other viewport widths, local sculpt parity, complete army legality and separate-machine LAN remain unverified.
+
+### Take to the Skies movement — 13 November 2026
+
+The focused match-command regression covers the ordinary model/dense-wall blockers and the Take to the Skies bypass, a FLY squad's two-inch movement and Charge limits, Advance declaration before its D6, HOVER's waived reduction, vertical-distance bypass while reaching the default 3-inch floor, and carrying the Charge declaration through target selection into contact placement. It also rejects the declaration for a non-FLY unit without mutating state. The current matching [Wahapedia 11e Core Rules page](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/) was checked on 13 November 2026; it identifies the June 2026 rulebook revision and retains the §21.03/§24.17 behavior used here.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot C:/Godot/4.7.2/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_take_to_skies --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_take_to_skies`) at `.tools/verification/20261113T141902601227Z/results.json` (SHA-256 `7C809333F4A2922F1B60521250742687DD266391048190B5CD50EB4500D1F3F3`; `network: false`, legacy starter staged, no headless cleanup diagnostics). This is bounded local movement evidence. Upper-floor Charge contact, bounded 3D visibility, Plunging Fire, human playtesting, separate-machine LAN and full army legality remain open.
+
+### MONSTER/VEHICLE model passage — 13 November 2026
+
+The focused offline regression exercises the shared Movement command validator and the supported Purgation Run Normal Move. It verifies friendly and enemy ordinary-model passage during Normal Moves and Advances, blocks other MONSTER/VEHICLE bases, confirms that ordinary models do not gain the enemy-passage exception, and checks Charge boundaries and endpoint overlap. The §17.01 FAQ's friendly-model permission for other move types is also covered. The matching current [Wahapedia 11e Core Rules page](https://wahapedia.ru/wh40k11ed/the-rules/core-rules/) was checked on 13 November 2026; it identifies the June 2026 Core Rules revision and states the relevant rules in §§03.01 and 17.01.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot C:/Godot/4.7.2/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_monster_vehicle_passage --timeout 300
+```
+
+It passed **3/3 processes** (import, Python and `test_monster_vehicle_passage`) at `.tools/verification/20261113T143554568989Z/results.json` (SHA-256 `15E0E519661AC71FDFB1244A83C62B48FB2350F3322F1DD9294FEC4C928BAF40`; `network: false`, legacy starter staged, no headless cleanup diagnostics). Human playtesting, separate-machine LAN, full army legality, terrain and other move-type edge cases remain outside this focused regression.
+
+### Appearance evidence confidence — 13 November 2026
+
+The local matcher now reports **Strong**, **Partial**, **Role only**, **Unverified** or **Conflict** from applicable saved weapon and reviewed model-role metadata. Weapon coverage is the share of the distinct physical weapon labels in the saved model record that the catalog hints cover. The existing deterministic score remains unchanged for resolver ranking. The Army Builder shows evidence confidence independently from asset availability and preserves saved manual choices when a conflict is reported. These labels describe metadata coverage only; they do not estimate probability or certify sculpt parity.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot C:/Godot/4.7.2/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_model_equipment_visuals --only test_army_builder --timeout 300
+```
+
+It passed **4/4 processes** (import, Python, `test_model_equipment_visuals` and `test_army_builder`) at `.tools/verification/20261113T145252293197Z/results.json` (SHA-256 `ECCF7237C46B999D7AD463B2FE6DAFBB5A1B8FC0E5A5F210091FA16A6E6D2D6A`; `network: false`, legacy starter not staged). The Army Builder test process reported headless RID/ObjectDB cleanup diagnostics and exited successfully. The actual 1280×800 Godot capture is `.tools/visual-review/army_builder_confidence_capture.png`; it uses the consolidated local catalog with a staged missing-asset Intercessor variant whose role metadata conflicts with the saved Grenade Launcher model, so it shows the built-in placeholder alongside the separate readiness and confidence labels. The fixture does not verify a real ForceOrg asset or sculpt parity. Thumbnail cards, broad asset-failure coverage, full army legality and separate-machine LAN remain open.
+
+## Saved army formation transfer for LAN selection — 13 November 2026
+
+Saved Warlord and Leader/Support candidates are now mapped from persistent Army Builder model/copy IDs to bounded canonical match coordinates before a LAN roster submission. The versioned packet contains the admitted gameplay roster and the optional formation declaration; it carries no local profile identifiers, visual variants or local paths. The host still performs current-catalog admission and applies declarations through the same current UnitActions checks used by local saved-army matches. The guest reconstructs the received frozen setup and checks its own roster and formation against the host's accepted snapshot. A legacy raw-roster request remains accepted with no saved formation declaration.
+
+The focused verifier passed **3/3 processes** (`import`, Python and `test_saved_armies`) at `.tools/verification/20261113T152823301057Z/results.json` (SHA-256 `E0252EE78C7B793CA2F75B4809AC29A8BEBC5D5C88D373EE24959E4DDB2AD025`; `network: false`, legacy starter staged). `test_saved_armies` reported headless RID/ObjectDB cleanup diagnostics and exited successfully. The checks cover persistent-ID to canonical-coordinate mapping, packet shape rejection, current rules validation and frozen setup reconstruction. They do not exercise an RPC host/guest session or establish separate-machine LAN behavior; Space Marine network validation remains deferred.
+
+## Baal Predator saved loadout — 13 November 2026
+
+The Army Builder stores all four local source-listed choices per stable Baal Predator model: primary cannon, paired sponson package, Storm Bolter and Hunter-killer Missile. Admission validates values against the current local profile, separates unlike copies, and returns canonical choices. Match setup installs the exact weapon profiles before Deployment and locks the setup command for saved selections. The Workshop regression checks that the controls reopen with saved values. Appearance metadata compares the selected physical weapons to local hints and keeps different loadouts in separate model roles; this is metadata coverage only and does not establish sculpt parity.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_baal_predator_saved_loadout --only test_baal_predator --only test_army_builder --timeout 300
+```
+
+It passed **5/5 processes** (`import`, Python, `test_baal_predator_saved_loadout`, `test_baal_predator` and `test_army_builder`) at `.tools/verification/20261113T170206645894Z/results.json` (SHA-256 `02DE7F83D861C54C228103A72093836EA35AE6AB26C086F6671353563DC44F0A`; `network: false`, legacy starter staged). `test_army_builder` reported Godot headless RID/ObjectDB cleanup diagnostics and exited successfully; the other four processes had no such diagnostics. Full army legality, separate-machine LAN and exact sculpt parity remain unverified.
+
+## Predator Destructor saved loadout — 13 November 2026
+
+The Army Workshop stores the source-listed paired sponson replacement and both optional weapons per stable Predator Destructor copy. The local current-catalog path keeps unlike copies separate, materializes the complete selected profiles before Deployment and locks the duplicate setup choices. The UI regression checks reopened values and compares equipment hints against local appearance metadata; this does not establish sculpt parity. The sheet remains Warhammer Legends and competitive event use requires organiser permission.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_predator_destructor_saved_loadout --timeout 300
+```
+
+It passed **3/3 processes** (`import`, Python and `test_predator_destructor_saved_loadout`) at `.tools/verification/20261113T172822142075Z/results.json` (SHA-256 `F46D06EB8129BA00FF9CB685DE8DCCB89ACFAE479FFEE9433C19AA1135C4CE59`; `network: false`, legacy starter staged, no cleanup diagnostics). Full army legality, separate-machine LAN and exact sculpt parity remain unverified. No live Godot capture was produced for this slice.
+
+## Predator Annihilator saved loadout — 13 November 2026
+
+The Workshop stores each stable copy's paired Heavy Bolter replacement, Storm Bolter and Hunter-killer Missile. Current-catalog admission preserves unlike copies; materialization installs exact weapon records and locks duplicate preparation commands. The regression renders controls from an in-memory list, checks local metadata guidance and tests default/fully equipped copies plus forced-change rejection. It does not exercise a disk-save/restart round trip or every option combination. The profile retains its Warhammer Legends scope.
+
+The exact offline command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_predator_annihilator_saved_loadout --only test_predator_annihilator_legends --timeout 300
+```
+
+It passed **4/4 processes** (import, Python and both selected suites) at `.tools/verification/20261113T174036761309Z/results.json` (SHA-256 `82B57E5C31C73044020B1C64E60D507DA100086B0567077A0C7A98EE7019E63D`; network disabled, legacy starter staged, no cleanup diagnostics). This report was re-read and its hash recomputed during the implementation review; tests were not rerun. No new live Godot capture was produced. Full army legality, exact sculpt parity and separate-machine LAN remain unverified.
+
+## Army Builder implementation review — 13 November 2026
+
+The [review](../project/army-builder-implementation-review.md) compares the supplied plan with current ownership, migrated profiles and acceptance gates. It identifies incomplete coverage accounting, repeated profile branches, draft feedback that implies a disk save, and gaps in persistence/integration evidence. Existing focused report hashes were recomputed; no new runtime, rules-source, network or live visual check is claimed by this documentation review.
+
+## Shared equipment adapters, disk restart and Workshop review — 13 November 2026
+
+Predator Destructor and Annihilator now share their control rendering and draft-update callback. Their feedback explicitly says **updated in this draft**. Invictor Tactical Warsuit and Ancient use an explicit shared adapter for defaults, enum validation, editor controls, canonical copy grouping and exact source-listed materialization. Saved choices are locked against duplicate setup changes. The Invictor regression caught and resolved a later initialization step resetting its saved cannon to the default.
+
+The exact focused command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_invictor_saved_loadout --only test_ancient_saved_loadout --only test_saved_loadout_restart --only test_predator_annihilator_saved_loadout --only test_predator_destructor_saved_loadout --only test_army_builder --timeout 300
+```
+
+It passed **8/8 processes** at `.tools/verification/20261113T180012760988Z/results.json` (SHA-256 `A8725368FF5B4DC43E628062FF74FAE45956D861EFAF52CF44A03D300B13CE04`; network disabled, legacy starter staged). `test_army_builder` exited successfully with headless RID/ObjectDB cleanup diagnostics; the other processes did not report those diagnostics.
+
+The new restart test writes an army bank to disk, starts a separate Godot process to reopen it, preserves differently configured copies and a missing appearance reference, saves/reloads a gameplay match and confirms later source-list edits leave the frozen setup unchanged. It exercises actual shared Predator checkbox signals. The new Invictor/Ancient regressions check distinct copy configurations, exact weapon materialization, unsupported-choice rejection, duplicate-prompt suppression, forced-change rejection without mutation and generic editor signals. This remains a bounded local path, not a complete manual readiness/deployment walkthrough or a separate-machine LAN session.
+
+The production Workshop was rendered in a non-headless Godot 4.7.2 run using OpenGL compatibility at 1280x800. The inspected staged capture is `.tools/visual-review/army_builder_invictor_equipment_capture.png`: the Unit inspector shows **Twin Ironhail Autocannon** selected for Unit 1, and **Unsaved changes** beside Save list. The preview is partly outside the scrolled view and uses the local fallback; this capture does not establish a matching Invictor sculpt. An initial capture showed the catalog region and was rejected as equipment evidence; the corrected fixture selected the compact inspector region before capture.
+
+The runtime coverage exporter and renderer produced the [204-profile discovery ledger](../project/army-builder-coverage.md), with 26 profiles containing detected saved equipment schemas. The other 178 require fixed-equipment/option review. Discovery metadata and passing tests do not certify complete loadouts, full army legality, all factions or live-page equality. Existing source audits remain authoritative for the two new migration profiles; no source facts or provenance were replaced.
+
+Standalone preparation and existing source-bounded behavior were also checked with:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_invictor_tactical_warsuit --only test_ancients --timeout 300
+```
+
+This passed **4/4 processes** at `.tools/verification/20261113T180520453111Z/results.json` (SHA-256 `5546F1CA58C528AFFC1A60DA409093FCAE10C33F3C8E08511C0B25FBD66714E1`; network disabled, legacy starter staged). Cleanup diagnostic flags: import=false, python=false, test_invictor_tactical_warsuit=false, test_ancients=false. Documentation local-file links, 204 unique ledger identities with runtime book/datasheet IDs and `git diff --check` also passed.
+
+## Optional vehicle saved equipment — 13 November 2026
+
+The shared adapter now saves source-listed vehicle choices per stable one-model copy for Vindicator, Whirlwind, Hammerfall Bunker, Nephilim Jetfighter, Cerberus, Typhon and Falchion. Hammerfall Bunker, Cerberus, Typhon and Falchion remain visibly bounded to their local Legends profiles where applicable. Local canonical admission validates the records, and match preparation applies them after its profile defaults so those defaults cannot reset the saved choices. The focused regression checks two independently configured copies per profile, exact local ranged weapon packages, admission, duplicate setup-choice suppression, editor control signals and rejection of wrong-type values.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_optional_vehicle_saved_loadouts --only test_saved_loadout_restart --timeout 300
+```
+
+It passed **4/4 processes** (import, Python, `test_optional_vehicle_saved_loadouts` and `test_saved_loadout_restart`) at `.tools/verification/20261113T194708205511Z/results.json` (SHA-256 `AA3E23D672A45D62116D29B7DDEC64168460ED41D3E8A6A3ABB292C572F36C87`; network disabled, legacy starter staged, no headless RID/ObjectDB cleanup diagnostics). The restart regression preserves the previously covered army-bank reopen and frozen-match source-edit isolation. No live Workshop screenshot was produced for these seven profiles; the control-signal exercise is runtime interaction evidence, not viewport evidence. Exact visual parity, every per-option combination, full army legality and separate-machine LAN remain unverified.
+
+## Dreadnought saved equipment — 13 November 2026
+
+The Army Workshop now saves Dreadnought's primary weapon, linked melee/ranged package and Storm Bolter replacement per stable unit copy. It accepts the 12 legal combinations recorded in the local Legends audit and rejects the Heavy Flamer with the Missile Launcher + Crushing Feet package. Venerable Dreadnought (Legends) stores its primary weapon and replacement package, matching all 32 combinations in its source audit. Both local weapon factories supply the exact saved ranged and melee records. Match setup applies them after source defaults and prevents duplicate preparation choices. The restart fixture reopens a configured Dreadnought in a separate Godot process, then saves/reloads the match and verifies that later list edits do not alter frozen setup.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_dreadnought_saved_loadouts --only test_saved_loadout_restart --only test_dreadnought_legends --only test_venerable_dreadnought_legends --timeout 300
+```
+
+It passed **6/6 processes** at `.tools/verification/20261113T200236356425Z/results.json` (SHA-256 `C2523931EB2044FE4F49764DF5A47E9DDE84A01CE38F447434F2BF4F20713FFC`; network disabled, legacy starter staged, no headless RID/ObjectDB cleanup diagnostics). These checks verify local construction and persistence behavior against the previously recorded source audits; they do not verify competitive event eligibility, sculpt parity, full army legality, separate-machine LAN or human usability. No live Workshop capture was produced for these two controls.
+
+## Aircraft saved equipment — 13 November 2026
+
+Stormhawk Interceptor and Stormtalon Gunship now save their source-listed Legends loadouts per copy through the shared Army Workshop adapter. The check enumerates all six Stormhawk combinations and all four Stormtalon missile selections, then covers current-catalog admission, two differently equipped copies, exact ranged weapon materialization, Workshop controls/signals, duplicate-choice suppression and forced match-preparation edit rejection. The existing source regressions also run in the same focused command.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_aircraft_saved_loadouts --only test_stormhawk_interceptor --only test_stormtalon_gunship --timeout 300
+```
+
+It passed **5/5 processes** at `.tools/verification/20261113T201409698292Z/results.json` (SHA-256 `FCCC66B747740413B17BC9091FE88BC53A1160A074D037E08A972F0E4EBFE0F9`; network disabled, legacy starter staged, no headless cleanup diagnostics). The rules facts remain bounded by the [Stormhawk](../marine-stormhawk-interceptor.md) and [Stormtalon](../marine-stormtalon-gunship.md) source audits. No visible Workshop capture was produced; sculpt parity, event eligibility, full army legality, separate-machine LAN and human usability remain unverified.
+
+## Space Wolves walker saved equipment — 13 November 2026
+
+Bjorn, the Space Wolves Venerable Dreadnought and Wulfen Dreadnought now save their source-listed choices per stable unit copy. The adapter uses the existing local Space Wolves weapon factory. The regression checks all three Bjorn choices, all eight legal Venerable combinations and all four Wulfen combinations, including the Venerable Great Axe + Blizzard Shield restriction. It also checks current-catalog admission, configured/default copies where repeat limits allow, exact ranged and melee profiles, shield state, Workshop control signals and rejection of duplicate Army Preparation edits. Murderfang remains fixed-equipment and outside this migration. The source authority and hash evidence remain in the [Space Wolves walkers audit](../marine-space-wolves-walkers.md).
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_space_wolves_walker_saved_loadouts --only test_space_wolves_walkers --only test_capabilities --only test_implemented_catalog --timeout 300
+```
+
+It passed **6/6 processes** at `.tools/verification/20261113T202939499046Z/results.json` (SHA-256 `C731DD693403671079B4A8354CDAB80CC50151403754E0EFFB0AD134DD8C9305`; network disabled, legacy starter staged). `test_implemented_catalog` reported headless RID/ObjectDB cleanup diagnostics and exited successfully; the other processes did not report them. This is local saved-equipment verification against the existing source audit; full Space Wolves legality, sculpt parity, event eligibility, separate-machine LAN and human usability remain unverified.
+
+## Death Company Dreadnought saved equipment — 13 November 2026
+
+The Army Workshop saves the Twin Heavy Bolter/Twin Multi-melta choice and linked Blood Fists + Bolt Rifles/Blood Talons package per stable copy. The current local catalog admits the selections, and match creation installs their exact ranged/melee weapon records after profile defaults. Saved choices suppress repeat match-preparation prompts. The focused integration regression exercises all four combinations, one configured and one default copy, editor controls/signals, and forced-change rejection; the existing source suite runs beside it.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_death_company_dreadnought_saved_loadout --only test_death_company_dreadnought --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T204234432951Z/results.json` (SHA-256 `B99922B14AB239654D53EEC38230420E1B91EB3E01E927F35EAC288DF4E84877`; network disabled, legacy starter staged, no headless cleanup diagnostics). Rules facts remain bounded by the [existing local source audit](../marine-death-company-dreadnought.md). No live Workshop capture was produced; full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Death Company Captain saved equipment — 13 November 2026
+
+Both Death Company Captain profiles now save equipment through the shared Army Workshop adapter. The foot Captain validates its independent pistol and melee selections against all six local factory combinations. The Jump Pack Captain validates its nine complete package choices, installs exact ranged and melee profiles, and carries the Relic Shield wound adjustment into the match. The regression also exercises current-catalog admission, separate configured/default copies, Workshop signals, setup-choice suppression and forced-edit rejection; the existing Blood Angels character scope suite ran alongside it.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_death_company_captain_saved_loadouts --only test_blood_angels_characters --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T205339544317Z/results.json` (SHA-256 `9C75B203D7FDF0FC5FBC56EE7F28DE3B42D29FC0287B7C96C9208733322652AB`; network disabled, legacy starter staged, no headless RID/ObjectDB cleanup diagnostics). Rules facts remain tied to the current profile records from local snapshot `20261021T130623Z`, App book `000000021`, datasheets `000003832` and `000003833`; those facts were not rechecked online in this implementation step. No live Workshop capture was produced; full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Blood Angels Captain saved equipment — 13 November 2026
+
+The shared adapter now saves the Blood Angels Captain's pistol and melee options independently. The check enumerates all six local factory combinations, admits a changed saved profile through the current catalog, materializes the exact weapons before Deployment, blocks duplicate/forged setup edits and exercises the Workshop control. It also reruns the existing source-bounded Blood Angels Captain suite. Construction repeat limits are unchanged; the new integration fixture uses one copy because the runtime capability record does not declare a limit.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_death_company_captain_saved_loadouts --only test_blood_angels_captain --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T210522212816Z/results.json` (SHA-256 `4582FAB0CDFEEAF3FA0C34ABBD6672FF8AE636EF16F9BB64F4F361CF6948A634`; network disabled, legacy starter staged, no headless RID/ObjectDB cleanup diagnostics). Rules evidence remains in the [existing Captain audit](../marine-blood-angels-captain.md); this implementation did not refresh source research. Full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Shared Captain saved equipment — 13 November 2026
+
+The shared-book Captain saves its ranged package and melee weapon per stable model copy. The adapter checks all eight selector pairs against the local source factory, permits the seven legal combinations and rejects Relic Shield + Power Fist. The regression carries three differently equipped copies through catalog admission and match preparation, checks exact ranged/melee profiles, the Relic Shield wound adjustment, setup-choice suppression, forged-edit rejection and Workshop control signals. The existing Captain scope suite runs alongside it.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_captain_saved_loadout --only test_captain_current --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T211416516160Z/results.json` (SHA-256 `FD2A703678BEBE0B348B8A42BB3D2741F82494884CB5B98DC7D47736602B5B25`; network disabled, legacy starter staged, no headless RID/ObjectDB cleanup diagnostics). Source evidence remains in the [Captain audit](../marine-captain.md); it was not refreshed in this implementation step. Full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Jump Pack Captain saved equipment — 13 November 2026
+
+The shared-book Captain With Jump Pack saves its complete pistol/melee/Relic Shield package per stable copy. The focused regression checks all seven factory options, rejects an unknown package, retains three differently configured copies through admission and match preparation, materializes exact weapon profiles, applies the shield's extra Wound, suppresses duplicate setup choices, rejects forced edits and exercises the Workshop selector. The existing source-bounded Jump Pack Captain suite runs alongside it.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_jump_pack_captain_saved_loadouts --only test_captain_with_jump_pack --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T212035509775Z/results.json` (SHA-256 `FA79BDFBBD4167FB917E69F00BED7EB57D77E3E5539B549A700E424E82809C27`; network disabled, legacy starter staged, no headless RID/ObjectDB cleanup diagnostics). Source evidence remains in the [existing audit](../marine-captain-with-jump-pack.md); this implementation did not refresh source research. Full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Castellan saved equipment — 13 November 2026
+
+The Army Workshop stores the Castellan's ranged and melee replacements independently. The focused regression checks all four choices against the existing local factory, validates catalog admission and exact pre-Deployment materialization, exercises the Workshop controls, confirms setup-choice suppression and rejects a forced setup edit. The existing source-bounded Castellan suite ran alongside it. No repeat-limit change or source refresh was made.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_castellan_saved_loadout --only test_castellan --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T213111485240Z/results.json` (SHA-256 `850D7B25A02A735D81C3A87443D7FCE6B3910CE17D1B19655B523D58D190EE13`; network disabled, legacy starter staged, no headless RID/ObjectDB cleanup diagnostics). Rules evidence remains in the [Castellan audit](../marine-castellan.md); this implementation did not refresh source research. Full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Marshal saved equipment — 13 November 2026
+
+The Army Workshop stores the Marshal's Plasma Pistol/Combi-weapon replacement. The focused regression checks both selections against the current local factory, validates catalog admission and exact pre-Deployment weapon materialization, exercises the Workshop selector, verifies setup-choice suppression and rejects a forced setup edit. It also checks that the Marshal's fixed melee weapon, Wounds and invulnerable save remain intact. The existing source-bounded Marshal suite ran alongside it. Repeat limits and source research were not changed.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_marshal_saved_loadout --only test_marshal --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T213858828446Z/results.json` (SHA-256 `D58C3162BCDF6238F2B9DB9BDC0367C72F5E4C4668CFBC4A18D9DE7BD7BBAC26`; network disabled, legacy starter staged, no headless RID/ObjectDB cleanup diagnostics). Rules evidence remains in the [Marshal audit](../marine-marshal.md); this implementation did not refresh source research. Full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Lieutenant saved equipment — 13 November 2026
+
+The Army Workshop persists the shared-book Lieutenant's ranged package, fists replacement and optional Storm Shield. The focused regression matches all 54 selector states against the existing local factory, confirming the 30 allowed combinations and shield restriction. It carries Neo-volkite + Power Fist + Storm Shield through current-catalog admission and match materialization, checks the model-only 4+ save and setup lock, rejects forced edits, and exercises the Workshop's dependent-choice recovery when switching away from Neo-volkite. The existing source-bounded Lieutenant suite ran alongside it.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_lieutenant_saved_loadout --only test_marine_lieutenant --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T215139606770Z/results.json` (SHA-256 `B05CCFF38AAB8E0D3C36789C250CE8EDFB72EE97DB87F1E1331A7555A48AB4A3`; network disabled, legacy starter staged, no headless RID/ObjectDB cleanup diagnostics). Rules evidence remains in the [Lieutenant audit](../marine-lieutenant.md); this implementation did not refresh source research. Full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Gravis Captain saved equipment — 13 November 2026
+
+The Army Workshop stores the default rifle/power-weapon package or one of three Boltstorm Gauntlet + relic packages per Captain copy. The focused regression matches all four choices against the existing local weapon factory, validates current-catalog admission, checks distinct saved copies and exact pre-Deployment profiles, exercises the Workshop selector, verifies duplicate setup-choice suppression and rejects a forced match-time edit. The existing Captain source suite ran alongside it. The runtime copy cap and source research were unchanged.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_gravis_captain_saved_loadout --only test_gravis_captain --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T220635931429Z/results.json` (SHA-256 `c77e23f2eb76d906197899e3da2a3ecada3cf8ee3e18bf39eb51711c884b1f11`; network disabled, legacy starter staged, no cleanup diagnostics). Rules evidence remains in the [Gravis Captain audit](../marine-captain-gravis.md); this implementation did not refresh source research. Full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Terminator Captain saved equipment — 13 November 2026
+
+The Army Workshop stores Storm Bolter/Combi-weapon and Relic Weapon/Relic Fist independently. The regression matches all four combinations against the source-bounded local factory, carries Combi-weapon + Relic Fist through current-catalog admission and exact pre-Deployment materialization, exercises both Workshop selectors, suppresses duplicate setup choices and rejects a forced edit. The existing Terminator Captain source suite and Gravis Captain regressions ran alongside it. Copy limits and source research were unchanged.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_terminator_captain_saved_loadout --only test_terminator_captain --only test_gravis_captain_saved_loadout --only test_gravis_captain --timeout 300
+```
+
+It passed **6/6 processes** at `.tools/verification/20261113T220958671134Z/results.json` (SHA-256 `f06118a29efc7de9635a0993f36598b41dfffd5e49d5ce56f60c696aa8d0ea87`; network disabled, legacy starter staged, no cleanup diagnostics). Rules evidence remains in the [Terminator Captain audit](../marine-terminator-captain.md); this implementation did not refresh source research. Full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Captain on Bike saved equipment — 13 November 2026
+
+The Army Workshop stores the Heavy Bolt Pistol/Plasma Pistol and Master-crafted Power Weapon/Thunder Hammer replacements independently. The focused regression matches all four combinations against the existing local factory, validates three distinct copies through current-catalog admission and pre-Deployment materialization, exercises the Workshop controls, suppresses duplicate setup choices and rejects a forced edit. The existing Captain on Bike source suite ran alongside it. Source-audited copy limits and the placement proxy were unchanged.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_captain_on_bike_saved_loadout --only test_captain_on_bike --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T222107234427Z/results.json` (SHA-256 `9e2edec24d46dad244b28c3491d9b5435eaea3d4a664ba97b57ac7f64636bb83`; network disabled, legacy starter staged, no cleanup diagnostics). Rules evidence remains in the [Captain on Bike audit](../marine-captain-on-bike.md); this implementation did not refresh source research. Full army legality, exact oval placement, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Brutalis saved equipment — 13 November 2026
+
+The Army Workshop stores the Brutalis Talons linked replacement and Twin Multi-melta option independently. The focused regression matches all four combinations against the local profile factory, validates three separate copies in current-catalog admission, checks exact pre-Deployment weapon arrays and Workshop signals, suppresses duplicate setup choices and rejects a forced edit. The existing Brutalis Dreadnought scope suite ran alongside it. The three-copy cap and local source audit were unchanged.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_brutalis_saved_loadout --only test_brutalis_dreadnought --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261113T222746142741Z/results.json` (SHA-256 `e28b123efcc6b1c105d6694cf86a8e63bb017b2d2634ff71bc9507c637d22dd7`; network disabled, legacy starter staged, no cleanup diagnostics). Rules evidence remains in the [Brutalis audit](../marine-brutalis-dreadnought.md); this implementation did not refresh source research. Full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.
+
+## Sanguinary Guard saved equipment — 13 November 2026
+
+The saved roster now stores the Angelus Boltgun/Inferno Pistol choice per stable model identity. Local admission limits Inferno Pistols to one per three models and rejects malformed or over-limit saved arrays. Two differently configured 3-model copies remain distinct through canonical admission and match preparation; exact local weapons are materialized before Deployment and the duplicate Army Preparation choice is suppressed/guarded. The separate-process restart fixture reopens both per-model configurations from disk and includes them in a frozen match snapshot. This uses the existing verified local Guard audit and did not refresh source research.
+
+The focused verifier command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_sanguinary_guard_saved_loadouts --only test_saved_loadout_restart --only test_sanguinary_guard --only test_implemented_catalog --timeout 420
+```
+
+It passed **6/6 processes** at `.tools/verification/20261113T230628813613Z/results.json` (SHA-256 `A5F371EC6DFEB2AD368102E251200BEA970DBFE35EC491F7CC27E1D7C11A7F2B`; `network: false`, legacy starter staged). `test_implemented_catalog` reported headless RID/ObjectDB cleanup diagnostics but exited successfully; the other processes had none. This verifies the bounded saved-equipment/disk-restart/admission/materialization and control path. It does not certify full army legality, all Leader interactions, exact sculpt parity, event eligibility, separate-machine LAN or human usability. A live Workshop capture was not obtained in this pass: the launched Godot debug windows remained on the splash screen.
+
+## Death Company Marines saved equipment — 13 November 2026
+
+The Army Workshop now saves each Death Company Marine's melee and pistol package by stable model identity. The foot squad also saves the optional Grenade Launcher for a Bolt Rifle carrier; Jump Pack records omit that foot-only field. Both schemas call the already source-bounded local 11e validators, which enforce the distinct 5/10-model quotas and exact weapon packages. Current-catalog admission rejects malformed/over-limit records. Match setup installs each model's exact ranged and melee profile, suppresses the repeated Army Preparation choices and rejects forced edits. Separate foot and Jump Pack copies retain independent loadouts.
+
+The verifier command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_death_company_saved_loadouts --only test_saved_loadout_restart --only test_death_company_marines --only test_implemented_catalog --only test_capabilities --timeout 420
+```
+
+It passed **7/7 processes** at `.tools/verification/20261113T232937800828Z/results.json` (SHA-256 `E9F26CC0BAE900B43F7B97F02F88284FBACF5745243CEDAF867D5FC48176D974`; `network: false`, legacy starter staged). The catalog process reported headless RID/ObjectDB cleanup diagnostics and exited successfully; the other processes had none. The restart fixture reopened five mixed army entries in a separate Godot process, checked per-model Guard and both Death Company schemas, then verified that the match snapshot stayed frozen after a later source-list edit. This confirms the bounded local equipment/admission/materialization path against the previously recorded source audit; no source refresh was performed. Full army legality, exact sculpt parity, separate-machine LAN and human usability remain open.
+
+## Tarantula Sentry Battery saved equipment — 13 November 2026
+
+The saved Army Workshop stores the Twin Heavy Bolter/Twin Lascannon choice for each stable model ID in 1/2/3-model Tarantula copies. Admission and preparation validate against the existing verified local Legends weapon factory. Saved matches materialize each model's exact ranged profile and suppress/guard the duplicate match-time selection. Per-model choices remain independent inside and across copies; prices, copy caps, Sentinel Protocols and the Legends boundary are unchanged.
+
+The focused verifier command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_tarantula_sentry_saved_loadouts --only test_saved_loadout_restart --only test_tarantula_sentry_battery --only test_implemented_catalog --only test_capabilities --timeout 420
+```
+
+It passed **7/7 processes** at `.tools/verification/20261113T234712498861Z/results.json` (SHA-256 `D827792456ADF81ABD3BD64649146C94DC1E61C7A2BF31B2C81F83826561FB3C`; `network: false`, legacy starter staged). The catalog process reported headless RID/ObjectDB cleanup diagnostics and exited successfully; the other processes had none. The restart fixture reopened six mixed entries in a separate Godot process—including Sanguinary Guard, both Death Company datasheets and three Tarantula copies—and checked that the match snapshot remained frozen after a later army-list edit. This verifies the bounded local equipment, admission and materialization path against the existing source audit; no research refresh was performed. The local footprint proxy, event eligibility, full army legality, separate-machine LAN and human usability remain unverified.
+
+## Rhino saved Hunter-killer Missile — 13 November 2026
+
+The standard Rhino's already-audited no-cost Hunter-killer Missile now persists per vehicle copy in the saved army. Admission validates the typed field, the shared adapter materializes the existing local weapon profile (including One Shot), and saved matches suppress and reject duplicate match-preparation edits. The focused regression checks the Workshop control signal and unsaved-draft notice, independent equipped/unequipped copies for both players, exact weapon inventory, and the setup lock. The shared restart fixture reopens a mixed seven-entry army in a separate Godot process and verifies that later Rhino list edits do not alter the frozen match snapshot.
+
+The exact command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_rhino_saved_loadout --only test_saved_loadout_restart --timeout 300
+```
+
+It passed **4/4 processes** at `.tools/verification/20261114T014351768636Z/results.json` (SHA-256 `E1C2DA74014092C7B262C3B12D09DB1EE880E625348F6D6980A84E3E5F45A207`; network disabled, no legacy starter staged, no cleanup diagnostics). The implementation reused the existing Rhino source audit and local profile; no rules-source refresh or network check was run. A live Workshop capture was not obtained. This verifies the bounded saved-option path only; full Rhino rules, full army legality, exact sculpt parity, separate-machine LAN and human usability remain open.
+
+## 14 November — mixed Space Wolves saved equipment
+
+Wolf Scouts and Wolf Guard Headtakers saved role equipment, caps, stable restart, frozen locks, native controls and role-aware appearance filtering passed with source/specialist/visual/catalog regressions: 8/8 processes at `.tools/verification/20261114T153240545996Z/results.json` (SHA-256 `6bf1dbecc4a0e808eb38cfa603a8dffcc6d51c5101c6cef707f827138b6684f4`). Catalog shutdown cleanup diagnostics remain recorded. Initial 2/5 failures, corrections, six Python ledger checks and actual Godot captures are documented in the [bounded audit](mixed-space-wolves-saved-equipment.md). Network disabled; no expanded army-legality/platform claim.
+
+## 14 November — saved Sergeant/Pack Leader squad equipment
+
+Assault Intercessors with Jump Packs, Blood Claws and Grey Hunters now persist source-listed role equipment and omit repeat setup. The initial batch passed all three existing source suites but failed the new test due to its inferred-type declaration; correcting the test produced a direct pass. Final related regression passed 6/6 at `.tools/verification/20261114T154547437952Z/results.json` (SHA-256 `b0aec5dddf196385e28184fa07c6cc5f632240d26b60276a574799e933a6c0ae`), with catalog cleanup diagnostics. Six Python ledger tests passed. See [exact commands, initial report, exhaustive matrix and real Godot captures](sergeant-squad-saved-equipment.md). Network disabled; existing construction gates preserved.
+
+## 14 November — saved specialist squad equipment
+
+Eradicators with Melta Rifles, Desolation Squad and Sternguard Veterans now save role equipment, caps and Vengor prices before Deployment. Main/source checks passed 6/6 at `.tools/verification/20261114T155637759613Z/results.json` (SHA-256 `320b2dc0ac0ac05118f8b095cbb4a310f34835227555050bd0653f5472e366c2`); shared regression passed 5/5 at `.tools/verification/20261114T155932553033Z/results.json` (SHA-256 `202199447f92a0a1dc5ddf8d667126ac7208ea129c8cff558c1994642a205b3a`). Desolation/catalog cleanup diagnostics are recorded. Six Python ledger checks passed. The 59,607-distribution matrix, Eradicator Sergeant eligibility correction and six actual Godot captures are documented in the [bounded audit](specialist-squad-saved-equipment.md). Network disabled; existing construction gates retained.
+
+## 14 November — saved Terminator equipment
+
+Standard, Assault and Wolf Guard Terminators now persist role equipment, shared special caps, Cyclone prices/retained bolters and shield bearer Wounds before Deployment. Main/source regression passed 6/6 at `.tools/verification/20261114T160934262857Z/results.json` (SHA-256 `8b574d9b96b2f540ca8d840fa92a92459cd5bc8ba3039bc04ceeb07bcab746a9`, no headless cleanup diagnostics). Shared-command/visual/catalog regression passed 6/6 at `.tools/verification/20261114T161217173205Z/results.json` (SHA-256 `89479cda2b55f94dfd527665ff3bdedb8b20c25c6bc15f992310a3d41ec9e8df`); diagnostics are detailed in the [bounded audit](terminator-saved-equipment.md), alongside matrix scope, six Python checks and actual Godot captures. Network disabled; no expanded army-legality/platform claim.
+
+## 14 November — separate Deathwing unit/model equipment
+
+Deathwing Terminators and Knights now save model weapons alongside one free Watcher per stable unit copy. Canonical keys preserve different Watchers on otherwise identical models; triggered Watcher activation remains live. Catalog repricing now retains unit maps, including Reiver gear. Initial source checks passed but the new test used an incorrect method name (1/6 processes failed). After correcting it, the final shared regression passed 7/7 at `.tools/verification/20261114T163040946949Z/results.json` (SHA-256 `58f079d4a8ebf6f046c34bca4b11e9df8ba7634ca29d05113b3645ed9cc53b6e`; cleanup diagnostics: test_army_builder, test_implemented_catalog). Six Python ledger tests passed. See [exact commands, initial report, unit/copy evidence and four actual Godot captures](deathwing-saved-equipment.md). Network disabled; broader legacy/integration/platform claims remain open.
+
+## 15 November — Deathwatch saved equipment and Workshop layout
+
+Deathwatch Veterans and Terminators now save source-listed per-model equipment with role restrictions, whole-squad caps, Storm Shield/Cyclone pricing and frozen match setup. The dense Terminator controls now render in model cards after the 1280×800 capture exposed vertical name wrapping in the prior flat rows; both Deathwatch profiles were inspected in actual Godot Compatibility captures at the same viewport.
+
+The final targeted regression passed 11/11 verifier processes at `.tools/verification/20261115T053213457489Z/results.json` (SHA-256 `e131b4e8074b58d3ced58c74dddb10fe6152c39672e241431b818a5072f89fe7`). The `test_army_builder` process reported 15 dummy Texture, 4 ShapedTextDataAdvanced, 2 FontAdvanced and 5 CanvasItem RID allocations plus 82 ObjectDB instances at shutdown; `test_implemented_catalog` reported 12 dummy Texture, 2 FontAdvanced and 2 CanvasItem RIDs plus 58 ObjectDB instances. Both exited successfully; the other nine processes reported no cleanup diagnostics. Network was disabled and the verifier staged its legacy starter. See [source facts, command, capture locations and scope limits](deathwatch-saved-equipment.md). The refreshed ledger contains 213 admitted profiles, 105 detected schemas (46 reviewed), 75 accepted fixed reviews, 12 migration-required profiles, 12 stale reviews, 9 unclassified profiles and 59 detected schemas still needing source-option completeness review.
+
+
+## 15 November — Scout Bike saved equipment
+
+The Army Workshop now saves each Scout Biker’s free Twin Boltgun/Grenade Launcher replacement and the Sergeant’s free Bolt Pistol replacement by stable model/copy. The local Warhammer Legends source permits the launcher on any number of models and lists eleven Sergeant alternatives. Sizes, 75/150-point prices, first/second/third-plus tiers and existing Incursion/Strike Force copy caps remain unchanged. Saved loadouts pass current local catalog admission, materialize exact factory weapons for both players and suppress/reject the duplicate setup actions. A separate process reopens all records; Workshop signals and six saved model cards were inspected in actual 1280×800 Godot captures.
+
+The offline command passed 8/8 verifier processes at `.tools/verification/20261115T072732806232Z/results.json` (SHA-256 `8ca24610a4a3a83ac308396a9261f291a2798ea1cb7d600c282aa9f1f9ee9823`; network disabled, legacy starter staged). Army Builder and implemented-catalog suites exited successfully with shutdown RID/ObjectDB cleanup diagnostics; four other selected suites reported none. The source-only 28-subject Legends audit passed its structural check but reports no runtime/playable certification. The screenshot process exited 0 with texture/ObjectDB cleanup messages. Existing audit JSON per-file hashes differ from the filtered raw hashes in the current slice; the migration review is bound to the slice manifest and parent manifest separately. At that Scout Bike checkpoint the ledger contained 110 schemas (51 reviewed) and 7 option migrations pending. See [source provenance, command, captures and certification limits](scout-bike-saved-equipment.md). Full army legality, event approval, sculpt parity, separate-machine LAN and remaining plan acceptance gates remain open.
+
+## 15 November — Sword Brethren saved equipment
+
+The Army Workshop now saves one of the ten source-backed complete weapon packages per Sword Brethren model and unit copy. Whole-copy validation applies the Hand Flamer, Plasma Pistol, Thunder Hammer and Twin Lightning Claws limits independently per four models. Local catalog admission materializes exact existing factory weapons for both players, persists distinct configurations across three copies and rejects duplicate match-preparation edits. The 4/5/9/10-model source prices and copy tiers remain unchanged, with no equipment surcharge; unpriced 6–8-model sizes stay blocked. The saved-equipment test also reopens the list in a separate process and exercises real Workshop controls/signals. Actual Godot Compatibility captures cover four- and ten-model cards at 1280×800.
+
+The selected offline batch passed **8/10 verifier processes** at `.tools/verification/20261115T161551369141Z/results.json` (SHA-256 `0fed4a7bed241ca093b2a93ba0cda20dce31f55f019b9321271f9109239df506`; network disabled, legacy starter staged). The Sword Brethren saved-equipment and existing rules suites, Scout Bike suites, catalog and model-visual suites passed. Two adjacent checks failed: the Leader-link suite found a missing Orikan Necron Support target; the Army Builder suite found that its automatic-appearance fixture selected the same sculpt for separate unit copies. The latter and the catalog process emitted shutdown RID/ObjectDB diagnostics. See [source hashes, exact command, capture paths and limitations](sword-brethren-saved-equipment.md). These results do not close plan-wide integration, usability, network or army-legality gates.
+
+## 15 November — Indomitor Kill Team saved equipment
+
+Indomitor now saves the Aggressor Auto Boltstorm replacement, one Eradicator Multi-melta and up to two Heavy Intercessor Heavy Bolters by stable model and copy. Role-shaped defaults preserve the source's 3/3/4 composition; local validation enforces role eligibility and whole-unit caps. The unchanged copy prices are 280 points for copies one/two and 300 from the third; equipment adds no points. Prepared matches materialize exact local factory weapons and suppress/reject duplicate setup edits. Actual 1280×800 Compatibility captures show the three role-specific controls.
+
+The final offline command passed **7/7 verifier processes** at `.tools/verification/20261115T174004175092Z/results.json` (SHA-256 `c225cbd28d4ceec6dcdfdaaa2309beb7cde2a81acf9211d0210541323f0a05b6`; network disabled; legacy starter staged). It included the new saved-equipment regression, existing Indomitor rules suite, Army Builder, implemented catalog and model visuals. The Army Builder process reported 15 dummy textures, 4 shaped-text RIDs, 2 advanced-font RIDs, 5 CanvasItem RIDs and 82 ObjectDB instances at shutdown; implemented catalog reported 12 dummy textures, 2 advanced-font RIDs, 2 CanvasItem RIDs and 58 ObjectDB instances. Both passed. Capture runs exited 0 and reported 19 GLES texture RIDs, 2 advanced-font RIDs, 2 CanvasItems and 47 ObjectDB instances at shutdown. Network was disabled. See [source tables, reproducible command, capture hashes and scope limits](indomitor-saved-equipment.md). This closes only the saved-equipment migration for this profile; full Deathwatch/army rules, smaller-window usability, network and plan-wide acceptance remain open.
+
+## 15 November — Crusader Squad saved equipment
+
+The Army Workshop persists the local source-listed choices by stable model and copy: Sword Brother Hand Flamer, Neophyte Shotgun plus Combat Knife, Initiate Heavy Bolt Pistol plus Chainsword, and the combined Initiate Power Fist/Pyreblaster replacements. Validation allows at most two combined special Initiates per ten models. Equipment adds no points; runtime catalog values remain Wahapedia's 160/305, while MFM v1.0 lists 150/290. Match materialization uses the existing local factory and rejects duplicate preparation edits. Separate-process reopen, both-player materialization, match locks and actual 1280×800 Compatibility captures were reviewed.
+
+The offline targeted command passed **8/8 verifier processes** at `.tools/verification/20261115T175549767382Z/results.json` (SHA-256 `582693809ea0c36345c022ba570c9eec603e78f5bc1ea246bcab10e7a947fe2d`; network disabled; legacy starter staged). Army Builder and catalog shutdown cleanup diagnostics were recorded; they exited successfully. See [local source hashes, exact command, capture hashes and limits](crusader-saved-equipment.md). This completes only Crusader's saved-equipment migration; its bounded movement/formation support, event-cost certification and plan-wide acceptance remain open.
+
+## 15 November — Decimus Kill Team saved equipment
+
+The final focused offline run passed **8/8 verifier processes** at `.tools/verification/20261115T185617124231Z/results.json` (SHA-256 `56e8ddd0004575e9d3b2b65f93012dfa1169ed1e31287a68e6cfc7df0a2046aa`; network disabled; legacy starter staged). Army Builder and implemented-catalog shutdown cleanup diagnostics were recorded; both suites exited successfully. Actual 1280×800 Compatibility captures and the complete bounded implementation are documented in [the Decimus evidence](decimus-saved-equipment.md). A separate wider adjacent attempt and its unrelated `test_marine_category_copy_limits` failure remain noted in that evidence and are not represented as part of this passing final batch. Decimus' five-model composition and Wahapedia/MFM cost discrepancy, full army legality, and plan-wide gates remain open.
+
+## 15 November — Fortis Kill Team saved equipment
+
+The offline targeted batch passed **10/10 verifier processes** at `.tools/verification/20261115T192549640335Z/results.json` (SHA-256 `03605ca4a13a852dafbd30e7bbe95171f04057f866b86a7b1d9c77c19beb6140`; network disabled; legacy starter staged). It included Fortis saved equipment and rules, Apothecary attachment, Army Builder, catalog, model visuals, saved armies and match save. Army Builder, catalog, saved-army and match-save processes emitted headless RID/ObjectDB cleanup diagnostics but exited successfully; six processes reported none. See [source hashes, exact command, actual capture hashes and limits](fortis-saved-equipment.md). This closes only Fortis' saved-equipment migration. At that checkpoint, Spectrus and Talonstrike were still queued; later sections record both completions. Rules certification, full army legality and plan-wide integration/user-review gates remain open.
+
+## 15 November — Spectrus Kill Team saved equipment
+
+The final offline batch passed **10/10 verifier processes** at `.tools/verification/20261115T195957153558Z/results.json` (SHA-256 `8eb0ccd2f6a71c6fa56b8ac74ebff4fc3b5c271683d6cd8a4bc3e7288089c539`; network disabled; legacy starter staged). It included saved-equipment and existing Spectrus rules suites, Apothecary attachment, Army Builder, catalog, model-visual, saved-army and match-save checks. Army Builder, catalog, saved-army and match-save processes emitted headless cleanup diagnostics at shutdown but exited successfully; the other six reported none. See [source hashes, persistence/materialization scope, actual capture hashes and limits](spectrus-saved-equipment.md). This closes only Spectrus saved equipment; full rules/army certification, 59 saved-schema option-completeness reviews and plan-wide integration remain open. At the Spectrus checkpoint, Talonstrike was the sole no-schema option migration; the following Talonstrike entry records its completion.
+
+A separate 15 November leader-link inventory batch passed import/Python but failed the `test_space_marine_leader_links` suite at `.tools/verification/20261115T195846562216Z/results.json` (SHA-256 `abdc6fec673e93c90823994fb03848bc0826372c93b88605797bbac269260b6c`; network disabled; legacy starter not staged). It reports five Necron Support-target cross-map assertions for Orikan, Plasmancer, Technomancer, Psychomancer and Chronomancer. Spectrus's target-specific Phobos Lieutenant Leader assertion passed after the test reflected its dual Support/Leader relationships; the broader Necron findings are not counted as passed and remain outside this migration.
+
+## 15 November — Talonstrike Kill Team saved equipment
+
+The final offline command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_talonstrike_saved_equipment --only test_talonstrike_kill_team --timeout 900
+```
+
+It passed **4/4 verifier processes** at `.tools/verification/20261115T205105179047Z/results.json` (SHA-256 `26ed5a8ac4c81ae7c1a13154532c1a17224a1792759d6d2b6974b6ff07b80c36`; network disabled; legacy starter staged; no headless RID/ObjectDB cleanup diagnostics). The new saved-equipment regression verifies role-scoped records, the one-per-five Plasma Pistol allowance, uncapped Heavy Intercessor replacements, separate-process reopen, both-player materialization, match-lock enforcement, Workshop controls and frozen-snapshot isolation from later saved-army edits. The existing Talonstrike rules regression passed. Actual windowed Godot Compatibility captures are recorded with hashes in the [Talonstrike evidence](talonstrike-saved-equipment.md).
+
+## 15 November — Aggressor Squad source-option completeness review
+
+The selected local export has one equipment-option row: every model may replace Flamestorm Gauntlets with the paired Auto Boltstorm Gauntlets and Fragstorm Grenade Launcher. The existing stable per-model field covers that entire option; Twin Power Fists remain fixed. Source composition and 90/180-point 3/6-model rows remain unchanged. All five relevant raw CSV hashes match the verified-against export manifest. No runtime behavior changed and no test run was needed for this source-classification update. The current ledger advances to 59 of 117 detected schemas explicitly reviewed, with 58 remaining; zero option-bearing profiles lack a saved schema. This is equipment-option completeness only. See the [source hashes and field mapping](aggressor-saved-equipment-source-review.md).
+
+## 15 November — Ancient source-option completeness review
+
+The verified local export's only option replaces the Ancient's Bolt Rifle with a Power Weapon. The existing saved-model field covers the choice; fixed Bolt Pistol and Ceramite Fists, one-model composition and 40-point cost are unchanged. Relevant raw CSV hashes match the export manifest. No runtime behavior changed and this source-classification update did not rerun the existing saved-equipment regression. The current ledger advances to 60 of 117 detected schemas explicitly reviewed, with 57 remaining; zero option-bearing profiles lack a saved schema. This is equipment-option completeness only. See the [source hashes and field mapping](ancient-saved-equipment-source-review.md).
+
+## Local saved-match interruption — 15 November 2026
+
+After list admission and any optional visual preflight, local saved matches now write a recovery checkpoint immediately upon match creation. The focused regression exercises the actual saved Aggressor lists for both players, distinct per-model loadouts and local appearance overrides, checkpoint creation before the first Deployment command, source-list edits after creation, both players' match-specific setup completion, one committed Deployment unit, and restart through `_load_match()` in a separate Godot process. The resumed state and local appearance snapshot must match the checkpoint byte-for-structure while retaining both frozen model loadouts.
+
+The final offline targeted command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_saved_match_interruption --only test_saved_armies --only test_match_save --timeout 900
+```
+
+It passed **5/5 verifier processes** at `.tools/verification/20261115T212618627007Z/results.json` (SHA-256 `609571d570fb3a3620eadbfd7c0c8cb364888cd9632a0c43cd712353dadef09a`; network disabled; legacy starter staged). The interruption, saved-army and match-save Godot processes each reported headless RID/ObjectDB cleanup diagnostics at shutdown and exited successfully. This closes only the bounded local saved-match interruption path. Mission-dependent restart, asset-job interruption, broader failure recovery, separate-machine LAN with unequal asset caches, and human review remain open.
+
+## Captain on Bike saved-schema source review — 15 November 2026
+
+The verified local Wahapedia 11e export lists exactly two equipment-option rows for Space Marines App datasheet `000002702`: Heavy Bolt Pistol to Plasma Pistol and Master-crafted Power Weapon to Thunder Hammer. The existing stable-model schema covers them with independent fields; this source-only review does not alter runtime behavior or claim complete datasheet/rules coverage. See the [source audit](captain-on-bike-saved-equipment-source-review.md) for the selected snapshot identity, manifest hash and relevant raw-table hashes.
+
+After adding the review to the registry and rendering the coverage ledger, the Python verification command `python -m unittest discover -s tests -p test_army_builder_coverage.py` passed **6/6 checks**. The current ledger reports 61 of 117 saved schemas source-option reviewed, with 56 remaining; 12 records are stale and 9 profiles remain unclassified.
+
+## Saved-schema option completeness batch — 15 November 2026
+
+The selected verified local Wahapedia 11e export was checked for every equipment-option row on Assault Intercessor Squad, Baal Predator, Blood Angels Captain, Captain in Terminator Armour and Invader ATVs. Each existing stable-model schema covers all listed groups, including the per-model Invader ATV replacement. The source hashes, exact options and field mappings are recorded in the [review batch](saved-schema-source-review-2026-11-15.md). This audit changed only the project source-review registry and generated coverage ledger; no gameplay behavior changed.
+
+The registry was rendered from `.tools/army-builder-coverage.json`. `python -m unittest discover -s tests -p test_army_builder_coverage.py` passed **6/6 checks**. The updated ledger reports 66 of 117 saved schemas source-option reviewed; 51 remain. No schema-less option migration is pending. This source review does not certify runtime behavior or full army legality.
+
+## Saved-profile source review regressions — 15 November 2026
+
+After the five-profile source-option audit, the matching local profile suites passed for Assault Intercessor Squad, Baal Predator, Blood Angels Captain, Captain in Terminator Armour and Invader ATVs. The offline targeted command was:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_assault_intercessor_current --only test_baal_predator_saved_loadout --only test_blood_angels_captain --only test_terminator_captain_saved_loadout --only test_invader_atvs --timeout 900
+```
+
+It passed **7/7 verifier processes** at `.tools/verification/20261115T214243711099Z/results.json` (SHA-256 `c1eb52962fe2bd6b2491305419700031d6a7ec6c023173588d7d6a0c45a77b79`; network disabled; legacy starter staged; no headless cleanup diagnostics). The source audit remains limited to equipment-option completeness and does not establish full army legality.
+## Saved-schema review regression follow-up — 15 November 2026
+
+Five additional profile suites passed after the second source-review group: Captain in Gravis Armour, Heavy Intercessor Squad, Hellblaster Squad, Inceptor Squad and Invictor Tactical Warsuit.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_gravis_captain_saved_loadout --only test_heavy_intercessor_current --only test_hellblaster_saved_loadout --only test_inceptor_squad --only test_invictor_saved_loadout --timeout 900
+```
+
+The final batch passed **7/7 verifier processes** at `.tools/verification/20261115T215159540861Z/results.json` (SHA-256 `f6ff13273f3c104b9767ba24546f65ab5c04caa98d47e93b1e55fa47816f8bfc`; network disabled; legacy starter staged; no cleanup diagnostics). An earlier run at `.tools/verification/20261115T214836148493Z/results.json` failed the Inceptor suite on an outdated assertion expecting generic “miniature” phrasing; it was updated to match the current model-specific rationale and the final batch passed. No Inceptor equipment matching logic changed.
+
+This source-review increment advances the ledger to 71 of 117 saved schemas reviewed for option completeness, leaving 46. Twelve reviews remain stale and nine profiles unclassified. No schema-less equipment-option migration is pending.
+
+## <a id="vehicle-saved-schema-review-regression-follow-up-2026-11-15"></a>Vehicle saved-schema review regression follow-up: 15 November 2026
+
+The local saved-equipment regressions passed for Hammerfall Bunker, Land Speeder, Land Speeder Vengeance, Rhino and Rhino Primaris. These tests check the existing option fields and saved-loadout paths; the separate source audit is limited to option-row completeness.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_optional_vehicle_saved_loadouts --only test_land_speeder_saved_loadout --only test_land_speeder_vengeance_saved_loadout --only test_rhino_saved_loadout --timeout 900
+```
+
+The run passed **6/6 verifier processes** at `.tools/verification/20261115T215907499156Z/results.json` (SHA-256 `4431e2611c8f7bcac753280b9e4a41535734cbe6a6e5140d26b1aa405e6f90d0`; network disabled; legacy starter staged; no cleanup diagnostics). The current ledger now reports 76 of 117 schemas reviewed for option completeness, with 41 remaining; 12 reviews are stale and 9 profiles unclassified. The no-schema option migration queue remains empty. This review does not certify full datasheet rules, event approval for Legends profiles, or whole-army legality.
+
+## <a id="matched-source-schema-review-regression-2026-11-15"></a>Matched-source schema review regression: 15 November 2026
+
+The offline batch exercised the Annihilation Barge, Canoptek Tomb Crawlers, Immortals, Marshal and Nephilim Jetfighter. The shared saved-vehicle test also covered the existing Marshal and Nephilim equipment fields. Only Marshal and Nephilim were added to the source-review registry: their verified-against snapshot matches this review. The three Necron records bind to a different local snapshot whose manifest is unavailable; the earlier export was not substituted.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_necron_annihilation_barge --only test_necron_tomb_crawlers --only test_necron_immortals --only test_marshal_saved_loadout --only test_optional_vehicle_saved_loadouts --only test_nephilim_jetfighter --timeout 900
+```
+
+The run passed **8/8 verifier processes** at `.tools/verification/20261115T220904984618Z/results.json` (SHA-256 `49ed3b5498bbd01753e43ffd823c1c2138f67e53e484e5c7c7dcf44a4676a290`; network disabled; legacy starter staged; no cleanup diagnostics). The matched-provenance source reviews advance the ledger to 78/117, with 39 option-completeness reviews still pending. Twelve reviews remain stale and nine profiles unclassified. This batch does not certify the three deferred Necron option schemas, complete datasheet rules, or whole-army legality.
+
+## <a id="aircraft-squad-saved-schema-review-regression-2026-11-15"></a>Aircraft and squad saved-schema review regression: 15 November 2026
+
+The saved-schema regressions passed for Ravenwing Darkshroud, Sanguinary Guard, Stormhawk Interceptor, Stormtalon Gunship and Tarantula Sentry Battery.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_ravenwing_darkshroud --only test_sanguinary_guard_saved_loadouts --only test_aircraft_saved_loadouts --only test_tarantula_sentry_saved_loadouts --timeout 900
+```
+
+The run passed **6/6 verifier processes** at `.tools/verification/20261115T222430600096Z/results.json` (SHA-256 `decac9c9291b6d41737838ad1469b0bb1dc39f2270f4a6371aa2f5d6c3803424`; network disabled; legacy starter staged; no cleanup diagnostics). The source ledger now reports 83/117 schemas reviewed for option completeness, leaving 34; 12 reviews remain stale and 9 profiles unclassified. Three Necron schemas remain source-review pending until their recorded local export provenance is restored or reconciled. This batch does not certify full datasheet rules, Legends event approval or whole-army legality.
+
+## <a id="dreadnought-saved-schema-review-regression-2026-11-15"></a>Dreadnought saved-schema review regression: 15 November 2026
+
+The saved-loadout regressions passed for Bjorn the Fell-Handed, Brutalis Dreadnought, Venerable Dreadnought and Wulfen Dreadnought.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_brutalis_saved_loadout --only test_space_wolves_walker_saved_loadouts --timeout 900
+```
+
+The run passed **4/4 verifier processes** at `.tools/verification/20261115T223256342013Z/results.json` (SHA-256 `b57097733d9d482eac236bc7590a4edb2713edfbc3b5567b168328a243275b5a`; network disabled; legacy starter staged; no cleanup diagnostics). Eight source-option rows now map to existing fields, advancing the ledger to 87/117 reviewed with 30 remaining. Twelve reviews remain stale and nine profiles unclassified. The test confirms the Venerable Dreadnought's linked replacement conflict; full datasheet rules and whole-army legality remain out of scope.
+
+## <a id="squad-and-predator-saved-schema-review-regression-2026-11-15"></a>Squad and Predator saved-schema review regression: 15 November 2026
+
+The focused suites passed for Eliminator Squad, Outrider Squad, Reiver Squad, Predator Annihilator and Predator Destructor.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_eliminators --only test_outrider_squad_current --only test_reiver_squad --only test_predator_annihilator_saved_loadout --only test_predator_destructor_saved_loadout --timeout 900
+```
+
+The run passed **7/7 verifier processes** at `.tools/verification/20261115T224419581070Z/results.json` (SHA-256 `12fca5ac35b900cdc989b63b82187e3a3d2e58e7313dfa1263be05eb727fda9d`; network disabled; legacy starter staged; no cleanup diagnostics). Twelve local option rows now map to existing saved fields, advancing the ledger to 92/117 reviewed with 25 remaining. Twelve reviews remain stale and nine profiles unclassified. The two Predator profiles remain source-bounded Legends entries; competitive-event approval and full army legality are not certified here.
+
+## <a id="captain-and-castellan-saved-schema-source-review-15-november-2026"></a>Captain and Castellan saved-schema source review: 15 November 2026
+
+The focused saved-loadout suites passed for Captain, Captain with Jump Pack, Black Templars Castellan, Death Company Captain and Death Company Captain with Jump Pack.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_captain_saved_loadout --only test_jump_pack_captain_saved_loadouts --only test_castellan_saved_loadout --only test_death_company_captain_saved_loadouts --timeout 900
+```
+
+The run passed **6/6 verifier processes** at `.tools/verification/20261115T225226501937Z/results.json` (SHA-256 `ba917e0276def7e94027c61896652b95d58513d254dfd0290319c1e5d194a92a`; network disabled; legacy starter staged; no cleanup diagnostics). Fourteen local option rows now map to existing fields, advancing the source-review ledger to 97/117 schemas reviewed, with 20 remaining. Twelve reviews remain stale and nine profiles unclassified. Three Necron profiles remain pending until their runtime-bound source provenance is available locally. This is source-option completeness evidence only; it does not certify complete datasheet rules or whole-army legality. See the [source audit](saved-schema-source-review-captains-2026-11-15.md).
+
+## <a id="dreadnought-and-death-company-saved-schema-source-review-15-november-2026"></a>Dreadnought and Death Company saved-schema source review: 15 November 2026
+
+The focused offline suites passed for Cerberus, Death Company Dreadnought, Death Company Marines, Death Company Marines with Jump Packs and Dreadnought.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_cerberus --only test_death_company_dreadnought_saved_loadout --only test_death_company_saved_loadouts --only test_dreadnought_saved_loadouts --only test_dreadnought_legends --timeout 1200
+```
+
+The run passed **7/7 verifier processes** at `.tools/verification/20261115T230358615591Z/results.json` (SHA-256 `32e0d59885f02251f5ae64862f3605e76b512190306a1594435c17d491e8c4fc`; network disabled; legacy starter staged; no cleanup diagnostics). Eighteen verified local option rows map to existing fields, advancing the ledger to 102/117 schemas reviewed, with 15 remaining. Twelve reviews remain stale and nine profiles unclassified. Three Necron profiles remain pending until their runtime-bound local source provenance is restored or reconciled. This review does not certify complete datasheets or whole-army legality. See the [source audit](saved-schema-source-review-dreadnoughts-and-death-company-2026-11-15.md).
+
+## <a id="heavy-vehicles-and-lieutenant-saved-schema-source-review-15-november-2026"></a>Heavy vehicles and Lieutenant saved-schema source review: 15 November 2026
+
+The focused offline suites passed for Falchion, Lieutenant, Typhon, Vindicator and Whirlwind.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_falchion_legends --only test_lieutenant_saved_loadout --only test_typhon_legends --only test_vindicator --only test_whirlwind_legends --timeout 1200
+```
+
+The run passed **7/7 verifier processes** at `.tools/verification/20261115T231234692976Z/results.json` (SHA-256 `8ee42192e2780d5c6ebc0b2dae7cdf8d68eb9a595e49a04b1892f1eb51a24fe4`; network disabled; legacy starter staged; no cleanup diagnostics). Sixteen local option rows map to existing fields, advancing the ledger to 107/117 schemas reviewed, with 10 remaining. Twelve reviews remain stale and nine profiles unclassified. This is source-option completeness evidence only; it does not certify complete datasheets, Legends event approval or whole-army legality. See the [source audit](saved-schema-source-review-heavy-vehicles-and-lieutenant-2026-11-15.md).
+
+## <a id="necron-saved-schema-source-option-review-15-november-2026"></a>Necron saved-schema source-option review: 15 November 2026
+
+Seven Necron profiles map eleven source option rows to their existing saved fields. The runtime-bound snapshot `20261031T053336Z` is locally present; its manifest SHA-256 is `e292e43a4dc90ed529c60ac988d7f3351ae287a6bdfa8b85e9c818806b9020ef`, and the relevant raw-file hashes match. The export manifest has 68 validation findings, none scoped to these seven datasheets or their option rows; this audit does not certify the wider export.
+
+The first targeted run failed only in `test_necron_warriors_current`: a legacy unit-only fixture lacks the optional `squads` key. `prepared_training.gd` now treats absent squads as an empty collection. The corrected full rerun passed:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_necron_annihilation_barge --only test_necron_macrocytes --only test_necron_spyders --only test_necron_tomb_crawlers --only test_necron_immortals --only test_necron_monolith --only test_necron_warriors_current --timeout 1200
+```
+
+The rerun passed **9/9 verifier processes** at `.tools/verification/20261115T232348103302Z/results.json` (SHA-256 `478aaf5ba9cf5bb4a5c396549b0fd1fcafbc22ea7f779e9e9c1a566637f9cee7`; network disabled; legacy starter staged; no cleanup diagnostics). The ledger advances to 114/117 schemas reviewed, with three remaining. Twelve reviews remain stale and nine profiles unclassified. See the [source audit](saved-schema-source-review-necrons-2026-11-15.md).
+
+## Necron saved-equipment extension and review refresh — 15 November 2026
+
+Lokhust Heavy Destroyers, Triarch Praetorians and Triarch Stalker now save their local weapon choices in the Army Builder and materialize them before Deployment. The focused fixture checks per-model and linked weapon packages, both-player preparation, copy-tier points, Workshop edits and JSON persistence. Editing the source army after match creation leaves its frozen selection and materialized weapons unchanged. The same verified Necrons App v1.2 snapshot was checked against its manifest; all ten saved-equipment schemas now map fourteen option rows. The source registry also refreshes eighteen no-schema Necron classifications against that snapshot, distinguishing the two implemented Plasmacyte composition rows from equipment choices.
+
+The targeted run passed **3/3 verifier stages** at `.tools/verification/20261116T020509349526Z/results.json` (SHA-256 `f07391231206274c4cd1df3cfab1a83a27f47651116ec60e4a0811198b712829`; network disabled; legacy starter staged; no cleanup diagnostics). Its fixture launches a separate Godot process to reopen the saved list, then verifies the frozen loadout after a source-list edit. A fresh 213-profile coverage export reports 120/120 detected schemas reviewed, 93 fixed-equipment classifications, zero equipment migrations pending, zero stale/unbound reviews and zero unclassified profiles. The bounded Necron reviews do not resolve the export's 68 unrelated structural findings or certify full army legality. This regression inspects Workshop controls and match materialization; it is not a visible capture or human usability review. See the [Necron source audit](saved-schema-source-review-necrons-2026-11-15.md).
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_necron_saved_equipment --timeout 300
+```
+
+## <a id="final-marine-saved-schema-source-option-review-15-november-2026"></a>Final Marine saved-schema source-option review: 15 November 2026
+
+The focused offline suites passed for Intercessor Squad, Scout Squad and Venerable Dreadnought. Intercessor Sergeant choices persist per unit copy through the existing roster fields; its per-model Grenade Launcher and the Scout/Dreadnought saved fields are checked by the focused regressions.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_intercessor_current --only test_scout_squad --only test_venerable_dreadnought_legends --timeout 1200
+```
+
+The run passed **5/5 verifier processes** at `.tools/verification/20261115T233210179362Z/results.json` (SHA-256 `27f17f81ccf7b70ee1c0f0d8d78b40363267057e7f80d987a71eb1796b30da76`; network disabled; legacy starter staged; no cleanup diagnostics). Ten source option rows map to existing saved configuration paths, advancing the ledger to 117/117 schemas reviewed. Twelve reviews remain stale and nine profiles unclassified. This closes the source-option audit queue only; it does not certify full rules, event approval or whole-army legality. See the [source audit](saved-schema-source-review-final-marine-profiles-2026-11-15.md).
+
+## Legacy army restart and match-save recovery boundary — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_saved_loadout_restart --only test_match_save --timeout 300
+```
+
+The focused run passed **4/4 verifier processes** at `.tools/verification/20261116T021607123059Z/results.json` (SHA-256 `C72017130609DE709396E9E1EA595943F133DD5C8D8C3B22D9F661CE288C8D6E`; network disabled; legacy starter staged). The restart suite verifies that a legacy army with flat model appearance arrays and no stable copy ID can be read by a separate Godot process, migrated, saved and reopened with its appearance and inferred Auto/Manual modes retained. The match-save suite verifies both valid-backup recovery from a corrupt primary and refusal to fall back when the primary has a valid checksum but a newer unsupported save version. `test_match_save` reports shutdown RID/ObjectDB cleanup diagnostics; the restart test reports none. This is a bounded compatibility/recovery check, not complete historical match migration or interruption coverage.
+
+## Appearance gallery empty-state capture — 16 November 2026
+
+The Army Builder Appearance workspace was captured from a live Godot 4.7.2 Compatibility runtime at 1280×800. The staged `Test Line` catalog has no ready local variants and includes a saved appearance unavailable in the current catalog. The screenshot shows the built-in 3D placeholder, camera controls, per-copy/model selector, gallery search, an Automatic choice, and the preserved unavailable choice with fallback status. It supports only empty/unavailable layout review; it does not demonstrate an actual ForceOrg sculpt, successful selection, exact equipment sculpt parity or human usability. The PNG is retained in ignored local output as `.tools/appearance-gallery-review.png`.
+
+## Real local ForceOrg appearance preview — 16 November 2026
+
+Command:
+
+```powershell
+.tools/godot/Godot_v4.7.2-stable_win64_console.exe --path . --script .tools/capture_real_appearance_gallery.gd --rendering-method gl_compatibility --resolution 1600x1400
+```
+
+The live Godot 4.7.2 Compatibility capture read the existing local ForceOrg catalog and model cache without starting downloads. The scan yielded 32,256 catalog entries, 395 Intercessor variants, 24 locally ready variants and 109 saved variant mappings. The preview imported the selected local mesh, and the gallery showed ready availability alongside `Match: Unverified`. Captures are `.tools/appearance-gallery-real-variants-review.png` (preview and rationale) and `.tools/appearance-gallery-real-variants-browse-review.png` (scrolled gallery cards). The process saved both images and exited, but Godot emitted RID, CanvasItem and ObjectDB shutdown cleanup diagnostics. This is local asset/availability evidence only; exact sculpt matching, wider resolver failures, screen/input coverage and human usability remain unverified.
+
+## Interrupted model-download shutdown cleanup — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_model_download --timeout 300
+```
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T025834028600Z/results.json` (SHA-256 `8C7A31CC41AF75D09EEB319181BF681A96D6E6E13253285C64DE2308514FE938`; network disabled; legacy starter not staged; no cleanup diagnostics). The added fixture frees the downloader while its tracked partial mesh and conversion outputs exist, then verifies they are deleted and the interrupted URL does not match the cache. This verifies graceful shutdown cleanup; forced termination, power loss and separate-machine asset availability remain open.
+
+## Saved-match readiness interruption follow-up — 16 November 2026
+
+The saved-match interruption fixture now reopens the creation checkpoint in a separate Godot process before either player completes Battle Readiness. It checks that the frozen loadouts and both presentation snapshots survive source-army edits, the current player retains the finish action after restart, the opposing player waits until the first setup declaration completes, and the second player's action then becomes available. The same fixture still resumes a second time after one unit has committed during Deployment.
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T023350409991Z/results.json` (SHA-256 `01B051487CE24C98815A8E4E81C023B07120769341DBF0071AF26C0B130A7DB0`; network disabled; legacy starter not staged). The Godot suite reports shutdown RID/ObjectDB cleanup diagnostics despite zero fixture failures. This closes the local interruption/restart slice for readiness and one Deployment checkpoint; mission-specific declaration breadth, cross-machine LAN and user-driven readiness review remain open.
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_saved_match_interruption --timeout 300
+```
+
+## Unsupported legacy match-version boundary — 16 November 2026
+
+The match-save regression now creates both a v0 primary and a future v2 primary, each with a valid checksum and a valid v1 backup beside it. In both cases the reader returns `Incompatible save version.` and refuses to roll back to the older checkpoint. The test does not add conversion for old match formats; it verifies their preserved, explicit unsupported boundary. Existing coverage still checks backup recovery when the primary is corrupted.
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T023648741145Z/results.json` (SHA-256 `92B12844957C11A0726296D944055B6447292CFB75457F6E56BF355D41B92C6B`; network disabled; legacy starter staged). `test_match_save` reports Godot shutdown RID/ObjectDB cleanup diagnostics after `MATCH SAVE: PASS`.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_match_save --timeout 300
+```
+
+## Saved formations with mission preparation — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_battle_readiness_ui --timeout 300
+```
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T032412288733Z/results.json` (SHA-256 `59882ACDFA1027E9E5F20473BC968EB8AF4EC5B0F77A9F62417697F43E21990D`; network disabled; legacy starter staged). The fixture saves a current Space Marine army and Necron army with a Warlord each, builds an official Chapter Approved match from the admitted saved-army selections, and verifies both saved Warlords are applied to the match state while mission preparation and the match-specific readiness step remain active. This is one supported path only; broader mission-dependent declarations and player review remain open.
+
+## Failed bundle conversion cleanup — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_model_download --timeout 300
+```
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T032936493852Z/results.json` (SHA-256 `36D4727695F02316421FBE7444EB2D8E4D914ADBBB0DDAC607A2656AA6F578F0`; network disabled; legacy starter not staged; no cleanup diagnostics). The added failure fixture checks that the conversion cause remains visible, staged bundle and converter outputs are removed, and the failed source has no cache hit. It exercises graceful failure handling only; forced process termination, power loss and full converter integration remain open.
+
+## Appearance-only match isolation — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_saved_armies --timeout 300
+```
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T033135002812Z/results.json` (SHA-256 `3428A0B4D43D33EE499ED9807E2B10851032A04169D222B4CFE0679AFAA7FF9F`; network disabled; legacy starter staged). The added fixture changes only unit and per-model appearance references, then confirms canonical current-catalog admission and the complete prepared gameplay state are unchanged. The Godot process reported shutdown cleanup diagnostics after the suite passed. This proves the saved-reference path for the tested profile; direct imported-mesh recovery and separate-machine asset behavior remain open.
+
+## Saved-army host/client privacy and reconnect — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --network --only test_saved_armies_network --timeout 300
+```
+
+The run passed **22/22 verifier processes** at `.tools/verification/20261116T130522600906Z/results.json` (SHA-256 `F2CAAA43322E7BFC0A2F5B9762F45926F6BFF23C78B1268AAD37E85B55B70FFD`; loopback network enabled; the targeted profile staged the legacy starter, while the fixture constructed its lists through the current local catalog). It covers baseline admission, mismatched-budget rejection, stratagems, movement/attack/save/damage/Hazardous/count/Desperate Escape re-roll settings, private list metadata, rejected guest mutations, distinct host/client appearance references kept out of synchronized gameplay state, three-unit alternating Deployment and authenticated reconnect to the command phase. Every network process reported Godot RID/ObjectDB shutdown cleanup diagnostics despite the verifier marking all cases passed. This is a same-machine loopback result; unequal-cache LAN across separate computers, abrupt process interruption and human visual/usability review remain open.
+
+## Second-faction legacy appearance migration — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_saved_loadout_restart --timeout 120
+```
+
+The run passed **3/3 verifier processes** at `.tools/verification/20261116T132548224316Z/results.json` (SHA-256 `76D44C02981C1C634D04D7C30542BEC87A1F60CDC4CB145590581FDDAC4DE390`; network disabled; legacy starter not staged; no shutdown cleanup diagnostics). The separate Godot reopen now reads a legacy bank containing Space Marine Intercessors and Necron Warriors, migrates their flat per-model appearance arrays and stable copy/model IDs, preserves automatic/manual selection modes, saves both lists and reopens them again. This broadens the migration sample by faction; it does not cover every historical save schema or certify unsupported match-format conversion.
+
+## Forced model-download process interruption recovery — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_model_download --timeout 120
+```
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T133827850261Z/results.json` (SHA-256 `E637B4EB647C784EBA2272C8750756ED347A535C0F5248485CD15904677B40FC`; network disabled; legacy starter not staged; no cleanup diagnostics). The fixture starts a separate Godot process, records a partial download plus converter directory/result, terminates it before normal shutdown, then creates a new downloader and verifies recovery removes only those journaled paths, leaves an already-imported mesh intact and creates no cache hit. The checker exercises local forced termination only; power-loss behavior, broader converter/cache integration and unequal-cache LAN remain open.
+
+## Corrupt local catalog-cache recovery — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_local_models --timeout 300
+```
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T134118461631Z/results.json` (SHA-256 `D8555EF39BC70B34BF0E458E91342A7B89F61F6A65DBFF1BD0D6DCAC93ED25D2`; network disabled; legacy starter staged). With a matching source path and fingerprint, the fixture replaces the cached entries with a malformed serialized value and checks the scanner rebuilds the catalog from the unchanged source, writes a valid cache record and reuses it on the next scan. The same suite verifies applying a local imported mesh leaves match state unchanged and removing/changing the source mesh resumes the saved match with a placeholder. Godot reported shutdown RID/ObjectDB cleanup diagnostics after passing. This checks the app's local catalog scan cache; corrupted asset files, converted-bundle markers and wider cache repair remain separate coverage.
+
+## Legacy multi-copy appearance migration — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_saved_loadout_restart --timeout 120
+```
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T134924337892Z/results.json` (SHA-256 `0C0C101553813B322BE962EF8F00DA6C88C94F1B560983E7E77959164B97B874`; network disabled; legacy starter not staged; no shutdown cleanup diagnostics). The legacy Space Marine list now contains two Intercessor copies encoded in the old flat arrays with different unit appearances and separate model overrides. A separate Godot process migrates each copy to a distinct stable identity, infers Auto/Manual modes, saves the list and reopens it again with both appearances intact. The existing Necron single-copy fixture runs in the same process. This improves identity/appearance migration breadth without adding support for historical match conversion.
+
+## Saved-army Chapter Approved declaration sequence — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_battle_readiness_ui --timeout 300
+```
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T135234822460Z/results.json` (SHA-256 `3496162697FF1D4C8F86EAE3E8CD5645EEBA91A30945FFC82B525065BE67404A`; network disabled; legacy starter staged). Starting from saved Marine and Necron Warlords, the fixture resolves the selected mission's terrain roll, roles roll-off, side choice and each player's Battle Ready declaration in order. It verifies the required actor changes at each step and that the saved Warlord assignments remain unchanged. This is one selected mission/roster profile; other supported primary/secondary combinations and manual usability review remain open. Godot reported shutdown RID/ObjectDB cleanup diagnostics after the passing test.
+
+## Converted-bundle cache marker validation — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_model_cache --timeout 180
+```
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T135748673508Z/results.json` (SHA-256 `38B742B8F00CF93764186A961D9DCBE74B6C5879E833202506E3211A844E33CC`; network disabled; legacy starter not staged; no shutdown cleanup diagnostics). Synthetic cache entries exercise the same local resolver used by imported assets: a valid converted manifest resolves its mesh, while an unsafe cache directory, malformed manifest, incomplete declared material dependency and mismatched dependency URL all remain invalid with no resolved part. A complete, correctly identified dependency is accepted. This validates cache admission and path/dependency checks; it does not run or certify an external Unity bundle converter.
+
+## Saved-army A Tempting Target preparation — 16 November 2026
+
+Command:
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_battle_readiness_ui --timeout 300
+```
+
+The focused run passed **3/3 verifier processes** at `.tools/verification/20261116T140024155394Z/results.json` (SHA-256 `2389D79A2225680406AAB34F41D42A5F8957662639DFDFA0DE1D50D20AC81796`; network disabled; legacy starter staged). In addition to the saved-army terrain/roles/side/readiness path, the fixture creates the supported Engage + A Tempting Target pair, confirms P2 chooses a target for P1 and P1 then chooses one for P2, and proceeds through role selection and both Battle Ready choices. It verifies both player target assignments exist and saved Warlord records remain unchanged. This covers one additional declaration order; other supported combinations and manual interaction review remain open. The passing Godot test reported shutdown RID/ObjectDB cleanup diagnostics.
+
+## Cleanup verification — 17/18 November 2026
+
+Repository cleanup (dead-code/doc removal, verify.py suite classification) was checked with the focused and full profiles on the current working tree (`feat/local-necron-and-import-progress`, uncommitted).
+
+Commands and outcomes:
+
+- `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_leader_catalog --only test_kor_sarro_khan --only test_necron_warriors_current --only test_implemented_catalog --only test_necron_saved_equipment --only test_saved_match_interruption --timeout 300` — run `20261118T001846438849Z`: import, python, test_leader_catalog, test_kor_sarro_khan, test_implemented_catalog and test_saved_match_interruption PASSED; test_necron_warriors_current FAILED (Praetorian rod-gating assertion stale versus the implemented saved-equipment scope) and test_necron_saved_equipment FAILED data-free (prepared-match construction needs the legacy snapshot at runtime).
+- `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile full --only test_necron_warriors_current --only test_necron_saved_equipment --timeout 300` — run `20261118T002228384320Z`: import, python and startup PASSED; test_necron_saved_equipment PASSED with the legacy snapshot staged, confirming its runtime data dependency and its removal from the current-catalog match set; test_necron_warriors_current FAILED identically, confirming its failure is a pre-existing working-tree issue independent of data staging.
+- `python -B -m unittest discover -s tests -p "test_*.py"` — 124 tests, OK (run twice during the cleanup).
+- `python -m unittest tests.test_architecture tests.test_verification` — 39 tests, OK.
+
+The two failing Godot suites at that checkpoint were pre-existing issues in the uncommitted Necron work-in-progress, not cleanup regressions; both were resolved in the 18 November follow-up below.
+
+### Necron prepared-match template and Triarch scope reconciliation — 18 November 2026
+
+`Prepared.initial_state` now uses embedded current-reference templates whenever both players supply `schema_version: 2` Space Marines or Necrons selections without `legacy_necron_reference`, so current-catalog Necron prepared matches (`test_necron_saved_equipment`) no longer read `res://data/imported/starter-11e-v1` before `_materialize_mixed` replaces the placeholder squads and units. `test_necron_saved_equipment` is restored to `CURRENT_CATALOG_MATCH_SUITES`, while `test_necron_warriors_current` is classified under `targeted`/`full` because its C’tan Warlord and historical Warrior checks intentionally exercise the legacy starter pack. Triarch Praetorians (`000000539`) and Triarch Stalker (`000000540`) capability notes, coverage rows and the `test_necron_warriors_current` Praetorian option assertion are reconciled with the verified local Necrons App v1.2 export (`.tools/wahapedia/11e/necrons/20261031T053336Z`, `Datasheets_options.csv`) and the implemented saved-equipment schemas. In addition, `tests/test_prepared_match.gd` now explicitly sets `unit_abilities_choice.button_pressed = false` before starting its baseline historical prepared-match UI check (matching `tests/test_decision_ui.gd`), and `tests/test_space_marine_leader_links.gd` now validates the five Necron Cryptek Support identities in `Supports.BODYGUARDS` (11 Necron pairs alongside the 96 static Space Marine pairs) against their `current_reference_necron_profiles.gd` `source_bodyguard_datasheet_ids`.
+
+```powershell
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_leader_catalog --only test_kor_sarro_khan --only test_implemented_catalog --only test_necron_saved_equipment --only test_saved_match_interruption --only test_necron_triarch_praetorians --only test_necron_triarch_stalker --timeout 300
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_necron_warriors_current --only test_capabilities --timeout 300
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_space_marine_leader_links --timeout 300
+python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_prepared_match --only test_space_marine_leader_links --timeout 300
+```
+
+The focused data-free run passed **9/9 processes** at `.tools/verification/20261118T132355989993Z/results.json` (SHA-256 `D207867DE02C5E988626D14D8C9509A22C239111ED51FDF19F207C52051235B2`; `legacy_starter_staged: false`, `network: false`; `test_implemented_catalog` and `test_saved_match_interruption` reported headless RID cleanup diagnostics at shutdown). The targeted run passed **4/4 processes** at `.tools/verification/20261118T132750030808Z/results.json` (SHA-256 `3EBFB37DE6C2C0F4504F4B8A404C263B7778301558F84F261876993220ADDE92`; `legacy_starter_staged: true`, `network: false`, no cleanup diagnostics). The coverage export (`213` admitted profiles, `120/120` reviewed schemas, `93` fixed profiles) and `python -B -m unittest discover -s tests -p "test_*.py"` (`124` tests) passed. The focused Leader/Support link run passed **3/3 processes** at `.tools/verification/20261118T140015762834Z/results.json` (SHA-256 `EC83FC928BC2AE445E79AEED38B172625340EF7E4F3724EF4F4128D0FAC5A663`; `legacy_starter_staged: false`, `network: false`, no cleanup diagnostics), and the targeted prepared-match and Leader/Support batch passed **4/4 processes** at `.tools/verification/20261118T140051063197Z/results.json` (SHA-256 `785B9270580D9125F7FF6167E2B136B693CC834D6154F11ADF0F557E9BE6A9E5`; `legacy_starter_staged: true`, `network: false`; `test_prepared_match` reported headless RID cleanup diagnostics at shutdown). Exact Triarch Stalker FRAME geometry, separate-machine LAN and full Necron army legality remain uncertified.

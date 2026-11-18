@@ -38,7 +38,6 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 
 ## Data and sources
 
-- [Rules source decision](rules-source-policy.md) — Wahapedia 11e is the definitive project reference.
 - [Source policy and assessment](data/source-assessment.md) — authoritative local datasheet source, verification boundary, and pipeline status.
 - [Standard faction datasheet inventory](data/standard-faction-inventory.md) — current 11e source-book counts and implementation order, with Marine supplements grouped together.
 - [Necrons coverage ledger](data/necrons-coverage.md) — local App v1.2 snapshot identity, file hashes, per-profile scope, blockers and validation status.
@@ -68,6 +67,7 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Space Marines full-faction coverage](space-marines-coverage.md) — provenance, profiles, evidence and readiness across all 161 standard-book datasheets, including the two remaining partial scopes.
 - [Wolf Guard Headtakers sheet audit](marine-wolf-guard-headtakers.md) · [machine-readable source/hash audit](marine-wolf-guard-headtakers-audit.json) — MFM-mapped points, two admitted mixed compositions, integrated local abilities and the remaining composition limits.
 - [Blood Angels Captain sheet audit](marine-blood-angels-captain.md) — source identity, weapon profiles, six equipment combinations, abilities, Leader targets and focused local evidence.
+- [Black Templars Castellan sheet audit](marine-castellan.md) — source identity, weapon options, abilities and bounded saved-equipment evidence.
 - [Commander Dante sheet audit](marine-commander-dante.md) · [machine-readable audit](marine-commander-dante-audit.json) — source profile, Death Mask of Sanguinius, Warden of the Imperium Nihilus, Leader links and local verification.
 - [The Sanguinor sheet audit](marine-the-sanguinor.md) · [machine-readable audit](marine-the-sanguinor-audit.json) — Aura of Fervour, Miraculous Saviour, engaged reserve ingress and focused local checks.
 - [Chief Librarian Mephiston sheet audit](marine-mephiston.md) · [machine-readable audit](marine-mephiston-audit.json) — current profile, Quickening, Transfixing Gaze and focused local checks.
@@ -76,8 +76,25 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Death Company Marines sheet audit](marine-death-company-marines.md) — source-priced foot squad, weapon-option limits, Black Rage and local checks.
 - [Death Company Marines With Jump Packs sheet audit](marine-death-company-marines-with-jump-packs.md) — source-priced Jump Pack squad, equipment limits, Deep Strike, Savage Fury and local checks.
 - [Baal Predator sheet audit](marine-baal-predator.md) — source profile, paired sponson packages, optional weapons, Overcharged Engines and local checks.
+- [Predator Annihilator sheet audit](marine-predator-annihilator.md) — Legends profile, saved per-copy equipment and local evidence.
+- [Predator Destructor sheet audit](marine-predator-destructor.md) — Warhammer Legends source profile, paired sponson replacement, optional weapons and local checks.
 - [Death Company Dreadnought sheet audit](marine-death-company-dreadnought.md) · [machine-readable audit](marine-death-company-dreadnought-audit.json) — source profile, weapon packages, Black Rage, Driven by Fury and focused local checks.
-- [Lion El’jonson sheet audit](marine-lion-eljonson.md) · [Lion machine-readable audit](marine-lion-eljonson-audit.json) · [Emperor’s Champion sheet audit](marine-emperors-champion.md) · [Emperor’s Champion machine-readable audit](marine-emperors-champion-audit.json) · [Marshal sheet audit](marine-marshal.md) · [Space Marines Chapter datasheet coverage](space-marines-coverage.md#chapter-book-expansion-status) · [Land Speeder Vengeance sheet audit](marine-land-speeder-vengeance.md) · [Ravenwing Black Knights sheet audit](marine-ravenwing-black-knights.md) · [Inner Circle Companions sheet audit](marine-inner-circle-companions.md) · [Asmodai sheet audit](marine-asmodai.md) · [Lazarus sheet audit](marine-lazarus.md) · [Ravenwing Darkshroud sheet audit](marine-ravenwing-darkshroud.md) · [Azrael sheet audit](marine-azrael.md) · [Belial sheet audit](marine-belial.md) · [Deathwing Knights sheet audit](marine-deathwing-knights.md) · [Deathwing Terminator Squad sheet audit](marine-deathwing-terminator-squad.md) · [Nephilim Jetfighter sheet audit](marine-nephilim-jetfighter.md) · [Ravenwing Dark Talon sheet audit](marine-ravenwing-dark-talon.md) · [Deathwing Terminator Squad machine-readable audit](marine-deathwing-terminator-squad-audit.json) · [Deathwing Knights machine-readable audit](marine-deathwing-knights-audit.json) · [Belial machine-readable audit](marine-belial-audit.json) · [Azrael machine-readable audit](marine-azrael-audit.json) · [Ravenwing Darkshroud machine-readable audit](marine-ravenwing-darkshroud-audit.json) · [Nephilim Jetfighter machine-readable audit](marine-nephilim-jetfighter-audit.json) · [Ravenwing Dark Talon machine-readable audit](marine-ravenwing-dark-talon-audit.json) · [Lazarus machine-readable audit](marine-lazarus-audit.json) · [Asmodai machine-readable audit](marine-asmodai-audit.json) · [Inner Circle Companions machine-readable audit](marine-inner-circle-companions-audit.json)
+- [Emperor’s Champion sheet audit](marine-emperors-champion.md) · [Emperor’s Champion machine-readable audit](marine-emperors-champion-audit.json)
+- [Marshal sheet audit](marine-marshal.md)
+- [Lion El’jonson sheet audit](marine-lion-eljonson.md) · [Lion machine-readable audit](marine-lion-eljonson-audit.json)
+- [Land Speeder Vengeance sheet audit](marine-land-speeder-vengeance.md)
+- [Ravenwing Black Knights sheet audit](marine-ravenwing-black-knights.md)
+- [Inner Circle Companions sheet audit](marine-inner-circle-companions.md) · [Inner Circle Companions machine-readable audit](marine-inner-circle-companions-audit.json)
+- [Asmodai sheet audit](marine-asmodai.md) · [Asmodai machine-readable audit](marine-asmodai-audit.json)
+- [Lazarus sheet audit](marine-lazarus.md) · [Lazarus machine-readable audit](marine-lazarus-audit.json)
+- [Ravenwing Darkshroud sheet audit](marine-ravenwing-darkshroud.md) · [Ravenwing Darkshroud machine-readable audit](marine-ravenwing-darkshroud-audit.json)
+- [Azrael sheet audit](marine-azrael.md) · [Azrael machine-readable audit](marine-azrael-audit.json)
+- [Belial sheet audit](marine-belial.md) · [Belial machine-readable audit](marine-belial-audit.json)
+- [Deathwing Knights sheet audit](marine-deathwing-knights.md) · [Deathwing Knights machine-readable audit](marine-deathwing-knights-audit.json)
+- [Deathwing Terminator Squad sheet audit](marine-deathwing-terminator-squad.md) · [Deathwing Terminator Squad machine-readable audit](marine-deathwing-terminator-squad-audit.json)
+- [Nephilim Jetfighter sheet audit](marine-nephilim-jetfighter.md) · [Nephilim Jetfighter machine-readable audit](marine-nephilim-jetfighter-audit.json)
+- [Ravenwing Dark Talon sheet audit](marine-ravenwing-dark-talon.md) · [Ravenwing Dark Talon machine-readable audit](marine-ravenwing-dark-talon-audit.json)
+- [Space Marines Chapter datasheet coverage](space-marines-coverage.md#chapter-book-expansion-status)
 - [Space Marine Chapter gap audit script](../tools/audit_space_marine_chapters.ps1) — verifies the local export manifest and writes an ignored report of missing source identities.
 - [Space Marine Chapter Leader/Support audit](../tools/validate_space_marine_chapter_links.ps1) — checks all standard-book attachment links and Support identities against a hash-verified local export.
 - [Deathwatch Veterans sheet audit](marine-deathwatch-veterans.md) · [machine-readable source/hash audit](marine-deathwatch-veterans-audit.json) — current 11e source identity, profile/equipment scope, ability, attachment links, local evidence and limits.
@@ -121,7 +138,73 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Bladeguard Veteran Squad sheet audit](marine-bladeguard-veteran-squad.md) · [machine-readable audit](marine-bladeguard-veteran-squad-audit.json)
 - [Desolation Squad sheet audit](marine-desolation-squad.md) · [machine-readable audit](marine-desolation-squad-audit.json)
 - [Eliminator Squad sheet audit](marine-eliminator-squad.md) · [machine-readable audit](marine-eliminator-squad-audit.json)
-- [Wahapedia importer](wahapedia-import.md) · [Space Marines catalog and source reconciliation](space-marines-catalog.md) · [Space Marines coverage matrix](space-marines-coverage.md) · [Captain sheet audit](marine-captain.md) · [Captain machine audit](marine-captain-audit.json) · [Captain on Bike sheet audit](marine-captain-on-bike.md) · [Captain on Bike machine audit](marine-captain-on-bike-audit.json) · [Captain With Jump Pack sheet audit](marine-captain-with-jump-pack.md) · [Captain With Jump Pack machine audit](marine-captain-with-jump-pack-audit.json) · [Adrax Agatone sheet audit](marine-adrax-agatone.md) · [Aethon Shaan sheet audit](marine-aethon-shaan.md) · [Cato Sicarius sheet audit](marine-cato-sicarius.md) · [Caanok Var sheet audit](marine-caanok-var.md) · [Kaius Konorius sheet audit](marine-kaius-konorius.md) · [Chief Librarian Tigurius sheet audit](marine-chief-librarian-tigurius.md) · [Darnath Lysander sheet audit](marine-darnath-lysander.md) · [Iron Father Feirros sheet audit](marine-iron-father-feirros.md) · [Judiciar sheet audit](marine-judiciar.md) · [Librarian sheet audit](marine-librarian.md) · [Roboute Guilliman sheet audit](marine-guilliman.md) · [Marneus Calgar sheet audit](marine-marneus-calgar.md) · [Lieutenant with Combi-weapon sheet audit](marine-combi-lieutenant.md) · [Kor'sarro Khan sheet audit](marine-kor-sarro-khan.md) · [Ancient in Terminator Armour sheet audit](marine-ancient-in-terminator-armour.md) · [Captain in Terminator Armour sheet audit](marine-terminator-captain.md) · [Chaplain in Terminator Armour sheet audit](marine-terminator-chaplain.md) · [Victrix Honour Guard sheet audit](marine-victrix-honour-guard.md) · [Ancient and Bladeguard Ancient sheet audit](marine-ancients.md) · [Scout Squad sheet audit](marine-scout-squad.md) · [Aggressor Squad sheet audit](marine-aggressor-squad.md) · [Apothecary sheet audit](marine-apothecary.md) · [Apothecary Biologis sheet audit](marine-apothecary-biologis.md) · [Chaplain sheet audit](marine-chaplain.md) · [Chaplain on Bike sheet audit](marine-chaplain-on-bike.md) · [Chaplain With Jump Pack sheet audit](marine-chaplain-with-jump-pack.md) · [Drop Pod sheet audit](marine-drop-pod.md) · [Captain in Phobos Armour sheet audit](marine-captain-phobos.md) · [Kayvaan Shrike sheet audit](marine-kayvaan-shrike.md) · [Librarian in Phobos Armour sheet audit](marine-librarian-phobos.md) · [Librarian in Terminator Armour sheet audit](marine-librarian-terminator-armour.md) · [Lieutenant sheet audit](marine-lieutenant.md) · [Redemptor Dreadnought sheet audit](marine-redemptor-dreadnought.md) · [Vanguard Veteran Squad With Jump Packs sheet audit](marine-vanguard-veterans-jump-packs.md) · [Firestrike Servo-turrets sheet audit](marine-firestrike-servo-turrets.md) · [Company Heroes sheet audit](marine-company-heroes.md) · [Brutalis Dreadnought sheet audit](marine-brutalis-dreadnought.md) · [Incursor Squad sheet audit](marine-incursor-squad.md) · [Inceptor Squad sheet audit](marine-inceptor-squad.md) · [Infiltrator Squad sheet audit](marine-infiltrator-squad.md) · [Reiver Squad sheet audit](marine-reiver-squad.md) · [Assault Intercessor Squad sheet audit](marine-assault-intercessor-squad.md) · [Heavy Intercessor Squad sheet audit](marine-heavy-intercessor-squad.md) · [Eradicator Squad with Heavy Bolters sheet audit](marine-eradicator-heavy-bolters.md) · [Eradicator Squad with Melta Rifles sheet audit](marine-eradicator-melta-rifles.md) · [Machine-readable Eradicator Melta audit](marine-eradicator-melta-rifles-audit.json) · [Hellblaster Squad sheet audit](marine-hellblaster-squad.md) · [Hellblaster machine audit](marine-hellblaster-squad-audit.json) · [Intercessor Squad sheet audit](marine-intercessor-squad.md) · [Intercessor machine audit](marine-intercessor-squad-audit.json) · [Sternguard Veteran Squad sheet audit](marine-sternguard-veteran-squad.md) · [Sternguard Veteran Squad machine audit](marine-sternguard-veteran-squad-audit.json) · [Terminator Assault Squad sheet audit](marine-terminator-assault-squad.md) · [Terminator Assault Squad machine audit](marine-terminator-assault-squad-audit.json) · [Terminator Squad sheet audit](marine-terminator-squad.md) · [Terminator Squad machine audit](marine-terminator-squad-audit.json) · [Infernus Squad sheet audit](marine-infernus-squad.md) · [Gladiator Lancer sheet audit](marine-gladiator-lancer.md) · [Gladiator Reaper sheet audit](marine-gladiator-reaper.md) · [Gladiator Valiant sheet audit](marine-gladiator-valiant.md) · [Storm Speeder Hammerstrike sheet audit](marine-storm-speeder-hammerstrike.md) · [Storm Speeder Hailstrike sheet audit](marine-storm-speeder-hailstrike.md) · [Storm Speeder Thunderstrike sheet audit](marine-storm-speeder-thunderstrike.md) · [Ballistus Dreadnought sheet audit](marine-ballistus-dreadnought.md) · [Invictor Tactical Warsuit sheet audit](marine-invictor-tactical-warsuit.md) · [Consolidated Space Marines profile records](space-marines-profile-records.md) · [Datasheet implementation architecture](datasheet-implementation-architecture.md)
+- [Wahapedia importer](wahapedia-import.md)
+- [Space Marines catalog and source reconciliation](space-marines-catalog.md)
+- [Space Marines coverage matrix](space-marines-coverage.md)
+- [Consolidated Space Marines profile records](space-marines-profile-records.md)
+- [Datasheet implementation architecture](datasheet-implementation-architecture.md)
+- [Captain sheet audit](marine-captain.md) · [Captain machine audit](marine-captain-audit.json)
+- [Captain on Bike sheet audit](marine-captain-on-bike.md) · [Captain on Bike machine audit](marine-captain-on-bike-audit.json)
+- [Captain With Jump Pack sheet audit](marine-captain-with-jump-pack.md) · [Captain With Jump Pack machine audit](marine-captain-with-jump-pack-audit.json)
+- [Captain in Phobos Armour sheet audit](marine-captain-phobos.md)
+- [Captain in Terminator Armour sheet audit](marine-terminator-captain.md)
+- [Librarian sheet audit](marine-librarian.md)
+- [Librarian in Phobos Armour sheet audit](marine-librarian-phobos.md)
+- [Librarian in Terminator Armour sheet audit](marine-librarian-terminator-armour.md)
+- [Chaplain sheet audit](marine-chaplain.md)
+- [Chaplain on Bike sheet audit](marine-chaplain-on-bike.md)
+- [Chaplain With Jump Pack sheet audit](marine-chaplain-with-jump-pack.md)
+- [Chaplain in Terminator Armour sheet audit](marine-terminator-chaplain.md)
+- [Lieutenant sheet audit](marine-lieutenant.md)
+- [Lieutenant with Combi-weapon sheet audit](marine-combi-lieutenant.md)
+- [Apothecary sheet audit](marine-apothecary.md)
+- [Apothecary Biologis sheet audit](marine-apothecary-biologis.md)
+- [Judiciar sheet audit](marine-judiciar.md)
+- [Ancient in Terminator Armour sheet audit](marine-ancient-in-terminator-armour.md)
+- [Ancient and Bladeguard Ancient sheet audit](marine-ancients.md)
+- [Adrax Agatone sheet audit](marine-adrax-agatone.md)
+- [Aethon Shaan sheet audit](marine-aethon-shaan.md)
+- [Cato Sicarius sheet audit](marine-cato-sicarius.md)
+- [Caanok Var sheet audit](marine-caanok-var.md)
+- [Kaius Konorius sheet audit](marine-kaius-konorius.md)
+- [Chief Librarian Tigurius sheet audit](marine-chief-librarian-tigurius.md)
+- [Darnath Lysander sheet audit](marine-darnath-lysander.md)
+- [Iron Father Feirros sheet audit](marine-iron-father-feirros.md)
+- [Roboute Guilliman sheet audit](marine-guilliman.md)
+- [Marneus Calgar sheet audit](marine-marneus-calgar.md)
+- [Kor'sarro Khan sheet audit](marine-kor-sarro-khan.md)
+- [Kayvaan Shrike sheet audit](marine-kayvaan-shrike.md)
+- [Victrix Honour Guard sheet audit](marine-victrix-honour-guard.md)
+- [Company Heroes sheet audit](marine-company-heroes.md)
+- [Scout Squad sheet audit](marine-scout-squad.md)
+- [Aggressor Squad sheet audit](marine-aggressor-squad.md)
+- [Assault Intercessor Squad sheet audit](marine-assault-intercessor-squad.md)
+- [Heavy Intercessor Squad sheet audit](marine-heavy-intercessor-squad.md)
+- [Incursor Squad sheet audit](marine-incursor-squad.md)
+- [Inceptor Squad sheet audit](marine-inceptor-squad.md)
+- [Infiltrator Squad sheet audit](marine-infiltrator-squad.md)
+- [Reiver Squad sheet audit](marine-reiver-squad.md)
+- [Intercessor Squad sheet audit](marine-intercessor-squad.md) · [Intercessor machine audit](marine-intercessor-squad-audit.json)
+- [Infernus Squad sheet audit](marine-infernus-squad.md)
+- [Hellblaster Squad sheet audit](marine-hellblaster-squad.md) · [Hellblaster machine audit](marine-hellblaster-squad-audit.json)
+- [Sternguard Veteran Squad sheet audit](marine-sternguard-veteran-squad.md) · [Sternguard Veteran Squad machine audit](marine-sternguard-veteran-squad-audit.json)
+- [Eradicator Squad with Heavy Bolters sheet audit](marine-eradicator-heavy-bolters.md)
+- [Eradicator Squad with Melta Rifles sheet audit](marine-eradicator-melta-rifles.md) · [Machine-readable Eradicator Melta audit](marine-eradicator-melta-rifles-audit.json)
+- [Terminator Squad sheet audit](marine-terminator-squad.md) · [Terminator Squad machine audit](marine-terminator-squad-audit.json)
+- [Terminator Assault Squad sheet audit](marine-terminator-assault-squad.md) · [Terminator Assault Squad machine audit](marine-terminator-assault-squad-audit.json)
+- [Vanguard Veteran Squad With Jump Packs sheet audit](marine-vanguard-veterans-jump-packs.md)
+- [Drop Pod sheet audit](marine-drop-pod.md)
+- [Redemptor Dreadnought sheet audit](marine-redemptor-dreadnought.md)
+- [Brutalis Dreadnought sheet audit](marine-brutalis-dreadnought.md)
+- [Ballistus Dreadnought sheet audit](marine-ballistus-dreadnought.md)
+- [Invictor Tactical Warsuit sheet audit](marine-invictor-tactical-warsuit.md)
+- [Firestrike Servo-turrets sheet audit](marine-firestrike-servo-turrets.md)
+- [Gladiator Lancer sheet audit](marine-gladiator-lancer.md)
+- [Gladiator Reaper sheet audit](marine-gladiator-reaper.md)
+- [Gladiator Valiant sheet audit](marine-gladiator-valiant.md)
+- [Storm Speeder Hammerstrike sheet audit](marine-storm-speeder-hammerstrike.md)
+- [Storm Speeder Hailstrike sheet audit](marine-storm-speeder-hailstrike.md)
+- [Storm Speeder Thunderstrike sheet audit](marine-storm-speeder-thunderstrike.md)
 - [Tor Garadon sheet audit](marine-tor-garadon.md) — source-bounded 11e datasheet scope and local verification.
 - [Suboden Khan sheet audit](marine-suboden-khan.md) — source-bounded 11e datasheet scope and local verification.
 - [Vulkan He’stan sheet audit](marine-vulkan-hestan.md) — source-bounded 11e datasheet scope and local verification.
@@ -137,15 +220,25 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Wolf Priest sheet audit](marine-wolf-priest.md) · [machine-readable source/hash audit](marine-wolf-priest-audit.json) — Space Wolves profile, Healing Balms, Litany of Hate, Leader endpoints and local verification.
 - [Design-first UI prompting skill](skills/design-first-ui-prompting/SKILL.md) · [progress screenshots](skills/workflow-progress-screenshots/SKILL.md) · [score-to-target workflow](skills/workflow-score-to-target/SKILL.md)
 - [Game development and design skills](skills/game-development-design.md) — selected Godot and cross-engine skills, use guidance and source attribution.
+- [Invader ATVs sheet audit](marine-invader-atvs.md) · [machine-readable source/hash audit](marine-invader-atvs-audit.json) — source-bounded 11e local scope and verification.
+- [Land Speeder sheet audit](marine-land-speeder.md) · [machine-readable source/hash audit](marine-land-speeder-audit.json) — source-bounded 11e local scope and verification.
+- [Outrider Squad sheet audit](marine-outrider-squad.md) · [machine-readable source/hash audit](marine-outrider-squad-audit.json) · [Land Raider](marine-land-raider.md) · [Land Raider audit](marine-land-raider-audit.json) · [Land Raider Crusader](marine-land-raider-crusader.md) · [Crusader audit](marine-land-raider-crusader-audit.json) · [Land Raider Redeemer](marine-land-raider-redeemer.md) · [Redeemer audit](marine-land-raider-redeemer-audit.json) · [Repulsor](marine-repulsor.md) · [Repulsor audit](marine-repulsor-audit.json) · [Repulsor Executioner](marine-repulsor-executioner.md) · [Executioner audit](marine-repulsor-executioner-audit.json) · [Rhino](marine-rhino.md) · [Rhino audit](marine-rhino-audit.json) · [Impulsor sheet audit](marine-impulsor.md) · [Impulsor machine audit](marine-impulsor-audit.json) — source-bounded 11e local scope and verification.
 
 ## Architecture
 
 - [Architecture direction](architecture.md) — target ownership boundaries and migration plan.
+- [Army Builder and ForceOrg data flow](architecture/army-builder-forceorg-flow.md) — persistence boundaries, compatibility risks and current implementation phases.
 - [Phase, action and decision flow](architecture/phase-action-decision-flow.md) — progression stages, pending decisions, suspension/resume and phase-close gate.
 - [Match history](architecture/match-history.md)
 - [Match persistence](architecture/match-persistence.md)
 
 ## Project status and direction
+
+- [Army Builder coverage inventory](project/army-builder-coverage.md) — every admitted construction profile, detected saved fields and open verification gates.
+- [Army Builder source equipment review](project/army-builder-source-review.tsv) — source identity-checked fixed-equipment and saved-schema option-completeness classifications.
+- [Army Builder implementation review](project/army-builder-implementation-review.md) — current scope, findings, phase gates and revised implementation order.
+- [Army configuration plan completion gates](project/army-configuration-plan-status.md) — all original phases and twelve acceptance tests, with evidence and remaining work.
+- [Battle Readiness declaration feedback](project/battle-readiness-ui.md) — required/optional declarations, primary finish action, focused checks and actual Godot captures.
 
 - [Current assessment and tactical consolidation plan](project/current-assessment.md) — roadmap position, strengths, weaknesses and evidence gates.
 - [Tactical training UX audit](project/tactical-training-ux-audit.md) — prioritized feedback on guided layout, decisions, dice readability, movement feedback and combat feel.
@@ -155,9 +248,6 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Current support matrix](project/support-matrix.md) — what is supported and what is not.
 - [Configuration UI redesign](project/ui-redesign.md) — repository audit, phases, implementation boundaries and verification.
 - [Roadmap](project/roadmap.md) — forward plan and completion criteria.
-- [Backlog](project/backlog.md)
-- [Track A checked-match scope](project/track-a.md) · [Track A5](project/track-a-a5.md)
-- [Rules status history](project/rules-status.md) · [Functional roadmap history](project/roadmap-funcional.md)
 
 ## Verification
 
@@ -165,7 +255,46 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 
 - [Verification guide](verification/verification.md)
 - [Latest recorded verification results](verification/verification-results.md)
+- [Army Builder equipment provenance](verification/army-builder-equipment-provenance.md) — reconciled source bindings, local equipment continuity and reproducible checks.
+- [Army Builder equipment classification](verification/army-builder-equipment-classification.md) — historical source-classification batch and current empty no-schema migration queue.
+- [Talonstrike Kill Team saved equipment](verification/talonstrike-saved-equipment.md) — source-bound final option migration, persistent per-model choices, exact local verification and actual Godot captures.
+- [Aggressor Squad saved-equipment source review](verification/aggressor-saved-equipment-source-review.md) — verified local option row matched to the existing stable-model field.
+- [Ancient saved-equipment source review](verification/ancient-saved-equipment-source-review.md) — verified local weapon replacement matched to the existing saved-model field.
+- [Captain on Bike saved-equipment source review](verification/captain-on-bike-saved-equipment-source-review.md) — both verified local weapon replacements matched to independent saved-model fields.
+- [Saved-schema source review batch](verification/saved-schema-source-review-2026-11-15.md) — verified local option rows mapped to five existing Marine saved schemas.
+- [Saved-schema source review follow-up](verification/saved-schema-source-review-follow-up-2026-11-15.md) — five further local option rows mapped to existing vehicle schemas, including two explicitly bounded Legends profiles.
+- [Matched-profile saved-schema source review](verification/saved-schema-source-review-marine-2026-11-15.md) — Marshal and Nephilim Jetfighter reviewed against their runtime-bound local source; three profiles with missing provenance remain pending.
+- [Aircraft and squad saved-schema source review](verification/saved-schema-source-review-aircraft-and-squads-2026-11-15.md) — six option rows across five profiles mapped to existing saved fields, including per-model and Legends boundaries.
+- [Dreadnought saved-schema source review](verification/saved-schema-source-review-walkers-2026-11-15.md) — eight option rows across four profiles mapped to existing fields, with conflicting replacement combinations recorded.
+- [Squad and Predator saved-schema source review](verification/saved-schema-source-review-squads-and-predators-2026-11-15.md) — twelve option rows across five profiles, including Sergeant, per-model, and Legends choices.
+- [Captain and Castellan saved-schema source review](verification/saved-schema-source-review-captains-2026-11-15.md) — fourteen option rows across five character profiles mapped to existing fields.
+- [Dreadnought and Death Company saved-schema source review](verification/saved-schema-source-review-dreadnoughts-and-death-company-2026-11-15.md) — eighteen option rows across five profiles mapped to existing equipment schemas.
+- [Heavy vehicles and Lieutenant saved-schema source review](verification/saved-schema-source-review-heavy-vehicles-and-lieutenant-2026-11-15.md) — sixteen option rows mapped to existing fields, with duplicate Vindicator wording accounted for.
+- [Necron saved-schema source review](verification/saved-schema-source-review-necrons-2026-11-15.md) — eleven options across seven profiles checked against their exact runtime-bound snapshot, with broader export validation limits recorded.
+- [Final Marine saved-schema source review](verification/saved-schema-source-review-final-marine-profiles-2026-11-15.md) — the last ten option rows close the then-current 117-schema Marine completeness queue.
+- [Saved Space Wolves squad equipment](verification/space-wolves-squad-saved-equipment.md) - Thunderwolf packages/prices, independent Wulfen equipment, source effects, persistence and actual Godot captures.
+- [Saved aircraft and heavy transport equipment](verification/large-transport-saved-equipment.md) - complete Corvus/Mastodon groups, legacy paired-launcher correction, persistence and actual Godot captures.
+- [Saved Black Templars Gladiator equipment](verification/templar-gladiator-saved-equipment.md) - optional weapons, fixed-pair pricing, accurate Add previews, persistence and actual Godot captures.
+- [Saved squad specialist equipment](verification/squad-specialist-saved-equipment.md) - independent Firestrike weapons, one Helix bearer, Sergeant-only Bladeguard pistols, persistence and actual Godot controls.
+- [Saved transport equipment](verification/transport-saved-equipment.md) - twelve reviewed transport identities, 126 equipment packages, Chapter-specific choices/prices, persistence and actual Godot captures.
+- [Heavy and Space Wolves saved equipment](verification/heavy-saved-equipment.md) - Redemptor pricing, independent Centurion equipment, Battle Leader shield, persistence and actual Godot captures.
+- [Character and artillery saved equipment](verification/character-artillery-saved-equipment.md) — Execrator, Phobos Lieutenant, Terminator Chaplain and Rapier source coverage, persistence, setup locks and actual Godot captures.
 - [A2 pending-workflow audit](verification/a2-pending-workflow-audit.md) — normalized decision-source inventory and its remaining workflow-level boundary.
+- [Mixed Space Wolves saved equipment](verification/mixed-space-wolves-saved-equipment.md) — role-specific Scout/Headtaker equipment, caps, frozen match locks and actual Godot captures.
+- [Sergeant/Pack Leader saved squad equipment](verification/sergeant-squad-saved-equipment.md) — Jump Intercessor Plasma limits, Blood Claws/Grey Hunters leader options, saved locks and real Godot captures.
+- [Specialist squad saved equipment](verification/specialist-squad-saved-equipment.md) — Eradicator eligibility correction, Desolation Vengor pricing, Sternguard role/cap validation and real Godot captures.
+- [Saved Terminator equipment](verification/terminator-saved-equipment.md) — standard/Assault/Wolf Guard role packages, Cyclone/shield pricing, bearer Wounds, frozen locks and real Godot captures.
+- [Saved Deathwing unit/model equipment](verification/deathwing-saved-equipment.md) — separate unit Watchers, model weapons, canonical copy identity, refresh preservation and actual Godot captures.
+- [Deathwatch saved equipment](verification/deathwatch-saved-equipment.md) — source-audited Veterans/Terminator options, squad caps, Storm Shield/Cyclone pricing and actual Workshop layout captures.
+- [Vanguard Veteran saved equipment](verification/vanguard-veteran-saved-equipment.md) — local 11e source option audit, saved model roles/caps, copy prices, match locks and actual Workshop captures.
+- [Scout Bike saved equipment](verification/scout-bike-saved-equipment.md) — local Legends source hashes, Sergeant-only choices, per-model Grenade Launchers, saved materialization and actual Workshop captures.
+- [Sword Brethren saved equipment](verification/sword-brethren-saved-equipment.md) — verified local source hashes, complete weapon packages, per-four caps, copy prices, save/reopen and actual Workshop captures.
+- [Indomitor saved equipment](verification/indomitor-saved-equipment.md) — role-specific saved replacements, squad caps, unchanged copy prices, frozen match setup and actual Workshop captures.
+- [Crusader Squad saved equipment](verification/crusader-saved-equipment.md) — source-bounded role options and caps, saved materialization, the Wahapedia/MFM price difference and actual Workshop captures.
+- [Decimus Kill Team saved equipment](verification/decimus-saved-equipment.md) — ten-model role options, source caps, saved materialization, the composition/price blockers and actual Workshop captures.
+- [Fortis Kill Team saved equipment](verification/fortis-saved-equipment.md) — fixed role sequence, saved source-listed options, local source provenance, match locks and actual Workshop captures.
+- [Spectrus Kill Team saved equipment](verification/spectrus-saved-equipment.md) — four source-listed option rows, role-specific saved equipment, source-bound attachment role, match locks and actual Workshop captures.
+- [Ravenwing saved equipment](verification/ravenwing-saved-equipment.md) — Black Knight and Command Squad source rows, per-three limits, copy tiers, saved-model materialization and actual Workshop captures.
 
 ## Documentation conventions
 
@@ -173,6 +302,3 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - Keep topic detail beside its owning category and prefer links over duplicating long explanations.
 - Mark historical or superseded work as such. Do not promote a historical experiment into current support without source review, implementation, tests, and updated status metadata.
 - Keep paths and links relative so they work in a clean clone.
-- [Invader ATVs sheet audit](marine-invader-atvs.md) · [machine-readable source/hash audit](marine-invader-atvs-audit.json) — source-bounded 11e local scope and verification.
-  - [Land Speeder sheet audit](marine-land-speeder.md) · [machine-readable source/hash audit](marine-land-speeder-audit.json) — source-bounded 11e local scope and verification.
-  - [Outrider Squad sheet audit](marine-outrider-squad.md) · [machine-readable source/hash audit](marine-outrider-squad-audit.json) · [Land Raider](marine-land-raider.md) · [Land Raider audit](marine-land-raider-audit.json) · [Land Raider Crusader](marine-land-raider-crusader.md) · [Crusader audit](marine-land-raider-crusader-audit.json) · [Land Raider Redeemer](marine-land-raider-redeemer.md) · [Redeemer audit](marine-land-raider-redeemer-audit.json) · [Repulsor](marine-repulsor.md) · [Repulsor audit](marine-repulsor-audit.json) · [Repulsor Executioner](marine-repulsor-executioner.md) · [Executioner audit](marine-repulsor-executioner-audit.json) · [Rhino](marine-rhino.md) · [Rhino audit](marine-rhino-audit.json) · [Impulsor sheet audit](marine-impulsor.md) · [Impulsor machine audit](marine-impulsor-audit.json) — source-bounded 11e local scope and verification.

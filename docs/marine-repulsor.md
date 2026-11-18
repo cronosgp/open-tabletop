@@ -13,3 +13,7 @@ This closes the shared-book 11th-edition local datasheet scope for [Repulsor](ht
 ## Limits
 
 The source and runtime both specify a 100 mm circular base, so this profile uses the matching circle. The three-copy catalog ceiling is a local construction limit, not a full army-legality claim. Chapter-book content, full army legality, network behavior, complete-match certification and human playtesting remain outside this scope; network validation is deferred to final integration.
+
+## Saved army equipment - 14 November 2026
+
+Equipment options now save per stable vehicle copy in the Army Workshop, pass canonical source-price validation and materialize before Deployment. Frozen saved choices cannot be reconfigured during readiness. Source-book, event, geometry and ability boundaries above remain. See [reviewed source options, exact tests and actual Godot captures](verification/transport-saved-equipment.md).

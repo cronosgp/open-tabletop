@@ -37,8 +37,19 @@ func _initialize() -> void:
 	accessory.visual_category = "ignored"
 	check(Matcher.variants(definition, [accessory]).is_empty(), "Ignored accessories never become automatic miniature choices")
 	check(Matcher.equipment_visual_score(entry, definition, unit) == 20, "Physical weapons match across fire modes and the bounded Astartes launcher visual alias")
+	var exact_assessment := Matcher.equipment_visual_assessment(entry, definition, unit)
+	check(exact_assessment.confidence == "strong" and is_equal_approx(float(exact_assessment.coverage), 1.0)
+		and exact_assessment.matched_weapons.size() == 2 and exact_assessment.configured_weapons.size() == 2,
+		"Strong appearance evidence means local weapon metadata covers every saved physical weapon")
+	var partial_entry := entry.duplicate(true)
+	partial_entry.visual_weapons = ["bolt-rifle"]
+	var partial_assessment := Matcher.equipment_visual_assessment(partial_entry, definition, unit)
+	check(partial_assessment.confidence == "partial" and is_equal_approx(float(partial_assessment.coverage), 0.5)
+		and Matcher.equipment_visual_score(partial_entry, definition, unit) == 10,
+		"Partial evidence reports saved weapon coverage while preserving the existing resolver ranking score")
 	unit.ranged_weapons = [rifle]
-	check(Matcher.equipment_visual_score(entry, definition, unit) == -1, "A launcher sculpt is not selected for a rifle-only loadout")
+	var conflict_assessment := Matcher.equipment_visual_assessment(entry, definition, unit)
+	check(conflict_assessment.confidence == "conflict" and Matcher.equipment_visual_score(entry, definition, unit) == -1, "A launcher sculpt is not selected for a rifle-only loadout")
 	unit.ranged_weapons = [rifle, launcher]
 	var sgt := entry.duplicate(true)
 	sgt.visual_model_role = "sergeant"
@@ -58,7 +69,14 @@ func _initialize() -> void:
 	check(Matcher.equipment_visual_score(bolter_sculpt, bunker_definition, bunker) == -1, "A weapon alias cannot select the bolter sculpt for a flamer loadout")
 	var grimaldus := "40kdc:11e:adeptus-astartes:chaplain-grimaldus"
 	var companion := {"visual_definitions": [grimaldus], "visual_weapons": [], "visual_role_constraints": {grimaldus: {"status": "label_model_role", "roles": ["Cenobyte Servitor"]}}}
-	check(Matcher.equipment_visual_score(companion, grimaldus, {"definition_id": grimaldus, "chaplain_grimaldus_role": "cenobyte"}) > 0, "An unarmed companion can select its own source-model sculpt")
+	var companion_assessment := Matcher.equipment_visual_assessment(companion, grimaldus, {"definition_id": grimaldus, "chaplain_grimaldus_role": "cenobyte"})
+	check(companion_assessment.confidence == "role_only" and companion_assessment.role_match
+		and Matcher.equipment_visual_score(companion, grimaldus, {"definition_id": grimaldus, "chaplain_grimaldus_role": "cenobyte"}) > 0,
+		"An unarmed companion reports a role-only match and can select its own source-model sculpt")
+	var no_hints := {"visual_definitions": [grimaldus]}
+	var unverified_assessment := Matcher.equipment_visual_assessment(no_hints, grimaldus, {"definition_id": grimaldus})
+	check(unverified_assessment.confidence == "unverified" and unverified_assessment.score == 0,
+		"Candidates without weapon or model-role metadata remain unverified and keep the legacy neutral score")
 	check(Matcher.equipment_visual_score(companion, grimaldus, {"definition_id": grimaldus, "chaplain_grimaldus_role": "chaplain"}) == -1, "A companion never replaces the character in a mixed datasheet")
 	var unresolved := companion.duplicate(true)
 	unresolved.visual_role_constraints[grimaldus] = {"status": "ambiguous_model_role", "roles": ["Chaplain Grimaldus", "Cenobyte Servitor"]}
@@ -66,6 +84,24 @@ func _initialize() -> void:
 	var company := "40kdc:11e:adeptus-astartes:company-heroes"
 	check("Ancient" in Matcher.model_roles({"definition_id": company, "company_heroes_model": 0}), "Indexed runtime members resolve through the current profile's model loadouts")
 	check(Matcher.supported_definition("40kdc:11e:necrons:doomsday-ark"), "Current visual definitions do not depend on the historical starter pack")
+	var aggressor_definition := "40kdc:11e:adeptus-astartes:aggressor-squad"
+	var aggressor_base := {"name": "Flamestorm Gauntlets", "profiles": {"ranged": {"name": "Flamestorm Gauntlets – Ranged"}, "close_quarters": {"name": "Flamestorm Gauntlets – Close Quarters"}}}
+	var aggressor_flame := {"definition_id": aggressor_definition, "ranged_weapons": [aggressor_base], "melee_weapons": [], "sergeant": false}
+	var aggressor_visual := entry.duplicate(true)
+	aggressor_visual.visual_definitions = [aggressor_definition]
+	aggressor_visual.visual_weapons = ["flamestorm-gauntlets"]
+	aggressor_visual.visual_weapon_aliases = {}
+	var aggressor_boltstorm := {"definition_id": aggressor_definition, "ranged_weapons": [
+		{"name": "Auto Boltstorm Gauntlets", "profiles": {"standard": {"name": "Auto Boltstorm Gauntlets"}}},
+		{"name": "Fragstorm Grenade Launcher", "profiles": {"standard": {"name": "Fragstorm Grenade Launcher"}}}], "melee_weapons": [], "sergeant": false}
+	var aggressor_bolt_visual := aggressor_visual.duplicate(true)
+	aggressor_bolt_visual.visual_weapons = ["auto-boltstorm-gauntlets", "fragstorm-grenade-launcher"]
+	check(Matcher.supported_definition(aggressor_definition)
+		and Matcher.variants(aggressor_definition, [aggressor_visual]).size() == 1
+		and Matcher.equipment_visual_score(aggressor_visual, aggressor_definition, aggressor_flame) == 10
+		and Matcher.equipment_visual_score(aggressor_bolt_visual, aggressor_definition, aggressor_boltstorm) == 20
+		and Matcher.equipment_visual_score(aggressor_visual, aggressor_definition, aggressor_boltstorm) == -1,
+		"Aggressor miniature variants use reliable per-model weapon metadata and reject a conflicting physical package")
 	var panel := ImportPanel.new()
 	# Existing project-owned file stands in for an available cache file; no download.
 	panel.variant_mappings = {"gl": {"definition": definition, "source_group_hint": "Ultramarines", "entry": entry, "path": "res://project.godot"}}

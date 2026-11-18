@@ -22,3 +22,7 @@ The source gives the base/footprint as `Use model` without a dimension. The simu
 ## Verification
 
 The focused Rapier test checks export provenance, all characteristics and weapon profiles, both Quad Launcher modes, selectable wargear replacement, Legends construction labels, points and copy caps, Powerful Volley on stationary Heavy attacks, and its exclusions after movement, advance, fall back, set-up and melee. The current results are recorded in [verification results](verification/verification-results.md).
+
+## Army Workshop equipment — 14 November 2026
+
+Source-listed equipment can now be saved per stable model copy in the Army Workshop. Current local admission validates the selection; prepared matches apply it before Deployment and lock duplicate setup changes. This transfers existing source-bounded options, without changing the datasheet's other rules, costs, construction limits or geometry. Exact source identities, saved-equipment tests and actual Godot captures are in the [migration evidence](verification/character-artillery-saved-equipment.md).

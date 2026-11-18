@@ -30,3 +30,7 @@ Network validation remains deferred to final integration.
 ## Limits
 
 This closes only the shared-book Terminator Squad local datasheet scope. Chapter-specific variants and links, Forge World, Legends, full faction/army legality, Strike Force admission, network behavior, complete-match certification and human playtesting remain outside this result.
+
+## Saved model equipment — 14 November 2026
+
+Army Builder now saves these source-listed weapons per stable miniature/copy, enforcing role restrictions, special-weapon caps and paid options. Saved records apply before Deployment and are locked for that match; unsaved selections retain the existing preparation route. Source profiles, construction gates and combat/declaration handlers remain unchanged. See the [Terminator saved-equipment audit](verification/terminator-saved-equipment.md).

@@ -103,6 +103,7 @@ static func pending_decision(state: Dictionary) -> Dictionary:
 		elif window.kind == "after_charge_roll":
 			if window.get("bestial_fury", false): stratagems.append("bestial-fury")
 			if window.get("valour", false): stratagems.append("unstoppable-valour")
+			if window.get("relentless_combatants", false): stratagems.append("relentless-combatants")
 			if window.get("master_shadows", false): stratagems.append("master-shadows")
 			if window.get("lord_of_the_ravenwing", false): stratagems.append("lord-of-the-ravenwing")
 			if window.get("linebreaker_onslaught", false): stratagems.append("linebreaker-onslaught")
@@ -112,6 +113,7 @@ static func pending_decision(state: Dictionary) -> Dictionary:
 			for die_value: Variant in die_options:
 				var label := "%s · %s" % [stratagem, "all dice" if int(die_value) < 0 else "die %d" % (int(die_value) + 1)]
 				if stratagem == "linebreaker-onslaught": label = "Linebreaker Onslaught · re-roll both Charge dice"
+				elif stratagem == "relentless-combatants": label = "Relentless Combatants · re-roll both Charge dice"
 				elif stratagem == "overcharged-engines": label = "Overcharged Engines · re-roll the Advance"
 				elif stratagem == "bestial-fury": label = "Bestial Fury · re-roll the %s roll" % ("Advance" if window.kind == "after_advance_roll" else "Charge")
 				options.append(_decision_option(label, squad, stratagem, int(die_value)))
@@ -164,7 +166,7 @@ static func choice_error(state: Dictionary, player: int, squad: int, revision: i
 		if state.phase != "charge" or int(window.get("squad", -1)) != squad or window.get("current_result", {}).is_empty(): return "This Deathwatch Terminatus Assault Battle-shock result is no longer pending."
 	elif window.kind in ["after_advance_roll", "after_charge_roll"]:
 		if squad != window.squad: return "This roll belongs to another unit or ability."
-		if window.kind == "after_charge_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("valour", false) or window.get("master_shadows", false) or window.get("lord_of_the_ravenwing", false) or window.get("linebreaker_onslaught", false) or window.get("deathwatch_terminatus_assault", false) or window.get("bestial_fury", false)): return "This roll belongs to another unit or ability."
+		if window.kind == "after_charge_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("valour", false) or window.get("relentless_combatants", false) or window.get("master_shadows", false) or window.get("lord_of_the_ravenwing", false) or window.get("linebreaker_onslaught", false) or window.get("deathwatch_terminatus_assault", false) or window.get("bestial_fury", false)): return "This roll belongs to another unit or ability."
 		if window.kind == "after_charge_roll" and window.get("lord_of_the_ravenwing", false) and not StormlanceEnhancements.lord_of_the_ravenwing_active(state, squad): return "Lord of the Ravenwing is no longer active for this Charge."
 		if window.kind == "after_charge_roll" and window.get("linebreaker_onslaught", false) and not StormlanceEnhancements.linebreaker_onslaught_active(state, squad): return "Linebreaker Onslaught is no longer active for this Charge."
 		if window.kind == "after_advance_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("overcharged_engines", false) or window.get("sudden", false) or window.get("supercharged", false) or window.get("honour_vigilance", false) or window.get("wrath_chapter", false) or window.get("stormseers_wisdom", false) or window.get("righteous_fervour", false) or window.get("bestial_fury", false)): return "This roll belongs to another unit or ability."

@@ -1,6 +1,6 @@
 extends RefCounted
-## Locally transcribed Necrons App v1.2 facts for the remaining 19 core sheets.
-## These source records remain excluded until their abilities, loadouts, options and interactions pass focused checks.
+## Locally transcribed Necrons App v1.2 facts for expanded core sheets.
+## Each source record remains excluded until its abilities, loadouts, options and interactions pass focused checks.
 const SNAPSHOT_ID := "20261031T053336Z"
 const SOURCE_BOOK_ID := "000000029"
 const SOURCE_BOOK_VERSION := "1.2"
@@ -421,25 +421,17 @@ const SOURCE_PROFILE_DATA := {
 			{
 				"source_line": 1,
 				"description": "This model’s gauss cannon can be replaced with 1 tesla cannon.",
-				"implemented": false
+				"implemented": true
 			}
 		],
 		"source_damaged_wounds": "",
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-1"],
-		"unsupported_abilities": [
-			"Malevolent Arcing"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-1", "malevolent-arcing"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"ctan-shard-of-the-deceiver": {
 		"name": "C’tan Shard of the Deceiver",
@@ -791,18 +783,10 @@ const SOURCE_PROFILE_DATA := {
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6", "deep-strike", "feel-no-pain-5", "stealth", "necrodermis", "enslaved-star-god"],
-		"unsupported_abilities": [
-			"Grand Illusion"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending",
+		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6", "deep-strike", "feel-no-pain-5", "stealth", "necrodermis", "enslaved-star-god", "grand-illusion"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12",
 		"max_supported_copies": 1
 	},
 	"ctan-shard-of-the-nightbringer": {
@@ -1162,18 +1146,10 @@ const SOURCE_PROFILE_DATA := {
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6", "deep-strike", "feel-no-pain-5", "necrodermis", "enslaved-star-god"],
-		"unsupported_abilities": [
-			"Drain Life"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending",
+		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6", "deep-strike", "feel-no-pain-5", "necrodermis", "enslaved-star-god", "drain-life"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12",
 		"max_supported_copies": 1
 	},
 	"ctan-shard-of-the-void-dragon": {
@@ -1629,18 +1605,10 @@ const SOURCE_PROFILE_DATA := {
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6", "deep-strike", "feel-no-pain-5", "necrodermis", "enslaved-star-god"],
-		"unsupported_abilities": [
-			"Matter Absorption"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending",
+		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6", "deep-strike", "feel-no-pain-5", "necrodermis", "enslaved-star-god", "matter-absorption"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12",
 		"max_supported_copies": 1
 	},
 	"canoptek-macrocytes": {
@@ -2054,37 +2022,27 @@ const SOURCE_PROFILE_DATA := {
 			{
 				"source_line": 1,
 				"description": "All models in this unit can each have their gauss scalpel replaced with 1 tesla caster.",
-				"implemented": false
+				"implemented": true
 			},
 			{
 				"source_line": 2,
 				"description": "1 model’s gauss scalpel or tesla caster can be replaced with 1 atomiser beam and 1 nanoscarab projector.",
-				"implemented": false
+				"implemented": true
 			},
 			{
 				"source_line": 3,
 				"description": "1 model’s gauss scalpel or tesla caster can be replaced with 1 accelerator mandible.",
-				"implemented": false
+				"implemented": true
 			}
 		],
 		"source_damaged_wounds": "",
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols", "scouts-8"],
-		"unsupported_abilities": [
-			"Harassment Swarm (Aura)",
-			"Accelerator Mandible",
-			"Nanoscarab Projector"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["reanimation-protocols", "scouts-8", "harassment-swarm", "accelerator-mandible", "nanoscarab-projector"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"canoptek-spyders": {
 		"name": "Canoptek Spyders",
@@ -2411,37 +2369,27 @@ const SOURCE_PROFILE_DATA := {
 			{
 				"source_line": 1,
 				"description": "Any number of models can each be equipped with 2 particle beamers.",
-				"implemented": false
+				"implemented": true
 			},
 			{
 				"source_line": 2,
 				"description": "Any number of models can each be equipped with 1 fabricator claw array.",
-				"implemented": false
+				"implemented": true
 			},
 			{
 				"source_line": 3,
 				"description": "Any number of models can each be equipped with 1 gloom prism.",
-				"implemented": false
+				"implemented": true
 			}
 		],
 		"source_damaged_wounds": "",
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-1"],
-		"unsupported_abilities": [
-			"Fabricator Claw Array (Aura)",
-			"Gloom Prism (Aura)",
-			"Canoptek Swarm"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-1", "fabricator-claw-array", "gloom-prism", "canoptek-swarm"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"canoptek-tomb-crawlers": {
 		"name": "Canoptek Tomb Crawlers",
@@ -2779,26 +2727,17 @@ const SOURCE_PROFILE_DATA := {
 			{
 				"source_line": 1,
 				"description": "1 model’s twin gauss reaper can be replaced with 1 transdimensional isolator.",
-				"implemented": false
+						"implemented": true
 			}
 		],
 		"source_damaged_wounds": "",
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols"],
-		"unsupported_abilities": [
-			"Weapon Sentinels",
-			"CANOPTEK RETINUE"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["reanimation-protocols", "weapon-sentinels", "canoptek-retinue"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"doom-scythe": {
 		"name": "Doom Scythe",
@@ -2919,7 +2858,7 @@ const SOURCE_PROFILE_DATA := {
 						"ap": -4,
 						"damage": "D6+1",
 						"keywords": {
-							"sustained-hits": "d3"
+							"sustained-hits": "D3"
 						}
 					}
 				}
@@ -3059,7 +2998,7 @@ const SOURCE_PROFILE_DATA := {
 							"ap": -4,
 							"damage": "D6+1",
 							"keywords": {
-								"sustained-hits": "d3"
+								"sustained-hits": "D3"
 							}
 						}
 					},
@@ -3146,18 +3085,10 @@ const SOURCE_PROFILE_DATA := {
 		"source_damaged_description": "While this model has 1-4 wounds remaining, each time this model makes an attack, subtract 1 from the Hit roll.",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d3"],
-		"unsupported_abilities": [
-			"Atavistic Instigation"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d3", "damaged-4", "atavistic-instigation"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"convergence-of-dominion": {
 		"name": "Convergence Of Dominion",
@@ -3440,19 +3371,10 @@ const SOURCE_PROFILE_DATA := {
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols"],
-		"unsupported_abilities": [
-			"Reanimation Nodes (Aura)",
-			"Ancient Cover",
-			"Fortification",
-			"DEPLOYMENT"
-		],
+		"supported_rule_ids": ["reanimation-protocols", "reanimation-nodes", "ancient-cover", "convergence-fortification", "convergence-deployment"],
+		"unsupported_abilities": [],
 		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
+			"resolve the 1-model deployment wording and whole-model 12-inch placement with the source Use model footprint"
 		],
 		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
 	},
@@ -3747,20 +3669,10 @@ const SOURCE_PROFILE_DATA := {
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols"],
-		"unsupported_abilities": [
-			"Bound Creation",
-			"Systematic Vigour",
-			"CRYPTEK RETINUE"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["reanimation-protocols", "bound-creation", "systematic-vigour", "cryptek-retinue"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"geomancer": {
 		"name": "Geomancer",
@@ -5017,6 +4929,14 @@ const SOURCE_PROFILE_DATA := {
 		"points_by_models": {
 			1: 280
 		},
+		"second_plus_points_by_models": {
+			1: 310
+		},
+		"source_repeat_copy_costs": {
+			"2ND+": {
+				1: 310
+			}
+		},
 		"construction_model_sizes": [
 			1
 		],
@@ -5296,18 +5216,10 @@ const SOURCE_PROFILE_DATA := {
 		"source_damaged_description": "While this model has 1-8 wounds remaining, subtract 4 from its Objective Control characteristic and each time this model makes an attack, subtract 1 from the Hit roll.",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6", "deep-strike"],
-		"unsupported_abilities": [
-			"Gravitic Pulse"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6", "deep-strike", "gravitic-pulse", "damaged-8"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"overlord-with-translocation-shroud": {
 		"name": "Overlord with translocation shroud",
@@ -7154,6 +7066,12 @@ const SOURCE_PROFILE_DATA := {
 		"points_by_models": {
 			1: 340
 		},
+		"second_plus_points_by_models": {
+			1: 360
+		},
+		"source_repeat_copy_costs": {
+			"2ND+": {1: 360}
+		},
 		"construction_model_sizes": [
 			1
 		],
@@ -7460,14 +7378,8 @@ const SOURCE_PROFILE_DATA := {
 		"source_unmapped_weapon_traits": [],
 		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6", "deep-strike", "feel-no-pain-5", "necrodermis", "enslaved-star-god", "ctan-shard", "transdimensional-displacement"],
 		"unsupported_abilities": [],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	}
 }
 

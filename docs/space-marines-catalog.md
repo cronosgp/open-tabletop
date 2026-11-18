@@ -113,14 +113,14 @@ Current marksmen expansion, 18 October 2026: [Eliminator Squad](space-marines-pr
 
 **Structured ingestion delivered (18 October 2026):** [Wahapedia snapshot importer and actual results](wahapedia-import.md). The 22-table capture resolves 85 shared-book identities within 193 Marine faction records, retaining chapter/Legends/source boundaries. The global snapshot has 68 structural errors and is audit-only. Six runtime profiles have no numeric differences under the implemented comparison; this is not complete datasheet certification. Older OpenHammer counts below remain historical discovery evidence.
 
-**Current source policy (18 October 2026):** [Wahapedia e11 is definitive](rules-source-policy.md). Its CSV export is the preferred ingestion source; OpenHammer is discovery only. Earlier requirements below for separate official Codex/app locators are historical and no longer gate admission. Pending implementation, edition/source boundaries and interaction checks still apply.
+**Current source policy (18 October 2026):** [Wahapedia e11 is definitive](data/source-assessment.md). Its CSV export is the preferred ingestion source; OpenHammer is discovery only. Earlier requirements below for separate official Codex/app locators are historical and no longer gate admission. Pending implementation, edition/source boundaries and interaction checks still apply.
 
 **Status:** source inventory and incremental rules implementation are active. Current admitted counts and validation scope are summarized at the top of this document; inventory completeness and full faction/army certification remain pending.
 
 **Sanguinary Guard increment (28 October 2026):** its source-priced 3/6-model profile, per-three-model Inferno Pistol replacement, Captain With Jump Pack target, Deep Strike, Combat Doctrines and two defensive abilities passed focused offline checks. This brings Chapter runtime profiles to 42, with 34 Chapter sheets still without runtime profiles; the [coverage matrix](space-marines-coverage.md#chapter-book-expansion-status) and [sheet audit](marine-sanguinary-guard.md) record scope and limitations.
 
-**Rules target:** Warhammer 40,000 11th edition as published by Wahapedia, using the project's local `/wh40k11ed/` extraction as the single source of truth. See [rules-source policy](rules-source-policy.md).
-**Historical-policy note:** older inventory text below may mention official Codex/app locators or live MFM confirmation as admission gates. Those gates are superseded by the 18 October decision recorded in [the current source policy](rules-source-policy.md); the local Wahapedia e11 extraction is the sole rules authority.
+**Rules target:** Warhammer 40,000 11th edition as published by Wahapedia, using the project's local `/wh40k11ed/` extraction as the single source of truth. See [rules-source policy](data/source-assessment.md).
+**Historical-policy note:** older inventory text below may mention official Codex/app locators or live MFM confirmation as admission gates. Those gates are superseded by the 18 October decision recorded in [the current source policy](data/source-assessment.md); the local Wahapedia e11 extraction is the sole rules authority.
 
 **Last source check:** 28 October 2026.
 
@@ -186,7 +186,7 @@ Direct read-only calls to `/v1/11e/stats` and `/v1/11e/units?faction=Space%20Mar
 
 The 16 October cache has these Astartes-labeled faction buckets. Chapter buckets may overlap the shared catalog by unit name or represent chapter-specific datasheets; do not add them into a unique-unit total without an ID/source reconciliation.
 
-For offline work, `tools/index_openhammer_candidates.py` writes an ignored local identity index from this cache, preserving provider IDs and marking every row unplayable. It intentionally does not fill missing stats, weapons, or abilities. The index is a work queue only; refresh the army-builder cache or run the full importer before using it as a current provider snapshot.
+For offline work, the former `tools/index_openhammer_candidates.py` (removed 17 November 2026; superseded by the consolidated local runtime catalog and the verified Wahapedia export pipeline) once wrote an ignored local identity index from this cache, preserving provider IDs and marking every row unplayable. The OpenHammer discovery workflow it served is retired: current catalog work uses only the verified local Wahapedia 11e snapshots and `scripts/implemented_army_catalog.gd`.
 
 | OpenHammer faction bucket | Cached records (16 Oct) |
 |---|---:|

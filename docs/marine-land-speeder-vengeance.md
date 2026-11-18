@@ -36,3 +36,9 @@ Verified local snapshot `20261021T130623Z`, retrieved 21 October 2026 at `2026-1
 `python tools/verify.py --godot C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_land_speeder_vengeance --timeout 300` passed **3/3 processes** at `.tools/verification/20261028T085143396826Z/results.json` (SHA-256 `cafc7aec5a07dd9bc4f02143ffd31e58b71dea6fa91b8861a9cb4ac65d2abe2d`; `network: false`, `legacy_starter_staged: false`, no cleanup diagnostics).
 
 The focused checks exposed and fixed two runtime issues: Dark Angels keywords were unavailable after the last model in a unit was destroyed, and the Nightforged Attack reroll did not enter the serialized attack-allocation path. Network validation, full Chapter roster restrictions and broader army legality remain open.
+
+## Army Builder equipment
+
+Each Land Speeder Vengeance copy can save its Heavy Bolter or source-listed Assault Cannon against the stable model ID. Current local admission preserves unlike copy configurations, applies the exact weapon profile before Deployment and locks the duplicate Army Preparation choice in saved-list matches. Appearance hints compare local equipment labels only.
+
+The focused offline Army Builder regression passed **3/3 processes** on 13 November 2026. It covers copy separation, stable model mapping, saved profile materialization, setup suppression, forced-change rejection and equipment-hint rationale. The actual 1280×800 Workshop capture is `.tools/visual-review/army_builder_land_speeder_vengeance_capture.png`; the preview uses the local fallback and does not certify a matching Assault Cannon sculpt. See the [verification record](verification/verification-results.md). Full army legality, cross-machine LAN and exact sculpt parity remain open.

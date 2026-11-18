@@ -30,3 +30,7 @@ The Relic Razorback export spells the ability name `Fire Supprt`. The runtime no
 The dedicated offline test checks both source identities and all eight CSV hashes, all source weapon profiles and choices, preparation loadouts, points, list admission, four/six copy caps, transport capacity and exclusions, actual embark/disembark origin, eligible Fire Support targets and optional wound re-roll selection. The connected batch also runs the catalog and transport regressions. Exact commands, process counts and artifact hashes are recorded in the machine audit and the [verification history](verification/verification-results.md).
 
 This closes the two sheets' declared local source and rules scope. It does not certify a complete army, every cross-datasheet interaction, the exact hull footprint, live network or event-pack equality, tournament acceptance, remote play or human playtesting. Legends status and the footprint proxy remain visible to the player.
+
+## Saved army equipment - 14 November 2026
+
+Equipment options now save per stable vehicle copy in the Army Workshop, pass canonical source-price validation and materialize before Deployment. Frozen saved choices cannot be reconfigured during readiness. Source-book, event, geometry and ability boundaries above remain. See [reviewed source options, exact tests and actual Godot captures](verification/transport-saved-equipment.md).

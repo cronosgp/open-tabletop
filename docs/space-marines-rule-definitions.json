@@ -2,7 +2,7 @@
   "current_source_policy": {
     "id": "wahapedia-e11-definitive-data-and-rules-2026-10-20",
     "superseded_policy_id": "wahapedia-e11-gw-cross-check-required-2026-10-20",
-    "document": "rules-source-policy.md",
+    "document": "data/source-assessment.md",
     "authority": "Wahapedia /wh40k11ed/",
     "official_gw_confirmation_required": false,
     "previous_official_gw_confirmation_required": true,

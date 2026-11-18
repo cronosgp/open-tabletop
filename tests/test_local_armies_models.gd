@@ -5,17 +5,26 @@ const Matcher = preload("res://scripts/forceorg_matcher.gd")
 const Assets = preload("res://scripts/local_models.gd")
 const ImportPanel = preload("res://scripts/model_import_panel.gd")
 const Profiles = preload("res://scripts/army_profiles.gd")
+const VisualResolver = preload("res://scripts/visual_resolver.gd")
 var failures := 0
 var DIR := "res://.tools/local-armies-models-%d" % OS.get_process_id()
 func check(ok: bool, message: String) -> void:
 	if not ok:
 		push_error(message)
 		failures += 1
+
+func first_mesh_instance(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D: return node
+	for child: Node in node.get_children():
+		var found := first_mesh_instance(child)
+		if found != null: return found
+	return null
 func write(path: String, content: String) -> void:
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(content)
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
+	_test_visual_resolver()
 	DirAccess.make_dir_recursive_absolute(DIR)
 	var presets := Training.presets()
 	check(presets.size() == 3 and presets[0].id == "reference:core-v2:Space Marines", "The original reference remains first beside two tactical training forces")
@@ -114,10 +123,16 @@ func run() -> void:
 	panel.catalog = Assets.scan(source)
 	check(panel.variants_for(definition).size() == 1, "Army editor can browse compatible imported miniature variants")
 	panel.download_variants_for(definition)
+	for frame in range(8): await process_frame
 	check(panel.variant_mappings.size() == 1 and panel.variants_for(definition)[0].ready, "One action links compatible model variants from the local cache")
 	var variant_visual: Node3D = panel.visual_variant_for(panel.variants_for(definition)[0].variant_id)
-	check(variant_visual != null, "Downloaded variant renders from its local files")
+	var second_variant_visual: Node3D = panel.visual_variant_for(panel.variants_for(definition)[0].variant_id)
+	var first_variant_mesh := first_mesh_instance(variant_visual) if variant_visual != null else null
+	var second_variant_mesh := first_mesh_instance(second_variant_visual) if second_variant_visual != null else null
+	check(variant_visual != null and second_variant_visual != null, "Downloaded variant creates a separate visual instance for each miniature")
+	check(first_variant_mesh != null and second_variant_mesh != null and first_variant_mesh.mesh == second_variant_mesh.mesh and first_variant_mesh != second_variant_mesh, "Separate miniature instances reuse the same cached mesh resource without sharing scene state")
 	if variant_visual != null: variant_visual.free()
+	if second_variant_visual != null: second_variant_visual.free()
 	var family_variant_id := str(panel.variants_for(definition)[0].variant_id)
 	var old_family_catalog: Dictionary = panel.catalog.duplicate(true)
 	var old_family_variant_mappings: Dictionary = panel.variant_mappings.duplicate(true)
@@ -247,6 +262,13 @@ func run() -> void:
 		game.model_imports.variant_mappings.erase("0-broken-generic-launcher")
 		game.state.units[grenadier_id].ranged_weapons = original_weapons
 		check(game._local_visual_variant(grenadier_id) == "test-unit-appearance", "A missing equipped weapon restores the available shared model")
+		var repaired_manual_identity := "test-repaired-manual-appearance"
+		ArmyRoster.set_model_visual_override(owner_army.entries[0], appearance_index, 1, repaired_manual_identity)
+		game._sync_local_model_visual(grenadier_id, appearance_index)
+		var fallback_before_repair := str(game.pieces[grenadier_id].get_meta("local_visual_resolved", ""))
+		game.model_imports.variant_mappings[repaired_manual_identity] = family_base.duplicate(true)
+		game._sync_local_model_visual(grenadier_id, appearance_index)
+		check(fallback_before_repair == "test-unit-appearance" and game.pieces[grenadier_id].get_meta("local_visual_resolved", "") == repaired_manual_identity and game.pieces[grenadier_id].get_meta("local_visual_source", "") == "manual_override", "A repaired saved appearance replaces its fallback when local readiness changes without changing its stable identity")
 	var presentation_list: Dictionary = game._picked_army(1)
 	for army_entry: Dictionary in presentation_list.entries:
 		army_entry.visual_variants = []
@@ -285,10 +307,72 @@ func run() -> void:
 	panel._finish_automatic_item({"error": "", "mesh": DIR.path_join("invalid.obj"), "texture": ""})
 	for frame in range(3): await process_frame
 	check(not panel.mappings.has("invalid:unit") and panel.mappings[definition] == mapping, "HTTP success with invalid OBJ cannot create a visual link")
+	var corrupt_variant_path := DIR.path_join("corrupt-variant.obj")
+	write(corrupt_variant_path, "<html>cached but corrupt</html>")
+	var retry_entry := {"name": "Primaris Intercessor", "path": "ObjectStates/2", "guid": "retry-fixture", "kind": "CustomMesh", "references": {"MeshURL": "not-a-valid-https-url"}}
+	var retry_options := Matcher.variants(definition, [retry_entry])
+	check(retry_options.size() == 1, "Retry fixture exposes one selectable compatible visual")
+	if not retry_options.is_empty():
+		var retry_identity := str(retry_options[0].get("variant_id", ""))
+		var corrupt_mapping := {"definition": definition, "definitions": [definition], "path": corrupt_variant_path, "texture": "", "fingerprint": "expected-corrupt-mesh", "entry": retry_options[0].duplicate(true)}
+		panel.variant_mappings[retry_identity] = corrupt_mapping.duplicate(true)
+		panel.variant_cache.erase(retry_identity)
+		check(panel.visual_variant_for(retry_identity) == null and panel.variant_failure_status_by_id.has(retry_identity), "A corrupt saved visual is rejected and recorded for retry")
+		panel.catalog = {"entries": [retry_entry]}
+		panel.download_variants_for(definition, retry_identity)
+		check(bool(panel.variant_current.get("force_refresh", false)) and not panel.variant_cache.has(retry_identity), "Choosing the failed visual bypasses the corrupt local cache and queues a forced refresh")
+		for frame in range(4): await process_frame
+		check(panel.variant_mappings.get(retry_identity, {}) == corrupt_mapping and panel.variant_failure_status_by_id.has(retry_identity), "A failed offline retry keeps the saved visual assignment and reports the actionable URL error")
 	var verified := {"name": "necron warrior reaper / component 1", "kind": "CustomMesh", "path": "ObjectStates/0/ChildObjects/0", "references": {"MeshURL": Matcher.VERIFIED_NECRON_BODY}}
 	check(Matcher.choose(Training.definition("Necrons").unit.id, [verified]).error.is_empty(), "The previously verified Necron body can render over the board base")
 	print("Local armies and automatic models: %d failures" % failures)
 	panel.free()
 	restored.free()
+	game.queue_free()
 	for frame in range(3): await process_frame
 	quit(0 if failures == 0 else 1)
+
+func _test_visual_resolver() -> void:
+	var available := {"manual-ready": true, "equipment-ready": true, "unit-ready": true}
+	var calls: Array[String] = []
+	var probe := func(identity: String) -> Node3D:
+		calls.append(identity)
+		return Node3D.new() if bool(available.get(identity, false)) else null
+	var equipment: Array[String] = ["equipment-ready"]
+	var automatic: Array[String] = ["automatic-missing"]
+	var unavailable_manual := VisualResolver.resolve("manual-missing", equipment, "unit-ready", "", automatic, probe)
+	check(unavailable_manual.get("source", "") == "equipment_match" and unavailable_manual.get("variant_id", "") == "equipment-ready", "An unavailable manual sculpt falls through to a loadout-matched local variant")
+	check(unavailable_manual.get("warnings", []).size() == 1 and unavailable_manual.get("availability", "") == "ready", "The resolver preserves an actionable warning when the saved manual choice is unavailable")
+	if unavailable_manual.get("visual") is Node3D: unavailable_manual.visual.free()
+	calls.clear()
+	var manual := VisualResolver.resolve("manual-ready", equipment, "unit-ready", "", automatic, probe)
+	check(manual.get("source", "") == "manual_override" and calls == ["manual-ready"], "A ready per-model appearance override is the highest-priority visual choice")
+	if manual.get("visual") is Node3D: manual.visual.free()
+	var stateful_calls: Array[String] = []
+	var stateful_probe := func(identity: String) -> Dictionary:
+		stateful_calls.append(identity)
+		if identity == "manual-pending": return {"ready": false, "availability": "downloading", "reason": "The appearance transfer is in progress."}
+		if identity == "equipment-failed": return {"ready": false, "availability": "conversion_failed", "reason": "The cached mesh failed validation."}
+		return {"ready": true, "availability": "ready", "visual": Node3D.new()}
+	var recovered := VisualResolver.resolve("manual-pending", ["equipment-failed"], "unit-ready", "", [], stateful_probe)
+	check(recovered.get("source", "") == "unit_appearance" and stateful_calls == ["manual-pending", "equipment-failed", "unit-ready"], "A loading manual visual and failed equipment sculpt fall through in deterministic priority order")
+	check(recovered.get("attempts", []).size() == 3 and recovered.attempts[0].availability == "downloading" and recovered.attempts[1].availability == "conversion_failed", "The resolver retains per-candidate download and conversion states when a fallback renders")
+	check(recovered.get("warnings", []).size() == 1 and "downloading" in recovered.warnings[0] and "transfer is in progress" in recovered.warnings[0], "An unavailable saved choice reports its real state and recovery reason")
+	if recovered.get("visual") is Node3D: recovered.visual.free()
+	available["default-unit"] = true
+	calls.clear()
+	var defaulted := VisualResolver.resolve("", [], "", "", ["automatic-missing"], probe, "default-unit", probe)
+	check(defaulted.get("source", "") == "datasheet_default" and defaulted.get("variant_id", "") == "default-unit" and calls == ["automatic-missing", "default-unit"], "The saved datasheet miniature is the traced final local fallback before the built-in sculpt")
+	if defaulted.get("visual") is Node3D: defaulted.visual.free()
+	var failed_probe := func(_identity: String) -> Dictionary:
+		return {"ready": false, "availability": "conversion_failed", "reason": "The replacement asset could not be parsed."}
+	var failed_visual := VisualResolver.resolve("manual-failed", [], "", "", [], failed_probe)
+	check(failed_visual.get("source", "") == "built_in" and failed_visual.get("fallback", "") == "built_in" and failed_visual.get("availability", "") == "placeholder" and failed_visual.get("blocking_availability", "") == "conversion_failed", "A built-in miniature remains visible while the saved appearance failure state is preserved")
+	check(failed_visual.get("attempts", []).size() == 1 and "replacement asset could not be parsed" in failed_visual.warnings[0], "A missing appearance exposes actionable failure detail alongside its fallback")
+	var pending_probe := func(_identity: String) -> Dictionary:
+		return {"ready": false, "availability": "download_pending", "reason": "Preparation is queued."}
+	var pending_visual := VisualResolver.resolve("", [], "unit-pending", "", [], pending_probe)
+	check(pending_visual.get("attempts", []).size() == 1 and pending_visual.attempts[0].availability == "download_pending" and "download pending" in pending_visual.warnings[0], "A queued saved appearance retains its distinct pending state and explanation")
+	available.clear()
+	var placeholder := VisualResolver.resolve("", equipment, "unit-missing", "palette-missing", automatic, probe)
+	check(placeholder.get("source", "") == "built_in" and placeholder.get("availability", "") == "placeholder" and placeholder.get("visual") == null and placeholder.attempts[0].availability == "missing", "No available visual resolves to a visible built-in fallback while preserving the missing candidate state")

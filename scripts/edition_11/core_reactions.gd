@@ -32,6 +32,7 @@ const PHOBOS_MORTIS_SNARES_MORTAL := "phobos-shadow-mortis-mortal"
 const STASIS_BOMB_MORTAL := "ravenwing-stasis-bomb-mortal"
 const HIGH_MARSHAL_MORTAL := "black-templars-high-marshal-mortal"
 const SCARAB_SELF_DESTRUCTION_MORTAL := "necron-scarab-self-destruction-mortal"
+const GRAVITIC_PULSE_MORTAL := "gravitic-pulse-mortal"
 const DEATH_VISIONS_MORTAL := "blood-angels-death-visions-mortal"
 const CORVUS_CLUSTER_MORTAL := "corvus-blackstar-cluster-launcher-mortal"
 const BRUTALIS_CHARGE := "brutalis-charge"
@@ -391,7 +392,7 @@ static func mortal_allocations(s: Dictionary, player: int, kind: String) -> Arra
 		var expected_target := int(record.get("target", -1))
 		if int(record.get("owner", -1)) != player or int(window.get("target", -1)) != expected_target: return []
 		if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
-	if kind == HIGH_MARSHAL_MORTAL or kind == SCARAB_SELF_DESTRUCTION_MORTAL:
+	if kind == HIGH_MARSHAL_MORTAL or kind == SCARAB_SELF_DESTRUCTION_MORTAL or kind == GRAVITIC_PULSE_MORTAL:
 		var expected_target := int(record.get("target", -1))
 		if int(record.get("owner", -1)) != player or int(window.get("target", -1)) != expected_target: return []
 		if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
@@ -444,7 +445,7 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 			record.discarded = record.remaining
 			record.remaining = 0
 			record.stage = "complete"
-			s.unit_abilities.window = window.get("resume_window", {}) if kind in [PHOBOS_MORTIS_SNARES_MORTAL, STASIS_BOMB_MORTAL, HIGH_MARSHAL_MORTAL, SCARAB_SELF_DESTRUCTION_MORTAL, DEATH_VISIONS_MORTAL, CORVUS_CLUSTER_MORTAL] else {}
+			s.unit_abilities.window = window.get("resume_window", {}) if kind in [PHOBOS_MORTIS_SNARES_MORTAL, STASIS_BOMB_MORTAL, HIGH_MARSHAL_MORTAL, SCARAB_SELF_DESTRUCTION_MORTAL, GRAVITIC_PULSE_MORTAL, DEATH_VISIONS_MORTAL, CORVUS_CLUSTER_MORTAL] else {}
 	if kind == EXPLOSIVES: s.last_explosives = record
 	elif kind == "incursor-haywire-mortal": s.last_incursor_haywire_mine = record
 	elif kind == CRUSHING_MORTAL: s.last_crushing_impact = record
@@ -455,6 +456,7 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 	elif kind == STASIS_BOMB_MORTAL: s.last_stasis_bomb = record
 	elif kind == HIGH_MARSHAL_MORTAL: s.last_high_marshal = record
 	elif kind == SCARAB_SELF_DESTRUCTION_MORTAL: s.last_scarab_self_destruction = record
+	elif kind == GRAVITIC_PULSE_MORTAL: s.last_gravitic_pulse = record
 	elif kind == DEATH_VISIONS_MORTAL: s.last_death_visions = record
 	elif kind == CORVUS_CLUSTER_MORTAL: s.last_corvus_cluster_launcher = record
 	else: s.last_hammer_of_wrath = record
@@ -482,6 +484,7 @@ static func _mortal_record(s: Dictionary, kind: String) -> Dictionary:
 		STASIS_BOMB_MORTAL: return s.get("last_stasis_bomb", {})
 		HIGH_MARSHAL_MORTAL: return s.get("last_high_marshal", {})
 		SCARAB_SELF_DESTRUCTION_MORTAL: return s.get("last_scarab_self_destruction", {})
+		GRAVITIC_PULSE_MORTAL: return s.get("last_gravitic_pulse", {})
 		DEATH_VISIONS_MORTAL: return s.get("last_death_visions", {})
 		CORVUS_CLUSTER_MORTAL: return s.get("last_corvus_cluster_launcher", {})
 	return {}
@@ -497,6 +500,7 @@ static func _mortal_name(kind: String) -> String:
 	if kind == STASIS_BOMB_MORTAL: return "Stasis Bomb"
 	if kind == HIGH_MARSHAL_MORTAL: return "High Marshal"
 	if kind == SCARAB_SELF_DESTRUCTION_MORTAL: return "Self-destruction"
+	if kind == GRAVITIC_PULSE_MORTAL: return "Gravitic Pulse"
 	if kind == DEATH_VISIONS_MORTAL: return "Death Visions of Sanguinius"
 	if kind == CORVUS_CLUSTER_MORTAL: return "Blackstar Cluster Launcher"
 	return "Hammer of Wrath"

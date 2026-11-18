@@ -22,6 +22,8 @@ Vehement Aggression is offered when the unit is selected to fight. The owner may
 
 The dedicated suite checks the exported profile facts, catalog admission, both public equipment replacements and restoration, Support mapping and an Intercessor attachment, failed and successful Leadership rolls, the unchanged Battle-shock state, melee-only rerolls, repeated-use rejection, selected-activation persistence and cleanup after a completed or empty Fight activation.
 
+The Army Workshop also saves the Combi-weapon/Heavy Bolt Pistol and Master-crafted Power Weapon/Chainsword replacements independently for this one-model profile. Current local admission validates all four combinations against the same weapon factory; saved-list matches install the exact weapons before Deployment and suppress/reject duplicate preparation edits. The runtime repeat limit was not changed because the capability record does not declare one. See the [saved-equipment verification](verification/verification-results.md#castellan-saved-equipment--13-november-2026).
+
 ## Verification
 
 Focused offline verification passed **3/3 processes**: Godot import, Python checks and `test_castellan`.

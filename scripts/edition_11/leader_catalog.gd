@@ -1,7 +1,7 @@
 extends RefCounted
 ## Shared, read-only leader identity facts used by rules and attachment setup.
 
-## Leader definition_id -> bodyguard definition_ids they may lead (provisional).
+## Leader definition_id -> bodyguard definition_ids they may lead. Necron pairs are validated against the verified local Necron App v1.2 source datasheet IDs in tests/test_necron_warriors_current.gd; Marine pairs are exercised by the per-character and attachment suites under tests/. Source policy: docs/data/source-assessment.md.
 const ATTACHMENTS := {
 	"40kdc:11e:adeptus-astartes:captain": ["40kdc:11e:adeptus-astartes:intercessor-squad", "40kdc:11e:adeptus-astartes:terminator-squad", "40kdc:11e:adeptus-astartes:inner-circle-companions"],
 	"40kdc:11e:adeptus-astartes:captain-on-bike": ["40kdc:11e:adeptus-astartes:outrider-squad", "40kdc:11e:adeptus-astartes:ravenwing-black-knights"],

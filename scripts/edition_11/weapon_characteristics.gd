@@ -7,7 +7,12 @@ static func modifier(state: Dictionary, squad: int, model: int, characteristic: 
 	var records: Dictionary = state.get("unit_abilities", {}).get(UNIT_ABILITY_KEY, {})
 	var unit_modifiers: Dictionary = records.get("squads", {}).get(squad, {})
 	var model_modifiers: Dictionary = records.get("models", {}).get(model, {})
-	return int(unit_modifiers.get(characteristic, 0)) + int(model_modifiers.get(characteristic, 0))
+	var result := int(unit_modifiers.get(characteristic, 0)) + int(model_modifiers.get(characteristic, 0))
+	if characteristic == "WS" and state.get("phase", "") == "fight":
+		var macrocyte_bonus: Dictionary = state.get("unit_abilities", {}).get("canoptek_macrocytes_ws", {})
+		if int(macrocyte_bonus.get("turn", -2)) == int(state.get("turn", -1)):
+			result += int(macrocyte_bonus.get("squads", {}).get(squad, 0))
+	return result
 
 static func apply_skill_modifier(base_skill: Variant, modifier: int, ignored: bool = false) -> Variant:
 	if not base_skill is int or base_skill <= 0: return base_skill

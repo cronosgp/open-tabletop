@@ -91,6 +91,22 @@ func run() -> void:
 		check(not loadout_choices.any(func(choice: Dictionary) -> bool: return choice.get("model", -1) == model_for(state, "black-templars-impulsor", 1) and choice.get("value", "") == "ironhail-skytalon-array"), "Impulsor preparation does not offer the Black Templars-excluded array")
 		var forbidden_result := Transport.configure_impulsor(state, model_for(state, "black-templars-impulsor", 1), 0, "ironhail-skytalon-array")
 		check(not forbidden_result.is_empty(), "Direct Impulsor configuration rejects the excluded array")
+		var impulsor_model := model_for(state, "black-templars-impulsor", 1)
+		var starting_points := int(state.training_points[1])
+		var impulsor_squad := int(state.units[impulsor_model].squad)
+		var starting_cost := int(state.squads[impulsor_squad].training_cost)
+		check(Transport.configure_impulsor(state, impulsor_model, 3, "multi-melta").is_empty() and int(state.training_points[1]) == starting_points + 10 and int(state.squads[impulsor_squad].training_cost) == starting_cost + 10, "Legacy BT Impulsor can equip its source-listed Multi-melta for ten points")
+		check(Transport.configure_impulsor(state, impulsor_model, 3, "ironhail-heavy-stubber").is_empty() and int(state.training_points[1]) == starting_points and int(state.squads[impulsor_squad].training_cost) == starting_cost, "Switching the exclusive pintle restores its source price")
+		var pintle_ids: Array = state.units[impulsor_model].ranged_weapons.map(func(w: Dictionary) -> String: return str(w.id))
+		check("ironhail-heavy-stubber" in pintle_ids and "multi-melta" not in pintle_ids, "Impulsor cannot carry both source-exclusive pintle weapons")
+		for id in ["black-templars-repulsor", "black-templars-repulsor-executioner"]:
+			var model := model_for(state, id, 1)
+			check(Transport.configure_optional_transport_weapon(state, model, "multi-melta:on").is_empty() and int(state.training_points[1]) == starting_points + 10, "Legacy BT transport addition charges its sourced Multi-melta price")
+			check(Transport.configure_optional_transport_weapon(state, model, "multi-melta:off").is_empty() and int(state.training_points[1]) == starting_points, "Removing the legacy optional weapon restores its price")
+			state.points_limit = starting_points
+			var before := state.duplicate(true)
+			check(not Transport.configure_optional_transport_weapon(state, model, "multi-melta:on").is_empty() and before == state, "Legacy optional weapon cannot mutate the state when its price exceeds the budget")
+			state.points_limit = 2000
 		check(Transport.is_transport(state, model_for(state, "black-templars-repulsor", 1)), "Black Templars Repulsor retains its transport profile")
 		check(AbilityCatalog.RULES.get("black-templars-repulsor", []).has("combat-embarkation"), "Black Templars Repulsor registers Combat Embarkation")
 	var transport_state := fixture(["black-templars-repulsor", "intercessor-squad"])

@@ -29,3 +29,7 @@ The Incursion check admits two copies and rejects a third. The current cross-pro
 ## Limits
 
 This closes only the shared-book Sternguard Veteran Squad local datasheet scope. Chapter-specific variants and rules, Forge World, Legends, full faction/army legality, network behavior, complete-match certification and human playtesting remain outside this result.
+
+## Saved model equipment — 14 November 2026
+
+Army Builder now saves exact source-listed specialist weapons per stable miniature/copy, with role eligibility, whole-unit caps and paid Vengor pricing where applicable. Source records apply before Deployment and are locked for the match. Existing construction gates and combat abilities are preserved; Eradicator Sergeant Multi-melta eligibility was corrected. See the [saved-equipment source resolution and regression audit](verification/specialist-squad-saved-equipment.md).

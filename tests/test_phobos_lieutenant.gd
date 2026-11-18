@@ -1,5 +1,5 @@
 extends SceneTree
-## Batch suite written for the final run; not executed during implementation.
+## Source-bounded Phobos Lieutenant regression, including public setup choices.
 const F = preload("res://tests/marine_phobos_fixture.gd")
 const AllUnits = preload("res://tests/all_units_fixture.gd")
 const C = F.C
@@ -83,7 +83,15 @@ func run() -> void:
  s.phase="deployment"
  check(C.UnitAbilities.Detection.infiltrators(s,3) and not C.UnitAbilities.Detection.stealth(s,3),"Eliminators plus Lieutenant lost Infiltrators or retained all-model Stealth")
  check(choose(s,"phobos-lieutenant-gun","pistol").is_empty() and s.units[700].ranged_weapons==P.profile("lieutenant-in-phobos-armour").ranged,"Pistol not restored after attachment")
- for option: Dictionary in C.unit_choices(s,1):check(not(option.action=="reserve" and option.target==3),"Mixed Phobos unit offered Deep Strike reserves")
+ var ordinary_reserve: Dictionary={}
+ for option: Dictionary in C.unit_choices(s,1):
+  if option.action=="reserve" and option.target==3:ordinary_reserve=option
+ check(not ordinary_reserve.is_empty(),"Mixed Phobos unit retains ordinary Strategic Reserves eligibility")
+ if not ordinary_reserve.is_empty():
+  var reserve_state: Dictionary=s.duplicate(true)
+  var reserve_result:=submit_choice(reserve_state,1,ordinary_reserve)
+  var reserve_record: Dictionary=reserve_state.unit_abilities.get("reserves",{}).get(3,{})
+  check(str(reserve_result.get("error","")).is_empty() and reserve_record.get("source","")=="strategic-reserves" and not bool(reserve_record.get("deep_strike",true)),"Mixed Phobos unit enters ordinary reserves without gaining Deep Strike")
  s.phase="command"
  s.unit_abilities.setup_players=[1,2]
  s.unit_abilities.phase_key=C.UnitActions.key(s)

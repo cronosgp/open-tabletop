@@ -87,7 +87,7 @@ static func supported_definition(definition: String) -> bool:
 	if not definition.begins_with("40kdc:11e:"): return false
 	if not _profile_alias_names(definition).is_empty(): return true
 	if not _profile_name(definition).is_empty(): return true
-	for suffix in [":intercessor-squad", ":assault-intercessor-squad", ":heavy-intercessor-squad", ":necron-warriors", ":terminator-squad", ":immortals", ":hellblaster-squad", ":bladeguard-veteran-squad", ":captain", ":chaplain"]:
+	for suffix in [":intercessor-squad", ":assault-intercessor-squad", ":heavy-intercessor-squad", ":aggressor-squad", ":necron-warriors", ":terminator-squad", ":immortals", ":hellblaster-squad", ":bladeguard-veteran-squad", ":captain", ":chaplain"]:
 		if definition.ends_with(suffix): return true
 	return false
 
@@ -151,27 +151,58 @@ static func weapon_term(value: String) -> String:
 
 ## Match the equipped instances, not a transient attack mode or a UI label.
 static func equipment_visual_score(entry: Dictionary, definition: String, unit: Dictionary) -> int:
-	if definition not in entry.get("visual_definitions", []): return -1
+	return int(equipment_visual_assessment(entry, definition, unit).get("score", -1))
+
+## Describes how much trustworthy local metadata agrees with a saved model loadout.
+## Confidence is evidence coverage, not a probability or a claim about sculpt parity.
+static func equipment_visual_assessment(entry: Dictionary, definition: String, unit: Dictionary) -> Dictionary:
+	var assessment := {
+		"score": -1,
+		"confidence": "unverified",
+		"role_match": false,
+		"matched_weapons": [],
+		"configured_weapons": [],
+		"coverage": 0.0,
+		"rationale": "No applicable local equipment or role evidence is available."
+	}
+	if definition not in entry.get("visual_definitions", []): return assessment
 	var role := str(entry.get("visual_model_role", ""))
-	if role == "sergeant" and not bool(unit.get("sergeant", false)): return -1
+	if role == "sergeant" and not bool(unit.get("sergeant", false)):
+		assessment.confidence = "conflict"
+		assessment.rationale = "The catalog role is for a Sergeant, but the saved model is not a Sergeant."
+		return assessment
 	var role_bonus := 1 if role == "sergeant" else 0
 	var constraints: Dictionary = entry.get("visual_role_constraints", {})
+	var role_recorded := role == "sergeant"
 	if constraints.has(definition):
 		var constraint: Dictionary = constraints[definition]
-		if str(constraint.get("status", "")) in ["unresolved_model_role", "ambiguous_model_role"]: return -1
+		role_recorded = true
+		if str(constraint.get("status", "")) in ["unresolved_model_role", "ambiguous_model_role"]:
+			assessment.rationale = "The catalog model-role evidence is unresolved, so it cannot confirm compatibility."
+			return assessment
 		var actual_roles := model_roles(unit)
 		var matched := false
 		for expected: String in constraint.get("roles", []):
 			for actual: String in actual_roles:
 				if _model_role_matches(expected, actual): matched = true
-		if not matched: return -1
+		if not matched:
+			assessment.confidence = "conflict"
+			assessment.rationale = "The recorded catalog model role does not match the saved model role."
+			return assessment
 		role_bonus = 2
 	elif not role.is_empty() and role != "sergeant":
+		role_recorded = true
 		var matched := false
 		for actual: String in model_roles(unit):
 			if _model_role_matches(role, actual): matched = true
-		if not matched: return -1
+		if not matched:
+			assessment.confidence = "conflict"
+			assessment.rationale = "The recorded catalog model role does not match the saved model role."
+			return assessment
 		role_bonus = 2
+	elif not role.is_empty():
+		role_recorded = true
+		role_bonus = 1
 	var equipped := {}
 	for key: String in ["ranged_weapons", "melee_weapons"]:
 		for weapon: Dictionary in unit.get(key, []):
@@ -182,6 +213,10 @@ static func equipment_visual_score(entry: Dictionary, definition: String, unit: 
 				for separator: String in [" – ", " — ", " - "]:
 					name = name.split(separator)[0]
 				if not name.is_empty(): equipped[weapon_term(name)] = true
+	var configured_weapons: Array = equipped.keys()
+	configured_weapons.sort()
+	assessment.configured_weapons = configured_weapons
+	assessment.role_match = role_recorded
 	var weapons: Array = entry.get("visual_weapons", [])
 	var aliases: Dictionary = entry.get("visual_weapon_aliases", {}).get(definition, {})
 	var matched_weapons := {}
@@ -191,9 +226,31 @@ static func equipment_visual_score(entry: Dictionary, definition: String, unit: 
 			term = "astartes-grenade-launcher"
 		if not equipped.has(term):
 			term = weapon_term(str(aliases.get(term, "")))
-			if term.is_empty() or not equipped.has(term): return -1
+			if term.is_empty() or not equipped.has(term):
+				assessment.confidence = "conflict"
+				assessment.rationale = "A recorded catalog weapon hint does not match the saved physical weapons."
+				assessment.score = -1
+				return assessment
 		matched_weapons[term] = true
-	return matched_weapons.size() * 10 + role_bonus
+	var matched_list: Array = matched_weapons.keys()
+	matched_list.sort()
+	assessment.matched_weapons = matched_list
+	assessment.score = matched_list.size() * 10 + role_bonus
+	if not matched_list.is_empty() and not configured_weapons.is_empty():
+		assessment.coverage = float(matched_list.size()) / float(configured_weapons.size())
+		if matched_list.size() == configured_weapons.size():
+			assessment.confidence = "strong"
+			assessment.rationale = "Catalog weapon hints cover all %d saved physical weapon%s." % [configured_weapons.size(), "" if configured_weapons.size() == 1 else "s"]
+		else:
+			assessment.confidence = "partial"
+			assessment.rationale = "Catalog weapon hints cover %d of %d saved physical weapons." % [matched_list.size(), configured_weapons.size()]
+	elif role_recorded:
+		assessment.confidence = "role_only"
+		assessment.rationale = "The catalog role matches, but no saved weapon is confirmed by weapon hints."
+	else:
+		assessment.confidence = "unverified"
+		assessment.rationale = "No matching saved weapon or model-role evidence is recorded."
+	return assessment
 
 static func _model_role_matches(expected: String, actual: String) -> bool:
 	var wanted := _name_tokens(expected)

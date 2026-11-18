@@ -34,6 +34,10 @@ The raw export remains ignored under `.tools`; these hashes identify the pinned 
 - The verified local export links Reivers to Librarian in Phobos Armour, Captain in Phobos Armour and Lieutenant in Phobos Armour. All three links pass the attachment predicate; a generic Captain is rejected.
 - The dedicated fixture uses current-catalog Space Marines on both sides and checks admission of both priced sizes and rejection of an unsupported six-model size.
 
+## Army Builder persistence status
+
+The Army Builder now stores the two squad-level gear flags per stable Reiver unit-copy ID. Current-catalog admission carries them through canonical roster grouping, and saved-list match creation applies and locks explicit choices before Deployment. New entries default to neither option. Legacy entries with no saved gear record keep the prior match-specific Army Preparation behavior. This is a workflow migration only; it does not add a source rule or certify appearance compatibility. The focused saved-list runtime regression is pending.
+
 ## Validation and limits
 
 The dedicated offline command passed **3/3 processes** (project import, Python checks and `test_reiver_squad`), with `network: false`, `legacy_starter_staged: false` and no cleanup diagnostics, at `.tools/verification/20261027T071129977108Z/results.json`:

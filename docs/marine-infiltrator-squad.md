@@ -42,3 +42,7 @@ python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.ex
 ```
 
 This closes the Infiltrator Squad and Apothecary declared source-bounded shared-book local scopes (**24/85 datasheets complete**). Whole-army legality, other datasheets, Chapter-book variants, Forge World, Legends, network behavior, full-match certification and human playtesting remain outside this result. Network validation remains deferred to final integration.
+
+## Saved army equipment - 14 November 2026
+
+Equipment now persists per stable model/copy in the Workshop, with whole-squad source limits and role checks before admission. Saved choices materialize before Deployment and cannot be reconfigured during readiness; existing unsaved/legacy preparations remain available. Source profiles, abilities and broader scope boundaries above remain. See [the source-option review, exhaustive regression, persistence reports and actual Godot captures](verification/squad-specialist-saved-equipment.md).

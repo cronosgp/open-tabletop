@@ -43,3 +43,7 @@ python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.ex
 ```
 
 This closes only the Redemptor's declared source-bounded shared-book local scope (**3/85 datasheets complete**, alongside Scout Squad and Lieutenant). Network validation is deferred to final integration. Whole-army legality, other datasheets, Chapter-book variants beyond the tested conditional Chapter context, Forge World, Legends, full match certification and human playtesting are not certified by this result.
+
+## Saved army equipment - 14 November 2026
+
+Source-listed equipment now persists in the Army Builder per stable model/copy, is validated before materialization and cannot be reconfigured during readiness once frozen. Existing rules, Chapter and event boundaries remain. See [source-option review, exact verification reports and Godot captures](verification/heavy-saved-equipment.md).

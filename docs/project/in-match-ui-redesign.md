@@ -478,3 +478,169 @@ At zoom 16/27/48, total mean draw calls were 195/159/159 and mean CPU time
 for the projected label layout was 0.203/0.092/0.116 ms. The totals compare
 the current scene across camera positions. Geometry visible in those views
 also varies.
+
+## 11 November 2026 — Imperial Dataslate plan follow-up audit
+
+The supplied `open_tabletop_imperial_dataslate_ui_agent_plan.md` overlaps the
+completed match-shell, decision, allocation, army-list and combat-presentation
+work above. The Mission screen is a remaining concrete gap: `main.gd`
+`_build_mission_overview()` still creates one `RichTextLabel`, and
+`_mission_overview_copy()` flattens the score, objective state and history into
+one long text block. `_refresh()` already refreshes it while the Mission screen
+is open.
+
+The match model remains authoritative. `objectives.gd` and `chapter_approved.gd`
+create objective `bounds`; `resolve_control()` writes `controller` and `levels`
+at the existing phase boundary. The UI will display those stored values as the
+latest resolved control result and will not recompute OC or score. The main
+controller already owns read-only camera focus through `_camera_board_area()`,
+`DecisionCamera.plan_points()` and `_apply_camera_plan()`, so objective focus
+can remain a camera-only callback. The compatible migration is a small
+`scripts/ui/mission_overview.gd` view that renders a read-only presentation
+model from `main.gd`, with score cards, objective cards, timing guidance and
+recent scoring events. It will preserve the current refresh behavior and avoid
+changing mission state, scoring or phase progression.
+
+Existing match captures and the earlier crash regression remain useful
+baselines, but they predate the latest Dataslate commit. This follow-up adds a
+Mission UI regression and fresh native captures at the planned viewport sizes.
+Other hardware-dependent gates remain open as recorded above.
+
+### Outcome
+
+`scripts/ui/mission_overview.gd` now renders the Mission screen as a structured,
+scrollable view. It presents both players' saved totals and primary/secondary
+breakdowns, objective cards with the latest stored controller and OC levels,
+optional camera focus, scoring timing guidance and up to five recent scoring
+events. The view model reads the existing match snapshot; it does not calculate
+control or award points. Objective focus closes the overlay and uses the
+existing camera planner without issuing a match command.
+
+`tests/test_mission_overview_ui.gd` checks the objective-training and official
+mission presentation, score components, stored control, history, empty states,
+camera focus and that opening/focusing the dashboard leaves match state
+unchanged. Native captures were produced by Godot for 1280×720, 1600×900 and
+1920×1080 using the objective-training fixture. The PNGs are under the ignored
+`.tools/ui-refactor-20261111/` directory; the capture shows the initial viewport
+and the remaining objective cards are reached by scrolling. The native capture
+process exited 0, with renderer shutdown leak diagnostics in its log.
+
+The targeted verification run passed import, Python checks and all eight
+selected UI regressions: `test_mission_overview_ui`, `test_gameplay_layout`,
+`test_combat_tray`, `test_decision_ui`, `test_allocation_lifecycle`,
+`test_combat_results_ui`, `test_army_draft_navigation` and
+`test_match_hud_shell` (10 processes; PASS). Its report is
+`.tools/verification/20261111T203717135673Z/results.json`. A separate
+`test_chapter_approved` run during this work failed its mission/layout identity
+assertion before creating the UI scene. That domain assertion is outside this
+presentation change and remains a separate issue. No rules, scoring,
+capability or network claims changed here.
+
+## 11 November 2026 — Preparation progress and army setup follow-up
+
+The preparation entry point needs visible progress before Tactical Training
+opens, while the in-match setup panel needs to explain which required declarations
+still block finishing. Asset readiness and rules readiness remain separate: the
+asset bar reads default miniature and selected appearance completion counts from
+the existing importer; the in-match meter reads the existing finish validator.
+Neither meter creates or changes game rules state.
+
+### Outcome
+
+The title menu and saved-army setup now show a determinate miniature-preparation
+bar with live ready/total counts. It stays indeterminate only while source counts
+are being initialized, reports partial readiness when local visuals are missing,
+and clears on cancel, failed start or match launch. Selected appearance completions
+now publish status as each item finishes. External cancellation also restores the
+start-with-available-models path instead of leaving the preflight pending.
+
+Army Preparation now has a concise owner label, a readiness status and a thin
+ready/pending meter driven by the existing finish command validation. The required
+reason appears without a duplicated prefix; optional equipment remains explicitly
+optional. The pinned Warlord prompt uses its player-facing picker label instead of
+the internal model ID. Main-menu actions are 48 px high, and in-match primary
+preparation actions use a 44 px minimum target to reduce visual bulk while keeping
+the primary controls easy to click. In Army Preparation the confirmation stays
+beside its choice in the command panel; the fixed footer is hidden for that state,
+so it no longer duplicates the action or leaves a detached button at the bottom.
+The preparation rail is narrower and shorter, grows when equipment details are
+opened, and suppresses the repeated instruction in the top HUD. The roster starts
+collapsed in this state and remains available through Tools → Army. The board
+auto-fits to the unobstructed area while camera control remains automatic; manual
+camera input keeps the player's framing. This leaves one action rail beside the
+board instead of two side panels covering it.
+
+Native Godot captures are under the ignored
+`.tools/in-match-redesign-20261106/` directory:
+`preparation-progress-menu-1280.png` uses controlled sample counts (37/161), and
+`army-preparation-followup-1280x800.png` and
+`army-preparation-followup-1600x900.png` use a controlled pending-declaration
+state.
+The menu uses controlled sample counts, and the match capture uses the local
+tactical-training composition with no Warlord chosen. They document layout and
+wording, not a live importer run or rules/roster certification. The capture
+process exited 0; renderer shutdown reported the same
+resource-leak diagnostics observed in prior native captures. No rules, catalog,
+admission, scoring or network scope changed. This follow-up did not run the test
+suite.
+
+## 12 November 2026 — Army preparation and match HUD hierarchy
+
+Review of the preparation panel showed its compact selectors clipping long
+Captain and Sergeant labels, equipment choices blending into surrounding
+instructions, and the Tools menu presenting as unframed text between two
+buttons. The turn rail also read as a single line of labels. This is a
+presentation-only pass; the existing preparation validator and available
+choices remain authoritative.
+
+### Outcome
+
+The command rail now scales with viewport width and uses the available height
+when optional equipment is expanded; the separate pre-match sidebar also stays
+inside the viewport. Required declarations, optional equipment and the final
+finish action now have explicit separators. Optional loadouts sit in bordered
+cards with a model/slot heading, current equipment, a concise option label and a
+full-width Apply change action. Full choice descriptions remain available as
+tooltips. The closed preparation view keeps Finish army visible.
+
+Turn ownership and each battle phase now use distinct bordered chips, with
+separators between phase, utility and decision rows. Hide, Tools and Menu share
+the same framed button styling and measured width. No rules, choices, scoring,
+capability or network scope changed.
+
+Native Godot captures are under the ignored
+`.tools/ui-refactor-20261112/` directory. `preparation-required-1280x800.png`
+shows the pending Warlord state; `preparation-optional-1280x800.png`,
+`preparation-optional-1600x900.png` and
+`preparation-optional-960x640.png` show optional equipment expanded. The
+fixture uses the local tactical-training composition and does not certify
+roster legality or datasheet coverage. The capture process exited 0; Godot
+printed renderer-resource leak diagnostics during shutdown. The Godot 4.7.2
+editor import also exited 0. The test suite was not run.
+
+## 12 November 2026 — Compact preparation completion
+
+The title menu kept its continue action in a second column that was clipped at
+narrow window widths. Partial asset readiness also left the workflow bar below
+100% after the preparation queue had already ended.
+
+### Outcome
+
+Below 1000 px, the title screen now uses a single-column layout with saved
+matches, training, new match and settings actions beside the preparation status.
+After partial preparation, the continue-with-available-models action also appears
+beside the status on wide screens, so the next step remains visible with the
+readiness summary.
+The completion bar represents the finished preparation queue, while the label
+continues to report which unit defaults and appearance variants are available.
+When defaults are ready but some variants are missing, the status names those
+variants and confirms that unit defaults remain usable. No rules or admission
+scope changed.
+
+The continue action receives primary emphasis during this state. Compact mode
+uses larger text and keeps saved matches, training, new match and settings in one
+column. Captures in `.tools/title-partial-1280x800.png` and
+`.tools/title-partial-536x690.png` use a Godot fixture with staged counts (6/6
+unit defaults and 42/46 appearance variants); they demonstrate the UI state and
+do not perform or certify model downloads. Godot exited 0; its shutdown printed
+renderer-resource leak diagnostics from the capture fixture.

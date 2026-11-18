@@ -17,7 +17,7 @@ func die() -> int:
 	calls += 1
 	return dice.pop_front() if not dice.is_empty() else 6
 func fresh() -> Dictionary:
-	return P.initial_state({"official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true}, F.selections())
+	return P.initial_state({"official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "legacy_necron_reference": true, "terrain_layout": "ca-2026-27-take-and-hold-mirror-a-v1"}, F.selections())
 func pick(s: Dictionary, player: int, action: String, model: int = -2, target: int = -2) -> Dictionary:
 	for selected: Dictionary in C.unit_choices(s, player):
 		if selected.action == action and (model == -2 or selected.model == model) and (target == -2 or selected.target == target): return selected
@@ -47,7 +47,7 @@ func choose_no_doctrine(s: Dictionary) -> String:
 func run() -> void:
 	check(P.initial_state({"official_mission": true}).has("error"), "Official mission requires current rule options")
 	check(P.initial_state({"official_mission": true, "terrain_layout": "layout-I"}).has("error"), "Historical layout identifiers are not accepted as 11e layouts")
-	var layout_b := P.initial_state({"official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "terrain_layout": "ca-2026-27-take-and-hold-mirror-b-v1"}, F.selections())
+	var layout_b := P.initial_state({"official_mission": true, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "legacy_necron_reference": true, "terrain_layout": "ca-2026-27-take-and-hold-mirror-b-v1"}, F.selections())
 	check(not layout_b.has("error") and layout_b.mission.id == M.ID and layout_b.mission.terrain_layout == "ca-2026-27-take-and-hold-mirror-b-v1" and layout_b.terrain.id == layout_b.mission.terrain_layout and layout_b.match_manifest.terrain_layout == layout_b.mission.terrain_layout, "Selected 11e layout stays in mission and peer identity")
 	dice = [6]
 	check(act(layout_b, 1, "mission-terrain").is_empty() and layout_b.mission.terrain_layout == "ca-2026-27-take-and-hold-mirror-b-v1" and layout_b.mission.id == M.ID, "Central objective roll preserves the selected terrain and mission")
@@ -59,11 +59,11 @@ func run() -> void:
 	check(s.board_size == Vector2(60, 44) and M.enabled(s) and s.match_manifest.mission == M.ID and not s.roster_points_validated, "Official mission identity/board do not certify reference points")
 	check(s.pack_hash == fresh().pack_hash and s.pack_hash != F.fresh().pack_hash, "Mission selection freezes into public identity")
 	for primary_id: String in M.PRIMARY_MISSIONS:
-		var selected_primary := P.initial_state({"official_mission": true, "primary_mission": primary_id, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true}, F.selections())
+		var selected_primary := P.initial_state({"official_mission": true, "primary_mission": primary_id, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "legacy_necron_reference": true, "terrain_layout": "ca-2026-27-take-and-hold-mirror-a-v1"}, F.selections())
 		check(not selected_primary.has("error") and M.primary_id(selected_primary) == primary_id and selected_primary.match_manifest.primary_mission == primary_id, "Primary mission selection is valid and part of match identity: " + primary_id)
 	# Meatgrinder: current-turn kills, previous-turn friendly losses, and opponent home.
 	var meatgrinder := s.duplicate(true)
-	meatgrinder.mission.primary_id = "meatgrinder"
+	meatgrinder.mission.primary_id = "meatgrinder"; meatgrinder.mission.primary_ids = {1: "meatgrinder", 2: "meatgrinder"}
 	meatgrinder.mission.attacker = 1; meatgrinder.mission.defender = 2
 	meatgrinder.phase = "end_turn"; meatgrinder.active = 1; meatgrinder.round = 2; meatgrinder.turn = 3
 	var enemy_squad := -1
@@ -76,7 +76,7 @@ func run() -> void:
 	M.score(meatgrinder)
 	check(enemy_squad >= 0 and meatgrinder.mission.primary[1] == 13, "Meatgrinder scores current kills, kill advantage, and opponent home at end of turn")
 	var round_one_meatgrinder := s.duplicate(true)
-	round_one_meatgrinder.mission.primary_id = "meatgrinder"
+	round_one_meatgrinder.mission.primary_id = "meatgrinder"; round_one_meatgrinder.mission.primary_ids = {1: "meatgrinder", 2: "meatgrinder"}
 	round_one_meatgrinder.mission.attacker = 1; round_one_meatgrinder.mission.defender = 2
 	round_one_meatgrinder.phase = "end_turn"; round_one_meatgrinder.active = 1; round_one_meatgrinder.round = 1
 	for objective: Dictionary in round_one_meatgrinder.mission.objectives:
@@ -85,7 +85,7 @@ func run() -> void:
 	check(round_one_meatgrinder.mission.primary[1] == 0, "Meatgrinder's opponent-home bonus is not available before battle round two")
 	# Reconnaissance Sweep: four-quarter score, destroyed units, and uncapped end-battle timing.
 	var recon := s.duplicate(true)
-	recon.mission.primary_id = "reconnaissance-sweep"
+	recon.mission.primary_id = "reconnaissance-sweep"; recon.mission.primary_ids = {1: "reconnaissance-sweep", 2: "reconnaissance-sweep"}
 	recon.phase = "end_turn"; recon.active = 1; recon.round = 2; recon.turn = 3
 	for squad: int in recon.squads:
 		if recon.squads[squad].owner != 1: continue
@@ -119,7 +119,7 @@ func run() -> void:
 	recon_reserves.units[reserve_model].on_battlefield = false
 	check(M.quarters(recon_reserves, 1, false) == 3, "Units outside the battlefield do not count toward table-quarter scoring")
 	var recon_battle_end := s.duplicate(true)
-	recon_battle_end.mission.primary_id = "reconnaissance-sweep"
+	recon_battle_end.mission.primary_id = "reconnaissance-sweep"; recon_battle_end.mission.primary_ids = {1: "reconnaissance-sweep", 2: "reconnaissance-sweep"}
 	recon_battle_end.phase = "end_turn"; recon_battle_end.active = 1; recon_battle_end.first_player = 2; recon_battle_end.round = 5; recon_battle_end.turn = 10
 	recon_battle_end.mission.primary[1] = 20
 	recon_battle_end.mission.round_points["5:1:primary"] = 15
@@ -141,7 +141,7 @@ func run() -> void:
 	check(recon_clear_territory.mission.primary[1] == 30 and recon_clear_territory.mission.primary[2] == 30 and recon_clear_ended, "Reconnaissance Sweep awards 10VP to both players when enemy units are outside their territory, ignoring the per-round cap but respecting the match cap")
 	# Secure Asset: exclude home objectives and require explicit action completion.
 	var secure := s.duplicate(true)
-	secure.mission.primary_id = "secure-asset"; secure.mission.actions = ["secure-asset"]
+	secure.mission.primary_id = "secure-asset"; secure.mission.primary_ids = {1: "secure-asset", 2: "secure-asset"}; secure.mission.actions = ["secure-asset"]; secure.mission.actions_by_player = {1: ["secure-asset"], 2: ["secure-asset"]}
 	secure.mission.attacker = 1; secure.mission.defender = 2
 	secure.phase = "shooting"; secure.active = 1; secure.round = 2; secure.turn = 3
 	var asset_squad := -1
@@ -157,7 +157,7 @@ func run() -> void:
 	secure.units[asset_model].position = secure.mission.objectives[expansion_index].bounds.get_center()
 	secure.mission.objectives[expansion_index].controller = 1
 	secure.mission.objectives[home_index].controller = 1
-	check(Actions.start_error(secure, asset_squad, home_index) == "Secure Asset cannot target your home objective.", "Secure Asset rejects the player's home objective")
+	check(Actions.start_error(secure, asset_squad, home_index) == "This mission action cannot target your home objective.", "Secure Asset rejects the player's home objective")
 	check(Actions.start_error(secure, asset_squad, expansion_index).is_empty(), "Secure Asset accepts a controlled non-home objective")
 	secure.squads[asset_squad].shot = true
 	check("already shot" in Actions.start_error(secure, asset_squad, expansion_index), "Secure Asset follows the core rule that a unit cannot start an action after shooting")

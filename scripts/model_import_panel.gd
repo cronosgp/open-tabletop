@@ -22,6 +22,10 @@ var automatic_variant_requests: Dictionary = {}
 var automatic_variants_changed: Dictionary = {}
 var automatic_appearance_total := 0
 var automatic_appearance_ready := 0
+var automatic_appearance_skipped := 0
+var unavailable_automatic_variants: Dictionary = {}
+var unavailable_variant_source_fingerprint := ""
+var retry_unavailable_variants_button: Button
 const Matcher = preload("res://scripts/forceorg_matcher.gd")
 var automatic_queue: Array[Dictionary] = []
 var automatic_current: Dictionary = {}
@@ -56,7 +60,10 @@ var variant_failures: Array[String] = []
 var variant_catalog_definition := ""
 var variant_download_definition := ""
 var variant_current: Dictionary = {}
+var variant_failure_status_by_id: Dictionary = {}
 var catalog: Dictionary = {}
+var variant_catalog_entries_by_id: Dictionary = {}
+var variant_catalog_index_key := ""
 var catalog_search_pattern := RegEx.new()
 var cache: Dictionary = {}
 var prepared_cache: Dictionary = {}
@@ -323,6 +330,7 @@ func _install_scanned_catalog(candidate: String, scanned: Dictionary) -> String:
 		source_path.text = previous_path
 		catalog = previous_catalog
 		return notice.text if not notice.text.is_empty() else "Could not save the ForceOrg catalog path."
+	_set_unavailable_variant_source(str(scanned.get("fingerprint", "")))
 	var matches := _populate_inventory()
 	variants_changed.emit(_definition())
 	inventory_status.text = "%d entries • %d embedded static objects • %d skipped-table warnings\n%s" % [catalog.entries.size(), catalog.get("embedded_objects", 0), catalog.get("warnings", []).size(), matches]
@@ -350,6 +358,10 @@ func _organize_imports() -> void:
 	library_intro.text = "Browse your configured local catalog. Preview cached files, or explicitly download the selected miniature. Open Advanced source to choose a catalog."
 	library_intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	pages["Miniature library"].add_child(library_intro)
+	retry_unavailable_variants_button = Button.new()
+	retry_unavailable_variants_button.pressed.connect(_allow_retry_unavailable_variants)
+	pages["Miniature library"].add_child(retry_unavailable_variants_button)
+	_update_unavailable_variants_button()
 	var configure := Button.new()
 	configure.text = "Choose or change miniature catalog…"
 	configure.custom_minimum_size.y = 40
@@ -396,6 +408,7 @@ func _organize_imports() -> void:
 		if control is Button and control.text == "Prepare local GLB": control.reparent(pages["Local files"])
 
 func _process(_delta: float) -> void:
+	_update_unavailable_variants_button()
 	if cached_preview_button != null: cached_preview_button.disabled = catalog.is_empty() or inventory.selected < 0 or downloader.busy or automatic_running or variant_download_active
 	for text_label: Label in [notice, selected_description, download_status, lookup_status, inventory_status]: text_label.tooltip_text = text_label.text
 	var definition := _definition()
@@ -1000,6 +1013,8 @@ func _save(next: Dictionary) -> bool:
 	cfg.set_value("models", "version", 1)
 	cfg.set_value("models", "mappings", next)
 	cfg.set_value("models", "variants", variant_mappings)
+	cfg.set_value("models", "unavailable_automatic_variants", unavailable_automatic_variants)
+	cfg.set_value("models", "unavailable_variant_source_fingerprint", unavailable_variant_source_fingerprint)
 	cfg.set_value("paths", "source", source_path.text.strip_edges())
 	cfg.set_value("paths", "cache", cache_path.text.strip_edges())
 	cfg.set_value("paths", "downloads", download_path.text.strip_edges())
@@ -1034,12 +1049,72 @@ func load_settings() -> void:
 			var variant: Variant = saved_variants[identity]
 			if identity is String and variant is Dictionary and variant.get("path") is String and variant.get("texture", "") is String:
 				variant_mappings[identity] = variant
+	var saved_unavailable_source: Variant = cfg.get_value("models", "unavailable_variant_source_fingerprint", "")
+	var saved_unavailable: Variant = cfg.get_value("models", "unavailable_automatic_variants", {})
+	if saved_unavailable_source is String and not saved_unavailable_source.is_empty() and saved_unavailable is Dictionary:
+		unavailable_variant_source_fingerprint = saved_unavailable_source
+		for key: Variant in saved_unavailable:
+			var failure: Variant = saved_unavailable[key]
+			if key is String and failure is Dictionary and str(failure.get("source_fingerprint", "")) == unavailable_variant_source_fingerprint:
+				unavailable_automatic_variants[key] = failure
 	var saved_source: Variant = cfg.get_value("paths", "source", "")
 	if saved_source is String: source_path.text = saved_source
 	var saved_cache: Variant = cfg.get_value("paths", "cache", "")
 	if saved_cache is String: cache_path.text = saved_cache
 	var saved_downloads: Variant = cfg.get_value("paths", "downloads", "")
 	if saved_downloads is String and not saved_downloads.is_empty(): download_path.text = saved_downloads
+
+func _automatic_variant_failure_key(definition: String, identity: String) -> String:
+	return (definition + "\n" + identity).sha256_text()
+
+func _automatic_variant_failure_is_current(key: String, source_fingerprint: String) -> bool:
+	if key.is_empty() or source_fingerprint.is_empty(): return false
+	var failure: Variant = unavailable_automatic_variants.get(key, {})
+	return failure is Dictionary and str(failure.get("source_fingerprint", "")) == source_fingerprint
+
+func _set_unavailable_variant_source(source_fingerprint: String) -> void:
+	if source_fingerprint.is_empty() or source_fingerprint == unavailable_variant_source_fingerprint: return
+	unavailable_variant_source_fingerprint = source_fingerprint
+	unavailable_automatic_variants.clear()
+	_save(mappings)
+	_update_unavailable_variants_button()
+
+func _remember_unavailable_automatic_variant(definition: String, entry: Dictionary, reason: String) -> void:
+	if reason == "Could not save local variant settings.": return
+	var identity := str(entry.get("variant_id", ""))
+	if identity.is_empty() or catalog.is_empty() or str(catalog.get("fingerprint", "")).is_empty(): return
+	var key := _automatic_variant_failure_key(definition, identity)
+	var previous: Variant = unavailable_automatic_variants.get(key, null)
+	unavailable_automatic_variants[key] = {
+		"definition": definition,
+		"variant_id": identity,
+		"name": str(entry.get("name", "appearance variant")),
+		"reason": reason.substr(0, 320),
+		"source_fingerprint": str(catalog.fingerprint),
+	}
+	if not _save(mappings):
+		if previous == null: unavailable_automatic_variants.erase(key)
+		else: unavailable_automatic_variants[key] = previous
+	_update_unavailable_variants_button()
+
+func _allow_retry_unavailable_variants() -> void:
+	if automatic_running or unavailable_automatic_variants.is_empty(): return
+	var previous := unavailable_automatic_variants.duplicate(true)
+	unavailable_automatic_variants.clear()
+	if not _save(mappings):
+		unavailable_automatic_variants = previous
+		_update_unavailable_variants_button()
+		return
+	_update_unavailable_variants_button()
+	if download_status != null:
+		download_status.text = "Retry enabled. Start Tactical Training to prepare the previously unavailable appearance variants again."
+
+func _update_unavailable_variants_button() -> void:
+	if retry_unavailable_variants_button == null: return
+	var count := unavailable_automatic_variants.size()
+	retry_unavailable_variants_button.visible = count > 0
+	retry_unavailable_variants_button.disabled = automatic_running or downloader != null and downloader.busy
+	retry_unavailable_variants_button.text = "Retry %d unavailable appearance variant(s) on next preparation" % count
 
 func _visual_settings(mapping: Dictionary, definition: String, base_radius_inches: float) -> Dictionary:
 	var settings := mapping.duplicate()
@@ -1208,6 +1283,14 @@ func _mapping_has_unresolved_bundle_dependencies(mapping: Dictionary) -> bool:
 				return true
 	return false
 
+func _remember_variant_failure(identity: String, issue: String) -> void:
+	var normalized_issue := issue.to_lower()
+	var failed_conversion := "conversion" in normalized_issue or "converter" in normalized_issue or "unity bundle" in normalized_issue or "incompatible" in normalized_issue or "cannot be assembled" in normalized_issue or "manifest" in normalized_issue or "mesh" in normalized_issue or "parse" in normalized_issue
+	variant_failure_status_by_id[identity] = {
+		"state": "conversion_failed" if failed_conversion else "missing",
+		"reason": issue + " Retry preparation from the Appearance tab when ready."
+	}
+
 func _add_visual_footprint(settings: Dictionary, definition: String) -> void:
 	const PREFIX := "40kdc:11e:adeptus-astartes:"
 	if not definition.begins_with(PREFIX): return
@@ -1237,6 +1320,50 @@ func variants_for(definition: String) -> Array[Dictionary]:
 	if not catalog.is_empty(): options.assign(Matcher.variants(definition, catalog.get("entries", [])))
 	return _decorate_variant_options(definition, options)
 
+func visual_variant_status(identity: String, definition: String = "") -> Dictionary:
+	var mapping_value: Variant = variant_mappings.get(identity, {})
+	var option: Dictionary = {}
+	if mapping_value is Dictionary and not mapping_value.is_empty():
+		var mapping: Dictionary = mapping_value
+		var definitions: Array = mapping.get("definitions", [mapping.get("definition", "")])
+		if not definition.is_empty() and definition not in definitions:
+			return {"state": "missing", "reason": "This saved visual is not mapped to the selected datasheet."}
+		var option_value: Variant = mapping.get("entry", {})
+		option = option_value if option_value is Dictionary else {}
+	else:
+		option = _variant_catalog_entry(identity)
+		if option.is_empty(): return {"state": "missing", "reason": "This saved visual is not present in the current local catalog."}
+		if not definition.is_empty() and definition not in option.get("visual_definitions", [option.get("definition", "")]):
+			return {"state": "missing", "reason": "This saved visual is not mapped to the selected datasheet."}
+	return _visual_variant_availability(identity, option)
+
+func visual_default_status(definition: String) -> Dictionary:
+	var mapping_value: Variant = mappings.get(definition, {})
+	if not mapping_value is Dictionary or mapping_value.is_empty():
+		return {"state": "missing", "reason": "No prepared default miniature is saved for this datasheet."}
+	var cached_value: Variant = cache.get(definition, {})
+	if cached_value is Dictionary and not str(cached_value.get("error", "")).is_empty():
+		return {"state": "conversion_failed", "reason": str(cached_value.error)}
+	var mapping: Dictionary = mapping_value
+	if _mapping_has_unresolved_bundle_dependencies(mapping):
+		return {"state": "conversion_failed", "reason": "The saved default miniature is missing Unity material dependencies."}
+	if _mapping_files_available(mapping):
+		return {"state": "ready", "reason": "The saved default miniature is available locally."}
+	return {"state": "missing", "reason": "The saved default miniature files are unavailable locally."}
+
+func _variant_catalog_entry(identity: String) -> Dictionary:
+	var entries: Array = catalog.get("entries", []) if catalog.get("entries", []) is Array else []
+	var index_key := "%s:%d" % [str(catalog.get("fingerprint", "")), entries.size()]
+	if index_key != variant_catalog_index_key:
+		variant_catalog_entries_by_id.clear()
+		for entry: Variant in entries:
+			if not entry is Dictionary: continue
+			var entry_id := str(entry.get("variant_id", ""))
+			if not entry_id.is_empty() and not variant_catalog_entries_by_id.has(entry_id): variant_catalog_entries_by_id[entry_id] = entry
+		variant_catalog_index_key = index_key
+	var option: Variant = variant_catalog_entries_by_id.get(identity, {})
+	return option if option is Dictionary else {}
+
 func _decorate_variant_options(definition: String, options: Array[Dictionary]) -> Array[Dictionary]:
 	_refresh_variant_catalog_metadata(options)
 	for identity: String in variant_mappings:
@@ -1252,7 +1379,10 @@ func _decorate_variant_options(definition: String, options: Array[Dictionary]) -
 	var paint_groups := {}
 	for option: Dictionary in options:
 		var identity := str(option.get("variant_id", ""))
-		option.ready = _mapping_files_available(variant_mappings.get(identity, {}))
+		var availability := _visual_variant_availability(identity, option)
+		option.availability = str(availability.get("state", "missing"))
+		option.availability_reason = str(availability.get("reason", ""))
+		option.ready = option.availability == "ready"
 		var paint := Matcher.paint_reference(option)
 		if paint.is_empty(): continue
 		var geometry := Matcher.geometry_identity(option)
@@ -1264,6 +1394,34 @@ func _decorate_variant_options(definition: String, options: Array[Dictionary]) -
 	for option: Dictionary in options:
 		option.paint_alternative = paint_groups.get(option.get("paint_group", ""), {}).size() > 1
 	return options
+
+func _visual_variant_availability(identity: String, option: Dictionary) -> Dictionary:
+	if identity.is_empty(): return {"state": "missing", "reason": "This visual has no stable local identity."}
+	var mapping_value: Variant = variant_mappings.get(identity, {})
+	var mapping: Dictionary = mapping_value if mapping_value is Dictionary else {}
+	if variant_download_active:
+		if str(variant_current.get("variant_id", "")) == identity:
+			return {"state": "downloading", "reason": "This visual is being prepared. A fallback remains available."}
+		for queued: Dictionary in variant_queue:
+			if str(queued.get("variant_id", "")) == identity:
+				return {"state": "download_pending", "reason": "This visual is queued for preparation. A fallback remains available."}
+	var failure_value: Variant = variant_failure_status_by_id.get(identity, {})
+	if failure_value is Dictionary and not str(failure_value.get("state", "")).is_empty():
+		return failure_value.duplicate(true)
+	var cached_value: Variant = variant_cache.get(identity, {})
+	if cached_value is Dictionary and not str(cached_value.get("error", "")).is_empty():
+		var cached_error := str(cached_value.get("error", ""))
+		var cached_error_lower := cached_error.to_lower()
+		var failed_conversion := "conversion" in cached_error_lower or "converter" in cached_error_lower or "unity bundle" in cached_error_lower or "incompatible" in cached_error_lower or "mesh" in cached_error_lower
+		return {"state": "conversion_failed" if failed_conversion else "missing", "reason": cached_error + " Prepare the appearance again to retry."}
+	if _mapping_files_available(mapping): return {"state": "ready", "reason": "All required model files are available locally."}
+	if _mapping_has_unresolved_bundle_dependencies(mapping):
+		return {"state": "conversion_failed", "reason": "A required Unity material dependency is missing. Prepare this variant again from Models / Import."}
+	if not option.is_empty():
+		return {"state": "download_pending", "reason": "This catalog visual is not prepared locally. Select Prepare appearances to cache it; the fallback remains available."}
+	if not mapping.is_empty():
+		return {"state": "missing", "reason": "The saved visual files are unavailable locally. Its saved assignment is preserved and the fallback remains available."}
+	return {"state": "missing", "reason": "This visual is not present in the current local catalog. Its saved assignment is preserved and the fallback remains available."}
 
 func _refresh_variant_catalog_metadata(options: Array[Dictionary]) -> void:
 	for option: Dictionary in options:
@@ -1386,7 +1544,15 @@ func _start_variant_downloads(definition: String, selected_identity: String = ""
 		return
 	for entry: Dictionary in options:
 		var identity := str(entry.get("variant_id", ""))
-		if not _mapping_files_available(variant_mappings.get(identity, {})):
+		var cached_value: Variant = variant_cache.get(identity, {})
+		var has_load_error := cached_value is Dictionary and not str(cached_value.get("error", "")).is_empty()
+		var retry_failed_selection := identity == selected_identity and (variant_failure_status_by_id.has(identity) or has_load_error)
+		variant_failure_status_by_id.erase(identity)
+		if retry_failed_selection:
+			entry.force_refresh = true
+			variant_cache.erase(identity)
+			variant_queue.append(entry)
+		elif not _mapping_files_available(variant_mappings.get(identity, {})):
 			variant_queue.append(entry)
 	if variant_queue.is_empty():
 		download_status.text = "All compatible visual variants are already in the local cache."
@@ -1407,13 +1573,14 @@ func _next_variant_download() -> void:
 		variants_changed.emit(variant_download_definition)
 		return
 	variant_current = variant_queue.pop_front()
-	var cache_index := Assets.index_cache(download_path.text.strip_edges())
-	var resolved := Assets.resolve_cache(variant_current, cache_index) if not cache_index.is_empty() and cache_index.get("error", "").is_empty() else {}
-	if not resolved.is_empty() and resolved.get("error", "").is_empty():
-		var cached_parts := _cached_component_files(resolved)
-		if cached_parts.error.is_empty():
-			_finish_variant_download({"error": "", "parts": cached_parts.parts, "mesh": cached_parts.parts[0].path, "texture": cached_parts.parts[0].texture})
-			return
+	if not bool(variant_current.get("force_refresh", false)):
+		var cache_index := Assets.index_cache(download_path.text.strip_edges())
+		var resolved := Assets.resolve_cache(variant_current, cache_index) if not cache_index.is_empty() and cache_index.get("error", "").is_empty() else {}
+		if not resolved.is_empty() and resolved.get("error", "").is_empty():
+			var cached_parts := _cached_component_files(resolved)
+			if cached_parts.error.is_empty():
+				_finish_variant_download({"error": "", "parts": cached_parts.parts, "mesh": cached_parts.parts[0].path, "texture": cached_parts.parts[0].texture})
+				return
 	download_status.text = "Downloading %s…" % str(variant_current.get("name", "visual variant"))
 	automatic_status.emit(download_status.text)
 	var issue: String = downloader.start(variant_current, download_path.text.strip_edges())
@@ -1421,9 +1588,9 @@ func _next_variant_download() -> void:
 
 func _finish_variant_download(result: Dictionary) -> void:
 	var issue := str(result.get("error", ""))
+	var identity := str(variant_current.get("variant_id", ""))
 	if issue.is_empty():
 		var ticket := automatic_generation
-		var identity := str(variant_current.get("variant_id", ""))
 		var current := func() -> bool: return is_inside_tree() and ticket == automatic_generation and identity == str(variant_current.get("variant_id", ""))
 		var asset := await _downloaded_asset_async(result, current)
 		if asset.is_empty() or not current.call(): return
@@ -1434,17 +1601,24 @@ func _finish_variant_download(result: Dictionary) -> void:
 			var fit_settings := _visual_settings({}, variant_download_definition, _base_radius_for_definition(variant_download_definition))
 			issue = Assets.visual_error_for_base(asset, fit_settings)
 		if issue.is_empty():
-			issue = _store_variant(variant_download_definition, variant_current, result, asset)
+			var entry_to_store: Dictionary = variant_current.duplicate(true)
+			entry_to_store.erase("force_refresh")
+			issue = _store_variant(variant_download_definition, entry_to_store, result, asset)
 	if not issue.is_empty():
 		variant_failures.append(str(variant_current.get("name", "variant")) + ": " + issue)
+		_remember_variant_failure(identity, issue)
 		download_status.text = "Variant unavailable: " + issue
-	else: download_status.text = "Saved local visual variant: " + str(variant_current.get("name", "visual variant"))
+	else:
+		variant_failure_status_by_id.erase(identity)
+		download_status.text = "Saved local visual variant: " + str(variant_current.get("name", "visual variant"))
 	automatic_status.emit(download_status.text)
 	if variant_download_active: call_deferred("_next_variant_download")
 
 func _store_variant(definition: String, entry: Dictionary, result: Dictionary, asset: Dictionary) -> String:
 	var identity := str(entry.get("variant_id", ""))
 	var previous: Dictionary = variant_mappings.get(identity, {})
+	var failure_key := _automatic_variant_failure_key(definition, identity)
+	var previous_failure: Variant = unavailable_automatic_variants.get(failure_key, null)
 	var definitions: Array = previous.get("definitions", [previous.get("definition", definition)]).duplicate()
 	if definition not in definitions: definitions.append(definition)
 	var tts := float(entry.get("tts_scale", 1.0))
@@ -1456,15 +1630,18 @@ func _store_variant(definition: String, entry: Dictionary, result: Dictionary, a
 	if not str(entry.get("visual_role", "")).is_empty(): mapping["visual_role"] = str(entry.visual_role)
 	if result.get("parts") is Array: mapping.parts = result.parts.duplicate(true)
 	variant_mappings[identity] = mapping
+	unavailable_automatic_variants.erase(failure_key)
 	if not _save(mappings):
 		if previous.is_empty(): variant_mappings.erase(identity)
 		else: variant_mappings[identity] = previous
+		if previous_failure != null: unavailable_automatic_variants[failure_key] = previous_failure
 		return "Could not save local variant settings."
 	variant_cache[identity] = asset
+	_update_unavailable_variants_button()
 	return ""
 
-func automatic_variant_for(definition: String, slot: int) -> String:
-	var candidates := automatic_variants_for(definition, slot)
+func automatic_variant_for(definition: String, slot: int, source_family: String = "") -> String:
+	var candidates := automatic_variants_for(definition, slot, source_family)
 	return candidates[0] if not candidates.is_empty() else ""
 
 ## Returns every distinct shared sculpt in stable appearance order. Rendering tries
@@ -1509,12 +1686,12 @@ func automatic_variants_for(definition: String, slot: int, source_family: String
 	for offset in sculpts.size(): result.append(sculpts[(start + offset) % sculpts.size()])
 	return result
 
-func visual_family_for(identity: String, definition: String = "", slot: int = 0) -> String:
+func visual_family_for(identity: String, definition: String = "", slot: int = 0, allow_automatic_fallback: bool = true) -> String:
 	var mapping: Dictionary = variant_mappings.get(identity, {}) if not identity.is_empty() else {}
 	var family := _source_group_for_mapping(mapping) if not mapping.is_empty() else ""
 	if family.is_empty() and not identity.is_empty(): family = _source_group_for_variant_identity(identity)
 	if not family.is_empty(): return family
-	if mapping.is_empty() and not definition.is_empty():
+	if allow_automatic_fallback and mapping.is_empty() and not definition.is_empty():
 		var automatic := automatic_variant_for(definition, slot)
 		mapping = variant_mappings.get(automatic, {}) if not automatic.is_empty() else {}
 		family = _source_group_for_mapping(mapping) if not mapping.is_empty() else ""
@@ -1526,6 +1703,13 @@ func visual_family_for(identity: String, definition: String = "", slot: int = 0)
 		var chosen := Matcher.choose(definition, catalog.get("entries", []))
 		if chosen.error.is_empty(): return Assets.visual_family_hint(chosen.entry)
 	return ""
+
+func visual_variant_is_ready(identity: String, definition: String = "") -> bool:
+	if not identity.is_empty():
+		var cached: Dictionary = variant_cache.get(identity, {})
+		if not str(cached.get("error", "")).is_empty(): return false
+		return _mapping_files_available(variant_mappings.get(identity, {}))
+	return not definition.is_empty() and _mapping_files_available(mappings.get(definition, {}))
 
 func _source_group_for_variant_identity(identity: String) -> String:
 	for candidate: Dictionary in catalog.get("entries", []):
@@ -1592,7 +1776,7 @@ func equipment_variants_for(unit: Dictionary, source_family: String) -> Array[St
 	for identity: String in groups.get("same_family", []): options.append(identity)
 	return options
 
-func ordered_equipment_visual_variants_for(unit: Dictionary, source_family: String) -> Array[String]:
+func ordered_equipment_visual_variants_for(unit: Dictionary, source_family: String, allow_other_families: bool = true) -> Array[String]:
 	var options: Array[String] = []
 	var role := Matcher.intercessor_model_visual_role(unit)
 	var groups := equipment_variant_groups_for(unit, source_family)
@@ -1601,16 +1785,19 @@ func ordered_equipment_visual_variants_for(unit: Dictionary, source_family: Stri
 	if not role.is_empty():
 		role_identity = visual_role_variant_for(role, source_family)
 		if not role_identity.is_empty() and role_identity not in options: options.append(role_identity)
-	for identity: String in groups.get("other_families", []):
-		if identity not in options: options.append(identity)
+	if allow_other_families:
+		for identity: String in groups.get("other_families", []):
+			if identity not in options: options.append(identity)
 	if role.is_empty(): return options
-	role_identity = visual_role_variant_for(role, source_family, true)
-	if not role_identity.is_empty() and role_identity not in options: options.append(role_identity)
+	if allow_other_families:
+		role_identity = visual_role_variant_for(role, source_family, true)
+		if not role_identity.is_empty() and role_identity not in options: options.append(role_identity)
 	if role.begins_with("intercessor-sergeant:") and role != Matcher.INTERCESSOR_SERGEANT_DEFAULT_ROLE:
 		role_identity = visual_role_variant_for(Matcher.INTERCESSOR_SERGEANT_DEFAULT_ROLE, source_family)
 		if not role_identity.is_empty() and role_identity not in options: options.append(role_identity)
-		role_identity = visual_role_variant_for(Matcher.INTERCESSOR_SERGEANT_DEFAULT_ROLE, source_family, true)
-		if not role_identity.is_empty() and role_identity not in options: options.append(role_identity)
+		if allow_other_families:
+			role_identity = visual_role_variant_for(Matcher.INTERCESSOR_SERGEANT_DEFAULT_ROLE, source_family, true)
+			if not role_identity.is_empty() and role_identity not in options: options.append(role_identity)
 	return options
 
 func equipment_variant_groups_for(unit: Dictionary, source_family: String) -> Dictionary:
@@ -1643,14 +1830,21 @@ func equipment_variant_groups_for(unit: Dictionary, source_family: String) -> Di
 func visual_variant_for(identity: String, base_radius_inches: float = 0.0) -> Node3D:
 	if identity.is_empty() or not variant_mappings.has(identity): return null
 	if _mapping_has_unresolved_bundle_dependencies(variant_mappings[identity]):
-		download_status.text = "This saved variant is missing Unity material dependencies. Download it again from Models / Import."
+		var dependency_issue := "This saved variant is missing Unity material dependencies. Prepare it again to retry conversion."
+		variant_cache[identity] = {"error": dependency_issue}
+		_remember_variant_failure(identity, dependency_issue)
+		download_status.text = dependency_issue
 		return null
 	if not variant_cache.has(identity):
 		var mapping: Dictionary = variant_mappings[identity]
 		var asset := _load_mapping_asset(mapping)
 		if not asset.error.is_empty() or asset.fingerprint != mapping.get("fingerprint", "") or (not mapping.get("parts") is Array and asset.texture_fingerprint != mapping.get("texture_fingerprint", "")):
-			download_status.text = "This local variant is unavailable; trying another available miniature."
-			variant_cache[identity] = {"error": "Variant unavailable"}
+			var issue := str(asset.get("error", ""))
+			if issue.is_empty(): issue = "The saved model files changed after import."
+			issue += " Prepare the appearance again to replace the local cache entry."
+			download_status.text = issue + " Trying another available miniature."
+			variant_cache[identity] = {"error": issue}
+			_remember_variant_failure(identity, issue)
 			return null
 		variant_cache[identity] = asset
 	if not variant_cache[identity].get("error", "").is_empty(): return null
@@ -1675,6 +1869,7 @@ func prepare_armies(definitions: Array[String], force_refresh_saved: bool = fals
 	automatic_ready = 0
 	automatic_appearance_total = 0
 	automatic_appearance_ready = 0
+	automatic_appearance_skipped = 0
 	automatic_total = definitions.size()
 	var missing: Array[String] = []
 	for definition: String in definitions:
@@ -1730,19 +1925,22 @@ func prepare_armies(definitions: Array[String], force_refresh_saved: bool = fals
 
 ## The worker reads source/cache metadata and selects candidates only. Live queues,
 ## mappings, signals and all persistence remain owned by the main thread.
-static func _build_automatic_plan(path: String, download_folder: String, external_folder: String, missing: Array[String], requests: Dictionary) -> Dictionary:
+static func _build_automatic_plan(path: String, missing: Array[String], requests: Dictionary) -> Dictionary:
 	var scanned := Assets.scan(path)
 	if not str(scanned.get("error", "")).is_empty(): return {"catalog": scanned}
-	var index := Assets.index_cache(download_folder)
-	if not external_folder.is_empty(): index["external"] = Assets.index_cache(external_folder)
 	var chosen := {}
 	for definition: String in missing: chosen[definition] = Matcher.choose(definition, scanned.entries)
 	var variants := {}
 	for definition: String in requests: variants[definition] = Matcher.variants(definition, scanned.entries)
-	return {"catalog": scanned, "index": index, "chosen": chosen, "variants": variants}
+	return {"catalog": scanned, "chosen": chosen, "variants": variants}
+
+func _build_automatic_cache_index(download_folder: String, external_folder: String) -> Dictionary:
+	var index := Assets.index_cache(download_folder)
+	if not external_folder.is_empty(): index["external"] = Assets.index_cache(external_folder)
+	return index
 
 func _prepare_automatic_plan(path: String, missing: Array[String], variant_requests: Dictionary, ticket: int, background: bool) -> void:
-	var operation := _build_automatic_plan.bind(path, download_path.text.strip_edges(), cache_path.text.strip_edges(), missing, variant_requests)
+	var operation := _build_automatic_plan.bind(path, missing, variant_requests)
 	var current := func() -> bool: return is_inside_tree() and automatic_running and ticket == automatic_generation
 	var plan: Dictionary = await _background_preview_read(operation, current) if background else operation.call()
 	if not current.call(): return
@@ -1763,9 +1961,10 @@ func _prepare_automatic_plan(path: String, missing: Array[String], variant_reque
 		_finish_automatic_batch()
 		return
 	catalog = scanned
+	_set_unavailable_variant_source(str(scanned.get("fingerprint", "")))
 	_save(mappings)
 	_populate_inventory()
-	automatic_index = plan.index
+	automatic_index = {}
 	for definition: String in missing:
 		var chosen: Dictionary = plan.chosen[definition]
 		if not chosen.error.is_empty(): automatic_messages.append(chosen.error)
@@ -1800,13 +1999,36 @@ func _prepare_automatic_plan(path: String, missing: Array[String], variant_reque
 			if definition in cached_mapping.get("definitions", [cached_mapping.get("definition", "")]) and _mapping_files_available(cached_mapping):
 				automatic_appearance_ready += 1
 				continue
+			var failure_key := _automatic_variant_failure_key(definition, identity)
+			if _automatic_variant_failure_is_current(failure_key, str(scanned.get("fingerprint", ""))):
+				automatic_appearance_skipped += 1
+				continue
 			automatic_queue.append({"definition": definition, "entry": option, "appearance_variant": true})
 		for identity: String in remaining:
 			automatic_appearance_total += 1
 			if _mapping_files_available(variant_mappings.get(identity, {})):
 				automatic_appearance_ready += 1
 			else:
-				automatic_messages.append("A saved appearance for %s is unavailable in this catalog." % definition)
+				automatic_appearance_skipped += 1
+				automatic_messages.append("A saved appearance for %s is not available in this catalog; using an available fallback." % definition)
+	if automatic_appearance_skipped > 0:
+		automatic_messages.append("Skipped %d unavailable appearance variant(s); available fallbacks will be used. See Models / Import to retry recorded download failures." % automatic_appearance_skipped)
+	if not automatic_queue.is_empty():
+		var index_operation := Callable(self, "_build_automatic_cache_index").bind(download_path.text.strip_edges(), cache_path.text.strip_edges())
+		var indexed: Dictionary = await _background_preview_read(index_operation, current)
+		if not current.call(): return
+		if indexed.is_empty():
+			automatic_messages.append("Local model-cache scan was cancelled; queued downloads will use the selected ForceOrg source.")
+		else: automatic_index = indexed
+		for queue_index in range(automatic_queue.size()):
+			var queued: Dictionary = automatic_queue[queue_index]
+			if not bool(queued.get("appearance_variant", false)):
+				var ordered_options: Array[Dictionary] = _locally_ready_equivalent_variants(queued.get("options", []), str(queued.get("definition", "")))
+				if not ordered_options.is_empty():
+					queued["options"] = ordered_options
+					queued["entry"] = ordered_options[0].duplicate(true)
+					queued["variant_index"] = 0
+				automatic_queue[queue_index] = queued
 	automatic_running = true
 	_next_automatic()
 
@@ -1936,7 +2158,10 @@ func _finish_automatic_item(result: Dictionary) -> void:
 		if issue.is_empty():
 			automatic_appearance_ready += 1
 			automatic_variants_changed[definition] = true
-		else: automatic_messages.append("Appearance unavailable: %s — %s" % [automatic_current.entry.name, issue])
+		else:
+			_remember_unavailable_automatic_variant(definition, automatic_current.entry, issue)
+			automatic_messages.append("Appearance unavailable: %s — %s" % [automatic_current.entry.name, issue])
+		_report_automatic()
 		call_deferred("_next_automatic", automatic_generation)
 		return
 	if not issue.is_empty() and _try_next_automatic_variant(issue): return

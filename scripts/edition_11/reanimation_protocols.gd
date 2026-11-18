@@ -1,6 +1,7 @@
 extends RefCounted
 const ReturnPlacement = preload("res://scripts/edition_11/return_placement.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 ## Necrons App v1.2 rule; runtime scope is still limited to explicitly admitted profiles.
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
@@ -15,6 +16,7 @@ const PROFILE_WOUNDS := {
 	"40kdc:11e:necrons:immortals": 1,
 	"40kdc:11e:necrons:deathmarks": 1,
 	"40kdc:11e:necrons:flayed-ones": 1,
+	"40kdc:11e:necrons:triarch-praetorians": 2,
 	"40kdc:11e:necrons:skorpekh-destroyers": 3,
 	"40kdc:11e:necrons:canoptek-scarab-swarms": 4,
 	"40kdc:11e:necrons:canoptek-wraiths": 4,
@@ -51,12 +53,18 @@ const CHARACTER_WOUNDS := {
 	"40kdc:11e:necrons:nekrosor-ammentar": 9,
 	"40kdc:11e:necrons:overlord-with-translocation-shroud": 6,
 	"40kdc:11e:necrons:transcendent-ctan": 16,
+	"40kdc:11e:necrons:orikan-the-diviner": 4,
+	"40kdc:11e:necrons:plasmancer": 4,
+	"40kdc:11e:necrons:technomancer": 4,
+	"40kdc:11e:necrons:psychomancer": 4,
+	"40kdc:11e:necrons:chronomancer": 4,
 }
 const PROFILE_MODEL_COUNTS := {
 	"40kdc:11e:necrons:necron-warriors": [10, 20],
 	"40kdc:11e:necrons:immortals": [5, 10],
 	"40kdc:11e:necrons:deathmarks": [5, 10],
 	"40kdc:11e:necrons:flayed-ones": [5, 10],
+	"40kdc:11e:necrons:triarch-praetorians": [5, 10],
 	"40kdc:11e:necrons:skorpekh-destroyers": [3, 6],
 	"40kdc:11e:necrons:canoptek-scarab-swarms": [3, 6],
 	"40kdc:11e:necrons:canoptek-wraiths": [3, 6],
@@ -95,6 +103,9 @@ const PROFILE_MODEL_COUNTS := {
 const ATTACHABLE_TROOPS := ["40kdc:11e:necrons:necron-warriors", "40kdc:11e:necrons:immortals"]
 const OVERLORD := "40kdc:11e:necrons:overlord"
 const WARDEN := "40kdc:11e:necrons:royal-warden"
+const TOMB_CRAWLERS := "40kdc:11e:necrons:canoptek-tomb-crawlers"
+const CRYPTOTHRALLS := "40kdc:11e:necrons:cryptothralls"
+const CRYPTEK_LEADERS := ["orikan-the-diviner", "plasmancer", "technomancer", "psychomancer", "chronomancer", "geomancer"]
 const EPSILON := 0.001
 
 static func necron_army(state: Dictionary, owner: int) -> bool:
@@ -128,6 +139,8 @@ static func supported_unit(state: Dictionary, squad: int) -> bool:
 # wounded-model choice. Retain the original unit and its combined strength (19).
 static func _supported_attachment(state: Dictionary, squad: int) -> bool:
 	var components: Array = state.squads[squad].get("components", [])
+	if components.size() in [2, 3] and _contains_leading_cryptek(state, squad):
+		return _supported_cryptek_attachment(state, squad, components.size())
 	if components.size() != 2: return false
 	var troop_identity := ""
 	var leader_count := 0
@@ -146,6 +159,56 @@ static func _supported_attachment(state: Dictionary, squad: int) -> bool:
 			troop_count += 1
 		else: return false
 	return leader_count == 1 and troop_count > 0 and state.squads[squad].starting_strength == troop_count + leader_count
+
+static func _contains_leading_cryptek(state: Dictionary, squad: int) -> bool:
+	for unit: Dictionary in state.units.values():
+		if int(unit.get("squad", -1)) != squad: continue
+		var identity := str(unit.get("definition_id", "")).get_slice(":", 3)
+		if identity not in CRYPTEK_LEADERS or str(unit.get("attachment_role", "")) not in ["leader", "support"]: continue
+		for keyword: Variant in unit.get("keywords", []):
+			if str(keyword).strip_edges().to_upper() == "CRYPTEK": return true
+	return false
+
+static func _supported_cryptek_attachment(state: Dictionary, squad: int, component_count: int) -> bool:
+	var bodyguard_identity := ""
+	var bodyguard_count := 0
+	var cryptek_count := 0
+	var tomb_crawler_count := 0
+	var cryptothrall_count := 0
+	for unit: Dictionary in state.units.values():
+		if int(unit.get("squad", -1)) != squad: continue
+		if int(unit.get("owner", -1)) != int(state.squads[squad].get("owner", -2)) or float(unit.get("elevation", 0.0)) != 0.0: return false
+		var identity := str(unit.get("definition_id", ""))
+		var slug := identity.get_slice(":", 3)
+		var role := str(unit.get("attachment_role", ""))
+		if role == "bodyguard":
+			if not PROFILE_WOUNDS.has(identity) or not PROFILE_MODEL_COUNTS.has(identity) or slug in ["canoptek-tomb-crawlers", "cryptothralls"]: return false
+			if int(unit.get("max_wounds", 0)) != int(PROFILE_WOUNDS[identity]): return false
+			if bodyguard_identity.is_empty(): bodyguard_identity = identity
+			if identity != bodyguard_identity: return false
+			bodyguard_count += 1
+		elif role in ["leader", "support"] and identity == TOMB_CRAWLERS:
+			if role != "support" or int(unit.get("max_wounds", 0)) != 3: return false
+			tomb_crawler_count += 1
+		elif role in ["leader", "support"] and identity == CRYPTOTHRALLS:
+			if role != "support" or int(unit.get("max_wounds", 0)) != 3: return false
+			cryptothrall_count += 1
+		elif role in ["leader", "support"] and slug in CRYPTEK_LEADERS:
+			if int(unit.get("max_wounds", 0)) != int(CHARACTER_WOUNDS.get(identity, 0)): return false
+			var has_cryptek_keyword := false
+			for keyword: Variant in unit.get("keywords", []):
+				if str(keyword).strip_edges().to_upper() == "CRYPTEK": has_cryptek_keyword = true
+			if not has_cryptek_keyword: return false
+			cryptek_count += 1
+		else: return false
+	if cryptek_count != 1 or bodyguard_count <= 0 or bodyguard_identity.is_empty(): return false
+	if bodyguard_count not in PROFILE_MODEL_COUNTS[bodyguard_identity]: return false
+	if tomb_crawler_count not in [0, 2]: return false
+	if cryptothrall_count not in [0, 2]: return false
+	if tomb_crawler_count > 0 and cryptothrall_count > 0: return false
+	var retinue_models := tomb_crawler_count + cryptothrall_count
+	if component_count != (2 if retinue_models == 0 else 3): return false
+	return int(state.squads[squad].get("starting_strength", 0)) == bodyguard_count + cryptek_count + retinue_models
 
 ## The core Command-phase trigger in the local export applies to units that
 ## are on the battlefield. Reserve and embarked activations need their own
@@ -176,6 +239,22 @@ static func nanoscarab_aura_applies(state: Dictionary, squad: int) -> bool:
 		if Geometry.distance_to_target(state, source, squad) <= 3.0 + EPSILON: return true
 	return false
 
+static func nanoscarab_projector_sources(state: Dictionary, squad: int) -> Array[int]:
+	var result: Array[int] = []
+	if not enabled(state) or not state.get("squads", {}).has(squad) or not UnitAbilities.has_living_unit_keyword(state, squad, "NECRONS"): return result
+	var owner := int(state.squads[squad].get("owner", -1))
+	for source_squad: int in state.get("squads", {}):
+		if int(state.squads[source_squad].get("owner", -2)) != owner: continue
+		for model: int in AbilityCatalog.sources(state, source_squad, "nanoscarab-projector"):
+			var source: Dictionary = state.units[model]
+			if int(source.get("wounds", 0)) <= 0 or not bool(source.get("on_battlefield", true)): continue
+			if state.get("unit_abilities", {}).get("reserves", {}).has(source_squad) or int(source.get("embarked_transport", -1)) >= 0: continue
+			if Geometry.distance_to_target(state, source, squad) <= 3.0 + EPSILON: result.append(model)
+	return result
+
+static func nanoscarab_projector_use_key(model: int, battle_round: int) -> String:
+	return "nanoscarab-projector:%d:%d" % [model, battle_round]
+
 static func enable(state: Dictionary) -> void:
 	state.reanimation = {"implementation": ID, "done_turn": {}, "morale_turn": -1, "command_turn": -1, "anchors": {}, "pending": {}, "last_results": []}
 	Capabilities.admit(state, "reanimation-protocols", ID)
@@ -205,6 +284,10 @@ static func pending_decision(state: Dictionary) -> Dictionary:
 			var squad := int(squad_value)
 			if not state.get("squads", {}).has(squad) or not on_battlefield(state, squad) or not supported_unit(state, squad) or Geometry.alive(state, squad).is_empty(): continue
 			options.append(_decision_option("Roll Reanimation for %s" % str(state.squads[squad].name), squad, -1, "roll"))
+			for projector: int in nanoscarab_projector_sources(state, squad):
+				var use_key := nanoscarab_projector_use_key(projector, int(state.get("round", -1)))
+				if state.get("unit_abilities", {}).get("used", {}).get(use_key, false): continue
+				options.append(_decision_option("Use Nanoscarab Projector %d on %s, then roll" % [projector, str(state.squads[squad].name)], squad, projector, "roll-projector"))
 	elif current.get("reroll_pending", false):
 		# The paired UnitActions decision owns Their Number is Legion's keep/re-roll choice.
 		return {}
@@ -283,17 +366,22 @@ static func returnable(state: Dictionary) -> Array[int]:
 	result.sort()
 	return result
 
-static func roll_unit(state: Dictionary, squad: int, roller: Callable) -> Dictionary:
+static func roll_unit(state: Dictionary, squad: int, roller: Callable, projector_model: int = -1) -> Dictionary:
 	var window := pending(state)
 	if not window.current.is_empty() or squad not in window.remaining: return {"error": "Select an unresolved unit before rolling its Reanimation."}
 	if not on_battlefield(state, squad) or not supported_unit(state, squad) or Geometry.alive(state, squad).is_empty(): return {"error": "That unit is no longer eligible for Reanimation."}
+	if projector_model >= 0:
+		var use_key := nanoscarab_projector_use_key(projector_model, int(state.get("round", -1)))
+		if projector_model not in nanoscarab_projector_sources(state, squad) or state.get("unit_abilities", {}).get("used", {}).get(use_key, false): return {"error": "That Nanoscarab Projector is no longer eligible for this Reanimation activation."}
 	if not roller.is_valid(): return {"error": "Reanimation requires the host's D6 provider."}
 	var raw: Variant = roller.call()
 	if not raw is int or raw < 1 or raw > 6: return {"error": "Reanimation dice must be integers from 1 to 6."}
+	if projector_model >= 0:
+		state.unit_abilities.used[nanoscarab_projector_use_key(projector_model, int(state.get("round", -1)))] = true
 	if UnitAbilities.has(state, squad, "their-number-is-legion"):
-		window.current = {"squad": squad, "raw_roll": raw, "reroll_pending": true, "placements": {}, "unplaced": []}
+		window.current = {"squad": squad, "raw_roll": raw, "reroll_pending": true, "nanoscarab_projector_model": projector_model, "placements": {}, "unplaced": []}
 		return {"error": "", "message": "Their Number is Legion: accept this roll or re-roll once before assigning healing."}
-	return _prepare_healing(state, squad, raw, roller)
+	return _prepare_healing(state, squad, raw, roller, projector_model)
 
 static func accept_roll(state: Dictionary, reroll: bool, roller: Callable) -> Dictionary:
 	var current: Dictionary = pending(state).get("current", {})
@@ -304,9 +392,9 @@ static func accept_roll(state: Dictionary, reroll: bool, roller: Callable) -> Di
 		var rolled: Variant = roller.call()
 		if not rolled is int or rolled < 1 or rolled > 6: return {"error": "Invalid host D6."}
 		raw = rolled
-	return _prepare_healing(state, current.squad, raw, roller)
+	return _prepare_healing(state, current.squad, raw, roller, int(current.get("nanoscarab_projector_model", -1)))
 
-static func _prepare_healing(state: Dictionary, squad: int, raw: int, roller: Callable) -> Dictionary:
+static func _prepare_healing(state: Dictionary, squad: int, raw: int, roller: Callable, projector_model: int = -1) -> Dictionary:
 	var window := pending(state)
 	var budget := raw if window.get("kind", "") == "orb" else ceili(float(raw) / 2.0)
 	if window.get("kind", "") == "undying" and window.get("led", false): budget += 1
@@ -320,6 +408,8 @@ static func _prepare_healing(state: Dictionary, squad: int, raw: int, roller: Ca
 		nanoscarab_roll = int(bonus_raw)
 		nanoscarab_bonus = ceili(float(nanoscarab_roll) / 2.0)
 		budget += nanoscarab_bonus
+	var projector_bonus := 1 if projector_model >= 0 else 0
+	budget += projector_bonus
 	var healed: Dictionary = {}
 	var remaining := budget
 	for model: int in Geometry.alive(state, squad):
@@ -337,11 +427,14 @@ static func _prepare_healing(state: Dictionary, squad: int, raw: int, roller: Ca
 				break
 	var healing_die := "D6" if window.get("kind", "") == "orb" else "D3"
 	if nanoscarab_bonus > 0: healing_die += "+D3"
-	window.current = {"squad": squad, "raw_roll": raw, "base_budget": base_budget, "nanoscarab_roll": nanoscarab_roll, "nanoscarab_bonus": nanoscarab_bonus, "budget": budget, "healing_die": healing_die, "healed": healed, "placements": {}, "unplaced": [], "engaged": engaged, "anchors": state.reanimation.anchors.get(squad, []).duplicate()}
+	if projector_bonus > 0: healing_die += "+1 Nanoscarab Projector"
+	window.current = {"squad": squad, "raw_roll": raw, "base_budget": base_budget, "nanoscarab_roll": nanoscarab_roll, "nanoscarab_bonus": nanoscarab_bonus, "nanoscarab_projector_model": projector_model, "nanoscarab_projector_bonus": projector_bonus, "budget": budget, "healing_die": healing_die, "healed": healed, "placements": {}, "unplaced": [], "engaged": engaged, "anchors": state.reanimation.anchors.get(squad, []).duplicate()}
 	window.current.slots = mini(remaining, returnable(state).size())
 	if window.current.slots == 0: return confirm_unit(state)
 	var message := "%s: Reanimation D6 %d becomes %s %d" % [state.squads[squad].name, raw, "D6" if window.get("kind", "") == "orb" else "D3", base_budget]
 	if nanoscarab_bonus > 0: message += "; Nanoscarab D6 %d adds D3 %d (total %d)" % [nanoscarab_roll, nanoscarab_bonus, budget]
+	if projector_bonus > 0: message += "; Nanoscarab Projector adds 1 wound%s" % (" (total %d)" % budget if nanoscarab_bonus == 0 else "")
+	if projector_bonus > 0 and nanoscarab_bonus > 0: message += " (total %d)" % budget
 	message += ". Preview %d returned models, then confirm." % window.current.slots
 	return {"error": "", "message": message}
 

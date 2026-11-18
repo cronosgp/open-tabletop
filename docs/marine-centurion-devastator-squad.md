@@ -21,3 +21,7 @@ The supported local profile covers the source-priced unit sizes, role minimums, 
 ## Verification
 
 Focused checks cover the source identity and snapshot provenance, exported characteristics and weapon profiles, base size and keywords, one-Sergeant composition, source-priced roster admission and copy limits, all equipment choices, each model's preparation selections, objective-range rerolls, and the Fire Overwatch, Indirect Shooting and melee exclusions. The source-slice structural audit and final local verification command/result are recorded in the [machine-readable audit](marine-centurion-devastator-squad-audit.json) and [verification results](verification/verification-results.md).
+
+## Saved army equipment - 14 November 2026
+
+Source-listed equipment now persists in the Army Builder per stable model/copy, is validated before materialization and cannot be reconfigured during readiness once frozen. Existing rules, Chapter and event boundaries remain. See [source-option review, exact verification reports and Godot captures](verification/heavy-saved-equipment.md).

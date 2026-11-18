@@ -5,7 +5,7 @@
 - The target is Warhammer 40,000 11th edition. By user decision, the verified local Wahapedia Data Export snapshot is the definitive working source for rules and datasheet facts. Start with that extraction; consult the matching current Wahapedia page only when the local data is missing, ambiguous or inconsistent, and record how the question was resolved. Games Workshop material may provide context but does not override the selected Wahapedia edition. See [source assessment](docs/data/source-assessment.md).
 - Check edition, source book/chapter, game mode and the local snapshot's revision before implementing or marking a rule supported. Do not substitute an earlier-edition or superseded Codex mechanic for current e11 behavior or silently combine incompatible versions. Isolate historical training profiles and label their limits.
 - Army construction must use only the consolidated local runtime catalog. Do not restore broad API catalog fetching or cached API choices. Keep pending-validation and historical/unreconciled profiles out of new construction choices. Preserve existing lists as labeled legacy drafts. See [construction catalog policy](docs/construction-catalog-policy.md).
-- Continue Space Marines with local rules, combat and admission checks. Defer network validation to final integration, and never report deferred checks as passed.
+- Continue Space Marines and Necrons with local rules, saved equipment, combat and admission checks. Defer separate-machine network validation to final integration, and never report deferred checks as passed.
 - Keep the roadmap, capability metadata, support matrix and verification claims aligned with runtime gates. A passing test suite does not establish rules accuracy, full army legality or platform coverage.
 
 ## Start with the project state
@@ -27,6 +27,8 @@
 
 - Keep the root README as a short entry point. Put topic detail in the relevant `docs/` category and add or update its link in [the docs index](docs/README.md).
 - Update the support matrix and roadmap when actual runtime scope changes. Do not use documentation alone to claim behavior is implemented.
+- Keep README.md concise and high-level (link to coverage tables rather than listing individual datasheet audits in the root README). Update docs/project/support-matrix.md and docs/project/roadmap.md in place rather than creating competing status logs.
+- Keep docs/.gdignore in place so Godot does not import documentation CSVs or images as engine resources.
 
 ## Interface work
 

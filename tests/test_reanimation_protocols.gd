@@ -383,7 +383,12 @@ func run() -> void:
 	game._reset_history()
 	game._request_end()
 	game._request_reanimation("roll")
+	var legion_keep: Dictionary = {}
+	for option: Dictionary in C.unit_choices(game.state, 2):
+		if str(option.get("action", "")) == "legion-keep": legion_keep = option
+	var legion_keep_error := C.unit_action(game.state, 2, legion_keep, Vector2.ZERO, int(game.state.revision), Callable(game, "_d6")) if not legion_keep.is_empty() else "Their Number is Legion did not expose its keep choice."
 	game._request_reanimation("suggest")
+	check(legion_keep_error.is_empty() and not R.pending(game.state).get("current", {}).get("reroll_pending", false), "The save fixture resolves the Legion choice before previewing model placements")
 	saved_state = game.state.duplicate(true)
 	saved_rng = game.rng.state
 	var pending_save_error := Save.write(game.state, game._save_config(), game.rng.state, game.attack_draft, isolated_save_path, game.host_session, game.journal.checkpoint(), {}, C.MatchActor.player(game.state))

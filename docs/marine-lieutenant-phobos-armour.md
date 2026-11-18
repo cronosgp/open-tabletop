@@ -21,3 +21,7 @@ The current catalog materializes the profile for both players. Construction acce
 The offline targeted run passed **5/5 processes**: import, Python checks, the Lieutenant in Phobos suite, the paired Infiltrator suite and all 153 Leader/Support links. It used `network: false`, `legacy_starter_staged: false` and reported no cleanup diagnostics. The exact run is `.tools/verification/20261028T013420957771Z/results.json`; the machine audit is [marine-lieutenant-phobos-armour-audit.json](marine-lieutenant-phobos-armour-audit.json).
 
 This closes only the Lieutenant in Phobos Armour shared-book local scope. It does not certify Deathwatch or Space Wolves lists, full Chapter or army legality, network behavior, complete-match behavior or human playtesting. Network validation remains deferred to final integration.
+
+## Army Workshop equipment — 14 November 2026
+
+Source-listed equipment can now be saved per stable model copy in the Army Workshop. Current local admission validates the selection; prepared matches apply it before Deployment and lock duplicate setup changes. This transfers existing source-bounded options, without changing the datasheet's other rules, costs, construction limits or geometry. Exact source identities, saved-equipment tests and actual Godot captures are in the [migration evidence](verification/character-artillery-saved-equipment.md).

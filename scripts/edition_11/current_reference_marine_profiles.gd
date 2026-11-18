@@ -3193,6 +3193,23 @@ static func vindicator_weapons(storm_bolter: bool = false, hunter_killer_missile
 		ranged.append(bolter)
 	return {"ranged": ranged, "melee": data.melee.duplicate(true), "storm_bolter": storm_bolter, "hunter_killer_missile": hunter_killer_missile}
 
+static func rhino_weapons(hunter_killer_missile: bool = false) -> Dictionary:
+	return _rhino_weapons("rhino", hunter_killer_missile)
+
+static func rhino_primaris_weapons(hunter_killer_missile: bool = false) -> Dictionary:
+	return _rhino_weapons("rhino-primaris", hunter_killer_missile)
+
+static func _rhino_weapons(identity: String, hunter_killer_missile: bool) -> Dictionary:
+	var data := profile(identity)
+	if data.is_empty(): return {}
+	var ranged: Array = data.get("ranged", []).duplicate(true)
+	if hunter_killer_missile:
+		if "Hunter-killer Missile" not in data.get("transport", {}).get("options", {}).get("add", []): return {}
+		var missile := additional_weapon(identity, "ranged", "hunter-killer-missile")
+		if missile.is_empty(): return {}
+		ranged.append(missile)
+	return {"ranged": ranged, "melee": data.get("melee", []).duplicate(true)}
+
 static func predator_annihilator_weapons(heavy_bolters: bool = false, hunter_killer_missile: bool = false, storm_bolter: bool = false) -> Dictionary:
 	var data := profile("predator-annihilator")
 	if data.is_empty(): return {}
@@ -3667,6 +3684,17 @@ static func _chapter_vehicle_profiles(base_profiles: Dictionary = {}) -> Diction
 			options.wargear_costs = source.wargear_costs.duplicate(true)
 			transport.options = options
 			profile.transport = transport
+		if identity in ["black-templars-impulsor", "black-templars-repulsor", "black-templars-repulsor-executioner"]:
+			# Source-listed on these three BT sheets; the verified final export's
+			# weapon fields exactly match the shared Land Raider Multi-melta.
+			var multi_melta: Dictionary = {}
+			for weapon: Dictionary in bases.get("land-raider", {}).get("additional_weapon_profiles", {}).get("ranged", []):
+				if str(weapon.get("id", "")) == "multi-melta": multi_melta = weapon.duplicate(true)
+			if not multi_melta.is_empty(): profile.additional_weapon_profiles.ranged.append(multi_melta)
+			var options: Dictionary = profile.transport.options
+			options.wargear_costs = source.wargear_costs.duplicate(true)
+			if identity == "black-templars-impulsor": options.pintle_one_of = ["Ironhail Heavy Stubber", "Multi-melta"]
+			else: options.add = ["Multi-melta"]
 		result[identity] = profile
 	return result
 

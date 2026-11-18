@@ -19,3 +19,7 @@ The source lists six Leaders: Ragnar Blackmane, Njal Stormcaller, Ulrik the Slay
 The focused offline regression passed all 7 processes: import, Python, `test_blood_claws`, `test_implemented_catalog`, `test_capabilities`, `test_combat_doctrines` and `test_execrator`. The report is `.tools/verification/20261029T015613920914Z/results.json` (SHA-256 `3F094EFE0B29A3B268AE34115D3B8A7889533960B1622E8D32A2A95B36C63288`; `network: false`; no cleanup diagnostics). It verifies both source-priced unit sizes in profile data, catalog admission, fixed characteristics and weapons, Pack Leader choices and their model boundary, Berserk Charge through the actual Charge declaration, and the normal restriction on other units.
 
 This closes the local scope for the Blood Claws datasheet. Network validation, source-listed Leader attachment endpoints, human playtesting, full faction/army legality and complete-match certification remain open.
+
+## Saved model equipment — 14 November 2026
+
+Army Builder now saves source-listed weapons per stable miniature/copy with leader-role restrictions. Existing sizes and construction copy gates are unchanged. Saved matches apply these records before Deployment and reject repeated equipment setup; live formation/combat abilities remain available. See the [saved-equipment source and regression audit](verification/sergeant-squad-saved-equipment.md).

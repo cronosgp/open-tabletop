@@ -13,7 +13,16 @@ func _init(storage_path: String = "user://profiles/army-lists.json") -> void:
 		error = loaded.error
 		return
 	error = validate_bank(loaded.data)
-	if error.is_empty(): data = loaded.data
+	if error.is_empty():
+		data = loaded.data
+		for profile: Dictionary in data.profiles:
+			for list: Dictionary in profile.lists:
+				var seen_copy_ids: Dictionary = {}
+				for entry: Dictionary in list.entries:
+					Roster.normalize_copy_instance_ids_with_seen(entry, seen_copy_ids)
+					Roster.normalize_model_visual_overrides(entry)
+					Roster.normalize_model_visual_selection_modes(entry)
+					Roster.normalize_model_equipment(entry)
 
 static func validate_bank(bank: Variant) -> String:
 	if not bank is Dictionary or bank.get("schema_version") != 1 or not bank.get("active") is String or not bank.get("profiles") is Array: return "Incompatible profile format; file preserved."
@@ -61,6 +70,14 @@ func save_list(list: Dictionary) -> Dictionary:
 	var issue := Roster.validate(list)
 	if not issue.is_empty(): return {"error": issue}
 	var saved := list.duplicate(true)
+	var seen_copy_ids: Dictionary = {}
+	for entry: Dictionary in saved.entries:
+		Roster.normalize_copy_instance_ids_with_seen(entry, seen_copy_ids)
+		Roster.normalize_model_visual_overrides(entry)
+		Roster.normalize_model_visual_selection_modes(entry)
+		Roster.normalize_model_equipment(entry)
+	issue = Roster.validate(saved)
+	if not issue.is_empty(): return {"error": issue}
 	if saved.id.is_empty(): saved.id = Crypto.new().generate_random_bytes(16).hex_encode()
 	var candidate := data.duplicate(true)
 	for profile: Dictionary in candidate.profiles:

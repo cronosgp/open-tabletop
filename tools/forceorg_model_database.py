@@ -528,130 +528,133 @@ def build(args: argparse.Namespace) -> dict:
 
 def search(args: argparse.Namespace) -> list[dict]:
     db = sqlite3.connect(args.database.resolve().as_uri() + "?mode=ro", uri=True)
-    db.row_factory = sqlite3.Row
-    conditions, values = [], []
-    if args.name:
-        conditions.append("v.search_name LIKE ? ESCAPE '\\'")
-        escaped = normalized(args.name).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-        values.append("%" + escaped + "%")
-    conditions.append("v.category=?")
-    values.append(args.category)
-    if args.datasheet:
-        conditions.append("(EXISTS(SELECT 1 FROM links l WHERE l.variant_id=v.id AND l.datasheet_id=?) OR EXISTS(SELECT 1 FROM fallback_links f WHERE f.variant_id=v.id AND f.datasheet_id=?))")
-        values.extend([args.datasheet, args.datasheet])
-    if args.weapon:
-        conditions.append("EXISTS(SELECT 1 FROM weapons w WHERE w.variant_id=v.id AND w.weapon=?)")
-        values.append(normalized(args.weapon).replace(" ", "-"))
-    if args.model_role:
-        role_filter = "EXISTS(SELECT 1 FROM model_role_links m WHERE m.variant_id=v.id AND lower(m.model_role) LIKE ?"
-        role_values = ["%" + normalized(args.model_role).replace(" ", "%") + "%"]
+    try:
+        db.row_factory = sqlite3.Row
+        datasheet_role = getattr(args, "datasheet_role", "")
+        conditions, values = [], []
+        if args.name:
+            conditions.append("v.search_name LIKE ? ESCAPE '\\'")
+            escaped = normalized(args.name).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            values.append("%" + escaped + "%")
+        conditions.append("v.category=?")
+        values.append(args.category)
         if args.datasheet:
-            role_filter += " AND m.datasheet_id=?"
-            role_values.append(args.datasheet)
-        conditions.append(role_filter + ")")
-        values.extend(role_values)
-    role_term = "%" + normalized(args.datasheet_role).replace(" ", "%") + "%" if args.datasheet_role else ""
-    if args.datasheet_role:
+            conditions.append("(EXISTS(SELECT 1 FROM links l WHERE l.variant_id=v.id AND l.datasheet_id=?) OR EXISTS(SELECT 1 FROM fallback_links f WHERE f.variant_id=v.id AND f.datasheet_id=?))")
+            values.extend([args.datasheet, args.datasheet])
+        if args.weapon:
+            conditions.append("EXISTS(SELECT 1 FROM weapons w WHERE w.variant_id=v.id AND w.weapon=?)")
+            values.append(normalized(args.weapon).replace(" ", "-"))
+        if args.model_role:
+            role_filter = "EXISTS(SELECT 1 FROM model_role_links m WHERE m.variant_id=v.id AND lower(m.model_role) LIKE ?"
+            role_values = ["%" + normalized(args.model_role).replace(" ", "%") + "%"]
+            if args.datasheet:
+                role_filter += " AND m.datasheet_id=?"
+                role_values.append(args.datasheet)
+            conditions.append(role_filter + ")")
+            values.extend(role_values)
+        role_term = "%" + normalized(datasheet_role).replace(" ", "%") + "%" if datasheet_role else ""
+        if datasheet_role:
+            if args.datasheet:
+                conditions.append("""(EXISTS(SELECT 1 FROM links role_link JOIN datasheets role_sheet ON role_sheet.id=role_link.datasheet_id
+                    WHERE role_link.variant_id=v.id AND role_link.datasheet_id=? AND lower(role_sheet.role) LIKE ?)
+                    OR EXISTS(SELECT 1 FROM fallback_links role_fallback JOIN datasheets role_sheet ON role_sheet.id=role_fallback.datasheet_id
+                    WHERE role_fallback.variant_id=v.id AND role_fallback.datasheet_id=? AND lower(role_sheet.role) LIKE ?))""")
+                values.extend([args.datasheet, role_term, args.datasheet, role_term])
+            else:
+                conditions.append("""(EXISTS(SELECT 1 FROM links role_link JOIN datasheets role_sheet ON role_sheet.id=role_link.datasheet_id
+                    WHERE role_link.variant_id=v.id AND lower(role_sheet.role) LIKE ?)
+                    OR EXISTS(SELECT 1 FROM fallback_links role_fallback JOIN datasheets role_sheet ON role_sheet.id=role_fallback.datasheet_id
+                    WHERE role_fallback.variant_id=v.id AND lower(role_sheet.role) LIKE ?))""")
+                values.extend([role_term, role_term])
+        character = "EXISTS(SELECT 1 FROM links cl JOIN datasheets cd ON cd.id=cl.datasheet_id WHERE cl.variant_id=v.id AND cd.is_character=1 AND cl.status IN ('label_association','literal_label_association','user_association'))"
+        if args.character:
+            conditions.append(character)
+        sql = "SELECT v.id,v.label,v.search_name AS _search_name,v.category,v.model_role,v.source_group,v.fingerprint," + character + " AS is_character FROM variants v WHERE "
+        order_values = []
         if args.datasheet:
-            conditions.append("""(EXISTS(SELECT 1 FROM links role_link JOIN datasheets role_sheet ON role_sheet.id=role_link.datasheet_id
-                WHERE role_link.variant_id=v.id AND role_link.datasheet_id=? AND lower(role_sheet.role) LIKE ?)
-                OR EXISTS(SELECT 1 FROM fallback_links role_fallback JOIN datasheets role_sheet ON role_sheet.id=role_fallback.datasheet_id
-                WHERE role_fallback.variant_id=v.id AND role_fallback.datasheet_id=? AND lower(role_sheet.role) LIKE ?))""")
-            values.extend([args.datasheet, role_term, args.datasheet, role_term])
+            order = """CASE
+                WHEN EXISTS(SELECT 1 FROM links ranked WHERE ranked.variant_id=v.id AND ranked.datasheet_id=?
+                    AND ranked.status IN ('label_association','literal_label_association','user_association')) THEN 0
+                WHEN EXISTS(SELECT 1 FROM fallback_links ranked WHERE ranked.variant_id=v.id AND ranked.datasheet_id=?) THEN 1
+                WHEN EXISTS(SELECT 1 FROM links ranked WHERE ranked.variant_id=v.id AND ranked.datasheet_id=?
+                    AND ranked.status='candidate') THEN 2 ELSE 3 END,
+                COALESCE((SELECT max(ranked.score) FROM links ranked WHERE ranked.variant_id=v.id AND ranked.datasheet_id=?),0) DESC,
+                v.search_name,v.id"""
+            order_values = [args.datasheet] * 4
+        elif datasheet_role:
+            order = """CASE
+                WHEN EXISTS(SELECT 1 FROM links ranked JOIN datasheets ranked_sheet ON ranked_sheet.id=ranked.datasheet_id
+                    WHERE ranked.variant_id=v.id AND lower(ranked_sheet.role) LIKE ?
+                    AND ranked.status IN ('label_association','literal_label_association','user_association')) THEN 0
+                WHEN EXISTS(SELECT 1 FROM fallback_links ranked JOIN datasheets ranked_sheet ON ranked_sheet.id=ranked.datasheet_id
+                    WHERE ranked.variant_id=v.id AND lower(ranked_sheet.role) LIKE ?) THEN 1
+                WHEN EXISTS(SELECT 1 FROM links ranked JOIN datasheets ranked_sheet ON ranked_sheet.id=ranked.datasheet_id
+                    WHERE ranked.variant_id=v.id AND lower(ranked_sheet.role) LIKE ? AND ranked.status='candidate') THEN 2
+                ELSE 3 END,
+                COALESCE((SELECT max(ranked.score) FROM links ranked JOIN datasheets ranked_sheet ON ranked_sheet.id=ranked.datasheet_id
+                    WHERE ranked.variant_id=v.id AND lower(ranked_sheet.role) LIKE ?),0) DESC,
+                v.search_name,v.id"""
+            order_values = [role_term] * 4
         else:
-            conditions.append("""(EXISTS(SELECT 1 FROM links role_link JOIN datasheets role_sheet ON role_sheet.id=role_link.datasheet_id
-                WHERE role_link.variant_id=v.id AND lower(role_sheet.role) LIKE ?)
-                OR EXISTS(SELECT 1 FROM fallback_links role_fallback JOIN datasheets role_sheet ON role_sheet.id=role_fallback.datasheet_id
-                WHERE role_fallback.variant_id=v.id AND lower(role_sheet.role) LIKE ?))""")
-            values.extend([role_term, role_term])
-    character = "EXISTS(SELECT 1 FROM links cl JOIN datasheets cd ON cd.id=cl.datasheet_id WHERE cl.variant_id=v.id AND cd.is_character=1 AND cl.status IN ('label_association','literal_label_association','user_association'))"
-    if args.character:
-        conditions.append(character)
-    sql = "SELECT v.id,v.label,v.search_name AS _search_name,v.category,v.model_role,v.source_group,v.fingerprint," + character + " AS is_character FROM variants v WHERE "
-    order_values = []
-    if args.datasheet:
-        order = """CASE
-            WHEN EXISTS(SELECT 1 FROM links ranked WHERE ranked.variant_id=v.id AND ranked.datasheet_id=?
-                AND ranked.status IN ('label_association','literal_label_association','user_association')) THEN 0
-            WHEN EXISTS(SELECT 1 FROM fallback_links ranked WHERE ranked.variant_id=v.id AND ranked.datasheet_id=?) THEN 1
-            WHEN EXISTS(SELECT 1 FROM links ranked WHERE ranked.variant_id=v.id AND ranked.datasheet_id=?
-                AND ranked.status='candidate') THEN 2 ELSE 3 END,
-            COALESCE((SELECT max(ranked.score) FROM links ranked WHERE ranked.variant_id=v.id AND ranked.datasheet_id=?),0) DESC,
-            v.search_name,v.id"""
-        order_values = [args.datasheet] * 4
-    elif args.datasheet_role:
-        order = """CASE
-            WHEN EXISTS(SELECT 1 FROM links ranked JOIN datasheets ranked_sheet ON ranked_sheet.id=ranked.datasheet_id
-                WHERE ranked.variant_id=v.id AND lower(ranked_sheet.role) LIKE ?
-                AND ranked.status IN ('label_association','literal_label_association','user_association')) THEN 0
-            WHEN EXISTS(SELECT 1 FROM fallback_links ranked JOIN datasheets ranked_sheet ON ranked_sheet.id=ranked.datasheet_id
-                WHERE ranked.variant_id=v.id AND lower(ranked_sheet.role) LIKE ?) THEN 1
-            WHEN EXISTS(SELECT 1 FROM links ranked JOIN datasheets ranked_sheet ON ranked_sheet.id=ranked.datasheet_id
-                WHERE ranked.variant_id=v.id AND lower(ranked_sheet.role) LIKE ? AND ranked.status='candidate') THEN 2
-            ELSE 3 END,
-            COALESCE((SELECT max(ranked.score) FROM links ranked JOIN datasheets ranked_sheet ON ranked_sheet.id=ranked.datasheet_id
-                WHERE ranked.variant_id=v.id AND lower(ranked_sheet.role) LIKE ?),0) DESC,
-            v.search_name,v.id"""
-        order_values = [role_term] * 4
-    else:
-        order = """CASE
-            WHEN EXISTS(SELECT 1 FROM links ranked WHERE ranked.variant_id=v.id
-                AND ranked.status IN ('label_association','literal_label_association','user_association')) THEN 0
-            WHEN EXISTS(SELECT 1 FROM fallback_links ranked WHERE ranked.variant_id=v.id) THEN 1
-            WHEN EXISTS(SELECT 1 FROM links ranked WHERE ranked.variant_id=v.id AND ranked.status='candidate') THEN 2
-            ELSE 3 END,v.search_name,v.id"""
-    result = [dict(r) for r in db.execute(sql + " AND ".join(conditions) + f" ORDER BY {order} LIMIT ?", [*values, *order_values, args.limit])]
-    for item in result:
-        item["source_labels"] = [r[0] for r in db.execute("SELECT DISTINCT label FROM occurrences WHERE variant_id=? ORDER BY label", (item["id"],))]
-        item["weapons"] = [r[0] for r in db.execute("SELECT weapon FROM weapons WHERE variant_id=? ORDER BY weapon", (item["id"],))]
-        item["datasheets"] = []
-        if args.datasheet_role:
-            links = db.execute("""SELECT d.id,d.name,d.faction,d.role,d.source_book,d.is_character,l.status,l.score,l.faction_match FROM links l
-                JOIN datasheets d ON d.id=l.datasheet_id WHERE l.variant_id=?
-                ORDER BY CASE WHEN lower(d.role) LIKE ? THEN 0 ELSE 1 END,l.score DESC,d.name,d.id""",
-                (item["id"], role_term)).fetchall()
-        else:
-            links = db.execute("""SELECT d.id,d.name,d.faction,d.role,d.source_book,d.is_character,l.status,l.score,l.faction_match FROM links l
-                JOIN datasheets d ON d.id=l.datasheet_id WHERE l.variant_id=?
-                ORDER BY l.score DESC,d.name,d.id""", (item["id"],)).fetchall()
-        for link in links:
-            linked = dict(link)
-            if linked["status"] == "candidate":
-                exact_name = item["_search_name"] == normalized(linked["name"])
-                scope_conflict = str(linked.get("faction_match", "")).strip().casefold() == "false"
-                linked["candidate_evidence"] = (
-                    "exact_datasheet_name_with_faction_scope_conflict" if exact_name and scope_conflict
-                    else "exact_datasheet_name" if exact_name
-                    else "lexical_candidate"
-                )
-            linked["model_roles"] = [dict(r) for r in db.execute("SELECT model_role,status FROM model_role_links WHERE variant_id=? AND datasheet_id=? ORDER BY model_role", (item["id"], link["id"]))]
-            linked["weapon_term_aliases"] = [dict(r) for r in db.execute("SELECT visual_term,physical_term,evidence FROM weapon_aliases WHERE datasheet_id=? ORDER BY visual_term", (link["id"],))]
-            linked["weapon_label_resolutions"] = [dict(r) for r in db.execute("SELECT weapon,label_suffix,evidence FROM weapon_label_resolutions WHERE variant_id=? AND datasheet_id=? ORDER BY weapon", (item["id"], link["id"]))]
-            item["datasheets"].append(linked)
-        for fallback in db.execute("""SELECT d.id,d.name,d.faction,d.role,d.source_book,d.is_character,
-            f.authority_sha256,f.source_label FROM fallback_links f
-            JOIN datasheets d ON d.id=f.datasheet_id WHERE f.variant_id=? ORDER BY d.name,d.id""", (item["id"],)):
-            linked = next((d for d in item["datasheets"] if d["id"] == fallback["id"]), None)
-            if linked is None:
-                linked = {"id": fallback["id"], "name": fallback["name"], "faction": fallback["faction"],
-                          "role": fallback["role"], "source_book": fallback["source_book"],
-                          "is_character": fallback["is_character"], "status": "reviewed_visual_fallback",
-                          "score": None, "model_roles": []}
+            order = """CASE
+                WHEN EXISTS(SELECT 1 FROM links ranked WHERE ranked.variant_id=v.id
+                    AND ranked.status IN ('label_association','literal_label_association','user_association')) THEN 0
+                WHEN EXISTS(SELECT 1 FROM fallback_links ranked WHERE ranked.variant_id=v.id) THEN 1
+                WHEN EXISTS(SELECT 1 FROM links ranked WHERE ranked.variant_id=v.id AND ranked.status='candidate') THEN 2
+                ELSE 3 END,v.search_name,v.id"""
+        result = [dict(r) for r in db.execute(sql + " AND ".join(conditions) + f" ORDER BY {order} LIMIT ?", [*values, *order_values, args.limit])]
+        for item in result:
+            item["source_labels"] = [r[0] for r in db.execute("SELECT DISTINCT label FROM occurrences WHERE variant_id=? ORDER BY label", (item["id"],))]
+            item["weapons"] = [r[0] for r in db.execute("SELECT weapon FROM weapons WHERE variant_id=? ORDER BY weapon", (item["id"],))]
+            item["datasheets"] = []
+            if datasheet_role:
+                links = db.execute("""SELECT d.id,d.name,d.faction,d.role,d.source_book,d.is_character,l.status,l.score,l.faction_match FROM links l
+                    JOIN datasheets d ON d.id=l.datasheet_id WHERE l.variant_id=?
+                    ORDER BY CASE WHEN lower(d.role) LIKE ? THEN 0 ELSE 1 END,l.score DESC,d.name,d.id""",
+                    (item["id"], role_term)).fetchall()
+            else:
+                links = db.execute("""SELECT d.id,d.name,d.faction,d.role,d.source_book,d.is_character,l.status,l.score,l.faction_match FROM links l
+                    JOIN datasheets d ON d.id=l.datasheet_id WHERE l.variant_id=?
+                    ORDER BY l.score DESC,d.name,d.id""", (item["id"],)).fetchall()
+            for link in links:
+                linked = dict(link)
+                if linked["status"] == "candidate":
+                    exact_name = item["_search_name"] == normalized(linked["name"])
+                    scope_conflict = str(linked.get("faction_match", "")).strip().casefold() == "false"
+                    linked["candidate_evidence"] = (
+                        "exact_datasheet_name_with_faction_scope_conflict" if exact_name and scope_conflict
+                        else "exact_datasheet_name" if exact_name
+                        else "lexical_candidate"
+                    )
+                linked["model_roles"] = [dict(r) for r in db.execute("SELECT model_role,status FROM model_role_links WHERE variant_id=? AND datasheet_id=? ORDER BY model_role", (item["id"], link["id"]))]
+                linked["weapon_term_aliases"] = [dict(r) for r in db.execute("SELECT visual_term,physical_term,evidence FROM weapon_aliases WHERE datasheet_id=? ORDER BY visual_term", (link["id"],))]
+                linked["weapon_label_resolutions"] = [dict(r) for r in db.execute("SELECT weapon,label_suffix,evidence FROM weapon_label_resolutions WHERE variant_id=? AND datasheet_id=? ORDER BY weapon", (item["id"], link["id"]))]
                 item["datasheets"].append(linked)
-            linked["visual_fallback"] = {"authority_sha256": fallback["authority_sha256"], "source_label": fallback["source_label"],
-                                          "scope": "presentation substitute; not model identity or equipped weapons"}
-        if args.datasheet_role:
-            role_status_rank = {"label_association": 0, "literal_label_association": 0,
-                                "user_association": 0, "reviewed_visual_fallback": 1, "candidate": 2}
-            requested_role = normalized(args.datasheet_role)
-            item["datasheets"].sort(key=lambda link: (
-                0 if requested_role in normalized(link.get("role", "")) else 1,
-                role_status_rank.get(link.get("status", ""), 3),
-                -float(link["score"]) if link.get("score") is not None else 0.0,
-                link.get("name", ""), link.get("id", "")))
-        item.pop("_search_name", None)
-    db.close()
-    return result
+            for fallback in db.execute("""SELECT d.id,d.name,d.faction,d.role,d.source_book,d.is_character,
+                f.authority_sha256,f.source_label FROM fallback_links f
+                JOIN datasheets d ON d.id=f.datasheet_id WHERE f.variant_id=? ORDER BY d.name,d.id""", (item["id"],)):
+                linked = next((d for d in item["datasheets"] if d["id"] == fallback["id"]), None)
+                if linked is None:
+                    linked = {"id": fallback["id"], "name": fallback["name"], "faction": fallback["faction"],
+                              "role": fallback["role"], "source_book": fallback["source_book"],
+                              "is_character": fallback["is_character"], "status": "reviewed_visual_fallback",
+                              "score": None, "model_roles": []}
+                    item["datasheets"].append(linked)
+                linked["visual_fallback"] = {"authority_sha256": fallback["authority_sha256"], "source_label": fallback["source_label"],
+                                              "scope": "presentation substitute; not model identity or equipped weapons"}
+            if datasheet_role:
+                role_status_rank = {"label_association": 0, "literal_label_association": 0,
+                                    "user_association": 0, "reviewed_visual_fallback": 1, "candidate": 2}
+                requested_role = normalized(datasheet_role)
+                item["datasheets"].sort(key=lambda link: (
+                    0 if requested_role in normalized(link.get("role", "")) else 1,
+                    role_status_rank.get(link.get("status", ""), 3),
+                    -float(link["score"]) if link.get("score") is not None else 0.0,
+                    link.get("name", ""), link.get("id", "")))
+            item.pop("_search_name", None)
+        return result
+    finally:
+        db.close()
 
 
 def search_objects(args: argparse.Namespace) -> list[dict]:
@@ -691,235 +694,239 @@ def search_objects(args: argparse.Namespace) -> list[dict]:
 def coverage(args: argparse.Namespace) -> dict:
     """Account for every runtime identity without equating a proxy to a sculpt."""
     db = sqlite3.connect(args.database.resolve().as_uri() + "?mode=ro", uri=True)
-    db.row_factory = sqlite3.Row
-    profiles = []
-    counts: Counter = Counter()
-    for r in db.execute("SELECT p.definition_id,d.id,d.name FROM runtime_profiles p JOIN datasheets d ON d.id=p.datasheet_id ORDER BY d.name,d.id").fetchall():
-        identity = r["id"]
-        named = db.execute("""SELECT count(*) FROM links l JOIN variants v ON v.id=l.variant_id
-            WHERE l.datasheet_id=? AND l.status IN ('label_association','literal_label_association','user_association') AND v.category='miniature'""", (identity,)).fetchone()[0]
-        fallbacks = [row[0] for row in db.execute("SELECT DISTINCT source_label FROM fallback_links WHERE datasheet_id=? ORDER BY source_label", (identity,))]
-        candidates = db.execute("SELECT count(*) FROM links WHERE datasheet_id=? AND status='candidate'", (identity,)).fetchone()[0]
-        role_eligible = db.execute("""SELECT count(DISTINCT l.variant_id) FROM links l
-            JOIN model_role_links m ON m.variant_id=l.variant_id AND m.datasheet_id=l.datasheet_id
-            JOIN variants v ON v.id=l.variant_id WHERE l.datasheet_id=? AND v.category='miniature'
-            AND l.status IN ('label_association','literal_label_association','user_association')
-            AND m.status NOT IN ('unresolved_model_role','ambiguous_model_role')""", (identity,)).fetchone()[0]
-        status = "label_associations" if named else "reviewed_visual_fallback_only" if fallbacks else "candidate_only" if candidates else "no_source_candidate"
-        counts[status] += 1
-        profiles.append({"definition_id": r["definition_id"], "datasheet_id": identity, "name": r["name"], "status": status,
-                         "label_association_variants": named, "role_eligible_variants": role_eligible,
-                         "reviewed_visual_fallback_labels": fallbacks, "other_candidates": candidates})
-    metadata = {r["key"]: json.loads(r["value"]) for r in db.execute("SELECT key,value FROM metadata")}
-    db.close()
-    report = {"scope": "source inventory and existing visual fallbacks; asset import/weapon fidelity not certified",
-              "rules_snapshot_id": metadata["rules_snapshot_id"], "runtime_identities": len(profiles), "status_counts": dict(counts), "profiles": profiles}
-    if args.output:
-        ensure_outputs_are_local([args.output])
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        return {"runtime_identities": len(profiles), "status_counts": dict(counts), "output": str(args.output)}
-    return report
+    try:
+        db.row_factory = sqlite3.Row
+        profiles = []
+        counts: Counter = Counter()
+        for r in db.execute("SELECT p.definition_id,d.id,d.name FROM runtime_profiles p JOIN datasheets d ON d.id=p.datasheet_id ORDER BY d.name,d.id").fetchall():
+            identity = r["id"]
+            named = db.execute("""SELECT count(*) FROM links l JOIN variants v ON v.id=l.variant_id
+                WHERE l.datasheet_id=? AND l.status IN ('label_association','literal_label_association','user_association') AND v.category='miniature'""", (identity,)).fetchone()[0]
+            fallbacks = [row[0] for row in db.execute("SELECT DISTINCT source_label FROM fallback_links WHERE datasheet_id=? ORDER BY source_label", (identity,))]
+            candidates = db.execute("SELECT count(*) FROM links WHERE datasheet_id=? AND status='candidate'", (identity,)).fetchone()[0]
+            role_eligible = db.execute("""SELECT count(DISTINCT l.variant_id) FROM links l
+                JOIN model_role_links m ON m.variant_id=l.variant_id AND m.datasheet_id=l.datasheet_id
+                JOIN variants v ON v.id=l.variant_id WHERE l.datasheet_id=? AND v.category='miniature'
+                AND l.status IN ('label_association','literal_label_association','user_association')
+                AND m.status NOT IN ('unresolved_model_role','ambiguous_model_role')""", (identity,)).fetchone()[0]
+            status = "label_associations" if named else "reviewed_visual_fallback_only" if fallbacks else "candidate_only" if candidates else "no_source_candidate"
+            counts[status] += 1
+            profiles.append({"definition_id": r["definition_id"], "datasheet_id": identity, "name": r["name"], "status": status,
+                             "label_association_variants": named, "role_eligible_variants": role_eligible,
+                             "reviewed_visual_fallback_labels": fallbacks, "other_candidates": candidates})
+        metadata = {r["key"]: json.loads(r["value"]) for r in db.execute("SELECT key,value FROM metadata")}
+        report = {"scope": "source inventory and existing visual fallbacks; asset import/weapon fidelity not certified",
+                  "rules_snapshot_id": metadata["rules_snapshot_id"], "runtime_identities": len(profiles), "status_counts": dict(counts), "profiles": profiles}
+        if args.output:
+            ensure_outputs_are_local([args.output])
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            return {"runtime_identities": len(profiles), "status_counts": dict(counts), "output": str(args.output)}
+        return report
+    finally:
+        db.close()
 
 
 def datasheet_coverage(args: argparse.Namespace) -> dict:
     """Summarize model links for every current datasheet in the source catalog."""
     db = sqlite3.connect(args.database.resolve().as_uri() + "?mode=ro", uri=True)
-    db.row_factory = sqlite3.Row
-    relation_rows = db.execute("""WITH relation_counts AS (
-            SELECT l.datasheet_id,
-                COUNT(DISTINCT CASE WHEN v.category='miniature'
-                    AND l.status IN ('label_association','literal_label_association','user_association')
-                    THEN l.variant_id END) AS confirmed_variants,
-                COUNT(DISTINCT CASE WHEN v.category='miniature' AND l.status='candidate'
-                    THEN l.variant_id END) AS candidate_variants
+    try:
+        db.row_factory = sqlite3.Row
+        relation_rows = db.execute("""WITH relation_counts AS (
+                SELECT l.datasheet_id,
+                    COUNT(DISTINCT CASE WHEN v.category='miniature'
+                        AND l.status IN ('label_association','literal_label_association','user_association')
+                        THEN l.variant_id END) AS confirmed_variants,
+                    COUNT(DISTINCT CASE WHEN v.category='miniature' AND l.status='candidate'
+                        THEN l.variant_id END) AS candidate_variants
+                FROM links l JOIN variants v ON v.id=l.variant_id
+                GROUP BY l.datasheet_id
+            ), fallback_counts AS (
+                SELECT datasheet_id,COUNT(DISTINCT variant_id) AS fallback_variants
+                FROM fallback_links GROUP BY datasheet_id
+            )
+            SELECT d.id,d.name,d.faction,d.role,d.source_book,d.is_character,
+                rp.definition_id,
+                COALESCE(r.confirmed_variants,0) AS confirmed_variants,
+                COALESCE(r.candidate_variants,0) AS candidate_variants,
+                COALESCE(f.fallback_variants,0) AS fallback_variants
+            FROM datasheets d
+            LEFT JOIN runtime_profiles rp ON rp.datasheet_id=d.id
+            LEFT JOIN relation_counts r ON r.datasheet_id=d.id
+            LEFT JOIN fallback_counts f ON f.datasheet_id=d.id
+            ORDER BY lower(d.faction),lower(d.name),d.id""").fetchall()
+        fallback_labels: dict[str, list[str]] = {}
+        for row in db.execute("SELECT datasheet_id,source_label FROM fallback_links ORDER BY datasheet_id,source_label"):
+            labels = fallback_labels.setdefault(row["datasheet_id"], [])
+            if row["source_label"] not in labels:
+                labels.append(row["source_label"])
+        sheet_names = {row["id"]: normalized(row["name"]) for row in relation_rows}
+        exact_name_candidates: dict[str, set[str]] = {}
+        exact_name_scope_conflicts: dict[str, set[str]] = {}
+        exact_name_candidate_labels: dict[str, set[str]] = {}
+        exact_candidate_rows: list[dict] = []
+        for row in db.execute("""SELECT l.datasheet_id,l.variant_id,l.score,l.faction_match,
+                v.label,v.search_name,v.source_sha256,v.variant_key,v.source_group,v.fingerprint,
+                v.model_role,v.asset_kind
             FROM links l JOIN variants v ON v.id=l.variant_id
-            GROUP BY l.datasheet_id
-        ), fallback_counts AS (
-            SELECT datasheet_id,COUNT(DISTINCT variant_id) AS fallback_variants
-            FROM fallback_links GROUP BY datasheet_id
-        )
-        SELECT d.id,d.name,d.faction,d.role,d.source_book,d.is_character,
-            rp.definition_id,
-            COALESCE(r.confirmed_variants,0) AS confirmed_variants,
-            COALESCE(r.candidate_variants,0) AS candidate_variants,
-            COALESCE(f.fallback_variants,0) AS fallback_variants
-        FROM datasheets d
-        LEFT JOIN runtime_profiles rp ON rp.datasheet_id=d.id
-        LEFT JOIN relation_counts r ON r.datasheet_id=d.id
-        LEFT JOIN fallback_counts f ON f.datasheet_id=d.id
-        ORDER BY lower(d.faction),lower(d.name),d.id""").fetchall()
-    fallback_labels: dict[str, list[str]] = {}
-    for row in db.execute("SELECT datasheet_id,source_label FROM fallback_links ORDER BY datasheet_id,source_label"):
-        labels = fallback_labels.setdefault(row["datasheet_id"], [])
-        if row["source_label"] not in labels:
-            labels.append(row["source_label"])
-    sheet_names = {row["id"]: normalized(row["name"]) for row in relation_rows}
-    exact_name_candidates: dict[str, set[str]] = {}
-    exact_name_scope_conflicts: dict[str, set[str]] = {}
-    exact_name_candidate_labels: dict[str, set[str]] = {}
-    exact_candidate_rows: list[dict] = []
-    for row in db.execute("""SELECT l.datasheet_id,l.variant_id,l.score,l.faction_match,
-            v.label,v.search_name,v.source_sha256,v.variant_key,v.source_group,v.fingerprint,
-            v.model_role,v.asset_kind
-        FROM links l JOIN variants v ON v.id=l.variant_id
-        WHERE l.status='candidate' AND v.category='miniature'"""):
-        sheet_id = row["datasheet_id"]
-        if row["search_name"] != sheet_names.get(sheet_id):
-            continue
-        exact_candidate_rows.append(dict(row))
-        exact_name_candidates.setdefault(sheet_id, set()).add(row["variant_id"])
-        exact_name_candidate_labels.setdefault(sheet_id, set()).add(row["label"])
-        if str(row["faction_match"]).strip().casefold() == "false":
-            exact_name_scope_conflicts.setdefault(sheet_id, set()).add(row["variant_id"])
-
-    review_queue: list[dict] = []
-    if args.review_queue:
-        exact_variant_ids = {row["variant_id"] for row in exact_candidate_rows}
-        occurrence_map: dict[str, list[dict]] = {}
-        for row in db.execute("""SELECT o.variant_id,v.source_sha256,o.path,o.guid,o.state_key,o.source_group,o.label
-            FROM occurrences o JOIN variants v ON v.id=o.variant_id
-            ORDER BY o.variant_id,v.source_sha256,o.path,o.guid"""):
-            if row["variant_id"] in exact_variant_ids:
-                occurrence_map.setdefault(row["variant_id"], []).append({
-                    "source_sha256": row["source_sha256"], "path": row["path"], "guid": row["guid"],
-                    "state_key": row["state_key"], "source_group": row["source_group"], "label": row["label"],
-                })
-        weapon_map: dict[str, list[str]] = {}
-        for identity, weapon in db.execute("SELECT variant_id,weapon FROM weapons ORDER BY variant_id,weapon"):
-            if identity in exact_variant_ids:
-                weapon_map.setdefault(identity, []).append(weapon)
-        confirmed_map: dict[str, list[dict]] = {}
-        for row in db.execute("""SELECT l.variant_id,d.id,d.name,d.faction,d.role,l.status
-            FROM links l JOIN datasheets d ON d.id=l.datasheet_id
-            WHERE l.status IN ('label_association','literal_label_association','user_association')
-            ORDER BY l.variant_id,d.name,d.id"""):
-            if row["variant_id"] in exact_variant_ids:
-                confirmed_map.setdefault(row["variant_id"], []).append({
-                    "datasheet_id": row["id"], "name": row["name"], "faction": row["faction"],
-                    "role": row["role"], "association": row["status"],
-                })
-        role_map: dict[tuple[str, str], list[dict]] = {}
-        for row in db.execute("SELECT variant_id,datasheet_id,model_role,status FROM model_role_links ORDER BY variant_id,datasheet_id,model_role"):
-            if row["variant_id"] in exact_variant_ids:
-                role_map.setdefault((row["variant_id"], row["datasheet_id"]), []).append({
-                    "model_role": row["model_role"], "status": row["status"],
-                })
-        sheet_rows = {row["id"]: row for row in relation_rows}
-        for candidate in exact_candidate_rows:
-            if str(candidate["faction_match"]).strip().casefold() != "false":
+            WHERE l.status='candidate' AND v.category='miniature'"""):
+            sheet_id = row["datasheet_id"]
+            if row["search_name"] != sheet_names.get(sheet_id):
                 continue
-            sheet = sheet_rows[candidate["datasheet_id"]]
-            variant_id = candidate["variant_id"]
-            review_queue.append({
-                "review_status": "pending_visual_and_faction_scope_review",
-                "review_evidence": "exact_datasheet_name_with_faction_scope_conflict",
-                "datasheet_id": sheet["id"], "datasheet_name": sheet["name"],
-                "faction": sheet["faction"], "datasheet_role": sheet["role"],
-                "source_book": sheet["source_book"], "runtime_definition": sheet["definition_id"] or "",
-                "variant_id": variant_id, "label": candidate["label"],
-                "source_sha256": candidate["source_sha256"], "variant_key": candidate["variant_key"],
-                "source_group": candidate["source_group"], "asset_kind": candidate["asset_kind"],
-                "model_role": candidate["model_role"], "asset_fingerprint": candidate["fingerprint"],
-                "candidate_score": candidate["score"], "faction_match": candidate["faction_match"],
-                "weapon_label_hints": json.dumps(weapon_map.get(variant_id, []), ensure_ascii=False),
-                "target_model_role_evidence": json.dumps(role_map.get((variant_id, sheet["id"]), []), ensure_ascii=False),
-                "other_confirmed_datasheets": json.dumps(confirmed_map.get(variant_id, []), ensure_ascii=False),
-                "source_occurrences": json.dumps(occurrence_map.get(variant_id, []), ensure_ascii=False),
-                "review_guidance": "Exact name is identity evidence only; confirm model and source-group scope before using it as a visual association. Weapon/loadout fidelity remains separate.",
+            exact_candidate_rows.append(dict(row))
+            exact_name_candidates.setdefault(sheet_id, set()).add(row["variant_id"])
+            exact_name_candidate_labels.setdefault(sheet_id, set()).add(row["label"])
+            if str(row["faction_match"]).strip().casefold() == "false":
+                exact_name_scope_conflicts.setdefault(sheet_id, set()).add(row["variant_id"])
+
+        review_queue: list[dict] = []
+        if args.review_queue:
+            exact_variant_ids = {row["variant_id"] for row in exact_candidate_rows}
+            occurrence_map: dict[str, list[dict]] = {}
+            for row in db.execute("""SELECT o.variant_id,v.source_sha256,o.path,o.guid,o.state_key,o.source_group,o.label
+                FROM occurrences o JOIN variants v ON v.id=o.variant_id
+                ORDER BY o.variant_id,v.source_sha256,o.path,o.guid"""):
+                if row["variant_id"] in exact_variant_ids:
+                    occurrence_map.setdefault(row["variant_id"], []).append({
+                        "source_sha256": row["source_sha256"], "path": row["path"], "guid": row["guid"],
+                        "state_key": row["state_key"], "source_group": row["source_group"], "label": row["label"],
+                    })
+            weapon_map: dict[str, list[str]] = {}
+            for identity, weapon in db.execute("SELECT variant_id,weapon FROM weapons ORDER BY variant_id,weapon"):
+                if identity in exact_variant_ids:
+                    weapon_map.setdefault(identity, []).append(weapon)
+            confirmed_map: dict[str, list[dict]] = {}
+            for row in db.execute("""SELECT l.variant_id,d.id,d.name,d.faction,d.role,l.status
+                FROM links l JOIN datasheets d ON d.id=l.datasheet_id
+                WHERE l.status IN ('label_association','literal_label_association','user_association')
+                ORDER BY l.variant_id,d.name,d.id"""):
+                if row["variant_id"] in exact_variant_ids:
+                    confirmed_map.setdefault(row["variant_id"], []).append({
+                        "datasheet_id": row["id"], "name": row["name"], "faction": row["faction"],
+                        "role": row["role"], "association": row["status"],
+                    })
+            role_map: dict[tuple[str, str], list[dict]] = {}
+            for row in db.execute("SELECT variant_id,datasheet_id,model_role,status FROM model_role_links ORDER BY variant_id,datasheet_id,model_role"):
+                if row["variant_id"] in exact_variant_ids:
+                    role_map.setdefault((row["variant_id"], row["datasheet_id"]), []).append({
+                        "model_role": row["model_role"], "status": row["status"],
+                    })
+            sheet_rows = {row["id"]: row for row in relation_rows}
+            for candidate in exact_candidate_rows:
+                if str(candidate["faction_match"]).strip().casefold() != "false":
+                    continue
+                sheet = sheet_rows[candidate["datasheet_id"]]
+                variant_id = candidate["variant_id"]
+                review_queue.append({
+                    "review_status": "pending_visual_and_faction_scope_review",
+                    "review_evidence": "exact_datasheet_name_with_faction_scope_conflict",
+                    "datasheet_id": sheet["id"], "datasheet_name": sheet["name"],
+                    "faction": sheet["faction"], "datasheet_role": sheet["role"],
+                    "source_book": sheet["source_book"], "runtime_definition": sheet["definition_id"] or "",
+                    "variant_id": variant_id, "label": candidate["label"],
+                    "source_sha256": candidate["source_sha256"], "variant_key": candidate["variant_key"],
+                    "source_group": candidate["source_group"], "asset_kind": candidate["asset_kind"],
+                    "model_role": candidate["model_role"], "asset_fingerprint": candidate["fingerprint"],
+                    "candidate_score": candidate["score"], "faction_match": candidate["faction_match"],
+                    "weapon_label_hints": json.dumps(weapon_map.get(variant_id, []), ensure_ascii=False),
+                    "target_model_role_evidence": json.dumps(role_map.get((variant_id, sheet["id"]), []), ensure_ascii=False),
+                    "other_confirmed_datasheets": json.dumps(confirmed_map.get(variant_id, []), ensure_ascii=False),
+                    "source_occurrences": json.dumps(occurrence_map.get(variant_id, []), ensure_ascii=False),
+                    "review_guidance": "Exact name is identity evidence only; confirm model and source-group scope before using it as a visual association. Weapon/loadout fidelity remains separate.",
+                })
+            review_queue.sort(key=lambda row: (
+                row["faction"].casefold(), row["datasheet_name"].casefold(),
+                row["source_group"].casefold(), row["label"].casefold(), row["variant_id"],
+            ))
+        metadata = {r["key"]: json.loads(r["value"]) for r in db.execute("SELECT key,value FROM metadata")}
+
+        counts: Counter = Counter()
+        profiles = []
+        confirmed_total = candidate_total = fallback_total = runtime_total = 0
+        for row in relation_rows:
+            confirmed = int(row["confirmed_variants"])
+            candidates = int(row["candidate_variants"])
+            fallbacks = int(row["fallback_variants"])
+            runtime_definition = row["definition_id"] or ""
+            runtime_total += bool(runtime_definition)
+            confirmed_total += confirmed
+            candidate_total += candidates
+            fallback_total += fallbacks
+            if confirmed:
+                status = "label_associations"
+            elif fallbacks:
+                status = "reviewed_fallback_without_label_association"
+            elif candidates:
+                status = "candidate_only"
+            else:
+                status = "no_miniature_candidate"
+            counts[status] += 1
+            profiles.append({
+                "datasheet_id": row["id"],
+                "name": row["name"],
+                "faction": row["faction"],
+                "datasheet_role": row["role"],
+                "source_book": row["source_book"],
+                "is_character": bool(row["is_character"]),
+                "runtime_definition": runtime_definition,
+                "status": status,
+                "confirmed_miniature_variants": confirmed,
+                "candidate_miniature_variants": candidates,
+                "reviewed_fallback_variants": fallbacks,
+                "reviewed_fallback_labels": fallback_labels.get(row["id"], []),
+                "exact_name_candidate_variants": len(exact_name_candidates.get(row["id"], set())),
+                "exact_name_scope_conflict_variants": len(exact_name_scope_conflicts.get(row["id"], set())),
+                "exact_name_candidate_labels": sorted(exact_name_candidate_labels.get(row["id"], set()))[:12],
             })
-        review_queue.sort(key=lambda row: (
-            row["faction"].casefold(), row["datasheet_name"].casefold(),
-            row["source_group"].casefold(), row["label"].casefold(), row["variant_id"],
-        ))
-    metadata = {r["key"]: json.loads(r["value"]) for r in db.execute("SELECT key,value FROM metadata")}
-    db.close()
 
-    counts: Counter = Counter()
-    profiles = []
-    confirmed_total = candidate_total = fallback_total = runtime_total = 0
-    for row in relation_rows:
-        confirmed = int(row["confirmed_variants"])
-        candidates = int(row["candidate_variants"])
-        fallbacks = int(row["fallback_variants"])
-        runtime_definition = row["definition_id"] or ""
-        runtime_total += bool(runtime_definition)
-        confirmed_total += confirmed
-        candidate_total += candidates
-        fallback_total += fallbacks
-        if confirmed:
-            status = "label_associations"
-        elif fallbacks:
-            status = "reviewed_fallback_without_label_association"
-        elif candidates:
-            status = "candidate_only"
-        else:
-            status = "no_miniature_candidate"
-        counts[status] += 1
-        profiles.append({
-            "datasheet_id": row["id"],
-            "name": row["name"],
-            "faction": row["faction"],
-            "datasheet_role": row["role"],
-            "source_book": row["source_book"],
-            "is_character": bool(row["is_character"]),
-            "runtime_definition": runtime_definition,
-            "status": status,
-            "confirmed_miniature_variants": confirmed,
-            "candidate_miniature_variants": candidates,
-            "reviewed_fallback_variants": fallbacks,
-            "reviewed_fallback_labels": fallback_labels.get(row["id"], []),
-            "exact_name_candidate_variants": len(exact_name_candidates.get(row["id"], set())),
-            "exact_name_scope_conflict_variants": len(exact_name_scope_conflicts.get(row["id"], set())),
-            "exact_name_candidate_labels": sorted(exact_name_candidate_labels.get(row["id"], set()))[:12],
-        })
-
-    report = {
-        "scope": "miniature association evidence for all current source datasheets; source labels and reviewed fallbacks are not sculpt, loadout-legality or import certification",
-        "rules_snapshot_id": metadata["rules_snapshot_id"],
-        "database_schema_version": metadata["schema_version"],
-        "datasheet_count": len(profiles),
-        "runtime_identity_count": runtime_total,
-        "status_counts": dict(counts),
-        "confirmed_variant_datasheet_links": confirmed_total,
-        "candidate_variant_datasheet_links": candidate_total,
-        "reviewed_fallback_variant_datasheet_links": fallback_total,
-        "datasheets_with_exact_name_candidates": sum(bool(value) for value in exact_name_candidates.values()),
-        "exact_name_candidate_variant_datasheet_links": sum(len(value) for value in exact_name_candidates.values()),
-        "exact_name_scope_conflict_variant_datasheet_links": sum(len(value) for value in exact_name_scope_conflicts.values()),
-        "datasheets": profiles,
-    }
-    outputs = [path for path in (args.output, args.review_queue) if path]
-    if len({path.resolve() for path in outputs}) != len(outputs):
-        raise ValueError("JSON report and CSV review queue must use different output paths")
-    if outputs:
-        ensure_outputs_are_local(outputs)
-    if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    if args.review_queue:
-        args.review_queue.parent.mkdir(parents=True, exist_ok=True)
-        columns = [
-            "review_status", "review_evidence", "datasheet_id", "datasheet_name", "faction",
-            "datasheet_role", "source_book", "runtime_definition", "variant_id", "label",
-            "source_sha256", "variant_key", "source_group", "asset_kind", "model_role",
-            "asset_fingerprint", "candidate_score", "faction_match", "weapon_label_hints",
-            "target_model_role_evidence", "other_confirmed_datasheets", "source_occurrences",
-            "review_guidance",
-        ]
-        with args.review_queue.open("w", encoding="utf-8-sig", newline="") as stream:
-            writer = csv.DictWriter(stream, fieldnames=columns)
-            writer.writeheader()
-            writer.writerows(review_queue)
-    if outputs:
-        return {key: report[key] for key in (
-            "datasheet_count", "runtime_identity_count", "status_counts",
-            "confirmed_variant_datasheet_links", "candidate_variant_datasheet_links",
-            "reviewed_fallback_variant_datasheet_links", "datasheets_with_exact_name_candidates",
-            "exact_name_candidate_variant_datasheet_links", "exact_name_scope_conflict_variant_datasheet_links",
-        )} | ({"output": str(args.output)} if args.output else {}) | (
-            {"review_queue_rows": len(review_queue), "review_queue": str(args.review_queue)} if args.review_queue else {})
-    return report
+        report = {
+            "scope": "miniature association evidence for all current source datasheets; source labels and reviewed fallbacks are not sculpt, loadout-legality or import certification",
+            "rules_snapshot_id": metadata["rules_snapshot_id"],
+            "database_schema_version": metadata["schema_version"],
+            "datasheet_count": len(profiles),
+            "runtime_identity_count": runtime_total,
+            "status_counts": dict(counts),
+            "confirmed_variant_datasheet_links": confirmed_total,
+            "candidate_variant_datasheet_links": candidate_total,
+            "reviewed_fallback_variant_datasheet_links": fallback_total,
+            "datasheets_with_exact_name_candidates": sum(bool(value) for value in exact_name_candidates.values()),
+            "exact_name_candidate_variant_datasheet_links": sum(len(value) for value in exact_name_candidates.values()),
+            "exact_name_scope_conflict_variant_datasheet_links": sum(len(value) for value in exact_name_scope_conflicts.values()),
+            "datasheets": profiles,
+        }
+        outputs = [path for path in (args.output, args.review_queue) if path]
+        if len({path.resolve() for path in outputs}) != len(outputs):
+            raise ValueError("JSON report and CSV review queue must use different output paths")
+        if outputs:
+            ensure_outputs_are_local(outputs)
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        if args.review_queue:
+            args.review_queue.parent.mkdir(parents=True, exist_ok=True)
+            columns = [
+                "review_status", "review_evidence", "datasheet_id", "datasheet_name", "faction",
+                "datasheet_role", "source_book", "runtime_definition", "variant_id", "label",
+                "source_sha256", "variant_key", "source_group", "asset_kind", "model_role",
+                "asset_fingerprint", "candidate_score", "faction_match", "weapon_label_hints",
+                "target_model_role_evidence", "other_confirmed_datasheets", "source_occurrences",
+                "review_guidance",
+            ]
+            with args.review_queue.open("w", encoding="utf-8-sig", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=columns)
+                writer.writeheader()
+                writer.writerows(review_queue)
+        if outputs:
+            return {key: report[key] for key in (
+                "datasheet_count", "runtime_identity_count", "status_counts",
+                "confirmed_variant_datasheet_links", "candidate_variant_datasheet_links",
+                "reviewed_fallback_variant_datasheet_links", "datasheets_with_exact_name_candidates",
+                "exact_name_candidate_variant_datasheet_links", "exact_name_scope_conflict_variant_datasheet_links",
+            )} | ({"output": str(args.output)} if args.output else {}) | (
+                {"review_queue_rows": len(review_queue), "review_queue": str(args.review_queue)} if args.review_queue else {})
+        return report
+    finally:
+        db.close()
 
 
 def weapon_coverage(args: argparse.Namespace) -> dict:
@@ -930,155 +937,158 @@ def weapon_coverage(args: argparse.Namespace) -> dict:
     combined loadout.
     """
     db = sqlite3.connect(args.database.resolve().as_uri() + "?mode=ro", uri=True)
-    db.row_factory = sqlite3.Row
-    metadata = {r["key"]: json.loads(r["value"]) for r in db.execute("SELECT key,value FROM metadata")}
-    runtime_definitions = {r["datasheet_id"]: r["definition_id"]
-                           for r in db.execute("SELECT datasheet_id,definition_id FROM runtime_profiles")}
-    aliases: dict[str, dict[str, str]] = {}
-    for row in db.execute("SELECT datasheet_id,visual_term,physical_term FROM weapon_aliases"):
-        aliases.setdefault(row["datasheet_id"], {})[row["visual_term"]] = row["physical_term"]
+    try:
+        db.row_factory = sqlite3.Row
+        metadata = {r["key"]: json.loads(r["value"]) for r in db.execute("SELECT key,value FROM metadata")}
+        runtime_definitions = {r["datasheet_id"]: r["definition_id"]
+                               for r in db.execute("SELECT datasheet_id,definition_id FROM runtime_profiles")}
+        aliases: dict[str, dict[str, str]] = {}
+        for row in db.execute("SELECT datasheet_id,visual_term,physical_term FROM weapon_aliases"):
+            aliases.setdefault(row["datasheet_id"], {})[row["visual_term"]] = row["physical_term"]
 
-    sheets: dict[str, dict] = {}
-    for row in db.execute("SELECT id,name,faction,role,source_book,provenance FROM datasheets ORDER BY name,id"):
-        if args.datasheet and row["id"] != args.datasheet: continue
-        if args.runtime_only and row["id"] not in runtime_definitions: continue
-        source = json.loads(row["provenance"])
-        profiles = json.loads(source.get("wargear_profiles", "[]"))
-        physical: dict[str, list[str]] = {}
-        for name in profiles:
-            # Mode/profile labels after a dash describe one physical weapon.
-            base_name = re.split(r"\s+[–—-]\s+", str(name), maxsplit=1)[0]
-            term = normalized(base_name).replace(" ", "-")
-            if term: physical.setdefault(term, []).append(str(name))
-        sheets[row["id"]] = {
-            "datasheet_id": row["id"], "name": row["name"], "faction": row["faction"],
-            "datasheet_role": row["role"], "source_book": row["source_book"],
-            "runtime_definition": runtime_definitions.get(row["id"], ""),
-            "weapons": {term: {"profile_names": sorted(set(names)), "confirmed": {}, "candidates": {}}
-                        for term, names in physical.items()},
+        sheets: dict[str, dict] = {}
+        for row in db.execute("SELECT id,name,faction,role,source_book,provenance FROM datasheets ORDER BY name,id"):
+            if args.datasheet and row["id"] != args.datasheet: continue
+            if args.runtime_only and row["id"] not in runtime_definitions: continue
+            source = json.loads(row["provenance"])
+            profiles = json.loads(source.get("wargear_profiles", "[]"))
+            physical: dict[str, list[str]] = {}
+            for name in profiles:
+                # Mode/profile labels after a dash describe one physical weapon.
+                base_name = re.split(r"\s+[–—-]\s+", str(name), maxsplit=1)[0]
+                term = normalized(base_name).replace(" ", "-")
+                if term: physical.setdefault(term, []).append(str(name))
+            sheets[row["id"]] = {
+                "datasheet_id": row["id"], "name": row["name"], "faction": row["faction"],
+                "datasheet_role": row["role"], "source_book": row["source_book"],
+                "runtime_definition": runtime_definitions.get(row["id"], ""),
+                "weapons": {term: {"profile_names": sorted(set(names)), "confirmed": {}, "candidates": {}}
+                            for term, names in physical.items()},
+            }
+        if args.datasheet and not sheets:
+            raise ValueError(f"No current datasheet found for ID {args.datasheet}")
+
+        conditions = ["v.category='miniature'", "l.status IN ('label_association','literal_label_association','user_association','candidate')"]
+        values: list[str] = []
+        if args.datasheet:
+            conditions.append("l.datasheet_id=?")
+            values.append(args.datasheet)
+        if args.runtime_only:
+            conditions.append("EXISTS(SELECT 1 FROM runtime_profiles rp WHERE rp.datasheet_id=l.datasheet_id)")
+        sql = """SELECT l.datasheet_id,l.variant_id,v.label,l.status,w.weapon
+            FROM links l JOIN variants v ON v.id=l.variant_id
+            JOIN weapons w ON w.variant_id=v.id WHERE """ + " AND ".join(conditions)
+        for row in db.execute(sql, values):
+            sheet = sheets.get(row["datasheet_id"])
+            if sheet is None: continue
+            term = aliases.get(row["datasheet_id"], {}).get(row["weapon"], row["weapon"])
+            weapon = sheet["weapons"].get(term)
+            if weapon is None: continue
+            bucket = "confirmed" if row["status"] in {"label_association", "literal_label_association", "user_association"} else "candidates"
+            weapon[bucket][row["variant_id"]] = row["label"]
+
+        totals = Counter()
+        for sheet in sheets.values():
+            weapon_rows = []
+            for term, evidence in sorted(sheet["weapons"].items()):
+                confirmed = evidence["confirmed"]
+                candidates = evidence["candidates"]
+                status = "confirmed_label_evidence" if confirmed else "candidate_only" if candidates else "no_recognized_visual_weapon_term"
+                totals[status] += 1
+                weapon_rows.append({
+                    "weapon": term,
+                    "datasheet_weapon_profiles": evidence["profile_names"],
+                    "status": status,
+                    "confirmed_variant_count": len(confirmed),
+                    "candidate_variant_count": len(candidates),
+                    "example_confirmed_labels": sorted(set(confirmed.values()))[:12],
+                    "example_candidate_labels": sorted(set(candidates.values()))[:12],
+                })
+            sheet["weapons"] = weapon_rows
+            sheet["weapon_profile_count"] = len(weapon_rows)
+            sheet["confirmed_weapon_count"] = sum(w["status"] == "confirmed_label_evidence" for w in weapon_rows)
+            sheet["candidate_only_weapon_count"] = sum(w["status"] == "candidate_only" for w in weapon_rows)
+            sheet["unmatched_weapon_count"] = sum(w["status"] == "no_recognized_visual_weapon_term" for w in weapon_rows)
+            totals["datasheets_with_weapon_profiles"] += bool(weapon_rows)
+            totals["datasheets_with_any_confirmed_weapon"] += sheet["confirmed_weapon_count"] > 0
+
+        report = {
+            "scope": "datasheet weapon profile names compared with recognized source-label weapon terms; no sculpt, visible-weapon, loadout-legality or combination certification",
+            "rules_snapshot_id": metadata["rules_snapshot_id"],
+            "database_schema_version": metadata["schema_version"],
+            "filter": {"datasheet_id": args.datasheet or "", "runtime_only": args.runtime_only},
+            "datasheet_count": len(sheets),
+            "totals": dict(totals),
+            "datasheets": list(sheets.values()),
         }
-    if args.datasheet and not sheets:
+        if args.output:
+            ensure_outputs_are_local([args.output])
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            return {"datasheet_count": report["datasheet_count"], "totals": report["totals"], "output": str(args.output)}
+        return report
+    finally:
         db.close()
-        raise ValueError(f"No current datasheet found for ID {args.datasheet}")
-
-    conditions = ["v.category='miniature'", "l.status IN ('label_association','literal_label_association','user_association','candidate')"]
-    values: list[str] = []
-    if args.datasheet:
-        conditions.append("l.datasheet_id=?")
-        values.append(args.datasheet)
-    if args.runtime_only:
-        conditions.append("EXISTS(SELECT 1 FROM runtime_profiles rp WHERE rp.datasheet_id=l.datasheet_id)")
-    sql = """SELECT l.datasheet_id,l.variant_id,v.label,l.status,w.weapon
-        FROM links l JOIN variants v ON v.id=l.variant_id
-        JOIN weapons w ON w.variant_id=v.id WHERE """ + " AND ".join(conditions)
-    for row in db.execute(sql, values):
-        sheet = sheets.get(row["datasheet_id"])
-        if sheet is None: continue
-        term = aliases.get(row["datasheet_id"], {}).get(row["weapon"], row["weapon"])
-        weapon = sheet["weapons"].get(term)
-        if weapon is None: continue
-        bucket = "confirmed" if row["status"] in {"label_association", "literal_label_association", "user_association"} else "candidates"
-        weapon[bucket][row["variant_id"]] = row["label"]
-
-    totals = Counter()
-    for sheet in sheets.values():
-        weapon_rows = []
-        for term, evidence in sorted(sheet["weapons"].items()):
-            confirmed = evidence["confirmed"]
-            candidates = evidence["candidates"]
-            status = "confirmed_label_evidence" if confirmed else "candidate_only" if candidates else "no_recognized_visual_weapon_term"
-            totals[status] += 1
-            weapon_rows.append({
-                "weapon": term,
-                "datasheet_weapon_profiles": evidence["profile_names"],
-                "status": status,
-                "confirmed_variant_count": len(confirmed),
-                "candidate_variant_count": len(candidates),
-                "example_confirmed_labels": sorted(set(confirmed.values()))[:12],
-                "example_candidate_labels": sorted(set(candidates.values()))[:12],
-            })
-        sheet["weapons"] = weapon_rows
-        sheet["weapon_profile_count"] = len(weapon_rows)
-        sheet["confirmed_weapon_count"] = sum(w["status"] == "confirmed_label_evidence" for w in weapon_rows)
-        sheet["candidate_only_weapon_count"] = sum(w["status"] == "candidate_only" for w in weapon_rows)
-        sheet["unmatched_weapon_count"] = sum(w["status"] == "no_recognized_visual_weapon_term" for w in weapon_rows)
-        totals["datasheets_with_weapon_profiles"] += bool(weapon_rows)
-        totals["datasheets_with_any_confirmed_weapon"] += sheet["confirmed_weapon_count"] > 0
-
-    report = {
-        "scope": "datasheet weapon profile names compared with recognized source-label weapon terms; no sculpt, visible-weapon, loadout-legality or combination certification",
-        "rules_snapshot_id": metadata["rules_snapshot_id"],
-        "database_schema_version": metadata["schema_version"],
-        "filter": {"datasheet_id": args.datasheet or "", "runtime_only": args.runtime_only},
-        "datasheet_count": len(sheets),
-        "totals": dict(totals),
-        "datasheets": list(sheets.values()),
-    }
-    db.close()
-    if args.output:
-        ensure_outputs_are_local([args.output])
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        return {"datasheet_count": report["datasheet_count"], "totals": report["totals"], "output": str(args.output)}
-    return report
 
 
 def export_index(args: argparse.Namespace) -> dict:
     """Small Godot bridge: data stays local and is keyed by exact save/path."""
     ensure_outputs_are_local([args.output])
     db = sqlite3.connect(args.database.resolve().as_uri() + "?mode=ro", uri=True)
-    sources: dict = {}
-    sql = """WITH associations AS (
-                SELECT l.variant_id,p.definition_id FROM links l
-                JOIN runtime_profiles p ON p.datasheet_id=l.datasheet_id
-                WHERE l.status IN ('label_association','literal_label_association','user_association'))
-             SELECT v.id,v.source_sha256,o.label,v.category,v.model_role,o.path,o.guid,
-                    o.source_group,p.definition_id
-             FROM variants v JOIN occurrences o ON o.variant_id=v.id
-             LEFT JOIN associations p ON p.variant_id=v.id AND v.category='miniature'
-             ORDER BY v.id,o.path,p.definition_id"""
-    weapon_map: dict[str, list[str]] = {}
-    for identity, weapon in db.execute("SELECT variant_id,weapon FROM weapons ORDER BY weapon"):
-        weapon_map.setdefault(identity, []).append(weapon)
-    linked_sheets: dict[str, list[dict]] = {}
-    for identity, datasheet_id, name, status in db.execute("""SELECT l.variant_id,d.id,d.name,l.status
-        FROM links l JOIN datasheets d ON d.id=l.datasheet_id
-        WHERE l.status IN ('label_association','literal_label_association','user_association')
-        ORDER BY d.name,d.id"""):
-        linked_sheets.setdefault(identity, []).append({"id": datasheet_id, "name": name, "association": status})
-    constraints: dict[tuple[str, str], dict] = {}
-    aliases: dict[str, dict[str, str]] = {}
-    for definition, visual, physical in db.execute("""SELECT p.definition_id,a.visual_term,a.physical_term
-        FROM weapon_aliases a JOIN runtime_profiles p ON p.datasheet_id=a.datasheet_id ORDER BY a.visual_term"""):
-        aliases.setdefault(definition, {})[visual] = physical
-    for identity, definition, role, status in db.execute("""SELECT m.variant_id,p.definition_id,m.model_role,m.status
-        FROM model_role_links m JOIN runtime_profiles p ON p.datasheet_id=m.datasheet_id
-        WHERE m.status != 'single_model_role' ORDER BY m.model_role"""):
-        constraint = constraints.setdefault((identity, definition), {"status": status, "roles": []})
-        if role:
-            constraint["roles"].append(role)
-    for identity, source, label, category, role, path, guid, group, definition in db.execute(sql):
-        record = sources.setdefault(source, {}).setdefault(path, {
-            "label": label, "guid": guid, "category": category, "model_role": role,
-            "source_group": group, "weapons": weapon_map.get(identity, []),
-            "datasheets": linked_sheets.get(identity, []), "definitions": [],
-            "role_constraints": {}, "weapon_aliases": {}})
-        if definition and definition not in record["definitions"]:
-            record["definitions"].append(definition)
-            if (identity, definition) in constraints:
-                record["role_constraints"][definition] = constraints[identity, definition]
-            relevant = {term: physical for term, physical in aliases.get(definition, {}).items() if term in record["weapons"]}
-            if relevant:
-                record["weapon_aliases"][definition] = relevant
-    payload = {"schema_version": 1, "policy": "label_association_not_rules_certification", "sources": sources}
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    temporary = args.output.with_suffix(".building")
-    temporary.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    os.replace(temporary, args.output)
-    db.close()
-    return {"source_count": len(sources), "indexed_occurrences": sum(len(v) for v in sources.values()),
-            "runtime_associated_occurrences": sum(bool(r["definitions"]) for s in sources.values() for r in s.values()),
-            "output": str(args.output)}
+    try:
+        sources: dict = {}
+        sql = """WITH associations AS (
+                    SELECT l.variant_id,p.definition_id FROM links l
+                    JOIN runtime_profiles p ON p.datasheet_id=l.datasheet_id
+                    WHERE l.status IN ('label_association','literal_label_association','user_association'))
+                 SELECT v.id,v.source_sha256,o.label,v.category,v.model_role,o.path,o.guid,
+                        o.source_group,p.definition_id
+                 FROM variants v JOIN occurrences o ON o.variant_id=v.id
+                 LEFT JOIN associations p ON p.variant_id=v.id AND v.category='miniature'
+                 ORDER BY v.id,o.path,p.definition_id"""
+        weapon_map: dict[str, list[str]] = {}
+        for identity, weapon in db.execute("SELECT variant_id,weapon FROM weapons ORDER BY weapon"):
+            weapon_map.setdefault(identity, []).append(weapon)
+        linked_sheets: dict[str, list[dict]] = {}
+        for identity, datasheet_id, name, status in db.execute("""SELECT l.variant_id,d.id,d.name,l.status
+            FROM links l JOIN datasheets d ON d.id=l.datasheet_id
+            WHERE l.status IN ('label_association','literal_label_association','user_association')
+            ORDER BY d.name,d.id"""):
+            linked_sheets.setdefault(identity, []).append({"id": datasheet_id, "name": name, "association": status})
+        constraints: dict[tuple[str, str], dict] = {}
+        aliases: dict[str, dict[str, str]] = {}
+        for definition, visual, physical in db.execute("""SELECT p.definition_id,a.visual_term,a.physical_term
+            FROM weapon_aliases a JOIN runtime_profiles p ON p.datasheet_id=a.datasheet_id ORDER BY a.visual_term"""):
+            aliases.setdefault(definition, {})[visual] = physical
+        for identity, definition, role, status in db.execute("""SELECT m.variant_id,p.definition_id,m.model_role,m.status
+            FROM model_role_links m JOIN runtime_profiles p ON p.datasheet_id=m.datasheet_id
+            WHERE m.status != 'single_model_role' ORDER BY m.model_role"""):
+            constraint = constraints.setdefault((identity, definition), {"status": status, "roles": []})
+            if role:
+                constraint["roles"].append(role)
+        for identity, source, label, category, role, path, guid, group, definition in db.execute(sql):
+            record = sources.setdefault(source, {}).setdefault(path, {
+                "label": label, "guid": guid, "category": category, "model_role": role,
+                "source_group": group, "weapons": weapon_map.get(identity, []),
+                "datasheets": linked_sheets.get(identity, []), "definitions": [],
+                "role_constraints": {}, "weapon_aliases": {}})
+            if definition and definition not in record["definitions"]:
+                record["definitions"].append(definition)
+                if (identity, definition) in constraints:
+                    record["role_constraints"][definition] = constraints[identity, definition]
+                relevant = {term: physical for term, physical in aliases.get(definition, {}).items() if term in record["weapons"]}
+                if relevant:
+                    record["weapon_aliases"][definition] = relevant
+        payload = {"schema_version": 1, "policy": "label_association_not_rules_certification", "sources": sources}
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        temporary = args.output.with_suffix(".building")
+        temporary.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        os.replace(temporary, args.output)
+        return {"source_count": len(sources), "indexed_occurrences": sum(len(v) for v in sources.values()),
+                "runtime_associated_occurrences": sum(bool(r["definitions"]) for s in sources.values() for r in s.values()),
+                "output": str(args.output)}
+    finally:
+        db.close()
 
 
 def main() -> None:
