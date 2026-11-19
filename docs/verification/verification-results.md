@@ -1,3 +1,19 @@
+### Necrons 51/51 datasheet completion and coverage refresh — 19 November 2026
+
+Thirteen additional Necrons App v1.2 datasheets (`000000522` Imotekh the Stormlord, `000002092` Illuminor Szeras, `000004178` Geomancer, `000004186` Nekrosor Ammentar, `000000532` Trazyn the Infinite, `000000533` Catacomb Command Barge, `000000546` Canoptek Wraiths, `000000548` Tomb Blades, `000000543` Ghost Ark, `000000544` Night Scythe, `000000556` Tesseract Vault, `000002360` The Silent King, and `000002361` Convergence of Dominion partially admitted for 2 and 3 models while `convergence-of-dominion/1-models` stays excluded) cleared their source-bounded local checks and entered the consolidated construction catalog (`51/51` Necrons datasheets admitted). The Army Builder coverage ledger was regenerated to `236` admitted profiles (`185` Space Marines, `51` Necrons), `126/126` reviewed saved-equipment schemas, `110` fixed-equipment profiles, `0` stale reviews, and `0` unclassified rows.
+
+```powershell
+python tools/verify.py --godot C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_necron_catacomb_command_barge --only test_necron_canoptek_wraiths --only test_necron_tomb_blades --only test_necron_ghost_ark --only test_necron_night_scythe --only test_necron_tesseract_vault --only test_necron_silent_king
+C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe --headless --script tests/test_necron_convergence_dominion.gd
+C:\Godot\4.7.2\Godot_v4.7.2-stable_win64_console.exe --headless --script tests/test_implemented_catalog.gd
+python -B -m unittest discover -s tests -p "test_*.py"
+```
+
+- `tools/verify.py` (`20261119T180040221553Z/results.json`): **9 processes; PASS** (`import`, `python`, `test_necron_catacomb_command_barge`, `test_necron_canoptek_wraiths`, `test_necron_tomb_blades`, `test_necron_ghost_ark`, `test_necron_night_scythe`, `test_necron_tesseract_vault`, `test_necron_silent_king`).
+- `tests/test_necron_convergence_dominion.gd`: **PASS** (`Convergence of Dominion scoped local checks: passed`).
+- `tests/test_implemented_catalog.gd`: **PASS** (`Implemented catalog: 236 selectable, 2 excluded; 0 failures`, with headless RID/ObjectDB shutdown diagnostics).
+- `unittest`: **124 tests OK**.
+
 ### Necron Overlords, Lychguard, Destroyer Lords and Cryptek Support expansion — 18 November 2026
 
 Ten additional Necrons App v1.2 datasheets—Overlord (`000000523`), Overlord with translocation shroud (`000003693`), Lychguard (`000000536`), Skorpekh Lord (`000002109`), Lokhust Lord (`000002351`), Plasmancer (`000002108`), Technomancer (`000002352`), Psychomancer (`000002353`), Chronomancer (`000002354`), and Orikan the Diviner (`000000530`)—now clear their source-bounded local behavior gates, equipment selections, tiered points, and Leader/Support links, admitting 38/51 Necron datasheets into the current construction catalog. `tests/test_necron_overlords_lychguard.gd`, `tests/test_necron_destroyer_lords.gd`, and `tests/test_necron_crypteks.gd` are registered in `tools/verify.py` under `CURRENT_CATALOG_MATCH_SUITES`. The current construction catalog expands to 223 total selectable profiles, 123/123 reviewed equipment schemas, and 100 fixed-equipment profiles.

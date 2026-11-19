@@ -403,7 +403,8 @@ static func _commit_damage_roll(state: Dictionary, model: int, rolled: Dictionar
 	return _apply_rolled_damage(state, model, rolled, roller)
 
 static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictionary, roller: Callable, append_rolls: bool = true) -> Dictionary:
-	var current: Dictionary = state.pending_attack.current
+	var pending: Dictionary = state.pending_attack
+	var current: Dictionary = pending.current
 	var step: Dictionary = current.steps[current.cursor]
 	var before: int = state.units[model].wounds
 	var special_kind := "psychic" if current.weapon.get("keywords", {}).get("psychic", false) else ""
@@ -435,10 +436,24 @@ static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictiona
 			current.result.models_destroyed += 1
 			BloodAngelsCharacters.record_death_visions(state, model)
 			DetachmentStratagems.record_destroyed(state, model)
+			_record_attacker_kills(state, pending)
 		if not held.held:
 			var cenobytes_destroyed := ChaplainGrimaldus.destroy_cenobytes(state, model)
 			current.result.models_destroyed += cenobytes_destroyed.size()
-			for cenobyte: int in cenobytes_destroyed: DetachmentStratagems.record_destroyed(state, cenobyte)
+			for cenobyte: int in cenobytes_destroyed:
+				DetachmentStratagems.record_destroyed(state, cenobyte)
+				_record_attacker_kills(state, pending)
 	current.result.allocations.append({"model": model, "kind": step.kind, "save_roll": step.save_roll, "damage": applied, "rolled_damage": rolled.value, "damage_rolls": rolled.rolls, "discarded": prevented.discarded, "prevention": prevented})
 	current.cursor += 1
 	return {"error": ""}
+
+static func _record_attacker_kills(state: Dictionary, pending: Dictionary) -> void:
+	if not pending.has("prepared") or not pending.prepared.has("batches"): return
+	var batches: Array = pending.prepared.get("batches", [])
+	var index := int(pending.get("index", -1))
+	if index < 0 or index >= batches.size(): return
+	var batch: Dictionary = batches[index]
+	var sources: Array = batch.get("context", {}).get("attack_sources", [])
+	for src: Variant in sources:
+		if src is Dictionary and src.has("model"):
+			UnitAbilities.record_kill(state, int(src.model), 1)

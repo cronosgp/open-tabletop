@@ -6,10 +6,13 @@ const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const Reivers = preload("res://scripts/edition_11/reivers.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const CrusadeAncient = preload("res://scripts/edition_11/crusade_ancient.gd")
+const NekrosorAmmentar = preload("res://scripts/edition_11/nekrosor_ammentar.gd")
 const Execrator = preload("res://scripts/edition_11/execrator.gd")
 const SwordBrethren = preload("res://scripts/edition_11/sword_brethren.gd")
 const WulfenStormShields = preload("res://scripts/edition_11/wulfen_storm_shields.gd")
 const NecronTriarchStalker = preload("res://scripts/edition_11/necron_triarch_stalker.gd")
+const GhostArk = preload("res://scripts/edition_11/ghost_ark.gd")
+const SilentKing = preload("res://scripts/edition_11/silent_king.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
 const AdeptOfTheOmnissiah = preload("res://scripts/edition_11/adept_of_the_omnissiah.gd")
 ## Restricted integration exercise, not a complete official 11e match.
@@ -501,11 +504,13 @@ static func movement_remaining(state: Dictionary, id: int) -> float:
 		spent = float(state.pending_move.spent.get(id, 0.0))
 		bonus = float(state.pending_move.get("bonus", 0))
 		take_to_skies_penalty = float(state.pending_move.get("take_to_skies_penalty", 0.0))
-	var characteristic_bonus := 0.0 if DetachmentStratagems.might_ignore_active(state, int(unit.squad)) else Doctrines.movement_bonus(state, int(unit.squad)) + AncientFury.movement_bonus(state, int(unit.squad))
+	var characteristic_bonus := 0.0 if DetachmentStratagems.might_ignore_active(state, int(unit.squad)) else Doctrines.movement_bonus(state, int(unit.squad)) + AncientFury.movement_bonus(state, int(unit.squad)) + SilentKing.movement_bonus(state, int(unit.squad))
 	var stasis_penalty := StasisBomb.movement_penalty(state, int(unit.squad))
+	var Geomancer = load("res://scripts/edition_11/geomancer.gd")
+	var pinned_penalty := float(Geomancer.movement_penalty(state, int(unit.squad)))
 	var NecronObelisk = load("res://scripts/edition_11/necron_obelisk.gd")
 	var base_movement: float = float(NecronObelisk.movement_characteristic(state, int(unit.squad), float(unit.movement)))
-	return maxf(0.0, base_movement + bonus + characteristic_bonus - take_to_skies_penalty - stasis_penalty - spent)
+	return maxf(0.0, base_movement + bonus + characteristic_bonus - take_to_skies_penalty - stasis_penalty - pinned_penalty - spent)
 
 static func transdimensional_endpoint_error(state: Dictionary, squad: int) -> String:
 	if not bool(state.get("pending_move", {}).get("transdimensional_displacement", false)) or int(state.pending_move.get("squad", -1)) != squad: return ""
@@ -750,7 +755,7 @@ static func _post_attack_reaction_window(window: Dictionary, depth: int) -> bool
 	if kind == "tactics" and str(window.get("source", "")) == DetachmentStratagems.WE_ARE_VENGEANCE: return true
 	if kind in [TacticalFluidity.WINDOW, TacticalFluidity.PLACEMENT,
 		PurgationRun.WINDOW, PurgationRun.PLACEMENT,
-		PhobosShadowMasters.WINDOW, PhobosExecuteRedeploy.WINDOW, CrusadeAncient.MARTIAL_HONOUR_WINDOW,
+		PhobosShadowMasters.WINDOW, PhobosExecuteRedeploy.WINDOW, CrusadeAncient.MARTIAL_HONOUR_WINDOW, NekrosorAmmentar.PROPHET_WINDOW,
 		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, DeathCompanyDreadnought.WINDOW, DeathCompanyDreadnought.TARGET_WINDOW, DeathCompanyDreadnought.PLACEMENT, "forward-assault-mark"]: return true
 	var resume_window: Variant = window.get("resume_window", {})
 	return _post_attack_reaction_window(resume_window, depth + 1) if typeof(resume_window) == TYPE_DICTIONARY else false
@@ -1284,7 +1289,8 @@ static func _accept_charge_roll(state: Dictionary, squad: int, rolls: Array, tak
 	var nearest := INF
 	for enemy: int in ContactActions.enemies(state, squad):
 		for id: int in living(state, squad): nearest = minf(nearest, Contact.distance_to_target(state, state.units[id], enemy))
-	var message := "%s charge roll: %s = %d%s inches. Choose a target now." % [state.squads[squad].name, str(rolls), raw_total, " + %d" % modifier if modifier > 0 else ""]
+	var mod_text := (" + %d" % modifier) if modifier > 0 else ((" - %d" % abs(modifier)) if modifier < 0 else "")
+	var message := "%s charge roll: %s = %d%s inches. Choose a target now." % [state.squads[squad].name, str(rolls), raw_total, mod_text]
 	if take_to_skies: message += " Take to the Skies: maximum distance %d inches%s." % [maximum, " (HOVER; no reduction)" if take_to_skies_penalty == 0.0 else " after the 2-inch reduction"]
 	if maximum < nearest:
 		message = "%s charge failed: %s = %d, no target within the rolled distance.%s" % [state.squads[squad].name, str(rolls), maximum, " Take to the Skies reduced the maximum by 2 inches." if take_to_skies and take_to_skies_penalty > 0.0 else (" HOVER prevented the Take to the Skies reduction." if take_to_skies else "")]
@@ -1309,8 +1315,9 @@ static func resolve_roll_reaction(state: Dictionary, player: int, squad: int, st
 	if window.get("kind") not in ["after_advance_roll", "after_charge_roll"]: return "No Advance or Charge roll is waiting for a decision."
 	var error := Stratagems.choice_error(state, player, squad, revision)
 	if not error.is_empty(): return error
-	if stratagem not in ["", "command-re-roll", "overcharged-engines", "sudden-storm", "unstoppable-valour", "relentless-combatants", "master-shadows", "lord-of-the-ravenwing", "linebreaker-onslaught", "deathwatch-terminatus-assault", "supercharged-engines", "honour-of-vigilance", "wrath-of-the-chapter", "stormseers-wisdom", "righteous-fervour", "bestial-fury"]: return "Stratagem unavailable for this roll."
+	if stratagem not in ["", "command-re-roll", "overcharged-engines", "sudden-storm", "unstoppable-valour", "relentless-combatants", "master-shadows", "lord-of-the-ravenwing", "linebreaker-onslaught", "deathwatch-terminatus-assault", "supercharged-engines", "honour-of-vigilance", "wrath-of-the-chapter", "stormseers-wisdom", "righteous-fervour", "bestial-fury", "phaeron-of-the-blades"]: return "Stratagem unavailable for this roll."
 	if stratagem == "bestial-fury" and (not window.get("bestial_fury", false) or not UnitAbilities.has(state, squad, "bestial-fury")): return "Bestial Fury is not available for this roll."
+	if stratagem == "phaeron-of-the-blades" and not window.get("phaeron_of_the_blades", false): return "Phaeron of the Blades is not available for this roll."
 	if stratagem == "overcharged-engines":
 		error = Stratagems.use_error(state, player, squad, stratagem, revision)
 		if not error.is_empty(): return error
@@ -2521,7 +2528,13 @@ static func _commit_finished_attack(state: Dictionary, squad: int, player: int, 
 	DetachmentStratagems.after_attacks(state, squad, prepared.targets, int(resolved.killed), prepared, resolved, melee)
 	DetachmentStratagems.clear_angels_defiant(state, squad)
 	UnitAbilities.offer_cover_target(state, squad, prepared, resolved, melee)
-	if melee: CrusadeAncient.open_martial_honour(state, squad, prepared.targets, int(resolved.get("killed", 0)))
+	if melee:
+		CrusadeAncient.open_martial_honour(state, squad, prepared.targets, int(resolved.get("killed", 0)))
+		if UnitAbilities.enabled(state) and int(resolved.get("killed", 0)) > 0:
+			var alive_models := Contact.alive(state, squad)
+			if alive_models.size() == 1:
+				UnitAbilities.record_kill(state, alive_models[0], int(resolved.get("killed", 0)))
+	NekrosorAmmentar.open_prophet_of_destruction(state, squad, prepared.targets, int(resolved.get("killed", 0)))
 	UnitAbilities.open_destroyed_mark_replacements(state)
 	var execrator_result := Execrator.after_fight_kill(state, squad, melee, int(resolved.get("killed", 0)), roller)
 	if not str(execrator_result.get("error", "")).is_empty(): return execrator_result
@@ -2542,6 +2555,7 @@ static func _commit_finished_attack(state: Dictionary, squad: int, player: int, 
 		UnitActions.offer_multi_threat(state, squad, prepared.targets)
 	if melee: WulfenStormShields.offer_after_fight(state, squad, resolved, melee)
 	if not melee: NecronTriarchStalker.offer_after_shot(state, squad, resolved, melee)
+	GhostArk.open_after_enemy_attacks(state, squad, resolved.pools)
 	var names: Array[String] = []
 	for target: int in prepared.targets: names.append(state.squads[target].name)
 	var message := "%s%s → %s: %d damage, %d models destroyed." % [state.squads[squad].name, " melee" if melee else "", ", ".join(names), resolved.damage, resolved.killed]

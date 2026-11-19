@@ -16,6 +16,9 @@ const STALKER := "40kdc:11e:necrons:triarch-stalker"
 const OVERLORD := "40kdc:11e:necrons:overlord"
 const LYCHGUARD := "40kdc:11e:necrons:lychguard"
 const LOKHUST_LORD := "40kdc:11e:necrons:lokhust-lord"
+const CCB := "40kdc:11e:necrons:catacomb-command-barge"
+const WRAITHS := "40kdc:11e:necrons:canoptek-wraiths"
+const TOMB_BLADES := "40kdc:11e:necrons:tomb-blades"
 
 var failures := 0
 
@@ -84,11 +87,15 @@ func check_source_schemas() -> void:
 	check(Profiles.profile("overlord").get("source_options", []).all(func(option: Dictionary) -> bool: return option.get("implemented", false)), "Overlord marks both source options implemented")
 	check(Profiles.profile("lychguard").get("source_options", [])[0].get("implemented", false), "Lychguard marks shielded loadout implemented")
 	check(Profiles.profile("lokhust-lord").get("source_options", []).all(func(option: Dictionary) -> bool: return option.get("implemented", false)), "Lokhust Lord marks both source options implemented")
+	check(SavedEquipment.supports(CCB) and not SavedEquipment.is_model_scoped(CCB)
+		and SavedEquipment.supports(WRAITHS) and SavedEquipment.is_model_scoped(WRAITHS)
+		and SavedEquipment.supports(TOMB_BLADES) and SavedEquipment.is_model_scoped(TOMB_BLADES),
+		"Catacomb Command Barge, Canoptek Wraiths and Tomb Blades saved-equipment schemas are registered")
 
 func _configured_list() -> Dictionary:
 	var catalog := Catalog.new()
 	check(catalog.select_edition("11e").is_empty(), "The consolidated local 11th-edition catalog loads")
-	var list := Roster.new_list("11e", "Necrons", "custom", 1000)
+	var list := Roster.new_list("11e", "Necrons", "custom", 1500)
 	var heavy_choice := Army.current_catalog_choice({"id": LOKHUST_HEAVY, "edition": "11e", "faction": "Necrons"})
 	heavy_choice.role = Roster.role(heavy_choice.get("keywords", []))
 	var heavy_entry: Dictionary = Roster.entry(heavy_choice, _option_index(heavy_choice, 3), 2)
@@ -121,6 +128,26 @@ func _configured_list() -> Dictionary:
 	check(Roster.set_model_equipment(lord_entry, 0, 0, "lokhust_lord_weapon", "lords-blade")
 		and Roster.set_model_equipment(lord_entry, 0, 0, "lokhust_lord_wargear", "nanoscarab-amulet"), "The Lokhust Lord can save its Lord's Blade and Nanoscarab Amulet loadout")
 	list.entries.append(lord_entry)
+	var ccb_choice := Army.current_catalog_choice({"id": CCB, "edition": "11e", "faction": "Necrons"})
+	ccb_choice.role = Roster.role(ccb_choice.get("keywords", []))
+	var ccb_entry: Dictionary = Roster.entry(ccb_choice, _option_index(ccb_choice, 1), 1)
+	check(Roster.set_model_equipment(ccb_entry, 0, 0, "ccb_cannon", "tesla-cannon")
+		and Roster.set_model_equipment(ccb_entry, 0, 0, "ccb_melee", "overlords-blade")
+		and Roster.set_model_equipment(ccb_entry, 0, 0, "ccb_wargear", "resurrection-orb"), "Catacomb Command Barge can save its cannon, melee and Resurrection Orb options")
+	list.entries.append(ccb_entry)
+	var wraith_choice := Army.current_catalog_choice({"id": WRAITHS, "edition": "11e", "faction": "Necrons"})
+	wraith_choice.role = Roster.role(wraith_choice.get("keywords", []))
+	var wraith_entry: Dictionary = Roster.entry(wraith_choice, _option_index(wraith_choice, 3), 1)
+	check(Roster.set_model_equipment(wraith_entry, 0, 1, "wraith_ranged", "particle-caster")
+		and Roster.set_model_equipment(wraith_entry, 0, 1, "wraith_melee", "whip-coils"), "Canoptek Wraiths can save per-model ranged and melee options")
+	list.entries.append(wraith_entry)
+	var tb_choice := Army.current_catalog_choice({"id": TOMB_BLADES, "edition": "11e", "faction": "Necrons"})
+	tb_choice.role = Roster.role(tb_choice.get("keywords", []))
+	var tb_entry: Dictionary = Roster.entry(tb_choice, _option_index(tb_choice, 3), 1)
+	check(Roster.set_model_equipment(tb_entry, 0, 0, "tomb_blade_ranged", "twin-tesla-carbine")
+		and Roster.set_model_equipment(tb_entry, 0, 0, "tomb_blade_shieldvanes", "shieldvanes")
+		and Roster.set_model_equipment(tb_entry, 0, 0, "tomb_blade_optic", "nebuloscope"), "Tomb Blades can save per-model weapon, shieldvanes and optic options")
+	list.entries.append(tb_entry)
 	catalog.free()
 	return list
 
@@ -173,6 +200,16 @@ func check_reopened_profile(path: String) -> void:
 	check(Roster.model_equipment(lord_entry, 0, 0).get("lokhust_lord_weapon", "") == "lords-blade"
 		and Roster.model_equipment(lord_entry, 0, 0).get("lokhust_lord_wargear", "") == "nanoscarab-amulet",
 		"The reopened Lokhust Lord retains its Lord's Blade and Nanoscarab Amulet loadout")
+	var ccb_entry: Dictionary = saved.entries[6]
+	var wraith_entry: Dictionary = saved.entries[7]
+	var tb_entry: Dictionary = saved.entries[8]
+	check(Roster.model_equipment(ccb_entry, 0, 0) == {"ccb_cannon": "tesla-cannon", "ccb_melee": "overlords-blade", "ccb_wargear": "resurrection-orb"},
+		"The reopened Catacomb Command Barge retains its saved loadout")
+	check(Roster.model_equipment(wraith_entry, 0, 1) == {"wraith_ranged": "particle-caster", "wraith_melee": "whip-coils"}
+		and Roster.model_equipment(wraith_entry, 0, 0) == {"wraith_ranged": "none", "wraith_melee": "vicious-claws"},
+		"The reopened Canoptek Wraiths retain mixed per-model loadouts")
+	check(Roster.model_equipment(tb_entry, 0, 0) == {"tomb_blade_ranged": "twin-tesla-carbine", "tomb_blade_shieldvanes": "shieldvanes", "tomb_blade_optic": "nebuloscope"},
+		"The reopened Tomb Blades retain per-model weapon, shieldvanes and optic choices")
 	check(Roster.validate(saved).is_empty() and TrainingRoster.inspect(saved, {}, true).get("error", "").is_empty(),
 		"The reopened Necron equipment remains valid for the current local catalog")
 
@@ -211,13 +248,19 @@ func check_workshop_controls(list: Dictionary) -> void:
 	check(panel.per_model_equipment_controls.get_child_count() == 4
 		and panel.per_model_equipment_controls.get_child(1) is OptionButton
 		and panel.per_model_equipment_controls.get_child(3) is OptionButton, "The Lokhust Lord presents two saved copy-level controls (weapon and wargear)")
+	panel._select_entry(6)
+	check(panel.per_model_equipment_controls.get_child_count() == 6, "Catacomb Command Barge presents three saved copy-level controls")
+	panel._select_entry(7)
+	check(panel.per_model_equipment_controls.get_child_count() == 3, "Canoptek Wraiths presents one model card per Wraith")
+	panel._select_entry(8)
+	check(panel.per_model_equipment_controls.get_child_count() == 3, "Tomb Blades presents one model card per Tomb Blade")
 	panel.free()
 
 func check_prepared_match(list: Dictionary) -> void:
 	var inspected := TrainingRoster.inspect(list, {}, true)
 	check(inspected.get("error", "").is_empty(), "Necron equipment records pass current-catalog admission: " + str(inspected.get("error", "")))
 	if not inspected.get("error", "").is_empty(): return
-	check(int(inspected.get("total", -1)) == 770, "Weapon choices preserve the source-priced total and copy tiers")
+	check(int(inspected.get("total", -1)) == 1055, "Weapon choices preserve the source-priced total and copy tiers")
 	var state: Dictionary = Prepared.initial_state(
 		{"checked_rosters": false, "official_mission": false, "unit_abilities": true},
 		{1: inspected.selection, 2: inspected.selection})
@@ -274,6 +317,22 @@ func check_prepared_match(list: Dictionary) -> void:
 				and str(unit.get("lokhust_lord_wargear", "")) == "nanoscarab-amulet" and unit.get("wargear", []) == ["nanoscarab-amulet"]
 				and bool(unit.get("lokhust_lord_loadout_locked", false)), "Lokhust Lord materializes Lord's Blade and Nanoscarab Amulet loadout and locks it for match")
 			lord_seen[owner] += 1
+		elif definition == CCB:
+			check(str(unit.get("ranged_weapons", [{}])[0].get("id", "")) == "tesla-cannon-command-barge"
+				and str(unit.get("melee_weapons", [{}])[0].get("id", "")) == "overlords-blade-command-barge"
+				and str(unit.get("ccb_wargear", "")) == "resurrection-orb"
+				and bool(unit.get("ccb_loadout_locked", false)), "Catacomb Command Barge materializes saved loadout and locks it for match")
+		elif definition == WRAITHS:
+			if int(unit.get("saved_equipment_model_index", -1)) == 1:
+				check(str(unit.get("ranged_weapons", [{}])[0].get("id", "")) == "particle-caster"
+					and str(unit.get("melee_weapons", [{}])[0].get("id", "")) == "whip-coils"
+					and bool(unit.get("wraiths_loadout_locked", false)), "Canoptek Wraiths model 1 materializes saved particle-caster and whip-coils and locks it")
+		elif definition == TOMB_BLADES:
+			if int(unit.get("saved_equipment_model_index", -1)) == 0:
+				check(str(unit.get("ranged_weapons", [{}])[0].get("id", "")) == "source-ranged-3"
+					and int(unit.get("movement", 0)) == 8
+					and int(unit.get("defense", {}).get("save_target", 0)) == 3
+					and bool(unit.get("tomb_blades_loadout_locked", false)), "Tomb Blades model 0 materializes saved twin-tesla-carbine, shieldvanes (M8/Sv3+) and nebuloscope and locks it")
 	check(heavy_seen == {0: 6, 1: 6} and heavy_alternates_seen == {0: 2, 1: 2}
 		and praetorian_seen == {0: 5, 1: 5} and stalker_seen == {0: 1, 1: 1}
 		and overlord_seen == {0: 1, 1: 1} and lychguard_seen == {0: 5, 1: 5}

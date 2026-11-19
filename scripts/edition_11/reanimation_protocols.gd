@@ -53,6 +53,7 @@ const CHARACTER_WOUNDS := {
 	"40kdc:11e:necrons:ctan-shard-of-the-void-dragon": 16,
 	"40kdc:11e:necrons:geomancer": 4,
 	"40kdc:11e:necrons:nekrosor-ammentar": 9,
+	"40kdc:11e:necrons:trazyn-the-infinite": 6,
 	"40kdc:11e:necrons:overlord-with-translocation-shroud": 6,
 	"40kdc:11e:necrons:transcendent-ctan": 16,
 	"40kdc:11e:necrons:orikan-the-diviner": 4,
@@ -62,6 +63,8 @@ const CHARACTER_WOUNDS := {
 	"40kdc:11e:necrons:chronomancer": 4,
 	"40kdc:11e:necrons:skorpekh-lord": 7,
 	"40kdc:11e:necrons:lokhust-lord": 6,
+	"40kdc:11e:necrons:imotekh-the-stormlord": 6,
+	"40kdc:11e:necrons:illuminor-szeras": 9,
 }
 const PROFILE_MODEL_COUNTS := {
 	"40kdc:11e:necrons:necron-warriors": [10, 20],
@@ -95,11 +98,13 @@ const PROFILE_MODEL_COUNTS := {
 	"40kdc:11e:necrons:obelisk": [1],
 	"40kdc:11e:necrons:tesseract-vault": [1],
 	"40kdc:11e:necrons:tomb-blades": [3, 6],
+	"40kdc:11e:necrons:the-silent-king": [3],
 	"40kdc:11e:necrons:ctan-shard-of-the-deceiver": [1],
 	"40kdc:11e:necrons:ctan-shard-of-the-nightbringer": [1],
 	"40kdc:11e:necrons:ctan-shard-of-the-void-dragon": [1],
 	"40kdc:11e:necrons:geomancer": [1],
 	"40kdc:11e:necrons:nekrosor-ammentar": [1],
+	"40kdc:11e:necrons:trazyn-the-infinite": [1],
 	"40kdc:11e:necrons:overlord-with-translocation-shroud": [1],
 	"40kdc:11e:necrons:transcendent-ctan": [1],
 	"40kdc:11e:necrons:skorpekh-lord": [1],
@@ -111,6 +116,8 @@ const PROFILE_MODEL_COUNTS := {
 	"40kdc:11e:necrons:chronomancer": [1],
 	OVERLORD: [1],
 	WARDEN: [1],
+	IMOTEKH: [1],
+	"40kdc:11e:necrons:illuminor-szeras": [1],
 }
 const ATTACHABLE_TROOPS := [
 	"40kdc:11e:necrons:necron-warriors",
@@ -125,6 +132,7 @@ const OVERLORD_TRANSLOCATION := "40kdc:11e:necrons:overlord-with-translocation-s
 const WARDEN := "40kdc:11e:necrons:royal-warden"
 const SKORPEKH_LORD := "40kdc:11e:necrons:skorpekh-lord"
 const LOKHUST_LORD := "40kdc:11e:necrons:lokhust-lord"
+const IMOTEKH := "40kdc:11e:necrons:imotekh-the-stormlord"
 const TOMB_CRAWLERS := "40kdc:11e:necrons:canoptek-tomb-crawlers"
 const CRYPTOTHRALLS := "40kdc:11e:necrons:cryptothralls"
 const CRYPTEK_LEADERS := ["orikan-the-diviner", "plasmancer", "technomancer", "psychomancer", "chronomancer", "geomancer"]
@@ -173,7 +181,7 @@ static func _supported_attachment(state: Dictionary, squad: int) -> bool:
 		if unit.owner != state.squads[squad].owner or unit.get("elevation", 0.0) != 0.0: return false
 		var identity: String = unit.get("definition_id", "")
 		if unit.get("attachment_role", "") == "leader":
-			if identity not in [OVERLORD, OVERLORD_TRANSLOCATION, WARDEN, SKORPEKH_LORD, LOKHUST_LORD] or unit.max_wounds != int(CHARACTER_WOUNDS.get(identity, 0)): return false
+			if identity not in [OVERLORD, OVERLORD_TRANSLOCATION, WARDEN, SKORPEKH_LORD, LOKHUST_LORD, IMOTEKH] or unit.max_wounds != int(CHARACTER_WOUNDS.get(identity, 0)): return false
 			if leader_identity.is_empty(): leader_identity = identity
 			if identity != leader_identity: return false
 			leader_count += 1
@@ -337,6 +345,7 @@ static func pending_decision(state: Dictionary) -> Dictionary:
 	var timing := "command-phase:reanimation"
 	if str(window.get("kind", "")) == "orb": timing = "end-phase:%s:reanimation" % str(state.get("phase", ""))
 	elif str(window.get("kind", "")) == "undying": timing = "post-destruction:%s:reanimation" % str(state.get("phase", ""))
+	elif str(window.get("kind", "")) == "repair_barge": timing = "post-attack:%s:reanimation" % str(state.get("phase", ""))
 	return PendingDecision.create(state, "reanimation", timing, owner, options, false)
 
 static func _decision_option(label: String, squad: int, model: int, value: String, details: Dictionary = {}) -> Dictionary:
@@ -379,7 +388,7 @@ static func choice_error(state: Dictionary, player: int, revision: int) -> Strin
 	var window := pending(state)
 	if window.is_empty(): return "No Reanimation Protocols decision is pending."
 	if revision != state.revision: return "State changed; synchronize before resolving Reanimation."
-	if window.turn != state.turn or player != window.player or (window.get("kind", "") not in ["orb", "undying"] and (state.phase != "command" or player != state.active)): return "This Reanimation decision belongs to the active Necron player."
+	if window.turn != state.turn or player != window.player or (window.get("kind", "") not in ["orb", "undying", "repair_barge"] and (state.phase != "command" or player != state.active)): return "This Reanimation decision belongs to the active Necron player."
 	if state.get("test_winner", 0) != 0: return "The match has ended."
 	return ""
 
@@ -550,6 +559,6 @@ static func confirm_unit(state: Dictionary) -> Dictionary:
 	window.current = {}
 	if window.remaining.is_empty():
 		state.reanimation.last_results = window.results.duplicate(true)
-		if window.get("kind", "") != "undying": state.reanimation.done_turn[window.player] = state.turn
+		if window.get("kind", "") not in ["undying", "repair_barge"]: state.reanimation.done_turn[window.player] = state.turn
 		state.reanimation.pending = {}
 	return {"error": "", "message": "%s: Reanimation restored %d wounds, returned %d models; %d healing unused, %d controller-declared placement failures." % [state.squads[current.squad].name, restored, current.placements.size(), report.discarded, current.unplaced.size()]}

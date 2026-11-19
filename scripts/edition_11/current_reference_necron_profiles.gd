@@ -88,6 +88,53 @@ static func inventory() -> Dictionary:
 	return SOURCE_SHEETS.duplicate(true)
 
 static func profile(source: String) -> Dictionary:
+	if source == "geomancer":
+		var geomancer := _record("geomancer", "Geomancer", "000004178", "Geomancer", {1: 75}, 1, 50,
+			{"movement_inches": 8, "toughness": 4, "save_target": 4, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
+			["NECRONS", "INFANTRY", "CHARACTER", "CRYPTEK", "GEOMANCER"],
+			[{"id": "tremorglaive", "profiles": {
+				"reverberating_beam": _weapon("Tremorglaive – reverberating beam", 18.0, 2, 4, 8, -2, 2, {"melta": 2}),
+				"shock_wave_pulse": _weapon("Tremorglaive – shock wave pulse", 18.0, "D6+2", "-", 4, 0, 1, {"ignores-cover": true, "torrent": true})
+			}}],
+			[{"id": "tremorglaive", "profiles": {"standard": _weapon("Tremorglaive", 0.0, 2, 4, 8, -2, 2, {})}}],
+			["Support", "Reanimation Protocols", "Tectonic Reverberations", "Obelisk Node Control", "VANGUARD PROTOCOLS"],
+			["support", "reanimation-protocols", "tectonic-reverberations", "obelisk-node-control", "vanguard-protocols", "scouts-8"], [], [],
+			["000000534", "000000535", "000004176"])
+		geomancer.source_is_support = true
+		geomancer.source_ability_bindings = [
+			{"source_line": 1, "ability_id": "000010857", "name": "Support", "model_role": "", "type": "Core", "parameter": ""},
+			{"source_line": 2, "ability_id": "000008369", "name": "Reanimation Protocols", "model_role": "", "type": "Faction", "parameter": ""},
+			{"source_line": 3, "ability_id": "", "name": "Tectonic Reverberations", "model_role": "", "type": "Datasheet", "parameter": ""},
+			{"source_line": 4, "ability_id": "", "name": "Obelisk Node Control", "model_role": "", "type": "Datasheet", "parameter": ""},
+			{"source_line": 5, "ability_id": "", "name": "VANGUARD PROTOCOLS", "model_role": "", "type": "Fortification (левая колонка)", "parameter": ""}
+		]
+		geomancer.pending_source_checks = []
+		geomancer.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return geomancer
+	if source == "nekrosor-ammentar":
+		var ammentar := _record("nekrosor-ammentar", "Nekrosor Ammentar", "000004186", "Nekrosor-Ammentar", {1: 195}, 1, 80,
+			{"movement_inches": 10, "toughness": 8, "save_target": 3, "wounds": 9, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 4},
+			["NECRONS", "INFANTRY", "CHARACTER", "EPIC HERO", "DESTROYER CULT", "NEKROSOR AMMENTAR"],
+			[{"id": "enmitic-disintegrators", "profiles": {"standard": _weapon("Enmitic disintegrators", 18.0, 4, 2, 6, -2, 1, {"close-quarters": true, "ignores-cover": true, "sustained-hits": 2})}}],
+			[
+				{"id": "unmaker-gauntlet", "profiles": {"standard": _weapon("Unmaker Gauntlet", 0.0, 6, 2, 10, -3, 3, {})}},
+				{"id": "blade-tail-and-whip-coils", "profiles": {"standard": _weapon("Blade tail and whip coils", 0.0, 6, 2, 6, -1, 1, {"extra-attacks": true})}}
+			],
+			["Deep Strike", "Fights First", "Reanimation Protocols", "Protective Disciples", "Infectious Murder-madness (Aura)", "Prophet of Destruction", "Nullstone Field Generator (Aura)"],
+			["deep-strike", "fights-first", "reanimation-protocols", "protective-disciples", "infectious-murder-madness", "prophet-of-destruction", "nullstone-field-generator"],
+			[], [], [])
+		ammentar.source_ability_bindings = [
+			{"source_line": 1, "ability_id": "000008343", "name": "Deep Strike", "model_role": "", "type": "Core", "parameter": ""},
+			{"source_line": 2, "ability_id": "000008340", "name": "Fights First", "model_role": "", "type": "Core", "parameter": ""},
+			{"source_line": 3, "ability_id": "000008369", "name": "Reanimation Protocols", "model_role": "", "type": "Faction", "parameter": ""},
+			{"source_line": 4, "ability_id": "", "name": "Protective Disciples", "model_role": "", "type": "Datasheet", "parameter": ""},
+			{"source_line": 5, "ability_id": "", "name": "Infectious Murder-madness (Aura)", "model_role": "", "type": "Datasheet", "parameter": ""},
+			{"source_line": 6, "ability_id": "", "name": "Prophet of Destruction", "model_role": "", "type": "Datasheet", "parameter": ""},
+			{"source_line": 7, "ability_id": "", "name": "Nullstone Field Generator (Aura)", "model_role": "", "type": "Wargear", "parameter": ""}
+		]
+		ammentar.pending_source_checks = []
+		ammentar.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return ammentar
 	var remaining_profile := RemainingProfiles.profile(source)
 	if not remaining_profile.is_empty(): return remaining_profile
 	if source == "immortals":
@@ -230,8 +277,10 @@ static func profile(source: String) -> Dictionary:
 			["NECRONS", "NOBLE", "EPIC HERO", "CHARACTER", "INFANTRY", "TRAZYN THE INFINITE"], [],
 			[{"id": "empathic-obliterator", "profiles": {"standard": _weapon("Empathic Obliterator", 0.0, 4, 2, 7, 0, "D3", {"sustained-hits": "D3"})}}],
 			["Leader", "Reanimation Protocols", "Ancient Collector", "Surrogate Hosts"],
-			["leader"], ["Reanimation Protocols", "Ancient Collector", "Surrogate Hosts"],
+			["leader", "reanimation-protocols", "ancient-collector", "surrogate-hosts"], [],
 			[], ["000000534", "000000536", "000000535"], [])
+		trazyn.pending_source_checks = []
+		trazyn.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
 		return trazyn
 	if source == "lychguard":
 		var lychguard := _record("lychguard", "Lychguard", "000000536", "Lychguard", {5: 80, 10: 160}, 5, 32,
@@ -300,17 +349,20 @@ static func profile(source: String) -> Dictionary:
 			{"movement_inches": 10, "toughness": 6, "save_target": 3, "wounds": 4, "leadership_target": 8, "objective_control": 2, "invulnerable_target": 4},
 			["NECRONS", "BEASTS", "CANOPTEK", "WRAITHS", "FLY"], [],
 			[{"id": "vicious-claws", "profiles": {"standard": _weapon("Vicious claws", 0.0, 4, 4, 6, -1, 2, {})}}],
-			["Reanimation Protocols", "Wraith Form"], ["reanimation-protocols"], ["Wraith Form"], [], [], [
-			{"id": "wraith-optional-ranged-weapons", "kind": "per-model-selective-ranged-weapon", "choices": ["particle-caster", "transdimensional-beamer"], "maximum": "unit_size", "implemented": false},
-			{"id": "wraith-whip-coils", "kind": "per-model-melee-replacement", "from": "vicious-claws", "to": "whip-coils", "maximum": "unit_size", "implemented": false}
-		], {3: 115, 6: 240})
+			["Reanimation Protocols", "Wraith Form"], ["reanimation-protocols", "wraith-form"], [], [], [], [
+			{"id": "wraith-optional-ranged-weapons", "kind": "per-model-selective-ranged-weapon", "choices": ["particle-caster", "transdimensional-beamer"], "maximum": "unit_size", "implemented": true},
+			{"id": "wraith-whip-coils", "kind": "per-model-melee-replacement", "from": "vicious-claws", "to": "whip-coils", "maximum": "unit_size", "implemented": true}
+		], {})
+		wraiths.second_plus_points_by_models = {3: 115, 6: 240}
 		wraiths.additional_weapon_profiles = {
 			"ranged": [
-				{"id": "particle-caster", "profiles": {"standard": _weapon("Particle caster", 12.0, 3, 4, 5, 0, 1, {"devastating-wounds": true, "pistol": true})}},
+				{"id": "particle-caster", "profiles": {"standard": _weapon("Particle caster", 12.0, 3, 4, 5, 0, 1, {"close-quarters": true, "devastating-wounds": true})}},
 				{"id": "transdimensional-beamer", "profiles": {"standard": _weapon("Transdimensional beamer", 12.0, 1, 4, 4, -2, 3, {})}}
 			],
 			"melee": [{"id": "whip-coils", "profiles": {"standard": _weapon("Whip coils", 0.0, 8, 4, 5, 0, 1, {})}}]
 		}
+		wraiths.pending_source_checks = []
+		wraiths.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
 		return wraiths
 	if source == "canoptek-reanimator":
 		var reanimator := _record("canoptek-reanimator", "Canoptek Reanimator", "000002112", "Canoptek-Reanimator", {1: 75}, 1, 60,
@@ -332,9 +384,13 @@ static func profile(source: String) -> Dictionary:
 			["NECRONS", "VEHICLE", "FLY", "FRAME", "TRANSPORT", "GHOST ARK", "DEDICATED TRANSPORT"],
 			[{"id": "gauss-flayer-array", "count": 2, "profiles": {"standard": _weapon("Gauss flayer array", 24.0, 5, 3, 4, 0, 1, {"lethal-hits": true, "rapid-fire": 5})}}],
 			[{"id": "armoured-bulk", "profiles": {"standard": _weapon("Armoured bulk", 0.0, 3, 4, 6, 0, 1, {})}}],
-			["Deadly Demise D3", "Reanimation Protocols", "Repair Barge"], ["deadly-demise-d3", "reanimation-protocols"], ["Repair Barge"], [], [], [])
-		ghost_ark.source_transport_capacity = "10 Necron Warrior models and 1 Necrons Infantry Character model"
-		ghost_ark.unsupported_transport_rules = ["Transport capacity and passenger embark/disembark are not implemented for this profile."]
+			["Deadly Demise D3", "Reanimation Protocols", "Repair Barge"], ["deadly-demise-d3", "reanimation-protocols", "repair-barge"], [], [], [], [])
+		ghost_ark.transport = {
+			"capacity": 11,
+			"required": ["NECRONS", "INFANTRY"],
+			"required_any": ["NECRON WARRIORS", "CHARACTER"],
+			"max_models_by_keyword": {"NECRON WARRIORS": 10, "CHARACTER": 1}
+		}
 		return ghost_ark
 	if source == "canoptek-doomstalker":
 		var doomstalker := _record("canoptek-doomstalker", "Canoptek Doomstalker", "000002115", "Canoptek-Doomstalker", {1: 130}, 1, 90,
@@ -388,10 +444,10 @@ static func profile(source: String) -> Dictionary:
 				{"id": "staff-of-light-command-barge", "profiles": {"standard": _weapon("Staff of light", 18.0, 3, 2, 5, -2, 1, {})}}],
 			[{"id": "staff-of-light-command-barge", "profiles": {"standard": _weapon("Staff of light", 0.0, 4, 3, 5, -2, 1, {})}}],
 			["Deadly Demise 1", "Reanimation Protocols", "Resurrection Orb", "Carrier Wave (Aura)", "Advanced Quantum Shielding"],
-			["deadly-demise-1", "reanimation-protocols"], ["Carrier Wave (Aura)", "Advanced Quantum Shielding", "Resurrection Orb (optional wargear)"], [], [], [
-				{"id": "command-barge-gauss-cannon-replacement", "kind": "weapon_replacement", "from": "gauss-cannon", "to": "tesla-cannon", "implemented": false},
-				{"id": "command-barge-staff-melee-replacement", "kind": "weapon_replacement", "from": "staff-of-light-melee", "to": "overlords-blade", "implemented": false},
-				{"id": "command-barge-resurrection-orb", "kind": "optional_wargear_addition", "item": "resurrection-orb", "minimum": 0, "maximum": 1, "implemented": false}
+			["deadly-demise-1", "reanimation-protocols", "resurrection-orb", "carrier-wave", "advanced-quantum-shielding"], [], [], [], [
+				{"id": "command-barge-gauss-cannon-replacement", "kind": "weapon_replacement", "from": "gauss-cannon", "to": "tesla-cannon", "implemented": true},
+				{"id": "command-barge-staff-melee-replacement", "kind": "weapon_replacement", "from": "staff-of-light-melee", "to": "overlords-blade", "implemented": true},
+				{"id": "command-barge-resurrection-orb", "kind": "optional_wargear_addition", "item": "resurrection-orb", "minimum": 0, "maximum": 1, "implemented": true}
 			])
 		command_barge.additional_weapon_profiles = {
 			"ranged": [
@@ -401,6 +457,8 @@ static func profile(source: String) -> Dictionary:
 				{"id": "overlords-blade-command-barge", "profiles": {"standard": _weapon("Overlord’s blade", 0.0, 4, 2, 8, -3, 2, {"devastating-wounds": true})}}
 			]
 		}
+		command_barge.pending_source_checks = []
+		command_barge.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
 		return command_barge
 	if source == "triarch-stalker":
 		var stalker := _record("triarch-stalker", "Triarch Stalker", "000000540", "Triarch-Stalker", {1: 110}, 1, 120,
@@ -471,7 +529,7 @@ static func profile(source: String) -> Dictionary:
 		heavy.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
 		return heavy
 	if source == "imotekh-the-stormlord":
-		return _record("imotekh-the-stormlord", "Imotekh The Stormlord", "000000522", "Imotekh-The-Stormlord", {1: 100}, 1, 40,
+		var imotekh := _record("imotekh-the-stormlord", "Imotekh The Stormlord", "000000522", "Imotekh-The-Stormlord", {1: 100}, 1, 40,
 			{"movement_inches": 5, "toughness": 5, "save_target": 2, "wounds": 6, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
 			["NECRONS", "NOBLE", "INFANTRY", "EPIC HERO", "CHARACTER", "IMOTEKH THE STORMLORD"],
 			[
@@ -481,9 +539,14 @@ static func profile(source: String) -> Dictionary:
 			[
 				{"id": "staff-of-the-destroyer", "profiles": {"standard": _weapon("Staff of the Destroyer", 0.0, 4, 2, 6, -3, 2, {"devastating-wounds": true})}}
 			],
-			["Leader", "Reanimation Protocols", "Grand Strategist", "Lord of the Storm"], ["leader"], ["Reanimation Protocols", "Grand Strategist", "Lord of the Storm"], [], ["000000534", "000000536", "000000535"])
+			["Leader", "Reanimation Protocols", "Grand Strategist", "Lord of the Storm"],
+			["leader", "reanimation-protocols", "grand-strategist", "lord-of-the-storm"],
+			[], [], ["000000534", "000000536", "000000535"])
+		imotekh.pending_source_checks = []
+		imotekh.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return imotekh
 	if source == "illuminor-szeras":
-		return _record("illuminor-szeras", "Illuminor Szeras", "000002092", "Illuminor-Szeras", {1: 175}, 1, 80,
+		var szeras := _record("illuminor-szeras", "Illuminor Szeras", "000002092", "Illuminor-Szeras", {1: 175}, 1, 80,
 			{"movement_inches": 8, "toughness": 8, "save_target": 2, "wounds": 9, "leadership_target": 6, "objective_control": 3, "invulnerable_target": 4},
 			["NECRONS", "CHARACTER", "EPIC HERO", "ILLUMINOR SZERAS", "CRYPTEK", "INFANTRY"],
 			[{"id": "eldritch-lance", "profiles": {"standard": _weapon("Eldritch lance", 36.0, 3, 3, 9, -3, 3, {})}}],
@@ -491,8 +554,19 @@ static func profile(source: String) -> Dictionary:
 				{"id": "eldritch-lance", "profiles": {"standard": _weapon("Eldritch lance", 0.0, 4, 3, 9, -3, 3, {})}},
 				{"id": "impaling-legs", "profiles": {"standard": _weapon("Impaling legs", 0.0, 4, 3, 6, -1, 1, {"extra-attacks": true})}}
 			],
-			["Feel No Pain 4+", "Reanimation Protocols", "Illuminor", "Mechanical Augmentation (Aura)", "Atomic Energy Manipulator"], [],
-			["Feel No Pain 4+", "Reanimation Protocols", "Illuminor", "Mechanical Augmentation (Aura)", "Atomic Energy Manipulator"], [], [])
+			["Feel No Pain 4+", "Reanimation Protocols", "Illuminor", "Mechanical Augmentation (Aura)", "Atomic Energy Manipulator"],
+			["feel-no-pain-4", "reanimation-protocols", "illuminor", "mechanical-augmentation", "atomic-energy-manipulator"],
+			[], [], [])
+		szeras.source_ability_bindings = [
+			{"source_line": 1, "ability_id": "000008338", "name": "Feel No Pain", "model_role": "", "type": "Core", "parameter": "4+"},
+			{"source_line": 2, "ability_id": "000008369", "name": "Reanimation Protocols", "model_role": "", "type": "Faction", "parameter": ""},
+			{"source_line": 3, "ability_id": "", "name": "Illuminor", "model_role": "", "type": "Datasheet", "parameter": ""},
+			{"source_line": 4, "ability_id": "", "name": "Mechanical Augmentation (Aura)", "model_role": "", "type": "Datasheet", "parameter": ""},
+			{"source_line": 5, "ability_id": "", "name": "Atomic Energy Manipulator", "model_role": "", "type": "Datasheet", "parameter": ""}
+		]
+		szeras.pending_source_checks = []
+		szeras.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return szeras
 	if source == "plasmancer":
 		var plasmancer := _record("plasmancer", "Plasmancer", "000002108", "Plasmancer", {1: 60}, 1, 32,
 			{"movement_inches": 5, "toughness": 4, "save_target": 4, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
@@ -630,7 +704,8 @@ static func catalog() -> Dictionary:
 		"imotekh-the-stormlord": profile("imotekh-the-stormlord"), "illuminor-szeras": profile("illuminor-szeras"),
 		"plasmancer": profile("plasmancer"), "skorpekh-lord": profile("skorpekh-lord"),
 		"lokhust-lord": profile("lokhust-lord"), "technomancer": profile("technomancer"),
-		"psychomancer": profile("psychomancer"), "chronomancer": profile("chronomancer")}
+		"psychomancer": profile("psychomancer"), "chronomancer": profile("chronomancer"),
+		"geomancer": profile("geomancer"), "nekrosor-ammentar": profile("nekrosor-ammentar")}
 	result.merge(RemainingProfiles.catalog(), false)
 	return result
 

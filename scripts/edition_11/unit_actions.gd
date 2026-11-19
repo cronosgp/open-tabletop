@@ -3,6 +3,10 @@ const DetachmentStratagems = preload("res://scripts/edition_11/detachment_strata
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const CoreReactions = preload("res://scripts/edition_11/core_reactions.gd")
 const CorvusBlackstar = preload("res://scripts/edition_11/corvus_blackstar.gd")
+const CanoptekWraiths = preload("res://scripts/edition_11/canoptek_wraiths.gd")
+const GhostArk = preload("res://scripts/edition_11/ghost_ark.gd")
+const NightScythe = preload("res://scripts/edition_11/night_scythe.gd")
+const SilentKing = preload("res://scripts/edition_11/silent_king.gd")
 const RosterValidation = preload("res://scripts/edition_11/roster_validation.gd")
 const RollWindows = preload("res://scripts/edition_11/attack_roll_window.gd")
 const DamageAllocation = preload("res://scripts/edition_11/damage_allocation.gd")
@@ -42,6 +46,7 @@ const Mephiston = preload("res://scripts/edition_11/mephiston.gd")
 const DeadlyDemise = preload("res://scripts/edition_11/deadly_demise.gd")
 const NightbringerDrainLife = preload("res://scripts/edition_11/nightbringer_drain_life.gd")
 const VoidDragonMatterAbsorption = preload("res://scripts/edition_11/void_dragon_matter_absorption.gd")
+const LordOfTheStorm = preload("res://scripts/edition_11/lord_of_the_storm.gd")
 const NecronDoomScythe = preload("res://scripts/edition_11/necron_doom_scythe.gd")
 const CombiLieutenant = preload("res://scripts/edition_11/combi_lieutenant.gd")
 const Techmarine = preload("res://scripts/edition_11/techmarine.gd")
@@ -86,6 +91,9 @@ const CanoptekSpyders = preload("res://scripts/edition_11/canoptek_spyders.gd")
 const CanoptekTombCrawlers = preload("res://scripts/edition_11/canoptek_tomb_crawlers.gd")
 const NecronCryptothralls = preload("res://scripts/edition_11/necron_cryptothralls.gd")
 const NecronObelisk = preload("res://scripts/edition_11/necron_obelisk.gd")
+const Geomancer = preload("res://scripts/edition_11/geomancer.gd")
+const NekrosorAmmentar = preload("res://scripts/edition_11/nekrosor_ammentar.gd")
+const TrazynTheInfinite = preload("res://scripts/edition_11/trazyn_the_infinite.gd")
 
 static func key(state: Dictionary) -> String:
 	return "%d:%s" % [state.turn, state.phase]
@@ -122,6 +130,7 @@ static func window_state_error(state: Dictionary) -> String:
 	var kind := str(pending(state).get("kind", ""))
 	if kind == NightbringerDrainLife.MORTAL_WINDOW and state.get("pending_drain_life", {}).is_empty(): return "The active Drain Life mortal-wound continuation is missing."
 	if kind == VoidDragonMatterAbsorption.MORTAL_WINDOW and state.get("pending_matter_absorption", {}).is_empty(): return "The active Matter Absorption mortal-wound continuation is missing."
+	if kind == LordOfTheStorm.MORTAL_WINDOW and state.get("pending_lord_of_the_storm", {}).is_empty(): return "The active Lord of the Storm mortal-wound continuation is missing."
 	if kind in [WhirlwindPunishingBombardment.TARGET_WINDOW, WhirlwindPunishingBombardment.REROLL_WINDOW]: return WhirlwindPunishingBombardment.window_error(state)
 	if kind == RazorbackFireSupport.WINDOW: return RazorbackFireSupport.window_error(state)
 	if kind == HeresyRetribution.WINDOW: return HeresyRetribution.window_error(state)
@@ -133,9 +142,9 @@ static func window_state_error(state: Dictionary) -> String:
 ## Keep unknown kinds out of the generic phase-window decline path.
 static func supported_window_kind(kind: String) -> bool:
 	return kind in [
-		"start", "end", "counter", "demi", "vehement-aggression-reroll", Mephiston.FALLBACK_WINDOW, NightbringerDrainLife.MORTAL_WINDOW, VoidDragonMatterAbsorption.MORTAL_WINDOW,
+		"start", "end", "counter", "demi", "vehement-aggression-reroll", Mephiston.FALLBACK_WINDOW, NightbringerDrainLife.MORTAL_WINDOW, VoidDragonMatterAbsorption.MORTAL_WINDOW, LordOfTheStorm.MORTAL_WINDOW,
 		"damage-reroll", "aquilon-hit", "machine-spirit-hit", "machine-spirit-wound", "armoured-wrath-hit", "armoured-wrath-wound", "martial-paragon-hit", "martial-paragon-wound", "wound", "nightforged-attack-count", "nightforged-hazard",
-		DeadlyDemise.WINDOW, DetachmentStratagems.VENGEFUL_ANIMUS_WINDOW, DetachmentStratagems.LAYERED_CERAMITE_WINDOW, CorvusBlackstar.WINDOW, WulfenStormShields.WINDOW, NecronTriarchStalker.WINDOW,
+		DeadlyDemise.WINDOW, DetachmentStratagems.VENGEFUL_ANIMUS_WINDOW, DetachmentStratagems.LAYERED_CERAMITE_WINDOW, CorvusBlackstar.WINDOW, CanoptekWraiths.WINDOW, CanoptekWraiths.MORTAL_WINDOW, GhostArk.WINDOW, WulfenStormShields.WINDOW, NecronTriarchStalker.WINDOW,
 		"evade-and-survive", "evade-placement", CatoSicarius.WINDOW, CatoSicarius.PLACEMENT, FenrisianWolves.WINDOW, FenrisianWolves.PLACEMENT, SwordBrethren.WINDOW, SwordBrethren.PLACEMENT,
 		TacticalFluidity.WINDOW, TacticalFluidity.PLACEMENT, PurgationRun.WINDOW, PurgationRun.PLACEMENT, PhobosShadowMasters.WINDOW, PhobosExecuteRedeploy.WINDOW,
 		VictrixHonourGuard.WINDOW, VictrixHonourGuard.PLACEMENT, HeresyRetribution.WINDOW, CrusaderSurge.WINDOW, CrusaderSurge.TARGET_WINDOW, CrusaderSurge.PLACEMENT, DeathCompanyDreadnought.WINDOW, DeathCompanyDreadnought.TARGET_WINDOW, DeathCompanyDreadnought.PLACEMENT, WhirlwindPunishingBombardment.TARGET_WINDOW, WhirlwindPunishingBombardment.REROLL_WINDOW, RazorbackFireSupport.WINDOW, "forward-assault-mark",
@@ -143,7 +152,7 @@ static func supported_window_kind(kind: String) -> bool:
 		DetachmentStratagems.PHOBOS_SHADOW_MORTIS_TRIGGER_WINDOW, DetachmentStratagems.PHOBOS_SHADOW_MORTIS_DAMAGE_WINDOW,
 		DetachmentStratagems.HEADHUNTER_WINDOW, DetachmentStratagems.GRAVIS_ANNIHILATING_WINDOW, DetachmentStratagems.TERMINATOR_MERCILESS_WINDOW, DetachmentStratagems.PHOBOS_STRIKE_WINDOW, DetachmentStratagems.METHODICAL_BRUTALITY_WINDOW, DetachmentStratagems.PIOUS_ENMITY_WINDOW, DetachmentStratagems.FOR_THE_EMPERORS_HONOUR_WINDOW, DetachmentStratagems.SPOOR_OF_THE_UNHOLY_WINDOW, DetachmentStratagems.DREAD_CRUSADERS_WINDOW, DetachmentStratagems.RELENTLESS_ASSAULT_WINDOW, DetachmentStratagems.POINT_BLANK_BRUTALITY_WINDOW, DetachmentStratagems.UNSTOPPABLE_WINDOW,
 		DetachmentStratagems.ARMOUR_WINDOW, DetachmentStratagems.TERMINATOR_FORTITUDE_WINDOW, DetachmentStratagems.WORTHY_WINDOW, DetachmentStratagems.DARKFLIGHT_WINDOW,
-		CrusadeAncient.MARTIAL_HONOUR_WINDOW,
+		CrusadeAncient.MARTIAL_HONOUR_WINDOW, NekrosorAmmentar.PROPHET_WINDOW,
 		"mounted-shooting-reaction", "stormlance-hurtling", DetachmentStratagems.SHOOTING_REACTION_WINDOW, "blessings-of-the-omnissiah", TargetAuguryWeb.WINDOW, AdeptOfTheOmnissiah.WINDOW,
 		"healing", "healing-order", TransportRules.EMERGENCY_WINDOW, TransportRules.DISEMBARK_WINDOW, TransportRules.COMBAT_EMBARKATION_WINDOW,
 		"bladeguard", "phobos-shrouding", NjalStormcaller.STORM_CALLER_WINDOW, Ezekiel.TARGET_WINDOW, Ezekiel.REROLL_WINDOW, Incursors.DIVINATOR_WINDOW, Incursors.MINE_WINDOW,
@@ -674,6 +683,76 @@ static func necron_lokhust_lord_loadout_choices(state: Dictionary, player: int) 
 		]:
 			if wargear_pkg.id != current_wargear:
 				result.append(choice("Lokhust Lord %d: select %s" % [model, wargear_pkg.label], "necron-lokhust-lord-wargear", model, int(unit.get("squad", -1)), str(wargear_pkg.id)))
+	return result
+
+static func necron_ccb_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if setup_actor(state) != player or not _has_current_necron_profile_source(state): return result
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "catacomb-command-barge" or bool(unit.get("ccb_loadout_locked", false)): continue
+		var current_cannon := "gauss-cannon"
+		for weapon: Dictionary in unit.get("ranged_weapons", []):
+			if str(weapon.get("id", "")) == "tesla-cannon-command-barge": current_cannon = "tesla-cannon"
+		for cannon_pkg in [{"id": "gauss-cannon", "label": "Gauss cannon"}, {"id": "tesla-cannon", "label": "Tesla cannon"}]:
+			if cannon_pkg.id != current_cannon:
+				result.append(choice("Catacomb Command Barge %d: select %s" % [model, cannon_pkg.label], "necron-ccb-cannon", model, int(unit.get("squad", -1)), str(cannon_pkg.id)))
+		var current_melee := "staff-of-light"
+		for weapon: Dictionary in unit.get("melee_weapons", []):
+			if str(weapon.get("id", "")) == "overlords-blade-command-barge": current_melee = "overlords-blade"
+		for melee_pkg in [{"id": "staff-of-light", "label": "Staff of light"}, {"id": "overlords-blade", "label": "Overlord's blade"}]:
+			if melee_pkg.id != current_melee:
+				result.append(choice("Catacomb Command Barge %d: select %s" % [model, melee_pkg.label], "necron-ccb-melee", model, int(unit.get("squad", -1)), str(melee_pkg.id)))
+		var current_wargear := str(unit.get("ccb_wargear", "none"))
+		for wargear_pkg in [{"id": "none", "label": "No optional wargear"}, {"id": "resurrection-orb", "label": "Resurrection Orb"}]:
+			if wargear_pkg.id != current_wargear:
+				result.append(choice("Catacomb Command Barge %d: select %s" % [model, wargear_pkg.label], "necron-ccb-wargear", model, int(unit.get("squad", -1)), str(wargear_pkg.id)))
+	return result
+
+static func necron_wraiths_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if setup_actor(state) != player or not _has_current_necron_profile_source(state): return result
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "canoptek-wraiths" or bool(unit.get("wraiths_loadout_locked", false)): continue
+		var current_ranged := "none"
+		for weapon: Dictionary in unit.get("ranged_weapons", []):
+			var wid := str(weapon.get("id", ""))
+			if wid in ["particle-caster", "transdimensional-beamer"]: current_ranged = wid
+		for ranged_pkg in [{"id": "none", "label": "No ranged weapon"}, {"id": "particle-caster", "label": "Particle caster"}, {"id": "transdimensional-beamer", "label": "Transdimensional beamer"}]:
+			if ranged_pkg.id != current_ranged:
+				result.append(choice("Canoptek Wraith %d: select %s" % [model, ranged_pkg.label], "necron-wraiths-ranged", model, int(unit.get("squad", -1)), str(ranged_pkg.id)))
+		var current_melee := "vicious-claws"
+		for weapon: Dictionary in unit.get("melee_weapons", []):
+			if str(weapon.get("id", "")) == "whip-coils": current_melee = "whip-coils"
+		for melee_pkg in [{"id": "vicious-claws", "label": "Vicious claws"}, {"id": "whip-coils", "label": "Whip coils"}]:
+			if melee_pkg.id != current_melee:
+				result.append(choice("Canoptek Wraith %d: select %s" % [model, melee_pkg.label], "necron-wraiths-melee", model, int(unit.get("squad", -1)), str(melee_pkg.id)))
+	return result
+
+static func necron_tomb_blades_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if setup_actor(state) != player or not _has_current_necron_profile_source(state): return result
+	for model: int in state.units:
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("owner", -1)) != player or int(unit.get("wounds", 0)) <= 0 or A.identity(unit) != "tomb-blades" or bool(unit.get("tomb_blades_loadout_locked", false)): continue
+		var current_ranged := "twin-gauss-blaster"
+		for weapon: Dictionary in unit.get("ranged_weapons", []):
+			var wid := str(weapon.get("id", ""))
+			if wid == "source-ranged-1": current_ranged = "particle-beamer"
+			elif wid == "source-ranged-3": current_ranged = "twin-tesla-carbine"
+		for ranged_pkg in [{"id": "twin-gauss-blaster", "label": "Twin gauss blaster"}, {"id": "particle-beamer", "label": "Particle beamer"}, {"id": "twin-tesla-carbine", "label": "Twin tesla carbine"}]:
+			if ranged_pkg.id != current_ranged:
+				result.append(choice("Tomb Blade %d: select %s" % [model, ranged_pkg.label], "necron-tomb-blades-ranged", model, int(unit.get("squad", -1)), str(ranged_pkg.id)))
+		var wargear: Array = unit.get("wargear", [])
+		var current_shield := "shieldvanes" if "shieldvanes" in wargear else "none"
+		for shield_pkg in [{"id": "none", "label": "No shieldvanes"}, {"id": "shieldvanes", "label": "Shieldvanes"}]:
+			if shield_pkg.id != current_shield:
+				result.append(choice("Tomb Blade %d: select %s" % [model, shield_pkg.label], "necron-tomb-blades-shieldvanes", model, int(unit.get("squad", -1)), str(shield_pkg.id)))
+		var current_optic := "nebuloscope" if "nebuloscope" in wargear else ("shadowloom" if "shadowloom" in wargear else "none")
+		for optic_pkg in [{"id": "none", "label": "No optic/cloak"}, {"id": "nebuloscope", "label": "Nebuloscope"}, {"id": "shadowloom", "label": "Shadowloom"}]:
+			if optic_pkg.id != current_optic:
+				result.append(choice("Tomb Blade %d: select %s" % [model, optic_pkg.label], "necron-tomb-blades-optic", model, int(unit.get("squad", -1)), str(optic_pkg.id)))
 	return result
 
 static func _necron_monolith_ranged_weapons(profile: Dictionary, death_rays: bool) -> Array[Dictionary]:
@@ -1507,7 +1586,7 @@ static func models(state: Dictionary, player: int, ability: String) -> Array[int
 	return result
 
 static func ingress_round_allowed(state: Dictionary, squad: int) -> bool:
-	return StormlanceEnhancements.ingress_round_allowed(state, squad) or A.high_king_fenris_selected(state, squad) or NecronOphydian.early_ingress_allowed(state, squad)
+	return StormlanceEnhancements.ingress_round_allowed(state, squad) or A.high_king_fenris_selected(state, squad) or NecronOphydian.early_ingress_allowed(state, squad) or (A.has(state, squad, "quantum-invader") and int(state.get("round", 0)) in [1, 2, 3])
 
 static func is_support_identity(state: Dictionary, unit: Dictionary) -> bool:
 	var calgar_in_army := LeaderCatalog.army_has_calgar(state, int(unit.get("owner", -1)))
@@ -2506,10 +2585,13 @@ static func choices(state: Dictionary, player: int) -> Array:
 	var ability_window := pending(state)
 	if not ability_window.is_empty() and not supported_window_kind(str(ability_window.get("kind", ""))): return []
 	if ability_window.get("kind", "") == CorvusBlackstar.WINDOW: return CorvusBlackstar.choices(state, player)
+	if ability_window.get("kind", "") == CanoptekWraiths.WINDOW: return CanoptekWraiths.choices(state, player)
+	if ability_window.get("kind", "") == GhostArk.WINDOW: return GhostArk.choices(state, player)
 	if ability_window.get("kind", "") == WulfenStormShields.WINDOW: return WulfenStormShields.choices(state, player)
 	if ability_window.get("kind", "") == NecronTriarchStalker.WINDOW: return NecronTriarchStalker.choices(state, player)
-	if ability_window.get("kind", "") == CoreReactions.CORVUS_CLUSTER_MORTAL:
-		result.append_array(CoreReactions.mortal_allocations(state, player, CoreReactions.CORVUS_CLUSTER_MORTAL))
+	if ability_window.get("kind", "") in [CoreReactions.CORVUS_CLUSTER_MORTAL, CoreReactions.WRAITH_FORM_MORTAL]:
+		var mortal_kind := str(ability_window.get("kind", ""))
+		result.append_array(CoreReactions.mortal_allocations(state, player, mortal_kind))
 		result.append_array(DetachmentStratagems.mortal_wound_stratagem_choices(state, player))
 		return result
 	if ability_window.get("kind", "") == NightbringerDrainLife.MORTAL_WINDOW:
@@ -2518,6 +2600,10 @@ static func choices(state: Dictionary, player: int) -> Array:
 		return result
 	if ability_window.get("kind", "") == VoidDragonMatterAbsorption.MORTAL_WINDOW:
 		result.append_array(VoidDragonMatterAbsorption.allocation_choices(state, player))
+		result.append_array(DetachmentStratagems.mortal_wound_stratagem_choices(state, player))
+		return result
+	if ability_window.get("kind", "") == LordOfTheStorm.MORTAL_WINDOW:
+		result.append_array(LordOfTheStorm.allocation_choices(state, player))
 		result.append_array(DetachmentStratagems.mortal_wound_stratagem_choices(state, player))
 		return result
 	if ability_window.get("kind", "") == "vehement-aggression-reroll":
@@ -2537,6 +2623,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 			result.append(choice("Martial Honour: Crusade Ancient %d gains +5 Objective Control for the battle" % honour_model, CrusadeAncient.MARTIAL_HONOUR_USE, honour_model, honour_squad))
 		result.append(choice("Pass Martial Honour for %s" % str(state.squads.get(honour_squad, {}).get("name", "the unit")), CrusadeAncient.MARTIAL_HONOUR_PASS, honour_model, honour_squad))
 		return result
+	if ability_window.get("kind", "") == NekrosorAmmentar.PROPHET_WINDOW:
+		return NekrosorAmmentar.prophet_choices(state, player)
 	if ability_window.is_empty() and Execrator.actor(state) == player: return Execrator.choices(state, player)
 	if ability_window.get("kind", "") == "counter" and Execrator.has_pending(state): return Execrator.choices(state, player)
 	if ability_window.get("kind", "") == StasisBomb.MORTAL_WINDOW:
@@ -2859,6 +2947,9 @@ static func choices(state: Dictionary, player: int) -> Array:
 		result.append_array(necron_overlord_loadout_choices(state, player))
 		result.append_array(necron_lychguard_loadout_choices(state, player))
 		result.append_array(necron_lokhust_lord_loadout_choices(state, player))
+		result.append_array(necron_ccb_loadout_choices(state, player))
+		result.append_array(necron_wraiths_loadout_choices(state, player))
+		result.append_array(necron_tomb_blades_loadout_choices(state, player))
 		for crusader_model: int in state.units:
 			var crusader_unit: Dictionary = state.units[crusader_model]
 			if int(crusader_unit.get("owner", -1)) != player or int(crusader_unit.get("wounds", 0)) <= 0 or A.identity(crusader_unit) != "crusader-squad": continue
@@ -3335,8 +3426,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 				var shield: bool = unit.get("relic_shield", false)
 				result.append(choice("Chaplain %d: equip %s" % [model, "Storm Bolter" if shield else "Relic Shield (+1 W)"], "terminator-chaplain-shield", model, unit.squad, "bolter" if shield else "shield"))
 			var source := A.identity(unit)
-			if (source in ["lieutenant-in-phobos-armour", "librarian", "librarian-in-phobos-armour", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "aethon-shaan", "captain-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "iron-father-feirros", "caanok-var", "ancient-in-terminator-armour", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "librarian-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "judiciar", "captain", "chaplain", "chaplain-on-bike", "captain-on-bike", "sammael", "suboden-khan", "chaplain-with-jump-pack", "lieutenant", "apothecary-biologis", "captain-with-jump-pack", "death-company-captain", "death-company-captain-with-jump-pack", "astorath", "lemartes", "adrax-agatone", "kaius-konorius", "vulkan-hestan", "asmodai", "lazarus", "azrael", "belial", "ezekiel", "overlord", "overlord-with-translocation-shroud", "royal-warden", "skorpekh-lord", "lokhust-lord", "orikan-the-diviner", "plasmancer", "technomancer", "psychomancer", "chronomancer", "roboute-guilliman", "lion-eljonson", "emperor-s-champion", "castellan", "marshal", "marneus-calgar", "captain-titus", "techmarine", "arjac-rockfist", "logan-grimnar", "ragnar-blackmane", "ulrik-the-slayer", "njal-stormcaller"] or "transhuman-strategist" in A.RULES.get(source, [])) and source != "murderfang" and (source != "cato-sicarius" or not LeaderCatalog.army_has_calgar(state, player)) and (required_warlord == -1 or model == required_warlord): result.append(choice("Warlord: model %d" % model, "warlord", model))
-			if (MarineLeaderLinks.TARGETS.has(source) or MarineLeaderLinks.CHAPTER_TARGETS.has(source) or source in ["overlord", "overlord-with-translocation-shroud", "royal-warden", "skorpekh-lord", "lokhust-lord"] or LeaderCatalog.ATTACHMENTS.has("40kdc:11e:necrons:" + source) or is_support_identity(state, unit) or source == CanoptekTombCrawlers.IDENTITY) and not unit.has("attachment_role"):
+			if (source in ["lieutenant-in-phobos-armour", "librarian", "librarian-in-phobos-armour", "chief-librarian-tigurius", "kayvaan-shrike", "cato-sicarius", "aethon-shaan", "captain-in-phobos-armour", "captain-in-gravis-armour", "tor-garadon", "darnath-lysander", "iron-father-feirros", "caanok-var", "ancient-in-terminator-armour", "captain-in-terminator-armour", "chaplain-in-terminator-armour", "librarian-in-terminator-armour", "apothecary", "ancient", "bladeguard-ancient", "judiciar", "captain", "chaplain", "chaplain-on-bike", "captain-on-bike", "sammael", "suboden-khan", "chaplain-with-jump-pack", "lieutenant", "apothecary-biologis", "captain-with-jump-pack", "death-company-captain", "death-company-captain-with-jump-pack", "astorath", "lemartes", "adrax-agatone", "kaius-konorius", "vulkan-hestan", "asmodai", "lazarus", "azrael", "belial", "ezekiel", "overlord", "overlord-with-translocation-shroud", "royal-warden", "skorpekh-lord", "lokhust-lord", "imotekh-the-stormlord", "orikan-the-diviner", "plasmancer", "technomancer", "psychomancer", "chronomancer", "illuminor-szeras", "roboute-guilliman", "lion-eljonson", "emperor-s-champion", "castellan", "marshal", "marneus-calgar", "captain-titus", "techmarine", "arjac-rockfist", "logan-grimnar", "ragnar-blackmane", "ulrik-the-slayer", "njal-stormcaller"] or "transhuman-strategist" in A.RULES.get(source, [])) and source != "murderfang" and (source != "cato-sicarius" or not LeaderCatalog.army_has_calgar(state, player)) and (required_warlord == -1 or model == required_warlord): result.append(choice("Warlord: model %d" % model, "warlord", model))
+			if (MarineLeaderLinks.TARGETS.has(source) or MarineLeaderLinks.CHAPTER_TARGETS.has(source) or source in ["overlord", "overlord-with-translocation-shroud", "royal-warden", "skorpekh-lord", "lokhust-lord", "imotekh-the-stormlord"] or LeaderCatalog.ATTACHMENTS.has("40kdc:11e:necrons:" + source) or is_support_identity(state, unit) or source == CanoptekTombCrawlers.IDENTITY) and not unit.has("attachment_role"):
 					for target: int in state.squads:
 						if attachment_allowed(state, model, target): result.append(choice("Attach %s %d to %s" % [source, model, state.squads[target].name], "attach", model, target))
 		for squad: int in state.squads:
@@ -3580,9 +3671,23 @@ static func choices(state: Dictionary, player: int) -> Array:
 					result.append(choice("Engrammatic Logic %d: clear %s Battle-shock" % [model, state.squads[target].name], "logic", model, target))
 			result.append_array(harbinger_of_despair_choices(state, player))
 			result.append_array(the_stars_are_right_choices(state, player))
+			result.append_array(TrazynTheInfinite.surrogate_choices(state, player))
+			result.append_array(SilentKing.triarch_choices(state, player))
+			if state.phase == "shooting" and state.active == player:
+				for model: int in models(state, player, "powers-of-the-ctan"):
+					var unit: Dictionary = state.units[model]
+					var squad := int(unit.squad)
+					if bool(state.squads[squad].get("shot", false)) or not bool(unit.get("on_battlefield", true)): continue
+					var active_powers: Array = unit.get("tesseract_vault_ctan_powers", []) if int(unit.get("tesseract_vault_ctan_turn", -1)) == int(state.turn) else []
+					var max_powers := 1 if (A.has(state, squad, "damaged-8-vault") and int(unit.get("wounds", 0)) <= 8) else 2
+					if active_powers.size() >= max_powers: continue
+					for power_pkg in [{"id": "source-ranged-2", "label": "Antimatter Meteor"}, {"id": "source-ranged-3", "label": "Cosmic Fire"}, {"id": "source-ranged-4", "label": "Time's Arrow"}]:
+						if power_pkg.id not in active_powers:
+							result.append(choice("Powers of the C'tan %d: select %s" % [model, power_pkg.label], "tesseract-vault-ctan-power", model, squad, str(power_pkg.id)))
 		if window.kind == "end":
 			result.append_array(technomancer_repair_choices(state, player))
 			result.append_array(NightbringerDrainLife.choices(state, player))
+			result.append_array(LordOfTheStorm.choices(state, player))
 			var artemis_placement := WatchCaptainArtemis.placement_choices(state, player)
 			if not artemis_placement.is_empty(): return artemis_placement
 			result.append_array(WatchCaptainArtemis.choices(state, player))
@@ -3601,9 +3706,14 @@ static func choices(state: Dictionary, player: int) -> Array:
 				result.append(choice("Parabolic Jetleap: place %s in Strategic Reserves" % state.squads[squad].name, "parabolic-jetleap", -1, squad))
 			for squad: int in NecronOphydian.tunnelling_squads(state, player):
 				result.append(choice("Tunnelling Horrors: place %s in Strategic Reserves" % state.squads[squad].name, "tunnelling-horrors", -1, squad))
+			result.append_array(NightScythe.invasion_beams_choices(state, player))
 			for model: int in models(state, player, "resurrection-orb"):
 				var squad: int = state.units[model].squad
-				if R.enabled(state) and R.supported_unit(state, squad) and not state.unit_abilities.used.has("orb:%d" % squad) and state.unit_abilities.used.get("resurrect-turn:%d" % player, -1) != state.turn:
+				if A.identity(state.units[model]) == "catacomb-command-barge":
+					if not R.enabled(state) or state.unit_abilities.used.has("orb:%d" % squad) or state.unit_abilities.used.get("resurrect-turn:%d" % player, -1) == state.turn: continue
+					for target_squad: int in _ccb_orb_targets(state, model, player):
+						result.append(choice("Resurrection Orb %d: resurrect %s (D6)" % [model, state.squads[target_squad].name], "orb", model, target_squad))
+				elif R.enabled(state) and R.supported_unit(state, squad) and not state.unit_abilities.used.has("orb:%d" % squad) and state.unit_abilities.used.get("resurrect-turn:%d" % player, -1) != state.turn:
 					result.append(choice("Resurrection Orb %d: activate D6 healing" % model, "orb", model))
 			result.append_array(DetachmentStratagems.choices(state, player))
 			result.append_array(TransportRules.gauntlet_duty_candidates(state, player, true))
@@ -3705,6 +3815,7 @@ static func choices(state: Dictionary, player: int) -> Array:
 		result.append_array(optics_choices(state, player))
 		result.append_array(omni_choices(state, player))
 		result.append_array(Incursors.haywire_choices(state, player))
+		result.append_array(Geomancer.tectonic_choices(state, player))
 		result.append_array(catechism_fire_choices(state, player))
 		for squad: int in state.squads:
 			if state.squads[squad].owner != player or state.squads[squad].shot or not A.has(state, squad, "overlapping-destruction"): continue
@@ -4018,12 +4129,14 @@ static func reconcile(state: Dictionary) -> void:
 		a.phase_start = state.revision + 1
 		a.anchors = {}
 		for squad: int in state.squads: a.anchors[squad] = G.alive(state, squad)
-		if state.phase == "movement": NecronObelisk.clear_fly_at_owner_movement_start(state)
+		if state.phase == "movement":
+			NecronObelisk.clear_fly_at_owner_movement_start(state)
+			Geomancer.clear_pinned_at_owner_movement_start(state)
 		var owners: Array = []
 		for owner in [state.active, 3 - int(state.active)]:
 			var lion_command: bool = state.phase == "command" and int(state.active) == int(owner) and not models(state, int(owner), "primarch-of-the-first-legion").is_empty()
 			var canoptek_swarm: bool = state.phase == "command" and int(state.active) == int(owner) and CanoptekSpyders.command_start_required(state, int(owner))
-			if logic_available(state, owner) or CoreReactions.start_available(state, owner) or not spiritual_choices(state, owner).is_empty() or not rampart_choices(state, owner).is_empty() or HighMarshalHelbrecht.start_available(state, int(owner)) or Scarabs.start_available(state, int(owner)) or ChaplainGrimaldus.start_available(state, int(owner)) or Mephiston.start_available(state, int(owner)) or VoidDragonMatterAbsorption.start_available(state, int(owner)) or NecronObelisk.start_available(state, int(owner)) or CanoptekMacrocytes.fight_start_available(state, int(owner)) or canoptek_swarm or not DetachmentStratagems.adamantine_squads(state, owner).is_empty() or lion_command or not harbinger_of_despair_choices(state, int(owner)).is_empty() or not the_stars_are_right_choices(state, int(owner)).is_empty(): owners.append(owner)
+			if logic_available(state, owner) or CoreReactions.start_available(state, owner) or not spiritual_choices(state, owner).is_empty() or not rampart_choices(state, owner).is_empty() or HighMarshalHelbrecht.start_available(state, int(owner)) or Scarabs.start_available(state, int(owner)) or ChaplainGrimaldus.start_available(state, int(owner)) or Mephiston.start_available(state, int(owner)) or VoidDragonMatterAbsorption.start_available(state, int(owner)) or NecronObelisk.start_available(state, int(owner)) or CanoptekMacrocytes.fight_start_available(state, int(owner)) or canoptek_swarm or not DetachmentStratagems.adamantine_squads(state, owner).is_empty() or lion_command or not harbinger_of_despair_choices(state, int(owner)).is_empty() or not the_stars_are_right_choices(state, int(owner)).is_empty() or not TrazynTheInfinite.surrogate_choices(state, int(owner)).is_empty(): owners.append(owner)
 		if not owners.is_empty(): a.window = {"kind": "start", "owners": owners}
 	if state.round > 3:
 		for squad: int in a.reserves.keys():
@@ -4045,7 +4158,7 @@ static func open_end(state: Dictionary) -> bool:
 		var spectrus_doctrines: bool = state.phase == "fight" and not spectrus_doctrine_squads(state, int(owner)).is_empty()
 		var tunnelling_horrors: bool = state.phase == "fight" and owner != state.active and not NecronOphydian.tunnelling_squads(state, int(owner)).is_empty()
 		var technomancer_repair: bool = state.phase == "movement" and owner == state.active and not technomancer_repair_choices(state, int(owner)).is_empty()
-		if WatchCaptainArtemis.pending(state, int(owner)) or orb_available(state, owner) or DetachmentStratagems.eternal_pending(state, owner) or CoreReactions.end_available(state, owner) or NightbringerDrainLife.available(state, int(owner)) or not rapid_ingress_squads(state, owner).is_empty() or not Sanguinor.choices(state, int(owner)).is_empty() or stand_unyielding or phobos_mortis_snares or gauntlet_storm_and_secure or gauntlet_duty_is_never_done or spectrus_doctrines or StasisBomb.has_candidates(state, owner) or (state.phase == "fight" and owner != state.active and (not parabolic_jetleap_squads(state, owner).is_empty() or not echo_ravenspire_squads(state, owner).is_empty() or not DetachmentStratagems.withdraw_and_regroup_squads(state, owner).is_empty() or not DetachmentStratagems.gunship_extraction_squads(state, owner).is_empty())) or tunnelling_horrors or phobos_tactical_withdrawal or (state.phase == "fight" and (not DetachmentStratagems.wind_swift_squads(state, owner).is_empty() or not TacticalFluidity.end_fight_squads(state, owner).is_empty())) or technomancer_repair: owners.append(owner)
+		if WatchCaptainArtemis.pending(state, int(owner)) or orb_available(state, owner) or DetachmentStratagems.eternal_pending(state, owner) or CoreReactions.end_available(state, owner) or NightbringerDrainLife.available(state, int(owner)) or LordOfTheStorm.available(state, int(owner)) or not rapid_ingress_squads(state, owner).is_empty() or not Sanguinor.choices(state, int(owner)).is_empty() or stand_unyielding or phobos_mortis_snares or gauntlet_storm_and_secure or gauntlet_duty_is_never_done or spectrus_doctrines or StasisBomb.has_candidates(state, owner) or (state.phase == "fight" and owner != state.active and (not parabolic_jetleap_squads(state, owner).is_empty() or not echo_ravenspire_squads(state, owner).is_empty() or not DetachmentStratagems.withdraw_and_regroup_squads(state, owner).is_empty() or not DetachmentStratagems.gunship_extraction_squads(state, owner).is_empty())) or tunnelling_horrors or phobos_tactical_withdrawal or (state.phase == "fight" and (not DetachmentStratagems.wind_swift_squads(state, owner).is_empty() or not TacticalFluidity.end_fight_squads(state, owner).is_empty() or not NightScythe.invasion_beams_choices(state, owner).is_empty())) or technomancer_repair: owners.append(owner)
 	state.unit_abilities.end_done = key(state)
 	if not owners.is_empty(): state.unit_abilities.window = {"kind": "end", "owners": owners}
 	if owners.is_empty(): return false
@@ -4156,6 +4269,10 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		return NecronCryptothralls.apply(state, player, selected)
 	if str(selected.get("action", "")) in [NecronObelisk.ACTION, NecronObelisk.PASS_ACTION]:
 		return NecronObelisk.apply(state, player, selected)
+	if str(selected.get("action", "")) == Geomancer.TECTONIC_ACTION:
+		return Geomancer.apply_tectonic(state, player, selected)
+	if str(selected.get("action", "")) == TrazynTheInfinite.SURROGATE_ACTION:
+		return TrazynTheInfinite.apply_surrogate(state, player, selected)
 	if str(selected.get("action", "")) == "canoptek-macrocytes-loadout":
 		var macrocyte_loadout_error := CanoptekMacrocytes.configure_model(state, player, int(selected.get("model", -1)), int(selected.get("target", -1)), str(selected.get("value", "")))
 		if not macrocyte_loadout_error.is_empty(): return {"error": macrocyte_loadout_error}
@@ -4168,6 +4285,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		return {"error": "", "message": "Accelerator Mandible improves the selected Canoptek unit’s melee Weapon Skill by 1 for this Fight phase."}
 	if str(selected.get("action", "")) in [NightbringerDrainLife.ACTION, NightbringerDrainLife.ALLOCATE]: return NightbringerDrainLife.apply(state, player, selected, roller)
 	if str(selected.get("action", "")) in [VoidDragonMatterAbsorption.ACTION, VoidDragonMatterAbsorption.ALLOCATE]: return VoidDragonMatterAbsorption.apply(state, player, selected, roller)
+	if str(selected.get("action", "")) in [LordOfTheStorm.ACTION, LordOfTheStorm.ALLOCATE, LordOfTheStorm.DECLINE]: return LordOfTheStorm.apply(state, player, selected, roller)
 	if str(selected.get("action", "")) == Hexmark.KIND: return Hexmark.apply(state, player, selected)
 	if str(selected.get("action", "")) == Hyperspace.KIND:
 		var hyperspace_result := Hyperspace.apply(state, player, selected)
@@ -4177,6 +4295,34 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 	if str(selected.get("action", "")).begins_with("whirlwind-punishing-bombardment-"): return WhirlwindPunishingBombardment.apply(state, player, selected, roller)
 	if str(selected.get("action", "")) == RazorbackFireSupport.ACTION: return RazorbackFireSupport.apply(state, player, selected)
 	if str(selected.get("action", "")).begins_with("corvus-cluster-"): return CorvusBlackstar.apply(state, player, selected, roller)
+	if str(selected.get("action", "")).begins_with("wraith-form-"): return CanoptekWraiths.apply(state, player, selected, roller)
+	if str(selected.get("action", "")).begins_with("ghost-ark-repair-barge-"): return GhostArk.apply(state, player, selected, roller)
+	if str(selected.get("action", "")) == "night-scythe-invasion-beams": return NightScythe.apply_invasion_beams(state, player, selected)
+	if str(selected.get("action", "")) == "silent-king-triarch": return SilentKing.apply_triarch_choice(state, player, selected)
+	if str(selected.get("action", "")) == "tesseract-vault-ctan-power":
+		if state.phase != "shooting" or state.active != player: return {"error": "Powers of the C'tan is selected in your Shooting phase."}
+		var vault_model := int(selected.get("model", -1))
+		var vault: Dictionary = state.units.get(vault_model, {})
+		if vault.is_empty() or int(vault.get("owner", -1)) != player or int(vault.get("wounds", 0)) <= 0 or A.identity(vault) != "tesseract-vault":
+			return {"error": "Select a living Tesseract Vault you control."}
+		var squad := int(vault.get("squad", -1))
+		if bool(state.squads.get(squad, {}).get("shot", false)): return {"error": "Powers of the C'tan must be selected before this Tesseract Vault shoots."}
+		var active_powers: Array = vault.get("tesseract_vault_ctan_powers", []).duplicate() if int(vault.get("tesseract_vault_ctan_turn", -1)) == int(state.turn) else []
+		var max_powers := 1 if (A.has(state, squad, "damaged-8-vault") and int(vault.get("wounds", 0)) <= 8) else 2
+		var power_id := str(selected.get("value", ""))
+		if power_id not in ["source-ranged-2", "source-ranged-3", "source-ranged-4"] or power_id in active_powers or active_powers.size() >= max_powers:
+			return {"error": "Invalid or duplicate C'tan Power selection (limit %d)." % max_powers}
+		active_powers.append(power_id)
+		vault.tesseract_vault_ctan_turn = int(state.turn)
+		vault.tesseract_vault_ctan_powers = active_powers
+		var vault_profile := NecronProfiles.profile("tesseract-vault")
+		var weapons: Array = vault_profile.get("ranged", []).duplicate(true)
+		for pid: Variant in active_powers:
+			for extra: Variant in vault_profile.get("additional_weapon_profiles", {}).get("ranged", []):
+				if extra is Dictionary and str(extra.get("id", "")) == str(pid):
+					weapons.append(extra.duplicate(true))
+		vault.ranged_weapons = weapons
+		return {"error": "", "message": "Tesseract Vault %d equipped C'tan Power %s." % [vault_model, power_id]}
 	if selected.get("action", "") in [WulfenStormShields.USE, WulfenStormShields.PASS]: return WulfenStormShields.apply(state, player, selected)
 	if selected.get("action", "") == NecronTriarchStalker.ACTION: return NecronTriarchStalker.apply(state, player, selected)
 	if selected.get("action", "") in [WatchCaptainArtemis.USE, WatchCaptainArtemis.PASS]: return WatchCaptainArtemis.apply_choice(state, player, selected, roller)
@@ -4249,6 +4395,8 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 	var a: Dictionary = state.unit_abilities
 	var model: int = selected.model
 	var target: int = selected.target
+	if str(selected.get("action", "")) in [NekrosorAmmentar.PROPHET_SELECT, NekrosorAmmentar.PROPHET_PASS]:
+		return NekrosorAmmentar.apply_prophet(state, player, selected)
 	if str(selected.get("action", "")) in [CrusadeAncient.MARTIAL_HONOUR_USE, CrusadeAncient.MARTIAL_HONOUR_PASS]:
 		var honour_window: Dictionary = a.get("window", {})
 		if honour_window.get("kind", "") != CrusadeAncient.MARTIAL_HONOUR_WINDOW or honour_window.get("owners", []) != [player] or int(honour_window.get("squad", -1)) != target or int(honour_window.get("model", -1)) != model:
@@ -4282,6 +4430,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if not destruction.get("error", "").is_empty(): return destruction
 			NightbringerDrainLife.resume_after_nested_destruction(state)
 			VoidDragonMatterAbsorption.resume_after_nested_destruction(state)
+			LordOfTheStorm.resume_after_nested_destruction(state)
 			if destruction.get("complete", false) and not state.get("pending_attack", {}).is_empty(): return {"resume_attack": true, "message": "Emergency Disembark resolved; resume destruction effects."}
 		if str(selected.get("action", "")) == "transport-disembark-start-aggressive": return {"message": "Aggressive Disembarkation: set up each model within the Transport's set-up distance; the disembark mode's other restrictions still apply."}
 		if str(selected.get("action", "")) == "transport-emergency-aggressive-use": return {"message": "Aggressive Disembarkation: each Emergency Disembark model may be set up within 6 inches of the Transport, while still as close as possible."}
@@ -4897,6 +5046,96 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				return {"error": "Unsupported Lokhust Lord wargear package."}
 			bearer.lokhust_lord_wargear = wargear_id
 			bearer.wargear = [] if wargear_id == "none" else [wargear_id]
+		"necron-ccb-cannon", "necron-ccb-melee", "necron-ccb-wargear":
+			if setup_actor(state) != player or not _has_current_necron_profile_source(state): return {"error": "Catacomb Command Barge equipment is selected during your army preparations."}
+			if model < 0 or not state.units.has(model): return {"error": "Select a Catacomb Command Barge model."}
+			var bearer: Dictionary = state.units[model]
+			if int(bearer.get("owner", -1)) != player or int(bearer.get("wounds", 0)) <= 0 or A.identity(bearer) != "catacomb-command-barge": return {"error": "Select a living Catacomb Command Barge you own."}
+			if bool(bearer.get("ccb_loadout_locked", false)): return {"error": "Saved Catacomb Command Barge equipment is fixed for this match. Edit the saved army list to change it."}
+			var ccb_profile := NecronProfiles.profile("catacomb-command-barge")
+			var weapon_finder := func(group: String, wid: String) -> Dictionary:
+				for w: Variant in ccb_profile.get(group, []):
+					if w is Dictionary and str(w.get("id", "")) == wid: return w.duplicate(true)
+				for w: Variant in ccb_profile.get("additional_weapon_profiles", {}).get(group, []):
+					if w is Dictionary and str(w.get("id", "")) == wid: return w.duplicate(true)
+				return {}
+			var val := str(selected.get("value", ""))
+			if selected.action == "necron-ccb-cannon":
+				if val not in ["gauss-cannon", "tesla-cannon"]: return {"error": "Unsupported Catacomb Command Barge cannon."}
+				var cannon_id := "tesla-cannon-command-barge" if val == "tesla-cannon" else "gauss-cannon-command-barge"
+				var cannon: Dictionary = weapon_finder.call("ranged", cannon_id)
+				var staff: Dictionary = weapon_finder.call("ranged", "staff-of-light-command-barge")
+				bearer.ranged_weapons = [cannon, staff]
+			elif selected.action == "necron-ccb-melee":
+				if val not in ["staff-of-light", "overlords-blade"]: return {"error": "Unsupported Catacomb Command Barge melee weapon."}
+				var melee_id := "overlords-blade-command-barge" if val == "overlords-blade" else "staff-of-light-command-barge"
+				bearer.melee_weapons = [weapon_finder.call("melee", melee_id)]
+			else:
+				if val not in ["none", "resurrection-orb"]: return {"error": "Unsupported Catacomb Command Barge wargear."}
+				bearer.ccb_wargear = val
+				bearer.wargear = [] if val == "none" else [val]
+		"necron-wraiths-ranged", "necron-wraiths-melee":
+			var bearer: Dictionary = state.units.get(model, {})
+			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "canoptek-wraiths": return {"error": "This equipment choice belongs to a Canoptek Wraiths model."}
+			if bool(bearer.get("wraiths_loadout_locked", false)):
+				return {"error": "This saved Canoptek Wraiths equipment is fixed for the match. Edit the saved army before starting another match."}
+			var wraith_profile := NecronProfiles.profile("canoptek-wraiths")
+			var weapon_finder := func(group: String, wid: String) -> Dictionary:
+				for w: Variant in wraith_profile.get(group, []):
+					if w is Dictionary and str(w.get("id", "")) == wid: return w.duplicate(true)
+				for w: Variant in wraith_profile.get("additional_weapon_profiles", {}).get(group, []):
+					if w is Dictionary and str(w.get("id", "")) == wid: return w.duplicate(true)
+				return {}
+			var val := str(selected.get("value", ""))
+			if selected.action == "necron-wraiths-ranged":
+				if val not in ["none", "particle-caster", "transdimensional-beamer"]: return {"error": "Unsupported Canoptek Wraiths ranged weapon."}
+				bearer.ranged_weapons = [] if val == "none" else [weapon_finder.call("ranged", val)]
+			else:
+				if val not in ["vicious-claws", "whip-coils"]: return {"error": "Unsupported Canoptek Wraiths melee weapon."}
+				bearer.melee_weapons = [weapon_finder.call("melee", val)]
+		"necron-tomb-blades-ranged", "necron-tomb-blades-shieldvanes", "necron-tomb-blades-optic":
+			var bearer: Dictionary = state.units.get(model, {})
+			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "tomb-blades": return {"error": "This equipment choice belongs to a Tomb Blades model."}
+			if bool(bearer.get("tomb_blades_loadout_locked", false)):
+				return {"error": "This saved Tomb Blades equipment is fixed for the match. Edit the saved army before starting another match."}
+			var tb_profile := NecronProfiles.profile("tomb-blades")
+			var weapon_finder := func(group: String, wid: String) -> Dictionary:
+				for w: Variant in tb_profile.get(group, []):
+					if w is Dictionary and str(w.get("id", "")) == wid: return w.duplicate(true)
+				for w: Variant in tb_profile.get("additional_weapon_profiles", {}).get(group, []):
+					if w is Dictionary and str(w.get("id", "")) == wid: return w.duplicate(true)
+				return {}
+			var val := str(selected.get("value", ""))
+			var wargear: Array = bearer.get("wargear", []).duplicate()
+			if selected.action == "necron-tomb-blades-ranged":
+				var wid := str({"twin-gauss-blaster": "source-ranged-2", "particle-beamer": "source-ranged-1", "twin-tesla-carbine": "source-ranged-3"}.get(val, ""))
+				if wid.is_empty(): return {"error": "Unsupported Tomb Blades ranged weapon."}
+				var rw: Dictionary = weapon_finder.call("ranged", wid)
+				if "nebuloscope" in wargear: rw.profiles.standard.keywords["ignores-cover"] = true
+				bearer.ranged_weapons = [rw]
+			elif selected.action == "necron-tomb-blades-shieldvanes":
+				if val not in ["none", "shieldvanes"]: return {"error": "Unsupported Tomb Blades shieldvanes choice."}
+				wargear.erase("shieldvanes")
+				var defense: Dictionary = bearer.get("defense", {}).duplicate(true)
+				if val == "shieldvanes":
+					wargear.append("shieldvanes")
+					bearer.movement = 8
+					defense.save_target = 3
+				else:
+					bearer.movement = 12
+					defense.save_target = 4
+				bearer.defense = defense
+				bearer.wargear = wargear
+			else:
+				if val not in ["none", "nebuloscope", "shadowloom"]: return {"error": "Unsupported Tomb Blades optic choice."}
+				wargear.erase("nebuloscope")
+				wargear.erase("shadowloom")
+				if val != "none": wargear.append(val)
+				bearer.wargear = wargear
+				for rw: Dictionary in bearer.get("ranged_weapons", []):
+					var kw: Dictionary = rw.get("profiles", {}).get("standard", {}).get("keywords", {})
+					if val == "nebuloscope": kw["ignores-cover"] = true
+					else: kw.erase("ignores-cover")
 		"intercessor-melee", "intercessor-rifle", "intercessor-grenade-launcher":
 			var bearer: Dictionary = state.units.get(model, {})
 			if bearer.is_empty() or bearer.owner != player or bearer.squad != target or bearer.wounds <= 0 or A.identity(bearer) != "intercessor-squad": return {"error": "This equipment choice belongs to an Intercessor model."}
@@ -6036,6 +6275,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			var demise := DeadlyDemise.allocate(state, player, selected, roller)
 			NightbringerDrainLife.resume_after_nested_destruction(state)
 			VoidDragonMatterAbsorption.resume_after_nested_destruction(state)
+			LordOfTheStorm.resume_after_nested_destruction(state)
 			if demise.get("error", "").is_empty() and state.phase == "charge" and CoreReactions.charge_closed(state) and state.get("unit_abilities", {}).get("window", {}).is_empty(): CoreReactions.reopen_heroic_choices(state)
 			return demise
 		"deadly-demise-vengeful-pass":
@@ -6051,6 +6291,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			if not declined_demise.get("error", "").is_empty(): return declined_demise
 			NightbringerDrainLife.resume_after_nested_destruction(state)
 			VoidDragonMatterAbsorption.resume_after_nested_destruction(state)
+			LordOfTheStorm.resume_after_nested_destruction(state)
 			if declined_demise.get("complete", false) and not state.get("pending_attack", {}).is_empty(): return {"error": "", "resume_attack": true, "message": "Deadly Demise resolved; resume the attack sequence."}
 			return {"error": "", "message": str(declined_demise.get("message", "Rolling Deadly Demise without Vengeful Animus."))}
 		"explosives-allocate": return CoreReactions.allocate_explosives(state, player, selected, roller)
@@ -6091,6 +6332,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				if not vengeful_demise.get("error", "").is_empty(): return vengeful_demise
 				NightbringerDrainLife.resume_after_nested_destruction(state)
 				VoidDragonMatterAbsorption.resume_after_nested_destruction(state)
+				LordOfTheStorm.resume_after_nested_destruction(state)
 				if vengeful_demise.get("complete", false) and not state.get("pending_attack", {}).is_empty(): return {"error": "", "resume_attack": true, "message": str(spent.get("message", "Vengeful Animus resolved."))}
 				return {"error": "", "message": str(vengeful_demise.get("message", spent.get("message", "Vengeful Animus resolved.")))}
 			if reaction_window.get("kind", "") == DetachmentStratagems.LAYERED_CERAMITE_WINDOW:
@@ -6472,6 +6714,9 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		"warlord":
 			if A.identity(state.units.get(model, {})) == "murderfang": return {"error": "Murderfang cannot be selected as your Warlord."}
 			if A.cannot_be_warlord(state, model): return {"error": "This model cannot be selected as your Warlord."}
+			for u: Dictionary in state.units.values():
+				if int(u.get("owner", -1)) == player and A.identity(u) == "the-silent-king" and A.identity(state.units[model]) != "the-silent-king":
+					return {"error": "The Silent King (SUPREME COMMANDER) must be your Warlord."}
 			if A.identity(state.units.get(model, {})) == "cato-sicarius" and LeaderCatalog.army_has_calgar(state, player): return {"error": "Captain of the Honour Guard replaces Cato's Leader role with Support while Marneus Calgar is in the army; choose another Warlord."}
 			var mandatory_warlord := guilliman_model(state, player)
 			var mandatory_lion := lion_model(state, player)
@@ -6750,12 +6995,13 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			state.unit_abilities.master_shadows[target] = {"owner": player, "turn": state.turn, "source": model}
 			state.unit_abilities.used["master-shadows:%d" % state.units[model].squad] = state.turn
 		"orb":
-			var squad: int = state.units[model].squad
-			a.used["orb:%d" % squad] = true
+			var barge_squad: int = state.units[model].squad
+			var target_squad: int = target if A.identity(state.units[model]) == "catacomb-command-barge" and target >= 0 else barge_squad
+			a.used["orb:%d" % barge_squad] = true
 			a.used["resurrect-turn:%d" % player] = state.turn
 			state.reanimation.anchors = a.anchors.duplicate(true)
-			state.reanimation.pending = {"kind": "orb", "player": player, "turn": state.turn, "remaining": [squad], "current": {}, "results": []}
-			return R.roll_unit(state, squad, roller)
+			state.reanimation.pending = {"kind": "orb", "player": player, "turn": state.turn, "remaining": [target_squad], "current": {}, "results": []}
+			return R.roll_unit(state, target_squad, roller)
 		"tactics-place":
 			var error := DetachmentStratagems.tactics_position_error(state, model, point)
 			if not error.is_empty(): return {"error": error}
@@ -6948,6 +7194,8 @@ static func ingress_position_error(state: Dictionary, model: int, point: Vector2
 		var distance: float = point.distance_to(position) - float(unit.radius) - float(enemy.radius)
 		if distance < -0.001: return "Ingress bases cannot overlap."
 		if enemy.owner != unit.owner and not bool(window.get("miraculous_saviour", false)) and distance <= enemy_clearance + 0.001: return "Ingress requires more than %d inches from every enemy unit." % int(enemy_clearance)
+	var reserve_exclusion := Geomancer.reserve_exclusion_error(state, unit, point)
+	if not reserve_exclusion.is_empty(): return reserve_exclusion
 	var projected := state.duplicate(true)
 	if bool(window.get("eternity_gate", false)):
 		for member: int in G.alive(projected, int(window.squad)): projected.units[member].on_battlefield = false
@@ -7006,11 +7254,37 @@ static func _engrammatic_logic_targets(state: Dictionary, owner: int, source_mod
 		if G.distance_to_target(state, source, target) <= 12.001: result.append(target)
 	return result
 
+static func _ccb_orb_targets(state: Dictionary, model: int, owner: int) -> Array[int]:
+	var result: Array[int] = []
+	var source: Dictionary = state.units.get(model, {})
+	if source.is_empty() or int(source.get("wounds", 0)) <= 0 or not bool(source.get("on_battlefield", true)): return result
+	for squad: int in state.squads:
+		if int(state.squads[squad].get("owner", -1)) != owner or not R.supported_unit(state, squad): continue
+		if G.alive(state, squad).is_empty(): continue
+		var is_eligible := false
+		for m: int in G.alive(state, squad):
+			var u: Dictionary = state.units[m]
+			var is_necrons := str(u.get("definition_id", "")).begins_with("40kdc:11e:necrons:")
+			var has_type := false
+			for kw: Variant in u.get("keywords", []):
+				var s := str(kw).strip_edges().to_upper()
+				if s == "NECRONS": is_necrons = true
+				if s in ["INFANTRY", "MOUNTED"]: has_type = true
+			if is_necrons and has_type:
+				is_eligible = true
+				break
+		if is_eligible and G.distance_to_target(state, source, squad) <= 6.0 + G.EPSILON:
+			result.append(squad)
+	result.sort()
+	return result
+
 static func orb_available(state: Dictionary, owner: int) -> bool:
 	if not R.enabled(state) or state.unit_abilities.used.get("resurrect-turn:%d" % owner, -1) == state.turn: return false
 	for model: int in models(state, owner, "resurrection-orb"):
 		var squad: int = state.units[model].squad
-		if R.supported_unit(state, squad) and not state.unit_abilities.used.has("orb:%d" % squad): return true
+		if A.identity(state.units[model]) == "catacomb-command-barge":
+			if not state.unit_abilities.used.has("orb:%d" % squad) and not _ccb_orb_targets(state, model, owner).is_empty(): return true
+		elif R.supported_unit(state, squad) and not state.unit_abilities.used.has("orb:%d" % squad): return true
 	return false
 
 static func _enemy_mark_choices(state: Dictionary, player: int, source_squad: int, ability: String, stage: String) -> Array:
@@ -7077,6 +7351,7 @@ static func end_move(state: Dictionary, moved_squad: int, move_type: String = ""
 	TargetAuguryWeb.open_for_move(state, moved_squad, "end")
 	SwordBrethren.open_after_enemy_fall_back(state, moved_squad, move_type, sword_brethren_reactions)
 	CorvusBlackstar.open_after_normal_move(state, moved_squad, move_type, movement_paths)
+	CanoptekWraiths.open_after_normal_move(state, moved_squad, move_type, movement_paths)
 
 static func open_mortis_snares_after_move(state: Dictionary, moved_squad: int, move_type: String) -> bool:
 	return DetachmentStratagems.open_mortis_snares_after_move(state, moved_squad, move_type)
@@ -7089,7 +7364,7 @@ static func movement_reaction_squad(state: Dictionary) -> int:
 static func _movement_reaction_squad(window: Dictionary, depth: int) -> int:
 	if window.is_empty() or depth >= 8: return -1
 	var kind := str(window.get("kind", ""))
-	if kind == CorvusBlackstar.WINDOW:
+	if kind in [CorvusBlackstar.WINDOW, CanoptekWraiths.WINDOW]:
 		var corvus_squad: Variant = window.get("squad", -1)
 		if corvus_squad is int and corvus_squad >= 0: return corvus_squad
 	if kind == DetachmentStratagems.UNSTOPPABLE_WINDOW and str(window.get("action", "")) == "movement":

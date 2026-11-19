@@ -8,6 +8,9 @@ const TRIARCH_STALKER := "40kdc:11e:necrons:triarch-stalker"
 const OVERLORD := "40kdc:11e:necrons:overlord"
 const LYCHGUARD := "40kdc:11e:necrons:lychguard"
 const LOKHUST_LORD := "40kdc:11e:necrons:lokhust-lord"
+const CATACOMB_COMMAND_BARGE := "40kdc:11e:necrons:catacomb-command-barge"
+const CANOPTEK_WRAITHS := "40kdc:11e:necrons:canoptek-wraiths"
+const TOMB_BLADES := "40kdc:11e:necrons:tomb-blades"
 
 const LOKHUST_FIELD := "lokhust_heavy_weapon"
 const PRAETORIANS_FIELD := "triarch_praetorian_weapon_package"
@@ -16,12 +19,20 @@ const OVERLORD_FIELD := "overlord_loadout"
 const LYCHGUARD_FIELD := "lychguard_loadout"
 const LOKHUST_LORD_WEAPON_FIELD := "lokhust_lord_weapon"
 const LOKHUST_LORD_WARGEAR_FIELD := "lokhust_lord_wargear"
+const CCB_CANNON_FIELD := "ccb_cannon"
+const CCB_MELEE_FIELD := "ccb_melee"
+const CCB_WARGEAR_FIELD := "ccb_wargear"
+const WRAITH_RANGED_FIELD := "wraith_ranged"
+const WRAITH_MELEE_FIELD := "wraith_melee"
+const TOMB_BLADE_RANGED_FIELD := "tomb_blade_ranged"
+const TOMB_BLADE_SHIELDVANES_FIELD := "tomb_blade_shieldvanes"
+const TOMB_BLADE_OPTIC_FIELD := "tomb_blade_optic"
 
 static func supports(definition: String) -> bool:
-	return definition in [LOKHUST_HEAVY, TRIARCH_PRAETORIANS, TRIARCH_STALKER, OVERLORD, LYCHGUARD, LOKHUST_LORD]
+	return definition in [LOKHUST_HEAVY, TRIARCH_PRAETORIANS, TRIARCH_STALKER, OVERLORD, LYCHGUARD, LOKHUST_LORD, CATACOMB_COMMAND_BARGE, CANOPTEK_WRAITHS, TOMB_BLADES]
 
 static func is_model_scoped(definition: String) -> bool:
-	return definition in [LOKHUST_HEAVY, TRIARCH_PRAETORIANS]
+	return definition in [LOKHUST_HEAVY, TRIARCH_PRAETORIANS, CANOPTEK_WRAITHS, TOMB_BLADES]
 
 static func _identity(definition: String) -> String:
 	if definition == LOKHUST_HEAVY: return "lokhust-heavy-destroyers"
@@ -30,6 +41,9 @@ static func _identity(definition: String) -> String:
 	if definition == OVERLORD: return "overlord"
 	if definition == LYCHGUARD: return "lychguard"
 	if definition == LOKHUST_LORD: return "lokhust-lord"
+	if definition == CATACOMB_COMMAND_BARGE: return "catacomb-command-barge"
+	if definition == CANOPTEK_WRAITHS: return "canoptek-wraiths"
+	if definition == TOMB_BLADES: return "tomb-blades"
 	return ""
 
 static func _size_supported(definition: String, models: int) -> bool:
@@ -39,6 +53,9 @@ static func _size_supported(definition: String, models: int) -> bool:
 	if definition == OVERLORD: return models == 1
 	if definition == LYCHGUARD: return models in [5, 10]
 	if definition == LOKHUST_LORD: return models == 1
+	if definition == CATACOMB_COMMAND_BARGE: return models == 1
+	if definition == CANOPTEK_WRAITHS: return models in [3, 6]
+	if definition == TOMB_BLADES: return models in [3, 6]
 	return false
 
 static func defaults(definition: String) -> Dictionary:
@@ -48,6 +65,9 @@ static func defaults(definition: String) -> Dictionary:
 	if definition == OVERLORD: return {OVERLORD_FIELD: "tachyon-arrow-and-overlords-blade"}
 	if definition == LYCHGUARD: return {LYCHGUARD_FIELD: "warscythe"}
 	if definition == LOKHUST_LORD: return {LOKHUST_LORD_WEAPON_FIELD: "staff-of-light", LOKHUST_LORD_WARGEAR_FIELD: "none"}
+	if definition == CATACOMB_COMMAND_BARGE: return {CCB_CANNON_FIELD: "gauss-cannon", CCB_MELEE_FIELD: "staff-of-light", CCB_WARGEAR_FIELD: "none"}
+	if definition == CANOPTEK_WRAITHS: return {WRAITH_RANGED_FIELD: "none", WRAITH_MELEE_FIELD: "vicious-claws"}
+	if definition == TOMB_BLADES: return {TOMB_BLADE_RANGED_FIELD: "twin-gauss-blaster", TOMB_BLADE_SHIELDVANES_FIELD: "none", TOMB_BLADE_OPTIC_FIELD: "none"}
 	return {}
 
 static func _choices(definition: String) -> Array[Dictionary]:
@@ -104,6 +124,82 @@ static func controls(definition: String) -> Array[Dictionary]:
 				]
 			}
 		]
+	if definition == CATACOMB_COMMAND_BARGE:
+		return [
+			{
+				"field": CCB_CANNON_FIELD,
+				"label": "Cannon",
+				"choices": [
+					{"id": "gauss-cannon", "label": "Gauss cannon"},
+					{"id": "tesla-cannon", "label": "Tesla cannon"}
+				]
+			},
+			{
+				"field": CCB_MELEE_FIELD,
+				"label": "Melee weapon",
+				"choices": [
+					{"id": "staff-of-light", "label": "Staff of light"},
+					{"id": "overlords-blade", "label": "Overlord's blade"}
+				]
+			},
+			{
+				"field": CCB_WARGEAR_FIELD,
+				"label": "Optional wargear",
+				"choices": [
+					{"id": "none", "label": "No optional wargear"},
+					{"id": "resurrection-orb", "label": "Resurrection Orb"}
+				]
+			}
+		]
+	if definition == CANOPTEK_WRAITHS:
+		return [
+			{
+				"field": WRAITH_RANGED_FIELD,
+				"label": "Ranged weapon",
+				"choices": [
+					{"id": "none", "label": "No ranged weapon"},
+					{"id": "particle-caster", "label": "Particle caster"},
+					{"id": "transdimensional-beamer", "label": "Transdimensional beamer"}
+				]
+			},
+			{
+				"field": WRAITH_MELEE_FIELD,
+				"label": "Melee weapon",
+				"choices": [
+					{"id": "vicious-claws", "label": "Vicious claws"},
+					{"id": "whip-coils", "label": "Whip coils"}
+				]
+			}
+		]
+	if definition == TOMB_BLADES:
+		return [
+			{
+				"field": TOMB_BLADE_RANGED_FIELD,
+				"label": "Ranged weapon",
+				"choices": [
+					{"id": "twin-gauss-blaster", "label": "Twin gauss blaster"},
+					{"id": "particle-beamer", "label": "Particle beamer"},
+					{"id": "twin-tesla-carbine", "label": "Twin tesla carbine"}
+				]
+			},
+			{
+				"field": TOMB_BLADE_SHIELDVANES_FIELD,
+				"label": "Shieldvanes",
+				"choices": [
+					{"id": "none", "label": "No shieldvanes"},
+					{"id": "shieldvanes", "label": "Shieldvanes"}
+				]
+			},
+			{
+				"field": TOMB_BLADE_OPTIC_FIELD,
+				"label": "Optic / cloak wargear",
+				"choices": [
+					{"id": "none", "label": "None"},
+					{"id": "nebuloscope", "label": "Nebuloscope"},
+					{"id": "shadowloom", "label": "Shadowloom"}
+				]
+			}
+		]
 	var field := LOKHUST_FIELD
 	var label := "Ranged weapon"
 	if definition == TRIARCH_PRAETORIANS:
@@ -130,6 +226,8 @@ static func model_label(definition: String, models: int, model_index: int) -> St
 	if definition == OVERLORD: return "Overlord"
 	if definition == LYCHGUARD: return "Lychguard %d" % (model_index + 1)
 	if definition == LOKHUST_LORD: return "Lokhust Lord"
+	if definition == CATACOMB_COMMAND_BARGE: return "Catacomb Command Barge"
+	if definition == CANOPTEK_WRAITHS: return "Canoptek Wraith %d" % (model_index + 1)
 	return "Triarch Stalker"
 
 static func controls_for_model(definition: String, models: int, model_index: int) -> Array[Dictionary]:
@@ -228,6 +326,61 @@ static func prepare(unit: Dictionary, definition: String, equipment: Dictionary,
 		unit.saved_model_equipment = equipment.duplicate(true)
 		unit.necron_saved_equipment_locked = true
 		unit.lokhust_lord_loadout_locked = true
+		return
+	if definition == CATACOMB_COMMAND_BARGE:
+		var cannon_choice := str(equipment.get(CCB_CANNON_FIELD, "gauss-cannon"))
+		var melee_choice := str(equipment.get(CCB_MELEE_FIELD, "staff-of-light"))
+		var wargear_choice := str(equipment.get(CCB_WARGEAR_FIELD, "none"))
+		var cannon_id := "tesla-cannon-command-barge" if cannon_choice == "tesla-cannon" else "gauss-cannon-command-barge"
+		unit.ranged_weapons = [_weapon(source, "ranged", cannon_id), _weapon(source, "ranged", "staff-of-light-command-barge")]
+		var melee_id := "overlords-blade-command-barge" if melee_choice == "overlords-blade" else "staff-of-light-command-barge"
+		unit.melee_weapons = [_weapon(source, "melee", melee_id)]
+		unit.ccb_wargear = wargear_choice
+		unit.wargear = [] if wargear_choice == "none" else [wargear_choice]
+		unit.saved_model_equipment = equipment.duplicate(true)
+		unit.necron_saved_equipment_locked = true
+		unit.ccb_loadout_locked = true
+		return
+	if definition == CANOPTEK_WRAITHS:
+		var ranged_choice := str(equipment.get(WRAITH_RANGED_FIELD, "none"))
+		var melee_choice := str(equipment.get(WRAITH_MELEE_FIELD, "vicious-claws"))
+		if ranged_choice == "none":
+			unit.ranged_weapons = []
+		else:
+			var rw := _weapon(source, "ranged", ranged_choice)
+			unit.ranged_weapons = [rw] if not rw.is_empty() else []
+		var mw := _weapon(source, "melee", melee_choice)
+		if not mw.is_empty(): unit.melee_weapons = [mw]
+		unit.saved_model_equipment = equipment.duplicate(true)
+		unit.necron_saved_equipment_locked = true
+		unit.wraiths_loadout_locked = true
+		return
+	if definition == TOMB_BLADES:
+		var ranged_choice := str(equipment.get(TOMB_BLADE_RANGED_FIELD, "twin-gauss-blaster"))
+		var shieldvanes_choice := str(equipment.get(TOMB_BLADE_SHIELDVANES_FIELD, "none"))
+		var optic_choice := str(equipment.get(TOMB_BLADE_OPTIC_FIELD, "none"))
+		var weapon_id := str({"twin-gauss-blaster": "source-ranged-2", "particle-beamer": "source-ranged-1", "twin-tesla-carbine": "source-ranged-3"}.get(ranged_choice, "source-ranged-2"))
+		var rw := _weapon(source, "ranged", weapon_id)
+		if not rw.is_empty():
+			if optic_choice == "nebuloscope":
+				rw.profiles.standard.keywords["ignores-cover"] = true
+			unit.ranged_weapons = [rw]
+		var wargear: Array[String] = []
+		var defense: Dictionary = unit.get("defense", {}).duplicate(true)
+		if shieldvanes_choice == "shieldvanes":
+			wargear.append("shieldvanes")
+			unit.movement = 8
+			defense.save_target = 3
+		else:
+			unit.movement = 12
+			defense.save_target = 4
+		unit.defense = defense
+		if optic_choice in ["nebuloscope", "shadowloom"]:
+			wargear.append(optic_choice)
+		unit.wargear = wargear
+		unit.saved_model_equipment = equipment.duplicate(true)
+		unit.necron_saved_equipment_locked = true
+		unit.tomb_blades_loadout_locked = true
 		return
 	var ranged_id := choice
 	if definition == TRIARCH_PRAETORIANS and choice == "particle-caster-voidblade": ranged_id = "particle-caster"

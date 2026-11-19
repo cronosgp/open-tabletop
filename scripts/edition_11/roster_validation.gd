@@ -196,6 +196,9 @@ static func seal(s: Dictionary, player: int) -> String:
 	if not s.units.has(model) or s.units[model].owner != player or "CHARACTER" not in str(s.units[model].keywords).to_upper(): return "Declare a friendly faction Character as Warlord before completing the checked roster."
 	if str(s.units[model].get("definition_id", "")).get_slice(":", 3) == "murderfang": return "Murderfang cannot be selected as your Warlord."
 	if UnitAbilities.cannot_be_warlord(s, model): return "This model cannot be selected as your Warlord."
+	for unit: Dictionary in s.units.values():
+		if unit.owner == player and str(unit.get("definition_id", "")).get_slice(":", 3) == "the-silent-king" and str(s.units[model].get("definition_id", "")).get_slice(":", 3) != "the-silent-king":
+			return "The Silent King (SUPREME COMMANDER) must be your Warlord."
 	var calgar_in_army := false
 	for unit: Dictionary in s.units.values():
 		if unit.owner == player and str(unit.get("definition_id", "")).get_slice(":", 3) == "marneus-calgar": calgar_in_army = true

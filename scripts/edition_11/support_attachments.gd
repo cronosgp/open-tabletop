@@ -19,7 +19,8 @@ const BODYGUARDS := {
  "plasmancer": ["necron-warriors", "immortals"],
  "technomancer": ["necron-warriors", "immortals", "canoptek-wraiths"],
  "psychomancer": ["necron-warriors", "immortals"],
- "chronomancer": ["necron-warriors", "immortals"]}
+ "chronomancer": ["necron-warriors", "immortals"],
+ "geomancer": ["necron-warriors", "immortals", "canoptek-macrocytes"]}
 const CONDITIONAL_BODYGUARDS := {"cato-sicarius": ["victrix-honour-guard"]}
 
 static func is_support_identity(identity: String, calgar_in_army: bool) -> bool:

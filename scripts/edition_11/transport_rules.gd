@@ -434,6 +434,13 @@ static func eligibility_error(state: Dictionary, transport_model: int, passenger
 		var maximum := int(data.max_models_by_identity_group[group_name])
 		if model_count > maximum:
 			return "This transport can carry no more than %d %s models." % [maximum, str(group.get("display_name", group_name))]
+	if int(data.get("max_units", 0)) > 0:
+		var embarked_units := {}
+		for m: int in state.units:
+			if int(state.units[m].get("embarked_transport", -1)) == transport_model and int(state.units[m].get("wounds", 0)) > 0:
+				embarked_units[int(state.units[m].squad)] = true
+		if not embarked_units.has(passenger_squad) and embarked_units.size() >= int(data.max_units):
+			return "This transport can carry no more than %d unit(s)." % int(data.max_units)
 	if int(data.get("capacity", 0)) - occupied_capacity(state, transport_model) < capacity_cost(state, passenger_squad, data): return "The transport does not have enough remaining capacity for the whole unit."
 	if require_range:
 		for model: int in passenger_models:
@@ -818,6 +825,9 @@ static func _position_error(state: Dictionary, window: Dictionary, model: int, p
 			var enemy_model: Dictionary = state.units[enemy]
 			if enemy_model.get("wounds", 0) <= 0 or not enemy_model.get("on_battlefield", true) or int(enemy_model.get("owner", -1)) == int(state.units[model].owner): continue
 			if Geometry.edge({"position": position, "radius": state.units[model].radius}, enemy_model) <= 8.001: return "Drop Pod Assault passengers must be set up more than 8 inches from every enemy unit."
+		var geomancer_script := load("res://scripts/edition_11/geomancer.gd")
+		var reserve_exclusion := str(geomancer_script.reserve_exclusion_error(state, state.units[model], position))
+		if not reserve_exclusion.is_empty(): return reserve_exclusion
 	if absf(position.x) + float(state.units[model].radius) > state.board_size.x / 2.0 + 0.001 or absf(position.y) + float(state.units[model].radius) > state.board_size.y / 2.0 + 0.001: return "The whole model must fit on the battlefield."
 	var positioned_model: Dictionary = state.units[model].duplicate(true)
 	positioned_model.position = position

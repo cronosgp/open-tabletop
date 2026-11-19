@@ -11,6 +11,7 @@ const Oath = preload("res://scripts/edition_11/oath_of_moment.gd")
 const VowedTarget = preload("res://scripts/edition_11/vowed_target.gd")
 const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
+const SilentKing = preload("res://scripts/edition_11/silent_king.gd")
 ## Owned weapons/profiles; target assignments freeze before dice/casualties.
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
@@ -23,6 +24,7 @@ const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Allocation = preload("res://scripts/edition_11/damage_allocation.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const TargetAuguryWeb = preload("res://scripts/edition_11/target_augury_web.gd")
+const NekrosorAmmentar = preload("res://scripts/edition_11/nekrosor_ammentar.gd")
 const Morale = preload("res://scripts/edition_11/morale.gd")
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const Incursors = preload("res://scripts/edition_11/incursors.gd")
@@ -424,13 +426,13 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			context.free_wound_reroll_source = "Aquilon Optics"
 			context.free_damage_reroll = true
 		var datasheet_weapon := _datasheet_weapon(state, model, row.target, weapon, melee, str(row.get("weapon", "")), str(row.get("profile", "")), indirect_shooting)
-		var effective := DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, datasheet_weapon, melee, row.target), melee))
+		var effective := UnitAbilities.defend(state, squad, row.target, DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, datasheet_weapon, melee, row.target), melee)))
 		var expression: Variant = (int(row.amount) + int(effective.attacks) - int(weapon.attacks) - UnitAbilities.melee_bonus(state, squad)) if melee and not random_melee else effective.attacks
 		var bonus := 0
 		if melee and int(weapon.keywords.get("cleave", 0)) > 0 and raw_context.single_target_for_cleave:
 			bonus += int(weapon.keywords.cleave) * floori(float(raw_context.target_model_count) / 5.0)
 		var attacks: int = Attacks.RandomStat.spec(expression).maximum
-		var profile := DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, datasheet_weapon, melee, row.target), melee))
+		var profile := UnitAbilities.defend(state, squad, row.target, DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, datasheet_weapon, melee, row.target), melee)))
 		if UnitAbilities.headhunter_quarry(state, squad) == row.target:
 			profile.keywords["devastating-wounds"] = true
 			profile.keywords["precision"] = true
@@ -451,6 +453,17 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			profile.keywords["sustained-hits"] = int(profile.keywords.get("sustained-hits", 0)) + 1
 		if MarineEnhancements.champion_of_the_deathwing_active(state, squad) and VowedTarget.target_in_vowed_range(state, int(state.squads[squad].get("owner", -1)), row.target):
 			profile.keywords["sustained-hits"] = maxi(int(profile.keywords.get("sustained-hits", 0)), 1)
+		if NekrosorAmmentar.infectious_murder_madness_in_aura(state, squad):
+			var murder_madness := NekrosorAmmentar.model_has_keyword(state.units[model], "DESTROYER CULT")
+			if not murder_madness:
+				var eligible_targets := legal_targets(state, model, melee, str(row.get("weapon", "")), str(row.get("profile", "")), indirect_shooting)
+				if row.target in eligible_targets:
+					var closest_distance := INF
+					for eligible_target: int in eligible_targets:
+						closest_distance = minf(closest_distance, Geometry.distance_to_target(state, state.units[model], eligible_target))
+					murder_madness = Geometry.distance_to_target(state, state.units[model], row.target) <= closest_distance + Geometry.EPSILON
+			if murder_madness:
+				profile.keywords["sustained-hits"] = maxi(int(profile.keywords.get("sustained-hits", 0)), 1)
 		if walking_fortress:
 			profile.keywords.erase("heavy")
 			context.hit_modifier += 1
@@ -553,6 +566,8 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 				if Geometry.distance_to_target(state, state.units[model], row.target) <= closest_hardwired + Geometry.EPSILON:
 					var hardwired_reroll := "all" if UnitAbilities.near_enemy_controlled_objective(state, int(state.squads[squad].owner), row.target) else "ones"
 					context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), hardwired_reroll)
+		if NekrosorAmmentar.prophet_wound_reroll_active(state, squad):
+			context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "ones")
 		if UnitAbilities.has(state, squad, "optimised-for-slaughter"):
 			var weapon_name := str(weapon.get("name", "")).to_lower()
 			var weapon_id := str(row.get("weapon", "")).to_lower()
@@ -599,6 +614,15 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if melee and UnitAbilities.lion_aura_active(state, squad, "martial-exemplar"):
 			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
 			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "ones")
+		if SilentKing.stars_aura_active(state, squad):
+			if not context.get("snap_shooting", false) and not context.get("indirect_fire", false):
+				context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
+			context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "ones")
+		if melee and SilentKing.blades_aura_active(state, squad):
+			profile.strength = int(profile.get("strength", 0)) + 1
+		if not melee and UnitAbilities.identity(state.units[model]) == "the-silent-king" and str(state.units[model].get("silent_king_role", "")) == "szarekh" and SilentKing.is_damaged(state, squad):
+			if not (weapon.attacks is String):
+				context.weapon_count = maxi(1, ceili(float(int(weapon.attacks)) / 2.0))
 		if MarineEnhancements.venator_omni_auspex_active(state, squad) and Terrain.unit_hidden(state, row.target):
 			var venator_mode := "ones_twos" if Doctrines.has_doctrine(state, squad, "assault") else "ones"
 			context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), venator_mode)

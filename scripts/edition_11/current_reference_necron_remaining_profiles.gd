@@ -3136,18 +3136,17 @@ const SOURCE_PROFILE_DATA := {
 			"000009748",
 			"000010667"
 		],
-		"points": 60,
+		"points": 120,
 		"points_by_models": {
 			1: 60,
 			2: 120,
 			3: 180
 		},
 		"construction_model_sizes": [
-			1,
 			2,
 			3
 		],
-		"models": 1,
+		"models": 2,
 		"base_size_source_mm": 0,
 		"base_size_source": "Use model",
 		"base_radius_inches": 0,
@@ -3376,7 +3375,7 @@ const SOURCE_PROFILE_DATA := {
 		"pending_source_checks": [
 			"resolve the 1-model deployment wording and whole-model 12-inch placement with the source Use model footprint"
 		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"source_profile_readiness": "source_bounded_local_scope_partial_2026_11_19"
 	},
 	"cryptothralls": {
 		"name": "Cryptothralls",
@@ -4865,21 +4864,16 @@ const SOURCE_PROFILE_DATA := {
 		"source_damaged_wounds": "1-4",
 		"source_damaged_description": "While this model has 1-4 wounds remaining, each time this model makes an attack, subtract 1 from the Hit roll.",
 		"source_transport_text": "This model has a transport capacity of 1 Necrons Infantry unit.",
+		"transport": {
+			"capacity": 100,
+			"max_units": 1,
+			"required": ["NECRONS", "INFANTRY"]
+		},
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d3", "deep-strike"],
-		"unsupported_abilities": [
-			"Invasion Beams",
-			"Quantum Invader",
-			"Hover"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d3", "deep-strike", "damaged-4", "hover", "invasion-beams", "quantum-invader"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"obelisk": {
 		"name": "Obelisk",
@@ -5623,6 +5617,9 @@ const SOURCE_PROFILE_DATA := {
 		"points_by_models": {
 			1: 465
 		},
+		"second_plus_points_by_models": {
+			1: 505
+		},
 		"construction_model_sizes": [
 			1
 		],
@@ -6044,19 +6041,10 @@ const SOURCE_PROFILE_DATA := {
 		"source_unmapped_weapon_traits": [
 			"c'tan power"
 		],
-		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6-plus-three"],
-		"unsupported_abilities": [
-			"Powers of the C’tan"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks",
-			"unmapped weapon traits: c'tan power"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6-plus-three", "powers-of-the-ctan", "damaged-8-vault"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"the-silent-king": {
 		"name": "The Silent King",
@@ -6515,27 +6503,10 @@ const SOURCE_PROFILE_DATA := {
 		"source_damaged_description": "While this unit’s Szarekh model has 1-6 wounds remaining, halve the Attacks characteristic of that model’s weapons, and each time this unit makes an attack, subtract 1 from the Hit roll.",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": [],
-		"unsupported_abilities": [
-			"Deadly Demise",
-			"Reanimation Protocols",
-			"Triarch Abilities",
-			"The Silent King",
-			"SUPREME COMMANDER",
-			"TRIARCHAL MENHIRS",
-			"Phaeron of the Stars (Aura)",
-			"Phaeron of the Blades (Aura)",
-			"Relentless March (Aura)"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks",
-			"composite model role runtime mapping"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending",
+		"supported_rule_ids": ["reanimation-protocols", "deadly-demise-d6-plus-three-szarekh", "triarch-abilities", "the-silent-king-aura", "supreme-commander", "triarchal-menhirs", "damaged-6-silent-king", "phaeron-of-the-stars", "phaeron-of-the-blades", "relentless-march"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12",
 		"max_supported_copies": 1
 	},
 	"tomb-blades": {
@@ -6597,6 +6568,10 @@ const SOURCE_PROFILE_DATA := {
 		"points_by_models": {
 			3: 70,
 			6: 140
+		},
+		"third_plus_points_by_models": {
+			3: 80,
+			6: 150
 		},
 		"construction_model_sizes": [
 			3,
@@ -6974,38 +6949,27 @@ const SOURCE_PROFILE_DATA := {
 			{
 				"source_line": 1,
 				"description": "Any number of models can each have their twin gauss blaster replaced with one of the following: 1 particle beamer 1 twin tesla carbine",
-				"implemented": false
+				"implemented": true
 			},
 			{
 				"source_line": 2,
 				"description": "Any number of models can each be equipped with 1 shieldvanes.",
-				"implemented": false
+				"implemented": true
 			},
 			{
 				"source_line": 3,
 				"description": "Any number of models can each be equipped with one of the following: 1 nebuloscope 1 shadowloom",
-				"implemented": false
+				"implemented": true
 			}
 		],
 		"source_damaged_wounds": "",
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols", "scouts-9"],
-		"unsupported_abilities": [
-			"Nebuloscope",
-			"Shadowloom",
-			"Shieldvanes",
-			"Evasion Engrams"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["reanimation-protocols", "scouts-9", "evasion-engrams"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"transcendent-ctan": {
 		"name": "Transcendent C’tan",

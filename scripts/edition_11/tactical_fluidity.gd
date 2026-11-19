@@ -8,6 +8,7 @@ const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const ObjectiveRules = preload("res://scripts/edition_11/objectives.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
+const SilentKing = preload("res://scripts/edition_11/silent_king.gd")
 
 const WINDOW := "tactical-fluidity"
 const PLACEMENT := "tactical-fluidity-placement"
@@ -37,7 +38,7 @@ static func start_wind(state: Dictionary, player: int, squad: int, mode: String)
 	for model: int in Geometry.alive(state, squad):
 		origins[model] = state.units[model].position
 		positions[model] = state.units[model].position
-		distances[model] = float(state.units[model].movement) + Doctrines.movement_bonus(state, squad) + AncientFury.movement_bonus(state, squad)
+		distances[model] = float(state.units[model].movement) + Doctrines.movement_bonus(state, squad) + AncientFury.movement_bonus(state, squad) + SilentKing.movement_bonus(state, squad)
 	state.unit_abilities.window = {"kind": PLACEMENT, "owners": [player], "squad": squad, "mode": mode, "distance": 0, "distance_by_model": distances, "origins": origins, "positions": positions, "wind_swift": true, "resume_window": resume_window}
 
 static func _eligible(state: Dictionary, squad: int, owner: int, mode: String) -> bool:
@@ -100,10 +101,21 @@ static func chronometron_eligible(state: Dictionary, squad: int, owner: int) -> 
 	if state.unit_abilities.get("used", {}).get("chronometron:%d:%d" % [squad, int(state.turn)], false): return false
 	return UnitAbilities.has(state, squad, "chronometron")
 
+static func evasion_engrams_eligible(state: Dictionary, squad: int, owner: int) -> bool:
+	if not state.squads.has(squad) or int(state.squads[squad].get("owner", -1)) != owner: return false
+	if state.phase != "shooting" or int(state.active) != owner or not bool(state.squads[squad].get("shot", false)): return false
+	if Queue.engaged(state, squad) or normal_move_used_this_phase(state, squad): return false
+	if state.unit_abilities.get("used", {}).get("evasion-engrams:%d:%d" % [squad, int(state.turn)], false): return false
+	return UnitAbilities.has(state, squad, "evasion-engrams")
+
 static func open_after_shot(state: Dictionary, squad: int) -> void:
 	if chronometron_eligible(state, squad, int(state.active)):
 		var previous: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
 		state.unit_abilities.window = {"kind": WINDOW, "owners": [int(state.active)], "squad": squad, "mode": "chronometron", "source": "chronometron", "resume_window": previous}
+		return
+	if evasion_engrams_eligible(state, squad, int(state.active)):
+		var previous: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
+		state.unit_abilities.window = {"kind": WINDOW, "owners": [int(state.active)], "squad": squad, "mode": "evasion-engrams", "source": "evasion-engrams", "resume_window": previous}
 		return
 	if not _eligible(state, squad, int(state.active), "shoot"): return
 	var previous: Dictionary = state.unit_abilities.get("window", {}).duplicate(true)
@@ -152,26 +164,29 @@ static func choices(state: Dictionary, player: int) -> Array:
 	if window.get("kind", "") not in [WINDOW, PLACEMENT] or int(window.get("owners", [0])[0]) != player: return []
 	if window.kind == PLACEMENT:
 		var result: Array = []
-		var title := "Chronometron" if window.get("source", "") == "chronometron" else ("Shadow Masters" if window.get("source", "") == "phobos-shadow-masters" else "Execute and Redeploy" if window.get("source", "") == "phobos-execute-and-redeploy" else "We Are Vengeance" if window.get("source", "") == "darkflight-we-are-vengeance" else "Purgation Push" if window.get("source", "") == "gravis-linebreaker-purgation-push" else ("Wind-Swift Evasion" if window.get("wind_swift", false) else "Wrath of the First Khan" if window.get("source", "") == "storm-swift-onslaught" else "Tactical Fluidity"))
+		var title := "Chronometron" if window.get("source", "") == "chronometron" else ("Evasion Engrams" if window.get("source", "") == "evasion-engrams" else ("Shadow Masters" if window.get("source", "") == "phobos-shadow-masters" else "Execute and Redeploy" if window.get("source", "") == "phobos-execute-and-redeploy" else "We Are Vengeance" if window.get("source", "") == "darkflight-we-are-vengeance" else "Purgation Push" if window.get("source", "") == "gravis-linebreaker-purgation-push" else ("Wind-Swift Evasion" if window.get("wind_swift", false) else "Wrath of the First Khan" if window.get("source", "") == "storm-swift-onslaught" else "Tactical Fluidity")))
 		for model: int in window.positions: result.append({"label": "%s: preview model %d" % [title, model], "action": "fluidity-place", "model": model, "target": int(window.squad), "value": ""})
 		result.append({"label": "Confirm %s move" % title, "action": "fluidity-confirm", "model": -1, "target": int(window.squad), "value": ""})
 		return result
 	var chronometron: bool = window.get("source", "") == "chronometron" or window.mode == "chronometron"
+	var evasion_engrams: bool = window.get("source", "") == "evasion-engrams" or window.mode == "evasion-engrams"
 	var movement := int(state.units[Geometry.alive(state, int(window.squad))[0]].get("movement", 0))
-	var movement_label := "Normal Move up to 5 inches" if chronometron else ("Normal Move up to D6 inches" if window.mode == "shoot" else "Normal Move up to 6 inches" if window.mode == "execute-redeploy" else ("Normal Move up to %d inches" % movement if window.mode == "normal" else "Fall Back up to %d inches" % movement))
+	var movement_label := "Normal Move up to 5 inches" if chronometron else ("Normal Move up to 6 inches" if evasion_engrams else ("Normal Move up to D6 inches" if window.mode == "shoot" else "Normal Move up to 6 inches" if window.mode == "execute-redeploy" else ("Normal Move up to %d inches" % movement if window.mode == "normal" else "Fall Back up to %d inches" % movement)))
 	var storm_swift: bool = window.get("source", "") == "storm-swift-onslaught"
 	var squad := int(window.squad)
 	var use_available := false
 	if chronometron:
 		use_available = chronometron_eligible(state, squad, player)
+	elif evasion_engrams:
+		use_available = evasion_engrams_eligible(state, squad, player)
 	elif storm_swift:
 		use_available = squad in suboden_squads(state, player) and (window.mode != "normal" or not normal_move_used_this_phase(state, squad))
 	else:
 		use_available = _eligible(state, squad, player, str(window.mode))
-	var title := "Chronometron" if chronometron else ("Wrath of the First Khan" if storm_swift else "Tactical Fluidity")
+	var title := "Chronometron" if chronometron else ("Evasion Engrams" if evasion_engrams else ("Wrath of the First Khan" if storm_swift else "Tactical Fluidity"))
 	var result: Array = []
 	if use_available:
-		var use_label := "Chronometron: Normal Move up to 5 inches" if chronometron else ("%s %d: %s — %s" % ["Suboden Khan" if storm_swift else "Captain", int(Geometry.alive(state, int(window.squad))[0]), title, movement_label])
+		var use_label := "Chronometron: Normal Move up to 5 inches" if chronometron else ("Evasion Engrams: Normal Move up to 6 inches" if evasion_engrams else ("%s %d: %s — %s" % ["Suboden Khan" if storm_swift else "Captain", int(Geometry.alive(state, int(window.squad))[0]), title, movement_label]))
 		result.append({"label": use_label, "action": "fluidity-use", "model": -1, "target": int(window.squad), "value": ""})
 	result.append({"label": "Decline %s" % title, "action": "fluidity-pass", "model": -1, "target": int(window.squad), "value": ""})
 	return result
@@ -194,6 +209,8 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		if selected.action == "fluidity-pass":
 			if window.get("source", "") == "chronometron":
 				state.unit_abilities.used["chronometron:%d:%d" % [squad, int(state.turn)]] = true
+			if window.get("source", "") == "evasion-engrams":
+				state.unit_abilities.used["evasion-engrams:%d:%d" % [squad, int(state.turn)]] = true
 			if window.get("source", "") == "storm-swift-onslaught":
 				var storm_swift_key := "storm-swift-onslaught:%d:%d:%s" % [squad, int(state.turn), str(state.phase)]
 				state.unit_abilities.used[storm_swift_key] = true
@@ -203,12 +220,15 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 			return {"error": ""}
 		if selected.action != "fluidity-use": return {"error": "Choose to use or decline the pending ability."}
 		var chronometron: bool = window.get("source", "") == "chronometron" or window.mode == "chronometron"
+		var evasion_engrams: bool = window.get("source", "") == "evasion-engrams" or window.mode == "evasion-engrams"
 		var purgation_push: bool = window.get("source", "") == "gravis-linebreaker-purgation-push"
 		var storm_swift: bool = window.get("source", "") == "storm-swift-onslaught"
 		var shadow_masters: bool = window.get("source", "") == "phobos-shadow-masters"
 		var execute_redeploy: bool = window.get("source", "") == "phobos-execute-and-redeploy"
 		if chronometron:
 			if not chronometron_eligible(state, squad, player): return {"error": "Chronometron's shooting, unengaged or Normal Move condition is no longer met."}
+		elif evasion_engrams:
+			if not evasion_engrams_eligible(state, squad, player): return {"error": "Evasion Engrams' shooting, unengaged or Normal Move condition is no longer met."}
 		elif storm_swift:
 			if squad not in suboden_squads(state, player) or window.mode != ("fallback" if Queue.engaged(state, squad) else "normal") or (window.mode == "normal" and normal_move_used_this_phase(state, squad)): return {"error": "Wrath of the First Khan's eligibility or engagement state changed before the move."}
 		elif purgation_push:
@@ -235,6 +255,9 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		if chronometron:
 			state.unit_abilities.used["chronometron:%d:%d" % [squad, int(state.turn)]] = true
 			state.squads[squad].cannot_charge_until_turn = int(state.turn)
+		elif evasion_engrams:
+			state.unit_abilities.used["evasion-engrams:%d:%d" % [squad, int(state.turn)]] = true
+			state.squads[squad].cannot_charge_until_turn = int(state.turn)
 		elif storm_swift:
 			var storm_swift_key := "storm-swift-onslaught:%d:%d:%s" % [squad, int(state.turn), str(state.phase)]
 			state.unit_abilities.used[storm_swift_key] = true
@@ -242,7 +265,7 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 		var distance_by_model := {}
 		for model: int in origins: distance_by_model[model] = float(state.units[model].get("movement", distance)) if storm_swift else float(distance)
 		state.unit_abilities.window = {"kind": PLACEMENT, "owners": [player], "squad": squad, "mode": window.mode, "distance": distance, "distance_by_model": distance_by_model, "origins": origins, "positions": positions, "source": window.get("source", "tactical-fluidity"), "resume_window": window.get("resume_window", {}), "queue": window.get("queue", [])}
-		var title := "Chronometron" if chronometron else ("Shadow Masters" if shadow_masters else "Execute and Redeploy" if execute_redeploy else "Purgation Push" if purgation_push else ("Wrath of the First Khan" if storm_swift else "Tactical Fluidity"))
+		var title := "Chronometron" if chronometron else ("Evasion Engrams" if evasion_engrams else ("Shadow Masters" if shadow_masters else "Execute and Redeploy" if execute_redeploy else "Purgation Push" if purgation_push else ("Wrath of the First Khan" if storm_swift else "Tactical Fluidity")))
 		return {"error": "", "message": "%s: move up to %d inches." % [title, distance]}
 	if window.get("kind", "") != PLACEMENT or int(window.get("owners", [0])[0]) != player or int(window.get("squad", -1)) != squad: return {"error": "No Tactical Fluidity move is pending."}
 	match selected.action:
@@ -259,14 +282,16 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				projected.units[model].position = window.positions[model]
 				longest = maxf(longest, Vector2(window.origins[model]).distance_to(Vector2(window.positions[model])))
 			if not Geometry.coherent(projected, squad): return {"error": "The move must leave the unit coherent."}
-			if window.mode in ["shoot", "execute-redeploy", "purgation-push", "we-are-vengeance", "chronometron"] and Queue.engaged(projected, squad): return {"error": "The Normal Move must end unengaged."}
+			if window.mode in ["shoot", "execute-redeploy", "purgation-push", "we-are-vengeance", "chronometron", "evasion-engrams"] and Queue.engaged(projected, squad): return {"error": "The Normal Move must end unengaged."}
 			if window.get("source", "") == "storm-swift-onslaught" and window.mode == "normal" and Queue.engaged(projected, squad): return {"error": "Wrath of the First Khan's Normal Move must end outside Engagement Range."}
 			if window.mode == "fallback" and (not Queue.engaged(state, squad) or Queue.engaged(projected, squad)): return {"error": "The Fall Back move must start engaged and end unengaged."}
 			var chronometron: bool = window.get("source", "") == "chronometron" or window.mode == "chronometron"
+			var evasion_engrams: bool = window.get("source", "") == "evasion-engrams" or window.mode == "evasion-engrams"
 			var purgation_push: bool = window.get("source", "") == "gravis-linebreaker-purgation-push"
 			var shadow_masters: bool = window.get("source", "") == "phobos-shadow-masters"
 			var execute_redeploy: bool = window.get("source", "") == "phobos-execute-and-redeploy"
 			if chronometron and (state.phase != "shooting" or int(state.active) != player or not state.squads.has(squad) or int(state.squads[squad].get("owner", -1)) != player or not bool(state.squads[squad].get("shot", false)) or normal_move_used_this_phase(state, squad) or not UnitAbilities.has(state, squad, "chronometron")): return {"error": "Chronometron's Shooting phase, unengaged or Normal Move condition is no longer met."}
+			if evasion_engrams and (state.phase != "shooting" or int(state.active) != player or not state.squads.has(squad) or int(state.squads[squad].get("owner", -1)) != player or not bool(state.squads[squad].get("shot", false)) or normal_move_used_this_phase(state, squad) or not UnitAbilities.has(state, squad, "evasion-engrams")): return {"error": "Evasion Engrams' Shooting phase, unengaged or Normal Move condition is no longer met."}
 			if purgation_push and not purgation_push_eligible(state, squad, player): return {"error": "Purgation Push's Shooting phase or engagement condition is no longer met."}
 			if shadow_masters and (state.phase != "shooting" or int(state.active) != player or not state.squads.has(squad) or not bool(state.squads[squad].get("shot", false)) or (not UnitAbilities.has_target_keyword(state, squad, "PHOBOS") and not UnitAbilities.has_target_keyword(state, squad, "SCOUT SQUAD"))): return {"error": "Shadow Masters' Shooting phase or keyword condition is no longer met."}
 			if execute_redeploy and (state.phase != "shooting" or int(state.active) != player or not state.squads.has(squad) or not bool(state.squads[squad].get("shot", false)) or Queue.engaged(state, squad) or normal_move_used_this_phase(state, squad) or not UnitAbilities.has_target_keyword(state, squad, "PHOBOS")): return {"error": "Execute and Redeploy's Shooting phase, unengaged or Normal Move condition is no longer met."}
@@ -276,26 +301,27 @@ static func apply(state: Dictionary, player: int, selected: Dictionary, point: V
 				state.units[model].moved = true
 			state.squads[squad].moved = true
 			state.squads[squad].moved_distance = longest
-			var normal_move: bool = window.mode in ["shoot", "execute-redeploy", "normal", "purgation-push", "we-are-vengeance", "chronometron"]
+			var normal_move: bool = window.mode in ["shoot", "execute-redeploy", "normal", "purgation-push", "we-are-vengeance", "chronometron", "evasion-engrams"]
 			state.squads[squad].move_type = "normal" if normal_move else "fall_back"
 			if normal_move:
 				state.squads[squad].normal_moved_this_turn = true
 				mark_normal_move_used_this_phase(state, squad)
 			state.squads[squad].advanced = false
 			state.squads[squad].fell_back = window.mode == "fallback"
-			if purgation_push or shadow_masters or execute_redeploy or chronometron:
+			if purgation_push or shadow_masters or execute_redeploy or chronometron or evasion_engrams:
 				state.squads[squad].cannot_charge_until_turn = int(state.turn)
 			if purgation_push:
 				state.squads[squad].cannot_embark_until_turn = int(state.turn)
 			var wind_swift: bool = window.get("wind_swift", false)
 			var storm_swift: bool = window.get("source", "") == "storm-swift-onslaught"
-			state.unit_abilities.window = window.get("resume_window", {}) if wind_swift or storm_swift or purgation_push or shadow_masters or execute_redeploy or chronometron else window
-			if not wind_swift and not storm_swift and not purgation_push and not shadow_masters and not execute_redeploy and not chronometron: _advance(state)
-			var source := "Chronometron" if chronometron else ("We Are Vengeance" if window.get("source", "") == "darkflight-we-are-vengeance" else "Wind-Swift Evasion" if wind_swift else "Wrath of the First Khan" if storm_swift else "Tactical Fluidity")
+			state.unit_abilities.window = window.get("resume_window", {}) if wind_swift or storm_swift or purgation_push or shadow_masters or execute_redeploy or chronometron or evasion_engrams else window
+			if not wind_swift and not storm_swift and not purgation_push and not shadow_masters and not execute_redeploy and not chronometron and not evasion_engrams: _advance(state)
+			var source := "Chronometron" if chronometron else ("Evasion Engrams" if evasion_engrams else ("We Are Vengeance" if window.get("source", "") == "darkflight-we-are-vengeance" else "Wind-Swift Evasion" if wind_swift else "Wrath of the First Khan" if storm_swift else "Tactical Fluidity"))
 			if purgation_push: source = "Purgation Push"
 			if shadow_masters: source = "Shadow Masters"
 			if execute_redeploy: source = "Execute and Redeploy"
 			if chronometron: return {"error": "", "message": "Chronometron Normal Move completed; this unit cannot Charge until the end of the turn."}
+			if evasion_engrams: return {"error": "", "message": "Evasion Engrams Normal Move completed; this unit cannot Charge until the end of the turn."}
 			if shadow_masters: return {"error": "", "message": "Shadow Masters Normal Move completed; this unit cannot Charge until the end of the turn."}
 			if purgation_push: return {"error": "", "message": "Purgation Push Normal Move completed; this unit cannot Charge or embark until the end of the turn."}
 			if execute_redeploy: return {"error": "", "message": "Execute and Redeploy Normal Move completed; this unit cannot Charge until the end of the turn."}

@@ -8,6 +8,7 @@ const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancem
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
 const FenrisianWolves = preload("res://scripts/edition_11/fenrisian_wolves.gd")
 const Scarabs = preload("res://scripts/edition_11/canoptek_scarab_swarms.gd")
+const SilentKing = preload("res://scripts/edition_11/silent_king.gd")
 
 static func living(state: Dictionary, squad: int) -> Array[int]:
 	var ids: Array[int] = []
@@ -66,11 +67,12 @@ static func objective_control(state: Dictionary, id: int) -> int:
 	if squad.battle_shocked: return 0
 	var value := int(state.units[id].get("objective_control", squad.stats.objective_control))
 	if UnitAbilities.has(state, int(state.units[id].squad), "damaged-7") and int(state.units[id].get("wounds", 0)) <= 7: value = maxi(0, value - 4)
-	if UnitAbilities.has(state, int(state.units[id].squad), "damaged-8") and int(state.units[id].get("wounds", 0)) <= 8: value = maxi(0, value - 4)
+	if (UnitAbilities.has(state, int(state.units[id].squad), "damaged-8") or UnitAbilities.has(state, int(state.units[id].squad), "damaged-8-vault")) and int(state.units[id].get("wounds", 0)) <= 8: value = maxi(0, value - 4)
 	if Scarabs.cryptek_sets_unit_oc(state, int(state.units[id].squad)): value = 1
 	var chittering := Scarabs.chittering_penalty(state, id)
 	if chittering > 0 and value > 0: value = maxi(1, value - chittering)
 	value += Ancient.honour(state, state.units[id].squad) + AncientFury.objective_control_bonus(state, int(state.units[id].squad))
+	value += UnitAbilities.carrier_wave_oc_bonus(state, id)
 	value += FenrisianWolves.hunting_hounds_bonus(state, id)
 	value += UnitAbilities.curse_of_the_wulfen_oc_bonus(state, id)
 	if state.get("unit_abilities", {}).get("crusade_martial_honour", {}).has(id): value += 5
@@ -140,6 +142,7 @@ static func leadership(state: Dictionary, squad: int) -> Dictionary:
 		if UnitAbilities.seeker_of_the_unfound_active(state, model): leadership = mini(int(leadership), 5)
 		if MarineEnhancements.standard_bearer(state, model): leadership = maxi(2, int(leadership) - 1)
 		leadership = mini(12, int(leadership) + AncientFury.leadership_bonus(state, squad))
+		leadership = clampi(int(leadership) + SilentKing.leadership_delta(state, squad), 2, 12)
 		target = leadership if target == null else mini(int(target), int(leadership))
 	if not (target is int or target is float) or not is_finite(target) or target != floor(target) or target < 2 or target > 12:
 		return {"error": "Battle-shock requires a resolved Leadership characteristic."}

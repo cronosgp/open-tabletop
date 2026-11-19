@@ -52,9 +52,11 @@ func run() -> void:
 	check(profile.get("supported_rule_ids", []) == ["reanimation-protocols", "reanimation-nodes", "ancient-cover", "convergence-fortification", "convergence-deployment"] and profile.get("unsupported_abilities", []).is_empty() and profile.get("pending_source_checks", []) == ["resolve the 1-model deployment wording and whole-model 12-inch placement with the source Use model footprint"], "Implemented Convergence interactions stay recorded while the unresolved one-model setup keeps the profile gated")
 	check(AbilityCatalog.RULES.get("convergence-of-dominion", []) == ["reanimation-protocols", "reanimation-nodes", "ancient-cover", "convergence-fortification", "convergence-deployment"], "The ability catalog binds the implemented Convergence rules")
 	for rule_id: String in ["reanimation-nodes", "ancient-cover", "convergence-fortification", "convergence-deployment"]:
-		check(Capabilities.supported(rule_id) and Capabilities.KNOWN[rule_id].validation_status == "implemented_local_checks_pending" and Capabilities.KNOWN[rule_id].source_status.contains("000002361"), "Convergence capability metadata stays source-linked and unadmitted: " + rule_id)
+		check(Capabilities.supported(rule_id) and Capabilities.KNOWN[rule_id].validation_status == "source_bounded_local_scope_passed_2026_11_12" and Capabilities.KNOWN[rule_id].source_status.contains("000002361"), "Convergence capability metadata stays source-linked and partially admitted: " + rule_id)
 	var admission := Army.resolve("Necrons", "40kdc:11e:necrons:convergence-of-dominion")
-	check(not str(admission.get("error", "")).is_empty(), "Convergence stays outside new construction until its full source scope passes")
+	check(str(admission.get("error", "")).is_empty() and int(admission.get("models", -1)) == 2 and int(admission.get("cost", -1)) == 120, "Convergence admits 2-model (120 pts) construction")
+	var one_model_admit := Army.admit({"schema_version": 2, "faction": "Necrons", "category": "custom", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:necrons:convergence-of-dominion", "models": 1, "copies": 1}]})
+	check(not str(one_model_admit.get("error", "")).is_empty(), "Convergence 1-model composition remains blocked in construction")
 
 	var state := {
 		"unit_abilities": {"implementation": AbilityCatalog.ID, "reserves": {}},

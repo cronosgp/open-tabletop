@@ -11,6 +11,7 @@ const CurrentNecronProfiles = preload("res://scripts/edition_11/current_referenc
 const CanoptekMacrocytes = preload("res://scripts/edition_11/canoptek_macrocytes.gd")
 const CanoptekSpyders = preload("res://scripts/edition_11/canoptek_spyders.gd")
 const CanoptekTombCrawlers = preload("res://scripts/edition_11/canoptek_tomb_crawlers.gd")
+const SilentKing = preload("res://scripts/edition_11/silent_king.gd")
 const NecronVehicleLoadouts = preload("res://scripts/edition_11/necron_vehicle_loadouts.gd")
 const ChapterRules = preload("res://scripts/edition_11/chapter_rules.gd")
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
@@ -1321,7 +1322,12 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 			if source == "lieutenant": pistol.strength = 5
 			unit.ranged_weapons.append({"id": "pistol", "profiles": {"standard": pistol}})
 		unit.melee_weapons = [{"id": "melee", "profiles": {"standard": resolved.weapons.blade.duplicate(true)}}]
-		if resolved.get("uses_current_reference", false) and source in ["overlord", "overlord-with-translocation-shroud", "lychguard", "skorpekh-lord", "lokhust-lord", "orikan-the-diviner", "plasmancer", "technomancer", "psychomancer", "chronomancer"]:
+		var current_necron_profile := CurrentNecronProfiles.profile(source) if resolved.get("uses_current_reference", false) and str(unit.get("definition_id", "")).contains(":necrons:") else {}
+		if current_necron_profile.has("transport"):
+			unit.transport_profile = current_necron_profile.transport.duplicate(true)
+		if source == "the-silent-king" and not current_necron_profile.is_empty():
+			SilentKing.prepare_model(unit, int(unit.get("saved_equipment_model_index", model % 100)), current_necron_profile)
+		if resolved.get("uses_current_reference", false) and source in ["overlord", "overlord-with-translocation-shroud", "lychguard", "skorpekh-lord", "lokhust-lord", "orikan-the-diviner", "plasmancer", "technomancer", "psychomancer", "chronomancer", "imotekh-the-stormlord", "illuminor-szeras"]:
 			var necron_profile := CurrentNecronProfiles.profile(source)
 			unit.ranged_weapons = necron_profile.get("ranged", []).duplicate(true)
 			unit.melee_weapons = necron_profile.get("melee", []).duplicate(true)
