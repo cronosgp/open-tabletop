@@ -158,7 +158,7 @@ static func advance(checkpoint: Dictionary, revision: int, roller: Callable) -> 
 		for value: int in next.effective_wounds:
 			var anti_critical := Attacks.anti_critical(value, next.weapon, next.context)
 			var passed := Attacks.successful_roll(value, target, modifier) or anti_critical
-			var is_critical := value == 6 or anti_critical
+			var is_critical := value == 6 or anti_critical or (passed and bool(next.context.get("successful_wounds_are_critical", false)))
 			wound_outcomes.append({"roll": value, "success": passed, "critical": is_critical})
 			if passed: wounds += 1
 			if is_critical: critical += 1

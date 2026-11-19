@@ -1321,6 +1321,18 @@ static func _current_loadouts(state: Dictionary, reports: Dictionary = {}) -> St
 			if source == "lieutenant": pistol.strength = 5
 			unit.ranged_weapons.append({"id": "pistol", "profiles": {"standard": pistol}})
 		unit.melee_weapons = [{"id": "melee", "profiles": {"standard": resolved.weapons.blade.duplicate(true)}}]
+		if resolved.get("uses_current_reference", false) and source in ["overlord", "overlord-with-translocation-shroud", "lychguard", "skorpekh-lord", "lokhust-lord", "orikan-the-diviner", "plasmancer", "technomancer", "psychomancer", "chronomancer"]:
+			var necron_profile := CurrentNecronProfiles.profile(source)
+			unit.ranged_weapons = necron_profile.get("ranged", []).duplicate(true)
+			unit.melee_weapons = necron_profile.get("melee", []).duplicate(true)
+			if source == "overlord-with-translocation-shroud":
+				unit.wargear = ["resurrection-orb"]
+			elif source == "overlord" and not unit.has("overlord_resurrection_orb"):
+				unit.wargear = []
+				unit.overlord_resurrection_orb = false
+			elif source == "lokhust-lord" and not unit.has("lokhust_lord_wargear"):
+				unit.wargear = []
+				unit.lokhust_lord_wargear = "none"
 		var definition_id := str(unit.get("definition_id", ""))
 		if definition_id.begins_with("40kdc:11e:necrons:") and unit.has("saved_model_equipment") and SavedEquipment.supports(definition_id):
 			if not resolved.get("uses_current_reference", false) or str(resolved.get("pack_hash", "")) != CurrentNecronProfiles.digest():

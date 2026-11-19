@@ -13,6 +13,9 @@ const ArmyProfiles = preload("res://scripts/army_profiles.gd")
 const LOKHUST_HEAVY := "40kdc:11e:necrons:lokhust-heavy-destroyers"
 const PRAETORIANS := "40kdc:11e:necrons:triarch-praetorians"
 const STALKER := "40kdc:11e:necrons:triarch-stalker"
+const OVERLORD := "40kdc:11e:necrons:overlord"
+const LYCHGUARD := "40kdc:11e:necrons:lychguard"
+const LOKHUST_LORD := "40kdc:11e:necrons:lokhust-lord"
 
 var failures := 0
 
@@ -46,19 +49,41 @@ func check_source_schemas() -> void:
 	check(SavedEquipment.supports(LOKHUST_HEAVY) and SavedEquipment.is_model_scoped(LOKHUST_HEAVY), "Lokhust Heavy Destroyer replacements are saved independently per model")
 	check(SavedEquipment.supports(PRAETORIANS) and SavedEquipment.is_model_scoped(PRAETORIANS), "Triarch Praetorian weapon packages are saved independently per model")
 	check(SavedEquipment.supports(STALKER) and not SavedEquipment.is_model_scoped(STALKER), "The one-model Triarch Stalker keeps one weapon selection for its copy")
+	check(SavedEquipment.supports(OVERLORD) and not SavedEquipment.is_model_scoped(OVERLORD), "The one-model Overlord keeps one equipment package selection for its copy")
+	check(SavedEquipment.supports(LYCHGUARD) and not SavedEquipment.is_model_scoped(LYCHGUARD), "Lychguard replaces all models' warscythes together as a copy-scoped choice")
+	check(SavedEquipment.supports(LOKHUST_LORD) and not SavedEquipment.is_model_scoped(LOKHUST_LORD), "The one-model Lokhust Lord keeps copy-scoped weapon and wargear selections")
 	check(SavedEquipment.controls(LOKHUST_HEAVY)[0].get("choices", []).map(func(choice: Dictionary) -> String: return str(choice.id)) == ["gauss-destructor", "enmitic-exterminator"], "Lokhust Heavy choices match the local source options")
 	check(SavedEquipment.controls(PRAETORIANS)[0].get("choices", []).map(func(choice: Dictionary) -> String: return str(choice.id)) == ["rod-of-covenant", "particle-caster-voidblade"], "Praetorian replacements preserve the linked ranged/melee package")
 	check(SavedEquipment.controls(STALKER)[0].get("choices", []).map(func(choice: Dictionary) -> String: return str(choice.id)) == ["heat-ray", "particle-shredder", "heavy-gauss-cannon-array"], "Stalker choices match the heat-ray replacement row")
+	check(SavedEquipment.controls(OVERLORD)[0].get("choices", []).map(func(choice: Dictionary) -> String: return str(choice.id)) == ["tachyon-arrow-and-overlords-blade", "staff-of-light", "staff-of-light-and-resurrection-orb", "voidscythe", "voidscythe-and-resurrection-orb"], "Overlord choices match all 5 source options")
+	check(SavedEquipment.controls(LYCHGUARD)[0].get("choices", []).map(func(choice: Dictionary) -> String: return str(choice.id)) == ["warscythe", "hyperphase-sword-and-dispersion-shield"], "Lychguard choices match source options")
+	check(SavedEquipment.controls(LOKHUST_LORD).size() == 2
+		and SavedEquipment.controls(LOKHUST_LORD)[0].get("choices", []).map(func(c: Dictionary) -> String: return str(c.id)) == ["staff-of-light", "lords-blade"]
+		and SavedEquipment.controls(LOKHUST_LORD)[1].get("choices", []).map(func(c: Dictionary) -> String: return str(c.id)) == ["none", "nanoscarab-amulet", "resurrection-orb"], "Lokhust Lord exposes weapon and wargear controls matching source options")
+	check(SavedEquipment.defaults(LOKHUST_LORD) == {"lokhust_lord_weapon": "staff-of-light", "lokhust_lord_wargear": "none"}, "Lokhust Lord defaults match source baseline")
+	check(SavedEquipment.valid(LOKHUST_LORD, {"lokhust_lord_weapon": "lords-blade", "lokhust_lord_wargear": "nanoscarab-amulet"}, 1)
+		and not SavedEquipment.valid(LOKHUST_LORD, {"lokhust_lord_weapon": "lords-blade"}, 1)
+		and not SavedEquipment.valid(LOKHUST_LORD, {"lokhust_lord_weapon": "lords-blade", "lokhust_lord_wargear": "invented"}, 1)
+		and not SavedEquipment.valid(LOKHUST_LORD, {"lokhust_lord_weapon": "lords-blade", "lokhust_lord_wargear": "none"}, 2), "Lokhust Lord validates both fields and rejects invalid choices or model counts")
 	check(SavedEquipment.valid(LOKHUST_HEAVY, {"lokhust_heavy_weapon": "enmitic-exterminator"}, 3)
 		and not SavedEquipment.valid(LOKHUST_HEAVY, {"lokhust_heavy_weapon": "invented"}, 3)
 		and not SavedEquipment.valid(PRAETORIANS, {"triarch_praetorian_weapon_package": "particle-caster-voidblade", "extra": true}, 5)
 		and not SavedEquipment.valid(STALKER, {"triarch_stalker_weapon": "heat-ray"}, 2), "Saved weapon validation rejects invented fields, choices and unsupported sizes")
+	check(SavedEquipment.valid(OVERLORD, {"overlord_loadout": "staff-of-light-and-resurrection-orb"}, 1)
+		and not SavedEquipment.valid(OVERLORD, {"overlord_loadout": "invented"}, 1)
+		and not SavedEquipment.valid(OVERLORD, {"overlord_loadout": "staff-of-light"}, 2), "Overlord saved equipment validates correct package and rejects invalid choices or model counts")
+	check(SavedEquipment.valid(LYCHGUARD, {"lychguard_loadout": "hyperphase-sword-and-dispersion-shield"}, 5)
+		and SavedEquipment.valid(LYCHGUARD, {"lychguard_loadout": "warscythe"}, 10)
+		and not SavedEquipment.valid(LYCHGUARD, {"lychguard_loadout": "hyperphase-sword-and-dispersion-shield"}, 3), "Lychguard saved equipment validates 5 or 10 models and rejects invalid choices or model counts")
 	var praetorian_defaults: Array = []
 	for model_index in range(5): praetorian_defaults.append(SavedEquipment.defaults_for_model(PRAETORIANS, 5, model_index))
 	check(SavedEquipment.valid_saved_loadout(PRAETORIANS, praetorian_defaults, 5), "A complete five-model default package passes model-scoped validation")
 	check(not SavedEquipment.valid_saved_loadout(PRAETORIANS, praetorian_defaults.slice(0, 4), 5), "A partial model list cannot pass saved-equipment validation")
 	check(Profiles.profile("triarch-praetorians").get("source_options", [])[0].get("implemented", false)
 		and Profiles.profile("triarch-stalker").get("source_options", [])[0].get("implemented", false), "The current Necron profile marks both newly saved source choices implemented")
+	check(Profiles.profile("overlord").get("source_options", []).all(func(option: Dictionary) -> bool: return option.get("implemented", false)), "Overlord marks both source options implemented")
+	check(Profiles.profile("lychguard").get("source_options", [])[0].get("implemented", false), "Lychguard marks shielded loadout implemented")
+	check(Profiles.profile("lokhust-lord").get("source_options", []).all(func(option: Dictionary) -> bool: return option.get("implemented", false)), "Lokhust Lord marks both source options implemented")
 
 func _configured_list() -> Dictionary:
 	var catalog := Catalog.new()
@@ -80,6 +105,22 @@ func _configured_list() -> Dictionary:
 	var stalker_entry: Dictionary = Roster.entry(stalker_choice, _option_index(stalker_choice, 1), 1)
 	check(Roster.set_model_equipment(stalker_entry, 0, 0, "triarch_stalker_weapon", "heavy-gauss-cannon-array"), "The Stalker can save its locally listed weapon replacement")
 	list.entries.append(stalker_entry)
+	var overlord_choice := Army.current_catalog_choice({"id": OVERLORD, "edition": "11e", "faction": "Necrons"})
+	overlord_choice.role = Roster.role(overlord_choice.get("keywords", []))
+	var overlord_entry: Dictionary = Roster.entry(overlord_choice, _option_index(overlord_choice, 1), 1)
+	check(Roster.set_model_equipment(overlord_entry, 0, 0, "overlord_loadout", "voidscythe-and-resurrection-orb"), "The Overlord can save its voidscythe and resurrection orb loadout")
+	list.entries.append(overlord_entry)
+	var lychguard_choice := Army.current_catalog_choice({"id": LYCHGUARD, "edition": "11e", "faction": "Necrons"})
+	lychguard_choice.role = Roster.role(lychguard_choice.get("keywords", []))
+	var lychguard_entry: Dictionary = Roster.entry(lychguard_choice, _option_index(lychguard_choice, 5), 1)
+	check(Roster.set_model_equipment(lychguard_entry, 0, 0, "lychguard_loadout", "hyperphase-sword-and-dispersion-shield"), "Lychguard can save its hyperphase sword and dispersion shield package")
+	list.entries.append(lychguard_entry)
+	var lord_choice := Army.current_catalog_choice({"id": LOKHUST_LORD, "edition": "11e", "faction": "Necrons"})
+	lord_choice.role = Roster.role(lord_choice.get("keywords", []))
+	var lord_entry: Dictionary = Roster.entry(lord_choice, _option_index(lord_choice, 1), 1)
+	check(Roster.set_model_equipment(lord_entry, 0, 0, "lokhust_lord_weapon", "lords-blade")
+		and Roster.set_model_equipment(lord_entry, 0, 0, "lokhust_lord_wargear", "nanoscarab-amulet"), "The Lokhust Lord can save its Lord's Blade and Nanoscarab Amulet loadout")
+	list.entries.append(lord_entry)
 	catalog.free()
 	return list
 
@@ -114,6 +155,9 @@ func check_reopened_profile(path: String) -> void:
 	var heavy_entry: Dictionary = saved.entries[0]
 	var praetorian_entry: Dictionary = saved.entries[1]
 	var stalker_entry: Dictionary = saved.entries[2]
+	var overlord_entry: Dictionary = saved.entries[3]
+	var lychguard_entry: Dictionary = saved.entries[4]
+	var lord_entry: Dictionary = saved.entries[5]
 	check(Roster.model_equipment(heavy_entry, 0, 0).get("lokhust_heavy_weapon", "") == "enmitic-exterminator"
 		and Roster.model_equipment(heavy_entry, 0, 2).get("lokhust_heavy_weapon", "") == "enmitic-exterminator"
 		and Roster.model_equipment(heavy_entry, 1, 0).get("lokhust_heavy_weapon", "") == "gauss-destructor",
@@ -121,6 +165,14 @@ func check_reopened_profile(path: String) -> void:
 	check(Roster.model_equipment(praetorian_entry, 0, 1).get("triarch_praetorian_weapon_package", "") == "particle-caster-voidblade"
 		and Roster.model_equipment(stalker_entry, 0, 0).get("triarch_stalker_weapon", "") == "heavy-gauss-cannon-array",
 		"The reopened Praetorian package and Stalker weapon remain independent")
+	check(Roster.model_equipment(overlord_entry, 0, 0).get("overlord_loadout", "") == "voidscythe-and-resurrection-orb",
+		"The reopened Overlord retains its voidscythe and orb loadout")
+	check(Roster.model_equipment(lychguard_entry, 0, 0).get("lychguard_loadout", "") == "hyperphase-sword-and-dispersion-shield"
+		and Roster.model_equipment(lychguard_entry, 0, 4).get("lychguard_loadout", "") == "hyperphase-sword-and-dispersion-shield",
+		"The reopened Lychguard unit models inherit the copy-scoped loadout")
+	check(Roster.model_equipment(lord_entry, 0, 0).get("lokhust_lord_weapon", "") == "lords-blade"
+		and Roster.model_equipment(lord_entry, 0, 0).get("lokhust_lord_wargear", "") == "nanoscarab-amulet",
+		"The reopened Lokhust Lord retains its Lord's Blade and Nanoscarab Amulet loadout")
 	check(Roster.validate(saved).is_empty() and TrainingRoster.inspect(saved, {}, true).get("error", "").is_empty(),
 		"The reopened Necron equipment remains valid for the current local catalog")
 
@@ -149,13 +201,23 @@ func check_workshop_controls(list: Dictionary) -> void:
 	panel._select_entry(2)
 	check(panel.per_model_equipment_controls.get_child_count() == 2
 		and panel.per_model_equipment_controls.get_child(1) is OptionButton, "The Stalker presents one saved copy-level weapon control")
+	panel._select_entry(3)
+	check(panel.per_model_equipment_controls.get_child_count() == 2
+		and panel.per_model_equipment_controls.get_child(1) is OptionButton, "The Overlord presents one saved copy-level equipment control")
+	panel._select_entry(4)
+	check(panel.per_model_equipment_controls.get_child_count() == 2
+		and panel.per_model_equipment_controls.get_child(1) is OptionButton, "The Lychguard unit presents one saved copy-level weapon control")
+	panel._select_entry(5)
+	check(panel.per_model_equipment_controls.get_child_count() == 4
+		and panel.per_model_equipment_controls.get_child(1) is OptionButton
+		and panel.per_model_equipment_controls.get_child(3) is OptionButton, "The Lokhust Lord presents two saved copy-level controls (weapon and wargear)")
 	panel.free()
 
 func check_prepared_match(list: Dictionary) -> void:
 	var inspected := TrainingRoster.inspect(list, {}, true)
 	check(inspected.get("error", "").is_empty(), "Necron equipment records pass current-catalog admission: " + str(inspected.get("error", "")))
 	if not inspected.get("error", "").is_empty(): return
-	check(int(inspected.get("total", -1)) == 520, "Weapon choices preserve the source-priced total and copy tiers")
+	check(int(inspected.get("total", -1)) == 770, "Weapon choices preserve the source-priced total and copy tiers")
 	var state: Dictionary = Prepared.initial_state(
 		{"checked_rosters": false, "official_mission": false, "unit_abilities": true},
 		{1: inspected.selection, 2: inspected.selection})
@@ -165,6 +227,9 @@ func check_prepared_match(list: Dictionary) -> void:
 	var heavy_alternates_seen := {0: 0, 1: 0}
 	var praetorian_seen := {0: 0, 1: 0}
 	var stalker_seen := {0: 0, 1: 0}
+	var overlord_seen := {0: 0, 1: 0}
+	var lychguard_seen := {0: 0, 1: 0}
+	var lord_seen := {0: 0, 1: 0}
 	for model_id: int in state.units:
 		var unit: Dictionary = state.units[model_id]
 		var definition := str(unit.get("definition_id", ""))
@@ -192,8 +257,27 @@ func check_prepared_match(list: Dictionary) -> void:
 			var weapon_id := str(unit.get("ranged_weapons", [{}])[0].get("id", ""))
 			check(weapon_id == str(equipment.get("triarch_stalker_weapon", "")) and bool(unit.get("triarch_stalker_loadout_locked", false)), "The Stalker materializes its saved weapon and locks it for the match")
 			stalker_seen[owner] += 1
+		elif definition == OVERLORD:
+			var equipment: Dictionary = unit.get("saved_model_equipment", {})
+			check(unit.get("ranged_weapons", []).is_empty() and unit.get("melee_weapons", [{}])[0].get("id", "") == "voidscythe"
+				and bool(unit.get("overlord_resurrection_orb", false)) and unit.get("wargear", []) == ["resurrection-orb"]
+				and bool(unit.get("overlord_loadout_locked", false)), "Overlord materializes voidscythe and resurrection orb loadout and locks it for match")
+			overlord_seen[owner] += 1
+		elif definition == LYCHGUARD:
+			var equipment: Dictionary = unit.get("saved_model_equipment", {})
+			check(unit.get("ranged_weapons", []).is_empty() and unit.get("melee_weapons", [{}])[0].get("id", "") == "hyperphase-sword"
+				and bool(unit.get("lychguard_dispersion_shield", false)) and bool(unit.get("lychguard_loadout_locked", false)), "Lychguard materializes sword and shield loadout and locks it for match")
+			lychguard_seen[owner] += 1
+		elif definition == LOKHUST_LORD:
+			var equipment: Dictionary = unit.get("saved_model_equipment", {})
+			check(unit.get("ranged_weapons", []).is_empty() and unit.get("melee_weapons", [{}])[0].get("id", "") == "lords-blade"
+				and str(unit.get("lokhust_lord_wargear", "")) == "nanoscarab-amulet" and unit.get("wargear", []) == ["nanoscarab-amulet"]
+				and bool(unit.get("lokhust_lord_loadout_locked", false)), "Lokhust Lord materializes Lord's Blade and Nanoscarab Amulet loadout and locks it for match")
+			lord_seen[owner] += 1
 	check(heavy_seen == {0: 6, 1: 6} and heavy_alternates_seen == {0: 2, 1: 2}
-		and praetorian_seen == {0: 5, 1: 5} and stalker_seen == {0: 1, 1: 1}, "Both players receive the complete model inventory with independent saved equipment")
+		and praetorian_seen == {0: 5, 1: 5} and stalker_seen == {0: 1, 1: 1}
+		and overlord_seen == {0: 1, 1: 1} and lychguard_seen == {0: 5, 1: 5}
+		and lord_seen == {0: 1, 1: 1}, "Both players receive the complete model inventory with independent saved equipment")
 	var frozen_army := JSON.stringify(state.saved_army_setup.armies[1])
 	var source_edit_saved := Roster.set_model_equipment(list.entries[0], 0, 0, "lokhust_heavy_weapon", "gauss-destructor")
 	var frozen_weapon_preserved := false

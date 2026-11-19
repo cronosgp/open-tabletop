@@ -169,14 +169,16 @@ static func profile(source: String) -> Dictionary:
 				]
 			},
 			"source_options": [
-				{"id": "overlord-arrow-melee-replacement", "kind": "linked_weapon_replacement_group", "replaces": ["tachyon-arrow", "overlords-blade"], "choices": [["staff-of-light-overlord"], ["voidscythe"]], "implemented": false},
-				{"id": "overlord-resurrection-orb", "kind": "conditional_wargear_addition", "item": "resurrection-orb", "condition": "tachyon-arrow-not-equipped", "implemented": false}
+				{"id": "overlord-arrow-melee-replacement", "kind": "linked_weapon_replacement_group", "replaces": ["tachyon-arrow", "overlords-blade"], "choices": [["staff-of-light-overlord"], ["voidscythe"]], "implemented": true},
+				{"id": "overlord-resurrection-orb", "kind": "conditional_wargear_addition", "item": "resurrection-orb", "condition": "tachyon-arrow-not-equipped", "implemented": true}
 			],
 			"source_ability_names": ["Leader", "Reanimation Protocols", "Resurrection Orb", "My Will Be Done", "Implacable Resilience", "One Shot"],
 			"supported_rule_ids": ["leader", "reanimation-protocols", "resurrection-orb", "my-will-be-done", "implacable-resilience", "one-shot"],
 			"source_bodyguard_datasheet_ids": ["000000534", "000000536", "000000535"],
 			"source_scope": "Necrons App v1.2",
-			"unsupported_abilities": []
+			"unsupported_abilities": [],
+			"pending_source_checks": [],
+			"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 		}
 	if source == "royal-warden":
 		return {
@@ -212,13 +214,16 @@ static func profile(source: String) -> Dictionary:
 			"unsupported_abilities": []
 		}
 	if source == "orikan-the-diviner":
-		return _record("orikan-the-diviner", "Orikan The Diviner", "000000530", "Orikan-The-Diviner", {1: 90}, 1, 40,
+		var orikan := _record("orikan-the-diviner", "Orikan The Diviner", "000000530", "Orikan-The-Diviner", {1: 90}, 1, 40,
 			{"movement_inches": 5, "toughness": 4, "save_target": 4, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
 			["NECRONS", "INFANTRY", "CHARACTER", "EPIC HERO", "CRYPTEK", "CHRONOMANCER", "ORIKAN THE DIVINER"], [],
 			[{"id": "staff-of-tomorrow", "profiles": {"standard": _weapon("Staff of Tomorrow", 0.0, 2, 3, 4, -3, "D3", {"devastating-wounds": true})}}],
 			["Support", "Reanimation Protocols", "Master Chronomancer", "The Stars Are Right"],
-			["support"], ["Reanimation Protocols", "Master Chronomancer", "The Stars Are Right"], [],
+			["support", "reanimation-protocols", "master-chronomancer", "the-stars-are-right"], [], [],
 			["000000534", "000000535"], [])
+		orikan.pending_source_checks = []
+		orikan.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return orikan
 	if source == "trazyn-the-infinite":
 		var trazyn := _record("trazyn-the-infinite", "Trazyn The Infinite", "000000532", "Trazyn-The-Infinite", {1: 60}, 1, 25,
 			{"movement_inches": 5, "toughness": 5, "save_target": 2, "wounds": 6, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
@@ -229,15 +234,22 @@ static func profile(source: String) -> Dictionary:
 			[], ["000000534", "000000536", "000000535"], [])
 		return trazyn
 	if source == "lychguard":
-		return _record("lychguard", "Lychguard", "000000536", "Lychguard", {5: 80, 10: 160}, 5, 32,
+		var lychguard := _record("lychguard", "Lychguard", "000000536", "Lychguard", {5: 80, 10: 160}, 5, 32,
 			{"movement_inches": 5, "toughness": 5, "save_target": 3, "wounds": 2, "leadership_target": 7, "objective_control": 1, "invulnerable_target": 0},
 			["NECRONS", "INFANTRY", "LYCHGUARD"],
+			[],
 			[{"id": "warscythe", "profiles": {"standard": _weapon("Warscythe", 0.0, 2, 3, 8, -3, 2, {"devastating-wounds": true})}}],
-			[{"id": "hyperphase-sword", "profiles": {"standard": _weapon("Hyperphase sword", 0.0, 3, 3, 6, -2, 1, {})}}],
-			["Reanimation Protocols", "Dispersion Shield", "Guardian Protocols"], [],
 			["Reanimation Protocols", "Dispersion Shield", "Guardian Protocols"],
+			["reanimation-protocols", "dispersion-shield", "guardian-protocols"],
+			[],
 			["000000522", "000000523", "000000524", "000000527", "000000528", "000000532", "000003693"], [],
-			[{"id": "lychguard-shielded-loadout", "kind": "replace_all_warscythes_with_swords_and_shields", "grants": "dispersion-shield", "implemented": false}])
+			[{"id": "lychguard-shielded-loadout", "kind": "replace_all_warscythes_with_swords_and_shields", "grants": "dispersion-shield", "implemented": true}])
+		lychguard.additional_weapon_profiles = {
+			"melee": [{"id": "hyperphase-sword", "profiles": {"standard": _weapon("Hyperphase sword", 0.0, 3, 3, 6, -2, 1, {})}}]
+		}
+		lychguard.pending_source_checks = []
+		lychguard.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return lychguard
 	if source == "deathmarks":
 		return _record("deathmarks", "Deathmarks", "000000537", "Deathmarks", {5: 60, 10: 120}, 5, 32,
 			{"movement_inches": 5, "toughness": 5, "save_target": 3, "wounds": 1, "leadership_target": 7, "objective_control": 1, "invulnerable_target": 0},
@@ -482,15 +494,19 @@ static func profile(source: String) -> Dictionary:
 			["Feel No Pain 4+", "Reanimation Protocols", "Illuminor", "Mechanical Augmentation (Aura)", "Atomic Energy Manipulator"], [],
 			["Feel No Pain 4+", "Reanimation Protocols", "Illuminor", "Mechanical Augmentation (Aura)", "Atomic Energy Manipulator"], [], [])
 	if source == "plasmancer":
-		return _record("plasmancer", "Plasmancer", "000002108", "Plasmancer", {1: 60}, 1, 32,
+		var plasmancer := _record("plasmancer", "Plasmancer", "000002108", "Plasmancer", {1: 60}, 1, 32,
 			{"movement_inches": 5, "toughness": 4, "save_target": 4, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 			["NECRONS", "INFANTRY", "CHARACTER", "CRYPTEK", "PLASMANCER"],
 			[{"id": "plasmic-lance", "profiles": {"standard": _weapon("Plasmic lance", 18.0, 3, 4, 7, -3, 2, {})}}],
 			[{"id": "plasmic-lance", "profiles": {"standard": _weapon("Plasmic lance", 0.0, 2, 4, 7, -3, 2, {})}}],
-			["Support", "Reanimation Protocols", "Harbinger of Destruction", "Living Lightning"], ["support"],
-			["Reanimation Protocols", "Harbinger of Destruction", "Living Lightning"], [], ["000000534", "000000535"])
+			["Support", "Reanimation Protocols", "Harbinger of Destruction", "Living Lightning"],
+			["support", "reanimation-protocols", "harbinger-of-destruction", "living-lightning"],
+			[], [], ["000000534", "000000535"])
+		plasmancer.pending_source_checks = []
+		plasmancer.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return plasmancer
 	if source == "skorpekh-lord":
-		return _record("skorpekh-lord", "Skorpekh Lord", "000002109", "Skorpekh-Lord", {1: 95}, 1, 60,
+		var skorpekh_lord := _record("skorpekh-lord", "Skorpekh Lord", "000002109", "Skorpekh-Lord", {1: 95}, 1, 60,
 			{"movement_inches": 8, "toughness": 7, "save_target": 3, "wounds": 7, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 4},
 			["NECRONS", "SKORPEKH LORD", "CHARACTER", "INFANTRY", "DESTROYER CULT"],
 			[{"id": "enmitic-annihilator", "profiles": {"standard": _weapon("Enmitic annihilator", 18.0, 2, 2, 6, -1, 1, {"rapid-fire": 2})}}],
@@ -498,47 +514,65 @@ static func profile(source: String) -> Dictionary:
 				{"id": "flensing-claw", "profiles": {"standard": _weapon("Flensing claw", 0.0, 8, 2, 6, -1, 1, {})}},
 				{"id": "hyperphase-harvester", "profiles": {"standard": _weapon("Hyperphase harvester", 0.0, 4, 2, 10, -3, 3, {})}}
 			],
-			["Leader", "Reanimation Protocols", "United in Destruction", "Crimson Harvest"], ["leader"], ["Reanimation Protocols", "United in Destruction", "Crimson Harvest"], [], ["000002110"], [], {1: 105})
+			["Leader", "Reanimation Protocols", "United in Destruction", "Crimson Harvest"], ["leader", "reanimation-protocols", "united-in-destruction", "crimson-harvest"], [], [], ["000002110"], [], {1: 105})
+		skorpekh_lord.pending_source_checks = []
+		skorpekh_lord.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return skorpekh_lord
 	if source == "lokhust-lord":
 		var lokhust_lord := _record("lokhust-lord", "Lokhust Lord", "000002351", "Lokhust-Lord", {1: 80}, 1, 60,
 			{"movement_inches": 8, "toughness": 6, "save_target": 3, "wounds": 6, "leadership_target": 6, "objective_control": 2, "invulnerable_target": 4},
 			["NECRONS", "FLY", "MOUNTED", "CHARACTER", "DESTROYER CULT", "LOKHUST LORD"],
 			[{"id": "staff-of-light-lokhust-lord", "profiles": {"standard": _weapon("Staff of light", 18.0, 3, 2, 5, -2, 1, {})}}],
 			[{"id": "staff-of-light-lokhust-lord", "profiles": {"standard": _weapon("Staff of light", 0.0, 4, 2, 5, -2, 1, {})}}],
-			["Leader", "Reanimation Protocols", "Nanoscarab Amulet", "Resurrection Orb", "Destroyer Cult", "Driven by Hatred"], ["leader"],
-			["Reanimation Protocols", "Nanoscarab Amulet", "Resurrection Orb", "Destroyer Cult", "Driven by Hatred"], [], ["000002116", "000002359"], [
-			{"id": "lokhust-lord-staff-replacement", "kind": "linked-weapon-replacement", "from": ["staff-of-light-ranged", "staff-of-light-melee"], "to": ["lords-blade"], "implemented": false},
-			{"id": "lokhust-lord-wargear", "kind": "select-one-wargear", "choices": ["nanoscarab-amulet", "resurrection-orb"], "implemented": false}
+			["Leader", "Reanimation Protocols", "Nanoscarab Amulet", "Resurrection Orb", "Destroyer Cult", "Driven by Hatred"],
+			["leader", "reanimation-protocols", "nanoscarab-amulet", "resurrection-orb", "destroyer-cult", "driven-by-hatred"], [], [], ["000002116", "000002359"], [
+			{"id": "lokhust-lord-staff-replacement", "kind": "linked-weapon-replacement", "from": ["staff-of-light-ranged", "staff-of-light-melee"], "to": ["lords-blade"], "implemented": true},
+			{"id": "lokhust-lord-wargear", "kind": "select-one-wargear", "choices": ["nanoscarab-amulet", "resurrection-orb"], "implemented": true}
 		])
 		lokhust_lord.additional_weapon_profiles = {"melee": [{"id": "lords-blade", "profiles": {"standard": _weapon("Lord’s blade", 0.0, 4, 2, 8, -3, 2, {"devastating-wounds": true})}}]}
+		lokhust_lord.pending_source_checks = []
+		lokhust_lord.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
 		return lokhust_lord
 	if source == "technomancer":
-		return _record("technomancer", "Technomancer", "000002352", "Technomancer", {1: 80}, 1, 50,
+		var technomancer := _record("technomancer", "Technomancer", "000002352", "Technomancer", {1: 80}, 1, 50,
 			{"movement_inches": 10, "toughness": 4, "save_target": 4, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 			["NECRONS", "FLY", "INFANTRY", "CHARACTER", "CRYPTEK", "TECHNOMANCER"],
 			[{"id": "staff-of-light-technomancer", "profiles": {"standard": _weapon("Staff of light", 18.0, 3, 4, 5, -2, 1, {})}}],
 			[{"id": "staff-of-light-technomancer", "profiles": {"standard": _weapon("Staff of light", 0.0, 2, 4, 5, -2, 1, {})}}],
-			["Support", "Reanimation Protocols", "Rites of Reanimation", "Technomancer"], ["support"], ["Reanimation Protocols", "Rites of Reanimation", "Technomancer"], [],
+			["Support", "Reanimation Protocols", "Rites of Reanimation", "Technomancer"],
+			["support", "reanimation-protocols", "rites-of-reanimation", "technomancer"], [], [],
 			["000000534", "000000535", "000000546"], [], {1: 90})
+		technomancer.second_plus_points_by_models = {1: 90}
+		technomancer.pending_source_checks = []
+		technomancer.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return technomancer
 	if source == "psychomancer":
-		return _record("psychomancer", "Psychomancer", "000002353", "Psychomancer", {1: 65}, 1, 40,
+		var psychomancer := _record("psychomancer", "Psychomancer", "000002353", "Psychomancer", {1: 65}, 1, 40,
 			{"movement_inches": 5, "toughness": 4, "save_target": 4, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 0},
 			["NECRONS", "PSYCHOMANCER", "INFANTRY", "CHARACTER", "CRYPTEK"],
 			[{"id": "abyssal-lance", "profiles": {"standard": _weapon("Abyssal lance", 18.0, 1, 4, 6, -3, 3, {})}}],
 			[{"id": "abyssal-lance", "profiles": {"standard": _weapon("Abyssal lance", 0.0, 1, 4, 6, -3, 3, {})}}],
-			["Support", "Reanimation Protocols", "Nightmare Shroud (Aura)", "Harbinger of Despair"], ["support"], ["Reanimation Protocols", "Nightmare Shroud (Aura)", "Harbinger of Despair"], [],
+			["Support", "Reanimation Protocols", "Nightmare Shroud (Aura)", "Harbinger of Despair"],
+			["support", "reanimation-protocols", "nightmare-shroud", "harbinger-of-despair"], [], [],
 			["000000534", "000000535"])
+		psychomancer.pending_source_checks = []
+		psychomancer.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
+		return psychomancer
 	if source == "chronomancer":
 		var chronomancer := _record("chronomancer", "Chronomancer", "000002354", "Chronomancer", {1: 70}, 1, 40,
 			{"movement_inches": 5, "toughness": 4, "save_target": 4, "wounds": 4, "leadership_target": 6, "objective_control": 1, "invulnerable_target": 4},
 			["NECRONS", "CHARACTER", "INFANTRY", "CHRONOMANCER", "CRYPTEK"],
 			[{"id": "aeonstave", "profiles": {"standard": _weapon("Aeonstave", 18.0, "D6", 4, 5, -1, 1, {"blast": true})}}],
 			[{"id": "aeonstave", "profiles": {"standard": _weapon("Aeonstave", 0.0, 3, 4, 5, -1, 1, {})}}],
-			["Support", "Reanimation Protocols", "Timesplinter Mantle", "Chronometron"], ["support"], ["Reanimation Protocols", "Timesplinter Mantle", "Chronometron"], [],
+			["Support", "Reanimation Protocols", "Timesplinter Mantle", "Chronometron"],
+			["support", "reanimation-protocols", "stealth", "timesplinter-mantle", "chronometron"], [], [],
 			["000000534", "000000535"], [], {1: 80})
+		chronomancer.second_plus_points_by_models = {1: 80}
 		chronomancer.source_loadout_label = "Chronomancer’s stave"
 		chronomancer.source_wargear_table_label = "Aeonstave"
 		chronomancer.source_label_note = "The local export and current App page both use Chronomancer’s stave in composition text and Aeonstave in the weapon table; runtime profile keys the weapon-table entry."
+		chronomancer.pending_source_checks = []
+		chronomancer.source_profile_readiness = "source_bounded_local_scope_passed_2026_11_12"
 		return chronomancer
 	if source != "necron-warriors": return {}
 	return {

@@ -7,7 +7,7 @@ This review maps all local equipment-option rows for ten admitted Necron profile
 - Edition and source: Warhammer 40,000 11th edition, local Wahapedia Data Export, Necrons App (`Source.csv` edition `11`).
 - Runtime-bound snapshot: `20261031T053336Z`, export revision `2026-10-30T22:19:16+03:00`, retrieved `2026-10-31T05:34:28.395103+00:00`.
 - Parent manifest SHA-256: `e292e43a4dc90ed529c60ac988d7f3351ae287a6bdfa8b85e9c818806b9020ef`.
-- Current Necrons runtime-catalog digest: `4c0a1cd8edba1fef54a92c613db5ee6e421681dc11b144c43461053fb5184982`. The source snapshot and raw tables did not change; this rebind follows the expanded runtime catalog.
+- Current Necrons runtime-catalog digest: `a85580118d8a86d324cf32c1da38ed3f38ff13f52022496f81320934327f995d`. The source snapshot and raw tables did not change; this rebind follows the expanded runtime catalog.
 - Relevant raw-file hashes, matched to that manifest:
   - `Source.csv`: `1b9d28d0d8c8c47746088e5f778afe1b4eb39a7e3ac35a7a8d4cce3a276ad9a9`
   - `Datasheets.csv`: `39ce33b9f3031ca127f6e94a5d1039bafa01c93f843008623b54731f397afb9c`
@@ -57,6 +57,22 @@ The source replaces each Rod of Covenant with the linked Particle Caster and Voi
 
 The source replaces the Heat Ray with either a Particle Shredder or Heavy Gauss Cannon Array. The `triarch_stalker_weapon` field stores the copy-level selection.
 
+### Overlord — `000000523`
+
+Two source options replace the Tachyon Arrow and Overlord's Blade with a Staff of Light or Voidscythe, and conditionally add a Resurrection Orb. The `overlord_loadout` field stores that copy-level equipment package.
+
+### Lychguard — `000000536`
+
+The source's one option replaces all models' Warscythes with Hyperphase Swords and Dispersion Shields. The `lychguard_loadout` field stores that copy-level unit choice.
+
+### Overlord with Translocation Shroud — `000003693`
+
+Verified local Wahapedia 11e App book 000000029 v1.2; snapshot 20261031T053336Z, export revision 2026-10-30T22:19:16+03:00. Nonempty default equipment (Overlord's blade + resurrection orb) and 0 source-listed option rows (`fixed_equipment_no_options`).
+
+### Lokhust Lord — `000002351`
+
+Two source options replace the Staff of Light with a Lord's Blade, and add either a Nanoscarab Amulet or Resurrection Orb. The `lokhust_lord_weapon` and `lokhust_lord_wargear` fields cover both choices.
+
 ## Conclusion
 
-All fourteen source option rows map to the ten exact saved-field sets. The seven existing schemas were rebound to the expanded runtime catalog digest; all ten retain the same source snapshot and manifest. No alternate export was substituted. The new saved-equipment path passed its focused offline regression, recorded in the [verification results](verification-results.md#necron-saved-equipment-extension-and-review-refresh--15-november-2026). The wider export's 68 structural findings remain outside this audit.
+All seventeen source option rows map to the twelve exact saved-field sets, alongside the fixed-equipment Overlord with translocation shroud. The existing schemas were rebound to the expanded runtime catalog digest; all thirteen retain the same source snapshot and manifest. No alternate export was substituted. The new saved-equipment path passed its focused offline regression, recorded in the [verification results](verification-results.md#necron-saved-equipment-extension-and-review-refresh--15-november-2026). The wider export's 68 structural findings remain outside this audit.

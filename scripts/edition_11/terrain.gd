@@ -251,6 +251,16 @@ static func take_to_skies_active(state: Dictionary, model_id: int) -> bool:
 	var pending_contact: Dictionary = state.get("pending_contact", {})
 	return str(pending_contact.get("kind", "")) == "charge" and int(pending_contact.get("squad", -1)) == squad and bool(pending_contact.get("take_to_skies", false))
 
+static func translocation_shroud_active(state: Dictionary, model_id: int) -> bool:
+	if not state.get("units", {}).has(model_id): return false
+	var model: Dictionary = state.units[model_id]
+	var squad := int(model.get("squad", -1))
+	var pending_move: Dictionary = state.get("pending_move", {})
+	if int(pending_move.get("squad", -1)) != squad: return false
+	if str(pending_move.get("move_type", "")) not in ["normal", "advance", "ordered_retreat", "desperate_escape"]: return false
+	var AbilityCatalog = load("res://scripts/edition_11/unit_ability_catalog.gd")
+	return AbilityCatalog.has(state, squad, "translocation-shroud")
+
 static func ignores_vertical_movement(state: Dictionary, model_id: int) -> bool:
 	if not state.get("units", {}).has(model_id): return false
 	var model: Dictionary = state.units[model_id]
@@ -286,6 +296,7 @@ static func segment_hits(first: Vector2, last: Vector2, rect: Rect2) -> bool:
 static func movement_obstacles(state: Dictionary, model: int) -> Array[Rect2]:
 	var blocked: Array[Rect2] = []
 	if take_to_skies_active(state, model): return blocked
+	if translocation_shroud_active(state, model): return blocked
 	var passes_dense := has_keyword(state.units[model], ["infantry", "beasts", "swarm"]) or mobile_unit(state, model)
 	for area: Dictionary in areas(state):
 		for feature: Dictionary in area.features:

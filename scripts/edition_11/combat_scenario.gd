@@ -380,7 +380,7 @@ static func resolve_command_reaction(state: Dictionary, player: int, squad: int,
 	if not profile.error.is_empty(): return profile.error
 	var result: Dictionary
 	if stratagem.is_empty():
-		result = Morale.roll_battle_shock(state, squad, roller)
+		result = Morale.roll_battle_shock(state, squad, roller, Morale.command_battle_shock_modifier(state, squad))
 		if not result.error.is_empty(): return result.error
 		if MarineEnhancements.leadership_reroll_available(state, squad):
 			var staged := state.duplicate(true)
@@ -816,6 +816,11 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 		return ""
 	var draft := _movement_draft(state, squad, move_type, take_to_skies)
 	if transdimensional_displacement: draft.transdimensional_displacement = true
+	if move_type == "advance" and UnitAbilities.has(state, squad, "translocation-shroud") and not transdimensional_displacement:
+		if use_sudden_onslaught: return "Translocation Shroud already adds 6 inches to Move when this unit Advances without making an Advance roll."
+		draft.translocation_shroud_advance = true
+		draft.raw_bonus = 6
+		draft.bonus = 6 + UnitAbilities.advance_modifier(state, squad) + Doctrines.advance_bonus(state, squad)
 	if move_type == "advance" and UnitAbilities.has(state, squad, "wind-walker"):
 		if use_sudden_onslaught: return "Wind Walker already changes this Advance roll to 6."
 		draft.wind_walker_to_six = true
@@ -827,7 +832,7 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 		state.unit_abilities.veil_of_time_pending.erase(squad)
 	var fortification_hazard_auto_pass := move_type == "desperate_escape" and Fortifications.fall_back_hazard_auto_pass(state, squad)
 	draft.fortification_hazard_auto_pass = fortification_hazard_auto_pass
-	if (move_type == "advance" or (move_type == "desperate_escape" and not fortification_hazard_auto_pass)) and not use_sudden_onslaught:
+	if (move_type == "advance" or (move_type == "desperate_escape" and not fortification_hazard_auto_pass)) and not use_sudden_onslaught and not draft.get("translocation_shroud_advance", false):
 		if not roller.is_valid(): return "This move requires host dice."
 		var dice := Attacks.Dice.new(roller)
 		if move_type == "advance": draft.bonus = dice.d6()
@@ -850,7 +855,7 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 		var sudden_modifier := UnitAbilities.advance_modifier(state, squad) + Doctrines.advance_bonus(state, squad)
 		draft.bonus += sudden_modifier
 		state.last_command_roll = {"kind": "after_advance_roll", "squad": squad, "original_rolls": [], "rolls": [6], "rerolled": false, "source": DetachmentStratagems.SUDDEN_ONSLAUGHT}
-	elif move_type == "advance":
+	elif move_type == "advance" and not draft.get("translocation_shroud_advance", false):
 		var opened := Stratagems.open_roll(state, player, squad, "after_advance_roll", [draft.bonus], draft, Doctrines.wrath_of_the_chapter(state, squad))
 		if DetachmentStratagems.sudden_led_advance(state, squad):
 			if opened: state.stratagems.pending.sudden = true
@@ -901,7 +906,9 @@ static func begin_movement(state: Dictionary, player: int, model: int, move_type
 		var suspend_error := _suspend_movement_frame(state, squad, "escape-wound-allocation")
 		if not suspend_error.is_empty(): return suspend_error
 	var message := "%s selected %s." % [state.squads[squad].name, move_type.replace("_", " ")]
-	if move_type == "advance": message += " Advance %s: %d inches." % ["roll: 6 (Sudden Onslaught, 1 CP)" if use_sudden_onslaught else "roll", draft.bonus]
+	if move_type == "advance":
+		if draft.get("translocation_shroud_advance", false): message += " Advance +%d inches (Translocation Shroud)." % draft.bonus
+		else: message += " Advance %s: %d inches." % ["roll: 6 (Sudden Onslaught, 1 CP)" if use_sudden_onslaught else "roll", draft.bonus]
 	if move_type == "desperate_escape" and fortification_hazard_auto_pass: message += " Its Desperate Escape Hazard rolls automatically pass because it is engaged only with FORTIFICATION units."
 	elif move_type == "desperate_escape": message += " Hazard rolls: %s; allocate %d mortal wounds before moving." % [str(draft.hazard_rolls), state.pending_move.hazard_remaining]
 	if take_to_skies:

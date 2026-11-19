@@ -5572,22 +5572,10 @@ const SOURCE_PROFILE_DATA := {
 		"source_damaged_description": "",
 		"source_transport_text": "",
 		"source_unmapped_weapon_traits": [],
-		"supported_rule_ids": ["reanimation-protocols"],
-		"unsupported_abilities": [
-			"Leader",
-			"Resurrection Orb",
-			"My Will Be Done",
-			"Translocation Shroud"
-		],
-		"pending_source_checks": [
-			"default equipment mapping",
-			"all listed weapon rules",
-			"all datasheet abilities",
-			"every source option",
-			"profile and roster interaction checks",
-			"source default equipment mapping requires reconciliation"
-		],
-		"source_profile_readiness": "source_facts_transcribed_implementation_pending"
+		"supported_rule_ids": ["leader", "reanimation-protocols", "resurrection-orb", "my-will-be-done", "translocation-shroud"],
+		"unsupported_abilities": [],
+		"pending_source_checks": [],
+		"source_profile_readiness": "source_bounded_local_scope_passed_2026_11_12"
 	},
 	"tesseract-vault": {
 		"name": "Tesseract Vault",

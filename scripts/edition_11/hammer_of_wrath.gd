@@ -7,6 +7,8 @@ const DetachmentStratagems = preload("res://scripts/edition_11/detachment_strata
 const ID := "hammer-of-wrath"
 const MORTAL_WINDOW := "hammer-of-wrath-mortal"
 const ARMOURED_IMPACT_MORTAL := "gravis-armoured-impact-mortal"
+const CRIMSON_HARVEST := "crimson-harvest"
+const CRIMSON_HARVEST_MORTAL := "crimson-harvest-mortal"
 
 static func engaged_models(state: Dictionary, squad: int, target: int) -> Array[int]:
 	var result: Array[int] = []
@@ -26,10 +28,28 @@ static func eligible_targets(state: Dictionary, squad: int) -> Array[int]:
 	result.sort()
 	return result
 
+static func crimson_harvest_targets(state: Dictionary, squad: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for model: int in Abilities.sources(state, squad, CRIMSON_HARVEST):
+		var unit: Dictionary = state.units[model]
+		for target: int in state.squads:
+			if state.squads[target].owner == state.squads[squad].owner: continue
+			var enemies := Geometry.alive(state, target)
+			if enemies.is_empty(): continue
+			var engaged := false
+			for enemy: int in enemies:
+				if Geometry.within_engagement(unit, state.units[enemy]):
+					engaged = true
+					break
+			if engaged:
+				result.append({"model": model, "target": target})
+	return result
+
 static func charge_completed(state: Dictionary, player: int, squad: int) -> bool:
 	if not state.has("unit_abilities") or not state.squads.has(squad) or state.squads[squad].owner != player: return false
 	var ability_targets := eligible_targets(state, squad)
-	state.unit_abilities.window = {"kind": ID, "owners": [player], "squad": squad, "targets": ability_targets, "armoured_impact_targets": [], "wrath_targets": []}
+	var crimson_targets := crimson_harvest_targets(state, squad)
+	state.unit_abilities.window = {"kind": ID, "owners": [player], "squad": squad, "targets": ability_targets, "armoured_impact_targets": [], "wrath_targets": [], "crimson_harvest_targets": crimson_targets}
 	var impact_targets: Array[int] = []
 	if DetachmentStratagems.gravis_unit(state, squad):
 		for target: int in state.squads:
@@ -40,17 +60,20 @@ static func charge_completed(state: Dictionary, player: int, squad: int) -> bool
 		for target: int in state.squads:
 			if state.squads[target].owner == player or engaged_models(state, squad, target).is_empty(): continue
 			if DetachmentStratagems.error(state, player, squad, DetachmentStratagems.INNER_CIRCLE_WRATH_OF_THE_LION, -1, -1, target).is_empty(): wrath_targets.append(target)
-	if ability_targets.is_empty() and impact_targets.is_empty() and wrath_targets.is_empty():
+	if ability_targets.is_empty() and impact_targets.is_empty() and wrath_targets.is_empty() and crimson_targets.is_empty():
 		state.unit_abilities.window = {}
 		return false
 	state.unit_abilities.window.armoured_impact_targets = impact_targets
 	state.unit_abilities.window.wrath_targets = wrath_targets
+	state.unit_abilities.window.crimson_harvest_targets = crimson_targets
 	return true
 
 static func choices(state: Dictionary, player: int) -> Array:
 	var window: Dictionary = state.get("unit_abilities", {}).get("window", {})
 	if window.get("kind", "") != ID or window.get("owners", []).is_empty() or window.owners[0] != player: return []
-	var result: Array = [{"label": "Skip optional post-charge effects", "action": "hammer-of-wrath-pass", "model": -1, "target": -1, "value": "pass"}]
+	var result: Array = []
+	if window.get("crimson_harvest_targets", []).is_empty():
+		result.append({"label": "Skip optional post-charge effects", "action": "hammer-of-wrath-pass", "model": -1, "target": -1, "value": "pass"})
 	for target: int in window.get("targets", []):
 		var count := engaged_models(state, int(window.squad), target).size()
 		if count > 0: result.append({"label": "Hammer of Wrath: resolve against %s (%d engaged models)" % [state.squads[target].name, count], "action": ID, "model": -1, "target": target, "value": ID})
@@ -64,6 +87,8 @@ static func choices(state: Dictionary, player: int) -> Array:
 		if count > 0:
 			var cost := maxi(0, 1 - Abilities.discount(state, player, int(window.squad)))
 			result.append({"label": "Wrath of the Lion: roll %d D6 against %s (1 mortal wound on 3+, maximum 6; %d CP)" % [count, state.squads[target].name, cost], "action": "inner-circle-wrath-of-the-lion", "model": -1, "target": int(window.squad), "value": DetachmentStratagems.INNER_CIRCLE_WRATH_OF_THE_LION, "details": {"enemy_squad": target}})
+	for entry: Dictionary in window.get("crimson_harvest_targets", []):
+		result.append({"label": "Crimson Harvest: Skorpekh Lord %d vs %s" % [int(entry.model), state.squads[int(entry.target)].name], "action": CRIMSON_HARVEST, "model": int(entry.model), "target": int(entry.target), "value": CRIMSON_HARVEST})
 	return result
 
 static func skip(state: Dictionary, player: int, selected: Dictionary) -> String:
@@ -74,6 +99,7 @@ static func skip(state: Dictionary, player: int, selected: Dictionary) -> String
 	return ""
 
 static func resolve(state: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
+	if str(selected.get("action", "")) == CRIMSON_HARVEST: return resolve_crimson_harvest(state, player, selected, roller)
 	if str(selected.get("action", "")) == "gravis-armoured-impact": return resolve_armoured_impact(state, player, selected, roller)
 	if str(selected.get("action", "")) == "inner-circle-wrath-of-the-lion": return resolve_wrath_of_the_lion(state, player, selected, roller)
 	if selected not in choices(state, player): return {"error": "Choose an enemy unit currently engaged with this charging unit."}
@@ -153,4 +179,43 @@ static func resolve_wrath_of_the_lion(state: Dictionary, player: int, selected: 
 		state.unit_abilities.window = {"kind": Reactions.WRATH_OF_THE_LION_MORTAL, "owners": [state.squads[target].owner], "target": target}
 	var result_text := "%d mortal wound%s" % [mortal_wounds, "" if mortal_wounds == 1 else "s"]
 	return {"error": "", "message": "Wrath of the Lion rolled %s; %s against %s." % [str(rolls), result_text, state.squads[target].name]}
+
+static func resolve_crimson_harvest(state: Dictionary, player: int, selected: Dictionary, roller: Callable) -> Dictionary:
+	if selected not in choices(state, player): return {"error": "Choose an enemy unit currently engaged with this Skorpekh Lord."}
+	if not roller.is_valid(): return {"error": "Crimson Harvest requires the host's D6 provider."}
+	var window: Dictionary = state.unit_abilities.window
+	var squad := int(window.get("squad", -1))
+	var model := int(selected.get("model", -1))
+	var target := int(selected.get("target", -1))
+	var die: Variant = roller.call()
+	if not die is int or die < 1 or die > 6: return {"error": "Crimson Harvest dice must be integers from 1 to 6."}
+	var d6: int = int(die)
+	var d3_raw := 0
+	var d3 := 0
+	var mortal_wounds := 0
+	if d6 >= 2:
+		var d3_die: Variant = roller.call()
+		if not d3_die is int or d3_die < 1 or d3_die > 6: return {"error": "Crimson Harvest dice must be integers from 1 to 6."}
+		d3_raw = int(d3_die)
+		d3 = ceili(float(d3_raw) / 2.0)
+		mortal_wounds = d3 + (3 if d6 == 6 else 0)
+	state.last_crimson_harvest = {
+		"squad": squad,
+		"model": model,
+		"target": target,
+		"d6": d6,
+		"d3_raw": d3_raw,
+		"d3": d3,
+		"mortal_wounds": mortal_wounds,
+		"remaining": mortal_wounds,
+		"allocations": [],
+		"discarded": 0
+	}
+	if mortal_wounds == 0:
+		state.unit_abilities.window = {}
+		Reactions.charge_completed(state, player, squad)
+	else:
+		state.unit_abilities.window = {"kind": CRIMSON_HARVEST_MORTAL, "owners": [state.squads[target].owner], "target": target}
+	var result_text := "%d mortal wound%s" % [mortal_wounds, "" if mortal_wounds == 1 else "s"]
+	return {"error": "", "message": "Crimson Harvest rolled %d; %s against %s." % [d6, result_text, state.squads[target].name]}
 

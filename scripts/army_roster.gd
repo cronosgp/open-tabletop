@@ -682,11 +682,13 @@ static func set_model_visual_override(item: Dictionary, copy_index: int, model_i
 static func model_equipment(item: Dictionary, copy_index: int, model_index: int) -> Dictionary:
 	var models := int(item.get("models", 0))
 	if copy_index < 0 or copy_index >= int(item.get("copies", 0)) or model_index < 0 or model_index >= models: return {}
-	var stable_id := model_instance_id(item, copy_index, model_index)
+	var saved_definition := str(item.get("unit_id", item.get("definition_id", "")))
+	var lookup_model_index := model_index
+	if SavedEquipment.supports(saved_definition) and not SavedEquipment.is_model_scoped(saved_definition): lookup_model_index = 0
+	var stable_id := model_instance_id(item, copy_index, lookup_model_index)
 	var by_model: Variant = item.get("model_equipment_by_id", {})
 	if not stable_id.is_empty() and by_model is Dictionary and by_model.has(stable_id) and by_model[stable_id] is Dictionary:
 		return by_model.get(stable_id, {}).duplicate(true)
-	var saved_definition := str(item.get("unit_id", item.get("definition_id", "")))
 	if SavedEquipment.supports(saved_definition):
 		return SavedEquipment.defaults_for_model(saved_definition, models, model_index) if SavedEquipment.is_model_scoped(saved_definition) else SavedEquipment.defaults(saved_definition)
 	if str(item.get("unit_id", item.get("definition_id", ""))).ends_with(":eliminator-squad") and model_index >= 0 and model_index < int(item.get("models", 0)):

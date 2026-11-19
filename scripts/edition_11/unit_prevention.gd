@@ -9,6 +9,7 @@ const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd
 const CanoptekSpyders = preload("res://scripts/edition_11/canoptek_spyders.gd")
 const NecronConvergence = preload("res://scripts/edition_11/necron_convergence_of_dominion.gd")
 const NecronCryptothralls = preload("res://scripts/edition_11/necron_cryptothralls.gd")
+const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const GRANTS := {
 	"chaplain-grimaldus": [{"target": 5, "against": "any"}],
 	"death-company-dreadnought": [{"target": 6, "against": "any"}],
@@ -80,6 +81,12 @@ static func rules(state: Dictionary, model: int) -> Variant:
  if _seeker_active(state, model):
   var seeker_fnp := {"target": 4, "against": "any"}
   if seeker_fnp not in result: result.append(seeker_fnp)
+ if AbilityCatalog.enabled(state) and model in AbilityCatalog.sources(state, int(state.units[model].get("squad", -1)), "nanoscarab-amulet"):
+  var nanoscarab_fnp := {"target": 5, "against": "any"}
+  if nanoscarab_fnp not in result: result.append(nanoscarab_fnp)
+ if UnitAbilities.enabled(state) and UnitAbilities.leading(state, int(state.units[model].get("squad", -1)), "rites-of-reanimation"):
+  var rites_fnp := {"target": 5, "against": "any"}
+  if rites_fnp not in result: result.append(rites_fnp)
  for rule: Dictionary in NecronCryptothralls.bound_creation_grants(state, model):
   if rule not in result: result.append(rule.duplicate())
  squad = int(state.units[model].squad)

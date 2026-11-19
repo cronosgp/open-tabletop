@@ -269,7 +269,15 @@ static func enable(state: Dictionary) -> void:
 	for squad: int in state.squads:
 		state.squads[squad].disabled_abilities = []
 		for model: int in Geometry.alive(state, squad):
-			if identity(state.units[model]) == "overlord": state.units[model].wargear = ["resurrection-orb"]
+			var unit_identity := identity(state.units[model])
+			if unit_identity == "overlord-with-translocation-shroud":
+				state.units[model].wargear = ["resurrection-orb"]
+			elif unit_identity == "overlord":
+				if state.units[model].has("overlord_resurrection_orb"):
+					state.units[model].wargear = ["resurrection-orb"] if bool(state.units[model].get("overlord_resurrection_orb", false)) else []
+				else:
+					var has_tachyon: bool = bool(state.units[model].get("ranged_weapons", []).any(func(w: Variant) -> bool: return w is Dictionary and str(w.get("id", "")) == "tachyon-arrow"))
+					state.units[model].wargear = [] if has_tachyon else ["resurrection-orb"]
 			var personal_fnp_target := 0
 			if identity(state.units[model]) in ["vulkan-hestan", "watch-captain-artemis", "murderfang", "wulfen-dreadnought"]: personal_fnp_target = 6
 			elif identity(state.units[model]) in ["roboute-guilliman", "lieutenant-with-combi-weapon", "iron-father-feirros", "caanok-var", "captain-titus", "mephiston", "bjorn-the-fell-handed", "ctan-shard-of-the-deceiver", "ctan-shard-of-the-nightbringer", "ctan-shard-of-the-void-dragon", "transcendent-ctan"]: personal_fnp_target = 5
@@ -327,6 +335,7 @@ static func hit_bonus(state: Dictionary, squad: int, target: int, melee: bool, m
 	var tempests_wrath_penalty := -1 if not tempest_record.is_empty() and int(state.turn) < int(tempest_record.get("expires_turn", -1)) else 0
 	var obstinacy_penalty := -1 if has(state, target, "icon-of-obstinacy") else 0
 	var braziers_penalty := -1 if melee and has(state, target, "braziers-of-judgement") else 0
+	var timesplinter_penalty := -1 if melee and has(state, target, "timesplinter-mantle") else 0
 	var angelic_visage_penalty := -1 if melee and has(state, target, "angelic-visage") else 0
 	var character_bonus := 1 if has(state, squad, "emnity-for-the-unworthy") and has_target_keyword(state, target, "CHARACTER") else 0
 	var interceptor_bonus := 1 if not melee and has(state, squad, "interceptor") and has_target_keyword(state, target, "FLY") else 0
@@ -337,7 +346,7 @@ static func hit_bonus(state: Dictionary, squad: int, target: int, melee: bool, m
 	var ulrik_oathbound := UlrikTheSlayer.oathbound_hit_bonus(state, squad, melee)
 	var harassment_swarm_penalty := -1 if CanoptekMacrocytes.harassment_swarm_applies(state, squad, target) else 0
 	var atavistic_penalty := NecronDoomScythe.duck_for_cover_hit_penalty(state, squad)
-	return Bladeguard.hit_modifier(state, squad, target, melee) + shrouding_penalty + tempests_wrath_penalty + obstinacy_penalty + braziers_penalty + angelic_visage_penalty + harassment_swarm_penalty + atavistic_penalty + character_bonus + interceptor_bonus + strafing_run_bonus + inspirational_exemplar + meteoric_descent + outrider_hammer + ulrik_oathbound + (1 if not melee and state.phase == "shooting" and state.active == state.squads[squad].owner and has(state, squad, "bolter-discipline") and (near_objective(state, squad) or near_objective(state, target)) else 0)
+	return Bladeguard.hit_modifier(state, squad, target, melee) + shrouding_penalty + tempests_wrath_penalty + obstinacy_penalty + braziers_penalty + timesplinter_penalty + angelic_visage_penalty + harassment_swarm_penalty + atavistic_penalty + character_bonus + interceptor_bonus + strafing_run_bonus + inspirational_exemplar + meteoric_descent + outrider_hammer + ulrik_oathbound + (1 if not melee and state.phase == "shooting" and state.active == state.squads[squad].owner and has(state, squad, "bolter-discipline") and (near_objective(state, squad) or near_objective(state, target)) else 0)
 
 static func slayer_oath_targets(state: Dictionary, owner: int) -> Array[int]:
 	return UlrikTheSlayer.initial_targets(state, owner)
@@ -464,13 +473,17 @@ static func master_shadows_active(state: Dictionary, squad: int) -> bool:
 	var record: Dictionary = state.unit_abilities.get("master_shadows", {}).get(squad, {})
 	return not record.is_empty() and int(record.get("owner", -1)) == int(state.squads[squad].owner) and state.turn <= int(record.get("turn", -2)) + 1
 
+static func the_stars_are_right_active(state: Dictionary, model: int) -> bool:
+	return enabled(state) and state.units.has(model) and identity(state.units[model]) == "orikan-the-diviner" and str(state.get("phase", "")) == "fight" and bool(state.unit_abilities.get("used", {}).get("the-stars-are-right-active:%d:%d:fight" % [model, int(state.get("turn", -1))], false))
+
 static func melee_attack_count(state: Dictionary, model: int, weapon: Dictionary) -> int:
 	var bonus := melee_bonus(state, state.units[model].squad)
 	bonus += RagnarBlackmane.battle_lust_attack_bonus(state, model)
 	bonus += pious_fervour_bonus(state, model)
 	if state.get("unit_abilities", {}).get("banner_active", {}).has(int(state.units[model].squad)): bonus += 1
 	bonus += MarineEnhancements.standard_melee_attack_bonus(state, int(state.units[model].squad))
-	return 1 if weapon.attacks is String else int(weapon.attacks) + bonus
+	var base_attacks := int(weapon.attacks) * 3 if not (weapon.attacks is String) and the_stars_are_right_active(state, model) and str(weapon.get("name", "")) == "Staff of Tomorrow" else (1 if weapon.attacks is String else int(weapon.attacks))
+	return 1 if weapon.attacks is String else base_attacks + bonus
 
 static func tempered_ferocity_target_active(state: Dictionary, squad: int, target: int) -> bool:
 	if not enabled(state) or not state.get("squads", {}).has(squad) or not state.get("squads", {}).has(target) or not has(state, squad, "tempered-ferocity"): return false
@@ -490,6 +503,9 @@ static func weapon(state: Dictionary, model: int, target: int, original: Diction
 	if not enabled(state): return original.duplicate(true)
 	var copy := original.duplicate(true)
 	var squad: int = state.units[model].squad
+	if melee and the_stars_are_right_active(state, model) and str(copy.get("name", "")) == "Staff of Tomorrow":
+		copy.attacks = int(copy.attacks) * 3
+		copy.strength = int(copy.strength) * 3
 	if not melee and identity(state.units[model]) == "falchion" and str(original.get("name", "")) == "Twin Falchion Volcano Cannon" and has(state, squad, "titan-killer") and (has_target_keyword(state, target, "MONSTER") or has_target_keyword(state, target, "VEHICLE")):
 		copy.keywords["devastating-wounds"] = true
 	if melee and has(state, squad, "violent-fury") and state.units[model].get("melee_weapons", []).size() >= 2:
@@ -726,11 +742,51 @@ static func save_bonus(state: Dictionary, squad: int, control_value: Callable) -
 		if objective.get("controller", 0) == state.squads[squad].owner and squad in Objectives.controlling_squads(state, objective, control_value): return bonus + 1
 	return bonus
 
+static func noble_leading(state: Dictionary, squad: int) -> bool:
+	if not enabled(state): return false
+	var squad_record: Dictionary = state.get("squads", {}).get(squad, {})
+	if not bool(squad_record.get("attached", false)): return false
+	var has_bodyguard := false
+	var has_noble := false
+	for model: int in state.get("units", {}):
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0: continue
+		var role := str(unit.get("attachment_role", ""))
+		if role == "bodyguard":
+			has_bodyguard = true
+		elif role in ["leader", "support"]:
+			var unit_identity := identity(unit)
+			var is_noble := unit_identity in ["overlord", "overlord-with-translocation-shroud", "imotekh-the-stormlord", "trazyn-the-infinite"]
+			if not is_noble:
+				for keyword: Variant in unit.get("keywords", []):
+					if str(keyword).strip_edges().to_upper() == "NOBLE": is_noble = true
+			if is_noble: has_noble = true
+	return has_bodyguard and has_noble
+
+static func leading(state: Dictionary, squad: int, ability_name: String) -> bool:
+	if not enabled(state): return false
+	var squad_record: Dictionary = state.get("squads", {}).get(squad, {})
+	if not bool(squad_record.get("attached", false)): return false
+	var ability_sources := AbilityCatalog.sources(state, squad, ability_name)
+	if ability_sources.is_empty(): return false
+	var has_bodyguard := false
+	var has_leading_source := false
+	for model: int in state.get("units", {}):
+		var unit: Dictionary = state.units[model]
+		if int(unit.get("squad", -1)) != squad or int(unit.get("wounds", 0)) <= 0: continue
+		var role := str(unit.get("attachment_role", ""))
+		if role == "bodyguard":
+			has_bodyguard = true
+		elif role in ["leader", "support"] and model in ability_sources:
+			has_leading_source = true
+	return has_bodyguard and has_leading_source
+
 static func defensive_wound_modifier(state: Dictionary, target: int, strength: int, toughness: int, melee: bool = false) -> int:
 	if not melee and has(state, target, "lightning-fast-manoeuvres"): return -1
 	if has(state, target, "command-squad"): return -1
 	if has(state, target, "honour-guard-of-macragge"): return -1
 	if strength <= toughness: return 0
+	if has(state, target, "guardian-protocols") and noble_leading(state, target): return -1
 	if has(state, target, "legendary-tenacity"): return -1
 	if has(state, target, "rugged-resilience"): return -1
 	if has(state, target, "heirs-of-azkaellon"): return -1
@@ -880,6 +936,13 @@ static func lone_operative_active(state: Dictionary, model: int) -> bool:
 static func lone_operative_range(state: Dictionary, model: int) -> float:
 	if not lone_operative_active(state, model): return 0.0
 	return 15.0 if identity(state.units[model]) == "ravenwing-darkshroud" else 12.0
+
+static func lone_operative(state: Dictionary, squad: int) -> bool:
+	if not enabled(state) or not state.squads.has(squad): return false
+	if state.squads[squad].get("attached", false): return false
+	for m: int in Geometry.alive(state, squad):
+		if lone_operative_active(state, m): return true
+	return false
 
 static func start_command(state: Dictionary) -> Array[Dictionary]:
 	if not enabled(state): return []

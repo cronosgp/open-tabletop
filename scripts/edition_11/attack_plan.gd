@@ -384,6 +384,8 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 				context.snap_hit_threshold = 2
 		context.hit_modifier += UnitAbilities.hit_bonus(state, squad, row.target, melee, model, weapon)
 		if not melee and NecronDoomScythe.stand_firm_active(state, row.target): context.critical_hit_threshold = 5
+		if not melee and (UnitAbilities.leading(state, squad, "destroyer-cult") or UnitAbilities.leading(state, squad, "harbinger-of-destruction")):
+			context.critical_hit_threshold = mini(int(context.get("critical_hit_threshold", 6)), 5)
 		if UnitAbilities.has(state, squad, "fortis-doctrines") and FortisDoctrines.target_strength_tier(state, row.target) > 0:
 			context.hit_modifier += 1
 		if not melee and DetachmentStratagems.hurtling_active(state, row.target): context.hit_modifier -= 1
@@ -406,6 +408,12 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "ones")
 		if melee and UnitAbilities.has(state, squad, "flesh-hunger") and Morale.below_half_strength(state, row.target):
 			context.successful_hits_are_critical = true
+		if UnitAbilities.identity(state.units[model]) == "lokhust-lord" and UnitAbilities.has(state, squad, "driven-by-hatred") and Morale.below_half_strength(state, row.target):
+			if not context.get("snap_shooting", false) and not context.get("indirect_fire", false):
+				context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "all")
+			context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "all")
+		if melee and UnitAbilities.the_stars_are_right_active(state, model) and (str(choice.weapon) == "staff-of-tomorrow" or str(weapon.get("name", "")) == "Staff of Tomorrow"):
+			context.successful_wounds_are_critical = true
 		if melee and UnitAbilities.has(state, squad, "exhortation-of-rage") and Morale.at_half_strength(state, squad):
 			context.free_wound_reroll = true
 			context.free_wound_reroll_source = "Exhortation of Rage"
@@ -613,6 +621,8 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "all")
 		if melee and UnitAbilities.has(state, squad, "litanies-of-the-devout"):
 			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "all")
+		if melee and UnitAbilities.leading(state, squad, "united-in-destruction"):
+			profile.keywords["lethal-hits"] = true
 		# Expand attack-count/eligibility mechanics before pooling identical attacks.
 		for keyword in ["rapid-fire", "assault", "heavy", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "lance", "cleave", "melta"]: profile.keywords.erase(keyword)
 		if UnitAbilities.enabled(state): context.use_lethal_hits = true
@@ -637,8 +647,10 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if context.get("free_damage_reroll", false): key += ":damage-reroll"
 		if context.has("hail_of_bolts"): key += ":hail-of-bolts"
 		if context.has("hit_reroll"): key += ":hit-reroll:" + str(context.hit_reroll)
+		if context.has("critical_hit_threshold"): key += ":crit-hit-%d" % int(context.critical_hit_threshold)
 		if context.has("wound_modifier"): key += ":wound-modifier:" + str(context.wound_modifier)
 		if context.get("successful_hits_are_critical", false): key += ":critical-hits"
+		if context.get("successful_wounds_are_critical", false): key += ":critical-wounds"
 		if not batches.has(key): batches[key] = {"target": row.target, "weapon": profile, "context": context, "labels": [], "count": 0}
 		batches[key].count += attacks + bonus
 		batches[key].context.attack_sources.append({"model": model, "weapon": choice.weapon, "expression": expression, "bonus": bonus})

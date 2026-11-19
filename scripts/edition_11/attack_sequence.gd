@@ -231,7 +231,7 @@ static func roll_pool(weapon: Dictionary, defender: Dictionary, context: Diction
 	for roll: int in effective:
 		var anti_critical_hit := anti_critical(roll, weapon, context)
 		var wound: bool = successful_roll(roll, target, wound_modifier) or anti_critical_hit
-		var critical_wound: bool = roll == 6 or anti_critical_hit
+		var critical_wound: bool = roll == 6 or anti_critical_hit or (wound and bool(context.get("successful_wounds_are_critical", false)))
 		wound_outcomes.append({"roll": roll, "success": wound, "critical": critical_wound})
 		if wound: wounds += 1
 		if critical_wound: critical_wounds += 1

@@ -35,6 +35,8 @@ const SCARAB_SELF_DESTRUCTION_MORTAL := "necron-scarab-self-destruction-mortal"
 const GRAVITIC_PULSE_MORTAL := "gravitic-pulse-mortal"
 const DEATH_VISIONS_MORTAL := "blood-angels-death-visions-mortal"
 const CORVUS_CLUSTER_MORTAL := "corvus-blackstar-cluster-launcher-mortal"
+const CRIMSON_HARVEST_MORTAL := "crimson-harvest-mortal"
+const LIVING_LIGHTNING_MORTAL := "living-lightning-mortal"
 const BRUTALIS_CHARGE := "brutalis-charge"
 
 static func enable(s: Dictionary) -> void:
@@ -459,6 +461,8 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 	elif kind == GRAVITIC_PULSE_MORTAL: s.last_gravitic_pulse = record
 	elif kind == DEATH_VISIONS_MORTAL: s.last_death_visions = record
 	elif kind == CORVUS_CLUSTER_MORTAL: s.last_corvus_cluster_launcher = record
+	elif kind == CRIMSON_HARVEST_MORTAL: s.last_crimson_harvest = record
+	elif kind == LIVING_LIGHTNING_MORTAL: s.last_living_lightning = record
 	else: s.last_hammer_of_wrath = record
 	if had_wounds > 0 and unit.wounds <= 0:
 		var demise := DeadlyDemise.begin(s, [int(selected.model)], roller)
@@ -466,7 +470,7 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 		if not demise.get("complete", true): return demise
 	if s.get("pending_attack", {}).is_empty() and s.get("unit_abilities", {}).get("window", {}).is_empty(): A.open_destroyed_mark_replacements(s)
 	if kind in [CRUSHING_MORTAL, GRAVIS_ARMOURED_IMPACT_MORTAL] and s.get("unit_abilities", {}).get("window", {}).is_empty(): reopen_heroic_choices(s)
-	if kind in ["hammer-of-wrath-mortal", GRAVIS_ARMOURED_IMPACT_MORTAL, WRATH_OF_THE_LION_MORTAL] and s.phase == "charge" and s.get("unit_abilities", {}).get("window", {}).is_empty():
+	if kind in ["hammer-of-wrath-mortal", GRAVIS_ARMOURED_IMPACT_MORTAL, WRATH_OF_THE_LION_MORTAL, CRIMSON_HARVEST_MORTAL] and s.phase == "charge" and s.get("unit_abilities", {}).get("window", {}).is_empty():
 		var charged_squad := int(record.get("squad", -1))
 		if s.squads.has(charged_squad): charge_completed(s, int(s.squads[charged_squad].get("owner", -1)), charged_squad)
 	return {"error": ""}
@@ -487,6 +491,8 @@ static func _mortal_record(s: Dictionary, kind: String) -> Dictionary:
 		GRAVITIC_PULSE_MORTAL: return s.get("last_gravitic_pulse", {})
 		DEATH_VISIONS_MORTAL: return s.get("last_death_visions", {})
 		CORVUS_CLUSTER_MORTAL: return s.get("last_corvus_cluster_launcher", {})
+		CRIMSON_HARVEST_MORTAL: return s.get("last_crimson_harvest", {})
+		LIVING_LIGHTNING_MORTAL: return s.get("last_living_lightning", {})
 	return {}
 
 static func _mortal_name(kind: String) -> String:
@@ -503,6 +509,8 @@ static func _mortal_name(kind: String) -> String:
 	if kind == GRAVITIC_PULSE_MORTAL: return "Gravitic Pulse"
 	if kind == DEATH_VISIONS_MORTAL: return "Death Visions of Sanguinius"
 	if kind == CORVUS_CLUSTER_MORTAL: return "Blackstar Cluster Launcher"
+	if kind == CRIMSON_HARVEST_MORTAL: return "Crimson Harvest"
+	if kind == LIVING_LIGHTNING_MORTAL: return "Living Lightning"
 	return "Hammer of Wrath"
 
 static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Callable = Callable()) -> Dictionary:

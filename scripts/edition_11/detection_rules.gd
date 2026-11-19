@@ -37,6 +37,7 @@ static func detection_range(state: Dictionary, model: int, grounded: bool) -> fl
 
 static func stealth(state: Dictionary, squad: int) -> bool:
 	if _has_trifold_path(state, squad): return true
+	if _has_timesplinter_mantle(state, squad): return true
 	var darkflight_record: Dictionary = state.get("detachment_stratagems", {}).get("wings_shadow", {}).get(squad, {})
 	var target_squad: Dictionary = state.get("squads", {}).get(squad, {})
 	if not target_squad.is_empty() and int(darkflight_record.get("owner", -1)) == int(target_squad.get("owner", -2)) and state.get("phase", "") == "shooting" and darkflight_record.get("phase_key", "") == "%d:%s" % [int(state.get("turn", 0)), str(state.get("phase", ""))]: return true
@@ -74,6 +75,12 @@ static func _has_trifold_path(state: Dictionary, squad: int) -> bool:
 		if model.squad == squad and model.wounds > 0 and model.get("on_battlefield", true) and str(model.get("definition_id", "")).get_slice(":", 3) == "kayvaan-shrike": return true
 	return false
 
+static func _has_timesplinter_mantle(state: Dictionary, squad: int) -> bool:
+	if state.get("unit_abilities", {}).get("implementation", "") != ABILITY_IMPLEMENTATION_ID: return false
+	for model: Dictionary in state.units.values():
+		if model.squad == squad and model.wounds > 0 and model.get("on_battlefield", true) and str(model.get("definition_id", "")).get_slice(":", 3) == "chronomancer": return true
+	return false
+
 static func infiltrators(state: Dictionary, squad: int) -> bool:
 	if state.get("unit_abilities", {}).get("implementation", "") != ABILITY_IMPLEMENTATION_ID: return false
 	var found := false
@@ -98,7 +105,7 @@ static func _every_model_has_stealth(state: Dictionary, squad: int) -> bool:
 	var found := false
 	for model: Dictionary in state.units.values():
 		if model.squad != squad or model.wounds <= 0 or not model.get("on_battlefield", true): continue
-		if str(model.get("definition_id", "")).get_slice(":", 3) not in ["eliminator-squad", "librarian-in-phobos-armour", "captain-in-phobos-armour", "lieutenant-with-combi-weapon", "aethon-shaan", "corvus-blackstar", "flayed-ones"]: return false
+		if str(model.get("definition_id", "")).get_slice(":", 3) not in ["eliminator-squad", "librarian-in-phobos-armour", "captain-in-phobos-armour", "lieutenant-with-combi-weapon", "aethon-shaan", "corvus-blackstar", "flayed-ones", "chronomancer"]: return false
 		found = true
 	return found
 

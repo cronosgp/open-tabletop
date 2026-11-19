@@ -222,17 +222,20 @@ const RULES := {
 	"doomsday-ark": ["deadly-demise-d3", "damaged-5", "overwhelming-obliteration"],
 	"monolith": ["deep-strike", "deadly-demise-d6", "reanimation-protocols", "eternity-gate", "damaged-7"],
 	"overlord": ["leader", "my-will-be-done", "implacable-resilience", "resurrection-orb"],
-	"orikan-the-diviner": ["support"],
+	"overlord-with-translocation-shroud": ["leader", "reanimation-protocols", "my-will-be-done", "resurrection-orb", "translocation-shroud"],
+	"lychguard": ["reanimation-protocols", "dispersion-shield", "guardian-protocols"],
+	"orikan-the-diviner": ["support", "reanimation-protocols", "master-chronomancer", "the-stars-are-right"],
 	"trazyn-the-infinite": ["leader"],
 	"deathmarks": ["deep-strike", "hyperspace-hunters"],
 	"flayed-ones": ["infiltrators", "stealth", "flesh-hunger"],
 	"triarch-praetorians": ["deep-strike", "reanimation-protocols", "relentless-combatants"],
 	"imotekh-the-stormlord": ["leader"],
-	"skorpekh-lord": ["leader"],
-	"plasmancer": ["support"],
-	"technomancer": ["support"],
-	"psychomancer": ["support"],
-	"chronomancer": ["support"],
+	"skorpekh-lord": ["leader", "reanimation-protocols", "united-in-destruction", "crimson-harvest"],
+	"lokhust-lord": ["leader", "reanimation-protocols", "nanoscarab-amulet", "resurrection-orb", "destroyer-cult", "driven-by-hatred"],
+	"plasmancer": ["support", "reanimation-protocols", "harbinger-of-destruction", "living-lightning"],
+	"technomancer": ["support", "reanimation-protocols", "rites-of-reanimation", "technomancer"],
+	"psychomancer": ["support", "reanimation-protocols", "nightmare-shroud", "harbinger-of-despair"],
+	"chronomancer": ["support", "reanimation-protocols", "stealth", "timesplinter-mantle", "chronometron"],
 	"royal-warden": ["leader", "adaptive-strategy", "engrammatic-logic"]}
 
 static func identity(unit: Dictionary) -> String:
@@ -293,6 +296,14 @@ static func sources(state: Dictionary, squad: int, name: String) -> Array[int]:
 		if unit_identity == "canoptek-macrocytes" and name == "nanoscarab-projector" and str(state.units[model].get("canoptek_macrocytes_loadout", "gauss-scalpel")) != "atomiser-beam-projector": continue
 		if unit_identity == "canoptek-spyders" and name == "fabricator-claw-array" and not bool(state.units[model].get("canoptek_spyders_fabricator_claw_array", false)): continue
 		if unit_identity == "canoptek-spyders" and name == "gloom-prism" and not bool(state.units[model].get("canoptek_spyders_gloom_prism", false)): continue
+		if name == "resurrection-orb" and unit_identity == "overlord":
+			if "resurrection-orb" not in state.units[model].get("wargear", []): continue
+			if state.units[model].get("ranged_weapons", []).any(func(w: Variant) -> bool: return w is Dictionary and (str(w.get("id", "")) == "tachyon-arrow" or str(w.get("profiles", {}).get("standard", {}).get("name", "")).to_lower() == "tachyon arrow")): continue
+		if name == "resurrection-orb" and unit_identity == "lokhust-lord":
+			if "resurrection-orb" not in state.units[model].get("wargear", []) and str(state.units[model].get("lokhust_lord_wargear", "none")) != "resurrection-orb": continue
+		if name == "nanoscarab-amulet" and unit_identity == "lokhust-lord":
+			if "nanoscarab-amulet" not in state.units[model].get("wargear", []) and str(state.units[model].get("lokhust_lord_wargear", "none")) != "nanoscarab-amulet": continue
+		if name == "dispersion-shield" and unit_identity == "lychguard" and not bool(state.units[model].get("lychguard_dispersion_shield", false)): continue
 		if name in RULES.get(identity(state.units[model]), []): result.append(model)
 	return result
 

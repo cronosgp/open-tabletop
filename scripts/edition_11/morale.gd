@@ -31,8 +31,34 @@ static func below_half_strength(state: Dictionary, squad: int) -> bool:
 		return int(state.units[ids[0]].wounds) * 2 < int(state.units[ids[0]].max_wounds)
 	return ids.size() * 2 < starting
 
+static func below_starting_strength(state: Dictionary, squad: int) -> bool:
+	var ids := living(state, squad)
+	if ids.is_empty(): return false
+	var starting: int = int(state.squads[squad].starting_strength)
+	if starting == 1:
+		return int(state.units[ids[0]].wounds) < int(state.units[ids[0]].max_wounds)
+	return ids.size() < starting
+
+static func nightmare_shroud_applies(state: Dictionary, squad: int) -> bool:
+	if not UnitAbilities.enabled(state) or not state.squads.has(squad) or not below_starting_strength(state, squad):
+		return false
+	for other_squad: int in state.squads:
+		if int(state.squads[other_squad].get("owner", -1)) == int(state.squads[squad].get("owner", -1)):
+			continue
+		if state.get("unit_abilities", {}).get("reserves", {}).has(other_squad):
+			continue
+		for source_model: int in UnitAbilities.sources(state, other_squad, "nightmare-shroud"):
+			if not state.units[source_model].get("on_battlefield", true) or int(state.units[source_model].get("embarked_transport", -1)) >= 0:
+				continue
+			if Geometry.distance_to_target(state, state.units[source_model], squad) <= 6.0 + Geometry.EPSILON:
+				return true
+	return false
+
+static func command_battle_shock_modifier(state: Dictionary, squad: int) -> int:
+	return -1 if nightmare_shroud_applies(state, squad) else 0
+
 static func needs_command_roll(state: Dictionary, squad: int) -> bool:
-	return state.squads[squad].owner == state.active and not living(state, squad).is_empty() and (state.squads[squad].battle_shocked or at_half_strength(state, squad))
+	return state.squads[squad].owner == state.active and not living(state, squad).is_empty() and (state.squads[squad].battle_shocked or at_half_strength(state, squad) or nightmare_shroud_applies(state, squad))
 
 static func objective_control(state: Dictionary, id: int) -> int:
 	if not state.units.has(id) or state.units[id].wounds <= 0 or not state.units[id].get("on_battlefield", true): return 0
@@ -100,7 +126,8 @@ static func resolve_command(state: Dictionary, roller: Callable) -> Dictionary:
 	var results: Array[Dictionary] = []
 	for squad: int in state.squads:
 		if not needs_command_roll(state, squad): continue
-		var result := roll_battle_shock(state, squad, roller)
+		var modifier := command_battle_shock_modifier(state, squad)
+		var result := roll_battle_shock(state, squad, roller, modifier)
 		if not result.error.is_empty(): return result
 		results.append(result)
 	return {"error": "", "results": results}

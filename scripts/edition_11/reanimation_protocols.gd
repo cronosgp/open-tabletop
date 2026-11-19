@@ -8,6 +8,7 @@ const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const Board = preload("res://scripts/rules.gd")
+const LeaderCatalog = preload("res://scripts/edition_11/leader_catalog.gd")
 const ID := "reanimation-core-profiles-2026-10-31-v8"
 const SOURCE := "wahapedia-e11-necrons-app-000000029-v1.2-local-export-20261031T053336Z"
 const CORE_RULES_GAP_SOURCE := "https://wahapedia.ru/wh40k11ed/the-rules/core-rules/#Healing-Or-Regaining-Lost-Wounds"
@@ -17,6 +18,7 @@ const PROFILE_WOUNDS := {
 	"40kdc:11e:necrons:deathmarks": 1,
 	"40kdc:11e:necrons:flayed-ones": 1,
 	"40kdc:11e:necrons:triarch-praetorians": 2,
+	"40kdc:11e:necrons:lychguard": 2,
 	"40kdc:11e:necrons:skorpekh-destroyers": 3,
 	"40kdc:11e:necrons:canoptek-scarab-swarms": 4,
 	"40kdc:11e:necrons:canoptek-wraiths": 4,
@@ -58,6 +60,8 @@ const CHARACTER_WOUNDS := {
 	"40kdc:11e:necrons:technomancer": 4,
 	"40kdc:11e:necrons:psychomancer": 4,
 	"40kdc:11e:necrons:chronomancer": 4,
+	"40kdc:11e:necrons:skorpekh-lord": 7,
+	"40kdc:11e:necrons:lokhust-lord": 6,
 }
 const PROFILE_MODEL_COUNTS := {
 	"40kdc:11e:necrons:necron-warriors": [10, 20],
@@ -65,6 +69,7 @@ const PROFILE_MODEL_COUNTS := {
 	"40kdc:11e:necrons:deathmarks": [5, 10],
 	"40kdc:11e:necrons:flayed-ones": [5, 10],
 	"40kdc:11e:necrons:triarch-praetorians": [5, 10],
+	"40kdc:11e:necrons:lychguard": [5, 10],
 	"40kdc:11e:necrons:skorpekh-destroyers": [3, 6],
 	"40kdc:11e:necrons:canoptek-scarab-swarms": [3, 6],
 	"40kdc:11e:necrons:canoptek-wraiths": [3, 6],
@@ -97,12 +102,29 @@ const PROFILE_MODEL_COUNTS := {
 	"40kdc:11e:necrons:nekrosor-ammentar": [1],
 	"40kdc:11e:necrons:overlord-with-translocation-shroud": [1],
 	"40kdc:11e:necrons:transcendent-ctan": [1],
+	"40kdc:11e:necrons:skorpekh-lord": [1],
+	"40kdc:11e:necrons:lokhust-lord": [1],
+	"40kdc:11e:necrons:orikan-the-diviner": [1],
+	"40kdc:11e:necrons:plasmancer": [1],
+	"40kdc:11e:necrons:technomancer": [1],
+	"40kdc:11e:necrons:psychomancer": [1],
+	"40kdc:11e:necrons:chronomancer": [1],
 	OVERLORD: [1],
 	WARDEN: [1],
 }
-const ATTACHABLE_TROOPS := ["40kdc:11e:necrons:necron-warriors", "40kdc:11e:necrons:immortals"]
+const ATTACHABLE_TROOPS := [
+	"40kdc:11e:necrons:necron-warriors",
+	"40kdc:11e:necrons:immortals",
+	"40kdc:11e:necrons:lychguard",
+	"40kdc:11e:necrons:skorpekh-destroyers",
+	"40kdc:11e:necrons:lokhust-destroyers",
+	"40kdc:11e:necrons:lokhust-heavy-destroyers",
+]
 const OVERLORD := "40kdc:11e:necrons:overlord"
+const OVERLORD_TRANSLOCATION := "40kdc:11e:necrons:overlord-with-translocation-shroud"
 const WARDEN := "40kdc:11e:necrons:royal-warden"
+const SKORPEKH_LORD := "40kdc:11e:necrons:skorpekh-lord"
+const LOKHUST_LORD := "40kdc:11e:necrons:lokhust-lord"
 const TOMB_CRAWLERS := "40kdc:11e:necrons:canoptek-tomb-crawlers"
 const CRYPTOTHRALLS := "40kdc:11e:necrons:cryptothralls"
 const CRYPTEK_LEADERS := ["orikan-the-diviner", "plasmancer", "technomancer", "psychomancer", "chronomancer", "geomancer"]
@@ -142,6 +164,7 @@ static func _supported_attachment(state: Dictionary, squad: int) -> bool:
 	if components.size() in [2, 3] and _contains_leading_cryptek(state, squad):
 		return _supported_cryptek_attachment(state, squad, components.size())
 	if components.size() != 2: return false
+	var leader_identity := ""
 	var troop_identity := ""
 	var leader_count := 0
 	var troop_count := 0
@@ -150,15 +173,19 @@ static func _supported_attachment(state: Dictionary, squad: int) -> bool:
 		if unit.owner != state.squads[squad].owner or unit.get("elevation", 0.0) != 0.0: return false
 		var identity: String = unit.get("definition_id", "")
 		if unit.get("attachment_role", "") == "leader":
-			if identity not in [OVERLORD, WARDEN] or unit.max_wounds != (6 if identity == OVERLORD else 4): return false
+			if identity not in [OVERLORD, OVERLORD_TRANSLOCATION, WARDEN, SKORPEKH_LORD, LOKHUST_LORD] or unit.max_wounds != int(CHARACTER_WOUNDS.get(identity, 0)): return false
+			if leader_identity.is_empty(): leader_identity = identity
+			if identity != leader_identity: return false
 			leader_count += 1
 		elif unit.get("attachment_role", "") == "bodyguard":
-			if identity not in ATTACHABLE_TROOPS or unit.max_wounds != 1: return false
+			if identity not in ATTACHABLE_TROOPS or unit.max_wounds != int(PROFILE_WOUNDS.get(identity, 0)): return false
 			if troop_identity.is_empty(): troop_identity = identity
 			if identity != troop_identity: return false
 			troop_count += 1
 		else: return false
-	return leader_count == 1 and troop_count > 0 and state.squads[squad].starting_strength == troop_count + leader_count
+	if leader_count != 1 or troop_count <= 0 or state.squads[squad].starting_strength != troop_count + leader_count: return false
+	if leader_identity in LeaderCatalog.ATTACHMENTS and not troop_identity in LeaderCatalog.ATTACHMENTS[leader_identity]: return false
+	return true
 
 static func _contains_leading_cryptek(state: Dictionary, squad: int) -> bool:
 	for unit: Dictionary in state.units.values():
