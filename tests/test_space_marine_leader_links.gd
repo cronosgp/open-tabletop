@@ -4,6 +4,14 @@ const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const Supports = preload("res://scripts/edition_11/support_attachments.gd")
 const Links = preload("res://scripts/edition_11/marine_leader_links.gd")
+const NecronProfiles = preload("res://scripts/edition_11/current_reference_necron_profiles.gd")
+
+## The five Cryptek Support identities are recorded in Supports.BODYGUARDS next to
+## the Space Marine Support identities. Their bodyguard endpoints come from the
+## Necron profiles rather than the Space Marines leader map, so they are checked
+## against CurrentNecronProfiles below instead of Links.targets().
+const NECRON_SUPPORT_SOURCES := ["orikan-the-diviner", "plasmancer", "technomancer", "psychomancer", "chronomancer"]
+const NECRON_SUPPORT_DATASHEET_IDS := {"000000534": "necron-warriors", "000000535": "immortals", "000000546": "canoptek-wraiths"}
 
 var failures := 0
 
@@ -64,6 +72,9 @@ func sorted(values: Array) -> Array:
 func roster_entry(identity: String, copies: int = 1) -> Dictionary:
 	return {"definition_id": "40kdc:11e:adeptus-astartes:" + identity, "copies": copies}
 
+func necron_roster_entry(identity: String, copies: int = 1) -> Dictionary:
+	return {"definition_id": "40kdc:11e:necrons:" + identity, "copies": copies}
+
 func _initialize() -> void:
 	var relation_count := 0
 	for source_variant: Variant in Links.TARGETS:
@@ -86,12 +97,17 @@ func _initialize() -> void:
 		for target_variant: Variant in Links.CHAPTER_TARGETS[source]:
 			var target := str(target_variant)
 			if target in Links.TARGETS.get(source, []): continue
+			var relation_role := role
+			var ability_role := role
+			if source == "lieutenant-in-phobos-armour" and target == "spectrus-kill-team":
+				relation_role = "leader"
+				ability_role = "support"
 			chapter_relation_count += 1
 			var state := fixture(source, target)
-			check(UnitAbilities.has(state, 1, role), "%s is not exposed as a %s source for Chapter target %s" % [source, role, target])
+			check(UnitAbilities.has(state, 1, ability_role), "%s is not exposed as a %s source for Chapter target %s" % [source, ability_role, target])
 			var allowed := UnitActions.attachment_allowed(state, 100, 2)
 			check(allowed, "%s cannot attach to source-listed Chapter target %s" % [source, target])
-			check(UnitActions._attachment_role_for_target(state, state.units[100], 2) == role, "%s receives the wrong role for Chapter target %s" % [source, target])
+			check(UnitActions._attachment_role_for_target(state, state.units[100], 2) == relation_role, "%s receives the wrong role for Chapter target %s" % [source, target])
 	check(chapter_relation_count == 210, "Chapter maps must add 210 distinct source relations (got %d)" % chapter_relation_count)
 	check(Links.CHAPTER_TARGETS.has("ulrik-the-slayer") and Links.targets("ulrik-the-slayer").size() == 6, "Ulrik's six Chapter-book Leader endpoints are recorded separately from the common-book map")
 	check(Links.targets("iron-priest") == ["intercessor-squad", "wolf-guard-headtakers", "blood-claws", "assault-intercessor-squad", "grey-hunters"], "Iron Priest's five Space Wolves App Leader endpoints are recorded separately from the common-book map")
@@ -99,6 +115,14 @@ func _initialize() -> void:
 
 	for source_variant: Variant in Supports.BODYGUARDS:
 		var source := str(source_variant)
+		if source in NECRON_SUPPORT_SOURCES:
+			var profile: Dictionary = NecronProfiles.profile(source)
+			check(profile.get("supported_rule_ids", []).has("support"), "%s is exposed as a Support identity in its Necron profile" % source)
+			var bodyguard_slugs: Array[String] = []
+			for datasheet_id: String in profile.get("source_bodyguard_datasheet_ids", []):
+				bodyguard_slugs.append(NECRON_SUPPORT_DATASHEET_IDS.get(datasheet_id, ""))
+			check(sorted(bodyguard_slugs) == sorted(Supports.BODYGUARDS[source]), "%s Necron Support bodyguard slugs match its source-listed targets" % source)
+			continue
 		var missing_support_targets: Array[String] = []
 		for target: String in Supports.BODYGUARDS[source]:
 			if target not in Links.targets(source): missing_support_targets.append(target)
@@ -106,15 +130,21 @@ func _initialize() -> void:
 	check(Supports.BODYGUARDS.has("castellan") and Supports.links("castellan").size() == 8, "Castellan's Support identity and all eight current-source bodyguard links are admitted")
 	check(sorted(Supports.CONDITIONAL_BODYGUARDS["cato-sicarius"]) == sorted(Links.TARGETS["cato-sicarius"]), "Cato's conditional Support retains the same source-listed target")
 	var support_assignment_checks := 0
+	var necron_support_assignment_checks := 0
 	for source_variant: Variant in Supports.BODYGUARDS:
 		var source := str(source_variant)
 		for target: String in Supports.BODYGUARDS[source]:
-			var entries: Array = [roster_entry(source), roster_entry(target)]
+			var entries: Array
+			if source in NECRON_SUPPORT_SOURCES:
+				entries = [necron_roster_entry(source), necron_roster_entry(target)]
+				necron_support_assignment_checks += 1
+			else:
+				entries = [roster_entry(source), roster_entry(target)]
+				support_assignment_checks += 1
 			check(Supports.matching_error(entries).is_empty(), "%s can fill a Support slot using its source-listed %s bodyguard" % [source, target])
-			support_assignment_checks += 1
 	var cato_support_entries: Array = [roster_entry("cato-sicarius"), roster_entry("marneus-calgar"), roster_entry("victrix-honour-guard")]
 	check(Supports.matching_error(cato_support_entries).is_empty(), "Calgar enables Cato's conditional Support assignment to the source-listed Victrix Honour Guard")
-	check(support_assignment_checks == 97, "The local matcher exercises every one of the 97 static Support/bodyguard pairs")
+	check(support_assignment_checks == 96 and necron_support_assignment_checks == 11, "The local matcher exercises all 96 Space Marine and 11 Necron static Support/bodyguard pairs (got %d and %d)" % [support_assignment_checks, necron_support_assignment_checks])
 	var support_identities: Array[String] = []
 	for source_variant: Variant in Supports.BODYGUARDS: support_identities.append(str(source_variant))
 	support_identities.append("cato-sicarius")

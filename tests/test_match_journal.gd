@@ -1,6 +1,8 @@
 extends SceneTree
 const Journal = preload("res://scripts/match_journal.gd")
+const Save = preload("res://scripts/match_save.gd")
 const Prepared = preload("res://scripts/edition_11/prepared_training.gd")
+const HistoryPanel = preload("res://scripts/match_history_panel.gd")
 
 func _initialize() -> void: call_deferred("run")
 
@@ -26,12 +28,32 @@ func run() -> void:
 	# Synthetic presentation fixture: public summaries must not expose raw patches
 	# or modify the hashed journal entries that saves depend on.
 	state.revision += 1
-	state.last_attack = {"pools": [{"weapon_name": "Summary fixture", "target_squad": 2, "hits": 2, "wounds": 2, "damage_applied": 4, "models_destroyed": 2}]}
+	state.last_command_roll = {"kind": "after_save_roll", "original_rolls": [2, 3], "rolls": [2, 1], "rerolled": true, "die": 1}
+	state.last_attack = {"pools": [{"weapon_name": "Summary fixture", "target_squad": 2, "hits": 2, "wounds": 2, "damage_applied": 4, "models_destroyed": 2, "allocations": [
+		{"model": 200, "damage": 2, "discarded": 0, "prevention": {"prevented": 1, "rolls": [6]}},
+		{"model": 201, "damage": 2, "discarded": 1, "prevention": {}},
+	]}]}
 	assert(journal.capture(state).is_empty())
 	var entries_before := Journal.digest(journal.entries)
 	var public_entry: Dictionary = journal.page().items[-1]
 	assert(public_entry.attack_summary.pools[0].damage_applied == 4 and public_entry.attack_summary.pools[0].models_destroyed == 2)
 	assert(not public_entry.attack_summary.pools[0].target_name.is_empty() and not public_entry.has("patch"))
+	assert(public_entry.roll_summary.original_rolls == [2, 3] and public_entry.roll_summary.rolls == [2, 1] and public_entry.roll_summary.die == 1)
+	assert(public_entry.attack_summary.pools[0].allocations == [
+		{"model": 200, "damage": 2, "prevented": 1, "discarded": 0},
+		{"model": 201, "damage": 2, "prevented": 0, "discarded": 1},
+	])
+	var history := HistoryPanel.new()
+	root.add_child(history)
+	var orphan_count := Node.get_orphan_node_ids().size()
+	history.show_page(journal.page())
+	assert("Original [2, 3] → Final [2, 1]" in history.detail.text and "Model 201 · 2 applied · 0 prevented · 1 discarded" in history.detail.text)
+	var long_event := "The selected model would end out of coherency with the rest of its unit and the preview stays on the board until you choose another destination"
+	assert(history._event_heading(long_event) == long_event and not history._event_heading(long_event).contains("…"), "A battle-log event keeps the full sentence when it has no earlier break")
+	assert(history._event_heading("Deployment was rejected. The model remains in its previous position.") == "Deployment was rejected.", "A battle-log card can title the first complete sentence")
+	history._select(0)
+	assert(Node.get_orphan_node_ids().size() == orphan_count, "Switching history records does not leave unattached labels")
+	history.free()
 	assert(Journal.digest(journal.entries) == entries_before)
 	var checkpoint: Dictionary = journal.checkpoint()
 	var restored = Journal.new()
@@ -71,7 +93,7 @@ func run() -> void:
 		compacted_state.units[100].position.x += 0.01
 		compacted_state.events.append({"revision": compacted_state.revision, "message": "Compaction event %d" % step})
 		assert(compacted_journal.capture(compacted_state).is_empty())
-	var original_journal_id := compacted_journal.id
+	var original_journal_id: String = compacted_journal.id
 	var original_checkpoint: Dictionary = compacted_journal.checkpoint()
 	assert(compacted_journal._compact(5).is_empty())
 	assert(compacted_journal.id != original_journal_id and compacted_journal.entries.size() == 6, "Compaction retains the latest five records behind a checkpoint")
@@ -102,13 +124,16 @@ func run() -> void:
 	game._apply_end(1, -99)
 	assert(game.journal.entries.size() == count and game.rng.state == rng_state)
 	var before_corruption: Dictionary = game.state.duplicate(true)
+	var save_path := "user://matches/journal-corrupt-%s.save" % Time.get_ticks_usec()
+	var save_error := Save.write(game.state, game._save_config(), game.rng.state, game.attack_draft, save_path, game.host_session, game.journal.checkpoint(), {}, 1)
+	assert(save_error.is_empty(), save_error)
+	game.match_save_path = save_path
 	file = FileAccess.open(game.journal.path(), FileAccess.READ_WRITE)
 	file.seek(70)
 	file.store_8(255)
 	file.close()
 	game._load_match()
 	assert(game.state == before_corruption and game.rng.state == rng_state)
-	assert("corrupted" in game.status.text)
+	assert("corrupted" in game.status.text, game.status.text)
 	print("MATCH JOURNAL: PASS")
-	game.free()
 	quit()

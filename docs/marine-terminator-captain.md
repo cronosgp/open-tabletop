@@ -12,6 +12,10 @@ One model costs 90 points and uses a 40 mm base: M5, T6, Sv2+, W6, Ld6+, OC1, wi
 
 The current-catalog suite checks both-player admission/materialization, the exact profile, stats, base, points and keywords; default and alternate weapon routes through Equipment and AttackPlan; both independent swaps and all three Combi modes; and Leader, Deep Strike and Combat Doctrines metadata. It exercises Strategic Acumen's public choice, Unstoppable Valour's free Charge re-roll, and Transhuman Strategist's Warlord, CP, once-per-round and source-life boundaries. The shared relation suite verifies both common-book Leader links.
 
+## Saved Army Workshop equipment
+
+Each Captain copy can now save Storm Bolter versus Combi-weapon and Relic Weapon versus Relic Fist independently. The Army Workshop validates all four combinations against the local weapon factory. Saved-list matches materialize the selected weapons before Deployment and prevent duplicate match-preparation edits; the Combi-weapon retains Infernus, Purgatus and Damnatus profiles. This adds no copy-limit rule and does not refresh the source audit.
+
 ## Verification
 
 Focused offline verification passed **6/6 processes**, including the three current-catalog Terminator leader suites and the shared 153-link Leader/Support suite.

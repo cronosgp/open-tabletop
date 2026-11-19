@@ -92,9 +92,16 @@ func run() -> void:
 	var squad := owner_squads[0]
 	var enemy_squad := enemy_squads[0]
 	var size_counts := {5: 0, 10: 0}
+	var ordinal := 0
+	var materialized_total := 0
 	for item: int in owner_squads:
-		size_counts[int(state.squads[item].starting_strength)] += 1
-		check(int(state.squads[item].get("training_cost", -1)) == int(profile.points_by_models[int(state.squads[item].starting_strength)]), "Training materializes a listed formation at its first-two price")
+		var size := int(state.squads[item].starting_strength)
+		size_counts[size] += 1
+		var expected: int = profile.points_by_models[size] if ordinal < 2 else profile.third_plus_points_by_models[size]
+		check(int(state.squads[item].get("training_cost", -1)) == expected, "Canonical formation uses the source price for its actual copy tier")
+		materialized_total += int(state.squads[item].training_cost)
+		ordinal += 1
+	check(materialized_total == 375 and int(state.training_points[1]) == 375, "Canonical unit prices sum to the sourced 375-point army total")
 	check(size_counts == {5: 2, 10: 1} and profile.third_plus_points_by_models == {5: 105, 10: 195}, "The roster includes both model sizes and retains third-plus copy prices")
 	var models := models_for(state, 1, squad)
 	var enemy_models := models_for(state, 2, enemy_squad)

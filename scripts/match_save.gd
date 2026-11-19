@@ -4,6 +4,7 @@ const VERSION := 1
 const MAX_BYTES := 16 * 1024 * 1024
 const PATH := "user://matches/current.save"
 const SLOT_COUNT := 5
+const ArmyRoster = preload("res://scripts/army_roster.gd")
 
 static func slot_path(slot: int) -> String:
 	if slot < 1 or slot > SLOT_COUNT: return ""
@@ -111,9 +112,19 @@ static func safe(value: Variant, depth: int = 0) -> bool:
 			return true
 	return false
 
-static func write(snapshot: Dictionary, config: Dictionary, random_state: int, draft: Dictionary, path: String = PATH, session: Dictionary = {}, journal: Dictionary = {}, previous_save: Dictionary = {}, decision_player: int = -1) -> String:
+static func valid_presentation(value: Variant) -> bool:
+	if not value is Dictionary or value.size() != 2 or value.get("schema_version") != 1 or not value.get("visual_armies") is Dictionary: return false
+	if value.visual_armies.size() > 2: return false
+	for owner: Variant in value.visual_armies:
+		if typeof(owner) != TYPE_INT or int(owner) not in [1, 2] or not ArmyRoster.valid_visual_snapshot(value.visual_armies[owner]): return false
+	return true
+
+static func write(snapshot: Dictionary, config: Dictionary, random_state: int, draft: Dictionary, path: String = PATH, session: Dictionary = {}, journal: Dictionary = {}, previous_save: Dictionary = {}, decision_player: int = -1, presentation: Dictionary = {}) -> String:
 	var payload := {"version": VERSION, "state": snapshot, "config": config, "rng_state": random_state, "attack_draft": draft, "session": session, "journal": journal}
 	if decision_player in [1, 2]: payload.decision_player = decision_player
+	if not presentation.is_empty():
+		if not valid_presentation(presentation): return "The local appearance snapshot is invalid."
+		payload.presentation = presentation.duplicate(true)
 	if not safe(payload): return "The match contains an unsupported data type."
 	var bytes := var_to_bytes(payload)
 	if bytes.size() > MAX_BYTES: return "The match exceeds the save limit."
@@ -173,5 +184,6 @@ static func _read_file(path: String) -> Dictionary:
 		if not value.get(key) is Dictionary: return {"error": "Saved match is incomplete."}
 	if not value.get("rng_state") is int: return {"error": "Invalid random-number generator state."}
 	if value.has("decision_player") and (not value.decision_player is int or int(value.decision_player) not in [1, 2]): return {"error": "Invalid saved decision owner."}
+	if value.has("presentation") and not valid_presentation(value.presentation): return {"error": "Invalid local appearance snapshot."}
 	return value
 

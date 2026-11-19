@@ -26,7 +26,7 @@ The raw export remains ignored under `.tools`; these hashes identify the recorde
 ## Implemented and locally checked scope
 
 - The unit contains one Inceptor Sergeant and two to five Inceptors. Three models cost 130 points and six cost 260 for either of the first two units; the third-plus reference is 150/280. Models use 40 mm bases and M10, T6, Sv3+, W3, Ld6+, OC1.
-- All models carry INFANTRY, GRAVIS, JUMP PACK, IMPERIUM, FLY and ADEPTUS ASTARTES. The default weapons are Assault Bolters and Ceramite Fists. During setup, each model can individually replace its Assault Bolters with Plasma Exterminators. The suite checks the public choice for every model in isolated states and confirms other models keep their own weapons.
+- All models carry INFANTRY, GRAVIS, JUMP PACK, IMPERIUM, FLY and ADEPTUS ASTARTES. The default weapons are Assault Bolters and Ceramite Fists. Standalone exercise setup lets each model individually replace its Assault Bolters with Plasma Exterminators. Saved Army Builder lists now store that choice for each stable model ID, carry it through canonical admission and apply it before Deployment; saved-list matches suppress the duplicate setup prompt. The regression checks the public standalone choice for every model, saved per-model admission and independent match materialization.
 - The suite checks the full Assault Bolters, Plasma Exterminator standard and supercharge, and Ceramite Fists profiles through `Equipment` and `AttackPlan`. This includes the Hazardous tag on supercharge and the retained attack source.
 - **Deep Strike:** the source ability is present on every model. After Jetleap reserves the unit, the suite verifies that the shared Ingress choice is exposed; it does not resolve the complete placement path for this unit.
 - **Meteoric Descent:** after an Ingress move, ranged attacks gain +1 to Hit for the rest of the turn. Checks cover AttackPlan propagation, the ranged-only boundary, the out-of-phase Fight timing, and expiry after a different move.
@@ -43,3 +43,7 @@ python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.ex
 ```
 
 At the point this report was recorded, Inceptor Squad brought the matrix to **10/85 datasheets complete**. The current matrix is **11/85** after the Infiltrator Squad audit. This closes only Inceptor's declared source-bounded shared-book local scope. Whole-army legality, other datasheets, Chapter-book variants, Forge World, Legends, network behavior, full-match certification and human playtesting remain outside this result. Network validation remains deferred to final integration.
+
+### Saved Army Builder equipment update — 13 November 2026
+
+The Army Builder now saves Assault Bolters or Plasma Exterminators for every Inceptor model against stable model IDs. Admission preserves the per-model array through canonical grouping, and saved-list match construction applies the exact source profile before Deployment and suppresses repeat setup choices. Standalone exercise matches retain their individual setup prompt. The local regression covers saved choices, stable model references, locking, profile independence and appearance-hint comparison; it does not certify an exact sculpt or broaden the source scope above.

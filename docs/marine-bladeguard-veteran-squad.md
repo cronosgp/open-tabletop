@@ -23,3 +23,7 @@ The clean current-catalog scope run passed **4/4 processes** (`network: false`, 
 The dedicated ability regression passed **3/3 processes** at `.tools/verification/20261028T015803358451Z/results.json` (`network: false`, `legacy_starter_staged: true`). Its checked-match opponent uses the optional historical Necron training fixture; this is separate from the clean current-catalog profile and relation evidence above. The test explicitly selects an 11th-edition Event Companion terrain layout.
 
 The scope covers only the shared-book datasheet and its local Incursion admission. It does not certify conditional Chapter keywords or rules, external Leader/Support profiles, Strike Force admission, every faction/army restriction, network behavior, complete matches or human playtesting. Network validation remains deferred to final integration.
+
+## Saved army equipment - 14 November 2026
+
+Equipment now persists per stable model/copy in the Workshop, with whole-squad source limits and role checks before admission. Saved choices materialize before Deployment and cannot be reconfigured during readiness; existing unsaved/legacy preparations remain available. Source profiles, abilities and broader scope boundaries above remain. See [the source-option review, exhaustive regression, persistence reports and actual Godot captures](verification/squad-specialist-saved-equipment.md).

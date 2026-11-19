@@ -83,7 +83,8 @@ func run() -> void:
 	var six := squads_for(state, 1).filter(func(squad: int) -> bool: return int(state.squads[squad].starting_strength) == 6)
 	var price_summary: Array[String] = []
 	for squad: int in squads: price_summary.append("%d:%d" % [int(state.squads[squad].starting_strength), int(state.squads[squad].get("training_cost", -1))])
-	check(three.size() == 2 and six.size() == 1 and int(state.squads[three[0]].training_cost) == 115 and int(state.squads[six[0]].training_cost) == 230 and int(state.squads[three[1]].training_cost) == 115, "Three- and six-model formations materialize at their first-two training prices (" + str(price_summary) + "); third-plus prices remain in the source profile")
+	check(three.size() == 2 and six.size() == 1 and int(state.squads[three[0]].training_cost) == 115 and int(state.squads[six[0]].training_cost) == 260 and int(state.squads[three[1]].training_cost) == 115, "Canonical three-model copies use 115 and the third six-model copy uses its sourced 260-point tier (" + str(price_summary) + "); materialized tiers match canonical admission")
+	check(int(state.training_points[1]) == 490 and int(state.squads[three[0]].training_cost) + int(state.squads[three[1]].training_cost) + int(state.squads[six[0]].training_cost) == 490, "Canonical unit prices sum to the sourced 490-point army total")
 	var models := models_for(state, 1, three[0])
 	var six_models := models_for(state, 1, six[0])
 	var loadout_choices := C.UnitActions.thunderwolf_cavalry_loadout_choices(state, 1)

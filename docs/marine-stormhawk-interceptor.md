@@ -34,3 +34,7 @@ Default equipment is one Las-talon, one Skyhammer Missile Launcher, one Twin Ass
 The focused regression checks source identity and snapshot metadata, all characteristics and weapon profiles, the 155-point construction choice, copy admission, both replacement options and restoring their defaults, mandatory Aircraft Strategic Reserves placement, Deadly Demise D3 and Interceptor against FLY, non-FLY and melee targets. The runtime identity export now contains 172 source-bound profiles with no missing source IDs.
 
 This is a source-bounded local datasheet scope for casual Legends play. It does not certify full army legality, every combined rules interaction, exact physical base clearance, current live-page or event-pack equality, competitive organiser acceptance or human playtesting.
+
+## Army Workshop saved loadout
+
+The Army Workshop can save the Las-talon replacement and Skyhammer replacement for each one-model Stormhawk copy. It validates the two selections against the existing local weapon factory and applies them after profile defaults when a saved army starts a match. Match preparation suppresses these duplicate choices for the saved profile. The focused adapter regression covers all six combinations, independent configured/default copies, exact ranged profile materialization, editor controls and rejection of a forced setup edit. This integration check does not expand the source scope or certify event eligibility, sculpt parity, full army legality or separate-machine LAN.

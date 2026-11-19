@@ -1,6 +1,7 @@
 extends ScrollContainer
 ## Local save-slot browser. Loading is read-only until main.gd completes full compatibility checks.
 const MatchSave = preload("res://scripts/match_save.gd")
+const WorkspaceTheme = preload("res://scripts/ui/workspace_theme.gd")
 
 signal load_requested(slot: int)
 signal save_requested(slot: int)
@@ -23,6 +24,7 @@ var autosave_slot := 0
 
 
 func _ready() -> void:
+	theme = WorkspaceTheme.create()
 	horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -43,12 +45,13 @@ func _ready() -> void:
 	row.add_child(record_picker)
 	refresh_button.text = "Reload"
 	refresh_button.tooltip_text = "Read the five local save slots again."
-	refresh_button.custom_minimum_size = Vector2(92, 40)
+	refresh_button.custom_minimum_size = Vector2(108, 40)
 	refresh_button.pressed.connect(refresh_slots)
+	WorkspaceTheme.decorate_button(refresh_button, "reload")
 	row.add_child(refresh_button)
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	summary.custom_minimum_size.y = 56
-	summary.add_theme_color_override("font_color", Color("e3b65c"))
+	summary.add_theme_color_override("font_color", WorkspaceTheme.GOLD)
 	column.add_child(summary)
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status.custom_minimum_size.y = 38
@@ -64,12 +67,14 @@ func _ready() -> void:
 	load_button.custom_minimum_size.y = 44
 	load_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	load_button.pressed.connect(_request_load)
+	WorkspaceTheme.decorate_button(load_button, "load", true)
 	actions.add_child(load_button)
 	save_button.text = "Save current match here"
 	save_button.tooltip_text = "Save the current local match to the selected slot."
 	save_button.custom_minimum_size.y = 44
 	save_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	save_button.pressed.connect(_request_save)
+	WorkspaceTheme.decorate_button(save_button, "save")
 	actions.add_child(save_button)
 	overwrite_dialog.title = "Overwrite local save"
 	overwrite_dialog.ok_button_text = "Overwrite slot"

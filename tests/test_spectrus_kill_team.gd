@@ -142,7 +142,8 @@ func run() -> void:
 	var attachment_lieutenant_model := C.living(attachment_state, attachment_lieutenant)[0]
 	var lieutenant_attach_choice := find_choice(attachment_state, 1, "attach", attachment_squad, attachment_lieutenant_model, "")
 	var lieutenant_attach_result := PublicUnitCommand.submit(attachment_state, 1, lieutenant_attach_choice)
-	check(not lieutenant_attach_choice.is_empty() and lieutenant_attach_result.get("error", "").is_empty() and attachment_state.units[attachment_lieutenant_model].get("attachment_role", "") == "leader", "The Lieutenant's Spectrus-specific Leader link attaches through the public preparation command as a Leader")
+	var lieutenant_attachment_role := str(attachment_state.units[attachment_lieutenant_model].get("attachment_role", ""))
+	check(not lieutenant_attach_choice.is_empty() and lieutenant_attach_result.get("error", "").is_empty() and lieutenant_attachment_role == "leader", "The Lieutenant's Spectrus-specific Leader link attaches through the public preparation command as a Leader (choice=%s; error=%s; role=%s)" % [JSON.stringify(lieutenant_attach_choice), str(lieutenant_attach_result.get("error", "")), lieutenant_attachment_role])
 	check(Detection.infiltrators(state, squad) and C.UnitAbilities.scout_distance(state, squad) == 6, "Spectrus retains Infiltrators deployment and Scouts 6 movement")
 	var sniper := model_at_index(state, squad, 0)
 	var intercessors := find_squad(state, 2, "intercessor-squad")

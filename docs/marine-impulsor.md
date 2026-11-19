@@ -19,3 +19,7 @@ python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.ex
 ## Limits
 
 This closes the Impulsor shared-book local scope only. The three-copy construction ceiling is a local catalog rule and does not establish the complete current-edition army limit. Firing Deck 7 and Deadly Demise D3 are checked as Impulsor profile parameters; shared resolution behavior is exercised through the common transport rules tests. Full faction and army legality, Chapter-book content, network behavior, complete-match certification and human playtesting remain open. Network validation is deferred to final integration.
+
+## Saved army equipment - 14 November 2026
+
+Equipment options now save per stable vehicle copy in the Army Workshop, pass canonical source-price validation and materialize before Deployment. Frozen saved choices cannot be reconfigured during readiness. Source-book, event, geometry and ability boundaries above remain. See [reviewed source options, exact tests and actual Godot captures](verification/transport-saved-equipment.md).

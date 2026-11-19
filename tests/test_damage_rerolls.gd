@@ -98,7 +98,10 @@ func run() -> void:
 	game.damage_reroll_choice.button_pressed = true
 	game._start_allocation_practice()
 	assert(game.damage_rerolls and game.core_stratagems and game.state.cp == {1: 2, 2: 2})
-	assert(game.state.get("rules_practice", false) and "SYNTHETIC RULES LAB" in game.session_label.tooltip_text)
+	game.combat_hud._refresh_tools_menu()
+	var tools_menu: PopupMenu = game.combat_hud.tools_button.get_popup()
+	var connection_index := tools_menu.get_item_index(game.CombatHud.Tool.CONNECTION)
+	assert(game.state.get("rules_practice", false) and connection_index >= 0 and "SYNTHETIC RULES LAB" in tools_menu.get_item_tooltip(connection_index))
 	game.rng.seed = 42
 	game._apply_attack(1, 100, 200, 0, true)
 	game._request_skip_precision()

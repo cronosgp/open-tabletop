@@ -12,7 +12,7 @@ static func selections() -> Dictionary:
 		{"definition_id": A.BODYGUARDS[0], "models": 10, "copies": 1},
 		{"definition_id": A.BODYGUARDS[1], "models": 5, "copies": 1}]}}
 static func fresh(options: Dictionary = {}) -> Dictionary:
-	var enabled_options := {"awakened_dynasty": true, "unit_abilities": true}
+	var enabled_options := {"awakened_dynasty": true, "unit_abilities": true, "legacy_necron_reference": true}
 	for key: Variant in options: enabled_options[key] = options[key]
 	return P.initial_state(enabled_options, selections())
 
@@ -38,7 +38,7 @@ static func populate(game, owner: int) -> void:
 	var list := P.Training.Roster.new_list("11e", selection.faction, "incursion", 1000)
 	list.id = "awakened-fixture-" + str(owner)
 	for entry: Dictionary in selection.entries:
-		var resolved := P.Training.Capabilities.resolve(selection.faction, entry.definition_id)
+		var resolved := P.Training.Capabilities.resolve(selection.faction, entry.definition_id, selection.faction != "Necrons")
 		list.entries.append({"unit_id": entry.definition_id, "name": resolved.unit.name, "edition": "11e", "faction": selection.faction, "role": P.Training.Roster.role(resolved.unit.keywords), "models": entry.models, "cost": resolved.cost, "copies": entry.copies, "source_digest": resolved.pack_hash})
 	var picker: OptionButton = game.saved_army_pickers[owner]
 	picker.add_item("Awakened fixture " + str(owner))

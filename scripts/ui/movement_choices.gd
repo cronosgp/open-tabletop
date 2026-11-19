@@ -3,7 +3,7 @@ extends VBoxContainer
 
 signal choice_selected(index: int)
 
-const LABELS := ["Normal move", "Advance · D6", "Fall Back", "Desperate Escape", "Stationary"]
+const LABELS := ["Normal move", "Advance · D6", "Fall Back", "Desperate Escape", "Stationary", "Transdimensional Displacement"]
 const STAGES := ["Unit", "Move", "Place", "Confirm"]
 
 var choices: Array[Button] = []
@@ -45,8 +45,8 @@ func _ready() -> void:
 	add_child(instruction)
 	unavailable = Label.new()
 	unavailable.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	unavailable.max_lines_visible = 4
-	unavailable.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	unavailable.max_lines_visible = -1
+	unavailable.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	unavailable.add_theme_font_size_override("font_size", 13)
 	unavailable.add_theme_color_override("font_color", Color("f2b1a0"))
 	unavailable.visible = false

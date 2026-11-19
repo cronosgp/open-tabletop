@@ -20,6 +20,10 @@
 - Flexible Asset permits an otherwise eligible Action after Advance or Fall Back and does not remove the Battle-shock restriction.
 - Both source-listed Leaders are supported: Captain in Phobos Armour and Librarian in Phobos Armour. Attached Scouts retain their tested Scouts and Infiltrators eligibility.
 
+## Persistent Army Builder equipment
+
+**13 November 2026 — implementation; saved-list runtime verification pending.** The Army Builder stores each Scout's source-listed ranged weapon and the Sergeant's optional Chainsword against stable model IDs. Current-catalog admission validates the choices and one-per-five-model specialist limits, including separate Heavy Bolter/Missile Launcher capacity. Match construction installs the saved profiles before Deployment and locks those choices for the match; old profiles without explicit Scout model records retain the existing Army Preparation flow. The miniature preview supplies the selected role and weapon profiles to the local visual matcher and labels the selected equipment. A missing exact visual does not block saving or alter rules. This integration adds no new datasheet rules and does not claim exact sculpt parity or full army legality.
+
 ## Verification
 
 The dedicated rules-scope suite passed with project import and Python checks in `.tools/verification/20261027T044508003953Z/results.json`:

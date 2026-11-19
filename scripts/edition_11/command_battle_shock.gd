@@ -80,7 +80,7 @@ static func _pump(state: Dictionary, roller: Callable) -> Dictionary:
 		if not state.squads.has(squad) or not Morale.needs_command_roll(state, squad):
 			remaining.pop_front()
 			continue
-		var result := Morale.roll_battle_shock(state, squad, roller)
+		var result := Morale.roll_battle_shock(state, squad, roller, Morale.command_battle_shock_modifier(state, squad))
 		if not result.get("error", "").is_empty(): return result
 		if MarineEnhancements.leadership_reroll_available(state, squad):
 			batch["current_result"] = result

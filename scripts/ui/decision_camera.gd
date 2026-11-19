@@ -13,6 +13,8 @@ static func subject(state: Dictionary, selected: int, draft: Dictionary, context
 	var squads: Array = []
 	var key := ""
 	var actor := Combat.actor(state)
+	var window := Combat.UnitActions.pending(state)
+	var declaration: Dictionary = window.get("declaration", {})
 	if context.get("defense", false):
 		var hazard: Dictionary = state.get("pending_hazard", {})
 		if not hazard.is_empty():
@@ -23,10 +25,19 @@ static func subject(state: Dictionary, selected: int, draft: Dictionary, context
 			squads = [current.target]
 			key = "defense:%d:%s:%d" % [current.target, str(current.phase), actor]
 	elif context.get("reaction", false):
-		var window := Combat.Stratagems.pending(state)
-		var squad := int(window.get("squad", context.get("reaction_squad", -1)))
+		var roll_window := Combat.Stratagems.pending(state)
+		var squad := int(roll_window.get("squad", context.get("reaction_squad", -1)))
 		squads = [squad]
-		key = "reaction:%s:%d:%d" % [str(window.get("kind", "")), squad, actor]
+		key = "reaction:%s:%d:%d" % [str(roll_window.get("kind", "")), squad, actor]
+	elif not declaration.is_empty():
+		squads = [int(declaration.get("squad", -1))]
+		for entry: Dictionary in declaration.get("entries", []):
+			var target := int(entry.get("target", -1))
+			if target not in squads: squads.append(target)
+		key = "declaration:%s:%s:%d" % [str(window.get("kind", "")), str(squads), actor]
+	elif context.has("overwatch_squad"):
+		squads = [int(context.overwatch_squad)]
+		key = "overwatch:%d:%d" % [squads[0], actor]
 	elif context.get("contact", false) and not state.get("pending_contact", {}).is_empty():
 		var contact: Dictionary = state.pending_contact
 		squads = [contact.squad]
@@ -63,9 +74,10 @@ static func points(state: Dictionary, ids: Array) -> Array[Vector3]:
 		if unit.wounds <= 0 or not unit.get("on_battlefield", true): continue
 		var p: Vector2 = unit.position
 		var radius := float(unit.get("radius", 0.5))
+		var floor_height := float(unit.get("elevation", 0.0))
 		for x: float in [-radius, radius]:
 			for z: float in [-radius, radius]:
-				for y: float in [0.0, 2.5]: result.append(Vector3(p.x + x, y, p.y + z))
+				for y: float in [0.0, 2.5]: result.append(Vector3(p.x + x, floor_height + y, p.y + z))
 	return result
 
 static func max_zoom(state: Dictionary) -> float:
@@ -79,7 +91,9 @@ static func _orient(camera: Camera3D, pivot: Node3D, zoom: float, angle: float) 
 	camera.force_update_transform()
 
 static func plan(camera: Camera3D, pivot: Node3D, state: Dictionary, ids: Array, board_area: Rect2, angle: float) -> Dictionary:
-	var vertices := points(state, ids)
+	return plan_points(camera, pivot, state, points(state, ids), board_area, angle)
+
+static func plan_points(camera: Camera3D, pivot: Node3D, state: Dictionary, vertices: Array[Vector3], board_area: Rect2, angle: float) -> Dictionary:
 	var area := board_area.grow(-24.0)
 	if vertices.is_empty() or area.size.x < 100.0 or area.size.y < 100.0: return {}
 	var center := Vector3.ZERO

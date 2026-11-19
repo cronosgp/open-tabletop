@@ -2,7 +2,7 @@
   "current_source_policy": {
     "id": "wahapedia-e11-definitive-data-and-rules-2026-10-20",
     "superseded_policy_id": "wahapedia-e11-gw-cross-check-required-2026-10-20",
-    "document": "rules-source-policy.md",
+    "document": "data/source-assessment.md",
     "authority": "Wahapedia /wh40k11ed/",
     "official_gw_confirmation_required": false,
     "previous_official_gw_confirmation_required": true,
@@ -8073,7 +8073,7 @@
     "local_validation_scope": [
       "test_marneus_calgar",
       "test_cato_sicarius",
-      "test_leaders",
+      "test_leader_catalog",
       "test_implemented_catalog",
       "test_capabilities",
       "test_current_unit_abilities",
@@ -8109,7 +8109,7 @@
       "test_weapon_selection",
       "test_suboden_khan",
       "test_implemented_catalog",
-      "test_leaders",
+      "test_leader_catalog",
       "test_capabilities",
       "test_current_unit_abilities",
       "test_core_reactions",
@@ -8149,7 +8149,7 @@
       "test_kor_sarro_khan",
       "test_capabilities",
       "test_current_unit_abilities",
-      "test_leaders",
+      "test_leader_catalog",
       "test_roster_validation",
       "test_saved_armies",
       "test_suboden_khan"

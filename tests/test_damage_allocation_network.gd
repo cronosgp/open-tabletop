@@ -54,9 +54,10 @@ func run() -> void:
 	game._refresh()
 	passed = passed and game.allocate_button.visible and not game.allocate_button.disabled and game.end_button.disabled and "Eligible models" in game.details.text
 	var before := var_to_str(game.state)
+	var identity: Dictionary = game._damage_decision_identity(201)
 	game.request_end.rpc_id(1, 1)
-	game.request_allocate_damage.rpc_id(1, 100, 1)
-	game.request_allocate_damage.rpc_id(1, 201, 0)
+	game.request_allocate_damage.rpc_id(1, 100, 1, identity.decision_id, identity.option_id)
+	game.request_allocate_damage.rpc_id(1, 201, 0, identity.decision_id, identity.option_id)
 	await create_timer(0.2).timeout
 	passed = passed and before == var_to_str(game.state)
 	game._request_allocate_damage()
@@ -70,7 +71,8 @@ func run() -> void:
 	game.selected = 201
 	game._refresh()
 	before = var_to_str(game.state)
-	game.request_allocate_damage.rpc_id(1, 200, 2)
+	identity = game._damage_decision_identity(201)
+	game.request_allocate_damage.rpc_id(1, 200, 2, identity.decision_id, identity.option_id)
 	await create_timer(0.2).timeout
 	passed = passed and before == var_to_str(game.state)
 	for step in range(20):
@@ -78,7 +80,9 @@ func run() -> void:
 		var choices: Array[int] = game.Combat.Allocation.eligible(game.state)
 		var model: int = choices[choices.size() - 1]
 		var expected: int = game.state.revision + 1
-		game.request_allocate_damage.rpc_id(1, model, game.state.revision)
+		game.selected = model
+		game._refresh()
+		game.allocate_button.pressed.emit()
 		passed = await at_revision(game, expected) and passed
 	passed = passed and game.state.pending_attack.is_empty() and game.state.last_attack.pools[0].allocations[0].model == 201 and not game.allocate_button.visible
 	print("DAMAGE ALLOCATION CLIENT ", "MELEE" if melee else "RANGED", ": ", "PASS" if passed else "FAIL")

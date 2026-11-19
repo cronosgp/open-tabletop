@@ -38,8 +38,11 @@ static func profile(state: Dictionary, model: int, melee: bool = false) -> Dicti
 	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) == "deathwatch-veterans" and unit.get("deathwatch_veteran_storm_shield", false): result.invulnerable_target = 4 if int(result.invulnerable_target) == 0 else mini(4, int(result.invulnerable_target))
 	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) == "thunderwolf-cavalry" and unit.get("thunderwolf_cavalry_storm_shield", false): result.invulnerable_target = 4 if int(result.invulnerable_target) == 0 else mini(4, int(result.invulnerable_target))
 	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) in ["impulsor", "black-templars-impulsor"] and unit.get("impulsor_system", "none") == "shield-dome": result.invulnerable_target = 5 if int(result.invulnerable_target) == 0 else mini(5, int(result.invulnerable_target))
+	if UnitAbilities.enabled(state) and UnitAbilities.identity(unit) == "lychguard" and bool(unit.get("lychguard_dispersion_shield", false)): result.invulnerable_target = 4 if int(result.invulnerable_target) == 0 else mini(4, int(result.invulnerable_target))
 	var force_dome: Dictionary = state.get("unit_abilities", {}).get("force_dome", {}).get(int(unit.squad), {})
 	if UnitAbilities.enabled(state) and int(force_dome.get("expires_turn", -1)) > int(state.turn):
+		result.invulnerable_target = 4 if int(result.invulnerable_target) == 0 else mini(4, int(result.invulnerable_target))
+	if UnitAbilities.enabled(state) and UnitAbilities.leading(state, int(unit.squad), "master-chronomancer"):
 		result.invulnerable_target = 4 if int(result.invulnerable_target) == 0 else mini(4, int(result.invulnerable_target))
 	if UnitAbilities.rampart_active(state, model):
 		result.invulnerable_target = mini(2, int(result.invulnerable_target)) if int(result.invulnerable_target) > 0 else 2

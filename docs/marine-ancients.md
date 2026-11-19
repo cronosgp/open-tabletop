@@ -37,3 +37,7 @@ The run materializes both players through the current Marine catalog, records `n
 ## Limits
 
 This closes only the Ancient and Bladeguard Ancient source-bounded local scopes. Support tests and the global relation suite do not certify every roster combination. Full army legality, other Chapter-book adaptations, Legends, Boarding Actions, network behavior, full-match certification and human playtesting remain outside this result. Network validation remains deferred to final integration.
+
+## Army Workshop persistence — 13 November 2026
+
+The source-listed weapon replacement is now stored per stable model in Army Workshop lists. Current-catalog admission keeps differently configured copies separate; saved-list match creation applies the exact selected package and locks duplicate preparation changes before Deployment. Standalone exercises retain their public preparation choice. This adds persistence to the existing local scope and does not extend rules certification. See the [Army Builder guide](guides/army-builder.md#invictor-and-ancient-equipment).

@@ -24,3 +24,7 @@ The three source-listed Leaders—Captain, Lieutenant and Librarian in Phobos Ar
 The focused Wolf Scouts suite passed 3/3 offline processes. The connected regression passed 11/11 processes and includes catalog admission, Leader links, capability metadata, Incursor/Haywire, Fenrisian Wolves, Scout Squad and roster validation. Exact commands, reports and SHA-256 values are in the [verification log](verification/verification-results.md#wolf-scouts-source-bounded-local-scope--29-october-2026).
 
 This closes only the local Wolf Scouts datasheet scope. The Hunting Wolf base proxy, positive Hunting Hounds fixture, deferred network/page validation, human playtesting, full Chapter restrictions and full army legality remain outside the evidence. The parent export's 68 unrelated structural findings remain unresolved and were not used to certify this sheet.
+
+## Saved Army Builder equipment — 14 November 2026
+
+The existing admitted compositions now save legal equipment per model and copy. Hunting Wolves retain fixed weapons; readiness cannot reconfigure the saved records. The migration preserves this document's source and composition limitations. See the [equipment audit and bounded verification](verification/mixed-space-wolves-saved-equipment.md).

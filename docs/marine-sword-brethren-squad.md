@@ -35,6 +35,10 @@ The consolidated local catalog admits the exact priced sizes above, all weapon p
 
 Exploit their Cowardice is checked at the start of an enemy Fall Back move. The movement draft records which Sword Brethren units were engaged with that specific enemy. When the Fall Back move is confirmed, the reaction is offered only if the recorded Sword Brethren unit is now unengaged. The optional Normal Move uses the persisted reaction decision, caps each model at 6 inches and checks terrain, path, base overlap, coherency and ending outside Engagement Range before confirmation.
 
+## Army Workshop saved equipment — 15 November 2026
+
+The Army Workshop now saves one complete factory-backed pistol/melee package per stable model and unit copy. It enforces the four independent per-four-model limits from the verified local source, retains the existing prices and adds no equipment surcharge. Saved weapons materialize before Deployment and cannot be changed through the duplicate preparation choice. Sizes 6–8 remain blocked because the selected export has no costs. The [source hashes, save/reopen checks, actual Workshop captures and scope limits](verification/sword-brethren-saved-equipment.md) are recorded separately from this historical extraction and rules audit.
+
 ## Verification
 
 Focused offline verification passed **4/4 processes**: Godot import, Python architecture/verification checks, `test_sword_brethren_squad`, and `test_space_marine_leader_links`.

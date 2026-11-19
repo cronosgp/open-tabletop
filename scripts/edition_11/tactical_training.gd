@@ -2,6 +2,7 @@ extends RefCounted
 ## Scenario composition and presentation only; existing rules remain authoritative.
 const Catalog = preload("res://scripts/edition_11/army_capabilities.gd")
 const Roster = preload("res://scripts/army_roster.gd")
+const VisualMatcher = preload("res://scripts/forceorg_matcher.gd")
 const ID := "marine-tactical-training-v1"
 const FIRE_ID := "preset:marine-tactical-v1:fire"
 const ASSAULT_ID := "preset:marine-tactical-v1:assault"
@@ -20,6 +21,77 @@ static func army(assault: bool = false) -> Dictionary:
 		list.catalog_digest = resolved.pack_hash
 		list.entries.append({"unit_id": resolved.unit.id, "name": resolved.unit.name, "edition": "11e", "faction": "Space Marines", "role": Roster.role(resolved.unit.keywords), "models": resolved.models, "cost": resolved.cost, "copies": 1, "source_digest": resolved.pack_hash})
 	return {"error": "", "list": list}
+
+## Select a distinct, complete local source group for each training force when
+## exact-name visual candidates exist for every unit. The returned palettes are
+## presentation metadata only; group labels do not certify paint or rules.
+static func visual_palettes(entries: Array) -> Dictionary:
+	if entries.is_empty(): return {}
+	var fire_report := army(false)
+	var assault_report := army(true)
+	if not fire_report.error.is_empty() or not assault_report.error.is_empty(): return {}
+	var fire_options := _visual_options_by_family(fire_report.list, entries)
+	var assault_options := _visual_options_by_family(assault_report.list, entries)
+	var best_pair: Dictionary = {}
+	var best_score := -1
+	var fire_families: Array = fire_options.keys()
+	var assault_families: Array = assault_options.keys()
+	fire_families.sort()
+	assault_families.sort()
+	for fire_family: String in fire_families:
+		for assault_family: String in assault_families:
+			if fire_family == assault_family: continue
+			var score := _palette_variant_count(fire_options[fire_family]) + _palette_variant_count(assault_options[assault_family])
+			var identity := fire_family + "|" + assault_family
+			if score > best_score or (score == best_score and identity < str(best_pair.get("identity", "~"))):
+				best_score = score
+				best_pair = {"identity": identity, "fire": fire_family, "assault": assault_family}
+	if best_pair.is_empty(): return {}
+	return {
+		FIRE_ID: {"family": str(best_pair.fire), "palette": _first_variant_palette(fire_options[str(best_pair.fire)])},
+		ASSAULT_ID: {"family": str(best_pair.assault), "palette": _first_variant_palette(assault_options[str(best_pair.assault)])}
+	}
+
+static func _visual_options_by_family(list: Dictionary, entries: Array) -> Dictionary:
+	var options_by_family: Dictionary = {}
+	var definitions: Array[String] = []
+	for roster_entry: Dictionary in list.get("entries", []):
+		var definition := str(roster_entry.get("unit_id", ""))
+		if definition.is_empty() or definition in definitions: continue
+		definitions.append(definition)
+		for visual: Dictionary in VisualMatcher.variants(definition, entries):
+			if not str(visual.get("visual_role", "")).is_empty(): continue
+			var family := str(visual.get("source_group_hint", "")).strip_edges().to_lower()
+			var variant_id := str(visual.get("variant_id", ""))
+			if family.is_empty() or family.contains("|") or variant_id.is_empty(): continue
+			if not options_by_family.has(family): options_by_family[family] = {}
+			if not options_by_family[family].has(definition): options_by_family[family][definition] = []
+			if variant_id not in options_by_family[family][definition]: options_by_family[family][definition].append(variant_id)
+	var complete: Dictionary = {}
+	for family: String in options_by_family:
+		var family_options: Dictionary = options_by_family[family]
+		var has_all_definitions := true
+		for definition: String in definitions:
+			if family_options.get(definition, []).is_empty():
+				has_all_definitions = false
+				break
+		if not has_all_definitions: continue
+		for definition: String in family_options:
+			family_options[definition].sort()
+		complete[family] = family_options
+	return complete
+
+static func _palette_variant_count(family_options: Dictionary) -> int:
+	var count := 0
+	for variants: Array in family_options.values(): count += variants.size()
+	return count
+
+static func _first_variant_palette(family_options: Dictionary) -> Dictionary:
+	var palette: Dictionary = {}
+	for definition: String in family_options:
+		var variants: Array = family_options[definition]
+		if not variants.is_empty(): palette[definition] = [str(variants[0])]
+	return palette
 
 static func tip(phase: String) -> String:
 	match phase:
@@ -135,4 +207,4 @@ static func summary() -> String:
 		for entry: Dictionary in report.list.entries:
 			formation.append("%s (%d)" % [str(entry.name), int(entry.models)])
 		lines.append("%s • %d pts\n%s" % [report.list.name, admitted.total, ", ".join(formation)])
-	return "\n".join(lines) + "\nLocal Gladius free play with tips • no downloads\nPractice: abilities • CP stratagems • plasma/Hazardous • Bladeguard stances\nAsymmetric forces; legality and competitive balance are not certified."
+	return "\n".join(lines) + "\nLocal Gladius free play with tips • ForceOrg miniatures download when enabled\nPractice: abilities • CP stratagems • plasma/Hazardous • Bladeguard stances\nAsymmetric forces; legality and competitive balance are not certified."

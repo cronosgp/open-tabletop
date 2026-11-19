@@ -22,13 +22,13 @@ static func current_marine_selections() -> Dictionary:
 		result[owner] = {"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": entries}
 	return result
 static func fresh() -> Dictionary:
-	return P.initial_state({"unit_abilities": true, "reanimation_protocols": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true, "attack_rerolls": true, "manual_allocation": false}, selections())
+	return P.initial_state({"unit_abilities": true, "reanimation_protocols": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true, "attack_rerolls": true, "manual_allocation": false, "legacy_necron_reference": true}, selections())
 static func populate(game, owner: int) -> void:
 	var selection: Dictionary = selections()[owner]
 	var list := P.Training.Roster.new_list("11e", selection.faction, "incursion", 1000)
 	list.id = "all-units-fixture-" + str(owner)
 	for entry: Dictionary in selection.entries:
-		var resolved := P.Training.Capabilities.resolve(selection.faction, entry.definition_id)
+		var resolved := P.Training.Capabilities.resolve(selection.faction, entry.definition_id, selection.faction != "Necrons")
 		list.entries.append({"unit_id": entry.definition_id, "name": resolved.unit.name, "edition": "11e", "faction": selection.faction, "role": P.Training.Roster.role(resolved.unit.keywords), "models": entry.models, "cost": resolved.cost, "copies": 1, "source_digest": resolved.pack_hash})
 	var picker: OptionButton = game.saved_army_pickers[owner]
 	picker.add_item("All unit types " + str(owner))

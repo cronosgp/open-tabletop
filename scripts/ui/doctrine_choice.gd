@@ -28,7 +28,9 @@ func _ready() -> void:
 func _picker(description: String) -> OptionButton:
 	var picker := OptionButton.new()
 	picker.fit_to_longest_item = false
-	picker.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	picker.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	picker.clip_text = false
+	picker.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	picker.custom_minimum_size.y = 40
 	picker.tooltip_text = description
 	add_child(picker)

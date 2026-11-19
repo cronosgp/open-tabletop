@@ -72,7 +72,7 @@ static func return_at_end_of_opponent_turn(state: Dictionary) -> Array[int]:
 	var owner := 3 - int(state.get("active", -1))
 	var abilities_value: Variant = state.get("unit_abilities", {})
 	if not abilities_value is Dictionary or not abilities_value.get("reserves", {}) is Dictionary: return returned
-	var reserves: Dictionary = abilities_value.reserves
+	var reserves: Dictionary = abilities_value.get("reserves", {})
 	for squad: int in state.get("squads", {}):
 		if int(state.squads[squad].get("owner", -1)) != owner or not is_aircraft(state, squad): continue
 		var living_on_board := false

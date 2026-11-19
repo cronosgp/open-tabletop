@@ -11,10 +11,11 @@ func run() -> void:
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	check("No model selected" in game.selection_card.text and not game.details.visible, "Initial view is compact")
+	check(game.selection_card.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and game.decision_details.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and game.details.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and game.tactical_opportunity_label.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and game.command_panel_title.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and game.defense_steps.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and game.plan_steps.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and game.deployment_help.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and game.unit_action_help.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and game.movement_reference.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING, "Command explanations and the selected-model card keep their full text")
 	game._start_allocation_practice()
 	check("Intercessor" in game.selection_card.text and "W 2/2" in game.selection_card.text, "Selected unit and model wounds are visible")
 	check("models alive" not in game.selection_card.text and "P1" not in game.selection_card.text, "Compact card omits repeated owner and living-count information")
-	check(not game.selection_stats.visible, "Selection footer leaves combat characteristics in the full datasheet")
+	check(game.selection_stats.visible and game.selection_stats.get_child_count() == 3, "Selection footer previews Movement, Save and Objective Control")
 	check(game.army_card_host.get_index() > game.army_roster.get_parent().get_index(), "Selection footer sits below the scrollable roster")
 	for phase: String in ["command", "movement", "shooting", "charge", "fight", "end_turn"]:
 		var previous_phase: String = game.state.phase
@@ -52,5 +53,13 @@ func run() -> void:
 	game.state.units[201].wounds = 0
 	game._refresh_selection_card()
 	check("Destroyed" in game.selection_card.text, "Destroyed model is explicitly identified")
+	game.state.phase = "charge"
+	game.state.pending_contact = {"origins": {100: Vector2.ZERO}, "maximum": 6, "spent": {}, "locked": {}}
+	game.selected = 100
+	game._refresh_selection_card()
+	check("Contact remaining 6.0\"" in game.selection_card.text, "Charge placement shows the selected model's remaining distance")
+	var blocked := "Exceeds movement: 18.50 inches requested, 6.00 remaining."
+	game._show_placement_feedback(100, Vector2(40, 40), blocked, 0.0, "exceeds_movement", "Choose a destination within the remaining movement allowance.")
+	check(game.placement_reason.visible and blocked in game.placement_reason.text and "18.50" in game.placement_reason.text and "6.00" in game.placement_reason.text and game.placement_reason.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and not game.placement_reason.text.contains("…"), "A blocked move keeps the requested and remaining distance")
 	print("Selection card checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

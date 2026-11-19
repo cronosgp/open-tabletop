@@ -25,3 +25,7 @@ python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.ex
 ```
 
 The suite checks the pinned source identity and facts, weapon profiles, option limits, both point tiers, public preparation choices, FNP, Deep Strike, Savage Fury, Black Rage melee/support/Fall Back/OC effects, exclusion of the foot squad's ability, catalog count and capability records. This closes only the declared local scope; it does not certify full Blood Angels or Space Marine army legality, network behavior, all roster interactions or human playtesting. See the [machine-readable audit](marine-death-company-marines-with-jump-packs-audit.json).
+
+## Saved Army Workshop equipment — 13 November 2026
+
+The Workshop stores each model's Chainsword replacement and Heavy Bolt Pistol replacement independently. Saved-list admission enforces the Jump Pack datasheet's per-five-model melee and pistol quotas; match setup installs exact local weapons and blocks a duplicate preparation edit. The foot-only Grenade Launcher field is not part of this profile's saved schema. This path shares the [Death Company saved-equipment verification](verification/verification-results.md#death-company-marines-saved-equipment--13-november-2026) and restart fixture. No source refresh or ability-scope change was made. Full army legality, sculpt parity, separate-machine LAN and human usability remain unverified.

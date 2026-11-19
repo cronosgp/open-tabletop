@@ -14,6 +14,8 @@ func run() -> void:
 	var before := var_to_str(game.state)
 	game._begin_attack_plan()
 	check("Select → Assign → Review" in game.plan_steps.text and "0 assignments" in game.plan_steps.text and "4 • Review" in game.attack_reference.text, "Compact planner keeps full instructions accessible in Help without rolling dice")
+	var attack_controls: Array = game.action_groups.attack.controls
+	check(game.damage_preview.get_parent() == game.plan_summary.get_parent() and attack_controls.find(game.plan_weapon) < attack_controls.find(game.plan_target) and attack_controls.find(game.plan_target) < attack_controls.find(game.plan_summary) and attack_controls.find(game.plan_summary) < attack_controls.find(game.damage_preview) and attack_controls.find(game.damage_preview) < attack_controls.find(game.plan_confirm) and attack_controls.find(game.plan_begin) < attack_controls.find(game.lethal_choice), "Attack planning reads weapon, target, review, then declare")
 	game._assign_attack()
 	check("1 assignments" in game.plan_steps.text and "Synthetic mixed allocation group" in game.plan_summary.text and not game.plan_confirm.disabled, "Review names the target and assignment count")
 	check(var_to_str(game.state) == before, "Editing and review do not mutate combat state")
@@ -28,7 +30,7 @@ func run() -> void:
 	before = var_to_str(game.state)
 	var pick: int = game.defense_picker.get_item_index(202)
 	game.defense_picker.item_selected.emit(pick)
-	check(game.selected == 202 and "Model 202" in game.defense_picker.get_item_text(game.defense_picker.selected) and not game.allocate_button.disabled, "Dropdown selection updates board selection and its visible model label")
+	check(game.selected == 202 and game.defense_picker.get_item_id(game.defense_picker.selected) == 202 and game.defense_picker.get_item_text(game.defense_picker.selected) == game._model_choice_label(202) and not game.allocate_button.disabled, "Dropdown selection updates board selection and its visible model label")
 	check(var_to_str(game.state) == before, "Choosing an eligible model does not commit a decision")
 	game.defense_picker.item_selected.emit(0)
 	check(game.selected == -1 and game.allocate_button.disabled and var_to_str(game.state) == before, "Returning to the prompt clears selection without declining Precision")

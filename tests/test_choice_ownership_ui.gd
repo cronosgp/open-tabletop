@@ -18,6 +18,11 @@ func run() -> void:
 	game.guest_id = 2
 	game._refresh()
 	check(game.setup_finish_button.visible and game.action_groups.unit.container.visible, "Host sees own army preparation controls")
+	var preparation: Array = game.action_groups.unit.controls
+	check(game.unit_action_picker.get_index() < game.setup_required_status.get_index() and preparation.find(game.unit_action_picker) < preparation.find(game.setup_finish_button) and preparation.find(game.setup_required_status) + 1 == preparation.find(game.setup_finish_button), "The Warlord choice comes before Finish, with the required reason beside that button")
+	game.model_play_notice.text = "ForceOrg • Automatic downloads are off for this match."
+	game.model_play_notice.visible = true
+	check(not game.action_groups.unit.container.is_ancestor_of(game.model_play_notice) and preparation.find(game.model_play_notice) < 0 and game.model_play_notice.visible, "Model-download notices stay outside the Warlord and Finish controls")
 	check(game.setup_preparation_status.visible and "PLAYER 1" in game.setup_preparation_status.text and not game.setup_equipment_open, "Preparation identifies its owner and keeps optional equipment collapsed")
 	check(not game.setup_finish_button.disabled, "Optional equipment can stay at the default while preparation finishes")
 	check(game.end_button.disabled and not game.action_groups.phase.container.visible, "Phase advance cannot bypass army preparation")

@@ -8,6 +8,10 @@ The datasheet contains one model for 110 points, with a 90 × 52 mm oval base. C
 
 The focused suite checks all four legal packages through the public equipment choices. Every weapon profile, including both Plasma Pistol modes, passes `Equipment` and `AttackPlan`. The local collision model records the oval base dimensions but uses a bounding-circle proxy; it does not certify exact oval placement geometry.
 
+## Saved Army Workshop equipment
+
+Each Captain on Bike copy can save the Heavy Bolt Pistol or Plasma Pistol independently from the Master-crafted Power Weapon or Thunder Hammer. The saved adapter validates all four combinations against the local weapon factory and installs them before Deployment, preserving distinct configurations on separate copies. Saved-list matches lock the loadout and suppress duplicate preparation choices. The existing two-copy Incursion and three-copy Strike Force limits are unchanged. This persistence work does not certify exact sculpt parity or oval placement geometry.
+
 ## Rules and Leader links
 
 The source lists Leader, Combat Doctrines, Transhuman Strategist, Strategic Acumen and Into the Fray. The ability catalog now includes Combat Doctrines for this profile. The local tests confirm both-player current-catalog construction, a three-copy Strike Force list and rejection of a fourth Captain, attachment to the shared-book Outrider Squad, Warlord eligibility and once-per-round CP, owner-checked Strategic Acumen timing, and Cleave 1 only after a charge move. Incursion's current two-copy limit is checked separately by the shared roster-admission workflow.

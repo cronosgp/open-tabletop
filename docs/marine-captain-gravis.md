@@ -8,6 +8,10 @@ The Captain is one model for 90 points on a 40 mm base. Its characteristics are 
 
 The preparation selector supports all three source replacements. Each replaces both defaults with a Boltstorm Gauntlet and one relic: Relic Blade, Relic Chainsword or Relic Power Fist. All three relics have Extra Attacks. The dedicated suite exercises the default and every replacement through Equipment and AttackPlan, including the gauntlet's ordinary attacks plus the relic attacks, and checks restoring the default package.
 
+## Saved Army Workshop equipment
+
+Each Gravis Captain copy can save one of four complete packages in the Army Workshop: the default rifle and power weapon, or Boltstorm Gauntlet with a Relic Blade, Relic Chainsword or Relic Power Fist. Admission checks each package against the same local factory used by the datasheet profile. Saved-list matches apply the chosen ranged and melee profiles before Deployment and lock the preparation choice for that match. This adds no copy-limit rule and does not refresh the source audit.
+
 ## Rules and Leader links
 
 The four common-book Leader targets are Aggressor Squad, Eradicator Squad with Heavy Bolters, Eradicator Squad with Melta Rifles and Heavy Intercessor Squad. The source page also names Deathwatch Indomitor Kill Team; it is outside the shared-book 85-sheet scope.
@@ -24,4 +28,4 @@ The focused offline run passed 5/5 processes: import, Python checks, this suite,
 
 See the machine audit (marine-captain-gravis-audit.json), coverage matrix (space-marines-coverage.md) and verification record (verification/verification-results.md).
 
-This closes only the Captain in Gravis Armour common-book local datasheet scope. Chapter-book and Deathwatch targets, full faction or army legality, network behavior, complete-match certification and human playtesting remain outside this closure. Network validation remains deferred to final integration.
+This audit documents the Captain in Gravis Armour common-book local datasheet scope. Chapter-book and Deathwatch targets, full faction or army legality, network behavior, complete-match certification and human playtesting remain outside this scope. Network validation remains deferred to final integration. Saved equipment verification is recorded in the [implementation result](verification/verification-results.md#gravis-captain-saved-equipment--13-november-2026).

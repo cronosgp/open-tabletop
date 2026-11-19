@@ -17,3 +17,7 @@ The six source-listed Leader targets remain recorded in export order. All six ta
 ## Verification and limits
 
 The focused local check covers profile and weapon facts, catalog admission, both loadout replacements and restoration, Warlord eligibility, target-bounded attacks and Heroic Last Stand's roll and cleanup windows. The connected offline regression also covers shared casualty retention and current catalog/Leader behavior. See the audit for exact commands, report hashes and remaining certification limits. Network validation, human playtesting and full army legality remain open.
+
+## Saved army equipment - 14 November 2026
+
+Source-listed equipment now persists in the Army Builder per stable model/copy, is validated before materialization and cannot be reconfigured during readiness once frozen. Existing rules, Chapter and event boundaries remain. See [source-option review, exact verification reports and Godot captures](verification/heavy-saved-equipment.md).

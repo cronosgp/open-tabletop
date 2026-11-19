@@ -9,6 +9,9 @@ const RosterValidation = preload("res://scripts/edition_11/roster_validation.gd"
 const MatchCommandService = preload("res://scripts/edition_11/match_command_service.gd")
 const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 const PublicUnitCommand = preload("res://tests/public_unit_command.gd")
+const ArmyRoster = preload("res://scripts/army_roster.gd")
+const ArmyTrainingRoster = preload("res://scripts/edition_11/training_roster.gd")
+const BuilderPanel = preload("res://scripts/army_builder_panel.gd")
 var failures := 0
 
 const EXPECTED_WEAPONS := {
@@ -134,6 +137,57 @@ func run() -> void:
 	check(repeated.error.is_empty() and repeated.total == 410, "Third Inceptor unit uses its source 150-point cost in Strike Force")
 	var six := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": "40kdc:11e:adeptus-astartes:inceptor-squad", "models": 6, "copies": 1}]})
 	check(six.error.is_empty() and six.total == 260, "The source six-model Inceptor composition is admitted at 260 points")
+	var inceptor_catalog := Army.current_catalog_choice({"id": "40kdc:11e:adeptus-astartes:inceptor-squad", "edition": "11e", "faction": "Space Marines"})
+	inceptor_catalog.role = ArmyRoster.role(inceptor_catalog.get("keywords", []))
+	var inceptor_list := ArmyRoster.new_list("11e", "Space Marines", "custom", 3000)
+	if not inceptor_catalog.is_empty():
+		inceptor_list.entries.append(ArmyRoster.entry(inceptor_catalog, 0))
+		ArmyRoster.set_model_equipment(inceptor_list.entries[0], 0, 0, "inceptor_weapon", "plasma-exterminators")
+		ArmyRoster.set_model_equipment(inceptor_list.entries[0], 0, 2, "inceptor_weapon", "plasma-exterminators")
+	var inceptor_roster_report := ArmyTrainingRoster.inspect(inceptor_list, {}, true)
+	check(inceptor_roster_report.get("error", "").is_empty(), "The consolidated Inceptor entry is accepted in a saved local roster: " + str(inceptor_roster_report.get("error", "")))
+	if inceptor_roster_report.get("error", "").is_empty():
+		var inceptor_selection: Dictionary = inceptor_roster_report.selection
+		var canonical_loadouts: Array = inceptor_selection.entries[0].get("inceptor_loadouts", [])
+		check(canonical_loadouts == [["plasma-exterminators", "assault-bolters", "plasma-exterminators"]], "Saved army admission carries the exact per-model Inceptor weapon choices")
+		var builder_panel = BuilderPanel.new()
+		var plasma_hint := {"visual_definitions": ["40kdc:11e:adeptus-astartes:inceptor-squad"], "visual_weapons": ["Plasma Exterminators"], "ready": true}
+		var bolter_hint := {"visual_definitions": ["40kdc:11e:adeptus-astartes:inceptor-squad"], "visual_weapons": ["Assault Bolters"], "ready": true}
+		var match_rationale := builder_panel._appearance_model_match_rationale(plasma_hint, inceptor_list.entries[0], 0, 0)
+		var conflict_rationale := builder_panel._appearance_model_match_rationale(bolter_hint, inceptor_list.entries[0], 0, 0)
+		var model_role_label := builder_panel._visual_model_role_label(inceptor_list.entries[0], 0, 0)
+		var equipment_summary := builder_panel._sergeant_loadout_summary(inceptor_list.entries[0])
+		builder_panel.free()
+		check(match_rationale.contains("match this Inceptor's saved Plasma Exterminators") and conflict_rationale.contains("conflict with this Inceptor's saved Plasma Exterminators"), "The appearance gallery compares equipment hints with each Inceptor's saved weapon")
+		check(model_role_label.contains("Inceptor 1") and model_role_label.contains("Plasma Exterminators") and equipment_summary.contains("1: Plasma Exterminators") and equipment_summary.contains("2: Assault Bolters"), "The Builder identifies each model's role and summarizes its saved Inceptor loadout")
+		var inceptor_refs := ArmyTrainingRoster.stable_model_refs(inceptor_list, inceptor_selection)
+		check(inceptor_refs.get("error", "").is_empty() and inceptor_refs.get("models", {}).size() == 3, "The saved Inceptor equipment remains attached to three stable model references")
+		var invalid_loadouts: Dictionary = inceptor_selection.duplicate(true)
+		invalid_loadouts.entries[0].inceptor_loadouts[0] = ["plasma-exterminators"]
+		check(not Army.admit(invalid_loadouts).get("error", "").is_empty(), "Saved Inceptor loadout arrays with a missing model are rejected")
+		invalid_loadouts = inceptor_selection.duplicate(true)
+		invalid_loadouts.entries[0].inceptor_loadouts[0][1] = "unsupported-weapon"
+		check(not Army.admit(invalid_loadouts).get("error", "").is_empty(), "Saved Inceptor loadouts reject weapon choices outside the source pair")
+		var saved_inceptor_state: Dictionary = F.P.initial_state({"unit_abilities": true}, {1: inceptor_selection, 2: inceptor_selection})
+		check(not saved_inceptor_state.has("error"), "The saved Inceptor roster materializes into a match: " + str(saved_inceptor_state.get("error", "")))
+		if not saved_inceptor_state.has("error"):
+			saved_inceptor_state.phase = "deployment"
+			saved_inceptor_state.unit_abilities.setup_players = []
+			var materialized_loadouts := ["plasma-exterminators", "assault-bolters", "plasma-exterminators"]
+			for model_index in range(3):
+				var unit: Dictionary = saved_inceptor_state.units[100 + model_index]
+				var expected_weapon: String = materialized_loadouts[model_index]
+				check(bool(unit.get("inceptor_loadout_locked", false)) and str(unit.ranged_weapons[0].get("id", "")) == expected_weapon and bool(unit.get("inceptor_plasma_exterminators", false)) == (expected_weapon == "plasma-exterminators"), "Saved model %d uses its selected source weapon and locks it for the match" % (model_index + 1))
+			var saved_setup_choices: Array = []
+			for candidate: Dictionary in C.unit_choices(saved_inceptor_state, 1):
+				if candidate.action == "inceptor-loadout": saved_setup_choices.append(candidate)
+			check(saved_setup_choices.is_empty(), "Saved Inceptor equipment is not offered again in match preparation")
+			var locked_before := str(saved_inceptor_state.units[100].ranged_weapons[0].id)
+			var forced_replacement := PublicUnitCommand.submit(saved_inceptor_state, 1, {"action": "inceptor-loadout", "model": 100, "target": 1, "value": "bolters"})
+			check(not str(forced_replacement.get("error", "")).is_empty() and str(saved_inceptor_state.units[100].ranged_weapons[0].id) == locked_before, "A forced mid-match Inceptor replacement is rejected without changing the saved weapon")
+			var independent_state: Dictionary = bytes_to_var(var_to_bytes(saved_inceptor_state))
+			independent_state.units[100].ranged_weapons[0].profiles.standard.strength = 99
+			check(independent_state.units[102].ranged_weapons[0].profiles.standard.strength == 7, "Models with the same loadout keep independent gameplay weapon state")
 	var state := F.P.initial_state({"unit_abilities": true, "reanimation_protocols": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, selections())
 	check(not state.has("error"), "Inceptor Squad and Intercessor target materialize with current Marine catalogs")
 	if state.has("error"):
@@ -141,6 +195,7 @@ func run() -> void:
 		quit(1)
 		return
 	var found := find(state)
+	state.erase("saved_army_setup")
 	check(found.models.size() == 3 and C.UnitAbilities.every_model_has(state, found.squad, "deep-strike") and C.UnitAbilities.has(state, found.squad, "meteoric-descent") and C.UnitAbilities.has(state, found.squad, "parabolic-jetleap"), "All Inceptors carry Deep Strike and both datasheet abilities")
 	for model: int in found.models:
 		check(state.units[model].ranged_weapons[0].id == "assault-bolters" and state.units[model].melee_weapons[0].id == "ceramite-fists", "Every model starts with the source default loadout")

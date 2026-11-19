@@ -120,7 +120,7 @@ func append(state: Dictionary, dice: Array, kind: String) -> String:
 			for damage: Dictionary in pool.get("damage_rolls", []):
 				results.append("Damage %s: %s = %s" % [str(damage.get("expression", "")), str(damage.get("rolls", [])), str(damage.get("value", 0))])
 			for prevention: Dictionary in pool.get("prevention_rolls", []):
-				results.append("Feel No Pain: %s • %s prevenidos" % [str(prevention.get("rolls", [])), str(prevention.get("prevented", 0))])
+				results.append("Feel No Pain: %s • %s prevented" % [str(prevention.get("rolls", [])), str(prevention.get("prevented", 0))])
 		var hazard: Dictionary = attack.get("hazardous", {})
 		if not hazard.get("rolls", []).is_empty(): results.append("Hazardous: %s • damage %s" % [str(hazard.rolls), str(hazard.get("total", 0))])
 	for model in state.get("units", {}):
@@ -422,15 +422,36 @@ func page(start: int = -1) -> Dictionary:
 	for index in range(first, mini(entries.size(), first + 20)):
 		var entry: Dictionary = entries[index].duplicate(true)
 		var patch: Dictionary = entry.get("patch", {})
+		var squads: Dictionary = patch.get("squads", observed.get("squads", {}))
+		var roll: Dictionary = patch.get("last_command_roll", {})
+		if roll.has("original_rolls") and roll.has("rolls"):
+			entry.roll_summary = {
+				"kind": str(roll.get("kind", "")),
+				"original_rolls": roll.original_rolls.duplicate(),
+				"rolls": roll.rolls.duplicate(),
+				"rerolled": bool(roll.get("rerolled", false)),
+			}
+			if roll.has("die"): entry.roll_summary.die = int(roll.die)
+			if entry.roll_summary.kind.begins_with("after_"):
+				var squad: Dictionary = squads.get(int(roll.get("squad", -1)), {})
+				entry.roll_summary.player = int(squad.get("owner", 0))
 		var attack: Dictionary = patch.get("last_attack", {})
 		if not attack.is_empty():
 			var summary := {"pools": [], "hazardous": {"total": int(attack.get("hazardous", {}).get("total", 0))}}
-			var squads: Dictionary = patch.get("squads", observed.get("squads", {}))
 			for pool: Dictionary in attack.get("pools", []):
 				var target := int(pool.get("target_squad", -1))
 				var public_pool := {"weapon_name": str(pool.get("weapon_name", "Weapon")), "target_name": str(squads.get(target, {}).get("name", "Defending unit"))}
 				for key: String in ["attacks", "hits", "wounds", "damage_applied", "models_destroyed", "prevented_wounds", "excess_damage_discarded"]:
 					public_pool[key] = int(pool.get(key, 0))
+				var allocations: Array[Dictionary] = []
+				for allocation: Dictionary in pool.get("allocations", []):
+					allocations.append({
+						"model": int(allocation.get("model", -1)),
+						"damage": int(allocation.get("damage", 0)),
+						"prevented": int(allocation.get("prevention", {}).get("prevented", 0)),
+						"discarded": int(allocation.get("discarded", 0)),
+					})
+				public_pool.allocations = allocations
 				summary.pools.append(public_pool)
 			entry.attack_summary = summary
 		entry.erase("patch")

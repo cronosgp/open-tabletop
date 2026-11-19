@@ -25,3 +25,7 @@ Report: `.tools/verification/20261027T115826825089Z/results.json`; SHA-256 `08f2
 ## Open boundaries
 
 This closes only the shared-book Chaplain sheet scope. Dark Angels `DEATHWING` context and Dark Angels, Deathwatch and Space Wolves Chapter-book targets remain outside the shared 85-sheet scope. Full army legality, other Chapter contexts, Forge World, Legends, Boarding Actions, network behavior, complete-match certification and human playtesting remain outside this result. Network validation is deferred to final integration.
+
+## Army Workshop equipment — 14 November 2026
+
+Source-listed equipment can now be saved per stable model copy in the Army Workshop. Current local admission validates the selection; prepared matches apply it before Deployment and lock duplicate setup changes. This transfers existing source-bounded options, without changing the datasheet's other rules, costs, construction limits or geometry. Exact source identities, saved-equipment tests and actual Godot captures are in the [migration evidence](verification/character-artillery-saved-equipment.md).

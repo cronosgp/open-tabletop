@@ -29,3 +29,7 @@ Unsupported or unverified systems remain outside this sheet result. This local p
 - Network validation, human playtesting and full army legality have not been run or established.
 
 Machine-readable provenance and run hashes are in the [Spectrus source audit](marine-spectrus-kill-team-audit.json).
+
+## Saved-equipment migration — 15 November 2026
+
+Spectrus now stores all four export option rows per stable model and copy in the Army Workshop. The source's fixed 2/2/2/4 composition, prices and zero equipment surcharge remain unchanged. See [the saved-equipment evidence](verification/spectrus-saved-equipment.md) for the verified-against source provenance, local role validators, persistence/materialization tests, actual Workshop captures and scope limits. One attachment classification issue surfaced in the adjacent suite: the Phobos Lieutenant is a Leader for Spectrus while retaining its Support role for its other bodyguards; the current role mapping preserves that source-specific distinction. This migration adds no Spectrus abilities or army-legality certification.

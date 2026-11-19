@@ -57,7 +57,8 @@ func run() -> void:
 	game._begin_attack_plan()
 	assign(game, 200, 1)
 	assign(game, 201, 3)
-	passed = passed and not game.plan_confirm.disabled and game.end_button.disabled and "Model 201" in game.plan_summary.text
+	var second_model: String = game.ArmyList.model_label(game.state, 201)
+	passed = passed and not game.plan_confirm.disabled and game.end_button.disabled and second_model in game.plan_summary.text
 	var draft: Dictionary = game.attack_draft.duplicate(true)
 	game.request_attack_plan.rpc_id(1, 200, [{"model": 100, "target": 1, "amount": 1}], 0, melee, true)
 	await create_timer(0.2).timeout

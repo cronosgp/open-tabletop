@@ -13,7 +13,10 @@ func run() -> void:
 	check(game.match_tabs.is_tab_hidden(2) and game.workshop_tabs.is_ancestor_of(game.army_builder) and game.workshop_tabs.is_ancestor_of(game.model_imports), "Army and import share one workspace")
 	check(game.sidebar_panel.size.x > 900 and not game.action_groups.phase.container.visible, "Workspace is wide and hides match phase actions")
 	game.army_builder._new_empty()
-	game.army_builder._new_training()
+	# This UI fixture uses current construction profiles and needs no historical pack.
+	var current_unit: Dictionary = game.army_builder.source.lookup("40kdc:11e:adeptus-astartes:intercessor-squad")
+	for copy in range(2): game.army_builder.draft.entries.append(game.army_builder.Roster.entry(current_unit, 0))
+	game.army_builder._render_draft()
 	game.army_builder._select_entry(0)
 	var item: Dictionary = game.army_builder.draft.entries[0]
 	check(game.model_imports._definition() == item.unit_id, "Import target follows the roster entry instead of a battlefield model")
@@ -54,17 +57,27 @@ func run() -> void:
 	builder._preview_entry(item)
 	item.copies = 2
 	builder._ensure_visual_slots(item)
-	item.visual_variants[1] = "preview-fixture-variant"
-	game.model_imports.variant_mappings["preview-fixture-variant"] = {"path": path, "fingerprint": asset.fingerprint, "texture_fingerprint": asset.texture_fingerprint, "scale": 2.0}
+	builder.Roster.set_model_visual_override(item, 0, 1, "preview-fixture-variant")
+	game.model_imports.variant_mappings["preview-fixture-variant"] = {"definition": item.unit_id, "path": path, "fingerprint": asset.fingerprint, "texture_fingerprint": asset.texture_fingerprint, "scale": 2.0}
 	game.model_imports.variant_cache["preview-fixture-variant"] = asset
-	builder._preview_entry(item)
+	# Keep the unit choice explicit so automatic appearance recovery cannot select
+	# the only prepared variant as the default for both compared models.
+	game.model_imports.variant_mappings["preview-fixture-base"] = game.model_imports.variant_mappings["preview-fixture-variant"].duplicate(true)
+	game.model_imports.variant_mappings["preview-fixture-base"].scale = 1.0
+	game.model_imports.variant_cache["preview-fixture-base"] = asset
+	builder.Roster.set_unit_visual_variant(item, 0, "preview-fixture-base")
+	builder._select_entry(0)
+	# Compare ordinary models; the Sergeant can legitimately prioritize a role sculpt.
+	builder._preview_entry(item, 2)
 	var first_scale: Vector3 = builder.miniature_preview.visual.get_child(0).scale
 	before = var_to_str(builder.draft)
 	var dirty_before: bool = builder.dirty
 	builder.preview_model_input.value = 2
 	check(builder.preview_slot == 1 and builder.miniature_preview.visual.get_child(0).scale.is_equal_approx(first_scale * 2), "Preview selector displays the distinct assigned local variant")
-	builder.preview_model_input.value = int(item.models) + 1
-	check("Unit 2 · model 1" in builder.miniature_preview.caption.text, "Preview identifies copy boundaries")
+	builder.visual_copy_picker.select(1)
+	builder.visual_copy_picker.item_selected.emit(1)
+	builder.preview_model_input.value = 1
+	check("Unit 2 · " + builder._visual_model_role_label(item, 0) in builder.miniature_preview.caption.text, "Preview identifies copy boundaries")
 	builder.appearance_button.pressed.emit()
 	check(builder.visual_copy_picker.selected == 1, "Appearance opens the copy being inspected")
 	check(var_to_str(builder.draft) == before and builder.dirty == dirty_before, "Inspection changes neither assignments nor unsaved status")
@@ -117,6 +130,67 @@ func run() -> void:
 	check(panel.selected_entry_index == 1 and panel.editor_tabs.current_tab == 0 and panel.preview_entry.unit_id == fixture.units[1].id, "Adding selects the new distinct unit and returns to roster")
 	panel.appearance_button.pressed.emit()
 	check(panel.editor_tabs.current_tab == 2 and panel.visual_copy_picker.item_count == 1, "Appearance shortcut opens controls for the selected new unit")
+	var gallery_deadline := Time.get_ticks_msec() + 5000
+	while panel.visual_gallery_grid == null and Time.get_ticks_msec() < gallery_deadline: await process_frame
+	check(panel.visual_gallery_grid != null and not panel.visual_gallery_context.is_empty(), "Appearance gallery is ready for filter checks")
+	if panel.visual_gallery_grid != null and not panel.visual_gallery_context.is_empty():
+		var gallery_entry: int = panel.selected_entry_index
+		var gallery_copy := int(panel.visual_gallery_context.get("copy_index", 0))
+		var gallery_model := int(panel.visual_gallery_context.get("model_index", 0))
+		panel.visual_gallery_variants = [
+			{"variant_id": "synthetic-pending", "name": "Synthetic pending", "ready": false, "availability": "download_pending", "availability_reason": "Filter fixture"},
+			{"variant_id": "synthetic-ready", "name": "Synthetic ready", "ready": true, "availability": "ready"},
+		]
+		panel.visual_gallery_search.text = ""
+		panel.visual_gallery_ready_only.button_pressed = false
+		panel._build_visual_gallery(gallery_entry, gallery_copy, gallery_model)
+		var gallery_order: Array[String] = []
+		for card: Button in panel.visual_gallery_buttons: gallery_order.append(str(card.get_meta("visual_variant_id", "")))
+		check(gallery_order.size() == 3 and gallery_order[0] == "" and gallery_order[1] == "synthetic-ready" and gallery_order[2] == "synthetic-pending", "Gallery lists Automatic first, then ready looks before ones that need preparation")
+		var filter_before := var_to_str(panel.draft)
+		panel.visual_gallery_ready_only.button_pressed = true
+		panel._build_visual_gallery(gallery_entry, gallery_copy, gallery_model)
+		var filtered_ids: Array[String] = []
+		for card: Button in panel.visual_gallery_buttons: filtered_ids.append(str(card.get_meta("visual_variant_id", "")))
+		check(filtered_ids.size() == 2 and filtered_ids.has("synthetic-ready") and not filtered_ids.has("synthetic-pending"), "'Ready only' hides looks that need local preparation")
+		check("1 of 2" in panel.visual_gallery_ready_only.text, "Ready-only filter reports how many local looks are ready")
+		check(var_to_str(panel.draft) == filter_before, "Gallery filtering never changes appearance assignments")
+		panel._render_visual_slots()
+		var rerender_deadline := Time.get_ticks_msec() + 5000
+		while (panel.visual_gallery_grid == null or panel.visual_gallery_context.is_empty() or not panel.visual_gallery_ready_only.button_pressed) and Time.get_ticks_msec() < rerender_deadline: await process_frame
+		check(panel.visual_gallery_ready_only.button_pressed, "Ready-only preference survives a copy/model rerender")
+		var rerender_entry: int = panel.selected_entry_index
+		var rerender_copy := int(panel.visual_gallery_context.get("copy_index", 0))
+		var rerender_model := int(panel.visual_gallery_context.get("model_index", 0))
+		panel.visual_gallery_variants = [
+			{"variant_id": "synthetic-pending", "name": "Synthetic pending", "ready": false, "availability": "download_pending", "availability_reason": "Filter fixture"},
+			{"variant_id": "synthetic-ready", "name": "Synthetic ready", "ready": true, "availability": "ready"},
+		]
+		panel._build_visual_gallery(rerender_entry, rerender_copy, rerender_model)
+		var rerendered_ids: Array[String] = []
+		for card: Button in panel.visual_gallery_buttons: rerendered_ids.append(str(card.get_meta("visual_variant_id", "")))
+		check(rerendered_ids.has("synthetic-ready") and not rerendered_ids.has("synthetic-pending"), "Ready-only preference still hides unready looks after a rerender")
+		check(var_to_str(panel.draft) == filter_before, "Rerendering the filtered gallery leaves appearance assignments unchanged")
+		var saved_item: Dictionary = panel.draft.entries[rerender_entry]
+		panel.Roster.set_model_visual_override(saved_item, rerender_copy, rerender_model, "synthetic-pending")
+		panel.visual_gallery_variants = [
+			{"variant_id": "synthetic-pending", "name": "Synthetic pending", "ready": false, "availability": "download_pending", "availability_reason": "Filter fixture"},
+			{"variant_id": "synthetic-pending-other", "name": "Synthetic other", "ready": false, "availability": "download_pending", "availability_reason": "Filter fixture"},
+			{"variant_id": "synthetic-ready", "name": "Synthetic ready", "ready": true, "availability": "ready"},
+		]
+		var saved_choice_before := var_to_str(panel.draft)
+		panel._build_visual_gallery(rerender_entry, rerender_copy, rerender_model)
+		var saved_choice_ids: Array[String] = []
+		for card: Button in panel.visual_gallery_buttons: saved_choice_ids.append(str(card.get_meta("visual_variant_id", "")))
+		check(saved_choice_ids.has("synthetic-ready") and saved_choice_ids.has("synthetic-pending") and not saved_choice_ids.has("synthetic-pending-other"), "Ready-only keeps the saved unready choice visible while hiding other unready looks")
+		check(var_to_str(panel.draft) == saved_choice_before, "Keeping a saved unready choice visible does not change the assignment")
+		panel.Roster.set_model_visual_override(saved_item, rerender_copy, rerender_model, "")
+		panel._build_visual_gallery(rerender_entry, rerender_copy, rerender_model)
+		var cleared_choice_ids: Array[String] = []
+		for card: Button in panel.visual_gallery_buttons: cleared_choice_ids.append(str(card.get_meta("visual_variant_id", "")))
+		check(cleared_choice_ids.has("synthetic-ready") and not cleared_choice_ids.has("synthetic-pending") and not cleared_choice_ids.has("synthetic-pending-other"), "Clearing the saved unready choice lets the filter hide it again")
+		panel.visual_gallery_ready_only.button_pressed = false
+		panel._build_visual_gallery(rerender_entry, rerender_copy, rerender_model)
 	check(panel._save(), "Save the two-entry fixture")
 	check(panel.save_status.text == "✓ Saved locally" and panel.notice.text.is_empty(), "Successful save has a current status without duplicate prose")
 	check(panel.selected_entry_index == 1 and panel.preview_entry.unit_id == fixture.units[1].id and game.model_imports._definition() == fixture.units[1].id, "Save preserves selected model and import target instead of switching to first unit")

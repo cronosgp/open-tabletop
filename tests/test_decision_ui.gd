@@ -24,10 +24,18 @@ func run() -> void:
 	var index: int = game.defense_picker.get_item_index(202)
 	game.defense_picker.item_selected.emit(index)
 	check(game.selected == 202 and not game.allocate_button.disabled and var_to_str(game.state) == before, "Defense selection remains local inspection only")
+	check(game.defense_picker.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING and ("Selected: " + game._model_choice_label(202)) in game.defense_steps.text, "The selected recipient stays fully named in the allocation prompt")
 	game.mode = "client"
 	game._refresh()
 	check(game.defense_picker.disabled and not game.defense_picker.visible and not game.allocate_button.visible and not game.precision_skip.visible, "Inactive player sees no actionable defense controls")
 	game.mode = "local"
+	# This hit-pool scenario uses the historical prepared roster. A new match now
+	# starts with current abilities and doctrines, which replace this re-roll window.
+	game.unit_abilities_choice.button_pressed = false
+	game.combat_doctrines_choice.button_pressed = false
+	game.reanimation_protocols_choice.button_pressed = false
+	game.awakened_dynasty_choice.button_pressed = false
+	game.stratagem_choice.button_pressed = true
 	game.attack_reroll_choice.button_pressed = true
 	game._start_prepared_match()
 	game.state.phase = "shooting"
@@ -35,10 +43,13 @@ func run() -> void:
 	game.state.cp = {1: 4, 2: 4}
 	for id: int in game.state.units:
 		game.state.units[id].position = Vector2(-12 if game.state.units[id].owner == 1 else -2, -8 + (id % 100) * 1.3)
-	check(game.Combat.shoot(game.state, 1, 100, 200, game.state.revision, true, three).error.is_empty(), "Enter pending hit pool")
+	var shot: Dictionary = game.Combat.shoot(game.state, 1, 100, 200, game.state.revision, true, three)
+	check(shot.error.is_empty(), "Enter pending hit pool: %s" % str(shot.get("error", "")))
 	game._refresh()
 	check(game.reaction_dice.visible and game.reaction_die.item_count > 12 and "all dice in Help" in game.reaction_dice_hint.text, "Large pool retains every choice through Help and labels the visible limit")
 	check("0 CP" in game.reaction_roll.text and "1 CP" in game.reaction_use.text and "must be kept" in game.reaction_help.text, "Decision exposes cost and mandatory replacement semantics")
+	var reaction_heading := game.action_groups.reaction.container.get_child(0) as Label
+	check("Hits" in reaction_heading.text and "Player 1 decides" in reaction_heading.text and reaction_heading.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING, "The reaction heading names the deciding player")
 	before = var_to_str(game.state)
 	var rng_before: int = game.rng.state
 	game.reaction_dice_buttons[1].pressed.emit()

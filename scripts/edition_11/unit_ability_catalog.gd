@@ -191,13 +191,64 @@ const RULES := {
 	"marneus-calgar": ["deep-strike", "leader", "combat-doctrines", "transhuman-strategist", "codex-adept", "master-tactician", "thunderhawk-insertion"],
 	"kor-sarro-khan": ["leader", "combat-doctrines", "transhuman-strategist", "trophy-taker", "for-the-khan"],
 	"captain-titus": ["feel-no-pain-5", "leader", "combat-doctrines", "transhuman-strategist", "press-the-attack", "righteous-fury", "honour-of-ultramar"],
+	"annihilation-barge": ["deadly-demise-1", "reanimation-protocols", "malevolent-arcing"],
+	"ctan-shard-of-the-deceiver": ["deep-strike", "deadly-demise-d6", "feel-no-pain-5", "stealth", "necrodermis", "enslaved-star-god", "grand-illusion"],
+	"ctan-shard-of-the-nightbringer": ["deep-strike", "deadly-demise-d6", "feel-no-pain-5", "necrodermis", "enslaved-star-god", "drain-life"],
+	"ctan-shard-of-the-void-dragon": ["deep-strike", "deadly-demise-d6", "feel-no-pain-5", "necrodermis", "enslaved-star-god", "matter-absorption"],
+	"canoptek-spyders": ["deadly-demise-1", "fabricator-claw-array", "gloom-prism", "canoptek-swarm"],
+	"canoptek-tomb-crawlers": ["weapon-sentinels", "canoptek-retinue"],
+	"doom-scythe": ["deadly-demise-d3", "damaged-4", "atavistic-instigation"],
+	"convergence-of-dominion": ["reanimation-protocols", "reanimation-nodes", "ancient-cover", "convergence-fortification", "convergence-deployment"],
+	"night-scythe": ["deep-strike", "deadly-demise-d3", "reanimation-protocols", "damaged-4", "hover", "invasion-beams", "quantum-invader"],
+	"obelisk": ["deep-strike", "deadly-demise-d6", "reanimation-protocols", "gravitic-pulse", "damaged-8"],
+	"tesseract-vault": ["reanimation-protocols", "deadly-demise-d6-plus-three", "powers-of-the-ctan", "damaged-8-vault"],
+	"the-silent-king": ["reanimation-protocols", "deadly-demise-d6-plus-three-szarekh", "triarch-abilities", "the-silent-king-aura", "supreme-commander", "triarchal-menhirs", "damaged-6-silent-king", "phaeron-of-the-stars", "phaeron-of-the-blades", "relentless-march"],
+	"transcendent-ctan": ["reanimation-protocols", "deep-strike", "deadly-demise-d6", "feel-no-pain-5", "necrodermis", "enslaved-star-god", "ctan-shard", "transdimensional-displacement"],
+	"cryptothralls": ["reanimation-protocols", "bound-creation", "systematic-vigour", "cryptek-retinue"],
+	"canoptek-macrocytes": ["scouts-8", "harassment-swarm", "accelerator-mandible", "nanoscarab-projector"],
+	"tomb-blades": ["reanimation-protocols", "scouts-9", "evasion-engrams", "stealth"],
 	"necron-warriors": ["their-number-is-legion"],
 	"immortals": ["implacable-eradication"],
+	"catacomb-command-barge": ["deadly-demise-1", "reanimation-protocols", "resurrection-orb", "carrier-wave", "advanced-quantum-shielding"],
+	"canoptek-wraiths": ["reanimation-protocols", "wraith-form"],
+	"triarch-stalker": ["deadly-demise-d3", "scouts-8", "reanimation-protocols", "targeting-relay"],
+	"hexmark-destroyer": ["deep-strike", "lone-operative", "inescapable-death", "multi-threat-eliminator"],
+	"ophydian-destroyers": ["deep-strike", "reanimation-protocols", "plasmacyte", "tunnelling-horrors"],
+	"skorpekh-destroyers": ["reanimation-protocols", "plasmacyte", "whirling-onslaught"],
+	"lokhust-destroyers": ["reanimation-protocols", "hard-wired-for-destruction"],
+	"lokhust-heavy-destroyers": ["reanimation-protocols", "optimised-for-slaughter"],
+	"ghost-ark": ["deadly-demise-d3", "reanimation-protocols", "repair-barge"],
+	"canoptek-doomstalker": ["deadly-demise-d3", "damaged-4", "sentinel-construct"],
+	"canoptek-reanimator": ["feel-no-pain-4", "nanoscarab-reanimation-beam"],
+	"canoptek-scarab-swarms": ["self-destruction", "chittering-swarm"],
+	"doomsday-ark": ["deadly-demise-d3", "damaged-5", "overwhelming-obliteration"],
+	"monolith": ["deep-strike", "deadly-demise-d6", "reanimation-protocols", "eternity-gate", "damaged-7"],
 	"overlord": ["leader", "my-will-be-done", "implacable-resilience", "resurrection-orb"],
+	"overlord-with-translocation-shroud": ["leader", "reanimation-protocols", "my-will-be-done", "resurrection-orb", "translocation-shroud"],
+	"lychguard": ["reanimation-protocols", "dispersion-shield", "guardian-protocols"],
+	"orikan-the-diviner": ["support", "reanimation-protocols", "master-chronomancer", "the-stars-are-right"],
+	"trazyn-the-infinite": ["leader", "reanimation-protocols", "ancient-collector", "surrogate-hosts"],
+	"deathmarks": ["deep-strike", "hyperspace-hunters"],
+	"flayed-ones": ["infiltrators", "stealth", "flesh-hunger"],
+	"triarch-praetorians": ["deep-strike", "reanimation-protocols", "relentless-combatants"],
+	"imotekh-the-stormlord": ["leader", "reanimation-protocols", "grand-strategist", "lord-of-the-storm"],
+	"illuminor-szeras": ["feel-no-pain-4", "reanimation-protocols", "illuminor", "mechanical-augmentation", "atomic-energy-manipulator"],
+	"skorpekh-lord": ["leader", "reanimation-protocols", "united-in-destruction", "crimson-harvest"],
+	"lokhust-lord": ["leader", "reanimation-protocols", "nanoscarab-amulet", "resurrection-orb", "destroyer-cult", "driven-by-hatred"],
+	"plasmancer": ["support", "reanimation-protocols", "harbinger-of-destruction", "living-lightning"],
+	"technomancer": ["support", "reanimation-protocols", "rites-of-reanimation", "technomancer"],
+	"psychomancer": ["support", "reanimation-protocols", "nightmare-shroud", "harbinger-of-despair"],
+	"chronomancer": ["support", "reanimation-protocols", "stealth", "timesplinter-mantle", "chronometron"],
+	"geomancer": ["support", "reanimation-protocols", "tectonic-reverberations", "obelisk-node-control", "vanguard-protocols", "scouts-8"],
+	"nekrosor-ammentar": ["deep-strike", "fights-first", "reanimation-protocols", "protective-disciples", "infectious-murder-madness", "prophet-of-destruction", "nullstone-field-generator"],
 	"royal-warden": ["leader", "adaptive-strategy", "engrammatic-logic"]}
 
 static func identity(unit: Dictionary) -> String:
 	return str(unit.get("definition_id", "")).get_slice(":", 3)
+
+static func cannot_receive_enhancements(identity_or_id: String) -> bool:
+	var identity := identity_or_id.get_slice(":", 3) if identity_or_id.count(":") >= 3 else identity_or_id
+	return "ctan-shard" in RULES.get(identity, [])
 
 static func enabled(state: Dictionary) -> bool:
 	return state.get("unit_abilities", {}).get("implementation", "") == ID
@@ -233,6 +284,7 @@ static func sources(state: Dictionary, squad: int, name: String) -> Array[int]:
 			var required_role: String = str({"ravenwing-astartes-banner": "Ravenwing Ancient", "ravenwing-honour-or-death": "Ravenwing Champion", "narthecium": "Ravenwing Apothecary"}.get(name, ""))
 			if not required_role.is_empty() and command_role != required_role: continue
 		if name == "relic-shield" and not state.units[model].get("relic_shield", false): continue
+		if name == "stealth" and unit_identity == "tomb-blades" and not ("shadowloom" in state.units[model].get("wargear", [])): continue
 		if name == "combat-shield" and not state.units[model].get("combat_shield", false): continue
 		if name == "storm-shield":
 			var equipped: bool = unit_identity == "lieutenant" and bool(state.units[model].get("lieutenant_storm_shield", false))
@@ -246,6 +298,27 @@ static func sources(state: Dictionary, squad: int, name: String) -> Array[int]:
 			equipped = equipped or (unit_identity == "vanguard-veteran-squad" and state.units[model].get("vanguard_veteran_squad_loadout", "bolt-pistol") == "storm-shield")
 			if not equipped: continue
 		if name == "death-totem" and unit_identity in ["wulfen", "wulfen-with-storm-shields"] and not bool(state.units[model].get("wulfen_death_totem", false)): continue
+		if unit_identity == "canoptek-macrocytes" and name == "accelerator-mandible" and str(state.units[model].get("canoptek_macrocytes_loadout", "gauss-scalpel")) != "accelerator-mandible": continue
+		if unit_identity == "canoptek-macrocytes" and name == "nanoscarab-projector" and str(state.units[model].get("canoptek_macrocytes_loadout", "gauss-scalpel")) != "atomiser-beam-projector": continue
+		if unit_identity == "canoptek-spyders" and name == "fabricator-claw-array" and not bool(state.units[model].get("canoptek_spyders_fabricator_claw_array", false)): continue
+		if unit_identity == "canoptek-spyders" and name == "gloom-prism" and not bool(state.units[model].get("canoptek_spyders_gloom_prism", false)): continue
+		if name == "resurrection-orb" and unit_identity == "overlord":
+			if "resurrection-orb" not in state.units[model].get("wargear", []): continue
+			if state.units[model].get("ranged_weapons", []).any(func(w: Variant) -> bool: return w is Dictionary and (str(w.get("id", "")) == "tachyon-arrow" or str(w.get("profiles", {}).get("standard", {}).get("name", "")).to_lower() == "tachyon arrow")): continue
+		if name == "resurrection-orb" and unit_identity == "lokhust-lord":
+			if "resurrection-orb" not in state.units[model].get("wargear", []) and str(state.units[model].get("lokhust_lord_wargear", "none")) != "resurrection-orb": continue
+		if name == "resurrection-orb" and unit_identity == "catacomb-command-barge":
+			if "resurrection-orb" not in state.units[model].get("wargear", []) and str(state.units[model].get("ccb_wargear", "none")) != "resurrection-orb": continue
+		if name == "nanoscarab-amulet" and unit_identity == "lokhust-lord":
+			if "nanoscarab-amulet" not in state.units[model].get("wargear", []) and str(state.units[model].get("lokhust_lord_wargear", "none")) != "nanoscarab-amulet": continue
+		if name == "dispersion-shield" and unit_identity == "lychguard" and not bool(state.units[model].get("lychguard_dispersion_shield", false)): continue
+		if name == "scouts-8" and unit_identity == "geomancer":
+			var has_macrocytes := false
+			for member_id: int in state.get("units", {}):
+				if int(state.units[member_id].get("squad", -1)) == squad and identity(state.units[member_id]) == "canoptek-macrocytes":
+					has_macrocytes = true
+					break
+			if not has_macrocytes: continue
 		if name in RULES.get(identity(state.units[model]), []): result.append(model)
 	return result
 

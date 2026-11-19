@@ -1,6 +1,7 @@
 extends SceneTree
 
 const Save = preload("res://scripts/match_save.gd")
+const Recovery = preload("res://scripts/match_recovery.gd")
 const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
 
 func _initialize() -> void:
@@ -25,6 +26,22 @@ func run() -> void:
 	assert(read.state == original)
 	assert(read.rng_state == random_state)
 	assert(read.attack_draft == game.attack_draft)
+	var appearance_entry := {
+		"unit_id": "40kdc:11e:adeptus-astartes:intercessor-squad",
+		"models": 5,
+		"copies": 1,
+		"copy_instance_ids": ["appearance-fixture-copy"],
+		"visual_variants": ["appearance-fixture-variant", "appearance-fixture-variant", "appearance-fixture-variant", "appearance-fixture-variant", "appearance-fixture-variant"],
+		"visual_model_overrides_by_id": {"appearance-fixture-copy:model:0": "appearance-fixture-model"}
+	}
+	var presentation := {"schema_version": 1, "visual_armies": {1: {"schema_version": 1, "faction": "Space Marines", "entries": [appearance_entry]}}}
+	var presentation_path := "user://matches/presentation-fixture-%d.save" % OS.get_process_id()
+	assert(Save.write(original, game._save_config(), random_state, {}, presentation_path, {}, {}, {}, -1, presentation).is_empty())
+	var presentation_read := Save.read(presentation_path)
+	assert(presentation_read.get("presentation", {}) == presentation)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(presentation_path))
+	var session_marker := Recovery._path(OS.get_process_id())
+	assert(FileAccess.file_exists(session_marker) and Recovery.find().is_empty())
 	# Replacement must work when a previous autosave already exists.
 	assert(game._save_snapshot().is_empty())
 	game.state = game.Rules.initial_state()
@@ -74,18 +91,60 @@ func run() -> void:
 	var next_random: int = game.rng.state
 	assert(resolved.revision > 0)
 	assert(game._save_snapshot().is_empty())
+	var resolved_slot: int = game.active_save_slot
 	game._start_prepared_match()
+	# A new match chooses an empty slot instead of overwriting the old match.
+	assert(game._set_active_save_slot(resolved_slot))
 	game._load_match()
 	assert(game.state == resolved and game.rng.state == next_random)
 	var object := Node.new()
 	assert(not Save.safe({"object": object}))
 	object.free()
+	var previous_backup := Save.read_snapshot_file(Save.PATH + ".bak")
+	assert(not previous_backup.has("error"))
 	var file := FileAccess.open(Save.PATH, FileAccess.WRITE)
 	file.store_string("corrupted")
 	file.close()
-	assert(Save.read().has("error"))
+	assert(Save.read_snapshot_file(Save.PATH).has("error"))
+	var recovered := Save.read()
+	assert(not recovered.has("error") and recovered.get("recovered_from_backup", false))
+	assert(recovered.state == previous_backup.state and recovered.rng_state == previous_backup.rng_state)
+	# A valid backup must not roll back a primary file from a newer save version.
+	var future_version_path := "user://matches/future-version-fixture-%d.save" % OS.get_process_id()
+	assert(Save.write(original, config, random_state, {}, future_version_path).is_empty())
+	assert(DirAccess.copy_absolute(ProjectSettings.globalize_path(future_version_path), ProjectSettings.globalize_path(future_version_path + ".bak")) == OK)
+	var future_payload := {"version": Save.VERSION + 1, "state": original, "config": config, "rng_state": random_state, "attack_draft": {}}
+	var future_bytes := var_to_bytes(future_payload)
+	var future_file := FileAccess.open(future_version_path, FileAccess.WRITE)
+	assert(future_file != null)
+	future_file.store_buffer(future_bytes.hex_encode().sha256_text().to_ascii_buffer())
+	future_file.store_buffer(future_bytes)
+	future_file.close()
+	var future_read := Save.read(future_version_path)
+	assert(future_read.get("error", "") == "Incompatible save version.")
+	assert(not future_read.get("recovered_from_backup", false))
+	assert(not Save.read_snapshot_file(future_version_path + ".bak").has("error"))
+	for future_file_path: String in [future_version_path, future_version_path + ".bak", future_version_path + ".tmp"]:
+		if FileAccess.file_exists(future_file_path): DirAccess.remove_absolute(ProjectSettings.globalize_path(future_file_path))
+	var legacy_version_path := "user://matches/legacy-version-fixture-%d.save" % OS.get_process_id()
+	assert(Save.write(original, config, random_state, {}, legacy_version_path).is_empty())
+	assert(DirAccess.copy_absolute(ProjectSettings.globalize_path(legacy_version_path), ProjectSettings.globalize_path(legacy_version_path + ".bak")) == OK)
+	var legacy_payload := {"version": 0, "state": original, "config": config, "rng_state": random_state, "attack_draft": {}}
+	var legacy_bytes := var_to_bytes(legacy_payload)
+	var legacy_file := FileAccess.open(legacy_version_path, FileAccess.WRITE)
+	assert(legacy_file != null)
+	legacy_file.store_buffer(legacy_bytes.hex_encode().sha256_text().to_ascii_buffer())
+	legacy_file.store_buffer(legacy_bytes)
+	legacy_file.close()
+	var legacy_read := Save.read(legacy_version_path)
+	assert(legacy_read.get("error", "") == "Incompatible save version.")
+	assert(not legacy_read.get("recovered_from_backup", false))
+	assert(not Save.read_snapshot_file(legacy_version_path + ".bak").has("error"))
+	for legacy_file_path: String in [legacy_version_path, legacy_version_path + ".bak", legacy_version_path + ".tmp"]:
+		if FileAccess.file_exists(legacy_file_path): DirAccess.remove_absolute(ProjectSettings.globalize_path(legacy_file_path))
 	print("MATCH SAVE: PASS")
 	game.free()
+	assert(not FileAccess.file_exists(session_marker))
 	quit()
 
 func find_unsafe(value: Variant) -> void:

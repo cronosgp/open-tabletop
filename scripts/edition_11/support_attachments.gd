@@ -4,7 +4,7 @@ const BODYGUARDS := {
 	"crusade-ancient": ["crusader-squad", "sword-brethren-squad"],
 	"ravenwing-command-squad": ["outrider-squad", "ravenwing-black-knights"],
  "kaius-konorius": ["bladeguard-veteran-squad", "sternguard-veteran-squad", "assault-intercessor-squad", "victrix-honour-guard"],
-	"lieutenant-in-phobos-armour": ["infiltrator-squad", "eliminator-squad", "incursor-squad", "reiver-squad", "spectrus-kill-team", "wolf-scouts"],
+	"lieutenant-in-phobos-armour": ["infiltrator-squad", "eliminator-squad", "incursor-squad", "reiver-squad", "wolf-scouts"],
 	"ancient-in-terminator-armour": ["terminator-squad", "terminator-assault-squad", "deathwing-knights", "deathwing-terminator-squad", "deathwatch-terminator-squad", "wolf-guard-terminators"],
 	"apothecary": ["bladeguard-veteran-squad", "intercessor-squad", "assault-intercessor-squad", "infernus-squad", "hellblaster-squad", "sternguard-veteran-squad", "company-heroes", "desolation-squad", "inner-circle-companions", "deathwatch-veterans", "fortis-kill-team", "decimus-kill-team", "crusader-squad", "sword-brethren-squad"],
 	"sanguinary-priest": ["assault-intercessor-squad", "bladeguard-veteran-squad", "company-heroes", "desolation-squad", "hellblaster-squad", "infernus-squad", "intercessor-squad", "sternguard-veteran-squad"],
@@ -14,7 +14,13 @@ const BODYGUARDS := {
 	"ancient": ["intercessor-squad", "assault-intercessor-squad", "infernus-squad", "hellblaster-squad", "sternguard-veteran-squad", "desolation-squad", "inner-circle-companions", "deathwatch-veterans", "fortis-kill-team", "decimus-kill-team", "sword-brethren-squad", "crusader-squad"],
 	"castellan": ["assault-intercessor-squad", "bladeguard-veteran-squad", "company-heroes", "infernus-squad", "intercessor-squad", "sternguard-veteran-squad", "crusader-squad", "sword-brethren-squad"],
  "bladeguard-ancient": ["bladeguard-veteran-squad"],
- "wardens-of-ultramar": ["intercessor-squad", "bladeguard-veteran-squad", "sternguard-veteran-squad", "assault-intercessor-squad"]}
+ "wardens-of-ultramar": ["intercessor-squad", "bladeguard-veteran-squad", "sternguard-veteran-squad", "assault-intercessor-squad"],
+ "orikan-the-diviner": ["necron-warriors", "immortals"],
+ "plasmancer": ["necron-warriors", "immortals"],
+ "technomancer": ["necron-warriors", "immortals", "canoptek-wraiths"],
+ "psychomancer": ["necron-warriors", "immortals"],
+ "chronomancer": ["necron-warriors", "immortals"],
+ "geomancer": ["necron-warriors", "immortals", "canoptek-macrocytes"]}
 const CONDITIONAL_BODYGUARDS := {"cato-sicarius": ["victrix-honour-guard"]}
 
 static func is_support_identity(identity: String, calgar_in_army: bool) -> bool:

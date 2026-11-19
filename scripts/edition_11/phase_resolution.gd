@@ -29,6 +29,8 @@ const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const UnitActions = preload("res://scripts/edition_11/unit_actions.gd")
 const AircraftRules = preload("res://scripts/edition_11/aircraft_rules.gd")
 const StasisBomb = preload("res://scripts/edition_11/stasis_bomb.gd")
+const CanoptekMacrocytes = preload("res://scripts/edition_11/canoptek_macrocytes.gd")
+const TrazynTheInfinite = preload("res://scripts/edition_11/trazyn_the_infinite.gd")
 
 ## The facade supplies journal/fight hooks to keep this coordinator below it in the dependency graph.
 static func advance_after_admission(state: Dictionary, roller: Callable, hooks: Dictionary) -> String:
@@ -93,6 +95,9 @@ static func advance_after_admission(state: Dictionary, roller: Callable, hooks: 
 			for squad: int in returned_aircraft: aircraft_names.append(str(state.squads[squad].get("name", "AIRCRAFT")))
 			emit_event.call(state, "%s returned to Strategic Reserves at the end of the opponent's turn." % ", ".join(aircraft_names))
 	var ability_note := ObjectiveSecured.end_command(state)
+	var trazyn_note := TrazynTheInfinite.secure_controlled_objectives(state)
+	if not trazyn_note.is_empty():
+		emit_event.call(state, trazyn_note)
 	if state.phase == "end_turn": Actions.complete_end_turn(state)
 	if state.phase == "command":
 		for healed: Dictionary in MarineEnhancements.ironstorm_command_healing(state, state.active):
@@ -108,7 +113,10 @@ static func advance_after_admission(state: Dictionary, roller: Callable, hooks: 
 				return ""
 			state.events.append({"revision": state.revision + 1, "message": scoring})
 	if not PhaseProgression.ends_turn(state.phase):
-		if state.phase == "fight": DetachmentStratagems.remove_lingering(state)
+		if state.phase == "fight":
+			DetachmentStratagems.remove_lingering(state)
+			CanoptekMacrocytes.clear_fight_modifiers(state)
+			UnitAbilities.end_fight_phase(state)
 		if state.phase == "movement":
 			for squad: int in state.squads:
 				if state.squads[squad].owner == state.active and not state.squads[squad].moved:

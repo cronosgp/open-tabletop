@@ -54,6 +54,15 @@ func exercise_window() -> void:
 	var revision := int(game.state.revision)
 	if game.reaction_die.item_count > 0: game.reaction_die.select(game.reaction_die.item_count - 1)
 	check(game._local_player() == owner, kind + ": decision owner receives local controls")
+	if kind == "after_advance_roll":
+		game.state.stratagems.pending.honour_vigilance = true
+		game.state.stratagems.movement_rerolls = false
+		game._refresh()
+		check(game.reaction_sudden.visible and not game.reaction_sudden.disabled and "Honour of Vigilance" in game.reaction_sudden.text and "0 CP" in game.reaction_sudden.text and "Honour of Vigilance" in game.reaction_help.text, "A free Advance re-roll stays named and available")
+		check(game.reaction_use.disabled and "1 CP" in game.reaction_use.text and "Command Re-roll" in game.reaction_help.text, "Command Re-roll stays closed when Advance re-rolls are disabled")
+		game.state.stratagems.movement_rerolls = true
+		game.state.stratagems.pending.honour_vigilance = false
+		game._refresh()
 	check(game.reaction_roll.is_visible_in_tree() and not game.reaction_roll.disabled and "0 CP" in game.reaction_roll.text, kind + ": visible free Keep")
 	game.reaction_roll.pressed.emit()
 	check(int(game.state.revision) > revision and int(game.state.cp[owner]) == cp, kind + ": Keep advances without CP")
@@ -108,9 +117,21 @@ func run() -> void:
 			game._refresh()
 			check(not game.allocate_button.disabled, "Defender can allocate through UI")
 			game.allocate_button.pressed.emit()
+			await process_frame
 		else: break
 	var expected := ["after_advance_roll", "after_charge_roll", "after_escape_roll", "after_attack_count_roll", "after_hit_roll", "after_wound_roll", "after_save_roll", "after_damage_roll", "after_hazardous_roll"]
 	for kind: String in expected: check(kind in seen, "Both real UI alternatives exercised for " + kind)
+	game.army_panel.visible = true
+	game.army_panel.position = Vector2(16, 120)
+	game.army_panel.size = Vector2(248, 400)
+	game.command_panel.visible = true
+	game.command_panel.position = Vector2(496, 120)
+	game.command_panel.size = Vector2(360, 500)
+	game.combat_tray.visible = true
+	game._layout_combat_tray()
+	var tray_end: float = game.combat_tray.position.x + game.combat_tray.size.x
+	var roster_end: float = game.army_panel.position.x + game.army_panel.size.x
+	check(game.combat_tray.position.x >= roster_end + 11.0 and tray_end <= game.command_panel.position.x - 15.0, "A narrow board keeps the combat dock between the roster and the command rail")
 	print("ROLL CHOICE UI: ", seen, "; failures=", failures)
 	game.queue_free()
 	await process_frame

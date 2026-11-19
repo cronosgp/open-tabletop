@@ -31,8 +31,13 @@ const TIGURIUS_MORTAL := "tigurius-telepathic-assault-mortal"
 const PHOBOS_MORTIS_SNARES_MORTAL := "phobos-shadow-mortis-mortal"
 const STASIS_BOMB_MORTAL := "ravenwing-stasis-bomb-mortal"
 const HIGH_MARSHAL_MORTAL := "black-templars-high-marshal-mortal"
+const SCARAB_SELF_DESTRUCTION_MORTAL := "necron-scarab-self-destruction-mortal"
+const GRAVITIC_PULSE_MORTAL := "gravitic-pulse-mortal"
 const DEATH_VISIONS_MORTAL := "blood-angels-death-visions-mortal"
 const CORVUS_CLUSTER_MORTAL := "corvus-blackstar-cluster-launcher-mortal"
+const WRAITH_FORM_MORTAL := "canoptek-wraith-form-mortal"
+const CRIMSON_HARVEST_MORTAL := "crimson-harvest-mortal"
+const LIVING_LIGHTNING_MORTAL := "living-lightning-mortal"
 const BRUTALIS_CHARGE := "brutalis-charge"
 
 static func enable(s: Dictionary) -> void:
@@ -127,7 +132,13 @@ static func overwatch_targets(s: Dictionary, squad: int) -> Array[int]:
 		if visible_within(s, squad, target, 24.0): result.append(target)
 	return result
 
+static func inescapable_death_free(s: Dictionary, squad: int) -> bool:
+	if not A.has(s, squad, "inescapable-death") or not s.squads.has(squad): return false
+	var owner := int(s.squads[squad].get("owner", -1))
+	return int(s.get("unit_abilities", {}).get("used", {}).get("inescapable-death:%d" % owner, -1)) != int(s.get("turn", 0))
+
 static func cost_of(s: Dictionary, player: int, squad: int, rule: String) -> int:
+	if rule == OVERWATCH and inescapable_death_free(s, squad): return 0
 	if rule == OVERWATCH and (A.has(s, squad, "sentry-programming") or A.has(s, squad, "defensive-array")): return 0
 	if rule == CRUSHING and A.has(s, squad, BRUTALIS_CHARGE): return 0
 	if rule == SMOKE and A.has(s, squad, "veiling-smoke"): return 0
@@ -208,7 +219,7 @@ static func error(s: Dictionary, player: int, squad: int, rule: String, model: i
 		var current_veiling_smoke: bool = rule == SMOKE and A.has(s, squad, "veiling-smoke")
 		var previous_veiling_smoke: bool = used == SMOKE and s.squads.has(int(use.squad)) and A.has(s, int(use.squad), "veiling-smoke")
 		var smoke_cross_use_exception: bool = rule == SMOKE and used == SMOKE and int(use.squad) != squad and (current_veiling_smoke or previous_veiling_smoke)
-		var extra_overwatch_use := rule == OVERWATCH and (A.has(s, squad, "sentinel-overwatch-extra-use") or A.has(s, squad, "sentry-programming") or A.has(s, squad, "defensive-array")) and int(use.squad) != squad
+		var extra_overwatch_use := rule == OVERWATCH and (inescapable_death_free(s, squad) or A.has(s, squad, "sentinel-overwatch-extra-use") or A.has(s, squad, "sentry-programming") or A.has(s, squad, "defensive-array")) and int(use.squad) != squad
 		var prior_extra_overwatch_does_not_consume_use: bool = rule == OVERWATCH and used == OVERWATCH and s.squads.has(int(use.squad)) and (A.has(s, int(use.squad), "sentinel-overwatch-extra-use") or A.has(s, int(use.squad), "sentry-programming")) and int(use.squad) != squad
 		var blackwing_heroic_exception := blackwing and rule in [HEROIC, FRAY] and used in [HEROIC, FRAY]
 		if rule == CRUSHING and used == CRUSHING:
@@ -384,7 +395,7 @@ static func mortal_allocations(s: Dictionary, player: int, kind: String) -> Arra
 		var expected_target := int(record.get("target", -1))
 		if int(record.get("owner", -1)) != player or int(window.get("target", -1)) != expected_target: return []
 		if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
-	if kind == HIGH_MARSHAL_MORTAL:
+	if kind == HIGH_MARSHAL_MORTAL or kind == SCARAB_SELF_DESTRUCTION_MORTAL or kind == GRAVITIC_PULSE_MORTAL:
 		var expected_target := int(record.get("target", -1))
 		if int(record.get("owner", -1)) != player or int(window.get("target", -1)) != expected_target: return []
 		if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
@@ -392,7 +403,7 @@ static func mortal_allocations(s: Dictionary, player: int, kind: String) -> Arra
 		var expected_target := int(record.get("target", -1))
 		if int(record.get("owner", -1)) != player or int(window.get("target", -1)) != expected_target: return []
 		if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
-	if kind == CORVUS_CLUSTER_MORTAL:
+	if kind in [CORVUS_CLUSTER_MORTAL, WRAITH_FORM_MORTAL]:
 		var expected_target := int(record.get("target", -1))
 		if int(record.get("owner", -1)) == player or int(window.get("target", -1)) != expected_target: return []
 		if not s.squads.has(expected_target) or int(s.squads[expected_target].get("owner", -1)) != player: return []
@@ -437,7 +448,7 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 			record.discarded = record.remaining
 			record.remaining = 0
 			record.stage = "complete"
-			s.unit_abilities.window = window.get("resume_window", {}) if kind in [PHOBOS_MORTIS_SNARES_MORTAL, STASIS_BOMB_MORTAL, HIGH_MARSHAL_MORTAL, DEATH_VISIONS_MORTAL, CORVUS_CLUSTER_MORTAL] else {}
+			s.unit_abilities.window = window.get("resume_window", {}) if kind in [PHOBOS_MORTIS_SNARES_MORTAL, STASIS_BOMB_MORTAL, HIGH_MARSHAL_MORTAL, SCARAB_SELF_DESTRUCTION_MORTAL, GRAVITIC_PULSE_MORTAL, DEATH_VISIONS_MORTAL, CORVUS_CLUSTER_MORTAL, WRAITH_FORM_MORTAL] else {}
 	if kind == EXPLOSIVES: s.last_explosives = record
 	elif kind == "incursor-haywire-mortal": s.last_incursor_haywire_mine = record
 	elif kind == CRUSHING_MORTAL: s.last_crushing_impact = record
@@ -447,8 +458,13 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 	elif kind == PHOBOS_MORTIS_SNARES_MORTAL: s.last_mortis_snares = record
 	elif kind == STASIS_BOMB_MORTAL: s.last_stasis_bomb = record
 	elif kind == HIGH_MARSHAL_MORTAL: s.last_high_marshal = record
+	elif kind == SCARAB_SELF_DESTRUCTION_MORTAL: s.last_scarab_self_destruction = record
+	elif kind == GRAVITIC_PULSE_MORTAL: s.last_gravitic_pulse = record
 	elif kind == DEATH_VISIONS_MORTAL: s.last_death_visions = record
 	elif kind == CORVUS_CLUSTER_MORTAL: s.last_corvus_cluster_launcher = record
+	elif kind == WRAITH_FORM_MORTAL: s.last_wraith_form = record
+	elif kind == CRIMSON_HARVEST_MORTAL: s.last_crimson_harvest = record
+	elif kind == LIVING_LIGHTNING_MORTAL: s.last_living_lightning = record
 	else: s.last_hammer_of_wrath = record
 	if had_wounds > 0 and unit.wounds <= 0:
 		var demise := DeadlyDemise.begin(s, [int(selected.model)], roller)
@@ -456,7 +472,7 @@ static func allocate_mortal(s: Dictionary, player: int, selected: Dictionary, ro
 		if not demise.get("complete", true): return demise
 	if s.get("pending_attack", {}).is_empty() and s.get("unit_abilities", {}).get("window", {}).is_empty(): A.open_destroyed_mark_replacements(s)
 	if kind in [CRUSHING_MORTAL, GRAVIS_ARMOURED_IMPACT_MORTAL] and s.get("unit_abilities", {}).get("window", {}).is_empty(): reopen_heroic_choices(s)
-	if kind in ["hammer-of-wrath-mortal", GRAVIS_ARMOURED_IMPACT_MORTAL, WRATH_OF_THE_LION_MORTAL] and s.phase == "charge" and s.get("unit_abilities", {}).get("window", {}).is_empty():
+	if kind in ["hammer-of-wrath-mortal", GRAVIS_ARMOURED_IMPACT_MORTAL, WRATH_OF_THE_LION_MORTAL, CRIMSON_HARVEST_MORTAL] and s.phase == "charge" and s.get("unit_abilities", {}).get("window", {}).is_empty():
 		var charged_squad := int(record.get("squad", -1))
 		if s.squads.has(charged_squad): charge_completed(s, int(s.squads[charged_squad].get("owner", -1)), charged_squad)
 	return {"error": ""}
@@ -473,8 +489,13 @@ static func _mortal_record(s: Dictionary, kind: String) -> Dictionary:
 		PHOBOS_MORTIS_SNARES_MORTAL: return s.get("last_mortis_snares", {})
 		STASIS_BOMB_MORTAL: return s.get("last_stasis_bomb", {})
 		HIGH_MARSHAL_MORTAL: return s.get("last_high_marshal", {})
+		SCARAB_SELF_DESTRUCTION_MORTAL: return s.get("last_scarab_self_destruction", {})
+		GRAVITIC_PULSE_MORTAL: return s.get("last_gravitic_pulse", {})
 		DEATH_VISIONS_MORTAL: return s.get("last_death_visions", {})
 		CORVUS_CLUSTER_MORTAL: return s.get("last_corvus_cluster_launcher", {})
+		WRAITH_FORM_MORTAL: return s.get("last_wraith_form", {})
+		CRIMSON_HARVEST_MORTAL: return s.get("last_crimson_harvest", {})
+		LIVING_LIGHTNING_MORTAL: return s.get("last_living_lightning", {})
 	return {}
 
 static func _mortal_name(kind: String) -> String:
@@ -487,8 +508,13 @@ static func _mortal_name(kind: String) -> String:
 	if kind == PHOBOS_MORTIS_SNARES_MORTAL: return "Mortis Snares"
 	if kind == STASIS_BOMB_MORTAL: return "Stasis Bomb"
 	if kind == HIGH_MARSHAL_MORTAL: return "High Marshal"
+	if kind == SCARAB_SELF_DESTRUCTION_MORTAL: return "Self-destruction"
+	if kind == GRAVITIC_PULSE_MORTAL: return "Gravitic Pulse"
 	if kind == DEATH_VISIONS_MORTAL: return "Death Visions of Sanguinius"
 	if kind == CORVUS_CLUSTER_MORTAL: return "Blackstar Cluster Launcher"
+	if kind == WRAITH_FORM_MORTAL: return "Wraith Form"
+	if kind == CRIMSON_HARVEST_MORTAL: return "Crimson Harvest"
+	if kind == LIVING_LIGHTNING_MORTAL: return "Living Lightning"
 	return "Hammer of Wrath"
 
 static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Callable = Callable()) -> Dictionary:
@@ -513,6 +539,9 @@ static func apply(s: Dictionary, player: int, selected: Dictionary, roller: Call
 		smoke_records.append({"squad": selected.target, "phase_key": phase_key(s)})
 		s.core_reactions["smoke"] = smoke_records
 	elif rule == OVERWATCH:
+		if inescapable_death_free(s, int(selected.target)):
+			if not s.unit_abilities.has("used"): s.unit_abilities.used = {}
+			s.unit_abilities.used["inescapable-death:%d" % player] = int(s.get("turn", 0))
 		s.core_reactions.overwatch = {"player": player, "squad": selected.target, "phase_key": phase_key(s)}
 		s.squads[selected.target].overwatch_block = phase_key(s)
 		s.unit_abilities.window = {}

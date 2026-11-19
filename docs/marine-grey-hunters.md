@@ -21,3 +21,7 @@ The source lists five Leaders: Ulrik the Slayer, Wolf Priest, Wolf Guard Battle 
 The focused offline regression passed all eight processes: import, Python checks, test_grey_hunters, test_implemented_catalog, test_capabilities, test_blood_claws, test_combat_doctrines and test_roster_validation. The report is .tools/verification/20261029T021529028806Z/results.json (SHA-256 E53F5448997D72DBE37AC38D76B31678D9E53B5F69E8188E5C119DA97CD008C; network: false; legacy starter staged; no cleanup diagnostics). The suite covers source-bounded profile admission, Pack Leader options, exact 5+5 model membership and cost conservation, and the Cunning Hunters objective/phase/weapon modifiers.
 
 This closes only the named Grey Hunters local datasheet scope. Two source-listed Leader endpoints, network validation, human playtesting, full faction/army legality and complete-match certification remain open.
+
+## Saved model equipment — 14 November 2026
+
+Army Builder now saves source-listed weapons per stable miniature/copy with leader-role restrictions. Existing sizes and construction copy gates are unchanged. Saved matches apply these records before Deployment and reject repeated equipment setup; live formation/combat abilities remain available. See the [saved-equipment source and regression audit](verification/sergeant-squad-saved-equipment.md).

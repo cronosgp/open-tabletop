@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[1]
 DEMO = {"test_rules", "test_data_pack", "test_model_cache",
-        "test_forceorg_catalog", "test_forceorg_catalog_download", "test_model_download", "test_network", "test_army_catalog", "test_army_builder"}
+        "test_forceorg_catalog", "test_forceorg_catalog_download", "test_model_download", "test_network", "test_army_builder"}
 QUICK_PROFILES = {"focused", "targeted"}
 VARIANTS = {"test_attack_plan_network": ["--ranged-test"],
             "test_current_reference_match_network": ["--tactical-profile-test"],
@@ -38,6 +38,10 @@ PRELOAD = re.compile(r'preload\("res://([^"\n]+\.gd)"\)')
 # flow. Their dependency graph also includes the legacy combat constructor,
 # which remains available for separate historical exercises.
 CURRENT_CATALOG_MATCH_SUITES = {
+    # Explicitly asserts absence of the historical pack while checking the
+    # current visual-name catalog. The negative fixture path is not a dependency.
+    "test_model_catalog_names",
+    "test_saved_match_interruption",
     "test_blood_angels_captain",
     "test_sanguinary_priest",
 	"test_baal_predator",
@@ -90,6 +94,7 @@ CURRENT_CATALOG_MATCH_SUITES = {
     "test_deathwatch_veterans",
     "test_deathwatch_terminator_squad",
     "test_implemented_catalog",
+    "test_leader_catalog",
     "test_blood_claws",
     "test_grey_hunters",
     "test_fenrisian_wolves",
@@ -195,6 +200,96 @@ CURRENT_CATALOG_MATCH_SUITES = {
     "test_darnath_lysander",
     "test_caanok_var",
     "test_kaius_konorius",
+    # Current-catalog saved-loadout, saved-equipment and Necron suites resolve
+    # current-reference profiles and never read the historical starter pack,
+    # even though their transitive graphs include broad shared catalog scripts.
+    "test_aggressor_saved_loadout",
+    "test_aircraft_saved_loadouts",
+    "test_ancient_saved_loadout",
+    "test_baal_predator_saved_loadout",
+    "test_brutalis_saved_loadout",
+    "test_captain_on_bike_saved_loadout",
+    "test_captain_saved_loadout",
+    "test_castellan_saved_loadout",
+    "test_character_artillery_saved_loadouts",
+    "test_crusader_saved_equipment",
+    "test_death_company_captain_saved_loadouts",
+    "test_death_company_dreadnought_saved_loadout",
+    "test_death_company_saved_loadouts",
+    "test_deathwatch_saved_loadouts",
+    "test_deathwing_saved_loadouts",
+    "test_decimus_saved_equipment",
+    "test_dreadnought_saved_loadouts",
+    "test_fortis_saved_equipment",
+    "test_gravis_captain_saved_loadout",
+    "test_heavy_saved_loadouts",
+    "test_hellblaster_saved_loadout",
+    "test_indomitor_saved_equipment",
+    "test_invictor_saved_loadout",
+    "test_jump_pack_captain_saved_loadouts",
+    "test_land_speeder_saved_loadout",
+    "test_land_speeder_vengeance_saved_loadout",
+    "test_large_transport_saved_loadouts",
+    "test_lieutenant_saved_loadout",
+    "test_marine_saved_loadouts",
+    "test_marshal_saved_loadout",
+    "test_mixed_space_wolves_saved_loadouts",
+    "test_necron_annihilation_barge",
+    "test_necron_convergence_dominion",
+    "test_necron_crypteks",
+    "test_necron_imotekh",
+    "test_necron_illuminor_szeras",
+    "test_necron_geomancer",
+    "test_necron_nekrosor_ammentar",
+    "test_necron_trazyn_the_infinite",
+    "test_necron_catacomb_command_barge",
+    "test_necron_canoptek_wraiths",
+    "test_necron_tomb_blades",
+    "test_necron_ghost_ark",
+    "test_necron_night_scythe",
+    "test_necron_tesseract_vault",
+    "test_necron_silent_king",
+    "test_necron_cryptothralls",
+    "test_necron_deceiver",
+    "test_necron_destroyer_lords",
+    "test_necron_doom_scythe",
+    "test_necron_lokhust_destroyers",
+    "test_necron_lokhust_heavy_destroyers",
+    "test_necron_macrocytes",
+    "test_necron_monolith",
+    "test_necron_nightbringer",
+    "test_necron_obelisk",
+    "test_necron_ophydian_destroyers",
+    "test_necron_overlords_lychguard",
+    "test_necron_saved_equipment",
+    "test_necron_skorpekh_destroyers",
+    "test_necron_spyders",
+    "test_necron_tomb_crawlers",
+    "test_necron_transcendent_ctan",
+    "test_necron_triarch_praetorians",
+    "test_necron_triarch_stalker",
+    "test_necron_void_dragon",
+    "test_optional_vehicle_saved_loadouts",
+    "test_predator_annihilator_saved_loadout",
+    "test_predator_destructor_saved_loadout",
+    "test_ravenwing_saved_equipment",
+    "test_sanguinary_guard_saved_loadouts",
+    "test_saved_mission_pair_resume",
+    "test_scout_bike_saved_equipment",
+    "test_sergeant_squad_saved_loadouts",
+    "test_space_wolves_squad_saved_loadouts",
+    "test_space_wolves_walker_saved_loadouts",
+    "test_specialist_squad_saved_loadouts",
+    "test_spectrus_saved_equipment",
+    "test_squad_specialist_saved_loadouts",
+    "test_sword_brethren_saved_equipment",
+    "test_talonstrike_saved_equipment",
+    "test_tarantula_sentry_saved_loadouts",
+    "test_templar_gladiator_saved_loadouts",
+    "test_terminator_captain_saved_loadout",
+    "test_terminator_saved_loadouts",
+    "test_transport_saved_loadouts",
+    "test_vanguard_saved_equipment",
 }
 
 # These regressions use synthetic identities directly and do not resolve the
@@ -212,6 +307,8 @@ DATA_FREE_RUNTIME_SUITES = {
     "test_marine_transport_weapon_options",
     "test_marine_transport_destruction",
     "test_marine_machine_spirits",
+    "test_rhino_saved_loadout",
+    "test_saved_loadout_restart",
 }
 
 
@@ -252,7 +349,12 @@ def needs_legacy_starter(suite):
         return False
     # These UI tests start practice matches through main.tscn at runtime, so
     # their data dependency is not visible to the static preload walker.
-    if suite in {"test_action_guidance", "test_gameplay_layout", "test_unit_choice_help_ui", "test_selection_card"}:
+    if suite in {
+        "test_action_guidance", "test_gameplay_layout", "test_unit_choice_help_ui",
+        "test_selection_card", "test_local_models", "test_match_save",
+        "test_movement_network", "test_attack_plan_network", "test_damage_allocation_network",
+        "test_session_recovery_network",
+    }:
         return True
     if suite in CURRENT_CATALOG_MATCH_SUITES:
         return False
@@ -311,8 +413,10 @@ def stage(destination, profile, selected_suites=()):
     shutil.copy2(ROOT / "project.godot", project)
     if (ROOT / "export_presets.cfg").is_file():
         shutil.copy2(ROOT / "export_presets.cfg", project)
-    for name in ("scripts", "scenes", "tests", "tools"):
-        shutil.copytree(ROOT / name, project / name, ignore=shutil.ignore_patterns("__pycache__"))
+    for name in ("scripts", "scenes", "tests", "tools", "assets", "themes"):
+        source = ROOT / name
+        if source.is_dir():
+            shutil.copytree(source, project / name, ignore=shutil.ignore_patterns("__pycache__"))
     # Offline source-audit tests depend on this small project-authored context file.
     # Do not stage downloaded Wahapedia catalogs or the rest of the documentation.
     (project / "docs").mkdir()

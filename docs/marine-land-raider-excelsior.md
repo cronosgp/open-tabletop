@@ -22,3 +22,7 @@ The source gives the footprint as `Use model` without a diameter. The local simu
 ## Verification
 
 The dedicated suite and connected local regression cover provenance, points and copy tiers, characteristics and keywords, the complete weapon inventory, all four preparation choices, the Combi-weapon profiles, transport admission and Centurion/Gravis occupancy, Rites of Battle's army-wide once-per-round limit, the Deadly Demise parameter, and the Damaged 5 threshold. The focused regression passed 15/15 processes with network access disabled. See the [machine-readable audit](marine-land-raider-excelsior-audit.json) and [verification history](verification/verification-results.md).
+
+## Saved army equipment - 14 November 2026
+
+Equipment options now save per stable vehicle copy in the Army Workshop, pass canonical source-price validation and materialize before Deployment. Frozen saved choices cannot be reconfigured during readiness. Source-book, event, geometry and ability boundaries above remain. See [reviewed source options, exact tests and actual Godot captures](verification/transport-saved-equipment.md).

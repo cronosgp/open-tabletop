@@ -23,15 +23,24 @@ func act(s: Dictionary, owner: int, action: String, model: int = -2, target: int
 	for selected: Dictionary in C.unit_choices(s, owner):
 		if selected.action == action and (model == -2 or selected.model == model) and (target == -2 or selected.target == target): return str(submit_choice(s, owner, selected, point).get("error", ""))
 	return "Unavailable: " + action
+func reserve_declaration_state() -> Dictionary:
+	var state := F.fresh()
+	check(not state.has("error"), "Ten-unit reserve fixture admitted")
+	C.select_awakened_attachment(state, 2, -1, 0)
+	check(act(state, 1, "attach", 900, 1).is_empty(), "Support assigned")
+	check(act(state, 1, "warlord", 300).is_empty(), "Marine Warlord assigned")
+	return state
+func round_two_ingress_state() -> Dictionary:
+	var state := fresh()
+	state.phase = "movement"
+	state.round = 2
+	state.turn = 3
+	state.active = 1
+	state.unit_abilities.phase_key = U.key(state)
+	return state
 func fresh() -> Dictionary:
-	var s := F.fresh()
-	check(not s.has("error"), "Ten-unit reserve fixture admitted")
-	C.select_awakened_attachment(s, 2, -1, 0)
-	check(act(s, 1, "attach", 900, 1).is_empty(), "Support assigned")
-	check(act(s, 1, "warlord", 300).is_empty(), "Marine Warlord assigned")
-	var before := var_to_bytes(s)
-	check(not act(s, 1, "reserve", -1, 1).is_empty() and before == var_to_bytes(s), "Only eligible Deep Strike units can use this reserve workflow")
-	check(act(s, 1, "reserve", -1, 11).is_empty(), "Terminator unit enters reserves within half-limit")
+	var s := reserve_declaration_state()
+	check(act(s, 1, "reserve", -1, 11).is_empty(), "Terminator unit enters reserves within the combined half-limit")
 	check(s.unit_abilities.reserves.get(11, {}).get("deep_strike", false), "The reserve record preserves the unit's Deep Strike placement method")
 	check(C.living(s, 11).is_empty() and s.units[1100].wounds == 3 and not s.units[1100].on_battlefield and 11 not in s.deployment.order, "Reserves preserve wounds but leave board and deployment order")
 	check(act(s, 1, "setup-done").is_empty() and act(s, 2, "warlord", 600).is_empty() and act(s, 2, "setup-done").is_empty(), "Both preparations complete")
@@ -53,6 +62,17 @@ func fresh() -> Dictionary:
 		s.units[model].position = Vector2(-15 if s.units[model].owner == 1 else 15, 10 + (model % 5) * 1.7 if s.units[model].owner == 1 else -10 + (model % 5) * 1.7)
 	return s
 func _initialize() -> void:
+	var ordinary_reserve_state := reserve_declaration_state()
+	var fortification_state: Dictionary = bytes_to_var(var_to_bytes(ordinary_reserve_state))
+	for model: int in fortification_state.units:
+		if int(fortification_state.units[model].get("squad", -1)) == 1 and "FORTIFICATION" not in fortification_state.units[model].get("keywords", []): fortification_state.units[model].keywords.append("FORTIFICATION")
+	var before_fortification := var_to_bytes(fortification_state)
+	check(act(fortification_state, 1, "reserve", -1, 1).begins_with("Unavailable:") and before_fortification == var_to_bytes(fortification_state), "Fortifications cannot be declared in Strategic Reserves")
+	check(act(ordinary_reserve_state, 1, "reserve", -1, 7).is_empty(), "Non-Deep-Strike Intercessor unit can be declared in Strategic Reserves")
+	check(not ordinary_reserve_state.unit_abilities.reserves[7].deep_strike and ordinary_reserve_state.unit_abilities.reserves[7].source == "strategic-reserves" and C.living(ordinary_reserve_state, 7).is_empty() and 7 not in ordinary_reserve_state.deployment.order, "Ordinary Strategic Reserves preserve their ingress method and leave deployment")
+	check(act(ordinary_reserve_state, 1, "reserve", -1, 11).is_empty(), "Combined ordinary and Deep Strike reserves remain within the half-army cap")
+	var reserve_points := int(ordinary_reserve_state.unit_abilities.reserves[7].cost) + int(ordinary_reserve_state.unit_abilities.reserves[11].cost)
+	check(reserve_points <= int(ordinary_reserve_state.points_limit) / 2, "Combined pre-battle reserve cost stays within 50% of the configured points limit")
 	var irrelevant_reserve_state := C.initial_state()
 	C.UnitAbilities.enable(irrelevant_reserve_state)
 	irrelevant_reserve_state.phase = "movement"
@@ -114,6 +134,34 @@ func _initialize() -> void:
 	var restored: Dictionary = bytes_to_var(var_to_bytes(s))
 	check(ResolutionFrames.current(restored).get("frame_id", "") == ingress_frame.get("frame_id", "") and act(restored, 1, "ingress-confirm").is_empty() and C.living(restored, 11).size() == 5 and restored.squads[11].set_up_this_turn and ResolutionFrames.current(restored).is_empty(), "Serialized ingress preview commits coherently, marks setup and completes its frame")
 	check(not C.begin_movement(restored, 1, 1100, "normal", restored.revision).is_empty(), "Arriving units cannot make another Movement move")
+	var deep_strike_zone_state := round_two_ingress_state()
+	check(act(deep_strike_zone_state, 1, "ingress", -1, 11).is_empty(), "Deep Strike unit opens its own Movement ingress window")
+	var enemy_zone: Rect2 = deep_strike_zone_state.deployment.zones[2]
+	var deep_strike_zone_positions := [Vector2(14, 10), Vector2(15.7, 10), Vector2(17.4, 10), Vector2(14, 11.7), Vector2(15.7, 11.7)]
+	for index in range(deep_strike_zone_positions.size()):
+		var position: Vector2 = deep_strike_zone_positions[index]
+		var model := 1100 + index
+		var radius := float(deep_strike_zone_state.units[model].radius)
+		check(position.x - radius >= enemy_zone.position.x and position.x + radius <= enemy_zone.end.x and position.y - radius >= enemy_zone.position.y and position.y + radius <= enemy_zone.end.y, "Deep Strike fixture places each entire base inside the enemy deployment zone")
+		check(act(deep_strike_zone_state, 1, "ingress-place", model, 11, position).is_empty(), "Deep Strike permits a legal more-than-eight-inch arrival inside the enemy deployment zone")
+	check(act(deep_strike_zone_state, 1, "ingress-confirm").is_empty() and C.living(deep_strike_zone_state, 11).size() == 5, "Deep Strike enemy-zone formation confirms as a complete unit")
+	var strategic_zone_state := round_two_ingress_state()
+	strategic_zone_state.unit_abilities.reserves[11].deep_strike = false
+	check(act(strategic_zone_state, 1, "ingress", -1, 11).is_empty(), "Strategic Reserves unit opens the same ingress workflow")
+	var strategic_zone_error := act(strategic_zone_state, 1, "ingress-place", 1100, 11, Vector2(16, 14))
+	check(strategic_zone_error.contains("opponent's deployment zone before battle round 3") and U.pending(strategic_zone_state).positions.is_empty(), "Strategic Reserves reject the same valid-edge opponent-zone arrival before round three")
+	var strategic_round_three_state := round_two_ingress_state()
+	strategic_round_three_state.unit_abilities.reserves[11].deep_strike = false
+	strategic_round_three_state.round = 3
+	strategic_round_three_state.turn = 5
+	strategic_round_three_state.unit_abilities.phase_key = U.key(strategic_round_three_state)
+	check(act(strategic_round_three_state, 1, "ingress", -1, 11).is_empty(), "Strategic Reserves remain eligible to ingress during battle round three")
+	var strategic_round_three_positions := [Vector2(16, 14), Vector2(17.7, 14), Vector2(19.4, 14), Vector2(16, 12.3), Vector2(17.7, 12.3)]
+	for index in range(strategic_round_three_positions.size()):
+		var strategic_position: Vector2 = strategic_round_three_positions[index]
+		var strategic_position_error := act(strategic_round_three_state, 1, "ingress-place", 1100 + index, 11, strategic_position)
+		check(strategic_position_error.is_empty(), "Strategic Reserves can enter the opponent deployment zone from a legal battlefield edge in round three: " + strategic_position_error)
+	check(act(strategic_round_three_state, 1, "ingress-confirm").is_empty() and C.living(strategic_round_three_state, 11).size() == 5, "Round-three Strategic Reserves enemy-zone formation confirms as a complete unit")
 	s = fresh()
 	s.phase = "movement"
 	s.active = 2

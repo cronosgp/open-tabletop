@@ -94,6 +94,8 @@ static func close_request_error(state: Dictionary, player: int, expected_revisio
 	var error := _command_preconditions(state, player, expected_revision)
 	if not error.is_empty(): return error
 	if DetachmentStratagems.vengeful_actor(state) > 0: return "Resolve the pending reactive shooting window before continuing."
+	if str(abilities.get("window", {}).get("kind", "")) == "hyperspace-hunters": return "Resolve Hyperspace Hunters before continuing."
+	if str(abilities.get("window", {}).get("kind", "")) == "multi-threat-eliminator": return "Resolve Multi-threat Eliminator before continuing."
 	var pending_contact_value: Variant = state.get("pending_contact", {})
 	if typeof(pending_contact_value) != TYPE_DICTIONARY: return "Cannot advance while contact movement state is invalid."
 	var pending_contact: Dictionary = pending_contact_value

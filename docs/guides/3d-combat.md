@@ -59,7 +59,7 @@ godot --headless --path . --script tests/test_combat_network.gd -- --host-test
 godot --headless --path . --script tests/test_combat_network.gd -- --client-test
 ```
 
-Use `tests/test_morale_network.gd` with the same host/client arguments to check player-selected coherency removals, out-of-turn permissions, synchronized battle-shock and OC, and stale-request rejection. See [implementation status](../project/rules-status.md) for the remaining work.
+Use `tests/test_morale_network.gd` with the same host/client arguments to check player-selected coherency removals, out-of-turn permissions, synchronized battle-shock and OC, and stale-request rejection. See [implementation status](../project/support-matrix.md) for the remaining work.
 
 Windows checks cover phase restrictions, individual model movement, squad confirmation, blocked and out-of-range attacks, durable in-session casualties, Core CP, stale/repeated commands, synchronized host/client attacks, and hidden destroyed meshes. The rendered interface and tactical overlays were visually inspected on Windows. Linux and separate-machine LAN have not been verified.
 

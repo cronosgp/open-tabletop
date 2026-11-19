@@ -203,8 +203,10 @@ static func saved_records_report(directory: String = DIRECTORY) -> Dictionary:
 		if filename.get_extension().to_lower() != "json": continue
 		json_files += 1
 		var path := directory.path_join(filename)
-		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-		var issue := _saved_record_issue(parsed, filename)
+		var parser := JSON.new()
+		var parse_error := parser.parse(FileAccess.get_file_as_string(path))
+		var parsed: Variant = parser.data
+		var issue := "This file contains invalid JSON." if parse_error != OK else _saved_record_issue(parsed, filename)
 		if not issue.is_empty():
 			ignored_files += 1
 			invalid_files.append({"filename": filename, "reason": issue})

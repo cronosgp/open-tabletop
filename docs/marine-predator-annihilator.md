@@ -10,7 +10,7 @@ The profile is admitted for casual/home, store, club and campaign play under the
 
 - One model, M10, T10, Sv3+, W11, Ld6+ and OC3; keywords ADEPTUS ASTARTES, VEHICLE, FRAME, IMPERIUM and SMOKE.
 - First and second copies cost 135 points; third copies cost 145. The roster gate allows at most three in Strike Force and applies the standard two-copy Incursion limit.
-- Default weapons are two Lascannons, one Predator Twin Lascannon and Armoured Tracks. The two sponson Lascannons can be replaced together by two Heavy Bolters. Hunter-killer Missile and Storm Bolter are separate optional additions, and both may be selected together. All choices are public preparation actions and can be reversed.
+- Default weapons are two Lascannons, one Predator Twin Lascannon and Armoured Tracks. The two sponson Lascannons can be replaced together by two Heavy Bolters. Hunter-killer Missile and Storm Bolter are separate optional additions, and both may be selected together. Standalone exercises expose reversible public preparation actions. Army Workshop lists save the three choices per stable vehicle model; current-catalog admission preserves differently configured copies and saved-list matches materialize and lock the selected package before Deployment.
 - Combat Doctrines, Deadly Demise D3 and Damaged 4 use the shared rules paths. Annihilator lets this unit re-roll Damage rolls for ranged attacks against MONSTER or VEHICLE units. The roll can be chosen in the normal damage-allocation window; it does not apply to melee or other targets.
 
 ## Evidence and limits

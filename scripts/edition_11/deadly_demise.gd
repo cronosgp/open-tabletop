@@ -9,9 +9,11 @@ const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const DetachmentStratagems = preload("res://scripts/edition_11/detachment_stratagems.gd")
 const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
+const SilentKing = preload("res://scripts/edition_11/silent_king.gd")
 const WINDOW := "deadly-demise-mortal"
 
 static func begin(state: Dictionary, destroyed_models: Array[int], roller: Callable) -> Dictionary:
+	SilentKing.enforce_menhirs(state, destroyed_models)
 	var queue: Array[int] = []
 	var transport_queue := TransportRules.passengers_of_destroyed(state, destroyed_models)
 	for model: int in destroyed_models:

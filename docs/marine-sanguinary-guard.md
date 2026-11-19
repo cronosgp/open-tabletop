@@ -30,7 +30,7 @@ The unit contains 3 or 6 models, each on a 40 mm base, with M12, T5, Sv2+, W3, L
 | Inferno Pistol | 9", A1, BS2+, S8, AP-3, D3+2 | Melta 1, Close-quarters |
 | Encarmine Weapon | Melee, A4, WS2+, S6, AP-2, D2 | Lance |
 
-For every three models, one Angelus Boltgun can be replaced by an Inferno Pistol. Army Preparation exposes reversible per-model choices, enforces that limit after a Captain With Jump Pack joins the unit, and installs the selected profile through the shared Equipment path. Captain With Jump Pack and Commander Dante are implemented Leader targets; Dante's datasheet audit covers his own attached-unit doctrine effect.
+For every three models, one Angelus Boltgun can be replaced by an Inferno Pistol. Army Preparation exposes reversible per-model choices for standalone/training setup and enforces that limit after a Captain With Jump Pack joins the unit. Saved Workshop lists now persist the replacement on stable model IDs and apply it before Deployment; they suppress the duplicate setup choice. Captain With Jump Pack and Commander Dante are implemented Leader targets; Dante's datasheet audit covers his own attached-unit doctrine effect.
 
 Deep Strike and Combat Doctrines use the existing shared rules paths. Heirs of Azkaellon applies -1 to Wound when an attack targeting the unit has Strength greater than its Toughness. Angelic Visage applies -1 to Hit to melee attacks targeting the unit. Both defensive effects enter the shared AttackPlan and modifier cap.
 
@@ -43,3 +43,9 @@ python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.ex
 ```
 
 The checks cover source identity, hashes, characteristics, priced compositions, costs and copy limit; all three weapons through Equipment and AttackPlan; reversible Inferno Pistol choices and per-three-model limits; both-player catalog materialization; the Captain With Jump Pack Leader link; Deep Strike and Combat Doctrines; and the melee Hit and Strength-gated Wound modifiers. This closes only the declared local Guard scope. Full Blood Angels and Space Marine army legality, all Leader combinations, network behavior and human playtesting remain open; Dante's own attachment and doctrine path are covered in his separate audit.
+
+## Saved Army Workshop equipment — 13 November 2026
+
+The Workshop stores each model's Angelus Boltgun or Inferno Pistol choice using that model's stable roster identity. The selected 3- or 6-model composition limits Inferno Pistols to one per three models; each separate Guard copy can have its own configuration. Current-catalog admission rechecks the saved arrays, and prepared saved-list matches install the exact locally sourced weapon profile before Deployment. The repeated Army Preparation option is suppressed and forced edits are rejected for these saved-list matches. The focused regression covers the limit, malformed arrays, per-model control signal, two differently configured copies, canonical admission, exact materialization and setup lock. A separate-process restart fixture checks both configured copies after disk reopen and verifies that the match snapshot remains frozen after a later list edit.
+
+This is an equipment-save increment against the existing audit above; it did not refresh source research or broaden the audited rules scope. Full army legality, exact sculpt parity, event eligibility, separate-machine LAN and human usability remain unverified. See the [saved-equipment verification](verification/verification-results.md#sanguinary-guard-saved-equipment--13-november-2026).

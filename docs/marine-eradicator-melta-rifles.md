@@ -10,7 +10,7 @@ Snapshot `20261021T130623Z`, retrieved `2026-10-21T19:46:58Z`; `Last_update.csv`
 
 - A unit has one Eradicator Sergeant and two to five Eradicators. Three models cost 100 points and six cost 200; the third and later copies cost 120 and 220. Models use 40 mm bases and M5, T6, Sv3+, W3, Ld6+, OC1, with no invulnerable save. The keywords are `ADEPTUS ASTARTES`, `EXPLOSIVES`, `GRAVIS`, `IMPERIUM` and `INFANTRY`.
 - Each model starts with a Melta Rifle, Bolt Pistol and Ceramite Fists. The standard and Hunter profiles for the Melta Rifle, Bolt Pistol and Ceramite Fists are checked through `Equipment` and `AttackPlan`; the Hunter profile is restricted to MONSTER or VEHICLE targets.
-- For each three Eradicator models, one Melta Rifle can be replaced by a Multi-melta. Both Multi-melta profiles are checked. Preparation lets the player select a specific model, shows its current weapon, offers a short equipment label, allows restoration, and enforces the per-three-model limit without mutation on invalid or wrong-owner commands.
+- For every three total models in the unit, one ordinary Eradicator may replace its Melta Rifle with a Multi-melta; the Sergeant retains the rifle (eligibility corrected on 14 November 2026). Both Multi-melta profiles are checked. Preparation lets the player select a specific model, shows its current weapon, offers a short equipment label, allows restoration, and enforces the per-three-model limit without mutation on invalid or wrong-owner commands.
 - Melta 2 and Melta 3 add their value to Damage when the target is within half the weapon's range at target selection. The exact half-range boundary is tested; the runtime uses the existing geometry epsilon to avoid losing the inclusive boundary to floating-point rounding.
 - Total Obliteration permits one re-roll of a ranged Damage roll for the unit. The test exercises the optional Damage re-roll through the public command route, preserves the Melta-adjusted damage expression, and checks that the ability does not grant the same re-roll to melee attacks.
 - The five source Leader links are Captain in Gravis Armour, Iron Father Feirros, Marneus Calgar, Tor Garadon and Vulkan He’stan. Apothecary Biologis remains a separate Support link. Both player rosters materialize from the consolidated current Marine catalog. Checked 1,000-point Incursion admission accepts two copies and rejects a third.
@@ -23,8 +23,12 @@ Focused offline verification passed **6/6 processes** at `.tools/verification/20
 python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile targeted --only test_eradicator_melta_rifles --only test_eradicator_heavy_bolters --only test_space_marine_leader_links --only test_marine_conditional_weapon_traits --timeout 300
 ```
 
-The existing army-preparation panel was captured from a live Godot run at `.tools/eradicator-melta-rifles-after.png` (1600×1000). The staged fixture shows the Sergeant, current Melta Rifle and reversible Multi-melta choice; it is UI evidence, not a completed match or small-window coverage claim.
+The existing army-preparation panel was captured from a live Godot run at `.tools/eradicator-melta-rifles-after.png` (1600×1000). That historical fixture showed a Sergeant Multi-melta choice that was corrected on 14 November 2026. It is not current eligibility evidence or a completed-match/small-window claim.
 
 ## Limits
 
 This closes only the shared-book Eradicator Melta Rifle datasheet scope. Incursion is the checked roster mode and caps this non-BATTLELINE sheet at two copies; Strike Force admission is not implemented even though third-plus prices remain in the catalog. Chapter-book variants, Forge World, Legends, Boarding Actions, complete faction/army legality, network behavior, full-match certification and human playtesting remain outside this result. Network validation is deferred to final integration.
+
+## Saved model equipment — 14 November 2026
+
+Army Builder now saves exact source-listed specialist weapons per stable miniature/copy, with role eligibility, whole-unit caps and paid Vengor pricing where applicable. Source records apply before Deployment and are locked for the match. Existing construction gates and combat abilities are preserved; Eradicator Sergeant Multi-melta eligibility was corrected. See the [saved-equipment source resolution and regression audit](verification/specialist-squad-saved-equipment.md).

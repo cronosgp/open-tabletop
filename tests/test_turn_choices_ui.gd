@@ -23,7 +23,7 @@ func run() -> void:
 	game.action_unit_picker.item_selected.emit(1)
 	check(game.selected == 100 and var_to_str(game.state) == before, "Unit picker selects a model without changing authoritative state")
 	check(not game.movement_choices.choices[0].disabled and game.movement_choices.choices[2].disabled, "Unengaged unit offers Normal and blocks Fall Back")
-	check("Only engaged" in game.movement_choices.choices[2].tooltip_text and "Only engaged" in game.movement_reference.text, "Blocked choice explains the validator restriction in tooltip and Help")
+	check("Only engaged" in game.movement_choices.choices[2].tooltip_text and "Only engaged" in game.movement_reference.text and "Only engaged" in game.movement_choices.unavailable.text and game.movement_choices.unavailable.max_lines_visible < 0, "Blocked choice explains the validator restriction in the movement panel, tooltip and Help")
 	game.movement_choices.choices[1].pressed.emit()
 	check(game.movement_choice.selected == 1 and game.state.pending_move.is_empty() and var_to_str(game.state) == before, "Choosing Advance does not roll dice or start movement")
 	game.movement_choices.choices[0].pressed.emit()

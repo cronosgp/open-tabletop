@@ -12,7 +12,6 @@ var source_content: VBoxContainer
 var source_rule_count := 0
 var source_profile_key := ""
 var source_expanded := false
-var source_expansion_user_set := false
 var source_status_note := ""
 
 static func fill_stats(grid: GridContainer, attributes: Array, columns: int) -> void:
@@ -31,8 +30,9 @@ static func fill_stats(grid: GridContainer, attributes: Array, columns: int) -> 
 		cell.add_child(label)
 		var value := Label.new()
 		value.text = str(attribute.value)
+		value.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		value.add_theme_font_size_override("font_size", 19)
-		value.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		value.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 		cell.add_child(value)
 		cell.tooltip_text = str(attribute.get("help", attribute.label))
 		grid.add_child(cell)
@@ -42,7 +42,6 @@ func present(model: Dictionary) -> void:
 	if next_profile_key != source_profile_key:
 		source_profile_key = next_profile_key
 		source_expanded = false
-		source_expansion_user_set = false
 	if model == last_model: return
 	last_model = model.duplicate(true)
 	reference_folder_status = null
@@ -56,6 +55,10 @@ func present(model: Dictionary) -> void:
 	_label(str(model.name), 24, Color("f2df83"))
 	_label(str(model.identity), 16)
 	_label("Scroll: Page Up/Down · Home/End · Escape returns.", 12, Color("9fb2c1"))
+	var stats := GridContainer.new()
+	add_child(stats)
+	fill_stats(stats, model.attributes, 6)
+	if not str(model.get("conditions", "")).is_empty(): _label(str(model.conditions), 16, Color("e5be79"))
 	var keywords: Array[String] = []
 	for keyword: Variant in model.get("keywords", []):
 		var value := str(keyword).strip_edges()
@@ -66,10 +69,6 @@ func present(model: Dictionary) -> void:
 		var conditional_chapter_keywords: Array[String] = model.get("conditional_chapter_keywords", [])
 		if not conditional_chapter_keywords.is_empty():
 			_label("Dark Angels context grants: " + " · ".join(conditional_chapter_keywords), 13, Color("e5be79"))
-	var stats := GridContainer.new()
-	add_child(stats)
-	fill_stats(stats, model.attributes, 6)
-	if not str(model.get("conditions", "")).is_empty(): _label(str(model.conditions), 16, Color("e5be79"))
 	for section: String in ["ranged", "melee"]:
 		var weapons: Array = model.get(section, [])
 		if weapons.is_empty(): continue
@@ -135,10 +134,8 @@ func present(model: Dictionary) -> void:
 	elif not source_issue.is_empty():
 		source_status_note = "unavailable" if "not installed" in source_issue.to_lower() else "error"
 	if not rules.is_empty() or not source.is_empty() or not source_issue.is_empty() or not source_warning.is_empty():
-		if (not source_issue.is_empty() or not source_warning.is_empty()) and not source_expansion_user_set:
-			source_expanded = true
 		add_child(HSeparator.new())
-		_label("SOURCE RULES", 17, Color("f2df83"))
+		_label("LOCAL REFERENCE & SOURCE STATUS", 17, Color("f2df83"))
 		source_rule_count = rules.size()
 		source_toggle_button = Button.new()
 		source_toggle_button.toggle_mode = true
@@ -153,7 +150,6 @@ func present(model: Dictionary) -> void:
 		add_child(source_content)
 		source_toggle_button.toggled.connect(func(expanded: bool) -> void:
 			source_expanded = expanded
-			source_expansion_user_set = true
 			source_content.visible = expanded
 			source_toggle_button.text = _source_toggle_text(source_rule_count, expanded)
 		)
@@ -212,7 +208,6 @@ func set_reference_folder_status(message: String, offer_path_copy: bool = false)
 		reference_folder_status.visible = not message.is_empty()
 		if not message.is_empty():
 			source_expanded = true
-			source_expansion_user_set = true
 			if source_content != null: source_content.visible = true
 			if source_toggle_button != null:
 				source_toggle_button.button_pressed = true

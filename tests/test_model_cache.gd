@@ -4,6 +4,8 @@ const ImportPanel = preload("res://scripts/model_import_panel.gd")
 const ROOT = "res://.tools/cache-import-test"
 const MESH_URL = "https://example.invalid/ugc/123456/ABCDEF/"
 const IMAGE_URL = "https://example.invalid/ugc/456789/DIFFUSE/"
+const BUNDLE_URL = "https://example.invalid/ugc/654321/CONVERTED-BUNDLE/"
+const BUNDLE_DEPENDENCY_URL = "https://example.invalid/ugc/654321/CONVERTED-MATERIAL/"
 var failures := 0
 func check(ok: bool, message: String) -> void:
 	if not ok:
@@ -12,6 +14,8 @@ func check(ok: bool, message: String) -> void:
 func write(path: String, text: String) -> void:
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(text)
+func write_json(path: String, value: Dictionary) -> void:
+	write(path, JSON.stringify(value))
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute(ROOT.path_join("Models"))
@@ -72,5 +76,42 @@ func run() -> void:
 	panel.catalog.entries[0] = {"kind": "CustomMesh", "references": {"MeshURL": MESH_URL}}
 	panel.find_cached_files()
 	check(not panel.preview_asset.is_empty() and panel.texture_path.text.is_empty(), "Models without a declared diffuse reference may preview untextured")
+	var bundle_dir := ROOT.path_join("bundle-marker-fixture")
+	var converted_dir := bundle_dir.path_join("forceorg-bundles/converted-model")
+	DirAccess.make_dir_recursive_absolute(converted_dir.path_join("parts"))
+	var bundle_mesh := converted_dir.path_join("parts/model.obj")
+	write(bundle_mesh, "v 0 0 0\nv 1 0 0\nv 0 2 0\nf 1 2 3\n")
+	var bundle_marker := bundle_dir.path_join(BUNDLE_URL.sha256_text() + "-0123456789abcdef.bundle.json")
+	var bundle_manifest := converted_dir.path_join("manifest.json")
+	var bundle_entry := {"components": [{"kind": "CustomAssetbundle", "name": "Converted miniature", "references": {"AssetbundleURL": BUNDLE_URL}, "transforms": []}]}
+	write_json(bundle_manifest, {"dependencies_complete": true, "parts": [{"name": "Body", "mesh": "parts/model.obj", "transforms": []}]})
+	write_json(bundle_marker, {"directory": "forceorg-bundles/converted-model", "loaded_dependency_urls": []})
+	var converted := Assets.resolve_cache(bundle_entry, Assets.index_cache(bundle_dir))
+	check(converted.error.is_empty() and converted.parts.size() == 1 and converted.parts[0].bundle.status == "found"
+		and converted.parts[0].bundle_parts.size() == 1 and converted.parts[0].bundle_parts[0].path == bundle_mesh,
+		"A converted bundle cache marker resolves its manifest and existing mesh part")
+	write_json(bundle_marker, {"directory": "../outside", "loaded_dependency_urls": []})
+	var unsafe_bundle := Assets.resolve_cache(bundle_entry, Assets.index_cache(bundle_dir))
+	check(unsafe_bundle.parts[0].bundle.status == "invalid" and unsafe_bundle.parts[0].bundle_parts.is_empty(),
+		"A converted bundle cache marker cannot escape its cache folder")
+	write_json(bundle_marker, {"directory": "forceorg-bundles/converted-model", "loaded_dependency_urls": []})
+	write(bundle_manifest, "{damaged manifest")
+	var corrupt_bundle := Assets.resolve_cache(bundle_entry, Assets.index_cache(bundle_dir))
+	check(corrupt_bundle.parts[0].bundle.status == "invalid" and corrupt_bundle.parts[0].bundle_parts.is_empty(),
+		"A corrupt converted bundle manifest is not admitted as a cache hit")
+	var dependent_entry := {"components": [{"kind": "CustomAssetbundle", "name": "Converted miniature", "references": {"AssetbundleURL": BUNDLE_URL, "AssetbundleSecondaryURL": BUNDLE_DEPENDENCY_URL}, "transforms": []}]}
+	write_json(bundle_manifest, {"dependencies_complete": false, "parts": [{"name": "Body", "mesh": "parts/model.obj", "transforms": []}]})
+	var missing_dependency := Assets.resolve_cache(dependent_entry, Assets.index_cache(bundle_dir))
+	check(missing_dependency.parts[0].bundle.status == "invalid" and missing_dependency.parts[0].bundle_parts.is_empty(),
+		"A converted bundle with an incomplete declared dependency is rejected")
+	write_json(bundle_manifest, {"dependencies_complete": true, "parts": [{"name": "Body", "mesh": "parts/model.obj", "transforms": []}]})
+	write_json(bundle_marker, {"directory": "forceorg-bundles/converted-model", "loaded_dependency_urls": ["https://example.invalid/wrong-material"]})
+	var wrong_dependency := Assets.resolve_cache(dependent_entry, Assets.index_cache(bundle_dir))
+	check(wrong_dependency.parts[0].bundle.status == "invalid" and wrong_dependency.parts[0].bundle_parts.is_empty(),
+		"A converted bundle cache cannot substitute a different material dependency")
+	write_json(bundle_marker, {"directory": "forceorg-bundles/converted-model", "loaded_dependency_urls": [BUNDLE_DEPENDENCY_URL]})
+	var complete_dependency := Assets.resolve_cache(dependent_entry, Assets.index_cache(bundle_dir))
+	check(complete_dependency.parts[0].bundle.status == "found" and complete_dependency.parts[0].bundle_parts.size() == 1,
+		"A converted bundle is admitted when its declared material dependency is identified and complete")
 	print("Local cache lookup checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

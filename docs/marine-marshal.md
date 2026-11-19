@@ -39,6 +39,8 @@ Inspirational Exemplar grants +1 to Hit to the unit's melee attacks. Pious Fervo
 
 The profile registers Leader, Combat Doctrines and Transhuman Strategist through the shared rules path. The focused Marshal suite checks its Warlord eligibility and ability registration; it does not independently re-audit the shared Transhuman Strategist CP-resolution path.
 
+The Army Workshop also saves the Plasma Pistol or Combi-weapon replacement per Marshal model copy. Admission checks the selection against the same local weapon factory; saved-list matches materialize the exact ranged profiles and fixed Master-crafted Power Weapon before Deployment and lock duplicate preparation edits. This addition does not change repeat limits or the Marshal's source scope. See the [saved-equipment verification](verification/verification-results.md#marshal-saved-equipment--13-november-2026).
+
 ## Verification
 
 Focused offline verification passed **3/3 processes**: Godot import, Python checks and `test_marshal`.

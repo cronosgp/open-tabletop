@@ -4,6 +4,7 @@ const Geometry = preload("res://scripts/edition_11/contact_movement.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
 const ScoutMoves = preload("res://scripts/edition_11/scout_moves.gd")
 const TransportRules = preload("res://scripts/edition_11/transport_rules.gd")
+const NecronConvergence = preload("res://scripts/edition_11/necron_convergence_of_dominion.gd")
 const EPSILON := 0.001
 
 static func begin(state: Dictionary) -> void:
@@ -122,6 +123,9 @@ static func confirm_error(state: Dictionary) -> String:
 		if not error.is_empty(): return error
 	for id: int in state.units:
 		if str(state.units[id].get("definition_id", "")).get_slice(":", 3) == "vulkan-hestan" and state.units[id].get("on_battlefield", true) and state.deployment.placed.has(id) and state.get("unit_abilities", {}).get("implementation", "") != "" and not state.unit_abilities.get("seeker_objectives", {}).has(id): return "Resolve Vulkan He’stan’s Seeker of the Unfound objective choice before confirming deployment."
+	var convergence_setup := NecronConvergence.setup_error(state, squad)
+	if not convergence_setup.is_empty(): return convergence_setup
+	if NecronConvergence.uses_separated_setup(state, squad): return ""
 	if not Geometry.coherent(state, squad): return "Restore unit coherency before confirming deployment."
 	return ""
 
@@ -130,6 +134,7 @@ static func confirm(state: Dictionary, player: int, revision: int) -> String:
 	if error.is_empty(): error = confirm_error(state)
 	if not error.is_empty(): return error
 	var squad := current(state)
+	NecronConvergence.split_after_setup(state, squad)
 	state.deployment.committed.append(squad)
 	state.deployment.index += 1
 	if state.deployment.index == state.deployment.order.size():

@@ -6,6 +6,11 @@ const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancem
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const AdeptOfTheOmnissiah = preload("res://scripts/edition_11/adept_of_the_omnissiah.gd")
 const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
+const CanoptekSpyders = preload("res://scripts/edition_11/canoptek_spyders.gd")
+const NecronConvergence = preload("res://scripts/edition_11/necron_convergence_of_dominion.gd")
+const NecronCryptothralls = preload("res://scripts/edition_11/necron_cryptothralls.gd")
+const NekrosorAmmentar = preload("res://scripts/edition_11/nekrosor_ammentar.gd")
+const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const GRANTS := {
 	"chaplain-grimaldus": [{"target": 5, "against": "any"}],
 	"death-company-dreadnought": [{"target": 6, "against": "any"}],
@@ -26,6 +31,12 @@ const GRANTS := {
 
 static func grants(state: Dictionary, squad: int) -> Array:
  var result: Array = []
+ for rule: Dictionary in CanoptekSpyders.feel_no_pain_grants(state, squad):
+  if rule not in result: result.append(rule)
+ for rule: Dictionary in NecronConvergence.reanimation_nodes_grants(state, squad):
+  if rule not in result: result.append(rule)
+ for rule: Dictionary in NekrosorAmmentar.feel_no_pain_grants(state, squad):
+  if rule not in result: result.append(rule)
  if state.get("unit_abilities", {}).get("implementation", "") != Detection.ABILITY_IMPLEMENTATION_ID: return result
  for model: int in Geometry.alive(state, squad):
   var source := str(state.units[model].get("definition_id", "")).get_slice(":", 3)
@@ -73,6 +84,19 @@ static func rules(state: Dictionary, model: int) -> Variant:
  if _seeker_active(state, model):
   var seeker_fnp := {"target": 4, "against": "any"}
   if seeker_fnp not in result: result.append(seeker_fnp)
+ if AbilityCatalog.enabled(state) and model in AbilityCatalog.sources(state, int(state.units[model].get("squad", -1)), "nanoscarab-amulet"):
+  var nanoscarab_fnp := {"target": 5, "against": "any"}
+  if nanoscarab_fnp not in result: result.append(nanoscarab_fnp)
+ if AbilityCatalog.enabled(state) and model in AbilityCatalog.sources(state, int(state.units[model].get("squad", -1)), "feel-no-pain-4"):
+  var fnp4 := {"target": 4, "against": "any"}
+  if fnp4 not in result: result.append(fnp4)
+ if UnitAbilities.enabled(state) and UnitAbilities.leading(state, int(state.units[model].get("squad", -1)), "rites-of-reanimation"):
+  var rites_fnp := {"target": 5, "against": "any"}
+  if rites_fnp not in result: result.append(rites_fnp)
+ for rule: Dictionary in NekrosorAmmentar.feel_no_pain_grants(state, squad):
+  if rule not in result: result.append(rule)
+ for rule: Dictionary in NecronCryptothralls.bound_creation_grants(state, model):
+  if rule not in result: result.append(rule.duplicate())
  squad = int(state.units[model].squad)
  if state.squads.has(squad) and state.squads[squad].get("attached", false) and "CHARACTER" in state.units[model].get("keywords", []):
   var kaius_present := false

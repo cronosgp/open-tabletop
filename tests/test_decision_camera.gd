@@ -1,4 +1,5 @@
 extends SceneTree
+const Hud = preload("res://scripts/ui/combat_hud.gd")
 
 var failures := 0
 func check(ok: bool, message: String) -> void:
@@ -46,6 +47,26 @@ func run() -> void:
 	check(game.pivot.position == pose, "Opt-out preserves camera across decisions")
 	game._focus_selected_unit()
 	check(game.pivot.position != pose, "Manual focus still works with automatic framing disabled")
+	var camera_state := var_to_bytes(game.state)
+	game.combat_hud._refresh_tools_menu()
+	var tools_menu: PopupMenu = game.combat_hud.tools_button.get_popup()
+	tools_menu.id_pressed.emit(Hud.Tool.OVERVIEW)
+	var half: Vector2 = game.Rules.half_board(game.state)
+	var overview_area: Rect2 = game._camera_board_area()
+	for x: float in [-half.x, half.x]:
+		for z: float in [-half.y, half.y]:
+			check(overview_area.has_point(game.camera.unproject_position(Vector3(x, 0.0, z))), "The overview fits all four board corners")
+	var overview_zoom: float = game.zoom
+	tools_menu.id_pressed.emit(Hud.Tool.ACTIVE_ACTION)
+	check(game.zoom < overview_zoom and var_to_bytes(game.state) == camera_state and game.selected == 101, "Active Action reframes the unit without changing state or selection")
+	game.combat_hud._refresh_tools_menu()
+	var side_ids := [Hud.Tool.PLAYER_1_SIDE, Hud.Tool.PLAYER_2_SIDE]
+	for player: int in [1, 2]:
+		var id: int = side_ids[player - 1]
+		check(tools_menu.get_item_index(id) >= 0, "The player-side camera is listed in Tools")
+		tools_menu.id_pressed.emit(id)
+		check(is_equal_approx(game.angle, game._table_angle_for(player)), "The side preset frames the requested player")
+	check(var_to_bytes(game.state) == camera_state, "Both player perspectives are accessible and read-only")
 	var attacker: int = game.state.units[100].squad
 	var defender: int = game.state.units[200].squad
 	var attack: Dictionary = game.DecisionCamera.subject(game.state, 100, {"squad": attacker}, {"attack": true, "attack_target": defender})
@@ -58,5 +79,31 @@ func run() -> void:
 	pose = game.pivot.position
 	await create_timer(0.4).timeout
 	check(game.pivot.position == pose, "Manual control cancels an animated focus")
+	game.pivot.position = Vector3.ZERO
+	game.zoom = 30.0
+	game._update_camera()
+	var anchor := Vector3(4.0, 0.0, 3.0)
+	var anchor_screen: Vector2 = game.camera.unproject_position(anchor)
+	game.wheel_zoom_target = 20.0
+	game.wheel_zoom_anchor = anchor
+	for sample in 8:
+		game._advance_wheel_zoom(1.0 / 60.0)
+		check(game.camera.unproject_position(anchor).distance_to(anchor_screen) < 0.1, "Wheel zoom keeps the board anchor at the cursor")
+		var model_world: Vector3 = game.pieces[100].global_position
+		check(game._pick_model_from_screen(game.camera.unproject_position(model_world)) == 100, "Picking uses the displayed camera during zoom")
+	var frame_zooms: Array[float] = []
+	for fps: int in [30, 60, 120]:
+		game.zoom = 30.0
+		game.pivot.position = Vector3.ZERO
+		game.wheel_zoom_target = 20.0
+		game.wheel_zoom_anchor = anchor
+		for sample in fps / 10:
+			game._advance_wheel_zoom(1.0 / float(fps))
+		frame_zooms.append(game.zoom)
+	check(is_equal_approx(frame_zooms[0], frame_zooms[1]) and is_equal_approx(frame_zooms[1], frame_zooms[2]), "Wheel easing is consistent at 30, 60 and 120 FPS")
+	game.board_feedback_toggle.button_pressed = false
+	game.wheel_zoom_target = 20.0
+	game._advance_wheel_zoom(0.0)
+	check(game.zoom == 20.0 and game.wheel_zoom_target == 0.0, "Reduced motion applies wheel zoom immediately")
 	print("Decision camera checks: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

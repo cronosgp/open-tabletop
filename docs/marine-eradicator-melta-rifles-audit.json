@@ -139,7 +139,7 @@
     "Iron Father Feirros",
     "Marneus Calgar",
     "Tor Garadon",
-    "Vulkan He’stan"
+    "Vulkan He\u2019stan"
   ],
   "support_links": [
     "Apothecary Biologis"
@@ -242,5 +242,17 @@
       "The shared Leader/Support regression validates the complete relationship map but does not certify every roster combination.",
       "Chapter-book variants, Forge World, Legends, Boarding Actions, full faction/army legality, network behavior, full-match certification and human playtesting remain outside this result."
     ]
+  },
+  "equipment_eligibility_correction_2026_11_14": {
+    "source_snapshot_id": "wahapedia-e11-live-refresh-final-user-readiness-20261030T013229Z",
+    "source_manifest_sha256": "12ac4ca99c29456195287d9a2c947fdea0c4c8fd659b5bfa3a7a829ede87283e",
+    "source_export_updated_at": "2026-10-28T23:48:19+03:00",
+    "matching_page_checked_on": "2026-11-14",
+    "matching_page": "https://wahapedia.ru/wh40k11ed/factions/space-marines/Eradicator-Squad-with-Melta-Rifles",
+    "page_revision_note": "App Space Marines 11th-edition marker and selected facts match; no independent export revision exposed. Original extraction metadata preserved.",
+    "resolution": "Only ordinary Eradicator role models may replace Melta Rifle; the separately named Sergeant cannot. Prior test/capture permission superseded. Both saved admission and legacy setup now enforce this role.",
+    "verification_report": ".tools/verification/20261114T155637759613Z/results.json",
+    "verification_report_sha256": "320b2dc0ac0ac05118f8b095cbb4a310f34835227555050bd0653f5472e366c2",
+    "evidence": "verification/specialist-squad-saved-equipment.md"
   }
 }

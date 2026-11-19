@@ -9,8 +9,6 @@ const TacticalActions = preload("res://tests/tactical_network_actions.gd")
 const CheckpointBarrier = preload("res://tests/network_checkpoint_barrier.gd")
 
 var game: Node
-var save_path := ""
-var journal_directory := ""
 var is_host := false
 var cross_machine_test := false
 var pending_overwatch_recovery_done := false
@@ -73,9 +71,6 @@ func watch_guest_disconnect() -> Dictionary:
 	return observed
 
 func setup_game() -> void:
-	var run_id := str(Time.get_ticks_usec())
-	save_path = "user://matches/qa-current-reference-loopback-%s.save" % run_id
-	journal_directory = "user://matches/journals/qa-current-reference-loopback-%s" % run_id
 	game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	checkpoint_barrier = CheckpointBarrier.new()
@@ -87,8 +82,6 @@ func setup_game() -> void:
 	game.session_transport.connected_to_server.connect(func(): trace_transport("connected_to_server"))
 	game.session_transport.server_disconnected.connect(func(): trace_transport("server_disconnected"))
 	game.session_transport.connection_failed.connect(func(): trace_transport("connection_failed"))
-	game.match_save_path = save_path
-	game.match_journal_directory = journal_directory
 	game.address.text = requested_host_address()
 	game.auto_models.button_pressed = false
 	game.saved_training_consent.button_pressed = true
@@ -236,7 +229,7 @@ func advance_one_player_step(owner: int) -> bool:
 				if not save_error.is_empty():
 					push_error("Host failed to save the pending Fire Overwatch checkpoint: " + save_error)
 					return false
-				var checkpoint := MatchSave.read(save_path)
+				var checkpoint := MatchSave.read(game.match_save_path)
 				if checkpoint.has("error") or checkpoint.state != state_before_recovery or checkpoint.rng_state != game.rng.state or checkpoint.journal != game.journal.checkpoint():
 					push_error("Pending Fire Overwatch save does not preserve match state, RNG and journal.")
 					return false
@@ -358,6 +351,10 @@ func complete_match(owner: int) -> bool:
 
 func run() -> void:
 	is_host = "--host-test" in OS.get_cmdline_user_args()
+	if is_host and not MatchSave.existing_slots().is_empty():
+		push_error("Run the host fixture with an isolated Godot profile and empty save slots.")
+		quit(1)
+		return
 	print("NETWORK LIFECYCLE START: role=%s tactical=%s instance=%d args=%s" % ["host" if is_host else "client", tactical_profile, get_instance_id(), str(OS.get_cmdline_user_args())])
 	cross_machine_test = "--cross-machine-test" in OS.get_cmdline_user_args()
 	setup_game()
@@ -493,7 +490,7 @@ func run() -> void:
 			push_error("Host failed to save the current-reference match checkpoint: " + save_error)
 			finish(1)
 			return
-		var saved := MatchSave.read(save_path)
+		var saved := MatchSave.read(game.match_save_path)
 		if saved.has("error") or saved.state != game.state or saved.rng_state != game.rng.state or saved.journal != game.journal.checkpoint():
 			push_error("Host save does not preserve the deployed reference match, RNG state and journal.")
 			finish(1)
@@ -601,7 +598,7 @@ func run() -> void:
 			push_error("Host failed to save the completed host/client match: " + final_save_error)
 			finish(1)
 			return
-		var final_saved := MatchSave.read(save_path)
+		var final_saved := MatchSave.read(game.match_save_path)
 		if final_saved.has("error") or final_saved.state != game.state or final_saved.rng_state != game.rng.state or final_saved.journal != game.journal.checkpoint():
 			push_error("Host completion save does not preserve the final match, RNG state and journal.")
 			finish(1)

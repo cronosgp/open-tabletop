@@ -24,7 +24,7 @@ func selections(models: int, leader: String = "librarian-in-phobos-armour") -> D
 	return result
 
 func make_state(models: int = 5, leader: String = "librarian-in-phobos-armour") -> Dictionary:
-	var state := F.P.initial_state({"unit_abilities": true, "reanimation_protocols": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, selections(models, leader))
+	var state := F.P.initial_state({"unit_abilities": true, "reanimation_protocols": true, "combat_doctrines": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false, "legacy_necron_reference": true}, selections(models, leader))
 	if not state.has("error"):
 		state.mission.stage = "battle"
 		state.awakened_dynasty.pending = []

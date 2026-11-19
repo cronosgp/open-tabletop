@@ -22,6 +22,20 @@ static func model_label(match_state: Dictionary, model_id: int) -> String:
 		if int(units[id].get("squad", -1)) == squad_id:
 			ids.append(id)
 	ids.sort()
+	var training_name := _training_model_name(str(unit.get("definition_id", "")))
+	if not training_name.is_empty():
+		if training_name in ["Captain", "Chaplain"]:
+			return training_name
+		if bool(unit.get("sergeant", false)):
+			return training_name + " Sergeant"
+		var training_number := 0
+		for id: int in ids:
+			if bool(units[id].get("sergeant", false)):
+				continue
+			training_number += 1
+			if id == model_id:
+				break
+		return "%s %d" % [training_name, maxi(1, training_number)]
 	var place := ids.find(model_id) + 1
 	if place < 1:
 		place = 1
@@ -29,6 +43,21 @@ static func model_label(match_state: Dictionary, model_id: int) -> String:
 	if bool(unit.get("sergeant", false)):
 		label += " · Sergeant"
 	return label
+
+static func _training_model_name(definition_id: String) -> String:
+	if definition_id.ends_with(":intercessor-squad"):
+		return "Intercessor"
+	if definition_id.ends_with(":hellblaster-squad"):
+		return "Hellblaster"
+	if definition_id.ends_with(":assault-intercessor-squad"):
+		return "Assault Intercessor"
+	if definition_id.ends_with(":bladeguard-veteran-squad"):
+		return "Bladeguard Veteran"
+	if definition_id.ends_with(":captain"):
+		return "Captain"
+	if definition_id.ends_with(":chaplain"):
+		return "Chaplain"
+	return ""
 
 func present(match_state: Dictionary, selected_id: int, active_player: int) -> void:
 	var digest := _digest(match_state, active_player)
@@ -56,6 +85,8 @@ func present(match_state: Dictionary, selected_id: int, active_player: int) -> v
 		var empty := Label.new()
 		empty.text = "No units for the active player."
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty.max_lines_visible = -1
+		empty.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 		add_child(empty)
 		return
 	_add_player(match_state, selected_id, active_player, active_player)
@@ -87,6 +118,8 @@ func _add_player(match_state: Dictionary, selected_id: int, owner: int, local_pl
 	var heading := Label.new()
 	heading.text = "Player %d  ·  %d living  ·  %d Battle-shocked" % [owner, living, shocked]
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	heading.max_lines_visible = -1
+	heading.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	heading.add_theme_font_size_override("font_size", 13)
 	heading.add_theme_color_override("font_color", Color("f2df83") if owner == local_player else Color("c4ced1"))
 	heading.tooltip_text = "Living models on the battlefield, and units whose current Battle-shock result is failed."
@@ -210,6 +243,8 @@ func _row(text: String, model_id: int, selected: bool, color: Color) -> Button:
 	button.text = text
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.clip_text = false
+	button.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	button.focus_mode = Control.FOCUS_ALL
 	button.add_theme_font_size_override("font_size", 13)
 	button.add_theme_color_override("font_color", color)
@@ -247,5 +282,5 @@ func _digest(match_state: Dictionary, local_player: int) -> String:
 	for id: int in ids:
 		var unit: Dictionary = match_state.units[id]
 		var squad: Dictionary = match_state.squads.get(unit.squad, {})
-		parts.append("%d:%s:%s:%s:%s:%s:%s:%s:%s" % [id, unit.get("owner", 0), squad.get("name", ""), unit.squad, unit.get("sergeant", false), unit.get("wounds", 0), unit.get("max_wounds", 0), unit.get("on_battlefield", true), squad.get("battle_shocked", false)])
+		parts.append("%d:%s:%s:%s:%s:%s:%s:%s:%s:%s" % [id, unit.get("owner", 0), squad.get("name", ""), unit.squad, unit.get("definition_id", ""), unit.get("sergeant", false), unit.get("wounds", 0), unit.get("max_wounds", 0), unit.get("on_battlefield", true), squad.get("battle_shocked", false)])
 	return "|".join(parts)

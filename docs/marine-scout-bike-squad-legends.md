@@ -15,6 +15,8 @@ The runtime labels this as a Warhammer Legends unit. The project permits it for 
 - Each model starts with Bolt Pistol, Combat Knife, Shotgun and Twin Boltgun.
 - Any number of models, including the Sergeant, can replace the Twin Boltgun with a Grenade Launcher. The Sergeant can independently replace the Bolt Pistol with any of the eleven source-listed choices: Boltgun, Chainsword, Combi-weapon, Grav-pistol, Hand Flamer, Inferno Pistol, Plasma Pistol, Power Fist, Power Weapon, Storm Bolter or Thunder Hammer.
 - All 20 source weapon profiles are represented, including both Grenade Launcher modes, all three Combi-weapon modes and both Plasma Pistol modes. The optional replacements add no points in the source.
+
+**Army Workshop update (15 November 2026):** both source-listed equipment options now persist by stable model/copy. Any model may select the free Grenade Launcher, and the Sergeant alone may select any of the eleven free Bolt Pistol replacements. Saved matches materialize the selected local weapon profiles before Deployment and lock the duplicate preparation choices. See the [saved-equipment verification](verification/scout-bike-saved-equipment.md) for exact filtered-slice hashes, reopen evidence and remaining Legends limits.
 - Abilities: Scouts 9", Combat Doctrines and Outflank. The shared ingress flow retains Outflank while the unit is in reserves; it permits setup within the opponent's deployment zone while preserving Strategic Reserves edge, coherency and enemy-distance checks.
 
 The source specifies 75 × 25 mm oval bases. Current movement and placement geometry uses a labelled 75 mm bounding-circle proxy, which conservatively encloses the oval and can reject some physically legal positions. Exact oval clearance is not certified.

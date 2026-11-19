@@ -47,6 +47,10 @@ func run() -> void:
 	check(s.test_winner == -1 and s.mission.scored_rounds == [1, 2, 3, 4, 5], "Prepared setup reaches five-round scoring and a final result")
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
+	# Current-catalog lists default unit abilities on; this exercise checks the
+	# baseline historical prepared match, so keep abilities disabled like
+	# test_decision_ui.gd does before its prepared-match flow.
+	game.unit_abilities_choice.button_pressed = false
 	game._start_prepared_match()
 	check(game.prepared_match and game.state.pack_hash == game._initial_state().pack_hash, "UI and host/rejoin factories agree")
 	check(game.action_groups.deployment.container.visible and not game.action_groups.attack.container.visible and game.deployment_confirm_button.disabled, "Deployment exposes only its contextual controls")
@@ -55,7 +59,7 @@ func run() -> void:
 	game._request_deployment_preset()
 	check(not game.deployment_confirm_button.disabled and "5/5" in game.deployment_help.text, "Preset placement enables explicit confirmation")
 	game._request_end()
-	check(C.actor(game.state) == 2 and "player 2" in game.decision_label.text.to_lower(), "UI identifies next decision owner")
+	check(C.actor(game.state) == 2 and "player 2" in game.combat_hud.owner_label.text.to_lower(), "UI identifies next decision owner")
 	game._start_objectives()
 	check(not game.prepared_match and game.state.phase == "start_turn", "Existing exercises remain separate")
 	print("Prepared match checks: %d failures" % failures)

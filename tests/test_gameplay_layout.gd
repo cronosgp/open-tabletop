@@ -9,6 +9,10 @@ func run() -> void:
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	await process_frame
+	# Exercise the normal title after the optional first-run setup, as a player does.
+	if game.main_menu.first_run_model_setup != null:
+		game._skip_first_run_model_setup()
+		await process_frame
 	check(game.main_menu.visible and not game.sidebar_panel.visible and not game.combat_hud.visible, "Launch opens the dedicated title screen")
 	check(game.main_menu.resume_button.visible == game.resume_compatible, "Continue only appears for a compatible local save")
 	var launch_primary: Control = game.main_menu.resume_button if game.resume_compatible else game.main_menu.guided_button
@@ -25,6 +29,35 @@ func run() -> void:
 	check(game.combat_hud.visible and game.command_panel.visible, "Starting combat opens the combat HUD and contextual command panel")
 	check(not game.sidebar_panel.visible and game.gameplay_scroll.get_parent() == game.command_panel_body and game.command_panel.visible, "Active combat uses the contextual command panel over the board")
 	check(game.objective_summary.visible and "VP" in game.objective_summary.text, "Training scoreboard visible in the HUD")
+	var body_minimum: Vector2 = game.command_panel_body.custom_minimum_size
+	var viewport_rect := root.get_visible_rect()
+	game.command_panel_body.custom_minimum_size.y = viewport_rect.size.y + 100.0
+	for frame in range(4): await process_frame
+	check(game.command_panel.size.y > viewport_rect.size.y, "The fixture simulates a temporary oversized content minimum")
+	game.command_panel_body.custom_minimum_size = body_minimum
+	for frame in range(4): await process_frame
+	check(viewport_rect.encloses(game.command_panel.get_global_rect()), "The action rail refits when wrapped content settles")
+	game._show_army_panel()
+	var roster_minimum: Vector2 = game.army_card_host.custom_minimum_size
+	game.army_card_host.custom_minimum_size.y = viewport_rect.size.y + 100.0
+	for frame in range(4): await process_frame
+	check(game.army_panel.size.y > viewport_rect.size.y, "The fixture simulates a temporary oversized roster card")
+	game.army_card_host.custom_minimum_size = roster_minimum
+	for frame in range(4): await process_frame
+	check(viewport_rect.encloses(game.army_panel.get_global_rect()), "The roster refits when the card minimum settles")
+	var before_notice := var_to_bytes(game.state)
+	var command_rect: Rect2 = game.command_panel.get_global_rect()
+	game.model_imports.automatic_running = true
+	game.model_imports.cancel_automatic()
+	await process_frame
+	check(game.combat_hud.asset_toast.visible and game.combat_hud.asset_badge.visible, "A cancelled model batch shows a transient notice and marks Tools")
+	check("cancelled" in game.model_play_notice.text and game.command_panel.get_global_rect() == command_rect and var_to_bytes(game.state) == before_notice, "Cancellation details stay in Diagnostics and preserve action layout and match state")
+	game.combat_hud.asset_toast_timer.timeout.emit()
+	check(not game.combat_hud.asset_toast.visible and game.combat_hud.asset_badge.visible, "The warning badge survives toast expiry")
+	game.model_imports.automatic_finished.emit(1, 2, "Partially ready")
+	check(game.combat_hud.asset_toast.visible and "built-in" in game.combat_hud.asset_toast_text.text, "Partial preparation explains the use of built-in miniatures")
+	game.model_imports.automatic_finished.emit(1, 1, "Ready")
+	check(not game.combat_hud.asset_badge.visible, "Successful preparation clears the warning")
 	var match_before_menu := var_to_str(game.state)
 	game._open_home()
 	check(game.main_menu.visible and not game.sidebar_panel.visible and not game.combat_hud.visible, "Match menu is a local overlay above the board")
@@ -33,6 +66,25 @@ func run() -> void:
 	check(not game.main_menu.title_sections.visible, "Army, model and training navigation is hidden during an active match")
 	check(var_to_str(game.state) == match_before_menu, "Opening the menu does not change match state")
 	game._dismiss_home(1)
+	await process_frame
+	game.state.active = 2
+	game._refresh()
+	check(game.local_player_handoff.visible and game.local_player_handoff.receiving_player == 2, "Player 2 must acknowledge the handoff")
+	game.local_player_handoff.ready_button.pressed.emit()
+	game.local_player_handoff.menu_requested.emit()
+	game.main_menu.resume_button.pressed.emit()
+	await process_frame
+	check(not game.local_player_handoff.visible, "Returning from the menu retains the acknowledged Player 2 seat")
+	game.state.active = 1
+	game._refresh()
+	var pending_handoff := var_to_bytes(game.state)
+	check(game.local_player_handoff.visible and game.local_player_handoff.receiving_player == 1, "Returning to Player 1 requires a fresh handoff")
+	game.local_player_handoff.menu_requested.emit()
+	game.main_menu.resume_button.pressed.emit()
+	await process_frame
+	check(game.local_player_handoff.visible and game.local_player_handoff.receiving_player == 1 and game.local_player_handoff.ready_button.has_focus(), "Returning from the menu restores the unacknowledged Player 1 handoff and its focus")
+	check(var_to_bytes(game.state) == pending_handoff, "Opening and closing the menu preserves the pending match state")
+	game.local_player_handoff.ready_button.pressed.emit()
 	await process_frame
 	check(game.match_tabs.tabs_visible == false and game.gameplay_scroll.get_parent() == game.command_panel_body, "Active match removes the persistent Play/workshop tab navigation")
 	game._toggle_command_panel()
@@ -102,15 +154,20 @@ func run() -> void:
 	game._layout_ui()
 	game.technical_toggle.button_pressed = true
 	game.technical_toggle.toggled.emit(true)
-	game.details.text += "\nLong selection details".repeat(80)
+	var overlay_state := var_to_bytes(game.state)
 	game._open_help_screen()
+	check(game.tactical_overlay_content == game.help_scroll, "Guide opens separately from diagnostics")
+	game._close_tactical_screen()
+	game._open_match_diagnostics()
+	game.details.text += "\nLong selection details".repeat(80)
 	for frame in range(5): await process_frame
-	var details_scroll: ScrollContainer = game.help_scroll
+	var details_scroll: ScrollContainer = game.diagnostics_scroll
+	check(game.tactical_overlay_content == details_scroll and var_to_bytes(game.state) == overlay_state, "Reference overlays preserve match state")
 	var header_position: Vector2 = game.decision_label.global_position
 	var score_position: Vector2 = game.objective_summary.global_position
 	details_scroll.scroll_vertical = 10000
 	for frame in range(5): await process_frame
-	check(details_scroll.scroll_vertical > 0, "Long gameplay details can scroll in Help")
+	check(details_scroll.scroll_vertical > 0, "Long gameplay details can scroll in Diagnostics")
 	check(game.decision_label.global_position == header_position and game.objective_summary.global_position == score_position, "Decision and scoreboard remain fixed while details scroll")
 	check(game.decision_label.get_global_rect().end.y <= game.command_panel.global_position.y, "Decision text stays above the command panel")
 	game._close_tactical_screen()

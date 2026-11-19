@@ -11,6 +11,7 @@ const Oath = preload("res://scripts/edition_11/oath_of_moment.gd")
 const VowedTarget = preload("res://scripts/edition_11/vowed_target.gd")
 const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
+const SilentKing = preload("res://scripts/edition_11/silent_king.gd")
 ## Owned weapons/profiles; target assignments freeze before dice/casualties.
 const Attacks = preload("res://scripts/edition_11/attack_sequence.gd")
 const Terrain = preload("res://scripts/edition_11/terrain.gd")
@@ -23,6 +24,7 @@ const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Allocation = preload("res://scripts/edition_11/damage_allocation.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const TargetAuguryWeb = preload("res://scripts/edition_11/target_augury_web.gd")
+const NekrosorAmmentar = preload("res://scripts/edition_11/nekrosor_ammentar.gd")
 const Morale = preload("res://scripts/edition_11/morale.gd")
 const Capabilities = preload("res://scripts/edition_11/capabilities.gd")
 const Incursors = preload("res://scripts/edition_11/incursors.gd")
@@ -32,6 +34,11 @@ const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const WeaponCharacteristics = preload("res://scripts/edition_11/weapon_characteristics.gd")
 const AircraftRules = preload("res://scripts/edition_11/aircraft_rules.gd")
 const RazorbackFireSupport = preload("res://scripts/edition_11/razorback_fire_support.gd")
+const CanoptekTombCrawlers = preload("res://scripts/edition_11/canoptek_tomb_crawlers.gd")
+const NecronDoomScythe = preload("res://scripts/edition_11/necron_doom_scythe.gd")
+const NecronConvergence = preload("res://scripts/edition_11/necron_convergence_of_dominion.gd")
+const NecronOphydian = preload("res://scripts/edition_11/necron_ophydian_destroyers.gd")
+const NecronSkorpekh = preload("res://scripts/edition_11/necron_skorpekh_destroyers.gd")
 
 static func _combine_rerolls(current: String, additional: String) -> String:
 	if current == "all" or additional == "all": return "all"
@@ -142,13 +149,14 @@ static func legal_targets(state: Dictionary, model: int, melee: bool, weapon_id:
 			if not ranged_elevation_error(state, model, target).is_empty(): continue
 			var target_engaged := Queue.engaged(state, target)
 			var target_engaged_with_hammerfall := Fortifications.target_engaged_only_with_hammerfall_fortifications(state, target, int(unit.get("owner", -1)))
+			var target_engaged_with_convergence := NecronConvergence.fortification_ranged_exception(state, target, int(unit.get("owner", -1)))
 			if siege_shield_profile and _vindicator_target_engaged_by_other_friendly(state, int(unit.squad), target): continue
 			if target_engaged and target_weapon.keywords.get("blast", false): continue
 			if engaged_shooter:
 				var engaged_with_target := engaged_with(state, unit.squad, target)
 				var target_engaged_monster_vehicle := target_engaged and Traits.heavy_unit(state, target) and _is_owners_shooting_phase(state, unit.squad)
 				if not engaged_with_target and (not heavy_model or (target_engaged and not target_engaged_monster_vehicle)): continue
-			elif target_engaged and not target_engaged_with_hammerfall and (not Traits.heavy_unit(state, target) or not _is_owners_shooting_phase(state, unit.squad)):
+			elif target_engaged and not target_engaged_with_hammerfall and not target_engaged_with_convergence and (not Traits.heavy_unit(state, target) or not _is_owners_shooting_phase(state, unit.squad)):
 				continue
 			var sight := Terrain.targeting(state, model, target)
 			if (not sight.visible and not (indirect_shooting and target_weapon.keywords.get("indirect-fire", false))) or sight.distance > float(target_weapon.range_inches): continue
@@ -159,6 +167,9 @@ static func legal_targets(state: Dictionary, model: int, melee: bool, weapon_id:
 			if lone_operative_blocked: continue
 			var reactive_target := DetachmentStratagems.reactive_shooting_target(state, unit.squad)
 			if reactive_target >= 0 and target != reactive_target: continue
+			var hyperspace_window: Dictionary = state.get("unit_abilities", {}).get("window", {})
+			if str(hyperspace_window.get("kind", "")) == "hyperspace-hunters" and int(hyperspace_window.get("active_squad", -1)) == int(unit.squad) and target != int(hyperspace_window.get("arrived_squad", -1)): continue
+			if str(hyperspace_window.get("kind", "")) == "multi-threat-eliminator" and int(hyperspace_window.get("active_squad", -1)) == int(unit.squad) and target != int(hyperspace_window.get("attacker", -1)): continue
 			if CoreReactions.overwatch_shooter(state, unit.squad) and sight.distance > 24.001: continue
 			result.append(target)
 	return result
@@ -369,14 +380,25 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			context.hit_reroll = "none"
 			if UnitAbilities.has(state, squad, "sentinel-protocols"):
 				context.snap_hit_threshold = 4
+			if UnitAbilities.has(state, squad, "sentinel-construct"):
+				context.snap_hit_threshold = 5
+			if UnitAbilities.has(state, squad, "inescapable-death"):
+				context.snap_hit_threshold = 2
 		context.hit_modifier += UnitAbilities.hit_bonus(state, squad, row.target, melee, model, weapon)
+		if not melee and NecronDoomScythe.stand_firm_active(state, row.target): context.critical_hit_threshold = 5
+		if not melee and (UnitAbilities.leading(state, squad, "destroyer-cult") or UnitAbilities.leading(state, squad, "harbinger-of-destruction")):
+			context.critical_hit_threshold = mini(int(context.get("critical_hit_threshold", 6)), 5)
 		if UnitAbilities.has(state, squad, "fortis-doctrines") and FortisDoctrines.target_strength_tier(state, row.target) > 0:
 			context.hit_modifier += 1
 		if not melee and DetachmentStratagems.hurtling_active(state, row.target): context.hit_modifier -= 1
 		if not melee and DetachmentStratagems.umbral_evasion_active(state, row.target): context.hit_modifier -= 1
 		context.hit_modifier += UnitAbilities.damaged_attack_penalty(state, model)
 		var reroll_mode := UnitAbilities.implacable_mode(state, squad, row.target) if UnitAbilities.enabled(state) else Implacable.mode(state, squad, row.target)
-		if reroll_mode != "none": context.wound_reroll = reroll_mode
+		if reroll_mode == "failed":
+			context.free_wound_reroll = true
+			context.free_wound_reroll_source = "Implacable Eradication"
+		elif reroll_mode != "none":
+			context.wound_reroll = reroll_mode
 		if UnitAbilities.Techmarine.judgement_applies(state, model, row.target): context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "all")
 		var ambush_reroll := vanguard_wound_reroll(state, squad, melee)
 		if ambush_reroll != "none": context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), ambush_reroll)
@@ -386,9 +408,14 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if UnitAbilities.has(state, squad, "trophy-taker") and UnitAbilities.has_target_keyword(state, row.target, "CHARACTER"):
 			if not context.get("snap_shooting", false) and not context.get("indirect_fire", false): context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
 			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "ones")
-		if UnitAbilities.enabled(state) and reroll_mode == "failed":
-			context.wound_reroll = "none"
-			context.free_wound_reroll = true
+		if melee and UnitAbilities.has(state, squad, "flesh-hunger") and Morale.below_half_strength(state, row.target):
+			context.successful_hits_are_critical = true
+		if UnitAbilities.identity(state.units[model]) == "lokhust-lord" and UnitAbilities.has(state, squad, "driven-by-hatred") and Morale.below_half_strength(state, row.target):
+			if not context.get("snap_shooting", false) and not context.get("indirect_fire", false):
+				context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "all")
+			context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "all")
+		if melee and UnitAbilities.the_stars_are_right_active(state, model) and (str(choice.weapon) == "staff-of-tomorrow" or str(weapon.get("name", "")) == "Staff of Tomorrow"):
+			context.successful_wounds_are_critical = true
 		if melee and UnitAbilities.has(state, squad, "exhortation-of-rage") and Morale.at_half_strength(state, squad):
 			context.free_wound_reroll = true
 			context.free_wound_reroll_source = "Exhortation of Rage"
@@ -399,13 +426,13 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			context.free_wound_reroll_source = "Aquilon Optics"
 			context.free_damage_reroll = true
 		var datasheet_weapon := _datasheet_weapon(state, model, row.target, weapon, melee, str(row.get("weapon", "")), str(row.get("profile", "")), indirect_shooting)
-		var effective := DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, datasheet_weapon, melee, row.target), melee))
+		var effective := UnitAbilities.defend(state, squad, row.target, DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, datasheet_weapon, melee, row.target), melee)))
 		var expression: Variant = (int(row.amount) + int(effective.attacks) - int(weapon.attacks) - UnitAbilities.melee_bonus(state, squad)) if melee and not random_melee else effective.attacks
 		var bonus := 0
 		if melee and int(weapon.keywords.get("cleave", 0)) > 0 and raw_context.single_target_for_cleave:
 			bonus += int(weapon.keywords.cleave) * floori(float(raw_context.target_model_count) / 5.0)
 		var attacks: int = Attacks.RandomStat.spec(expression).maximum
-		var profile := DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, datasheet_weapon, melee, row.target), melee))
+		var profile := UnitAbilities.defend(state, squad, row.target, DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, datasheet_weapon, melee, row.target), melee)))
 		if UnitAbilities.headhunter_quarry(state, squad) == row.target:
 			profile.keywords["devastating-wounds"] = true
 			profile.keywords["precision"] = true
@@ -426,6 +453,17 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			profile.keywords["sustained-hits"] = int(profile.keywords.get("sustained-hits", 0)) + 1
 		if MarineEnhancements.champion_of_the_deathwing_active(state, squad) and VowedTarget.target_in_vowed_range(state, int(state.squads[squad].get("owner", -1)), row.target):
 			profile.keywords["sustained-hits"] = maxi(int(profile.keywords.get("sustained-hits", 0)), 1)
+		if NekrosorAmmentar.infectious_murder_madness_in_aura(state, squad):
+			var murder_madness := NekrosorAmmentar.model_has_keyword(state.units[model], "DESTROYER CULT")
+			if not murder_madness:
+				var eligible_targets := legal_targets(state, model, melee, str(row.get("weapon", "")), str(row.get("profile", "")), indirect_shooting)
+				if row.target in eligible_targets:
+					var closest_distance := INF
+					for eligible_target: int in eligible_targets:
+						closest_distance = minf(closest_distance, Geometry.distance_to_target(state, state.units[model], eligible_target))
+					murder_madness = Geometry.distance_to_target(state, state.units[model], row.target) <= closest_distance + Geometry.EPSILON
+			if murder_madness:
+				profile.keywords["sustained-hits"] = maxi(int(profile.keywords.get("sustained-hits", 0)), 1)
 		if walking_fortress:
 			profile.keywords.erase("heavy")
 			context.hit_modifier += 1
@@ -488,11 +526,15 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			if not melee and weapon.keywords.get("heavy", false) and UnitAbilities.has(state, squad, "powerful-volley") and _stationary(state, squad): profile.keywords["lethal-hits"] = true
 			if not melee and UnitAbilities.identity(state.units[model]) == "cerberus" and str(row.get("weapon", "")) == "cerberus-neutron-pulse-array" and UnitAbilities.has(state, squad, "atomantic-arc-reactor") and _stationary(state, squad):
 				profile.keywords["lethal-hits"] = true
+			if not melee and str(row.get("weapon", "")).begins_with("doomsday-cannon") and UnitAbilities.has(state, squad, "overwhelming-obliteration") and str(state.squads[squad].get("move_type", "")) == "stationary":
+				profile.keywords["devastating-wounds"] = true
 			if engaged_shooter and Traits.heavy_model(state.units[model]) and not close_target: context.hit_modifier -= 1
 			if Queue.engaged(state, row.target) and Traits.heavy_unit(state, row.target) and _is_owners_shooting_phase(state, squad) and not close_target: context.hit_modifier -= 1
 			if Fortifications.target_engaged_only_with_hammerfall_fortifications(state, row.target, int(state.squads[squad].get("owner", -1))) and not weapon.keywords.get("close-quarters", false): context.hit_modifier -= 1
+			if NecronConvergence.fortification_hit_penalty(state, row.target, int(state.squads[squad].get("owner", -1)), weapon): context.hit_modifier -= 1
 			if weapon.keywords.get("heavy", false) and not walking_fortress and not engaged_shooter and not state.squads[squad].set_up_this_turn and state.squads[squad].moved_distance <= 3.0: context.hit_modifier += 1
 			context.hit_modifier = clampi(context.hit_modifier, -1, 1)
+		var weapon_sentinels := CanoptekTombCrawlers.weapon_sentinels_applies(state, model, row.target, melee)
 		if UnitAbilities.slayer_oath_active(state, squad, row.target):
 			var oathbound_bonus := UnitAbilities.slayer_oath_hit_bonus(state, squad, melee)
 			context.hit_modifier = maxi(context.hit_modifier - oathbound_bonus, 0) + oathbound_bonus
@@ -501,6 +543,9 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if UnitAbilities.has(state, squad, "deathwing"): context.hit_modifier = 0
 		if vindicator_siege_shield: context.hit_modifier = 0
 		if DetachmentStratagems.unbowed_conviction_active(state, squad) or UnitAbilities.Techmarine.modifier_ignore_active(state, model):
+			context.hit_modifier = 0
+			context.wound_modifier = 0
+		if weapon_sentinels:
 			context.hit_modifier = 0
 			context.wound_modifier = 0
 		if UnitAbilities.has(state, squad, "death-to-the-alien"):
@@ -512,6 +557,29 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if not melee and UnitAbilities.has(state, squad, "decimator-protocols") and not context.get("snap_shooting", false) and not context.get("indirect_fire", false):
 			var decimator_reroll := "all" if UnitAbilities.near_objective(state, row.target) else "ones"
 			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), decimator_reroll)
+		if not melee and UnitAbilities.has(state, squad, "hard-wired-for-destruction") and not context.get("snap_shooting", false) and not context.get("indirect_fire", false):
+			var hardwired_targets := legal_targets(state, model, false, str(row.get("weapon", "")), str(row.get("profile", "")), indirect_shooting)
+			if row.target in hardwired_targets:
+				var closest_hardwired := INF
+				for eligible_target: int in hardwired_targets:
+					closest_hardwired = minf(closest_hardwired, Geometry.distance_to_target(state, state.units[model], eligible_target))
+				if Geometry.distance_to_target(state, state.units[model], row.target) <= closest_hardwired + Geometry.EPSILON:
+					var hardwired_reroll := "all" if UnitAbilities.near_enemy_controlled_objective(state, int(state.squads[squad].owner), row.target) else "ones"
+					context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), hardwired_reroll)
+		if NekrosorAmmentar.prophet_wound_reroll_active(state, squad):
+			context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "ones")
+		if UnitAbilities.has(state, squad, "optimised-for-slaughter"):
+			var weapon_name := str(weapon.get("name", "")).to_lower()
+			var weapon_id := str(row.get("weapon", "")).to_lower()
+			var monster_or_vehicle := UnitAbilities.has_target_keyword(state, row.target, "MONSTER") or UnitAbilities.has_target_keyword(state, row.target, "VEHICLE")
+			if (weapon_id == "enmitic-exterminator" or weapon_name == "enmitic exterminator") and not monster_or_vehicle:
+				context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "ones")
+			elif (weapon_id == "gauss-destructor" or weapon_name == "gauss destructor") and monster_or_vehicle:
+				context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "ones")
+		if melee and UnitAbilities.has(state, squad, "plasmacyte") and NecronOphydian.plasmacyte_active(state, squad):
+			profile.keywords["devastating-wounds"] = true
+		if melee and UnitAbilities.has(state, squad, "whirling-onslaught"):
+			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), NecronSkorpekh.hit_reroll(state, squad))
 		if UnitAbilities.hunted_target(state, squad) == row.target:
 			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "ones")
 		if UnitAbilities.enabled(state) and UnitAbilities.identity(state.units[model]) == "watch-master" and UnitAbilities.has_target_keyword(state, row.target, "CHARACTER"):
@@ -546,6 +614,15 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if melee and UnitAbilities.lion_aura_active(state, squad, "martial-exemplar"):
 			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
 			context.wound_reroll = _combine_rerolls(str(context.get("wound_reroll", "none")), "ones")
+		if SilentKing.stars_aura_active(state, squad):
+			if not context.get("snap_shooting", false) and not context.get("indirect_fire", false):
+				context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
+			context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "ones")
+		if melee and SilentKing.blades_aura_active(state, squad):
+			profile.strength = int(profile.get("strength", 0)) + 1
+		if not melee and UnitAbilities.identity(state.units[model]) == "the-silent-king" and str(state.units[model].get("silent_king_role", "")) == "szarekh" and SilentKing.is_damaged(state, squad):
+			if not (weapon.attacks is String):
+				context.weapon_count = maxi(1, ceili(float(int(weapon.attacks)) / 2.0))
 		if MarineEnhancements.venator_omni_auspex_active(state, squad) and Terrain.unit_hidden(state, row.target):
 			var venator_mode := "ones_twos" if Doctrines.has_doctrine(state, squad, "assault") else "ones"
 			context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), venator_mode)
@@ -568,12 +645,14 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "all")
 		if melee and UnitAbilities.has(state, squad, "litanies-of-the-devout"):
 			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "all")
+		if melee and UnitAbilities.leading(state, squad, "united-in-destruction"):
+			profile.keywords["lethal-hits"] = true
 		# Expand attack-count/eligibility mechanics before pooling identical attacks.
 		for keyword in ["rapid-fire", "assault", "heavy", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "lance", "cleave", "melta"]: profile.keywords.erase(keyword)
 		if UnitAbilities.enabled(state): context.use_lethal_hits = true
 		if not lethal and not UnitAbilities.enabled(state): profile.keywords.erase("lethal-hits")
 		var skill_characteristic := "WS" if melee else "BS"
-		var ignore_skill_modifiers := DetachmentStratagems.might_ignore_active(state, squad) or DetachmentStratagems.unbowed_conviction_active(state, squad) or DetachmentStratagems.spoor_of_the_unholy_active(state, squad) or UnitAbilities.Techmarine.characteristic_modifier_ignore_active(state, model) or UnitAbilities.has(state, squad, "deathwing") or vindicator_siege_shield
+		var ignore_skill_modifiers := DetachmentStratagems.might_ignore_active(state, squad) or DetachmentStratagems.unbowed_conviction_active(state, squad) or DetachmentStratagems.spoor_of_the_unholy_active(state, squad) or UnitAbilities.Techmarine.characteristic_modifier_ignore_active(state, model) or UnitAbilities.has(state, squad, "deathwing") or vindicator_siege_shield or weapon_sentinels
 		var skill_modifier := WeaponCharacteristics.modifier(state, squad, model, skill_characteristic)
 		if UnitAbilities.slayer_oath_active(state, squad, row.target): skill_modifier = maxi(0, skill_modifier)
 		var plunging_fire := not melee and Terrain.plunging_fire_applies(state, model, row.target, sight)
@@ -592,7 +671,10 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		if context.get("free_damage_reroll", false): key += ":damage-reroll"
 		if context.has("hail_of_bolts"): key += ":hail-of-bolts"
 		if context.has("hit_reroll"): key += ":hit-reroll:" + str(context.hit_reroll)
+		if context.has("critical_hit_threshold"): key += ":crit-hit-%d" % int(context.critical_hit_threshold)
 		if context.has("wound_modifier"): key += ":wound-modifier:" + str(context.wound_modifier)
+		if context.get("successful_hits_are_critical", false): key += ":critical-hits"
+		if context.get("successful_wounds_are_critical", false): key += ":critical-wounds"
 		if not batches.has(key): batches[key] = {"target": row.target, "weapon": profile, "context": context, "labels": [], "count": 0}
 		batches[key].count += attacks + bonus
 		batches[key].context.attack_sources.append({"model": model, "weapon": choice.weapon, "expression": expression, "bonus": bonus})
@@ -736,8 +818,12 @@ static func _prepare_legacy(state: Dictionary, squad: int, melee: bool, entries:
 			if Doctrines.enduring_vengeance(state, squad) and not CoreReactions.overwatch_shooter(state, squad): context.hit_reroll = "ones"
 			if MarineEnhancements.venerable_hit_reroll(state, squad) and not CoreReactions.overwatch_shooter(state, squad): context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
 			if UnitAbilities.wisdom_of_the_ancients_active(state, squad) and not CoreReactions.overwatch_shooter(state, squad): context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "ones")
-			var reroll_mode := Implacable.mode(state, squad, target)
-			if reroll_mode != "none": context.wound_reroll = reroll_mode
+			var reroll_mode := UnitAbilities.implacable_mode(state, squad, target) if UnitAbilities.enabled(state) else Implacable.mode(state, squad, target)
+			if reroll_mode == "failed":
+				context.free_wound_reroll = true
+				context.free_wound_reroll_source = "Implacable Eradication"
+			elif reroll_mode != "none":
+				context.wound_reroll = reroll_mode
 			if bool(batch.get("judgement_applies", false)): context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), "all")
 			context.target_model_count = Geometry.alive(state, target).size()
 			context.target_engaged = Queue.engaged(state, target)
@@ -747,8 +833,8 @@ static func _prepare_legacy(state: Dictionary, squad: int, melee: bool, entries:
 					profile.keywords["sustained-hits"] = int(profile.keywords.get("sustained-hits", 0)) + 1
 			if MarineEnhancements.champion_of_the_deathwing_active(state, squad) and VowedTarget.target_in_vowed_range(state, int(state.squads[squad].get("owner", -1)), target):
 				profile.keywords["sustained-hits"] = maxi(int(profile.keywords.get("sustained-hits", 0)), 1)
-			profile.attacks = batch.count
 			if melee:
+				profile.attacks = batch.count
 				context.weapon_count = 1
 			else:
 				context.distance_inches = 0.0 if batch.rapid_fire_active else float(weapon.range_inches)

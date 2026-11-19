@@ -11,12 +11,14 @@ const DetachmentStratagems = preload("res://scripts/edition_11/detachment_strata
 const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
 const BloodAngelsCharacters = preload("res://scripts/edition_11/blood_angels_characters.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
+const NecronConvergence = preload("res://scripts/edition_11/necron_convergence_of_dominion.gd")
 
 static func eligible(state: Dictionary) -> Array[int]:
 	var pending: Dictionary = state.get("pending_attack", {})
 	if pending.is_empty() or pending.current.is_empty(): return []
 	var current: Dictionary = pending.current
 	if current.phase in ["rolls", "damage_decision", "damage_ability"]: return []
+	if current.phase == "malevolent-arcing": return Groups.current_models(state, current, true)
 	if current.phase == "precision":
 		var result: Array[int] = []
 		result.assign(current.precision_candidates)
@@ -46,6 +48,7 @@ static func pending_decision(state: Dictionary) -> Dictionary:
 		if not choice_error(state, owner, model).is_empty(): continue
 		var label := "Assign the next damaging attack to model %d" % model
 		if current.phase == "precision": label = "Use Precision against model %d" % model
+		elif current.phase == "malevolent-arcing": label = "Allocate a Malevolent Arcing mortal wound to model %d" % model
 		options.append({"label": label, "action": "damage-allocation", "model": model, "target": target, "value": str(current.phase)})
 	if options.is_empty(): return {}
 	return PendingDecision.create(state, "damage-allocation", "attack:%s" % str(current.phase), owner, options, current.phase == "precision")
@@ -56,7 +59,7 @@ static func start(state: Dictionary, prepared: Dictionary, squad: int, player: i
 		var mode := UnitAbilities.Bladeguard.mode(state, target)
 		if not mode.is_empty(): bladeguard_effects[target] = mode
 	state.pending_attack = {"unit_prevention": UnitPrevention.snapshot(state), "bladeguard_effects": bladeguard_effects, "prepared": prepared.duplicate(true), "squad": squad, "player": player, "entries": entries.duplicate(true), "melee": melee,
-		"index": 0, "current": {}, "pools": [], "damage": 0, "killed": 0, "assist": assist, "precision_prompt": precision_prompt, "ability_saves": {}, "aquilon_used": {}, "machine_spirit_used": {"hit": false, "wound": false}, "armoured_wrath_used": {"any": false, "hit": false, "wound": false, "damage": false}, "martial_paragon_used": {"hit": false, "wound": false}}
+		"index": 0, "current": {}, "pools": [], "damage": 0, "killed": 0, "assist": assist, "precision_prompt": precision_prompt, "ability_saves": {}, "aquilon_used": {}, "machine_spirit_used": {"hit": false, "wound": false}, "armoured_wrath_used": {"any": false, "hit": false, "wound": false, "damage": false}, "martial_paragon_used": {"hit": false, "wound": false}, "arcing_queue": [], "malevolent_arcing_results": []}
 	for target: int in prepared.targets: state.pending_attack.ability_saves[target] = UnitAbilities.save_bonus(state, target, Callable(Morale, "objective_control"))
 
 static func armoured_wrath_available(pending_attack: Dictionary, context: Dictionary, kind: String) -> bool:
@@ -75,10 +78,14 @@ static func consume_armoured_wrath(pending_attack: Dictionary, context: Dictiona
 static func save_roll_outcome(state: Dictionary, current: Dictionary, model: int, roll: int) -> Dictionary:
 	var profile := Groups.profile(state, model, state.pending_attack.melee)
 	var bonus: int = state.pending_attack.get("ability_saves", {}).get(state.units[model].squad, 0)
-	var armour_target := int(profile.get("save_target", 7)) - bonus - int(current.weapon.get("ap", 0))
+	var armour_save := int(profile.get("save_target", 7))
+	var weapon_keywords: Dictionary = current.get("weapon", {}).get("keywords", {})
+	if not bool(state.pending_attack.get("melee", false)) and not bool(weapon_keywords.get("ignores-cover", false)) and NecronConvergence.ancient_cover(state, int(state.pending_attack.get("squad", -1)), model) and armour_save > 3:
+		armour_save -= 1
+	var armour_target := armour_save - bonus - int(current.weapon.get("ap", 0))
 	var invulnerable_target := int(profile.get("invulnerable_target", 0))
 	var effective_invulnerable := invulnerable_target - bonus if invulnerable_target > 0 else 0
-	var passed := roll != 1 and ((invulnerable_target > 0 and roll + bonus >= invulnerable_target) or roll + bonus + int(current.weapon.get("ap", 0)) >= int(profile.get("save_target", 7)))
+	var passed := roll != 1 and ((invulnerable_target > 0 and roll + bonus >= invulnerable_target) or roll + bonus + int(current.weapon.get("ap", 0)) >= armour_save)
 	return {"roll": roll, "success": passed, "armour_target": armour_target, "invulnerable_target": effective_invulnerable, "ap": int(current.weapon.get("ap", 0)), "bonus": bonus}
 
 static func saved(state: Dictionary, current: Dictionary, model: int, roll: int) -> bool:
@@ -95,9 +102,61 @@ static func _record_save_outcome(current: Dictionary, step_index: int, outcome: 
 	step.outcome_recorded = true
 	current.steps[step_index] = step
 
+static func _queue_malevolent_arcing(state: Dictionary, pending: Dictionary, after_target: int, roller: Callable) -> Dictionary:
+	var effects: Array = pending.get("prepared", {}).get("malevolent_arcing", [])
+	var queue: Array = pending.get("arcing_queue", []).duplicate(true)
+	var processed: Dictionary = pending.get("arcing_processed_targets", {}).duplicate(true)
+	if processed.has(str(after_target)): return {"error": ""}
+	processed[str(after_target)] = true
+	for effect_value: Variant in effects:
+		if not effect_value is Dictionary or int(effect_value.get("after_target", -1)) != after_target: continue
+		for roll_value: Variant in effect_value.get("rolls", []):
+			if not roll_value is Dictionary or not bool(roll_value.get("struck", false)): continue
+			var target := int(roll_value.get("target", -1))
+			var packet := {"primary_target": after_target, "target": target, "source_squad": int(effect_value.get("source_squad", pending.squad)), "target_selection_roll": int(roll_value.get("roll", 0)), "damage_roll": {}, "remaining": 0, "allocations": [], "damage_applied": 0, "prevented_wounds": 0, "models_destroyed": 0, "discarded": 0}
+			if not state.get("squads", {}).has(target) or Groups.current_models(state, {"target": target}, true).is_empty():
+				pending.malevolent_arcing_results.append(packet)
+				continue
+			var damage_roll := Attacks.RandomStat.roll("D3", roller)
+			if not str(damage_roll.get("error", "")).is_empty(): return damage_roll
+			packet.damage_roll = damage_roll
+			packet.remaining = int(damage_roll.value)
+			queue.append(packet)
+	pending.arcing_queue = queue
+	pending.arcing_processed_targets = processed
+	return {"error": ""}
+
+static func _finish_malevolent_arcing_packet(pending: Dictionary) -> void:
+	var current: Dictionary = pending.current
+	var packet: Dictionary = current.get("arcing_packet", {})
+	packet.discarded = maxi(0, int(packet.get("remaining", 0)))
+	packet.remaining = 0
+	pending.malevolent_arcing_results.append(packet.duplicate(true))
+	var pool := {"target_squad": int(packet.get("target", -1)), "weapon_name": "Malevolent Arcing", "malevolent_arcing": true, "allocations": packet.get("allocations", []).duplicate(true), "damage_applied": int(packet.get("damage_applied", 0)), "models_destroyed": int(packet.get("models_destroyed", 0)), "prevented_wounds": int(packet.get("prevented_wounds", 0)), "discarded": int(packet.get("discarded", 0))}
+	pending.pools.append(pool)
+	pending.damage += int(pool.damage_applied)
+	pending.killed += int(pool.models_destroyed)
+	pending.current = {}
+
 static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 	var pending: Dictionary = state.pending_attack
-	while pending.index < pending.prepared.batches.size():
+	while pending.index < pending.prepared.batches.size() or not pending.get("arcing_queue", []).is_empty() or (not pending.current.is_empty() and str(pending.current.get("phase", "")) == "malevolent-arcing"):
+		if pending.current.is_empty() and not pending.get("arcing_queue", []).is_empty():
+			var arcing_packet: Dictionary = pending.arcing_queue.pop_front()
+			var arcing_target := int(arcing_packet.get("target", -1))
+			pending.current = {"phase": "malevolent-arcing", "target": arcing_target, "arcing_packet": arcing_packet, "groups": Groups.groups(state, arcing_target, false), "order": [], "precision": -1}
+		if not pending.current.is_empty() and str(pending.current.get("phase", "")) == "malevolent-arcing":
+			if int(pending.current.get("arcing_packet", {}).get("remaining", 0)) <= 0 or Groups.current_models(state, pending.current, true).is_empty():
+				_finish_malevolent_arcing_packet(pending)
+				continue
+			if not pending.assist: return {"error": "", "complete": false}
+			var arcing_models := Groups.current_models(state, pending.current, true)
+			if arcing_models.is_empty():
+				_finish_malevolent_arcing_packet(pending)
+				continue
+			var arcing_applied := apply(state, arcing_models[0], roller)
+			if not str(arcing_applied.get("error", "")).is_empty(): return arcing_applied
+			continue
 		var batch: Dictionary = pending.prepared.batches[pending.index]
 		if pending.current.is_empty() or pending.current.get("phase") == "rolls":
 			var defender := Groups.defender(state, batch.target, pending.melee)
@@ -256,8 +315,13 @@ static func pump(state: Dictionary, roller: Callable) -> Dictionary:
 		pending.pools.append(current.result)
 		pending.damage += current.result.damage_applied
 		pending.killed += current.result.models_destroyed
+		var completed_target := int(current.target)
 		pending.current = {}
 		pending.index += 1
+		var target_group_complete: bool = pending.index >= pending.prepared.batches.size() or int(pending.prepared.batches[pending.index].get("target", -1)) != completed_target
+		if target_group_complete:
+			var queued_arcing := _queue_malevolent_arcing(state, pending, completed_target, roller)
+			if not str(queued_arcing.get("error", "")).is_empty(): return queued_arcing
 	return {"error": "", "complete": true}
 
 static func choice_error(state: Dictionary, player: int, model: int) -> String:
@@ -280,6 +344,26 @@ static func apply(state: Dictionary, model: int, roller: Callable) -> Dictionary
 		return {"error": ""}
 	if current.phase == "order":
 		Groups.choose_order(current, model)
+		return {"error": ""}
+	if current.phase == "malevolent-arcing":
+		if model not in eligible(state): return {"error": "Choose a living model in the unit struck by Malevolent Arcing."}
+		var before := int(state.units[model].get("wounds", 0))
+		var prevention := Attacks.Prevention.resolve(UnitAbilities.damage(state, model, 1, "mortal"), before, UnitPrevention.rules(state, model), "mortal", roller)
+		if not str(prevention.get("error", "")).is_empty(): return prevention
+		state.units[model].wounds = before - int(prevention.get("lost", 0))
+		var packet: Dictionary = current.arcing_packet
+		packet.remaining = maxi(0, int(packet.remaining) - 1)
+		packet.damage_applied = int(packet.get("damage_applied", 0)) + int(prevention.get("lost", 0))
+		packet.prevented_wounds = int(packet.get("prevented_wounds", 0)) + int(prevention.get("prevented", 0))
+		packet.allocations.append({"model": model, "kind": "mortal", "damage": int(prevention.get("lost", 0)), "prevention": prevention.duplicate(true)})
+		if before > 0 and int(state.units[model].wounds) <= 0:
+			var held := DetachmentStratagems.hold_destroyed(state, model, roller)
+			if not str(held.get("error", "")).is_empty(): return held
+			if not bool(held.get("held", false)):
+				packet.models_destroyed = int(packet.get("models_destroyed", 0)) + 1
+				BloodAngelsCharacters.record_death_visions(state, model)
+				DetachmentStratagems.record_destroyed(state, model)
+				for cenobyte: int in ChaplainGrimaldus.destroy_cenobytes(state, model): DetachmentStratagems.record_destroyed(state, cenobyte)
 		return {"error": ""}
 	var rolled := Attacks.RandomStat.roll(current.damage, roller)
 	if not rolled.error.is_empty(): return rolled
@@ -319,7 +403,8 @@ static func _commit_damage_roll(state: Dictionary, model: int, rolled: Dictionar
 	return _apply_rolled_damage(state, model, rolled, roller)
 
 static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictionary, roller: Callable, append_rolls: bool = true) -> Dictionary:
-	var current: Dictionary = state.pending_attack.current
+	var pending: Dictionary = state.pending_attack
+	var current: Dictionary = pending.current
 	var step: Dictionary = current.steps[current.cursor]
 	var before: int = state.units[model].wounds
 	var special_kind := "psychic" if current.weapon.get("keywords", {}).get("psychic", false) else ""
@@ -351,10 +436,24 @@ static func _apply_rolled_damage(state: Dictionary, model: int, rolled: Dictiona
 			current.result.models_destroyed += 1
 			BloodAngelsCharacters.record_death_visions(state, model)
 			DetachmentStratagems.record_destroyed(state, model)
+			_record_attacker_kills(state, pending)
 		if not held.held:
 			var cenobytes_destroyed := ChaplainGrimaldus.destroy_cenobytes(state, model)
 			current.result.models_destroyed += cenobytes_destroyed.size()
-			for cenobyte: int in cenobytes_destroyed: DetachmentStratagems.record_destroyed(state, cenobyte)
+			for cenobyte: int in cenobytes_destroyed:
+				DetachmentStratagems.record_destroyed(state, cenobyte)
+				_record_attacker_kills(state, pending)
 	current.result.allocations.append({"model": model, "kind": step.kind, "save_roll": step.save_roll, "damage": applied, "rolled_damage": rolled.value, "damage_rolls": rolled.rolls, "discarded": prevented.discarded, "prevention": prevented})
 	current.cursor += 1
 	return {"error": ""}
+
+static func _record_attacker_kills(state: Dictionary, pending: Dictionary) -> void:
+	if not pending.has("prepared") or not pending.prepared.has("batches"): return
+	var batches: Array = pending.prepared.get("batches", [])
+	var index := int(pending.get("index", -1))
+	if index < 0 or index >= batches.size(): return
+	var batch: Dictionary = batches[index]
+	var sources: Array = batch.get("context", {}).get("attack_sources", [])
+	for src: Variant in sources:
+		if src is Dictionary and src.has("model"):
+			UnitAbilities.record_kill(state, int(src.model), 1)

@@ -11,10 +11,13 @@ The profile is admitted for casual/home, store, club and campaign play under the
 - One model, M10, T10, Sv3+, W11, Ld6+ and OC3; keywords ADEPTUS ASTARTES, VEHICLE, FRAME, IMPERIUM and SMOKE.
 - First and second copies cost 140 points; third copies cost 150. The roster gate allows at most three in Strike Force and applies the standard two-copy Incursion limit.
 - Default weapons are two Lascannons, one Predator Autocannon and Armoured Tracks. The two sponson Lascannons can be replaced together by two Heavy Bolters. Hunter-killer Missile and Storm Bolter are separate optional additions, and both may be selected together. All choices are public preparation actions and can be reversed.
+- The Army Workshop saves the sponson replacement and both optional weapons for each stable vehicle copy. Current-catalog admission keeps differently equipped copies distinct, and saved-list matches apply and lock the chosen weapons before Deployment. Standalone exercises keep the public preparation choices.
 - Combat Doctrines, Deadly Demise D3 and Damaged 4 use the shared rules paths. Destructor improves the AP of this unit's ranged attacks by 1 against INFANTRY targets. It does not affect melee attacks or other target keywords.
 
 ## Evidence and limits
 
 Focused offline checks cover the source identity and export provenance, characteristics, keywords, points and copy limits, every weapon profile and legal loadout, public loadout choices, and Destructor's ranged-only INFANTRY target gate through AttackPlan. Regression coverage also exercises the shared vehicle and AP calculation paths.
+
+The focused saved-loadout integration additionally checks the Workshop controls, independent copies through local admission, the exact materialized weapon package, saved-choice locking and weapon-label appearance guidance. That visual metadata comparison does not certify a matching sculpt. See the [saved-loadout verification](verification/verification-results.md#predator-destructor-saved-loadout--13-november-2026).
 
 This is a local source-bounded profile. It does not certify the unspecified physical footprint, live page equality, current tournament-pack points, event organiser acceptance, every combined roster interaction, a full match or human playtesting. See the [extended Space Marine inventory](data/space-marine-extended-inventory.md) for current overall readiness.

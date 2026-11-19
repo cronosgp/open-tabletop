@@ -59,6 +59,7 @@ static func clear_path(state: Dictionary, model_id: int, destination: Vector2, m
 	var model: Dictionary = state.units[model_id]
 	if state.get("squads", {}).get(int(model.get("squad", -1)), {}).get("reiver_grapnel_launchers", false): through_models = true
 	if Terrain.take_to_skies_active(state, model_id): through_models = true
+	if Terrain.translocation_shroud_active(state, model_id): through_models = true
 	var target_elevation := float(model.get("elevation", 0.0)) if destination_elevation < 0.0 else destination_elevation
 	var ignores_vertical := Terrain.ignores_vertical_movement(state, model_id)
 	if not destination.is_finite() or Terrain.movement_distance(model.position, float(model.get("elevation", 0.0)), destination, target_elevation, ignores_vertical) > maximum + EPSILON: return false

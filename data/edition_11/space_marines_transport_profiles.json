@@ -851,6 +851,7 @@
       "wargear_costs": {},
       "models": 1,
       "base_size_source": "",
+      "base_size_is_approximate": true,
       "source_cost_sections": {
         "first_third": {
           "1": 60

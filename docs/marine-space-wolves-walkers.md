@@ -26,3 +26,7 @@ python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.ex
 ```
 
 Report: `.tools/verification/20261029T064721289232Z/results.json`, SHA-256 `A46BDC2EC53361FA110F7CCF1BBFD0CDF1FE29426842F14C82E837DECB56A251`. The verifier had `network: false`; supplemental legacy fixtures were staged for its selected suites, and no headless cleanup diagnostics were reported. Live Wahapedia page comparison was carried out separately. It does not certify every Marine page or full army legality.
+
+## Army Workshop saved equipment
+
+Bjorn, the Space Wolves Venerable Dreadnought and Wulfen Dreadnought can now save their audited weapon choices per one-model copy. The Workshop uses the local Space Wolves weapon factory for admission and exact match materialization. The Venerable profile permits eight combinations and disallows the Fenrisian Great Axe + Blizzard Shield package when a Helfrost Cannon or Multi-melta is selected. The Venerable Dreadnought (Legends) in [its separate sheet audit](marine-venerable-dreadnought-legends.md) is a different datasheet and retains its own options. The focused [saved-equipment verification](verification/verification-results.md#space-wolves-walker-saved-equipment--13-november-2026) covers all selectable combinations, independent copies where allowed, editor signals and match-setup locking. This does not extend this source audit's rules scope or certify full army legality or sculpt parity.

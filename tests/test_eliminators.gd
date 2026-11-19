@@ -84,6 +84,31 @@ func run() -> void:
  var double := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": ELIMINATOR_ID, "models": 3, "copies": 2}]})
  var triple := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": ELIMINATOR_ID, "models": 3, "copies": 3}]})
  check(single.error.is_empty() and single.total == 85 and double.error.is_empty() and double.total == 170 and not triple.error.is_empty(), "Incursion admits two Eliminator Squads and rejects a third")
+ var saved_equipment := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": ELIMINATOR_ID, "models": 3, "copies": 2, "eliminator_sergeant_loadouts": ["carbine", "las"], "eliminator_trooper_loadouts": [["las", "sniper"], ["sniper", "las"]]}]})
+ var invalid_saved_equipment := Army.admit({"schema_version": 2, "faction": "Space Marines", "category": "incursion", "points_limit": 1000, "entries": [{"definition_id": ELIMINATOR_ID, "models": 3, "copies": 1, "eliminator_sergeant_loadouts": ["plasma"]}]})
+ check(saved_equipment.error.is_empty() and saved_equipment.selection.entries.size() == 2 and saved_equipment.selection.entries[0].eliminator_sergeant_loadouts == ["carbine"] and saved_equipment.selection.entries[0].eliminator_trooper_loadouts == [["las", "sniper"]] and saved_equipment.selection.entries[1].eliminator_sergeant_loadouts == ["las"] and saved_equipment.selection.entries[1].eliminator_trooper_loadouts == [["sniper", "las"]] and not invalid_saved_equipment.error.is_empty(), "Admission validates and groups independent loadouts by each complete model configuration")
+ var persisted_lists := lists()
+ persisted_lists[1].entries[1].eliminator_sergeant_loadouts = ["carbine", "las"]
+ persisted_lists[1].entries[1].eliminator_trooper_loadouts = [["las", "sniper"], ["sniper", "las"]]
+ var persisted_state := F.P.initial_state({"checked_rosters": false, "official_mission": false, "unit_abilities": true, "combat_doctrines": true, "reanimation_protocols": true, "awakened_dynasty": true, "core_stratagems": true, "manual_allocation": false}, persisted_lists)
+ if persisted_state.has("error"):
+  check(false, "Saved Eliminator army failed match construction: " + str(persisted_state.get("error", "")))
+ else:
+  persisted_state.phase = "deployment"
+  persisted_state.unit_abilities.setup_players = []
+  persisted_lists[1].entries[1].eliminator_trooper_loadouts[0][0] = "sniper"
+  check(persisted_state.saved_army_setup.armies[1].entries[1].eliminator_trooper_loadouts == [["las", "sniper"]] and persisted_state.units[301].ranged_weapons[0].id == "las-fusil",
+   "Editing the source selection after match creation cannot change the frozen equipment snapshot or live model")
+  var saved_choices := C.UnitActions.choices(persisted_state, 1)
+  var saved_model_choice_found := false
+  for row: Dictionary in saved_choices:
+   if row.get("action", "") in ["eliminator-sergeant", "eliminator-troopers"] and row.get("model", -1) in [300, 301, 302, 500, 501, 502]: saved_model_choice_found = true
+  var persisted_stale_command := {"action": "eliminator-sergeant", "model": 300, "target": 3, "value": "las"}
+  var persisted_before := var_to_str(persisted_state)
+  var persisted_rejection := C.UnitActions.apply(persisted_state, 1, persisted_stale_command, Vector2.ZERO, func() -> int: return 1)
+  var stale_trooper_rejection := C.UnitActions.apply(persisted_state, 1, {"action": "eliminator-troopers", "model": 301, "target": 3, "value": "sniper"}, Vector2.ZERO, func() -> int: return 1)
+  check(not saved_model_choice_found and persisted_state.units[300].ranged_weapons[0].id == "instigator-bolt-carbine" and persisted_state.units[301].ranged_weapons[0].id == "las-fusil" and persisted_state.units[302].ranged_weapons[0].id == "bolt-sniper-rifle" and persisted_state.units[500].ranged_weapons[0].id == "las-fusil" and persisted_state.units[501].ranged_weapons[0].id == "bolt-sniper-rifle" and persisted_state.units[502].ranged_weapons[0].id == "las-fusil" and persisted_state.units[300].get("eliminator_sergeant_loadout_locked", false) and persisted_state.units[301].get("eliminator_trooper_loadout_locked", false) and not str(persisted_rejection.get("error", "")).is_empty() and not str(stale_trooper_rejection.get("error", "")).is_empty() and var_to_str(persisted_state) == persisted_before,
+   "All saved Eliminator model weapons materialize independently, suppress setup choices and reject stale edits without mutation")
  var s := fixture()
  check(not s.has("error"), "Eliminator profile failed admission")
  if s.has("error"):

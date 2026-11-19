@@ -18,6 +18,8 @@ func _ready() -> void:
 	var help := Label.new()
 	help.text = "Events and D6 rolls in the order they occurred.\nViewing history does not change the match."
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	help.max_lines_visible = -1
+	help.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	add_child(help)
 	var row := HBoxContainer.new()
 	add_child(row)
@@ -35,6 +37,8 @@ func _ready() -> void:
 	row.add_child(refresh)
 	summary = Label.new()
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	summary.max_lines_visible = -1
+	summary.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	add_child(summary)
 	technical.text = "Show technical record"
 	technical.toggled.connect(func(expanded: bool):
@@ -44,11 +48,13 @@ func _ready() -> void:
 	)
 	add_child(technical)
 	list = ItemList.new()
-	list.custom_minimum_size = Vector2(400, 120)
+	list.custom_minimum_size = Vector2(0, 120)
+	list.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.size_flags_vertical = Control.SIZE_FILL
 	list.item_selected.connect(_select)
 	add_child(list)
-	event_scroll.custom_minimum_size = Vector2(400, 180)
+	event_scroll.custom_minimum_size = Vector2(0, 180)
 	event_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	event_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(event_scroll)
@@ -58,7 +64,8 @@ func _ready() -> void:
 	detail = TextEdit.new()
 	detail.editable = false
 	detail.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	detail.custom_minimum_size = Vector2(400, 180)
+	detail.custom_minimum_size = Vector2(0, 180)
+	detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	detail.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail.add_theme_color_override("font_readonly_color", Color("e3e5e8"))
 	add_child(detail)
@@ -88,7 +95,7 @@ func show_page(page: Dictionary) -> void:
 	for entry: Dictionary in items:
 		var phase_name := str(entry.get("phase", "Match")).replace("_", " ").capitalize()
 		var preview := _entry_preview(entry)
-		var row := list.add_item("R%d · P%d · %s · %s" % [int(entry.get("round", 0)), int(entry.get("active", 0)), phase_name, preview])
+		var row := list.add_item("R%d · P%d turn · %s · %s" % [int(entry.get("round", 0)), int(entry.get("active", 0)), phase_name, preview])
 		list.set_item_tooltip(row, _entry_tooltip(entry))
 	if items.is_empty():
 		current_selection = -1
@@ -97,6 +104,7 @@ func show_page(page: Dictionary) -> void:
 		_event_card("No recorded events", detail.text)
 	else:
 		list.select(items.size() - 1)
+		list.ensure_current_is_visible()
 		_select(items.size() - 1)
 
 func _select(index: int) -> void:
@@ -106,19 +114,34 @@ func _select(index: int) -> void:
 	var messages: Array = entry.get("messages", [])
 	for card: Node in event_cards.get_children(): card.free()
 	var attack_record: Dictionary = entry.get("attack_summary", entry.get("patch", {}).get("last_attack", {}))
+	var roll_text := _roll_summary(entry.get("roll_summary", {}))
+	if not roll_text.is_empty():
+		_event_card("Recorded dice decision", roll_text)
+	var allocation_lines: Array[String] = []
 	if not attack_record.is_empty():
 		for pool: Dictionary in attack_record.get("pools", []):
-			_event_card("%s → %s" % [str(pool.get("weapon_name", "Weapon")), str(pool.get("target_name", _squad_name(entry.get("patch", {}).get("squads", {}), int(pool.get("target_squad", -1)))))], "Hits %d · Wounds %d\n%d damage applied · %d models destroyed\n%d wounds prevented · %d excess damage discarded" % [int(pool.get("hits", 0)), int(pool.get("wounds", 0)), int(pool.get("damage_applied", 0)), int(pool.get("models_destroyed", 0)), int(pool.get("prevented_wounds", 0)), int(pool.get("excess_damage_discarded", 0))])
+			var pool_heading := "%s → %s" % [str(pool.get("weapon_name", "Weapon")), str(pool.get("target_name", _squad_name(entry.get("patch", {}).get("squads", {}), int(pool.get("target_squad", -1)))))]
+			var pool_text := "Hits %d · Wounds %d\n%d damage applied · %d models destroyed\n%d wounds prevented · %d excess damage discarded" % [int(pool.get("hits", 0)), int(pool.get("wounds", 0)), int(pool.get("damage_applied", 0)), int(pool.get("models_destroyed", 0)), int(pool.get("prevented_wounds", 0)), int(pool.get("excess_damage_discarded", 0))]
+			var allocations: Array = pool.get("allocations", [])
+			if not allocations.is_empty() and entry.has("attack_summary"):
+				var packets: Array[String] = []
+				for packet in range(allocations.size()):
+					var allocation: Dictionary = allocations[packet]
+					packets.append("%d. Model %d · %d applied · %d prevented · %d discarded" % [packet + 1, allocation.model, allocation.damage, allocation.prevented, allocation.discarded])
+				var allocation_text := "Damage allocation\n" + "\n".join(packets)
+				pool_text += "\n\n" + allocation_text
+				allocation_lines.append(pool_heading + "\n" + allocation_text)
+			_event_card(pool_heading, pool_text)
 		var hazard: Dictionary = attack_record.get("hazardous", {})
 		if int(hazard.get("total", 0)) > 0: _event_card("Hazardous · attacking unit", "%d mortal wounds generated before prevention" % int(hazard.total))
-	else:
+	elif roll_text.is_empty():
 		var event_context := "Round %s · %s · Player %s active" % [str(entry.get("round", "—")), str(entry.get("phase", "Match")).replace("_", " ").capitalize(), str(entry.get("active", "—"))]
 		_event_card(event_context, "Shared context for the events below." if not messages.is_empty() else "Match state recorded.")
-		for message: Variant in messages:
-			var text := str(message).strip_edges()
-			if text.is_empty(): continue
-			var heading := _event_heading(text)
-			_event_card(heading, "" if heading == text else text)
+	for message: Variant in messages:
+		var text := str(message).strip_edges()
+		if text.is_empty(): continue
+		var heading := _event_heading(text)
+		_event_card(heading, "" if heading == text else text)
 	var lines: Array[String] = ["RECORD #%d  •  %s UTC" % [entry.sequence, entry.utc], "Round %s  ·  Player %s active  ·  %s  ·  revision %s" % [str(entry.get("round", "—")), str(entry.get("active", "—")), str(entry.get("phase", "—")).replace("_", " ").capitalize(), str(entry.get("revision", "—"))]]
 	if entry.kind == "start": lines.append("Match history begins here.")
 	elif entry.kind == "checkpoint": lines.append("History checkpoint. %d earlier records were compacted to keep the journal bounded." % int(entry.get("compacted_entries", 0)))
@@ -129,6 +152,8 @@ func _select(index: int) -> void:
 	if not changes.is_empty():
 		lines.append("\nMODEL / STATE CHANGES")
 		for change in changes: lines.append("• " + str(change))
+	if not roll_text.is_empty(): lines.append("\nDICE DECISION\n" + roll_text)
+	if not allocation_lines.is_empty(): lines.append("\n" + "\n\n".join(allocation_lines))
 	var patch: Dictionary = entry.get("patch", {})
 	var attack: Dictionary = patch.get("last_attack", {})
 	if not attack.is_empty(): _append_attack_details(lines, attack, patch.get("squads", {}))
@@ -145,11 +170,8 @@ func _select(index: int) -> void:
 	if technical.button_pressed and not checkpoint_note.is_empty(): detail.text += "\n\n" + checkpoint_note
 
 func _entry_preview(entry: Dictionary) -> String:
-	var messages: Array = entry.get("messages", [])
-	for message: Variant in messages:
-		var text := str(message).strip_edges()
-		if text.is_empty(): continue
-		return _event_heading(text)
+	var roll: Dictionary = entry.get("roll_summary", {})
+	if roll.get("rerolled", false): return _roll_summary(roll).get_slice("\n", 0)
 	var attack_record: Dictionary = entry.get("attack_summary", entry.get("patch", {}).get("last_attack", {}))
 	if not attack_record.is_empty():
 		var pools: Array = attack_record.get("pools", [])
@@ -157,6 +179,9 @@ func _entry_preview(entry: Dictionary) -> String:
 			var pool: Dictionary = pools[0]
 			return "%s → %s" % [str(pool.get("weapon_name", "Weapon")), str(pool.get("target_name", "Target"))]
 		return "Attack recorded"
+	for message: Variant in entry.get("messages", []):
+		var text := str(message).strip_edges()
+		if not text.is_empty(): return _event_heading(text)
 	var kind := str(entry.get("kind", "")).capitalize()
 	return kind if not kind.is_empty() else "Recorded state"
 
@@ -175,8 +200,20 @@ func _event_heading(message: String) -> String:
 	var trimmed := message.strip_edges()
 	var sentence := trimmed.find(". ")
 	if sentence > 12 and sentence <= 88: return trimmed.substr(0, sentence + 1)
-	if trimmed.length() <= 88: return trimmed
-	return trimmed.substr(0, 85) + "…"
+	return trimmed
+
+func _roll_summary(roll: Dictionary) -> String:
+	if roll.is_empty(): return ""
+	var stage := str(roll.get("kind", "")).trim_prefix("after_").trim_suffix("_roll").replace("_", " ").replace("-", " ").capitalize()
+	var player := int(roll.get("player", 0))
+	if player in [1, 2]: stage = "Player %d · %s" % [player, stage]
+	var original: Array = roll.get("original_rolls", [])
+	var final: Array = roll.get("rolls", [])
+	if not bool(roll.get("rerolled", false)):
+		return "%s · Recorded dice %s" % [stage, str(final)]
+	var die := int(roll.get("die", -1))
+	var selection := " · Die %d" % (die + 1) if die >= 0 else ""
+	return "%s · Re-roll%s\nOriginal %s → Final %s" % [stage, selection, str(original), str(final)]
 
 func _event_card(title: String, body: String) -> void:
 	var panel := PanelContainer.new()
@@ -192,12 +229,16 @@ func _event_card(title: String, body: String) -> void:
 	var column := VBoxContainer.new()
 	panel.add_child(column)
 	for text: String in [title, body]:
+		if text.is_empty(): continue
 		var label := Label.new()
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.max_lines_visible = -1
+		label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		label.add_theme_font_size_override("font_size", 17 if text == title else 16)
 		label.add_theme_color_override("font_color", Color("edcf8b") if text == title else Color("d9e2e6"))
 		label.text = text
-		if not text.is_empty(): column.add_child(label)
+		column.add_child(label)
 
 func _append_attack_details(lines: Array[String], attack: Dictionary, squads: Dictionary) -> void:
 	lines.append("\nATTACK RESOLUTION")

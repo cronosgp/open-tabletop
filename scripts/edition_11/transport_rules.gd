@@ -10,6 +10,7 @@ const Groups = preload("res://scripts/edition_11/defender_groups.gd")
 const Hazardous = preload("res://scripts/edition_11/hazardous.gd")
 const FightQueue = preload("res://scripts/edition_11/fight_queue.gd")
 const ResolutionFrames = preload("res://scripts/edition_11/resolution_frame.gd")
+const Equipment = preload("res://scripts/edition_11/transport_equipment.gd")
 const MarineProfiles = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
 const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
@@ -123,7 +124,7 @@ static func impulsor_loadout_choices(state: Dictionary, player: int) -> Array[Di
 	if state.phase != "deployment": return result
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
-		if int(unit.get("owner", -1)) != player or not _is_impulsor_identity(identity(unit)): continue
+		if int(unit.get("owner", -1)) != player or not _is_impulsor_identity(identity(unit)) or bool(unit.get("transport_loadout_locked", false)): continue
 		var profile_data := MarineProfiles.profile(identity(unit))
 		var offered_systems: Array = profile_data.get("transport", {}).get("options", {}).get("one_of", [])
 		var current_system := str(unit.get("impulsor_system", "none"))
@@ -134,7 +135,12 @@ static func impulsor_loadout_choices(state: Dictionary, player: int) -> Array[Di
 		var fragstorm := bool(unit.get("impulsor_fragstorm_launchers", false))
 		result.append({"label": "Impulsor %d: %s" % [model, "restore Storm Bolters" if fragstorm else "replace Storm Bolters with Fragstorm Grenade Launchers"], "action": "impulsor-loadout", "model": model, "target": 1, "value": "off" if fragstorm else "on"})
 		var stubber := bool(unit.get("impulsor_heavy_stubber", false))
-		result.append({"label": "Impulsor %d: %s Ironhail Heavy Stubber" % [model, "remove" if stubber else "equip"], "action": "impulsor-loadout", "model": model, "target": 2, "value": "off" if stubber else "on"})
+		if identity(unit) == "black-templars-impulsor":
+			var current := str(unit.get("impulsor_pintle", "ironhail-heavy-stubber" if stubber else "none"))
+			for pintle: String in ["none", "ironhail-heavy-stubber", "multi-melta"]:
+				if pintle != current: result.append({"label": "Impulsor %d: pintle %s" % [model, pintle], "action": "impulsor-loadout", "model": model, "target": 3, "value": pintle})
+		else:
+			result.append({"label": "Impulsor %d: %s Ironhail Heavy Stubber" % [model, "remove" if stubber else "equip"], "action": "impulsor-loadout", "model": model, "target": 2, "value": "off" if stubber else "on"})
 	return result
 
 static func transport_weapon_loadout_choices(state: Dictionary, player: int) -> Array[Dictionary]:
@@ -142,7 +148,7 @@ static func transport_weapon_loadout_choices(state: Dictionary, player: int) -> 
 	for model: int in state.units:
 		var unit: Dictionary = state.units[model]
 		var identity_id := identity(unit)
-		if int(unit.get("owner", -1)) != player or _is_impulsor_identity(identity_id): continue
+		if int(unit.get("owner", -1)) != player or _is_impulsor_identity(identity_id) or bool(unit.get("transport_loadout_locked", false)): continue
 		var data := MarineProfiles.profile(identity_id)
 		var choices: Array = data.get("transport", {}).get("options", {}).get("add", [])
 		var selected: Dictionary = unit.get("optional_transport_weapons", {})
@@ -166,7 +172,7 @@ static func transport_weapon_loadout_choices(state: Dictionary, player: int) -> 
 		var selected_groups: Dictionary = unit.get("optional_transport_replacement_groups", {})
 		for group_id: String in replacement_groups:
 			var group: Dictionary = replacement_groups[group_id]
-			if group.get("choices", {}) is Dictionary:
+			if group.get("choices") is Dictionary:
 				var choice_records: Dictionary = group.get("choices", {})
 				var selected_choice := str(selected_groups.get(group_id, ""))
 				for choice_id: String in choice_records:
@@ -183,6 +189,7 @@ static func transport_weapon_loadout_choices(state: Dictionary, player: int) -> 
 
 static func configure_optional_transport_weapon(state: Dictionary, model: int, value: String) -> String:
 	if state.phase != "deployment" or not is_transport(state, model) or _is_impulsor_identity(identity(state.units[model])): return "This transport wargear is selected during army preparations."
+	if bool(state.units[model].get("transport_loadout_locked", false)): return "Saved transport equipment is locked for this match. Edit the saved army list to change it."
 	var parts := value.split(":", false, 2)
 	var profile_data := MarineProfiles.profile(identity(state.units[model]))
 	if parts.size() == 3 and parts[0] == "group":
@@ -190,7 +197,7 @@ static func configure_optional_transport_weapon(state: Dictionary, model: int, v
 		if not groups.has(parts[1]): return "That grouped weapon replacement is not listed for this transport datasheet."
 		var selected_groups: Dictionary = state.units[model].get("optional_transport_replacement_groups", {}).duplicate(true)
 		var group: Dictionary = groups[parts[1]]
-		if group.get("choices", {}) is Dictionary:
+		if group.get("choices") is Dictionary:
 			if parts[2] == "default": selected_groups.erase(parts[1])
 			elif group.get("choices", {}).has(parts[2]): selected_groups[parts[1]] = parts[2]
 			else: return "That grouped replacement choice is not listed for this transport datasheet."
@@ -219,9 +226,7 @@ static func configure_optional_transport_weapon(state: Dictionary, model: int, v
 		var delta := int(costs.get(next_name, 0)) - int(costs.get(current_name, 0))
 		var current_points := int(state.get("training_points", {}).get(int(state.units[model].owner), 0))
 		if delta > 0 and int(state.get("points_limit", 0)) > 0 and current_points + delta > int(state.points_limit): return "That weapon choice would put this army over its points limit."
-		if delta != 0:
-			if not state.has("training_points") or not state.get("training_points") is Dictionary: state.training_points = {}
-			state.training_points[int(state.units[model].owner)] = maxi(0, current_points + delta)
+		_apply_equipment_points(state, model, delta)
 		selected_replacements[base_id] = next_id
 		state.units[model].optional_transport_replacements = selected_replacements
 	elif parts.size() == 2 and parts[1] in ["on", "off"]:
@@ -232,12 +237,28 @@ static func configure_optional_transport_weapon(state: Dictionary, model: int, v
 			if _transport_weapon_id(profile_data, candidate) == weapon_id: weapon_name = candidate
 		if weapon_name.is_empty(): return "That optional weapon is not listed for this transport datasheet."
 		var selected: Dictionary = state.units[model].get("optional_transport_weapons", {}).duplicate(true)
-		selected[weapon_id] = parts[1] == "on"
+		var equipped := parts[1] == "on"
+		var cost := int(profile_data.get("wargear_costs", {}).get(weapon_name, 0))
+		var delta := (cost if equipped else 0) - (cost if bool(selected.get(weapon_id, false)) else 0)
+		var owner := int(state.units[model].owner)
+		var current_points := int(state.get("training_points", {}).get(owner, 0))
+		if delta > 0 and int(state.get("points_limit", 0)) > 0 and current_points + delta > int(state.points_limit): return "That optional weapon would put this army over its points limit."
+		_apply_equipment_points(state, model, delta)
+		selected[weapon_id] = equipped
 		state.units[model].optional_transport_weapons = selected
 	else:
 		return "Choose a source-listed optional weapon or replacement."
 	state.units[model].ranged_weapons = _optional_transport_inventory(profile_data, state.units[model])
 	return ""
+
+static func _apply_equipment_points(state: Dictionary, model: int, delta: int) -> void:
+	if delta == 0: return
+	var unit: Dictionary = state.units[model]
+	if not state.has("training_points") or not state.get("training_points") is Dictionary: state.training_points = {}
+	state.training_points[int(unit.owner)] = maxi(0, int(state.training_points.get(int(unit.owner), 0)) + delta)
+	var squad := int(unit.get("squad", -1))
+	if state.get("squads", {}).has(squad) and state.squads[squad].has("training_cost"):
+		state.squads[squad].training_cost = maxi(0, int(state.squads[squad].training_cost) + delta)
 
 static func _transport_weapon_id(profile_data: Dictionary, weapon_name: String) -> String:
 	for weapon: Dictionary in profile_data.get("ranged", []) + profile_data.get("additional_weapon_profiles", {}).get("ranged", []):
@@ -246,41 +267,12 @@ static func _transport_weapon_id(profile_data: Dictionary, weapon_name: String) 
 	return ""
 
 static func _optional_transport_inventory(profile_data: Dictionary, unit: Dictionary) -> Array:
-	var weapons: Array = profile_data.get("ranged", []).duplicate(true)
-	var selected_groups: Dictionary = unit.get("optional_transport_replacement_groups", {})
-	var groups: Dictionary = profile_data.get("transport", {}).get("options", {}).get("replacement_groups", {})
-	for group_id: String in groups:
-		var group: Dictionary = groups[group_id]
-		var from_ids: Array = group.get("from_ids", [])
-		var to_ids: Array = group.get("to_ids", [])
-		if group.get("choices", {}) is Dictionary:
-			var selected_choice := str(selected_groups.get(group_id, ""))
-			var choices: Dictionary = group.get("choices", {})
-			if not choices.has(selected_choice): continue
-			to_ids = choices[selected_choice].get("to_ids", [])
-		elif not bool(selected_groups.get(group_id, false)):
-			continue
-		if from_ids.is_empty() or to_ids.is_empty(): continue
-		weapons = weapons.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) not in from_ids)
-		for weapon_id: String in to_ids: _append_impulsor_weapon(weapons, profile_data, weapon_id)
-	var selected_replacements: Dictionary = unit.get("optional_transport_replacements", {})
-	var replacements: Dictionary = profile_data.get("transport", {}).get("options", {}).get("replacements", {})
-	for base_name: String in replacements:
-		var base_id := _transport_weapon_id(profile_data, base_name)
-		var replacement_id := _transport_weapon_id(profile_data, str(replacements[base_name]))
-		var active_id := str(selected_replacements.get(base_id, base_id))
-		if base_id.is_empty() or replacement_id.is_empty() or active_id == base_id: continue
-		weapons = weapons.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) != base_id)
-		_append_impulsor_weapon(weapons, profile_data, active_id)
-	var selected: Dictionary = unit.get("optional_transport_weapons", {})
-	for weapon_name: String in profile_data.get("transport", {}).get("options", {}).get("add", []):
-		var weapon_id := _transport_weapon_id(profile_data, weapon_name)
-		if bool(selected.get(weapon_id, false)): _append_impulsor_weapon(weapons, profile_data, weapon_id)
-	return weapons
+	return Equipment.optional_inventory(profile_data, unit)
 
 static func configure_impulsor(state: Dictionary, model: int, category: int, value: String) -> String:
 	if state.phase != "deployment" or not state.units.has(model) or not _is_impulsor_identity(identity(state.units[model])): return "Impulsor wargear is selected during army preparations."
 	var unit: Dictionary = state.units[model]
+	if bool(unit.get("transport_loadout_locked", false)): return "Saved transport equipment is locked for this match. Edit the saved army list to change it."
 	var profile_data := MarineProfiles.profile(identity(state.units[model]))
 	if profile_data.is_empty(): return "The local Wahapedia Impulsor profile is missing."
 	match category:
@@ -295,26 +287,26 @@ static func configure_impulsor(state: Dictionary, model: int, category: int, val
 			if delta > 0:
 				var current_points := int(state.get("training_points", {}).get(int(unit.owner), 0))
 				if int(state.get("points_limit", 0)) > 0 and current_points + delta > int(state.points_limit): return "Orbital Comms Array would put this army over its points limit."
-			if delta != 0:
-				if not state.has("training_points") or not state.get("training_points") is Dictionary: state.training_points = {}
-				state.training_points[int(unit.owner)] = maxi(0, int(state.training_points.get(int(unit.owner), 0)) + delta)
+			_apply_equipment_points(state, model, delta)
 			unit.impulsor_system = value
 		1:
 			if value not in ["on", "off"]: return "Choose whether the Fragstorm Grenade Launchers replace the Storm Bolters."
 			unit.impulsor_fragstorm_launchers = value == "on"
-		2:
-			if value not in ["on", "off"]: return "Choose whether to add the Ironhail Heavy Stubber."
-			unit.impulsor_heavy_stubber = value == "on"
+		2, 3:
+			if category == 2 and value not in ["on", "off"]: return "Choose whether to add the Ironhail Heavy Stubber."
+			if category == 3 and (identity(unit) != "black-templars-impulsor" or value not in ["none", "ironhail-heavy-stubber", "multi-melta"]): return "Choose one source-listed Impulsor pintle weapon or none."
+			var previous := str(unit.get("impulsor_pintle", "ironhail-heavy-stubber" if bool(unit.get("impulsor_heavy_stubber", false)) else "none"))
+			var next := value if category == 3 else ("ironhail-heavy-stubber" if value == "on" else "none")
+			var cost := int(profile_data.get("wargear_costs", {}).get("Multi-melta", 0))
+			var delta := (cost if next == "multi-melta" else 0) - (cost if previous == "multi-melta" else 0)
+			var current_points := int(state.get("training_points", {}).get(int(unit.owner), 0))
+			if delta > 0 and int(state.get("points_limit", 0)) > 0 and current_points + delta > int(state.points_limit): return "That pintle weapon would put this army over its points limit."
+			_apply_equipment_points(state, model, delta)
+			unit.impulsor_pintle = next
+			unit.impulsor_heavy_stubber = next == "ironhail-heavy-stubber"
 		_:
 			return "Unsupported Impulsor wargear choice."
-	var weapons: Array = profile_data.get("ranged", []).duplicate(true)
-	if unit.get("impulsor_fragstorm_launchers", false):
-		weapons = weapons.filter(func(weapon: Dictionary) -> bool: return weapon.get("id", "") != "storm-bolters")
-		_append_impulsor_weapon(weapons, profile_data, "fragstorm-grenade-launchers")
-	if unit.get("impulsor_system", "none") in ["bellicatus-missile-array", "ironhail-skytalon-array"]:
-		_append_impulsor_weapon(weapons, profile_data, str(unit.impulsor_system))
-	if unit.get("impulsor_heavy_stubber", false): _append_impulsor_weapon(weapons, profile_data, "ironhail-heavy-stubber")
-	unit.ranged_weapons = weapons
+	unit.ranged_weapons = Equipment.impulsor_inventory(profile_data, unit)
 	return ""
 
 static func _append_impulsor_weapon(weapons: Array, profile_data: Dictionary, weapon_id: String) -> void:
@@ -442,6 +434,13 @@ static func eligibility_error(state: Dictionary, transport_model: int, passenger
 		var maximum := int(data.max_models_by_identity_group[group_name])
 		if model_count > maximum:
 			return "This transport can carry no more than %d %s models." % [maximum, str(group.get("display_name", group_name))]
+	if int(data.get("max_units", 0)) > 0:
+		var embarked_units := {}
+		for m: int in state.units:
+			if int(state.units[m].get("embarked_transport", -1)) == transport_model and int(state.units[m].get("wounds", 0)) > 0:
+				embarked_units[int(state.units[m].squad)] = true
+		if not embarked_units.has(passenger_squad) and embarked_units.size() >= int(data.max_units):
+			return "This transport can carry no more than %d unit(s)." % int(data.max_units)
 	if int(data.get("capacity", 0)) - occupied_capacity(state, transport_model) < capacity_cost(state, passenger_squad, data): return "The transport does not have enough remaining capacity for the whole unit."
 	if require_range:
 		for model: int in passenger_models:
@@ -826,6 +825,9 @@ static func _position_error(state: Dictionary, window: Dictionary, model: int, p
 			var enemy_model: Dictionary = state.units[enemy]
 			if enemy_model.get("wounds", 0) <= 0 or not enemy_model.get("on_battlefield", true) or int(enemy_model.get("owner", -1)) == int(state.units[model].owner): continue
 			if Geometry.edge({"position": position, "radius": state.units[model].radius}, enemy_model) <= 8.001: return "Drop Pod Assault passengers must be set up more than 8 inches from every enemy unit."
+		var geomancer_script := load("res://scripts/edition_11/geomancer.gd")
+		var reserve_exclusion := str(geomancer_script.reserve_exclusion_error(state, state.units[model], position))
+		if not reserve_exclusion.is_empty(): return reserve_exclusion
 	if absf(position.x) + float(state.units[model].radius) > state.board_size.x / 2.0 + 0.001 or absf(position.y) + float(state.units[model].radius) > state.board_size.y / 2.0 + 0.001: return "The whole model must fit on the battlefield."
 	var positioned_model: Dictionary = state.units[model].duplicate(true)
 	positioned_model.position = position

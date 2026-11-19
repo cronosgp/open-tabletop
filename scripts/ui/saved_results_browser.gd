@@ -1,6 +1,7 @@
 extends ScrollContainer
 ## Read-only browser for explicitly saved local match-result summaries.
 const MatchResult = preload("res://scripts/match_result.gd")
+const WorkspaceTheme = preload("res://scripts/ui/workspace_theme.gd")
 
 var records: Array[Dictionary] = []
 var filtered_record_indices: Array[int] = []
@@ -18,8 +19,11 @@ var json_file_count := 0
 var ignored_file_count := 0
 var invalid_files: Array[Dictionary] = []
 var results_location_unreadable := false
+signal training_requested
+var empty_action := Button.new()
 
 func _ready() -> void:
+	theme = WorkspaceTheme.create()
 	horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -32,7 +36,7 @@ func _ready() -> void:
 	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(intro)
 	scan_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	scan_status.add_theme_color_override("font_color", Color("b5c4ca"))
+	scan_status.add_theme_color_override("font_color", WorkspaceTheme.MUTED)
 	column.add_child(scan_status)
 	scan_issue_toggle.text = "Show ignored-file details"
 	scan_issue_toggle.tooltip_text = "Explain why saved result files were skipped."
@@ -40,6 +44,7 @@ func _ready() -> void:
 	scan_issue_toggle.visible = false
 	scan_issue_toggle.toggle_mode = true
 	scan_issue_toggle.pressed.connect(_toggle_scan_issue_details)
+	WorkspaceTheme.decorate_button(scan_issue_toggle, "diagnostics")
 	column.add_child(scan_issue_toggle)
 	scan_issue_details.custom_minimum_size.y = 128
 	scan_issue_details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -67,18 +72,20 @@ func _ready() -> void:
 	row.add_child(record_picker)
 	copy_button.text = "Copy summary"
 	copy_button.tooltip_text = "Copy the selected saved result summary to the clipboard."
-	copy_button.custom_minimum_size = Vector2(128, 40)
+	copy_button.custom_minimum_size = Vector2(148, 40)
 	copy_button.disabled = true
 	copy_button.pressed.connect(_copy_selected)
+	WorkspaceTheme.decorate_button(copy_button, "copy")
 	row.add_child(copy_button)
 	var reload := Button.new()
 	reload.text = "Reload"
 	reload.tooltip_text = "Read saved result files again."
-	reload.custom_minimum_size = Vector2(92, 40)
+	reload.custom_minimum_size = Vector2(108, 40)
 	reload.pressed.connect(refresh_records)
+	WorkspaceTheme.decorate_button(reload, "reload")
 	row.add_child(reload)
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	summary.add_theme_color_override("font_color", Color("e3b65c"))
+	summary.add_theme_color_override("font_color", WorkspaceTheme.GOLD)
 	column.add_child(summary)
 	notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	notice.add_theme_color_override("font_color", Color("9cc8a8"))
@@ -87,6 +94,12 @@ func _ready() -> void:
 	empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	empty_label.visible = false
 	column.add_child(empty_label)
+	empty_action.text = "Start tactical training"
+	empty_action.custom_minimum_size.y = 40
+	empty_action.tooltip_text = "Play a local exercise; completed results can then be saved here."
+	empty_action.pressed.connect(func(): training_requested.emit())
+	WorkspaceTheme.decorate_button(empty_action, "start_training", true)
+	column.add_child(empty_action)
 	details.fit_content = true
 	details.scroll_active = false
 	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -151,6 +164,7 @@ func _apply_search(query: String, preferred_id: String = "") -> void:
 	record_picker.visible = has_matches
 	details.visible = has_matches
 	empty_label.visible = not has_matches
+	empty_action.visible = records.is_empty() and json_file_count == 0 and not results_location_unreadable
 	copy_button.disabled = not has_matches
 	_update_scan_status(filtered_record_indices.size())
 	if has_matches:

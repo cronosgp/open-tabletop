@@ -20,10 +20,12 @@
 - Deep Strike, Deadly Demise D3 and Combat Doctrines are registered to their shared current runtime paths. This sheet-specific suite checks registration and the D3 parameter; shared ingress, destruction and doctrine effects are separate rule paths.
 - Lone Operative uses the datasheet's 15-inch target-selection boundary; the shared ranged-target planner now reads the source-specific range.
 - **Icon of Old Caliban:** a friendly Dark Angels unit within 6 inches has Stealth. The local aura respects player ownership, explicit Dark Angels keywords or the selected Dark Angels Chapter context for generic Adeptus Astartes profiles, and uses base-edge distance.
-- The Army Workshop exposes the source Heavy Bolter replacement as an owner-checked, reversible setup choice. Both ranged profiles resolve legal targets through the attack planner.
+- The Army Workshop exposes the source Heavy Bolter replacement as an owner-checked, reversible setup choice. Both ranged profiles resolve legal targets through the attack planner. Saved lists also preserve the selected weapon by stable model ID, carry it through current-catalog admission, and lock the materialized loadout for that match.
 
 ## Local verification and limits
 
 `python tools/verify.py --godot .tools/godot/Godot_v4.7.2-stable_win64_console.exe --profile focused --only test_ravenwing_darkshroud --timeout 300` passed 3/3 processes at `.tools/verification/20261028T102401179066Z/results.json` (SHA-256 `0d4d71661e6877363c66824094b99693b681374687aadd15e2485ceffe266614`; `network: false`, `legacy_starter_staged: false`, no cleanup diagnostics). The suite checks the pinned source IDs and fixed data, catalog price/copy cap, ability registration, Dark Angels aura eligibility and range, 12-to-15-inch Lone Operative targeting, both weapon targets through AttackPlan, and public setup selection/ownership/restoration.
 
 This suite does not exercise Darkshroud-specific Deep Strike ingress, Deadly Demise trigger resolution, Combat Doctrine effects or Chapter detachment interactions. Whole-army roster restrictions, complete-match behavior, network validation, exact flying-base geometry and human playtesting are also outside this sheet-specific result. Network validation remains deferred to final integration.
+
+The 13 November saved-army regression separately confirms local builder admission, stable model mapping, Assault Cannon materialization, the saved-list setup lock and gallery explanations for matching/conflicting cannon hints. It does not extend the shared rules scope above or certify a matching model sculpt.

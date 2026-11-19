@@ -100,9 +100,15 @@ func run() -> void:
 	var models := models_for(state, 1, squad)
 	var enemy_models := models_for(state, 2, enemy_squad)
 	check(models.size() == 5 and enemy_models.size() == 5 and state.squads[squad].stats.invulnerable_target == 4 and models.all(func(model: int) -> bool: return state.units[model].ranged_weapons[0].id == "stormfrag-auto-launcher" and state.units[model].melee_weapons[0].id == "thunder-hammer"), "Prepared models retain their Storm Shield and source-listed default weapons")
+	var ordinal := 0
+	var materialized_total := 0
 	for item: int in owner_squads:
-		var expected := int(profile.points_by_models[int(state.squads[item].starting_strength)])
-		check(int(state.squads[item].get("training_cost", -1)) == expected, "The roster applies first-two-copy points for both unit sizes")
+		var size := int(state.squads[item].starting_strength)
+		var expected: int = profile.points_by_models[size] if ordinal < 2 else profile.third_plus_points_by_models[size]
+		check(int(state.squads[item].get("training_cost", -1)) == expected, "Canonical formation uses its actual source copy tier")
+		materialized_total += int(state.squads[item].training_cost)
+		ordinal += 1
+	check(materialized_total == 530 and int(state.training_points[1]) == 530, "Canonical unit prices sum to the sourced 530-point army total")
 	check(Transport.capacity_cost(state, squad, {}) == 10, "Bestial Forms counts each living Wulfen with Storm Shield as two transport spaces")
 
 	var starting_cost := int(state.squads[squad].training_cost)

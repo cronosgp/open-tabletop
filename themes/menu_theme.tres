@@ -1,0 +1,30 @@
+[gd_resource type="Theme" load_steps=5 format=3]
+
+[ext_resource type="StyleBox" path="res://themes/styles/button_normal.tres" id="1_normal"]
+[ext_resource type="StyleBox" path="res://themes/styles/button_hover.tres" id="2_hover"]
+[ext_resource type="StyleBox" path="res://themes/styles/button_primary.tres" id="3_primary"]
+[ext_resource type="StyleBox" path="res://themes/styles/panel.tres" id="4_panel"]
+
+[resource]
+default_font_size = 16
+Button/colors/font_color = Color(0.956863, 0.929412, 0.878431, 1)
+Button/colors/font_focus_color = Color(0.956863, 0.929412, 0.878431, 1)
+Button/colors/font_hover_color = Color(0.956863, 0.929412, 0.878431, 1)
+Button/colors/font_pressed_color = Color(0.956863, 0.929412, 0.878431, 1)
+Button/styles/normal = ExtResource("1_normal")
+Button/styles/hover = ExtResource("2_hover")
+Button/styles/pressed = ExtResource("2_hover")
+Button/styles/focus = ExtResource("2_hover")
+Label/colors/font_color = Color(0.956863, 0.929412, 0.878431, 1)
+PanelContainer/styles/panel = ExtResource("4_panel")
+PrimaryButton/base_type = &"Button"
+PrimaryButton/colors/font_color = Color(0.0431373, 0.0470588, 0.054902, 1)
+PrimaryButton/colors/font_focus_color = Color(0.0431373, 0.0470588, 0.054902, 1)
+PrimaryButton/colors/font_hover_color = Color(0.0431373, 0.0470588, 0.054902, 1)
+PrimaryButton/colors/font_pressed_color = Color(0.0431373, 0.0470588, 0.054902, 1)
+PrimaryButton/styles/normal = ExtResource("3_primary")
+PrimaryButton/styles/hover = ExtResource("3_primary")
+PrimaryButton/styles/pressed = ExtResource("3_primary")
+PrimaryButton/styles/focus = ExtResource("3_primary")
+VBoxContainer/constants/separation = 12
+HBoxContainer/constants/separation = 10
