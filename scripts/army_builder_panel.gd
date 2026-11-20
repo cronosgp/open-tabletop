@@ -12,6 +12,7 @@ const CanoptekSpyders = preload("res://scripts/edition_11/canoptek_spyders.gd")
 const CanoptekTombCrawlers = preload("res://scripts/edition_11/canoptek_tomb_crawlers.gd")
 const NecronVehicleLoadouts = preload("res://scripts/edition_11/necron_vehicle_loadouts.gd")
 const ForceOrgMatcher = preload("res://scripts/forceorg_matcher.gd")
+const ArmyLegalityPresenter = preload("res://scripts/ui/army_legality_presenter.gd")
 signal library_changed
 signal import_requested
 signal new_match_requested
@@ -46,6 +47,7 @@ var pending_appearance_units: Dictionary = {}
 var preview_model_input: SpinBox
 var preview_slot := 0
 var save_status: Label
+var legality_status: Label
 var save_error := ""
 var addition_summary: Label
 var addition_panel: VBoxContainer
@@ -357,6 +359,8 @@ func _ready() -> void:
 	save_button = button("Save list", _save, saves)
 	button("Save a copy", _save_copy, saves)
 	save_status = label("")
+	legality_status = label("")
+	legality_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button("New empty list", func(): _request_editor_action(_new_empty))
 	button("New editable standard base", func(): _request_editor_action(_new_standard))
 	button("Check training compatibility", _check_training)
@@ -1327,6 +1331,11 @@ func _render_summary() -> void:
 		save_status.text = "Unsaved changes" if dirty or draft.id.is_empty() else "✓ Saved locally"
 	save_status.tooltip_text = save_error if not save_error.is_empty() else save_button.tooltip_text
 	save_status.add_theme_color_override("font_color", Color("f0b46a") if save_button.disabled or not save_error.is_empty() else (Color("f2df83") if dirty or draft.id.is_empty() else Color("82d49c")))
+	if legality_status != null:
+		var legality_view := ArmyLegalityPresenter.summarize_draft(draft, {"legality_mode": "casual_legends"})
+		legality_status.text = str(legality_view.get("status_text", ""))
+		legality_status.tooltip_text = str(legality_view.get("tooltip", ""))
+		legality_status.add_theme_color_override("font_color", legality_view.get("status_color", Color("82d49c")))
 	_refresh_addition_summary()
 
 func _refresh_addition_summary() -> void:

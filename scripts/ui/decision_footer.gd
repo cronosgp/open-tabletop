@@ -10,6 +10,8 @@ var previous_focus: WeakRef
 
 func _ready() -> void:
 	theme = WorkspaceTheme.create()
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_vertical = Control.SIZE_SHRINK_END
 	add_theme_stylebox_override("panel", WorkspaceTheme.box(WorkspaceTheme.SURFACE, WorkspaceTheme.GOLD, 10, 2, 2))
 	var column := VBoxContainer.new()
 	add_child(column)

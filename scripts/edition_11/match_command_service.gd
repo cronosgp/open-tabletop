@@ -24,6 +24,7 @@ const UNIT_CHOICE_ENVELOPE := "unit-choice-v1"
 const PLACE_MODEL := "place-model"
 const DEPLOYMENT_PRESET := "deployment-preset"
 const DEPLOYMENT_CONFIRM := "deployment-confirm"
+const DEPLOYMENT_DEPLOY_SUGGESTED := "deployment-deploy-suggested"
 const ALLOCATE_DAMAGE := "allocate-damage"
 const REMOVE_COHERENCY := "remove-coherency-model"
 const COMMAND_REACTION := "command-reaction"
@@ -59,6 +60,7 @@ static func execute(state: Dictionary, player: int, command: Dictionary, roller:
 		PLACE_MODEL: return _place_model(state, player, command)
 		DEPLOYMENT_PRESET: return _deployment_preset(state, player, command)
 		DEPLOYMENT_CONFIRM: return _deployment_confirm(state, player, command)
+		DEPLOYMENT_DEPLOY_SUGGESTED: return _deployment_suggested(state, player, command)
 		ALLOCATE_DAMAGE: return _allocate_damage(state, player, command, roller)
 		REMOVE_COHERENCY: return _remove_coherency(state, player, command)
 		COMMAND_REACTION: return _command_reaction(state, player, command, roller)
@@ -74,12 +76,20 @@ static func _advance_phase(state: Dictionary, player: int, command: Dictionary, 
 	var selected_squad := -1
 	if state.get("units", {}).has(model) and int(state.units[model].get("owner", -1)) == player:
 		selected_squad = int(state.units[model].get("squad", -1))
+	var events_before: int = state.get("events", []).size()
 	var error: String = Combat.advance_phase(state, player, revision, roller, selected_squad)
 	if not error.is_empty(): return _failure(error)
 	if not Combat.Stratagems.pending(state).is_empty():
 		return _success("Battle-shock pending: choose a unit and decide before rolling.")
+	var skipped: Array[String] = []
+	var events: Array = state.get("events", [])
+	for index in range(maxi(0, events_before), events.size()):
+		var msg := str(events[index].get("message", ""))
+		if msg.begins_with("Charge skipped") or msg.begins_with("Fight skipped"):
+			skipped.append(msg.trim_suffix("."))
 	var guidance := "Right click an enemy to shoot." if state.phase == "shooting" else "Move individual miniatures, then confirm the squad." if state.phase == "movement" else "Advance when ready; unimplemented effects are listed above."
-	return _success("Phase: %s. %s" % [state.phase, guidance])
+	var prefix := (" · ".join(skipped) + " · ") if not skipped.is_empty() else ""
+	return _success("%sPhase: %s. %s" % [prefix, state.phase, guidance])
 
 static func _select_doctrine(state: Dictionary, player: int, command: Dictionary) -> Dictionary:
 	var decision_state_error := Combat.PhaseCloseGate.decision_container_error(state, "combat-doctrines")
@@ -263,6 +273,10 @@ static func _deployment_preset(state: Dictionary, player: int, command: Dictiona
 static func _deployment_confirm(state: Dictionary, player: int, command: Dictionary) -> Dictionary:
 	var error: String = Deployment.confirm(state, player, int(command.get("revision", -1)))
 	return _apply_string_action(error, "Unit deployment confirmed.")
+
+static func _deployment_suggested(state: Dictionary, player: int, command: Dictionary) -> Dictionary:
+	var error: String = Deployment.deploy_suggested(state, player, int(command.get("revision", -1)))
+	return _apply_string_action(error, "Suggested deployment confirmed.")
 
 static func _allocate_damage(state: Dictionary, player: int, command: Dictionary, roller: Callable) -> Dictionary:
 	var model := int(command.get("model", -1))

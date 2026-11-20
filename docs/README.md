@@ -34,7 +34,7 @@ Use the root [README](../README.md) for a project overview and clean-checkout st
 - [Hail of Bolts (historical)](rules/hail-of-bolts.md) · [Hazardous](rules/hazardous.md) · [Implacable Eradication](rules/implacable-eradication.md)
 - [Movement types](rules/movement-types.md) · [Multiple units](rules/multiple-units.md) · [Oath of Moment (historical)](rules/oath-of-moment.md)
 - [Objective Secured](rules/objective-secured.md) · [Objectives](rules/objectives.md) · [Reanimation Protocols](rules/reanimation-protocols.md)
-- [Roster validation](rules/roster-validation.md) · [Terrain](rules/terrain.md) · [Weapon mechanics](rules/weapon-mechanics.md) · [Weapon selection](rules/weapon-selection.md)
+- [Roster validation](rules/roster-validation.md) · [Full 11e army legality](rules/army-legality.md) · [Terrain](rules/terrain.md) · [Weapon mechanics](rules/weapon-mechanics.md) · [Weapon selection](rules/weapon-selection.md)
 
 ## Data and sources
 

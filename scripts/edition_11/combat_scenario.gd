@@ -266,7 +266,8 @@ static func advance_phase(state: Dictionary, player: int, revision: int, roller:
 	if state.phase == "fight" and state.fight_step != "complete": return _advance_fight(state, player, false, selected_squad)
 	var hooks := {
 		"event": func(current: Dictionary, message: String) -> void: _event(current, message),
-		"begin_fights": func(current: Dictionary) -> void: _begin_fight(current)
+		"begin_fights": func(current: Dictionary) -> void: _begin_fight(current),
+		"can_declare_charge": func(current: Dictionary, actor_player: int, model: int) -> bool: return charge_declaration_error(current, actor_player, model, int(current.get("revision", 0))).is_empty()
 	}
 	return PhaseResolution.advance_after_admission(state, roller, hooks)
 

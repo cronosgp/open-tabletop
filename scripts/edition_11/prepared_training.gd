@@ -15,6 +15,7 @@ const SilentKing = preload("res://scripts/edition_11/silent_king.gd")
 const NecronVehicleLoadouts = preload("res://scripts/edition_11/necron_vehicle_loadouts.gd")
 const ChapterRules = preload("res://scripts/edition_11/chapter_rules.gd")
 const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
+const ArmyLegality = preload("res://scripts/edition_11/army_legality.gd")
 const ID := "prepared-objective-training-v2"
 
 static func quick_match_options() -> Dictionary:
@@ -178,6 +179,10 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 			var prefer_current_reference: bool = not is_legacy_necron_roster
 			var report := Combat.RosterValidation.admit(selections[owner], detachment_id if is_marine_roster else "") if options.get("checked_rosters", false) else Training.admit(selections[owner], roster_context, prefer_current_reference)
 			if not report.error.is_empty(): return report
+			if bool(options.get("enforce_full_legality", false)) or str(options.get("legality_mode", "")) == "matched_play":
+				var legality := ArmyLegality.evaluate_selection(report, {"detachment_id": detachment_id if is_marine_roster else str(options.get("necron_detachment", "awakened-dynasty")), "legality_mode": str(options.get("legality_mode", "matched_play"))})
+				if not bool(legality.get("valid", false)):
+					return {"error": str(legality.get("error", "Roster failed 11e army legality validation."))}
 			for resolved: Dictionary in report.definitions.values() if report.has("definitions") else []:
 				if resolved.get("requires_current_abilities", false) and not options.get("unit_abilities", false): return {"error": "This current datasheet requires unit abilities to be enabled."}
 			reports[owner] = report
@@ -334,6 +339,8 @@ static func initial_state(options: Dictionary = {}, selections: Dictionary = {},
 	if options.get("checked_rosters", false):
 		Combat.RosterValidation.enable(state, reports)
 		state.saved_army_setup.options.checked_rosters = true
+	if bool(options.get("enforce_full_legality", false)) or str(options.get("legality_mode", "")) == "matched_play":
+		state.enforce_full_legality = true
 	var manifest_options := {
 		"manual_allocation": manual, "varied_equipment": varied, "core_stratagems": core,
 		"movement_rerolls": movement_rerolls, "attack_rerolls": attack_rerolls,
