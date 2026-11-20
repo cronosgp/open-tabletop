@@ -17,7 +17,7 @@ const DIRECTORY := "res://data/imported/starter-11e-v1"
 const MAX_SQUADS := 6
 ## Saved current-catalog lists use this ceiling. Direct core-profile calls keep MAX_SQUADS.
 const MATCH_UNIT_CAP := 24
-const STANDARD_COPY_LIMITS := {"incursion": 2, "strike_force": 3}
+const STANDARD_COPY_LIMITS := {"incursion": 2, "strike_force": 3, "onslaught": 3}
 const INTERCESSOR_SQUAD_ID := "40kdc:11e:adeptus-astartes:intercessor-squad"
 const ELIMINATOR_SQUAD_ID := "40kdc:11e:adeptus-astartes:eliminator-squad"
 const OUTRIDER_SQUAD_ID := "40kdc:11e:adeptus-astartes:outrider-squad"
@@ -754,6 +754,7 @@ static func admit(selection: Variant, unit_cap: int = MAX_SQUADS, roster_context
 		if enhancement_id != "":
 			if not resolved.get("uses_current_reference", false) or not StormlanceEnhancements.valid_for(identity, enhancement_id, str(StormlanceEnhancements.RECORDS.get(enhancement_id, {}).get("detachment", ""))): return {"error": "Enhancement is not eligible for this current datasheet in the local Wahapedia catalog."}
 			if enhancement_counts.has(enhancement_id): return {"error": "Each selected detachment enhancement can be assigned only once in this list."}
+			if enhancement_counts.size() >= 3: return {"error": "An army can include at most 3 Enhancements."}
 			enhancement_counts[enhancement_id] = true
 			variant.cost = int(variant.cost) + int(StormlanceEnhancements.RECORDS[enhancement_id].cost)
 			variant.enhancement_id = enhancement_id

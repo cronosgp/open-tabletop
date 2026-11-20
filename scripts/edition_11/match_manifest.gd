@@ -96,6 +96,8 @@ static func seal(state: Dictionary, options: Dictionary, reports: Dictionary, ef
 	if options.get("checked_rosters", false):
 		state.roster_validation.full_match_certified = false
 		state.match_manifest.checked_rosters = {"implementation": RosterValidation.ID, "digest": RosterValidation.digest(), "construction": state.roster_validation.armies.duplicate(true), "full_match_certified": false, "official_legality_validated": false, "source_status": RosterValidation.CURRENT_SOURCE_STATUS, "scope": "Saved Gladius or bounded Black Templars Fist / Awakened Dynasty roster snapshot on the selected CA 2026-27 board; legacy MFM 1.6 prices remain attached to old lists, while supported rules use Wahapedia 11e and overall coverage is partial."}
+	if bool(options.get("enforce_full_legality", false)) or str(options.get("legality_mode", "")) != "":
+		state.match_manifest.roster_legality = {"implementation": "army-legality-11e-v1", "mode": str(options.get("legality_mode", "matched_play")), "roster_legality_validated": true, "full_match_certified": false, "scope_limitations": "Allies unsupported; runtime combat/network certification remains separate."}
 	if str(options.get("training_scenario_id", "")) == "marine-tactical-training-v1":
 		# Presentation metadata is persisted with the match so the optional practice
 		# checklist can survive save/resume without changing rules resolution.

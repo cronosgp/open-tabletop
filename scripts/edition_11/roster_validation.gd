@@ -7,6 +7,8 @@ const A = preload("res://scripts/edition_11/army_capabilities.gd")
 const R = preload("res://scripts/army_roster.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
 const UnitAbilities = preload("res://scripts/edition_11/unit_abilities.gd")
+const DetachmentCatalog = preload("res://scripts/edition_11/detachment_catalog.gd")
+const ArmyLegality = preload("res://scripts/edition_11/army_legality.gd")
 const ID := "incursion-fixed-rosters-mfm1.6-2026-10-25-v38-vow-sworn-force-disposition"
 const CURRENT_SOURCE_STATUS := "wahapedia_e11_coverage_partial"
 const CHECKED_MAX_SQUADS := 12
@@ -72,28 +74,22 @@ static func digest() -> String:
 	return var_to_str({"id": ID, "points": POINTS, "support_links": Supports.BODYGUARDS, "conditional_support_links": Supports.CONDITIONAL_BODYGUARDS, "detachments": DETACHMENTS, "detachment_profiles": DETACHMENT_PROFILES, "sources": SOURCES, "detachment_stratagems": DetachmentStratagems.ID}).sha256_text()
 
 static func detachment_for(faction: String, selected_id: String = "") -> Dictionary:
-	if not DETACHMENTS.has(faction): return {}
-	if faction == "Space Marines":
+	if DETACHMENTS.has(faction) and faction == "Space Marines":
 		if selected_id in ["", "none", "gladius", "gladius-task-force"]: return DETACHMENTS[faction].duplicate(true)
-		return DETACHMENT_PROFILES.get(selected_id, {}).duplicate(true)
-	var default_profile: Dictionary = DETACHMENTS[faction]
-	if selected_id in ["", "none", str(default_profile.id)]: return default_profile.duplicate(true)
-	return {}
+		if DETACHMENT_PROFILES.has(selected_id): return DETACHMENT_PROFILES[selected_id].duplicate(true)
+	return DetachmentCatalog.detachment_for(faction, selected_id)
 
 static func enabled(s: Dictionary) -> bool:
 	return s.get("roster_validation", {}).get("implementation", "") == ID and s.roster_validation.get("digest", "") == digest()
 
 static func dp_error(detachments: Array, allowance: int = 2) -> String:
-	if detachments.is_empty(): return "Select a detachment."
-	var seen: Array = []
-	var total := 0
-	for item: Variant in detachments:
-		if not item is Dictionary or not item.get("id") is String or not R.integer(item.get("dp"), 1, 3): return "Invalid detachment."
-		if item.id in seen: return "A detachment cannot be selected twice."
-		seen.append(item.id)
-		total += int(item.dp)
-	if total > allowance and not (allowance == 2 and detachments.size() == 1 and total == 3): return "Incursion allows 2 DP, or one 3DP detachment as the only detachment."
-	return ""
+	var category := "incursion" if allowance == 2 else ("strike_force" if allowance == 4 else "onslaught")
+	return DetachmentCatalog.dp_error(detachments, category)
+
+static func admit_current_catalog(selection: Variant, context: Dictionary = {}) -> Dictionary:
+	if not selection is Dictionary:
+		return {"error": "Current-catalog rosters require a canonical selection dictionary."}
+	return ArmyLegality.evaluate_selection(selection, context)
 
 static func inspect(list: Variant, detachment_id: String = "") -> Dictionary:
 	var error := R.validate(list)
@@ -191,21 +187,13 @@ static func enable(s: Dictionary, reports: Dictionary) -> void:
 	Registry.admit(s, "checked-incursion-rosters", ID)
 
 static func seal(s: Dictionary, player: int) -> String:
-	if not enabled(s): return ""
-	var model: int = s.unit_abilities.get("warlords", {}).get(player, -1)
-	if not s.units.has(model) or s.units[model].owner != player or "CHARACTER" not in str(s.units[model].keywords).to_upper(): return "Declare a friendly faction Character as Warlord before completing the checked roster."
-	if str(s.units[model].get("definition_id", "")).get_slice(":", 3) == "murderfang": return "Murderfang cannot be selected as your Warlord."
-	if UnitAbilities.cannot_be_warlord(s, model): return "This model cannot be selected as your Warlord."
-	for unit: Dictionary in s.units.values():
-		if unit.owner == player and str(unit.get("definition_id", "")).get_slice(":", 3) == "the-silent-king" and str(s.units[model].get("definition_id", "")).get_slice(":", 3) != "the-silent-king":
-			return "The Silent King (SUPREME COMMANDER) must be your Warlord."
-	var calgar_in_army := false
-	for unit: Dictionary in s.units.values():
-		if unit.owner == player and str(unit.get("definition_id", "")).get_slice(":", 3) == "marneus-calgar": calgar_in_army = true
-	for unit: Dictionary in s.units.values():
-		if unit.owner == player and Supports.is_support_identity(str(unit.get("definition_id", "")).get_slice(":", 3), calgar_in_army) and unit.get("attachment_role", "") != "support": return "Every Support must be attached to a legal bodyguard."
-	s.roster_validation.armies[player].formations_verified = true
-	s.roster_validation.armies[player].warlord = model
+	if not enabled(s) and not bool(s.get("enforce_full_legality", false)): return ""
+	var seal_result := ArmyLegality.seal_formations(s, player, {"require_occupied_dedicated_transports": bool(s.get("enforce_full_legality", false))})
+	if not bool(seal_result.get("ok", false)):
+		return str(seal_result.get("errors", ["Formation validation failed."])[0])
+	if enabled(s):
+		s.roster_validation.armies[player].formations_verified = true
+		s.roster_validation.armies[player].warlord = int(seal_result.get("warlord", -1))
 	return ""
 
 static func summary(s: Dictionary) -> String:

@@ -94,10 +94,15 @@ static func training(state: Dictionary) -> bool:
 static func score_round(state: Dictionary) -> String:
 	if not training(state) or state.round in state.mission.scored_rounds: return ""
 	var gained := {1: 0, 2: 0}
+	var scored_objectives: Array[Dictionary] = []
 	for objective: Dictionary in state.mission.objectives:
-		if objective.controller != 0: gained[objective.controller] += state.mission.points_per_objective
+		if objective.controller != 0:
+			gained[objective.controller] += state.mission.points_per_objective
+			scored_objectives.append({"name": str(objective.get("name", "Objective")), "owner": int(objective.controller), "points": int(state.mission.points_per_objective)})
 	for player in [1, 2]: state.mission.scores[player] += gained[player]
 	state.mission.scored_rounds.append(state.round)
+	if not state.mission.has("round_receipts"): state.mission.round_receipts = []
+	state.mission.round_receipts.append({"round": int(state.round), "gained": gained.duplicate(), "totals": state.mission.scores.duplicate(), "objectives": scored_objectives})
 	var message := "Training round %d: +%d / +%d VP; total %d / %d." % [state.round, gained[1], gained[2], state.mission.scores[1], state.mission.scores[2]]
 	if state.round >= state.mission.rounds:
 		state.test_winner = 1 if state.mission.scores[1] > state.mission.scores[2] else 2 if state.mission.scores[2] > state.mission.scores[1] else -1

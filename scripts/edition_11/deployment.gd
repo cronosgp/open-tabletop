@@ -114,6 +114,22 @@ static func preset(state: Dictionary, player: int, revision: int) -> String:
 	_event(state, "Player %d accepted the current unit's preview positions." % player)
 	return ""
 
+static func suggested_error(state: Dictionary, player: int, revision: int) -> String:
+	var candidate := state.duplicate(true)
+	var error := preset(candidate, player, revision)
+	if not error.is_empty(): return error
+	return confirm_error(candidate)
+
+static func deploy_suggested(state: Dictionary, player: int, revision: int) -> String:
+	var candidate := state.duplicate(true)
+	var error := preset(candidate, player, revision)
+	if not error.is_empty(): return error
+	error = confirm_error(candidate)
+	if not error.is_empty(): return error
+	error = preset(state, player, revision)
+	if not error.is_empty(): return error
+	return confirm(state, player, state.revision)
+
 static func confirm_error(state: Dictionary) -> String:
 	var squad := current(state)
 	if squad < 0: return "No deployment is pending."

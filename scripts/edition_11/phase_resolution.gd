@@ -19,6 +19,7 @@ const VowedTarget = preload("res://scripts/edition_11/vowed_target.gd")
 const TemplarVows = preload("res://scripts/edition_11/templar_vows.gd")
 const PhaseProgression = preload("res://scripts/edition_11/phase_progression.gd")
 const PhaseCloseGate = preload("res://scripts/edition_11/phase_close_gate.gd")
+const PhaseEligibility = preload("res://scripts/edition_11/phase_eligibility.gd")
 const Reanimation = preload("res://scripts/edition_11/reanimation_protocols.gd")
 const Reivers = preload("res://scripts/edition_11/reivers.gd")
 const Asmodai = preload("res://scripts/edition_11/asmodai.gd")
@@ -34,6 +35,20 @@ const TrazynTheInfinite = preload("res://scripts/edition_11/trazyn_the_infinite.
 
 ## The facade supplies journal/fight hooks to keep this coordinator below it in the dependency graph.
 static func advance_after_admission(state: Dictionary, roller: Callable, hooks: Dictionary) -> String:
+	var emit_event: Callable = hooks.get("event", Callable())
+	var error := _advance_once(state, roller, hooks)
+	if not error.is_empty(): return error
+	for _step in range(2):
+		var skip_check := PhaseEligibility.can_auto_skip(state, hooks)
+		if not bool(skip_check.get("skip", false)):
+			break
+		if emit_event.is_valid():
+			emit_event.call(state, str(skip_check.get("reason", "Phase skipped.")))
+		error = _advance_once(state, roller, hooks)
+		if not error.is_empty(): return error
+	return ""
+
+static func _advance_once(state: Dictionary, roller: Callable, hooks: Dictionary) -> String:
 	var progression_error := PhaseCloseGate.progression_error(state)
 	if not progression_error.is_empty(): return progression_error
 	var emit_event: Callable = hooks.get("event", Callable())
