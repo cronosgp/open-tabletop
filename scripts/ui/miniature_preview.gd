@@ -52,14 +52,14 @@ func _ready() -> void:
 		var button := Button.new()
 		button.text = "↶" if direction == -1 else "↷"
 		button.tooltip_text = "Rotate left" if direction == -1 else "Rotate right"
-		button.custom_minimum_size = Vector2(40, 36)
+		button.custom_minimum_size = Vector2(36, 30)
 		button.pressed.connect(func(): scene.rotate_y(direction * PI / 6))
 		rotate.add_child(button)
 	var tools := rotate
 	for action in ["Zoom −", "Fit", "Zoom +"]:
 		var button := Button.new()
 		button.text = action.replace("Zoom ", "")
-		button.custom_minimum_size = Vector2(40, 36)
+		button.custom_minimum_size = Vector2(36, 30)
 		button.tooltip_text = action + " · adjusts the preview camera only."
 		button.pressed.connect(func():
 			if action == "Fit":

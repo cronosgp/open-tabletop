@@ -9,7 +9,9 @@ const BLUE := Color(0.25, 0.65, 1.0, 0.9)
 const ORANGE := Color(1.0, 0.6, 0.18, 0.9)
 const RED := Color(1.0, 0.25, 0.3, 0.9)
 const WHITE := Color(1.0, 0.95, 0.7, 1.0)
+const RING_SEGMENTS := 64
 var board := PackedVector2Array()
+var _board_half := Vector2.ZERO
 var static_mesh := ImmediateMesh.new()
 var hover_mesh := ImmediateMesh.new()
 var material := StandardMaterial3D.new()
@@ -43,23 +45,60 @@ func _polygon(mesh: ImmediateMesh, points: PackedVector2Array, color: Color, hei
 			mesh.surface_add_vertex(Vector3(clipped[index].x, height, clipped[index].y))
 			if mesh == static_mesh: static_vertices += 1
 
+func _emit_tri(mesh: ImmediateMesh, a: Vector2, b: Vector2, c: Vector2, color: Color, height: float) -> void:
+	mesh.surface_set_color(color)
+	mesh.surface_set_normal(Vector3.UP)
+	mesh.surface_add_vertex(Vector3(a.x, height, a.y))
+	mesh.surface_add_vertex(Vector3(b.x, height, b.y))
+	mesh.surface_add_vertex(Vector3(c.x, height, c.y))
+	if mesh == static_mesh: static_vertices += 3
+
+func _inside_board(point: Vector2) -> bool:
+	return absf(point.x) <= _board_half.x and absf(point.y) <= _board_half.y
+
 func _disk(mesh: ImmediateMesh, center: Vector2, radius: float, color: Color, height: float = 0.045) -> void:
 	if radius <= 0.001: return
+	if absf(center.x) + radius <= _board_half.x and absf(center.y) + radius <= _board_half.y:
+		var prev := center + Vector2(radius, 0.0)
+		for index in range(1, RING_SEGMENTS + 1):
+			var next := center + Vector2.from_angle(index * TAU / float(RING_SEGMENTS)) * radius
+			_emit_tri(mesh, center, prev, next, color, height)
+			prev = next
+		return
 	var points := PackedVector2Array()
-	for index in range(96): points.append(center + Vector2.from_angle(index * TAU / 96.0) * radius)
+	for index in range(RING_SEGMENTS): points.append(center + Vector2.from_angle(index * TAU / float(RING_SEGMENTS)) * radius)
 	_polygon(mesh, points, color, height)
 
 func _ring(mesh: ImmediateMesh, center: Vector2, radius: float, color: Color, width: float = 0.06, height: float = 0.06) -> void:
 	if radius <= 0.001: return
-	for index in range(96):
-		var a := Vector2.from_angle(index * TAU / 96.0)
-		var b := Vector2.from_angle((index + 1) * TAU / 96.0)
-		_polygon(mesh, PackedVector2Array([center + a * radius, center + b * radius, center + b * maxf(0.0, radius - width), center + a * maxf(0.0, radius - width)]), color, height)
+	var inner := maxf(0.0, radius - width)
+	for index in range(RING_SEGMENTS):
+		var a := Vector2.from_angle(index * TAU / float(RING_SEGMENTS))
+		var b := Vector2.from_angle((index + 1) * TAU / float(RING_SEGMENTS))
+		var p0 := center + a * radius
+		var p1 := center + b * radius
+		var p2 := center + b * inner
+		var p3 := center + a * inner
+		if _inside_board(p0) and _inside_board(p1) and _inside_board(p2) and _inside_board(p3):
+			_emit_tri(mesh, p0, p1, p2, color, height)
+			_emit_tri(mesh, p0, p2, p3, color, height)
+			continue
+		if (p0.x < -_board_half.x and p1.x < -_board_half.x and p2.x < -_board_half.x and p3.x < -_board_half.x) or (p0.x > _board_half.x and p1.x > _board_half.x and p2.x > _board_half.x and p3.x > _board_half.x) or (p0.y < -_board_half.y and p1.y < -_board_half.y and p2.y < -_board_half.y and p3.y < -_board_half.y) or (p0.y > _board_half.y and p1.y > _board_half.y and p2.y > _board_half.y and p3.y > _board_half.y):
+			continue
+		_polygon(mesh, PackedVector2Array([p0, p1, p2, p3]), color, height)
 
 func _line(mesh: ImmediateMesh, first: Vector2, second: Vector2, color: Color, width: float = 0.055, height: float = 0.07) -> void:
 	if first.distance_to(second) < 0.001: return
 	var normal := (second - first).normalized().orthogonal() * width / 2.0
-	_polygon(mesh, PackedVector2Array([first + normal, second + normal, second - normal, first - normal]), color, height)
+	var p0 := first + normal
+	var p1 := second + normal
+	var p2 := second - normal
+	var p3 := first - normal
+	if _inside_board(p0) and _inside_board(p1) and _inside_board(p2) and _inside_board(p3):
+		_emit_tri(mesh, p0, p1, p2, color, height)
+		_emit_tri(mesh, p0, p2, p3, color, height)
+		return
+	_polygon(mesh, PackedVector2Array([p0, p1, p2, p3]), color, height)
 
 func _range(center: Vector2, distance: float, color: Color) -> void:
 	var fill := color
@@ -69,6 +108,7 @@ func _range(center: Vector2, distance: float, color: Color) -> void:
 
 func _set_board(state: Dictionary) -> void:
 	var half := Rules.half_board(state)
+	_board_half = half
 	board = PackedVector2Array([Vector2(-half.x, -half.y), Vector2(half.x, -half.y), half, Vector2(-half.x, half.y)])
 
 func rebuild(state: Dictionary, selected: int, combat: bool, player: int) -> void:
@@ -296,9 +336,13 @@ func preview(state: Dictionary, selected: int, combat: bool, player: int, destin
 		movement_distance = Combat.Terrain.movement_distance(unit.position, movement_current_elevation, destination, movement_target_elevation, movement_ignores_vertical)
 	hover_caption = "%.2f inches required: %s" % [movement_distance, "valid movement segment" if hover_valid else hover_error]
 	if combat and hover_valid:
-		var projected: Dictionary = state.duplicate(true)
-		projected.units[selected].position = destination
-		projected.units[selected].elevation = movement_target_elevation
+		var projected := state.duplicate(false)
+		var projected_units: Dictionary = state.units.duplicate(false)
+		var projected_unit: Dictionary = unit.duplicate(false)
+		projected_unit["position"] = destination
+		projected_unit["elevation"] = movement_target_elevation
+		projected_units[selected] = projected_unit
+		projected["units"] = projected_units
 		if not Contact.coherent(projected, unit.squad):
 			tint = ORANGE
 			hover_caption += " — squad will need repositioning before confirmation"

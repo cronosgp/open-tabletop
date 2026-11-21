@@ -3,6 +3,7 @@ const DetachmentStratagems = preload("res://scripts/edition_11/detachment_strata
 ## Current fixed-loadout construction checks; never full match certification.
 const Supports = preload("res://scripts/edition_11/support_attachments.gd")
 const CurrentMarines = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
+const CurrentOrks = preload("res://scripts/edition_11/current_reference_orks_profiles.gd")
 const A = preload("res://scripts/edition_11/army_capabilities.gd")
 const R = preload("res://scripts/army_roster.gd")
 const Registry = preload("res://scripts/edition_11/capabilities.gd")
@@ -13,7 +14,8 @@ const CHECKED_MAX_SQUADS := 12
 const SOURCES := {"Space Marines": {"url": "https://mfm.warhammer-community.com/en/space-marines", "version": "1.6", "sha256": "af280e710928f49d6c22775ae48fa9a5fe78de7560cf2c6712eb6d48a885c5e5"}, "Necrons": {"url": "https://mfm.warhammer-community.com/en/necrons", "version": "1.6", "sha256": "8ff758aedca89d8ea98c3912048b572b8d6ae2a5f66477a811973b91e505ee94"}}
 const DETACHMENTS := {
 	"Space Marines": {"id": "gladius-task-force", "name": "Gladius Task Force", "dp": 3, "force_dispositions": ["priority-assets", "take-and-hold"]},
-	"Necrons": {"id": "awakened-dynasty", "name": "Awakened Dynasty", "dp": 3, "force_dispositions": ["take-and-hold", "priority-assets"]}
+	"Necrons": {"id": "awakened-dynasty", "name": "Awakened Dynasty", "dp": 3, "force_dispositions": ["take-and-hold", "priority-assets"]},
+	"Orks": {"id": "war-horde", "name": "War Horde", "dp": 3, "force_dispositions": ["take-and-hold", "priority-assets"]}
 }
 const DETACHMENT_PROFILES := {
 	"fist-of-the-god-emperor": {"id": "fist-of-the-god-emperor", "name": "Fist of the God-Emperor", "dp": 1, "force_dispositions": ["take-and-hold"]},
@@ -48,6 +50,7 @@ static var POINTS: Dictionary = _build_points()
 static func _build_points() -> Dictionary:
 	var result := CAPTURED_REFERENCE_POINTS.duplicate(true)
 	var profiles: Dictionary = CurrentMarines.catalog()
+	profiles.merge(CurrentOrks.catalog(), false)
 	for slug: String in profiles:
 		var profile: Dictionary = profiles[slug]
 		if not A.SPECS.get(slug, {}).get("current_reference", false) or not profile.has("points"): continue
@@ -117,7 +120,7 @@ static func inspect(list: Variant, detachment_id: String = "") -> Dictionary:
 static func admit(selection: Variant, detachment_id: String = "") -> Dictionary:
 	if not selection is Dictionary or selection.size() != 5 or selection.get("schema_version") != 2: return {"error": "Checked rosters require canonical mixed-list selections."}
 	if selection.get("category") != "incursion" or not R.integer(selection.get("points_limit"), 1000, 1000): return {"error": "Checked rosters currently support 1000-point Incursion only."}
-	if selection.get("faction") not in DETACHMENTS: return {"error": "Checked rosters support Space Marines and Necrons only."}
+	if selection.get("faction") not in DETACHMENTS: return {"error": "Checked rosters support Space Marines, Necrons, and Orks only."}
 	var detachment := detachment_for(str(selection.faction), detachment_id)
 	if detachment.is_empty(): return {"error": "Checked rosters do not support the selected %s detachment." % str(selection.faction)}
 	# Validate and canonicalize known fixed profiles without using historical prices.

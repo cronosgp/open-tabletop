@@ -261,6 +261,19 @@ static func translocation_shroud_active(state: Dictionary, model_id: int) -> boo
 	var AbilityCatalog = load("res://scripts/edition_11/unit_ability_catalog.gd")
 	return AbilityCatalog.has(state, squad, "translocation-shroud")
 
+static func super_heavy_walker_active(state: Dictionary, model_id: int, move_type_override: String = "") -> bool:
+	if not state.get("units", {}).has(model_id): return false
+	var model: Dictionary = state.units[model_id]
+	var squad := int(model.get("squad", -1))
+	var move_type := move_type_override
+	if move_type.is_empty():
+		var pending_move: Dictionary = state.get("pending_move", {})
+		if int(pending_move.get("squad", -1)) != squad: return false
+		move_type = str(pending_move.get("move_type", ""))
+	if move_type not in ["normal", "advance", "ordered_retreat", "desperate_escape"]: return false
+	var AbilityCatalog = load("res://scripts/edition_11/unit_ability_catalog.gd")
+	return AbilityCatalog.has(state, squad, "super-heavy-walker")
+
 static func ignores_vertical_movement(state: Dictionary, model_id: int) -> bool:
 	if not state.get("units", {}).has(model_id): return false
 	var model: Dictionary = state.units[model_id]
@@ -297,9 +310,11 @@ static func movement_obstacles(state: Dictionary, model: int) -> Array[Rect2]:
 	var blocked: Array[Rect2] = []
 	if take_to_skies_active(state, model): return blocked
 	if translocation_shroud_active(state, model): return blocked
+	var super_heavy := super_heavy_walker_active(state, model)
 	var passes_dense := has_keyword(state.units[model], ["infantry", "beasts", "swarm"]) or mobile_unit(state, model)
 	for area: Dictionary in areas(state):
 		for feature: Dictionary in area.features:
+			if super_heavy and float(feature.height) <= 4.0 + EPSILON: continue
 			if area.category == "legacy" or (area.category == "dense" and not passes_dense and float(feature.height) > 2.0): blocked.append(feature.bounds)
 	return blocked
 

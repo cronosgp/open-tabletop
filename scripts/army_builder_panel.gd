@@ -20,6 +20,16 @@ var catalog_region: VBoxContainer
 var roster_region: VBoxContainer
 var inspector_region: VBoxContainer
 var compact_navigation: OptionButton
+var compact_nav_bar: HBoxContainer
+var compact_nav_buttons: Array[Button] = []
+var left_pane_bar: HBoxContainer
+var left_roster_tab: Button
+var left_catalog_tab: Button
+var left_pane_mode := 1
+var profile_create_row: HBoxContainer
+var unit_preview_column: VBoxContainer
+var unit_details_scroll: ScrollContainer
+var unit_details_column: VBoxContainer
 var points_meter: ProgressBar
 var roster_empty: Label
 var library_workspace: HBoxContainer
@@ -226,57 +236,69 @@ func _ready() -> void:
 	add_child(source)
 	draft = Roster.new_list("11e", "")
 	overview = VBoxContainer.new()
-	overview.add_theme_constant_override("separation", 7)
+	overview.add_theme_constant_override("separation", 8)
 	add_child(overview)
 	build_parent = overview
-	var page_heading := label("ARMY LIBRARY")
-	page_heading.add_theme_font_size_override("font_size", 22)
+	var library_top_row := row()
+	library_top_row.add_theme_constant_override("separation", 8)
+	var page_heading := label("ARMY LIBRARY", library_top_row)
+	page_heading.add_theme_font_size_override("font_size", 20)
 	page_heading.add_theme_color_override("font_color", Color("e8bc62"))
 	page_heading.tooltip_text = "Saved lists and local miniature appearances. List checks do not establish full army legality."
-	library_notice = label("")
-	var profile_row := row()
+	var profile_label := Label.new()
+	profile_label.text = "Profile:"
+	profile_label.add_theme_font_size_override("font_size", 14)
+	profile_label.add_theme_color_override("font_color", WorkspaceTheme.MUTED)
+	library_top_row.add_child(profile_label)
 	profile_picker = OptionButton.new()
-	profile_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	profile_row.add_child(profile_picker)
+	profile_picker.custom_minimum_size.x = 180
+	profile_picker.tooltip_text = "Switch local player profile."
+	library_top_row.add_child(profile_picker)
 	profile_picker.item_selected.connect(_select_profile)
-	var create_profile_row := row()
+	var toggle_profile_btn := button("+ Profile", func():
+		profile_create_row.visible = not profile_create_row.visible
+		if profile_create_row.visible: profile_name.grab_focus()
+	, library_top_row)
+	toggle_profile_btn.tooltip_text = "Create a new local profile."
+	library_notice = label("")
+	library_notice.visible = false
+	profile_create_row = row()
+	profile_create_row.visible = false
 	profile_name = LineEdit.new()
 	profile_name.placeholder_text = "New profile name"
 	profile_name.max_length = 80
 	profile_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	profile_name.custom_minimum_size.x = 180
-	create_profile_row.add_child(profile_name)
-	button("Create profile", _create_profile, create_profile_row)
+	profile_create_row.add_child(profile_name)
+	button("Create profile", _create_profile, profile_create_row)
+	var library_actions := row()
+	var new_army_btn := button("New army", func(): _request_editor_action(_new_empty), library_actions)
+	WorkspaceTheme.apply_primary(new_army_btn)
+	button("Edit selected", _edit_saved_list, library_actions)
+	button("Duplicate", _duplicate_saved_list, library_actions)
+	button("Delete…", _ask_delete, library_actions)
+	resume_draft_button = button("Resume unsaved draft", _resume_draft, overview)
+	resume_draft_button.visible = false
 	saved_lists_view = ItemList.new()
-	saved_lists_view.custom_minimum_size.y = 90
+	saved_lists_view.custom_minimum_size.y = 140
+	saved_lists_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	saved_lists_view.item_selected.connect(_select_saved_list)
 	overview.add_child(saved_lists_view)
-	var detail_scroll := ScrollContainer.new()
-	detail_scroll.custom_minimum_size.y = 44
-	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	overview.add_child(detail_scroll)
 	saved_list_detail = Label.new()
 	saved_list_detail.text = "Select an army to inspect its roster and saved points."
 	saved_list_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	saved_list_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	detail_scroll.add_child(saved_list_detail)
+	saved_list_detail.add_theme_font_size_override("font_size", 14)
+	saved_list_detail.add_theme_color_override("font_color", WorkspaceTheme.MUTED)
+	overview.add_child(saved_list_detail)
 	saved_roster = ItemList.new()
-	saved_roster.custom_minimum_size.y = 180
+	saved_roster.custom_minimum_size.y = 160
+	saved_roster.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	overview.add_child(saved_roster)
 	saved_roster.item_selected.connect(func(index: int):
 		var list := _find_saved_list(selected_saved_id)
 		if not list.is_empty() and index < list.entries.size(): _preview_entry(list.entries[index])
 	)
-	var library_actions := HBoxContainer.new()
-	overview.add_child(library_actions)
-	overview.move_child(library_actions, profile_row.get_index() + 1)
-	button("New army", func(): _request_editor_action(_new_empty), library_actions)
-	button("Edit selected", _edit_saved_list, library_actions)
-	button("Duplicate", _duplicate_saved_list, library_actions)
-	button("Delete…", _ask_delete, library_actions)
-	resume_draft_button = button("Resume unsaved draft", _resume_draft, overview)
-	overview.move_child(resume_draft_button, library_actions.get_index() + 1)
-	resume_draft_button.visible = false
 	library_notice.text = ""
 	editor = VBoxContainer.new()
 	editor.add_theme_constant_override("separation", 8)
@@ -371,15 +393,17 @@ func _ready() -> void:
 	entry_models_input.min_value = 0
 	entry_models_input.max_value = 1000
 	entry_models_input.step = 1
-	entry_models_input.prefix = "Models "
+	entry_models_input.prefix = "Squad size "
+	entry_models_input.tooltip_text = "Number of models in each unit copy. Click Apply to update roster size and points."
 	entry_models_input.custom_minimum_size.x = 150
 	entry_edits.add_child(entry_models_input)
 	entry_copies_input = SpinBox.new()
 	entry_copies_input.min_value = 1
 	entry_copies_input.max_value = 20
 	entry_copies_input.step = 1
-	entry_copies_input.prefix = "Units "
-	entry_copies_input.custom_minimum_size.x = 130
+	entry_copies_input.prefix = "Copies "
+	entry_copies_input.tooltip_text = "Number of unit copies in the roster. Click Apply to update."
+	entry_copies_input.custom_minimum_size.x = 120
 	entry_edits.add_child(entry_copies_input)
 	button("Apply unit size", _apply_entry_size, entry_edits)
 	enhancement_picker = OptionButton.new()
@@ -516,31 +540,55 @@ func _ready() -> void:
 
 func _organize_workshop() -> void:
 	# Reuse every existing control and callback. Only presentation ownership changes.
-	theme = WorkspaceTheme.create()
+	var workshop_theme := WorkspaceTheme.create()
+	workshop_theme.set_constant("separation", "VBoxContainer", 8)
+	workshop_theme.set_constant("separation", "HBoxContainer", 8)
+	var compact_btn := WorkspaceTheme.box(WorkspaceTheme.ELEVATED, WorkspaceTheme.BORDER, 12, 1, 2, 7)
+	var compact_btn_hover := WorkspaceTheme.box(WorkspaceTheme.HOVER, WorkspaceTheme.GOLD_HIGHLIGHT, 12, 1, 2, 7)
+	var compact_btn_pressed := WorkspaceTheme.box(WorkspaceTheme.HOVER.darkened(0.08), WorkspaceTheme.GOLD, 12, 2, 2, 7)
+	var compact_btn_disabled := WorkspaceTheme.box(WorkspaceTheme.BASE, WorkspaceTheme.BORDER, 12, 1, 2, 7)
+	for control_type in ["Button", "OptionButton", "MenuButton"]:
+		workshop_theme.set_stylebox("normal", control_type, compact_btn)
+		workshop_theme.set_stylebox("hover", control_type, compact_btn_hover)
+		workshop_theme.set_stylebox("pressed", control_type, compact_btn_pressed)
+		workshop_theme.set_stylebox("disabled", control_type, compact_btn_disabled)
+	workshop_theme.set_stylebox("panel", "PanelContainer", WorkspaceTheme.box(WorkspaceTheme.SURFACE, WorkspaceTheme.BORDER, 8, 1, 2))
+	workshop_theme.set_stylebox("panel", "TabContainer", WorkspaceTheme.box(WorkspaceTheme.SURFACE, WorkspaceTheme.BORDER, 8, 1, 2))
+	theme = workshop_theme
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	editor.add_theme_constant_override("separation", 6)
 	library_workspace = HBoxContainer.new()
 	library_workspace.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	library_workspace.add_theme_constant_override("separation", 12)
 	add_child(library_workspace)
 	overview.reparent(library_workspace)
 	overview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	overview.size_flags_stretch_ratio = 1.45
 	library_preview = VBoxContainer.new()
-	library_preview.custom_minimum_size.x = 300
+	library_preview.custom_minimum_size.x = 340
+	library_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	library_preview.size_flags_stretch_ratio = 1.0
 	library_workspace.add_child(library_preview)
-	saved_lists_view.custom_minimum_size.y = 200
+	saved_lists_view.custom_minimum_size.y = 180
 	saved_lists_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var original := editor.get_children()
 	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 10)
 	editor.add_child(header)
 	var identity := VBoxContainer.new()
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity.size_flags_stretch_ratio = 0.9
 	header.add_child(identity)
 	name_input.reparent(identity)
 	var budget := VBoxContainer.new()
 	budget.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	budget.size_flags_stretch_ratio = 1.2
+	budget.add_theme_constant_override("separation", 4)
 	header.add_child(budget)
 	summary_label.reparent(budget)
+	summary_label.add_theme_font_size_override("font_size", 14)
 	points_meter = ProgressBar.new()
 	points_meter.custom_minimum_size.y = 5
 	points_meter.show_percentage = false
@@ -553,22 +601,57 @@ func _organize_workshop() -> void:
 	compact_navigation.visible = false
 	editor.add_child(compact_navigation)
 	compact_navigation.item_selected.connect(func(_index: int): _layout_workspace())
+	compact_nav_bar = HBoxContainer.new()
+	compact_nav_bar.visible = false
+	editor.add_child(compact_nav_bar)
+	compact_nav_buttons.clear()
+	var compact_titles := ["Catalog", "Roster", "Inspector"]
+	for nav_index in range(compact_titles.size()):
+		var nav_btn := Button.new()
+		nav_btn.text = compact_titles[nav_index]
+		nav_btn.toggle_mode = true
+		nav_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		nav_btn.custom_minimum_size.y = 32
+		nav_btn.pressed.connect(func():
+			compact_navigation.select(nav_index)
+			_layout_workspace()
+		)
+		compact_nav_bar.add_child(nav_btn)
+		compact_nav_buttons.append(nav_btn)
+	left_pane_bar = HBoxContainer.new()
+	left_pane_bar.visible = false
+	left_roster_tab = Button.new()
+	left_roster_tab.text = "Current roster"
+	left_roster_tab.toggle_mode = true
+	left_roster_tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_roster_tab.custom_minimum_size.y = 32
+	left_roster_tab.pressed.connect(func(): _set_left_pane_mode(1))
+	left_pane_bar.add_child(left_roster_tab)
+	left_catalog_tab = Button.new()
+	left_catalog_tab.text = "+ Add units"
+	left_catalog_tab.toggle_mode = true
+	left_catalog_tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_catalog_tab.custom_minimum_size.y = 32
+	left_catalog_tab.pressed.connect(func(): _set_left_pane_mode(0))
+	left_pane_bar.add_child(left_catalog_tab)
 	workspace_columns = HBoxContainer.new()
 	workspace_columns.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	workspace_columns.add_theme_constant_override("separation", 10)
 	editor.add_child(workspace_columns)
-	catalog_region = _workspace_region("UNIT CATALOG", 1.0)
-	roster_region = _workspace_region("CURRENT ROSTER", 1.0)
-	inspector_region = _workspace_region("UNIT INSPECTOR", 1.25)
+	catalog_region = _workspace_region("UNIT CATALOG", 0.9)
+	roster_region = _workspace_region("CURRENT ROSTER", 0.9)
+	inspector_region = _workspace_region("UNIT INSPECTOR", 1.45)
 	miniature_preview = preload("res://scripts/ui/miniature_preview.gd").new()
 	inspector_region.add_child(miniature_preview)
-	miniature_preview.surface.custom_minimum_size.y = 240
-	miniature_preview.caption.add_theme_font_size_override("font_size", 13)
+	miniature_preview.custom_minimum_size.x = 236
+	miniature_preview.surface.custom_minimum_size = Vector2(236, 188)
+	miniature_preview.caption.add_theme_font_size_override("font_size", 12)
 	preview_model_input = SpinBox.new()
-	preview_model_input.prefix = "Model "
+	preview_model_input.prefix = "Inspect #"
 	preview_model_input.min_value = 1
 	preview_model_input.max_value = 1
 	preview_model_input.step = 1
-	preview_model_input.tooltip_text = "Choose a miniature in the selected unit copy. Preview only; does not change equipment, appearances or points."
+	preview_model_input.tooltip_text = "Choose which miniature in this unit copy to preview (1 = Sergeant/leader). Preview only; does not change squad size, equipment or points."
 	inspector_region.add_child(preview_model_input)
 	preview_model_input.value_changed.connect(func(value: float):
 		if preview_entry.is_empty(): return
@@ -583,16 +666,54 @@ func _organize_workshop() -> void:
 	editor_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	inspector_region.add_child(editor_tabs)
 	var pages := {}
-	for title in ["Unit", "Add", "Appearance", "Army"]:
-		var scroll := ScrollContainer.new()
-		scroll.name = title
-		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		scroll.custom_minimum_size.y = 120
-		editor_tabs.add_child(scroll)
-		var page := VBoxContainer.new()
-		page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		scroll.add_child(page)
-		pages[title] = page
+	# Unit tab: pinned 3D preview on the left, scrollable size & equipment on the right.
+	var unit_workspace := HBoxContainer.new()
+	unit_workspace.name = "Unit"
+	unit_workspace.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	unit_workspace.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	unit_workspace.add_theme_constant_override("separation", 12)
+	editor_tabs.add_child(unit_workspace)
+	unit_preview_column = VBoxContainer.new()
+	unit_preview_column.custom_minimum_size.x = 242
+	unit_preview_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	unit_workspace.add_child(unit_preview_column)
+	unit_details_scroll = ScrollContainer.new()
+	unit_details_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	unit_details_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	unit_details_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	unit_workspace.add_child(unit_details_scroll)
+	unit_details_column = VBoxContainer.new()
+	unit_details_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	unit_details_scroll.add_child(unit_details_column)
+	pages["Unit"] = unit_details_column
+	# Add tab: scrollable candidate preview + options.
+	var add_scroll := ScrollContainer.new()
+	add_scroll.name = "Add"
+	add_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_scroll.custom_minimum_size.y = 120
+	editor_tabs.add_child(add_scroll)
+	var add_page := VBoxContainer.new()
+	add_page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_scroll.add_child(add_page)
+	pages["Add"] = add_page
+	# Appearance tab: direct split container (no outer ScrollContainer!) so 3D preview stays pinned.
+	appearance_workspace = HBoxContainer.new()
+	appearance_workspace.name = "Appearance"
+	appearance_workspace.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	appearance_workspace.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	appearance_workspace.add_theme_constant_override("separation", 12)
+	editor_tabs.add_child(appearance_workspace)
+	pages["Appearance"] = appearance_workspace
+	# Army settings tab: scrollable.
+	var army_scroll := ScrollContainer.new()
+	army_scroll.name = "Army"
+	army_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	army_scroll.custom_minimum_size.y = 120
+	editor_tabs.add_child(army_scroll)
+	var army_page := VBoxContainer.new()
+	army_page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	army_scroll.add_child(army_page)
+	pages["Army"] = army_page
 	var formation_heading := label("BATTLE FORMATION", pages["Army"])
 	formation_heading.add_theme_font_size_override("font_size", 14)
 	formation_heading.add_theme_color_override("font_color", Color("d7b96d"))
@@ -631,29 +752,20 @@ func _organize_workshop() -> void:
 	leader_remove_button.pressed.connect(_remove_leader_assignment)
 	leader_assignment_status = label("Match rules verify each assignment.", pages["Army"])
 	leader_assignment_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	appearance_workspace = HBoxContainer.new()
-	appearance_workspace.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	appearance_workspace.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	appearance_workspace.add_theme_constant_override("separation", 14)
-	pages["Appearance"].add_child(appearance_workspace)
 	appearance_preview_column = VBoxContainer.new()
-	appearance_preview_column.custom_minimum_size.x = 232
-	appearance_preview_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	appearance_preview_column.custom_minimum_size.x = 242
 	appearance_preview_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	appearance_workspace.add_child(appearance_preview_column)
 	appearance_gallery_column = VBoxContainer.new()
 	appearance_gallery_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	appearance_gallery_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	appearance_workspace.add_child(appearance_gallery_column)
-	var appearance_preview_heading := label("LIVE MINIATURE PREVIEW", appearance_preview_column)
-	appearance_preview_heading.add_theme_font_size_override("font_size", 13)
-	appearance_preview_heading.add_theme_color_override("font_color", Color("d7b96d"))
-	miniature_preview.custom_minimum_size.x = 232
-	miniature_preview.surface.custom_minimum_size.x = 232
 	miniature_preview.reparent(appearance_preview_column)
 	preview_model_input.reparent(appearance_preview_column)
 	addition_panel = pages["Add"]
 	var destination := "Army"
+	var roster_actions_row := HBoxContainer.new()
+	roster_actions_row.add_theme_constant_override("separation", 6)
 	for control in original:
 		if control in [name_input, summary_label]: continue
 		if control == save_status:
@@ -664,6 +776,7 @@ func _organize_workshop() -> void:
 		if control is HBoxContainer and control.get_child_count() > 0 and control.get_child(0) is Button:
 			if control.get_child(0).text == "← Armies":
 				control.reparent(header)
+				header.move_child(control, 0)
 				control.get_child(1).hide()
 				continue
 			if control.get_child(0).text == "Save list":
@@ -673,9 +786,12 @@ func _organize_workshop() -> void:
 			control.reparent(editor)
 			control.max_lines_visible = 2
 			control.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			control.add_theme_font_size_override("font_size", 13)
+			control.add_theme_color_override("font_color", WorkspaceTheme.MUTED)
 			continue
 		if control == catalog_boundary:
 			control.reparent(editor)
+			control.add_theme_font_size_override("font_size", 13)
 			continue
 		if control == notes:
 			control.reparent(pages["Army"])
@@ -689,7 +805,11 @@ func _organize_workshop() -> void:
 		elif control == entries:
 			control.reparent(roster_region)
 		elif control is Button and control.text in ["Remove selected entry", "Recalculate costs from current catalog"]:
-			control.reparent(roster_region)
+			if control.text == "Remove selected entry": control.text = "Remove unit"
+			elif control.text == "Recalculate costs from current catalog": control.text = "Recalculate costs"
+			control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			control.custom_minimum_size.y = 34
+			control.reparent(roster_actions_row)
 		elif control is Button and control.text in ["Find / add units ↓", "Back to roster"]:
 			control.hide()
 			control.reparent(pages["Army"])
@@ -698,26 +818,64 @@ func _organize_workshop() -> void:
 			control.reparent(pages[destination])
 		else:
 			control.reparent(pages[destination])
-	for control in [visual_header, visual_notice, visual_copy_picker, visual_models, visual_download_button, automatic_appearance_toggle, palette_button, palette_notice, palette_prepare_button]:
-		if control != null: control.reparent(appearance_gallery_column)
-	visual_header.text = "LOCAL APPEARANCE"
-	visual_header.visible = true
+	roster_region.add_child(roster_actions_row)
+	# Organize Appearance tab cleanly: copy picker in preview column; gallery expands; secondary actions compact in one footer row.
+	if visual_copy_picker != null:
+		visual_copy_picker.reparent(appearance_preview_column)
+	if visual_header != null:
+		visual_header.hide()
+		visual_header.reparent(appearance_gallery_column)
+	if visual_notice != null:
+		visual_notice.hide()
+		visual_notice.reparent(appearance_gallery_column)
+	if visual_models != null:
+		visual_models.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		visual_models.reparent(appearance_gallery_column)
+	var appearance_footer := HBoxContainer.new()
+	appearance_footer.add_theme_constant_override("separation", 6)
+	appearance_gallery_column.add_child(appearance_footer)
+	if visual_download_button != null:
+		visual_download_button.text = "Prepare"
+		visual_download_button.custom_minimum_size.y = 32
+		visual_download_button.reparent(appearance_footer)
+	if palette_button != null:
+		palette_button.text = "Palette +"
+		palette_button.custom_minimum_size.y = 32
+		palette_button.reparent(appearance_footer)
+	if palette_prepare_button != null:
+		palette_prepare_button.hide()
+		palette_prepare_button.reparent(pages["Army"])
+	if palette_notice != null:
+		palette_notice.hide()
+		palette_notice.reparent(pages["Army"])
+	if automatic_appearance_toggle != null:
+		automatic_appearance_toggle.reparent(pages["Army"])
 	# Size controls are contextual and remain separate from add-copy controls.
 	var size_row := entry_models_input.get_parent()
 	unit_size_controls = VBoxContainer.new()
 	pages["Unit"].add_child(unit_size_controls)
 	var sizes := HBoxContainer.new()
+	sizes.add_theme_constant_override("separation", 6)
 	unit_size_controls.add_child(sizes)
 	for control in [entry_models_input, entry_copies_input]:
-		control.custom_minimum_size.x = 110
+		control.custom_minimum_size.x = 100
 		control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		control.reparent(sizes)
-	for control in size_row.get_children(): control.reparent(unit_size_controls)
+	for control in size_row.get_children():
+		if control is Button:
+			control.text = "Apply"
+			control.custom_minimum_size.y = 32
+		control.reparent(sizes)
 	size_row.queue_free()
 	appearance_button = button("Choose appearance", _open_entry_appearance, pages["Unit"])
-	import_button = button("Advanced model import…", func(): import_requested.emit(), appearance_gallery_column)
+	appearance_button.custom_minimum_size.y = 32
+	import_button = button("Import…", func(): import_requested.emit(), appearance_footer)
+	import_button.custom_minimum_size.y = 32
+	import_button.tooltip_text = "Open advanced miniature import and local model catalog."
 	roster_empty = label("Your roster is empty.
-Search the catalog, inspect a unit, then choose Add unit(s).", roster_region)
+Click + Add units to search the catalog and add units.", roster_region)
+	roster_empty.add_theme_font_size_override("font_size", 14)
+	roster_empty.add_theme_color_override("font_color", WorkspaceTheme.MUTED)
 	roster_region.move_child(roster_empty, 1)
 	entries.custom_minimum_size = Vector2(0, 130)
 	entries.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -763,6 +921,12 @@ Search the catalog, inspect a unit, then choose Add unit(s).", roster_region)
 	_update_inspector_mode()
 	_layout_workspace()
 
+func _set_left_pane_mode(mode_index: int) -> void:
+	left_pane_mode = clampi(mode_index, 0, 1)
+	if left_roster_tab != null: left_roster_tab.button_pressed = left_pane_mode == 1
+	if left_catalog_tab != null: left_catalog_tab.button_pressed = left_pane_mode == 0
+	_layout_workspace()
+
 func _workspace_region(title: String, ratio: float) -> VBoxContainer:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -770,19 +934,44 @@ func _workspace_region(title: String, ratio: float) -> VBoxContainer:
 	workspace_columns.add_child(panel)
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 6)
 	panel.add_child(column)
 	WorkspaceTheme.heading(column, title)
 	return column
 
 func _layout_workspace() -> void:
 	if workspace_columns == null: return
-	# The Appearance page needs room for a live preview and the two-column local
-	# gallery. Collapse the outer three-column workshop before their minimum
-	# widths force the inspector off-screen on common 1280px displays.
-	var compact := size.x < 1560
-	compact_navigation.visible = compact
-	for index in 3:
-		workspace_columns.get_child(index).visible = not compact or compact_navigation.selected == index
+	# Three responsive tiers:
+	#   >= 1560px: 3 columns (Catalog + Roster + Inspector)
+	#   1040..1559px (incl. 1280x800): 2 columns (Roster/Catalog switcher + Inspector always visible)
+	#   < 1040px: 1 column with segmented navigation bar
+	var wide := size.x >= 1560
+	var two_column := size.x >= 1040 and not wide
+	var narrow := size.x < 1040
+	compact_navigation.visible = narrow
+	if compact_nav_bar != null:
+		compact_nav_bar.visible = narrow
+		for index in range(compact_nav_buttons.size()):
+			compact_nav_buttons[index].button_pressed = compact_navigation.selected == index
+	if left_pane_bar != null:
+		left_pane_bar.visible = two_column
+		if two_column:
+			var target_region := roster_region if left_pane_mode == 1 else catalog_region
+			if left_pane_bar.get_parent() != target_region:
+				if left_pane_bar.get_parent() != null: left_pane_bar.reparent(target_region)
+				else: target_region.add_child(left_pane_bar)
+			target_region.move_child(left_pane_bar, 0)
+			left_roster_tab.button_pressed = left_pane_mode == 1
+			left_catalog_tab.button_pressed = left_pane_mode == 0
+	if wide:
+		for index in 3: workspace_columns.get_child(index).visible = true
+	elif two_column:
+		workspace_columns.get_child(0).visible = left_pane_mode == 0
+		workspace_columns.get_child(1).visible = left_pane_mode == 1
+		workspace_columns.get_child(2).visible = true
+	else:
+		for index in 3:
+			workspace_columns.get_child(index).visible = compact_navigation.selected == index
 
 func _preview_request_current(ticket: int) -> bool:
 	return is_inside_tree() and ticket == preview_generation
@@ -823,6 +1012,15 @@ func _inspector_tab_changed(index: int) -> void:
 		_preview_entry(preview_entry, preview_slot)
 	if index == 2: _render_visual_slots()
 
+func _equipment_variant_for_preview(role_unit: Dictionary, source_family: String) -> String:
+	if model_imports == null: return ""
+	var chosen: String = model_imports.equipment_variant_for(role_unit, source_family)
+	if not chosen.is_empty(): return chosen
+	if source_family.is_empty() and model_imports.has_method("ordered_equipment_visual_variants_for"):
+		var ordered: Array[String] = model_imports.ordered_equipment_visual_variants_for(role_unit, "", true)
+		if not ordered.is_empty(): return ordered[0]
+	return ""
+
 func _preview_entry(item: Dictionary, slot: int = 0) -> void:
 	preview_generation += 1
 	var ticket := preview_generation
@@ -854,6 +1052,7 @@ func _preview_entry(item: Dictionary, slot: int = 0) -> void:
 	var missing_variant := false
 	var role_variant_missing := false
 	var role_loadout_fallback := false
+	var manual_override_blocks_equipment := false
 	if model_imports != null:
 		var models := maxi(1, int(item.get("models", 1)))
 		var copy_index := floori(float(slot) / float(models))
@@ -866,41 +1065,90 @@ func _preview_entry(item: Dictionary, slot: int = 0) -> void:
 		var source_family: String = model_imports.visual_family_for(appearance_choice, str(item.get("unit_id", "")), appearance_index, appearance_choice.is_empty())
 		var role_choice := ""
 		var role_variant := ""
-		if str(item.get("unit_id", "")).ends_with(":intercessor-squad") and model_index == 0:
+		var unit_id := str(item.get("unit_id", ""))
+		var equipment_customized := false
+		if unit_id.ends_with(":intercessor-squad") and model_index == 0:
 			var loadout := Roster.intercessor_sergeant_loadout(item, copy_index)
-			var role_unit := {"definition_id": str(item.unit_id), "sergeant": true, "intercessor_rifle_choice": str(loadout.rifle_choice), "intercessor_melee_choice": str(loadout.melee_choice)}
+			var role_unit := {"definition_id": unit_id, "sergeant": true, "intercessor_rifle_choice": str(loadout.rifle_choice), "intercessor_melee_choice": str(loadout.melee_choice)}
 			role_choice = ForceOrgMatcher.intercessor_sergeant_visual_role(role_unit)
 			role_variant = model_imports.visual_role_variant_for(role_choice, source_family, appearance_choice.is_empty())
 			role_variant_missing = role_choice != ForceOrgMatcher.INTERCESSOR_SERGEANT_DEFAULT_ROLE and role_variant.is_empty()
 			role_loadout_fallback = role_choice == ForceOrgMatcher.INTERCESSOR_SERGEANT_DEFAULT_ROLE and (str(loadout.rifle_choice) != "bolt-rifle" or str(loadout.melee_choice) != "knives-and-fists")
-		elif str(item.get("unit_id", "")).ends_with(":hellblaster-squad") and model_index == 0:
+		elif unit_id.ends_with(":intercessor-squad") and model_index > 0:
+			var has_gl := bool(Roster.model_equipment(item, copy_index, model_index).get("intercessor_grenade_launcher", false))
+			if has_gl:
+				equipment_customized = true
+				var intercessor_profile := CurrentMarines.profile("intercessor-squad")
+				var ranged_weapons: Array = intercessor_profile.get("ranged", []).duplicate(true)
+				for extra: Variant in intercessor_profile.get("additional_weapon_profiles", {}).get("ranged", []):
+					if extra is Dictionary and "grenade" in str(extra.get("id", "")).to_lower():
+						ranged_weapons.append(extra.duplicate(true))
+				var role_unit := {"definition_id": unit_id, "sergeant": false, "ranged_weapons": ranged_weapons, "melee_weapons": intercessor_profile.get("melee", []).duplicate(true)}
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
+				if role_variant.is_empty():
+					role_variant = model_imports.visual_role_variant_for(ForceOrgMatcher.INTERCESSOR_GRENADIER_ROLE, source_family, appearance_choice.is_empty())
+				role_variant_missing = role_variant.is_empty()
+				role_loadout_fallback = role_variant_missing
+		elif unit_id.ends_with(":assault-intercessor-squad") and model_index == 0:
+			var equipment := Roster.model_equipment(item, copy_index, model_index)
+			var pistol_choice := str(equipment.get("assault_intercessor_sergeant_pistol", "heavy-bolt-pistol"))
+			var melee_choice := str(equipment.get("assault_intercessor_sergeant_melee", "chainsword"))
+			equipment_customized = pistol_choice != "heavy-bolt-pistol" or melee_choice != "chainsword"
+			var role_unit := {"definition_id": unit_id, "sergeant": true, "ranged_weapons": [CurrentMarines.assault_intercessor_sergeant_pistol(pistol_choice)], "melee_weapons": [CurrentMarines.assault_intercessor_sergeant_melee(melee_choice)]}
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
+			role_variant_missing = equipment_customized and role_variant.is_empty()
+			role_loadout_fallback = role_variant_missing
+		elif unit_id.ends_with(":heavy-intercessor-squad") and model_index > 0:
+			var equipped := bool(Roster.model_equipment(item, copy_index, model_index).get("heavy_intercessor_bolter", false))
+			equipment_customized = equipped
+			var profile := CurrentMarines.profile("heavy-intercessor-squad")
+			var ranged: Array = profile.get("ranged", []).duplicate(true)
+			if equipped:
+				var alternatives: Array = profile.get("additional_weapon_profiles", {}).get("ranged", [])
+				if alternatives.size() == 1 and str(alternatives[0].get("id", "")) == "heavy-bolter":
+					ranged = ranged.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) != "heavy-bolt-rifle")
+					ranged.append(alternatives[0].duplicate(true))
+			var role_unit := {"definition_id": unit_id, "sergeant": false, "ranged_weapons": ranged, "melee_weapons": profile.get("melee", []).duplicate(true)}
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
+			role_variant_missing = equipped and role_variant.is_empty()
+			role_loadout_fallback = role_variant_missing
+		elif unit_id.ends_with(":aggressor-squad"):
+			var boltstorm := bool(Roster.model_equipment(item, copy_index, model_index).get("aggressor_boltstorm", false))
+			equipment_customized = boltstorm
+			var profile := CurrentMarines.profile("aggressor-squad")
+			var ranged: Array = profile.get("additional_weapon_profiles", {}).get("ranged", []).duplicate(true) if boltstorm else profile.get("ranged", []).duplicate(true)
+			var role_unit := {"definition_id": unit_id, "sergeant": model_index == 0, "ranged_weapons": ranged, "melee_weapons": profile.get("melee", []).duplicate(true)}
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
+			role_variant_missing = boltstorm and role_variant.is_empty()
+			role_loadout_fallback = role_variant_missing
+		elif unit_id.ends_with(":hellblaster-squad") and model_index == 0:
 			var pistol_choice := str(Roster.model_equipment(item, copy_index, model_index).get("hellblaster_sergeant_pistol", "bolt-pistol"))
 			var hellblaster_profile := CurrentMarines.profile("hellblaster-squad")
 			var ranged_weapons: Array = hellblaster_profile.get("ranged", []).duplicate(true)
 			if ranged_weapons.size() == 2: ranged_weapons[1] = CurrentMarines.hellblaster_pistol(pistol_choice == "plasma-pistol")
-			var role_unit := {"definition_id": str(item.unit_id), "sergeant": true, "ranged_weapons": ranged_weapons, "melee_weapons": hellblaster_profile.get("melee", []).duplicate(true)}
-			role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+			var role_unit := {"definition_id": unit_id, "sergeant": true, "ranged_weapons": ranged_weapons, "melee_weapons": hellblaster_profile.get("melee", []).duplicate(true)}
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = pistol_choice == "plasma-pistol" and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":eliminator-squad"):
+		elif unit_id.ends_with(":eliminator-squad"):
 			var equipment := Roster.model_equipment(item, copy_index, model_index)
 			var choice_id := str(equipment.get("eliminator_sergeant_ranged", "sniper")) if model_index == 0 else str(equipment.get("eliminator_trooper_ranged", "sniper"))
-			var role_unit := {"definition_id": str(item.unit_id), "sergeant": model_index == 0, "ranged_weapons": [CurrentMarines.eliminator_gun(choice_id)], "melee_weapons": []}
-			role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+			var role_unit := {"definition_id": unit_id, "sergeant": model_index == 0, "ranged_weapons": [CurrentMarines.eliminator_gun(choice_id)], "melee_weapons": []}
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = choice_id != "sniper" and role_variant.is_empty()
 			role_loadout_fallback = choice_id != "sniper" and role_variant.is_empty()
-		elif str(item.get("unit_id", "")).ends_with(":outrider-squad"):
+		elif unit_id.ends_with(":outrider-squad"):
 			var equipment := Roster.model_equipment(item, copy_index, model_index)
 			var plasma_pistol := bool(equipment.get("outrider_plasma_pistol", false))
 			var melee_choice := str(equipment.get("outrider_sergeant_melee", "chainsword")) if model_index == 0 else "chainsword"
 			var weapons := CurrentMarines.outrider_weapons(plasma_pistol, melee_choice)
 			if not weapons.is_empty():
-				var role_unit := {"definition_id": str(item.unit_id), "sergeant": model_index == 0, "ranged_weapons": weapons.ranged, "melee_weapons": weapons.melee}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+				var role_unit := {"definition_id": unit_id, "sergeant": model_index == 0, "ranged_weapons": weapons.ranged, "melee_weapons": weapons.melee}
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			var customized := plasma_pistol or melee_choice != "chainsword"
 			role_variant_missing = customized and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":ravenwing-darkshroud"):
+		elif unit_id.ends_with(":ravenwing-darkshroud"):
 			var cannon_choice := str(Roster.model_equipment(item, copy_index, model_index).get("ravenwing_darkshroud_cannon", "heavy-bolter"))
 			var darkshroud_profile := CurrentMarines.profile("ravenwing-darkshroud")
 			var ranged_weapons: Array = darkshroud_profile.get("ranged", []).duplicate(true)
@@ -908,11 +1156,11 @@ func _preview_entry(item: Dictionary, slot: int = 0) -> void:
 				ranged_weapons = ranged_weapons.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) != "heavy-bolter")
 				var additional_ranged: Array = darkshroud_profile.get("additional_weapon_profiles", {}).get("ranged", [])
 				if not additional_ranged.is_empty(): ranged_weapons.append(additional_ranged[0].duplicate(true))
-			var role_unit := {"definition_id": str(item.unit_id), "model_role": "ravenwing-darkshroud", "ranged_weapons": ranged_weapons, "melee_weapons": darkshroud_profile.get("melee", []).duplicate(true)}
-			role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+			var role_unit := {"definition_id": unit_id, "model_role": "ravenwing-darkshroud", "ranged_weapons": ranged_weapons, "melee_weapons": darkshroud_profile.get("melee", []).duplicate(true)}
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = cannon_choice != "heavy-bolter" and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":land-speeder"):
+		elif unit_id.ends_with(":land-speeder"):
 			var cannon_choice := str(Roster.model_equipment(item, copy_index, model_index).get("land_speeder_cannon", "onslaught"))
 			var land_speeder_profile := CurrentMarines.profile("land-speeder")
 			var ranged_weapons: Array = land_speeder_profile.get("ranged", []).duplicate(true)
@@ -920,17 +1168,26 @@ func _preview_entry(item: Dictionary, slot: int = 0) -> void:
 				ranged_weapons = ranged_weapons.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) != "onslaught-gatling-cannon")
 				var additional_ranged: Array = land_speeder_profile.get("additional_weapon_profiles", {}).get("ranged", [])
 				if additional_ranged.size() == 1: ranged_weapons.append(additional_ranged[0].duplicate(true))
-			var role_unit := {"definition_id": str(item.unit_id), "model_role": "land-speeder", "ranged_weapons": ranged_weapons, "melee_weapons": land_speeder_profile.get("melee", []).duplicate(true)}
-			role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+			var role_unit := {"definition_id": unit_id, "model_role": "land-speeder", "ranged_weapons": ranged_weapons, "melee_weapons": land_speeder_profile.get("melee", []).duplicate(true)}
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = cannon_choice == "pyrecannon" and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif SavedEquipment.supports(str(item.get("unit_id", ""))):
-			var role_unit := {"definition_id": str(item.unit_id), "melee_weapons": CurrentMarines.profile(str(item.unit_id).get_slice(":", 3)).get("melee", []).duplicate(true)}
-			SavedEquipment.prepare(role_unit, str(item.unit_id), Roster.model_equipment(item, copy_index, model_index), int(item.models), model_index)
-			role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+		elif SavedEquipment.supports(unit_id):
+			var slug := unit_id.get_slice(":", 3)
+			var base_profile: Dictionary = CurrentNecrons.profile(slug) if ":necrons:" in unit_id else CurrentMarines.profile(slug)
+			var role_unit := {
+				"definition_id": unit_id,
+				"sergeant": model_index == 0,
+				"ranged_weapons": base_profile.get("ranged", []).duplicate(true),
+				"melee_weapons": base_profile.get("melee", []).duplicate(true)
+			}
+			var saved_eq := Roster.model_equipment(item, copy_index, model_index)
+			SavedEquipment.prepare(role_unit, unit_id, saved_eq, int(item.models), model_index)
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
+			equipment_customized = saved_eq != SavedEquipment.defaults(unit_id)
 			role_variant_missing = role_variant.is_empty()
-			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":land-speeder-vengeance"):
+			role_loadout_fallback = equipment_customized and role_variant_missing
+		elif unit_id.ends_with(":land-speeder-vengeance"):
 			var cannon_choice := str(Roster.model_equipment(item, copy_index, model_index).get("land_speeder_vengeance_cannon", "heavy-bolter"))
 			var vengeance_profile := CurrentMarines.profile("land-speeder-vengeance")
 			var ranged_weapons: Array = vengeance_profile.get("ranged", []).duplicate(true)
@@ -938,11 +1195,11 @@ func _preview_entry(item: Dictionary, slot: int = 0) -> void:
 				ranged_weapons = ranged_weapons.filter(func(weapon: Dictionary) -> bool: return str(weapon.get("id", "")) != "heavy-bolter")
 				var additional_ranged: Array = vengeance_profile.get("additional_weapon_profiles", {}).get("ranged", [])
 				if additional_ranged.size() == 1: ranged_weapons.append(additional_ranged[0].duplicate(true))
-			var role_unit := {"definition_id": str(item.unit_id), "model_role": "land-speeder-vengeance", "ranged_weapons": ranged_weapons, "melee_weapons": vengeance_profile.get("melee", []).duplicate(true)}
-			role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+			var role_unit := {"definition_id": unit_id, "model_role": "land-speeder-vengeance", "ranged_weapons": ranged_weapons, "melee_weapons": vengeance_profile.get("melee", []).duplicate(true)}
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = cannon_choice == "assault-cannon" and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":baal-predator"):
+		elif unit_id.ends_with(":baal-predator"):
 			var baal_equipment := Roster.model_equipment(item, copy_index, model_index)
 			var primary := str(baal_equipment.get("baal_predator_primary_cannon", "twin-assault-cannon"))
 			var sponsons := str(baal_equipment.get("baal_predator_sponson_package", "none"))
@@ -951,79 +1208,64 @@ func _preview_entry(item: Dictionary, slot: int = 0) -> void:
 			var baal_profile := CurrentMarines.profile("baal-predator")
 			var baal_ranged := CurrentMarines.baal_predator_weapons(primary, sponsons, storm_bolter, missile)
 			if not baal_ranged.is_empty():
-				var role_unit := {"definition_id": str(item.unit_id), "model_role": "baal-predator", "ranged_weapons": baal_ranged, "melee_weapons": baal_profile.get("melee", []).duplicate(true)}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+				var role_unit := {"definition_id": unit_id, "model_role": "baal-predator", "ranged_weapons": baal_ranged, "melee_weapons": baal_profile.get("melee", []).duplicate(true)}
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			var customized := primary != "twin-assault-cannon" or sponsons != "none" or storm_bolter or missile
 			role_variant_missing = customized and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":predator-destructor"):
+		elif unit_id.ends_with(":predator-destructor"):
 			var equipment := Roster.model_equipment(item, copy_index, model_index)
 			var heavy_bolters := bool(equipment.get("predator_destructor_heavy_bolters", false))
 			var missile := bool(equipment.get("predator_destructor_hunter_killer_missile", false))
 			var storm_bolter := bool(equipment.get("predator_destructor_storm_bolter", false))
-			var profile := CurrentMarines.profile("predator-destructor")
 			var weapons := CurrentMarines.predator_destructor_weapons(heavy_bolters, missile, storm_bolter)
 			if not weapons.is_empty():
-				var role_unit := {"definition_id": str(item.unit_id), "model_role": "predator-destructor", "ranged_weapons": weapons.ranged, "melee_weapons": weapons.melee}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+				var role_unit := {"definition_id": unit_id, "model_role": "predator-destructor", "ranged_weapons": weapons.ranged, "melee_weapons": weapons.melee}
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			var customized := heavy_bolters or missile or storm_bolter
 			role_variant_missing = customized and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":predator-destructor"):
-			var destructor_equipment := Roster.model_equipment(item, copy_index, model_index)
-			var destructor_heavy_bolters := bool(destructor_equipment.get("predator_destructor_heavy_bolters", false))
-			var destructor_missile := bool(destructor_equipment.get("predator_destructor_hunter_killer_missile", false))
-			var destructor_storm_bolter := bool(destructor_equipment.get("predator_destructor_storm_bolter", false))
-			var destructor_profile := CurrentMarines.profile("predator-destructor")
-			var destructor_weapons := CurrentMarines.predator_destructor_weapons(destructor_heavy_bolters, destructor_missile, destructor_storm_bolter)
-			if not destructor_weapons.is_empty():
-				var role_unit := {"definition_id": str(item.unit_id), "model_role": "predator-destructor", "ranged_weapons": destructor_weapons.ranged, "melee_weapons": destructor_weapons.melee}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
-			var customized := destructor_heavy_bolters or destructor_missile or destructor_storm_bolter
-			role_variant_missing = customized and role_variant.is_empty()
-			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":predator-annihilator"):
+		elif unit_id.ends_with(":predator-annihilator"):
 			var equipment := Roster.model_equipment(item, copy_index, model_index)
 			var heavy_bolters := bool(equipment.get("predator_annihilator_heavy_bolters", false))
 			var missile := bool(equipment.get("predator_annihilator_hunter_killer_missile", false))
 			var storm_bolter := bool(equipment.get("predator_annihilator_storm_bolter", false))
-			var annihilator_profile := CurrentMarines.profile("predator-annihilator")
 			var annihilator_weapons := CurrentMarines.predator_annihilator_weapons(heavy_bolters, missile, storm_bolter)
 			if not annihilator_weapons.is_empty():
-				var role_unit := {"definition_id": str(item.unit_id), "model_role": "predator-annihilator", "ranged_weapons": annihilator_weapons.ranged, "melee_weapons": annihilator_weapons.melee}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+				var role_unit := {"definition_id": unit_id, "model_role": "predator-annihilator", "ranged_weapons": annihilator_weapons.ranged, "melee_weapons": annihilator_weapons.melee}
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			var customized := heavy_bolters or missile or storm_bolter
 			role_variant_missing = customized and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":inceptor-squad"):
+		elif unit_id.ends_with(":inceptor-squad"):
 			var weapon_choice := str(Roster.model_equipment(item, copy_index, model_index).get("inceptor_weapon", "assault-bolters"))
 			var inceptor_profile := CurrentMarines.profile("inceptor-squad")
 			var ranged_options: Array = inceptor_profile.get("ranged", []) if weapon_choice == "assault-bolters" else inceptor_profile.get("additional_weapon_profiles", {}).get("ranged", [])
 			if ranged_options.size() == 1:
-				var role_unit := {"definition_id": str(item.unit_id), "sergeant": model_index == 0, "ranged_weapons": [ranged_options[0].duplicate(true)], "melee_weapons": inceptor_profile.get("melee", []).duplicate(true)}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+				var role_unit := {"definition_id": unit_id, "sergeant": model_index == 0, "ranged_weapons": [ranged_options[0].duplicate(true)], "melee_weapons": inceptor_profile.get("melee", []).duplicate(true)}
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = weapon_choice == "plasma-exterminators" and (ranged_options.size() != 1 or role_variant.is_empty())
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":invader-atvs"):
+		elif unit_id.ends_with(":invader-atvs"):
 			var multi_melta := bool(Roster.model_equipment(item, copy_index, model_index).get("invader_atv_multi_melta", false))
 			var atv_weapons := CurrentMarines.invader_atv_weapons(multi_melta)
-			var role_unit := {"definition_id": str(item.unit_id), "model_role": "invader-atv", "ranged_weapons": atv_weapons, "melee_weapons": []}
-			role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+			var role_unit := {"definition_id": unit_id, "model_role": "invader-atv", "ranged_weapons": atv_weapons, "melee_weapons": []}
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = multi_melta and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":scout-squad"):
+		elif unit_id.ends_with(":scout-squad"):
 			var equipment := Roster.model_equipment(item, copy_index, model_index)
 			var scout_gun := str(equipment.get("scout_gun", "boltgun"))
 			var scout_blade := str(equipment.get("scout_sergeant_blade", "combat-knife")) if model_index == 0 else "combat-knife"
 			var scout_ranged := CurrentMarines.scout_ranged(scout_gun)
 			var scout_melee := CurrentMarines.scout_melee(scout_blade)
-			var role_unit := {"definition_id": str(item.unit_id), "model_role": "scout-sergeant" if model_index == 0 else "scout", "sergeant": model_index == 0, "ranged_weapons": scout_ranged, "melee_weapons": scout_melee}
-			role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+			var role_unit := {"definition_id": unit_id, "model_role": "scout-sergeant" if model_index == 0 else "scout", "sergeant": model_index == 0, "ranged_weapons": scout_ranged, "melee_weapons": scout_melee}
+			role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			var customized := scout_gun != "boltgun" or (model_index == 0 and scout_blade != "combat-knife")
 			role_variant_missing = customized and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":necron-warriors") or str(item.get("unit_id", "")).ends_with(":immortals"):
-			var is_warrior := str(item.unit_id).ends_with(":necron-warriors")
+		elif unit_id.ends_with(":necron-warriors") or unit_id.ends_with(":immortals"):
+			var is_warrior := unit_id.ends_with(":necron-warriors")
 			var source := "necron-warriors" if is_warrior else "immortals"
 			var equipment := Roster.model_equipment(item, copy_index, model_index)
 			var default_weapon := "gauss-flayer" if is_warrior else "gauss-blaster"
@@ -1031,39 +1273,39 @@ func _preview_entry(item: Dictionary, slot: int = 0) -> void:
 			var weapon := _necron_visual_weapon(source, choice_id)
 			if not weapon.is_empty():
 				var role_id := "necron-warrior" if is_warrior else "immortal"
-				var role_unit := {"definition_id": str(item.unit_id), "model_role": role_id, "ranged_weapons": [weapon], "melee_weapons": []}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+				var role_unit := {"definition_id": unit_id, "model_role": role_id, "ranged_weapons": [weapon], "melee_weapons": []}
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = choice_id != default_weapon and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":canoptek-macrocytes"):
+		elif unit_id.ends_with(":canoptek-macrocytes"):
 			var loadout := str(Roster.model_equipment(item, copy_index, model_index).get("canoptek_macrocytes_loadout", CanoptekMacrocytes.GAUSS_SCALPEL))
 			var weapons := CanoptekMacrocytes.weapons(loadout)
 			if not weapons.is_empty():
-				var role_unit := {"definition_id": str(item.unit_id), "model_role": "canoptek-macrocyte", "ranged_weapons": weapons.ranged, "melee_weapons": weapons.melee}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+				var role_unit := {"definition_id": unit_id, "model_role": "canoptek-macrocyte", "ranged_weapons": weapons.ranged, "melee_weapons": weapons.melee}
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = loadout != CanoptekMacrocytes.GAUSS_SCALPEL and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":canoptek-spyders"):
+		elif unit_id.ends_with(":canoptek-spyders"):
 			var equipment := Roster.model_equipment(item, copy_index, model_index)
 			var weapons := CanoptekSpyders.weapon_inventory(equipment)
 			if not weapons.is_empty():
-				var role_unit := {"definition_id": str(item.unit_id), "model_role": "canoptek-spyder", "ranged_weapons": weapons.ranged, "melee_weapons": weapons.melee}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+				var role_unit := {"definition_id": unit_id, "model_role": "canoptek-spyder", "ranged_weapons": weapons.ranged, "melee_weapons": weapons.melee}
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			var customized := false
 			for field: String in CanoptekSpyders.EQUIPMENT_FIELDS:
 				customized = customized or bool(equipment.get(field, false))
 			role_variant_missing = customized and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":canoptek-tomb-crawlers"):
+		elif unit_id.ends_with(":canoptek-tomb-crawlers"):
 			var loadout := str(Roster.model_equipment(item, copy_index, model_index).get("canoptek_tomb_crawlers_loadout", CanoptekTombCrawlers.GAUSS_REAPER))
 			var weapons := CanoptekTombCrawlers.weapons(loadout)
 			if not weapons.is_empty():
-				var role_unit := {"definition_id": str(item.unit_id), "model_role": "canoptek-tomb-crawler", "ranged_weapons": weapons.ranged, "melee_weapons": weapons.melee}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+				var role_unit := {"definition_id": unit_id, "model_role": "canoptek-tomb-crawler", "ranged_weapons": weapons.ranged, "melee_weapons": weapons.melee}
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = loadout == CanoptekTombCrawlers.ISOLATOR and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
-		elif str(item.get("unit_id", "")).ends_with(":" + NecronVehicleLoadouts.ANNIHILATION_BARGE) or str(item.get("unit_id", "")).ends_with(":" + NecronVehicleLoadouts.MONOLITH):
-			var definition_id := str(item.unit_id)
+		elif unit_id.ends_with(":" + NecronVehicleLoadouts.ANNIHILATION_BARGE) or unit_id.ends_with(":" + NecronVehicleLoadouts.MONOLITH):
+			var definition_id := unit_id
 			var vehicle_loadouts := Roster.model_equipment(item, copy_index, model_index)
 			var vehicle_choice := str(vehicle_loadouts.get("necron_annihilation_barge_loadout", NecronVehicleLoadouts.default_choice(definition_id))) if definition_id.ends_with(":" + NecronVehicleLoadouts.ANNIHILATION_BARGE) else str(vehicle_loadouts.get("necron_monolith_loadout", NecronVehicleLoadouts.default_choice(definition_id)))
 			var profile_id := NecronVehicleLoadouts.ANNIHILATION_BARGE if definition_id.ends_with(":" + NecronVehicleLoadouts.ANNIHILATION_BARGE) else NecronVehicleLoadouts.MONOLITH
@@ -1071,11 +1313,13 @@ func _preview_entry(item: Dictionary, slot: int = 0) -> void:
 			var ranged := NecronVehicleLoadouts.ranged_weapons(definition_id, vehicle_choice, source_profile)
 			if not ranged.is_empty():
 				var role_unit := {"definition_id": definition_id, "model_role": profile_id, "ranged_weapons": ranged, "melee_weapons": source_profile.get("melee", []).duplicate(true)}
-				role_variant = model_imports.equipment_variant_for(role_unit, source_family)
+				role_variant = _equipment_variant_for_preview(role_unit, source_family)
 			role_variant_missing = vehicle_choice != NecronVehicleLoadouts.default_choice(definition_id) and role_variant.is_empty()
 			role_loadout_fallback = role_variant_missing
 		var candidates: Array[String] = []
-		if not model_override.is_empty(): candidates.append(model_override)
+		if not model_override.is_empty():
+			candidates.append(model_override)
+			manual_override_blocks_equipment = not role_variant.is_empty() and role_variant != model_override
 		elif not role_variant.is_empty(): candidates.append(role_variant)
 		for identity: String in [unit_choice, palette_choice]:
 			if not identity.is_empty() and identity not in candidates: candidates.append(identity)
@@ -1163,6 +1407,10 @@ func _preview_entry(item: Dictionary, slot: int = 0) -> void:
 			var unit_name := "Annihilation Barge" if definition_id.ends_with(":" + NecronVehicleLoadouts.ANNIHILATION_BARGE) else "Monolith"
 			miniature_preview.caption.text += "\n%s · %s" % [unit_name, NecronVehicleLoadouts.choice_label(definition_id, loadout)]
 			if role_loadout_fallback: miniature_preview.caption.text += "\nNo exact local weapon sculpt is ready; the default miniature remains visible."
+		elif role_loadout_fallback:
+			miniature_preview.caption.text += "\nEquipment saved · no matching local weapon sculpt is ready (showing base model)."
+		if manual_override_blocks_equipment:
+			miniature_preview.caption.text += "\nManual look override active · clear in Appearance to follow equipment."
 	elif not item.is_empty(): miniature_preview.caption.text += "\nComposition pending · representative visual"
 	if missing_variant: miniature_preview.caption.text += "\nAssigned variant unavailable · fallback shown"
 	miniature_preview.caption.tooltip_text = miniature_preview.caption.text
@@ -1184,7 +1432,7 @@ func _update_palette_status(item: Dictionary, slot: int) -> void:
 	var models := maxi(1, int(item.get("models", 1)))
 	var chosen := Roster.unit_visual_variant(item, floori(float(slot) / float(models)))
 	palette_button.disabled = chosen.is_empty() or (choices.size() >= 16 and chosen not in choices)
-	palette_button.text = "Remove selected paint from army palette" if chosen in choices else "Add selected paint to army palette"
+	palette_button.text = "Remove from palette" if chosen in choices else "Add to palette"
 	palette_prepare_button.disabled = palette.is_empty() or model_imports == null
 	palette_notice.text = "Army palette · %d unit type(s) configured · %d choices for this type. Unit copies can use different choices; models inherit their unit choice unless given a sculpt override." % [palette.size(), choices.size()]
 
@@ -1244,26 +1492,30 @@ func _update_inspector_mode() -> void:
 	library_workspace.visible = not editor.visible
 	appearance_button.visible = editor.visible and not preview_entry.is_empty()
 	if roster_empty != null: roster_empty.visible = draft.entries.is_empty()
+	if notice != null: notice.visible = not notice.text.strip_edges().is_empty()
+	if library_notice != null: library_notice.visible = not library_notice.text.strip_edges().is_empty()
 	if unit_size_controls != null: unit_size_controls.visible = selected_entry_index >= 0 and selected_entry_index < draft.entries.size()
 	enhancement_picker.visible = selected_entry_index >= 0 and selected_entry_index < draft.entries.size()
-	var page: Node = editor_tabs.get_child(editor_tabs.current_tab).get_child(0) if editor.visible else library_preview
-	if editor.visible and editor_tabs.current_tab == 2 and appearance_preview_column != null:
-		if miniature_preview.get_parent() != appearance_preview_column: miniature_preview.reparent(appearance_preview_column)
-		appearance_preview_column.move_child(miniature_preview, 1)
-		if preview_model_input.get_parent() != appearance_preview_column: preview_model_input.reparent(appearance_preview_column)
-		appearance_preview_column.move_child(preview_model_input, 2)
-	else:
-		if miniature_preview.get_parent() != page: miniature_preview.reparent(page)
-		page.move_child(miniature_preview, 0)
-		if preview_model_input.get_parent() != page: preview_model_input.reparent(page)
-		page.move_child(preview_model_input, 1)
-	if editor.visible and editor_tabs.current_tab == 0 and unit_size_controls != null:
-		page.move_child(unit_size_controls, 0)
+	var preview_host: Node = library_preview
+	if editor.visible:
+		if editor_tabs.current_tab == 0 and unit_preview_column != null:
+			preview_host = unit_preview_column
+		elif editor_tabs.current_tab == 2 and appearance_preview_column != null:
+			preview_host = appearance_preview_column
+		else:
+			var tab_root := editor_tabs.get_child(editor_tabs.current_tab)
+			preview_host = tab_root.get_child(0) if tab_root is ScrollContainer and tab_root.get_child_count() > 0 else tab_root
+	if miniature_preview.get_parent() != preview_host: miniature_preview.reparent(preview_host)
+	preview_host.move_child(miniature_preview, 0)
+	if preview_model_input.get_parent() != preview_host: preview_model_input.reparent(preview_host)
+	preview_host.move_child(preview_model_input, 1)
+	if editor.visible and editor_tabs.current_tab == 0 and unit_size_controls != null and unit_details_column != null:
+		unit_details_column.move_child(unit_size_controls, 0)
 
 func _open_entry_appearance() -> void:
 	if not editor.visible or selected_entry_index < 0 or selected_entry_index >= draft.entries.size(): return
 	reveal_appearance_when_ready = true
-	if size.x < 1560:
+	if size.x < 1040:
 		compact_navigation.select(2)
 		_layout_workspace()
 	var count := maxi(1, int(draft.entries[selected_entry_index].models))
@@ -1305,6 +1557,8 @@ func _render_summary() -> void:
 		points_meter.value = totals.points
 		points_meter.tooltip_text = "Partial total" if totals.unknown > 0 else "%d points remaining" % totals.remaining
 	if roster_empty != null: roster_empty.visible = draft.entries.is_empty()
+	if notice != null: notice.visible = not notice.text.strip_edges().is_empty()
+	if library_notice != null: library_notice.visible = not library_notice.text.strip_edges().is_empty()
 	if totals.unknown > 0: summary_label.text += "\n%d unit(s) without confirmed costs; total is partial." % totals.unknown
 	elif totals.remaining < 0: summary_label.text += "\nOver the limit by %d pts; you can save as a draft." % -totals.remaining
 	else: summary_label.text += "\n%d pts remaining." % totals.remaining
@@ -2263,10 +2517,13 @@ func _render_sergeant_loadout_controls(preferred_copy: int = -1) -> void:
 					var field_stack := VBoxContainer.new()
 					field_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 					controls_parent.add_child(field_stack)
-					var field_label := label(str(descriptor.label), field_stack)
-					field_label.add_theme_font_size_override("font_size", 13)
+					if descriptors.size() > 1:
+						var field_label := label(str(descriptor.label), field_stack)
+						field_label.add_theme_font_size_override("font_size", 13)
 					var picker := OptionButton.new()
 					picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+					picker.fit_to_longest_item = false
+					picker.tooltip_text = str(descriptor.label)
 					for choice: Dictionary in descriptor.choices:
 						picker.add_item(str(choice.label))
 						picker.set_item_metadata(picker.item_count - 1, choice.id)
@@ -2280,13 +2537,19 @@ func _render_sergeant_loadout_controls(preferred_copy: int = -1) -> void:
 				model_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 				per_model_equipment_controls.add_child(model_row)
 				controls_parent = model_row
-				label(SavedEquipment.model_label(unit_id, int(item.models), model_index), model_row)
+				var model_name := Label.new()
+				model_name.text = SavedEquipment.model_label(unit_id, int(item.models), model_index)
+				model_name.custom_minimum_size.x = 132
+				model_row.add_child(model_name)
 			for descriptor: Dictionary in descriptors:
-				var field_label := Label.new()
-				field_label.text = str(descriptor.label)
-				controls_parent.add_child(field_label)
+				if not (SavedEquipment.is_model_scoped(unit_id) and descriptors.size() == 1):
+					var field_label := Label.new()
+					field_label.text = str(descriptor.label)
+					controls_parent.add_child(field_label)
 				var picker := OptionButton.new()
 				picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				picker.fit_to_longest_item = false
+				picker.tooltip_text = str(descriptor.label)
 				for choice: Dictionary in descriptor.choices:
 					picker.add_item(str(choice.label))
 					picker.set_item_metadata(picker.item_count - 1, choice.id)
@@ -2712,7 +2975,9 @@ func _set_reiver_equipment_from_controls(equipped: bool, field: String) -> void:
 	dirty = true
 	save_error = ""
 	var loadout := Roster.unit_equipment(item, copy_index)
+	_preview_entry(item, preview_slot)
 	_render_sergeant_loadout_controls(copy_index)
+	_render_visual_slots()
 	_render_summary()
 	if notice != null:
 		var gear: Array[String] = []
@@ -3134,13 +3399,13 @@ func _render_visual_slots() -> void:
 		visual_copy_picker.set_item_metadata(copy, copy)
 	var copy_index := clampi(wanted_copy, 0, maxi(0, int(item.copies) - 1))
 	visual_copy_picker.select(copy_index)
+	visual_copy_picker.visible = int(item.copies) > 1
 	var definition := str(item.unit_id)
 	var entry_index := selected_entry_index
 	var current := func() -> bool: return is_inside_tree() and ticket == appearance_generation and editor.visible and editor_tabs.current_tab == 2 and selected_entry_index == entry_index
 	var loading := Label.new()
 	loading.text = "Loading local appearances…"
 	visual_models.add_child(loading)
-	if reveal_appearance_when_ready: _scroll_to(loading)
 	var variants: Array = []
 	if model_imports != null: variants = await model_imports.variants_for_async(definition, current)
 	if not current.call(): return
@@ -3153,36 +3418,34 @@ func _render_visual_slots() -> void:
 	var is_intercessor_sergeant := str(item.get("unit_id", "")).ends_with(":intercessor-squad") and model_index == 0
 	visual_gallery_context = {"entry_index": selected_entry_index, "copy_index": copy_index, "model_index": model_index, "item": item}
 	visual_gallery_variants = variants.duplicate(true)
-	WorkspaceTheme.heading(visual_models, "CHOOSE HOW THIS MODEL LOOKS")
-	var target_help := _appearance_detail_label()
-	target_help.text = "Unit appearance is shared by this copy. A model override affects only %s; clear it to use the unit appearance and automatic role match." % role_label
-	visual_models.add_child(target_help)
 	var target_row := HBoxContainer.new()
 	visual_models.add_child(target_row)
 	visual_gallery_unit_target = Button.new()
-	visual_gallery_unit_target.text = "Unit appearance"
+	visual_gallery_unit_target.text = "Unit look"
 	visual_gallery_unit_target.toggle_mode = true
+	visual_gallery_unit_target.clip_text = true
+	visual_gallery_unit_target.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	visual_gallery_unit_target.custom_minimum_size.y = 32
 	visual_gallery_unit_target.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	visual_gallery_unit_target.tooltip_text = "Choose the shared appearance used by all models in this unit copy."
 	target_row.add_child(visual_gallery_unit_target)
 	visual_gallery_unit_target.pressed.connect(_set_visual_gallery_target.bind(0))
 	visual_gallery_model_target = Button.new()
-	visual_gallery_model_target.text = "This model · %s" % role_label
+	visual_gallery_model_target.text = "Model %d" % (model_index + 1)
 	visual_gallery_model_target.toggle_mode = true
+	visual_gallery_model_target.clip_text = true
+	visual_gallery_model_target.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	visual_gallery_model_target.custom_minimum_size.y = 32
 	visual_gallery_model_target.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	visual_gallery_model_target.tooltip_text = "Choose an optional sculpt override for only this model. Rules equipment stays unchanged."
+	visual_gallery_model_target.tooltip_text = "Choose an optional sculpt override for only %s. Rules equipment stays unchanged." % role_label
 	target_row.add_child(visual_gallery_model_target)
 	visual_gallery_model_target.pressed.connect(_set_visual_gallery_target.bind(1))
 	visual_gallery_apply_similar_button = Button.new()
+	visual_gallery_apply_similar_button.custom_minimum_size.y = 30
 	visual_gallery_apply_similar_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	visual_gallery_apply_similar_button.visible = false
 	visual_gallery_apply_similar_button.pressed.connect(_apply_visual_override_to_similar_models)
 	visual_models.add_child(visual_gallery_apply_similar_button)
-	var gallery_heading := Label.new()
-	gallery_heading.text = "Available local looks"
-	visual_models.add_child(gallery_heading)
-	visual_gallery_detail = _appearance_detail_label()
-	visual_models.add_child(visual_gallery_detail)
 	visual_gallery_search = LineEdit.new()
 	visual_gallery_search.placeholder_text = "Search local looks"
 	visual_gallery_search.clear_button_enabled = true
@@ -3195,9 +3458,14 @@ func _render_visual_slots() -> void:
 	visual_gallery_ready_only.button_pressed = visual_gallery_ready_only_preference
 	gallery_controls.add_child(visual_gallery_ready_only)
 	visual_models.add_child(gallery_controls)
+	visual_gallery_detail = _appearance_detail_label()
+	visual_gallery_detail.max_lines_visible = 2
+	visual_gallery_detail.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	visual_models.add_child(visual_gallery_detail)
 	visual_gallery_scroll = ScrollContainer.new()
-	visual_gallery_scroll.custom_minimum_size.y = 230
+	visual_gallery_scroll.custom_minimum_size.y = 160
 	visual_gallery_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	visual_gallery_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	visual_gallery_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	visual_models.add_child(visual_gallery_scroll)
 	visual_gallery_grid = GridContainer.new()
@@ -3216,9 +3484,7 @@ func _render_visual_slots() -> void:
 	else:
 		visual_notice.text = "%d local variants. Unit %d shares a base appearance; %s can use an optional sculpt override." % [variants.size(), copy_index + 1, role_label]
 
-	if reveal_appearance_when_ready:
-		reveal_appearance_when_ready = false
-		_scroll_to(visual_gallery_unit_target if visual_gallery_target == 0 else visual_gallery_model_target)
+	reveal_appearance_when_ready = false
 
 func _build_visual_gallery(entry_index: int, copy_index: int, model_index: int) -> void:
 	if visual_gallery_grid == null or entry_index != selected_entry_index or visual_gallery_context.is_empty(): return
@@ -3269,10 +3535,10 @@ func _build_visual_gallery(entry_index: int, copy_index: int, model_index: int) 
 		var availability_state := str(option.get("availability", "ready" if bool(option.get("ready", false)) else "download_pending"))
 		var availability := "✓ Ready locally"
 		match availability_state:
-			"downloading": availability = "Preparing now · fallback shown"
-			"download_pending": availability = "Needs preparation · fallback shown"
-			"conversion_failed": availability = "Preparation failed · fallback shown"
-			"missing": availability = "Missing locally · fallback shown"
+			"downloading": availability = "Downloading now · fallback shown"
+			"download_pending": availability = "Click to download · fallback shown"
+			"conversion_failed": availability = "Click to retry download · fallback shown"
+			"missing": availability = "Click to download · fallback shown"
 		var availability_reason := str(option.get("availability_reason", ""))
 		var assessment := _appearance_model_match_assessment(option, item, copy_index, model_index)
 		var card := _visual_gallery_card(display_name, availability, identity, entry_index, copy_index, model_index, availability_reason, str(assessment.get("confidence", "unverified")), str(assessment.get("rationale", "")))
@@ -3325,7 +3591,7 @@ func _visual_gallery_card(title: String, status: String, identity: String, entry
 	card.toggle_mode = true
 	card.text = "%s\n%s" % [title, status]
 	if not confidence.is_empty(): card.text += "\nMatch: " + _appearance_confidence_label(confidence)
-	card.custom_minimum_size = Vector2(150, 82)
+	card.custom_minimum_size = Vector2(140, 68)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	var tooltip_parts: Array[String] = [status_reason if not status_reason.is_empty() else status]
@@ -3340,6 +3606,15 @@ func _set_visual_gallery_target(target: int) -> void:
 	visual_gallery_target = clampi(target, 0, 1)
 	_update_visual_gallery_selection()
 
+func _visual_gallery_variant_ready(identity: String) -> bool:
+	if identity.is_empty(): return true
+	for raw_option: Variant in visual_gallery_variants:
+		if raw_option is Dictionary and str(raw_option.get("variant_id", "")) == identity:
+			return _visual_gallery_option_ready(raw_option)
+	if model_imports != null and model_imports.has_method("visual_variant_is_ready"):
+		return model_imports.visual_variant_is_ready(identity)
+	return false
+
 func _apply_visual_gallery_choice(identity: String, entry_index: int, copy_index: int, model_index: int) -> void:
 	if selected_entry_index != entry_index or entry_index < 0 or entry_index >= draft.entries.size(): return
 	var item: Dictionary = draft.entries[entry_index]
@@ -3350,6 +3625,13 @@ func _apply_visual_gallery_choice(identity: String, entry_index: int, copy_index
 	else:
 		_set_model_visual_override(copy_index * models + model_index, identity)
 	_update_visual_gallery_selection()
+	if not identity.is_empty() and not _visual_gallery_variant_ready(identity) and model_imports != null and model_imports.has_method("download_variants_for"):
+		model_imports.download_variants_for(str(item.unit_id), identity)
+		if visual_gallery_detail != null:
+			visual_gallery_detail.text = "Downloading selected miniature… preview refreshes automatically when ready."
+		if notice != null:
+			notice.text = "Downloading selected miniature for %s…" % str(item.get("name", "unit"))
+			notice.visible = true
 
 func _update_visual_gallery_selection() -> void:
 	if visual_gallery_context.is_empty() or visual_gallery_detail == null: return
@@ -3360,16 +3642,18 @@ func _update_visual_gallery_selection() -> void:
 	if visual_gallery_unit_target != null: visual_gallery_unit_target.button_pressed = visual_gallery_target == 0
 	if visual_gallery_model_target != null:
 		visual_gallery_model_target.button_pressed = visual_gallery_target == 1
-		visual_gallery_model_target.text = "This model · %s · %s" % [_visual_model_role_label(item, model_index, copy_index), "Manual" if mode == "manual" else "Auto"]
+		visual_gallery_model_target.text = "Model %d · %s" % [model_index + 1, "Manual" if mode == "manual" else "Auto"]
+		visual_gallery_model_target.tooltip_text = "Optional sculpt override for %s (%s). Rules equipment stays unchanged." % [_visual_model_role_label(item, model_index, copy_index), "Manual" if mode == "manual" else "Auto"]
 	var identity := Roster.unit_visual_variant(item, copy_index) if visual_gallery_target == 0 else Roster.model_visual_override(item, copy_index, model_index)
 	for card: Button in visual_gallery_buttons:
 		card.button_pressed = str(card.get_meta("visual_variant_id", "")) == identity
 	if visual_gallery_target == 0:
 		if not visual_gallery_buttons.is_empty(): visual_gallery_buttons[0].text = "Automatic\nLocal recommendation"
-		visual_gallery_detail.text = _model_visual_mode_summary(item, copy_index, model_index) + "\n" + _appearance_rationale(visual_gallery_variants, identity, false, item, copy_index, model_index)
+		visual_gallery_detail.text = _appearance_rationale(visual_gallery_variants, identity, false, item, copy_index, model_index)
 	else:
 		if not visual_gallery_buttons.is_empty(): visual_gallery_buttons[0].text = "Use unit look\nAllow role match"
-		visual_gallery_detail.text = _model_visual_mode_summary(item, copy_index, model_index) + "\n" + _appearance_rationale(visual_gallery_variants, identity, true, item, copy_index, model_index)
+		visual_gallery_detail.text = _appearance_rationale(visual_gallery_variants, identity, true, item, copy_index, model_index)
+	visual_gallery_detail.tooltip_text = _model_visual_mode_summary(item, copy_index, model_index) + "\n" + visual_gallery_detail.text + "\nAppearance does not change saved equipment, points, rules or match state."
 	_update_visual_gallery_apply_button()
 
 func _model_visual_mode_summary(item: Dictionary, copy_index: int, model_index: int) -> String:
@@ -3463,27 +3747,10 @@ func _appearance_rationale(variants: Array, identity: String, model_override: bo
 		var option: Dictionary = raw_option
 		if str(option.get("variant_id", "")) != identity: continue
 		var description := str(option.get("name", "Visual variant"))
-		if bool(option.get("ready", false)):
-			description += " · files ready on this computer"
-		else:
-			description += " · needs local preparation; a fallback stays visible until then"
-		var hints: Array[String] = []
-		var weapons: Variant = option.get("visual_weapons", [])
-		if weapons is Array and not weapons.is_empty():
-			var weapon_labels: Array[String] = []
-			for weapon: Variant in weapons: weapon_labels.append(str(weapon))
-			hints.append("catalog equipment hints: " + ", ".join(weapon_labels))
-		var role := str(option.get("visual_model_role", option.get("visual_role", "")))
-		if role.is_empty(): role = str(option.get("visual_role", ""))
-		if not role.is_empty(): hints.append("catalog role hint: " + role)
-		if hints.is_empty():
-			description += " · no equipment or model-role mapping is recorded; compatibility is unverified"
-		else:
-			description += " · " + "; ".join(hints) + " (visual metadata only)"
+		description += " · Ready locally" if bool(option.get("ready", false)) else " · Needs preparation"
 		var model_assessment := _appearance_model_match_assessment(option, item, copy_index, model_index)
 		var confidence := str(model_assessment.get("confidence", "unverified"))
-		description += " · Match confidence: %s — %s This rates local metadata coverage, not exact sculpt parity" % [_appearance_confidence_label(confidence), str(model_assessment.get("rationale", "No supported comparison is available."))]
-		description += ". Appearance does not change saved equipment, points, rules or match state."
+		description += " · Match confidence: %s — %s" % [_appearance_confidence_label(confidence), str(model_assessment.get("rationale", "No supported comparison is available."))]
 		return description
 	return "This saved appearance is missing from the current local catalog. Match confidence: Unverified. The assignment is preserved; an available sculpt or built-in placeholder is shown."
 
@@ -3746,6 +4013,7 @@ func _create_profile() -> void:
 		library_notice.text = error
 		return
 	profile_name.clear()
+	if profile_create_row != null: profile_create_row.visible = false
 	draft = Roster.new_list(source.edition, "")
 	dirty = false
 	_render_profiles()
@@ -4130,7 +4398,8 @@ func _set_registered_equipment(_index: int, definition: String, field: String, c
 		if notice != null: notice.text = "That equipment choice exceeds a source-listed limit or does not match this model."
 		return
 	dirty = true
-	_preview_entry(item, copy_index)
+	var models := maxi(1, int(item.get("models", 1)))
+	_preview_entry(item, copy_index * models + model_index)
 	_render_sergeant_loadout_controls(copy_index)
 	_render_visual_slots()
 	_render_summary()
@@ -4143,6 +4412,8 @@ func _set_registered_unit_equipment(equipped: bool, definition: String, field: S
 	if not Roster.set_unit_equipment(item, copy_index, field, equipped): return
 	dirty = true
 	save_error = ""
+	_preview_entry(item, preview_slot)
 	_render_sergeant_loadout_controls(copy_index)
+	_render_visual_slots()
 	_render_summary()
 	if notice != null: notice.text = "Unit equipment saved for this copy. Saved-list matches apply it before Deployment."

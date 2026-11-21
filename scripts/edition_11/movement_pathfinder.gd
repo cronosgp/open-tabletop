@@ -1323,8 +1323,8 @@ func _model_blocking_circles(origin: Vector2) -> Array[Dictionary]:
 		if int(other.get("wounds", 0)) <= 0 or not other.get("on_battlefield", true): continue
 		if AircraftRules.is_aircraft(_state, int(other.get("squad", -1))): continue
 		var is_enemy := int(other.get("owner", -1)) != int(model.get("owner", -2))
-		if not is_enemy and not Geometry.monster_vehicle_move_blocks_large_model(model, other, _move_type): continue
-		if is_enemy and Geometry.monster_vehicle_can_pass_enemy_model(model, other, _move_type): continue
+		if not is_enemy and not Geometry.monster_vehicle_move_blocks_large_model(model, other, _move_type, _state, _model_id): continue
+		if is_enemy and Geometry.monster_vehicle_can_pass_enemy_model(model, other, _move_type, _state, _model_id): continue
 		if absf(float(other.get("elevation", 0.0)) - float(model.get("elevation", 0.0))) > EPSILON: continue
 		var combined_radius := float(model.get("radius", 0.0)) + float(other.get("radius", 0.0))
 		var exact_radius := combined_radius + NODE_CLEARANCE

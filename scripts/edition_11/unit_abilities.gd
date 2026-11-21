@@ -13,6 +13,7 @@ const CombiLieutenant = preload("res://scripts/edition_11/combi_lieutenant.gd")
 const Techmarine = preload("res://scripts/edition_11/techmarine.gd")
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const LeaderCatalog = preload("res://scripts/edition_11/leader_catalog.gd")
+const OrksWaaagh = preload("res://scripts/edition_11/orks_waaagh.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
 const CanoptekMacrocytes = preload("res://scripts/edition_11/canoptek_macrocytes.gd")
@@ -551,6 +552,7 @@ static func weapon(state: Dictionary, model: int, target: int, original: Diction
 		copy.ap = int(copy.ap) - 1
 	if not melee and has(state, squad, "strategic-knowledge"): copy.keywords["assault"] = true
 	if not melee and has(state, squad, "wind-walker"): copy.keywords["assault"] = true
+	if not melee and OrksWaaagh.riled_up_assault(state, squad): copy.keywords["assault"] = true
 	if melee and RagnarBlackmane.blood_claws_war_howl_active(state, squad):
 		copy.strength += 1
 		copy.keywords["sustained-hits"] = maxi(1, int(copy.keywords.get("sustained-hits", 0)))

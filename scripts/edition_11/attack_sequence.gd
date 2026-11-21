@@ -7,7 +7,7 @@ const RandomStat = preload("res://scripts/edition_11/random_characteristic.gd")
 const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
 const Prevention = preload("res://scripts/edition_11/wound_prevention.gd")
 const IMPLEMENTATION := "11e-identical-attacks-v11-anti-psyker"
-const SUPPORTED_KEYWORDS := ["lethal-hits", "rapid-fire", "sustained-hits", "torrent", "heavy", "twin-linked", "assault", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "devastating-wounds", "precision", "cleave", "melta", "psychic", "lance", "anti-fly", "anti-monster", "anti-vehicle", "anti-infantry", "anti-character", "anti-psyker", "anti-non-monster-vehicle", "indirect-fire", "one-shot"]
+const SUPPORTED_KEYWORDS := ["lethal-hits", "rapid-fire", "sustained-hits", "torrent", "heavy", "twin-linked", "assault", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "devastating-wounds", "precision", "cleave", "melta", "psychic", "lance", "anti-fly", "anti-monster", "anti-vehicle", "anti-infantry", "anti-character", "anti-psyker", "anti-non-monster-vehicle", "indirect-fire", "one-shot", "devastating-wounds-infantry", "devastating-wounds-monster-vehicle", "lethal-hits-non-monster-vehicle", "sustained-hits-monster-vehicle"]
 const ANTI_KEYWORDS := ["anti-fly", "anti-monster", "anti-vehicle", "anti-infantry", "anti-character", "anti-psyker", "anti-non-monster-vehicle"]
 
 class Dice:
@@ -77,11 +77,11 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 	var keywords: Dictionary = weapon.get("keywords", {})
 	for keyword: Variant in weapon.get("keywords", {}):
 		if keyword not in SUPPORTED_KEYWORDS: return "Unsupported weapon mechanic: " + str(keyword)
-		if keyword in ["rapid-fire", "cleave", "melta"] or keyword in ANTI_KEYWORDS:
+		if keyword in ["rapid-fire", "cleave", "melta", "sustained-hits-monster-vehicle"] or keyword in ANTI_KEYWORDS:
 			if not _positive_integer(weapon.keywords[keyword]): return "Keyword requires a positive integer: " + keyword
 		if keyword == "sustained-hits" and not RandomStat.spec(weapon.keywords[keyword]).error.is_empty():
 			return "Invalid Sustained Hits characteristic."
-		if keyword not in ["rapid-fire", "sustained-hits", "blast", "hunter", "cleave", "melta"] and keyword not in ANTI_KEYWORDS and not weapon.keywords[keyword] is bool:
+		if keyword not in ["rapid-fire", "sustained-hits", "blast", "hunter", "cleave", "melta", "sustained-hits-monster-vehicle"] and keyword not in ANTI_KEYWORDS and not weapon.keywords[keyword] is bool:
 			return "Keyword flag requires a boolean: " + keyword
 	var hunter_error := Traits.hunter_error(weapon, context.get("target_keywords"))
 	if not hunter_error.is_empty(): return hunter_error
@@ -91,6 +91,8 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 	if weapon.get("keywords", {}).get("blast", false):
 		if not context.get("target_model_count") is int or context.target_model_count < 0: return "Blast requires target size at selection."
 		if context.get("target_engaged", false): return "Blast cannot target an engaged unit."
+	if int(weapon.get("keywords", {}).get("cleave", 0)) > 0:
+		if not context.get("target_model_count") is int or context.target_model_count < 0: return "Cleave requires target size at selection."
 	for key in ["toughness", "save_target", "wounds_per_model"]:
 		if not _positive_integer(defender.get(key)): return "Invalid defender stat: " + key
 	if defender.save_target < 2 or defender.save_target > 7: return "Save must be 2–7."
@@ -116,6 +118,7 @@ static func _validate(weapon: Dictionary, defender: Dictionary, context: Diction
 		var maximum: int = RandomStat.spec(weapon.attacks).maximum
 		if weapon.get("keywords", {}).has("rapid-fire") and context.get("rapid_fire_active", context.get("distance_inches", INF) <= float(weapon.get("range_inches", 0)) / 2.0): maximum += int(weapon.keywords["rapid-fire"])
 		if weapon.get("keywords", {}).get("blast", false): maximum += (1 if weapon.keywords.blast is bool else int(weapon.keywords.blast)) * floori(float(context.target_model_count) / 5.0)
+		if int(weapon.get("keywords", {}).get("cleave", 0)) > 0 and context.get("single_target_for_cleave", context.get("cleave_single_target", true)): maximum += int(weapon.keywords.cleave) * floori(float(context.target_model_count) / 5.0)
 		if maximum * shooters > 1000: return "Attack generation exceeds prototype limit."
 	if context.has("attack_sources"):
 		if not context.attack_sources is Array or context.attack_sources.is_empty() or context.attack_sources.size() > 256: return "Invalid attack generation sources."
@@ -271,6 +274,7 @@ static func generate_attacks(weapon: Dictionary, context: Dictionary, roller: Ca
 		var bonus := 0
 		if weapon.keywords.has("rapid-fire") and context.get("rapid_fire_active", context.distance_inches <= weapon.range_inches / 2.0): bonus += int(weapon.keywords["rapid-fire"])
 		if weapon.keywords.get("blast", false): bonus += (1 if weapon.keywords.blast is bool else int(weapon.keywords.blast)) * floori(float(context.target_model_count) / 5.0)
+		if int(weapon.keywords.get("cleave", 0)) > 0 and context.get("single_target_for_cleave", context.get("cleave_single_target", true)): bonus += int(weapon.keywords.cleave) * floori(float(context.target_model_count) / 5.0)
 		for index in range(int(context.get("weapon_count", 1))): sources.append({"expression": weapon.attacks, "bonus": bonus})
 	var count := 0
 	var rolls: Array[int] = []
