@@ -36,6 +36,12 @@ const AircraftRules = preload("res://scripts/edition_11/aircraft_rules.gd")
 const RazorbackFireSupport = preload("res://scripts/edition_11/razorback_fire_support.gd")
 const CanoptekTombCrawlers = preload("res://scripts/edition_11/canoptek_tomb_crawlers.gd")
 const NecronDoomScythe = preload("res://scripts/edition_11/necron_doom_scythe.gd")
+const WarHorde = preload("res://scripts/edition_11/war_horde.gd")
+const OrksBatch1 = preload("res://scripts/edition_11/orks_batch1_abilities.gd")
+const OrksBatch2 = preload("res://scripts/edition_11/orks_batch2_abilities.gd")
+const OrksBatch3 = preload("res://scripts/edition_11/orks_batch3_abilities.gd")
+const OrksBatch4 = preload("res://scripts/edition_11/orks_batch4_abilities.gd")
+const OrksBatch56 = preload("res://scripts/edition_11/orks_batch5_6_abilities.gd")
 const NecronConvergence = preload("res://scripts/edition_11/necron_convergence_of_dominion.gd")
 const NecronOphydian = preload("res://scripts/edition_11/necron_ophydian_destroyers.gd")
 const NecronSkorpekh = preload("res://scripts/edition_11/necron_skorpekh_destroyers.gd")
@@ -385,6 +391,23 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			if UnitAbilities.has(state, squad, "inescapable-death"):
 				context.snap_hit_threshold = 2
 		context.hit_modifier += UnitAbilities.hit_bonus(state, squad, row.target, melee, model, weapon)
+		if melee:
+			context.hit_modifier += OrksBatch1.melee_hit_bonus(state, squad)
+		else:
+			context.hit_modifier += OrksBatch1.ranged_hit_bonus(state, squad, model)
+		context.hit_modifier += OrksBatch2.hit_bonus(state, squad, melee)
+		context.hit_modifier += OrksBatch3.prophet_melee_bonus(state, squad, melee)
+		context.hit_modifier += OrksBatch4.covered_in_squigs_penalty(state, squad)
+		context.hit_modifier += OrksBatch4.spiteful_power_trip_hit_bonus(state, squad, row.target)
+		context.hit_modifier += OrksBatch56.strafing_run_hit_bonus(state, squad, row.target, melee)
+		var ork_reroll := OrksBatch56.hit_reroll_ones(state, squad, melee)
+		if ork_reroll != "none" and not context.get("snap_shooting", false) and not context.get("indirect_fire", false):
+			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), ork_reroll)
+		if OrksBatch3.super_runts_bonus(state, squad, str(weapon.get("name", ""))):
+			context.hit_modifier += 1
+		var big_dey_reroll := OrksBatch3.da_bigger_dey_iz_reroll(state, squad, row.target, melee)
+		if big_dey_reroll != "none":
+			context.wound_reroll = _combine_wound_rerolls(str(context.get("wound_reroll", "none")), big_dey_reroll)
 		if not melee and NecronDoomScythe.stand_firm_active(state, row.target): context.critical_hit_threshold = 5
 		if not melee and (UnitAbilities.leading(state, squad, "destroyer-cult") or UnitAbilities.leading(state, squad, "harbinger-of-destruction")):
 			context.critical_hit_threshold = mini(int(context.get("critical_hit_threshold", 6)), 5)
@@ -431,6 +454,13 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		var bonus := 0
 		if melee and int(weapon.keywords.get("cleave", 0)) > 0 and raw_context.single_target_for_cleave:
 			bonus += int(weapon.keywords.cleave) * floori(float(raw_context.target_model_count) / 5.0)
+		if OrksBatch1.might_is_right_active(state, squad, model, melee):
+			bonus += 3
+		if OrksBatch2.rokkit_charge_active(state, squad, melee):
+			bonus += 1
+		if OrksBatch3.super_runts_bonus(state, squad, str(weapon.get("name", ""))):
+			bonus += 1
+		bonus += OrksBatch4.blitz_dem_gitz_bonus(state, squad, row.target, str(weapon.get("name", "")), melee)
 		var attacks: int = Attacks.RandomStat.spec(expression).maximum
 		var profile := UnitAbilities.defend(state, squad, row.target, DetachmentStratagems.defend(state, squad, row.target, CoreReactions.weapon(state, model, DetachmentStratagems.weapon(state, squad, weapon, datasheet_weapon, melee, row.target), melee)))
 		if UnitAbilities.headhunter_quarry(state, squad) == row.target:
@@ -470,6 +500,11 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 		var target_defense := defender(state, row.target, melee)
 		if not target_defense.error.is_empty(): return target_defense
 		var defensive_modifier := UnitAbilities.defensive_wound_modifier(state, row.target, int(profile.strength), int(target_defense.toughness), melee)
+		defensive_modifier += OrksBatch3.hardy_bioniks_wound_modifier(state, row.target, int(profile.strength), int(target_defense.toughness))
+		var prophet_w_bonus := OrksBatch3.prophet_melee_bonus(state, squad, melee)
+		if prophet_w_bonus > 0: context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + prophet_w_bonus, -1, 1)
+		var wazbom_w_bonus := OrksBatch56.go_fer_da_weak_spot_wound_bonus(state, squad, row.target, melee)
+		if wazbom_w_bonus > 0: context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + wazbom_w_bonus, -1, 1)
 		if defensive_modifier != 0: context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + defensive_modifier, -1, 1)
 		var tactical_foresight_modifier := DetachmentStratagems.tactical_foresight_wound_modifier(state, squad, row.target, int(profile.strength), int(target_defense.toughness))
 		if tactical_foresight_modifier != 0: context.wound_modifier = clampi(int(context.get("wound_modifier", 0)) + tactical_foresight_modifier, -1, 1)
@@ -647,8 +682,42 @@ static func _prepare_equipped(state: Dictionary, squad: int, melee: bool, entrie
 			context.hit_reroll = _combine_rerolls(str(context.get("hit_reroll", "none")), "all")
 		if melee and UnitAbilities.leading(state, squad, "united-in-destruction"):
 			profile.keywords["lethal-hits"] = true
+		if melee:
+			WarHorde.apply_melee_weapon_bonuses(state, squad, model, profile)
+			if OrksBatch1.tide_of_muscle_active(state, squad, true):
+				profile.keywords["lethal-hits"] = true
+			if OrksBatch1.might_is_right_active(state, squad, model, true):
+				profile.strength = int(profile.get("strength", 0)) + 2
+			if OrksBatch2.rokkit_charge_active(state, squad, true):
+				profile.strength = int(profile.get("strength", 0)) + 1
+				profile.keywords["hazardous"] = true
+		else:
+			WarHorde.apply_ranged_weapon_bonuses(state, squad, profile)
+			OrksBatch2.apply_ranged_traits(state, squad, profile)
+			if OrksBatch4.even_more_dakka_active(state, squad, false):
+				profile.keywords["sustained-hits"] = maxi(1, int(profile.keywords.get("sustained-hits", 0)))
+			var fk_ap := OrksBatch2.finderz_keeperz_ap_bonus(state, squad, row.target, false)
+			if fk_ap > 0:
+				profile.ap = int(profile.get("ap", 0)) - fk_ap
+		if OrksBatch4.is_busted_for(state, squad, row.target):
+			profile.keywords["lethal-hits"] = true
+		if OrksBatch4.high_speed_carnage_active(state, squad, melee):
+			profile.strength = int(profile.get("strength", 0)) + 1
+		if not melee and OrksBatch56.is_burna_bombed(state, row.target):
+			profile.keywords["ignores-cover"] = true
+		profile.ap = OrksBatch1.arrogant_invulnerability_ap(state, row.target, int(profile.get("ap", 0)))
+		var target_is_infantry: bool = "INFANTRY" in raw_context.target_keywords
+		var target_is_monster_or_vehicle: bool = "MONSTER" in raw_context.target_keywords or "VEHICLE" in raw_context.target_keywords
+		if profile.keywords.get("devastating-wounds-infantry", false) and target_is_infantry:
+			profile.keywords["devastating-wounds"] = true
+		if profile.keywords.get("devastating-wounds-monster-vehicle", false) and target_is_monster_or_vehicle:
+			profile.keywords["devastating-wounds"] = true
+		if profile.keywords.get("lethal-hits-non-monster-vehicle", false) and not target_is_monster_or_vehicle:
+			profile.keywords["lethal-hits"] = true
+		if int(profile.keywords.get("sustained-hits-monster-vehicle", 0)) > 0 and target_is_monster_or_vehicle:
+			profile.keywords["sustained-hits"] = maxi(int(profile.keywords.get("sustained-hits", 0)), int(profile.keywords["sustained-hits-monster-vehicle"]))
 		# Expand attack-count/eligibility mechanics before pooling identical attacks.
-		for keyword in ["rapid-fire", "assault", "heavy", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "lance", "cleave", "melta"]: profile.keywords.erase(keyword)
+		for keyword in ["rapid-fire", "assault", "heavy", "ignores-cover", "blast", "hazardous", "close-quarters", "hunter", "extra-attacks", "lance", "cleave", "melta", "devastating-wounds-infantry", "devastating-wounds-monster-vehicle", "lethal-hits-non-monster-vehicle", "sustained-hits-monster-vehicle"]: profile.keywords.erase(keyword)
 		if UnitAbilities.enabled(state): context.use_lethal_hits = true
 		if not lethal and not UnitAbilities.enabled(state): profile.keywords.erase("lethal-hits")
 		var skill_characteristic := "WS" if melee else "BS"

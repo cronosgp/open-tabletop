@@ -7,6 +7,7 @@ const StormlanceEnhancements = preload("res://scripts/edition_11/stormlance_enha
 const Doctrines = preload("res://scripts/edition_11/combat_doctrines.gd")
 const PendingDecision = preload("res://scripts/edition_11/pending_decision.gd")
 const SilentKing = preload("res://scripts/edition_11/silent_king.gd")
+const OrksWaaagh = preload("res://scripts/edition_11/orks_waaagh.gd")
 const ID := "core-stratagem-windows-v1"
 const REROLL_ID := "command-reroll-movement-v1"
 const ATTACK_REROLL_ID := "command-reroll-hit-wound-v1"
@@ -171,7 +172,7 @@ static func choice_error(state: Dictionary, player: int, squad: int, revision: i
 		if window.kind == "after_charge_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("valour", false) or window.get("relentless_combatants", false) or window.get("master_shadows", false) or window.get("lord_of_the_ravenwing", false) or window.get("linebreaker_onslaught", false) or window.get("deathwatch_terminatus_assault", false) or window.get("bestial_fury", false) or window.get("phaeron_of_the_blades", false)): return "This roll belongs to another unit or ability."
 		if window.kind == "after_charge_roll" and window.get("lord_of_the_ravenwing", false) and not StormlanceEnhancements.lord_of_the_ravenwing_active(state, squad): return "Lord of the Ravenwing is no longer active for this Charge."
 		if window.kind == "after_charge_roll" and window.get("linebreaker_onslaught", false) and not StormlanceEnhancements.linebreaker_onslaught_active(state, squad): return "Linebreaker Onslaught is no longer active for this Charge."
-		if window.kind == "after_advance_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("overcharged_engines", false) or window.get("sudden", false) or window.get("supercharged", false) or window.get("honour_vigilance", false) or window.get("wrath_chapter", false) or window.get("stormseers_wisdom", false) or window.get("righteous_fervour", false) or window.get("bestial_fury", false)): return "This roll belongs to another unit or ability."
+		if window.kind == "after_advance_roll" and not (state.stratagems.get("movement_rerolls", false) or window.get("overcharged_engines", false) or window.get("waaagh_advance", false) or window.get("sudden", false) or window.get("supercharged", false) or window.get("honour_vigilance", false) or window.get("wrath_chapter", false) or window.get("stormseers_wisdom", false) or window.get("righteous_fervour", false) or window.get("bestial_fury", false)): return "This roll belongs to another unit or ability."
 		if window.kind == "after_advance_roll" and window.get("righteous_fervour", false) and not StormlanceEnhancements.righteous_fervour_active(state, squad): return "Righteous Fervour is no longer active for this Advance."
 		if state.phase != ("movement" if window.kind == "after_advance_roll" else "charge"): return "This roll's phase has changed."
 	elif window.kind in ["after_hit_roll", "after_wound_roll"]:
@@ -201,6 +202,9 @@ static func use_error(state: Dictionary, player: int, squad: int, stratagem: Str
 	if stratagem == "overcharged-engines":
 		var window := pending(state)
 		return "Overcharged Engines Advance re-roll is not available." if window.kind != "after_advance_roll" or not window.get("overcharged_engines", false) else ""
+	if stratagem == "waaagh-advance":
+		var window := pending(state)
+		return "Waaagh! Advance re-roll is not available." if window.kind != "after_advance_roll" or not window.get("waaagh_advance", false) else ""
 	if stratagem not in SUPPORTED: return "Stratagem is not implemented in this window."
 	var rule: Dictionary = SUPPORTED[stratagem]
 	if pending(state).kind not in rule.get("windows", [rule.get("window", "")]): return "Stratagem unavailable in this window."
@@ -236,10 +240,11 @@ static func open_roll(state: Dictionary, player: int, squad: int, kind: String, 
 	var bestial_fury: bool = UnitAbilities.has(state, squad, "bestial-fury")
 	var phaeron_of_the_blades: bool = kind == "after_charge_roll" and SilentKing.charge_reroll_active(state, squad)
 	var overcharged_engines: bool = kind == "after_advance_roll" and UnitAbilities.has(state, squad, "overcharged-engines")
+	var waaagh_advance: bool = kind == "after_advance_roll" and OrksWaaagh.can_reroll_advance(state, squad)
 	var command_reroll: bool = state.get("stratagems", {}).get("movement_rerolls", false) and eligibility_error(state, player, squad, "command-re-roll").is_empty()
-	if not command_reroll and not overcharged_engines and not master_shadows and not lord_of_the_ravenwing and not linebreaker_onslaught and not deathwatch_terminatus_assault and not supercharged and not honour_vigilance and not wrath_chapter and not stormseers_wisdom and not righteous_fervour and not bestial_fury and not phaeron_of_the_blades: return false
+	if not command_reroll and not overcharged_engines and not waaagh_advance and not master_shadows and not lord_of_the_ravenwing and not linebreaker_onslaught and not deathwatch_terminatus_assault and not supercharged and not honour_vigilance and not wrath_chapter and not stormseers_wisdom and not righteous_fervour and not bestial_fury and not phaeron_of_the_blades: return false
 	if not state.has("stratagems"): state.stratagems = {"pending": {}, "uses": [], "command_done_turn": -1}
-	state.stratagems.pending = {"kind": kind, "player": player, "squad": squad, "phase_key": phase_key(state), "rolls": rolls.duplicate(), "draft": draft.duplicate(true), "master_shadows": master_shadows, "lord_of_the_ravenwing": lord_of_the_ravenwing, "linebreaker_onslaught": linebreaker_onslaught, "deathwatch_terminatus_assault": deathwatch_terminatus_assault, "supercharged": supercharged, "honour_vigilance": honour_vigilance, "wrath_chapter": wrath_chapter, "stormseers_wisdom": stormseers_wisdom, "righteous_fervour": righteous_fervour, "bestial_fury": bestial_fury, "phaeron_of_the_blades": phaeron_of_the_blades, "overcharged_engines": overcharged_engines}
+	state.stratagems.pending = {"kind": kind, "player": player, "squad": squad, "phase_key": phase_key(state), "rolls": rolls.duplicate(), "draft": draft.duplicate(true), "master_shadows": master_shadows, "lord_of_the_ravenwing": lord_of_the_ravenwing, "linebreaker_onslaught": linebreaker_onslaught, "deathwatch_terminatus_assault": deathwatch_terminatus_assault, "supercharged": supercharged, "honour_vigilance": honour_vigilance, "wrath_chapter": wrath_chapter, "stormseers_wisdom": stormseers_wisdom, "righteous_fervour": righteous_fervour, "bestial_fury": bestial_fury, "phaeron_of_the_blades": phaeron_of_the_blades, "overcharged_engines": overcharged_engines, "waaagh_advance": waaagh_advance}
 	return true
 
 static func consume(state: Dictionary, player: int, squad: int, stratagem: String, roller: Callable = Callable()) -> String:

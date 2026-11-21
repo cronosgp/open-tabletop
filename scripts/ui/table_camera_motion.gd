@@ -6,6 +6,12 @@ static func offset(yaw: float, pitch: float, distance: float) -> Vector3:
 static func zoom_weight(delta: float, motion: bool) -> float:
 	return 1.0 - exp(-18.0 * delta) if motion else 1.0
 
+static func pan_weight(delta: float, motion: bool) -> float:
+	return 1.0 - exp(-14.0 * minf(maxf(delta, 0.0), 0.05)) if motion else 1.0
+
+static func orbit_weight(delta: float, motion: bool) -> float:
+	return 1.0 - exp(-20.0 * minf(maxf(delta, 0.0), 0.05)) if motion else 1.0
+
 static func ground_anchor(camera: Camera3D, screen: Vector2, elevation: float = 0.0) -> Variant:
 	var origin := camera.project_ray_origin(screen)
 	var direction := camera.project_ray_normal(screen)

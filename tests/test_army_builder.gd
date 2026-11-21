@@ -79,7 +79,13 @@ func run() -> void:
 	panel._open_entry_appearance()
 	for frame in range(2): await process_frame
 	var appearance_page: Control = panel.editor_tabs.get_child(2)
-	check(panel.compact_navigation.visible and panel.workspace_columns.get_child(2).visible and not panel.workspace_columns.get_child(0).visible and not panel.workspace_columns.get_child(1).visible and panel.visual_copy_picker.item_count == 2 and panel.visual_gallery_unit_target != null and panel.visual_gallery_model_target != null and appearance_page.is_ancestor_of(panel.miniature_preview) and appearance_page.is_ancestor_of(panel.preview_model_input) and panel.miniature_preview.get_parent().get_parent() == panel.visual_models.get_parent().get_parent() and int(panel.preview_model_input.max_value) == int(panel.draft.entries[0].models), "At 1280px, Appearance opens the inspector and keeps its live miniature preview beside the local gallery and per-copy model selector")
+	check(not panel.compact_navigation.visible and panel.left_pane_bar.visible and panel.workspace_columns.get_child(1).visible and panel.workspace_columns.get_child(2).visible and not panel.workspace_columns.get_child(0).visible and panel.visual_copy_picker.item_count == 2 and panel.visual_gallery_unit_target != null and panel.visual_gallery_model_target != null and appearance_page.is_ancestor_of(panel.miniature_preview) and appearance_page.is_ancestor_of(panel.preview_model_input) and panel.miniature_preview.get_parent().get_parent() == panel.visual_models.get_parent().get_parent() and int(panel.preview_model_input.max_value) == int(panel.draft.entries[0].models), "At 1280px, Appearance uses the two-column workspace and keeps its live miniature preview beside the local gallery and per-copy model selector")
+	panel.size = Vector2(900, 800)
+	panel._layout_workspace()
+	panel._open_entry_appearance()
+	check(panel.compact_navigation.visible and panel.workspace_columns.get_child(2).visible and not panel.workspace_columns.get_child(0).visible and not panel.workspace_columns.get_child(1).visible, "Below 1040px, the workshop collapses to single-column compact navigation")
+	panel.size = Vector2(1280, 800)
+	panel._layout_workspace()
 	panel.visual_copy_picker.select(1)
 	panel.visual_copy_picker.item_selected.emit(1)
 	panel.preview_model_input.value = 3

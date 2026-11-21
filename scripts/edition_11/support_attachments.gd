@@ -20,7 +20,14 @@ const BODYGUARDS := {
  "technomancer": ["necron-warriors", "immortals", "canoptek-wraiths"],
  "psychomancer": ["necron-warriors", "immortals"],
  "chronomancer": ["necron-warriors", "immortals"],
- "geomancer": ["necron-warriors", "immortals", "canoptek-macrocytes"]}
+ "geomancer": ["necron-warriors", "immortals", "canoptek-macrocytes"],
+ "bannernob": ["boyz", "nobz"],
+ "big-mek": ["nobz", "tankbustas", "boyz", "breaka-boyz", "mek-gunz", "flash-gitz"],
+ "big-mek-in-mega-armour": ["mek-gunz", "meganobz"],
+ "big-mek-with-shokk-attack-gun": ["nobz", "mek-gunz", "boyz", "tankbustas"],
+ "mek": ["boyz", "nobz", "flash-gitz", "tankbustas", "mek-gunz"],
+ "painboss": ["squighog-boyz", "beast-snagga-boyz"],
+ "painboy": ["boyz", "flash-gitz", "nobz", "tankbustas", "breaka-boyz"]}
 const CONDITIONAL_BODYGUARDS := {"cato-sicarius": ["victrix-honour-guard"]}
 
 static func is_support_identity(identity: String, calgar_in_army: bool) -> bool:

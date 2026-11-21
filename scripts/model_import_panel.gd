@@ -408,6 +408,7 @@ func _organize_imports() -> void:
 		if control is Button and control.text == "Prepare local GLB": control.reparent(pages["Local files"])
 
 func _process(_delta: float) -> void:
+	if not is_visible_in_tree(): return
 	_update_unavailable_variants_button()
 	if cached_preview_button != null: cached_preview_button.disabled = catalog.is_empty() or inventory.selected < 0 or downloader.busy or automatic_running or variant_download_active
 	for text_label: Label in [notice, selected_description, download_status, lookup_status, inventory_status]: text_label.tooltip_text = text_label.text

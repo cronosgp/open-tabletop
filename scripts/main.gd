@@ -396,6 +396,18 @@ var zoom := 15.5
 var wheel_zoom_target := 0.0
 var wheel_zoom_anchor: Variant = null
 var angle := 0.0
+var pan_velocity := Vector3.ZERO
+var orbit_angle_target := 0.0
+var orbit_angle_active := false
+var camera_annotations_dirty := false
+var camera_annotation_cooldown := 0.0
+var hover_guides_dirty := true
+var last_hover_mouse := Vector2(-1.0, -1.0)
+var last_hover_over_board := false
+var last_hover_pivot := Vector3.INF
+var last_hover_zoom := -1.0
+var last_hover_angle := -999.0
+var _material_cache: Dictionary = {}
 var framed_side_key := ""
 var side_anchor_key := ""
 var side_anchor_root: Node3D
@@ -701,9 +713,13 @@ func _ensure_tactical_input_actions() -> void:
 		InputMap.action_add_event(action_name, key_event)
 
 func _material(color: Color) -> StandardMaterial3D:
+	var key := color.to_rgba32()
+	if _material_cache.has(key):
+		return _material_cache[key]
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	material.roughness = 0.85
+	_material_cache[key] = material
 	return material
 
 func _box(size: Vector3, at: Vector3, color: Color, parent: Node3D = null) -> void:
@@ -748,6 +764,61 @@ func _build_board() -> void:
 	guides = TacticalGuides.new()
 	add_child(guides)
 
+func _add_batched_boxes(boxes: Array[Dictionary], color: Color, parent: Node3D) -> void:
+	if boxes.is_empty(): return
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for entry: Dictionary in boxes:
+		var box_size: Vector3 = entry.size
+		var at: Vector3 = entry.at
+		var hx := box_size.x * 0.5
+		var hy := box_size.y * 0.5
+		var hz := box_size.z * 0.5
+		var min_p := at - Vector3(hx, hy, hz)
+		var max_p := at + Vector3(hx, hy, hz)
+		# Top (+Y)
+		st.set_normal(Vector3.UP)
+		st.add_vertex(Vector3(min_p.x, max_p.y, min_p.z))
+		st.add_vertex(Vector3(max_p.x, max_p.y, min_p.z))
+		st.add_vertex(Vector3(max_p.x, max_p.y, max_p.z))
+		st.add_vertex(Vector3(min_p.x, max_p.y, min_p.z))
+		st.add_vertex(Vector3(max_p.x, max_p.y, max_p.z))
+		st.add_vertex(Vector3(min_p.x, max_p.y, max_p.z))
+		# Sides (front/back/left/right) for thin elevation legibility
+		st.set_normal(Vector3.FORWARD)
+		st.add_vertex(Vector3(max_p.x, min_p.y, min_p.z))
+		st.add_vertex(Vector3(min_p.x, min_p.y, min_p.z))
+		st.add_vertex(Vector3(min_p.x, max_p.y, min_p.z))
+		st.add_vertex(Vector3(max_p.x, min_p.y, min_p.z))
+		st.add_vertex(Vector3(min_p.x, max_p.y, min_p.z))
+		st.add_vertex(Vector3(max_p.x, max_p.y, min_p.z))
+		st.set_normal(Vector3.BACK)
+		st.add_vertex(Vector3(min_p.x, min_p.y, max_p.z))
+		st.add_vertex(Vector3(max_p.x, min_p.y, max_p.z))
+		st.add_vertex(Vector3(max_p.x, max_p.y, max_p.z))
+		st.add_vertex(Vector3(min_p.x, min_p.y, max_p.z))
+		st.add_vertex(Vector3(max_p.x, max_p.y, max_p.z))
+		st.add_vertex(Vector3(min_p.x, max_p.y, max_p.z))
+		st.set_normal(Vector3.LEFT)
+		st.add_vertex(Vector3(min_p.x, min_p.y, min_p.z))
+		st.add_vertex(Vector3(min_p.x, min_p.y, max_p.z))
+		st.add_vertex(Vector3(min_p.x, max_p.y, max_p.z))
+		st.add_vertex(Vector3(min_p.x, min_p.y, min_p.z))
+		st.add_vertex(Vector3(min_p.x, max_p.y, max_p.z))
+		st.add_vertex(Vector3(min_p.x, max_p.y, min_p.z))
+		st.set_normal(Vector3.RIGHT)
+		st.add_vertex(Vector3(max_p.x, min_p.y, max_p.z))
+		st.add_vertex(Vector3(max_p.x, min_p.y, min_p.z))
+		st.add_vertex(Vector3(max_p.x, max_p.y, min_p.z))
+		st.add_vertex(Vector3(max_p.x, min_p.y, max_p.z))
+		st.add_vertex(Vector3(max_p.x, max_p.y, min_p.z))
+		st.add_vertex(Vector3(max_p.x, max_p.y, max_p.z))
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.mesh = st.commit()
+	mesh_instance.material_override = _material(color)
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mesh_instance)
+
 func _sync_board() -> void:
 	var size := Rules.half_board(state) * 2.0
 	if size == rendered_board_size: return
@@ -756,13 +827,17 @@ func _sync_board() -> void:
 		board_root.remove_child(child)
 		child.queue_free()
 	_box(Vector3(size.x, 0.3, size.y), Vector3(0, -0.16, 0), Color("343f44"), board_root)
+	var grid_boxes: Array[Dictionary] = []
 	for x in range(ceili(-size.x / 2.0), floori(size.x / 2.0) + 1):
-		_box(Vector3(0.018, 0.01, size.y), Vector3(x, 0.01, 0), Color("485358"), board_root)
+		grid_boxes.append({"size": Vector3(0.018, 0.01, size.y), "at": Vector3(x, 0.01, 0)})
 	for z in range(ceili(-size.y / 2.0), floori(size.y / 2.0) + 1):
-		_box(Vector3(size.x, 0.01, 0.018), Vector3(0, 0.01, z), Color("485358"), board_root)
+		grid_boxes.append({"size": Vector3(size.x, 0.01, 0.018), "at": Vector3(0, 0.01, z)})
+	_add_batched_boxes(grid_boxes, Color("485358"), board_root)
+	var border_boxes: Array[Dictionary] = []
 	for side in [-1, 1]:
-		_box(Vector3(0.035, 0.02, size.y), Vector3(side * size.x / 2.0, 0.01, 0), Color("a3b4bc"), board_root)
-		_box(Vector3(size.x, 0.02, 0.035), Vector3(0, 0.01, side * size.y / 2.0), Color("a3b4bc"), board_root)
+		border_boxes.append({"size": Vector3(0.035, 0.02, size.y), "at": Vector3(side * size.x / 2.0, 0.01, 0)})
+		border_boxes.append({"size": Vector3(size.x, 0.02, 0.035), "at": Vector3(0, 0.01, side * size.y / 2.0)})
+	_add_batched_boxes(border_boxes, Color("a3b4bc"), board_root)
 	zoom = maxf(18.0, maxf(size.x, size.y) * 0.82)
 	if camera != null: _update_camera()
 
@@ -796,7 +871,9 @@ func _spawn_pieces() -> void:
 		marker_mesh.bottom_radius = float(state.units[id].radius) + 0.12
 		marker_mesh.height = 0.12
 		marker.mesh = marker_mesh
-		var marker_material := _material(Color("78e1ac"))
+		var marker_material := StandardMaterial3D.new()
+		marker_material.albedo_color = Color("78e1ac")
+		marker_material.roughness = 0.85
 		marker_material.emission_enabled = true
 		marker_material.emission = Color("78e1ac")
 		marker_material.emission_energy_multiplier = 0.45
@@ -2832,11 +2909,11 @@ func _build_tactical_overlay() -> void:
 	frame.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	frame.grow_vertical = Control.GROW_DIRECTION_BOTH
 	var WorkspaceTheme := preload("res://scripts/ui/workspace_theme.gd")
-	frame.add_theme_stylebox_override("panel", WorkspaceTheme.box(WorkspaceTheme.SURFACE, WorkspaceTheme.GOLD, 16, 2, 2))
+	frame.add_theme_stylebox_override("panel", WorkspaceTheme.box(WorkspaceTheme.SURFACE, WorkspaceTheme.GOLD, 10, 2, 2))
 	frame.theme = WorkspaceTheme.create()
 	tactical_overlay.add_child(frame)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 8)
+	column.add_theme_constant_override("separation", 6)
 	frame.add_child(column)
 	var heading := HBoxContainer.new()
 	column.add_child(heading)
@@ -2952,10 +3029,10 @@ func _layout_tactical_overlay() -> void:
 	var frame := tactical_overlay.get_node_or_null("TacticalScreen") as PanelContainer
 	if frame == null: return
 	var workspace := tactical_overlay_content in [workshop_scroll, tools_scroll, new_match_scroll]
-	var maximum_width := 1680.0 if workspace else 1160.0
+	var maximum_width := 1840.0 if workspace else 1160.0
 	if tactical_overlay_content == mission_overview_scroll: maximum_width = 900.0
-	var width := minf(maximum_width, size.x - 48.0)
-	var height := size.y - 40.0 if workspace else minf(800.0, size.y - 40.0)
+	var width := minf(maximum_width, size.x - (16.0 if workspace else 48.0))
+	var height := size.y - (16.0 if workspace else 40.0) if workspace else minf(800.0, size.y - 40.0)
 	frame.offset_left = -width / 2.0
 	frame.offset_right = width / 2.0
 	frame.offset_top = -height / 2.0
@@ -5566,7 +5643,7 @@ func _start_guided_first_session() -> void:
 	_start_saved_match(true, true)
 
 func _load_tactical_visual_catalog() -> String:
-	if model_imports == null: return "Model preparation is unavailable."
+	if model_imports == null or model_imports.source_path == null: return "Model preparation is unavailable."
 	var path: String = model_imports.source_path.text.strip_edges()
 	if path.is_empty():
 		for candidate: String in ["user://ForceOrg.json", "res://ForceOrg.json", OS.get_system_dir(OS.SYSTEM_DIR_DOCUMENTS).path_join("My Games/Tabletop Simulator/Saves/ForceOrg.json")]:
@@ -6578,7 +6655,7 @@ func _button(parent: Node, title: String, callback: Callable, icon_key: String =
 	parent.add_child(button)
 	return button
 
-func _update_camera() -> void:
+func _update_camera(defer_annotations: bool = false) -> void:
 	camera.position = Vector3(sin(angle) * zoom, zoom * 0.85, cos(angle) * zoom)
 	camera.look_at(pivot.position, Vector3.UP)
 	var tier := BoardLabelZoom.NEAR
@@ -6587,8 +6664,10 @@ func _update_camera() -> void:
 	if tier != board_label_zoom:
 		board_label_zoom = tier
 		_refresh_health_tags()
-	else:
+	elif not defer_annotations:
 		_layout_board_annotations()
+	else:
+		camera_annotations_dirty = true
 
 func _focus_selected_unit() -> void:
 	if not state.units.has(selected): return
@@ -6677,6 +6756,8 @@ func _look_from_player_side(player: int = 0, manual: bool = true) -> void:
 		_stop_camera_motion()
 		camera_manual_override = false
 	angle = _table_angle_for(player if player in [1, 2] else _table_seat())
+	orbit_angle_target = angle
+	orbit_angle_active = false
 	zoom = _opening_zoom()
 	pivot.position = Vector3.ZERO
 	_update_camera()
@@ -6756,7 +6837,19 @@ func _decision_camera_subject() -> Dictionary:
 func _stop_camera_motion() -> void:
 	wheel_zoom_target = 0.0
 	wheel_zoom_anchor = null
+	pan_velocity = Vector3.ZERO
+	orbit_angle_active = false
+	orbit_angle_target = angle
 	if focus_tween != null and focus_tween.is_running(): focus_tween.kill()
+
+func _claim_manual_camera_control(stop_wheel: bool = true) -> void:
+	if stop_wheel:
+		_stop_camera_motion()
+	elif focus_tween != null and focus_tween.is_running():
+		focus_tween.kill()
+	if not camera_manual_override:
+		camera_manual_override = true
+		last_camera_key = str(_decision_camera_subject().get("key", ""))
 
 func _manual_camera_control() -> void:
 	_stop_camera_motion()
@@ -6807,24 +6900,65 @@ func _process(delta: float) -> void:
 	if main_menu != null and main_menu.visible: return
 	if local_player_handoff != null and local_player_handoff.visible: return
 	if tactical_overlay_content != null: return
-	hover_time += delta
-	if hover_time >= 0.05:
-		hover_time = 0.0
-		_update_hover_guides()
-		_update_board_annotation_hover()
-	if wheel_zoom_target > 0.0: _advance_wheel_zoom(delta)
-	if _keyboard_choice_has_focus():
-		return
-	var pan_x := Input.get_axis(INPUT_CAMERA_PAN_LEFT, INPUT_CAMERA_PAN_RIGHT)
-	var pan_z := Input.get_axis(INPUT_CAMERA_PAN_UP, INPUT_CAMERA_PAN_DOWN)
-	var direction := Vector3(pan_x, 0.0, pan_z)
+	var motion_enabled := _board_motion_enabled()
+	var dt := minf(maxf(delta, 0.0), 0.05)
+	var camera_moving := false
+	if wheel_zoom_target > 0.0:
+		camera_moving = true
+		_advance_wheel_zoom(delta)
+	if orbit_angle_active:
+		camera_moving = true
+		var diff := orbit_angle_target - angle
+		if not motion_enabled or absf(diff) < 0.0005:
+			angle = orbit_angle_target
+			orbit_angle_active = false
+		else:
+			angle += diff * TableCameraMotion.orbit_weight(dt, true)
+		_update_camera(true)
+	var direction := Vector3.ZERO
+	if not _keyboard_choice_has_focus():
+		var pan_x := Input.get_axis(INPUT_CAMERA_PAN_LEFT, INPUT_CAMERA_PAN_RIGHT)
+		var pan_z := Input.get_axis(INPUT_CAMERA_PAN_UP, INPUT_CAMERA_PAN_DOWN)
+		direction = Vector3(pan_x, 0.0, pan_z)
 	if direction != Vector3.ZERO:
-		_manual_camera_control()
-		pivot.position += direction.limit_length().rotated(Vector3.UP, angle) * delta * clampf(zoom * 0.55, 2.0, 24.0)
+		_claim_manual_camera_control(false)
+	var pan_speed := clampf(zoom * 0.55, 2.0, 24.0)
+	var target_velocity := direction.limit_length().rotated(Vector3.UP, angle) * pan_speed if direction != Vector3.ZERO else Vector3.ZERO
+	if not motion_enabled:
+		pan_velocity = target_velocity
+	else:
+		pan_velocity = pan_velocity.lerp(target_velocity, TableCameraMotion.pan_weight(dt, true))
+		if target_velocity == Vector3.ZERO and pan_velocity.length_squared() < 0.0001:
+			pan_velocity = Vector3.ZERO
+	if pan_velocity != Vector3.ZERO:
+		camera_moving = true
+		pivot.position += pan_velocity * dt
 		var limit: Vector2 = Rules.half_board(state) + Vector2(12, 12)
 		pivot.position.x = clampf(pivot.position.x, -limit.x, limit.x)
 		pivot.position.z = clampf(pivot.position.z, -limit.y, limit.y)
-		_layout_board_annotations()
+		camera_annotations_dirty = true
+	if camera_annotations_dirty:
+		camera_annotation_cooldown -= delta
+		if not camera_moving or camera_annotation_cooldown <= 0.0:
+			camera_annotation_cooldown = 0.04
+			camera_annotations_dirty = false
+			_layout_board_annotations()
+	hover_time += delta
+	if hover_time >= 0.05 and not Input.is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE):
+		var viewport := get_viewport()
+		var mouse := viewport.get_mouse_position()
+		var over_board := viewport.gui_get_hovered_control() == null
+		var camera_changed := pivot.position != last_hover_pivot or not is_equal_approx(zoom, last_hover_zoom) or not is_equal_approx(angle, last_hover_angle)
+		if hover_guides_dirty or mouse != last_hover_mouse or over_board != last_hover_over_board or camera_changed:
+			hover_time = 0.0
+			hover_guides_dirty = false
+			last_hover_mouse = mouse
+			last_hover_over_board = over_board
+			last_hover_pivot = pivot.position
+			last_hover_zoom = zoom
+			last_hover_angle = angle
+			_update_hover_guides()
+			_update_board_annotation_hover()
 
 func _advance_wheel_zoom(delta: float) -> void:
 	if wheel_zoom_target <= 0.0: return
@@ -6839,7 +6973,8 @@ func _advance_wheel_zoom(delta: float) -> void:
 	var limit: Vector2 = Rules.half_board(state) + Vector2(12, 12)
 	pivot.position.x = clampf(pivot.position.x, -limit.x, limit.x)
 	pivot.position.z = clampf(pivot.position.z, -limit.y, limit.y)
-	_set_focus_zoom(next)
+	zoom = next
+	_update_camera(wheel_zoom_target > 0.0)
 
 func _keyboard_choice_has_focus() -> bool:
 	var focused := get_viewport().gui_get_focus_owner()
@@ -6913,14 +7048,20 @@ func _unhandled_input(event: InputEvent) -> void:
 			_focus_selected_unit()
 		return
 	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE):
-		_manual_camera_control()
-		angle -= event.relative.x * 0.006
-		_update_camera()
+		_claim_manual_camera_control(false)
+		if not orbit_angle_active:
+			orbit_angle_target = angle
+			orbit_angle_active = true
+		orbit_angle_target -= event.relative.x * 0.006
+		if not _board_motion_enabled():
+			angle = orbit_angle_target
+			orbit_angle_active = false
+			_update_camera(true)
 	if not event is InputEventMouseButton or not event.pressed:
 		return
 	if event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 		var previous_target := wheel_zoom_target if wheel_zoom_target > 0.0 else zoom
-		_manual_camera_control()
+		_claim_manual_camera_control(false)
 		var factor := 0.88 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / 0.88
 		wheel_zoom_target = clampf(previous_target * factor, CAMERA_MIN_ZOOM, DecisionCamera.max_zoom(state))
 		if _camera_board_area().has_point(event.position):
@@ -7605,6 +7746,7 @@ func _refresh_setup_option_controls() -> void:
 	if marine_chapter_choice_p2 != null: marine_chapter_choice_p2.disabled = not local_setup
 
 func _refresh() -> void:
+	hover_guides_dirty = true
 	if _ui_refresh_depth == 0 and decision_footer != null: decision_footer.restore()
 	_ui_refresh_depth += 1
 	if _ui_refresh_depth == 1:
@@ -7633,6 +7775,24 @@ func _refresh() -> void:
 	var impact_cue := false
 	var match_was_presented := not board_presentation_state.is_empty()
 	var preview_deployment_squad := Deployment.current(state) if combat_enabled and state.get("phase", "") == "deployment" else -1
+	var shared_previews: Dictionary = {}
+	var shared_preview_elevations: Dictionary = {}
+	if combat_enabled:
+		var pending_reanimation := Combat.Reanimation.pending(state)
+		if not pending_reanimation.is_empty():
+			shared_previews = pending_reanimation.get("current", {}).get("placements", {})
+		else:
+			var pending_unit_action := Combat.UnitActions.pending(state)
+			var pending_kind := str(pending_unit_action.get("kind", ""))
+			if pending_kind == "ingress":
+				shared_previews = pending_unit_action.positions
+			elif pending_kind == "healing":
+				shared_previews = pending_unit_action.placements
+			elif pending_kind in [Combat.UnitActions.HeresyRetribution.WINDOW, Combat.UnitActions.CrusaderSurge.PLACEMENT]:
+				shared_previews = pending_unit_action.positions
+				shared_preview_elevations = pending_unit_action.get("elevations", {})
+			elif not state.get("unit_abilities", {}).get("transport_window", {}).is_empty():
+				shared_previews = state.unit_abilities.transport_window.placements
 	# Model-import signals respawn pieces and resolve their visuals. Rechecking variant catalogs here would rescan them for every model on every action.
 	for id: int in pieces:
 		var unit: Dictionary = state.units[id]
@@ -7640,14 +7800,8 @@ func _refresh() -> void:
 		var loadout_signature := _local_visual_loadout_signature(unit)
 		if str(visual_piece.get_meta("local_visual_loadout_signature", "")) != loadout_signature:
 			_sync_local_model_visual(id, int(visual_piece.get_meta("local_visual_appearance_index", -2)))
-		var previews: Dictionary = Combat.Reanimation.pending(state).get("current", {}).get("placements", {}) if combat_enabled else {}
-		var preview_elevations: Dictionary = {}
-		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == "ingress": previews = Combat.UnitActions.pending(state).positions
-		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") == "healing": previews = Combat.UnitActions.pending(state).placements
-		if combat_enabled and Combat.UnitActions.pending(state).get("kind", "") in [Combat.UnitActions.HeresyRetribution.WINDOW, Combat.UnitActions.CrusaderSurge.PLACEMENT]:
-			previews = Combat.UnitActions.pending(state).positions
-			preview_elevations = Combat.UnitActions.pending(state).get("elevations", {})
-		if combat_enabled and not state.get("unit_abilities", {}).get("transport_window", {}).is_empty(): previews = state.unit_abilities.transport_window.placements
+		var previews := shared_previews
+		var preview_elevations := shared_preview_elevations
 		var display_position: Vector2 = previews.get(id, unit.position)
 		var elevation := float(preview_elevations.get(id, unit.get("elevation", 0.0)))
 		var wounds := int(unit.get("wounds", 1))
@@ -7719,7 +7873,9 @@ func _refresh() -> void:
 		if combat_enabled and state.units.has(selected) and unit.squad == state.units[selected].squad: color = color.lightened(0.12)
 		if id == selected: color = Color("f2df83")
 		if previews.has(id): color = Color("a88fea")
-		pieces[id].material_override = _material(color)
+		var piece_material := _material(color)
+		if pieces[id].material_override != piece_material:
+			pieces[id].material_override = piece_material
 	if combat_enabled and state.has("last_attack"):
 		var hazard: Dictionary = state.last_attack.get("hazardous", {})
 		var hazard_key := str(hazard.get("rolls", [])) if int(hazard.get("total", 0)) > 0 else ""
@@ -8711,13 +8867,20 @@ func _fit_board_annotation(label: Label3D, board_area: Rect2, occupied: Array[Re
 	if camera.is_position_behind(anchor):
 		label.hide()
 		return
-	var font := label.font if label.font != null else ThemeDB.fallback_font
-	var width := 0.0
-	var lines := label.text.split("\n")
-	for line: String in lines:
-		width = maxf(width, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, label.font_size).x)
-	var height := lines.size() * font.get_height(label.font_size) + (lines.size() - 1) * label.line_spacing
-	var half_size := (Vector2(width, height) * 0.5 + Vector2.ONE * label.outline_size) * label.pixel_size
+	var half_size: Vector2
+	var measure_key := "%s|%d|%.5f" % [label.text, label.font_size, label.pixel_size]
+	if str(label.get_meta(&"annotation_measure_key", "")) == measure_key:
+		half_size = label.get_meta(&"annotation_half_size", Vector2.ZERO)
+	else:
+		var font := label.font if label.font != null else ThemeDB.fallback_font
+		var width := 0.0
+		var lines := label.text.split("\n")
+		for line: String in lines:
+			width = maxf(width, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, label.font_size).x)
+		var height := lines.size() * font.get_height(label.font_size) + (lines.size() - 1) * label.line_spacing
+		half_size = (Vector2(width, height) * 0.5 + Vector2.ONE * label.outline_size) * label.pixel_size
+		label.set_meta(&"annotation_measure_key", measure_key)
+		label.set_meta(&"annotation_half_size", half_size)
 	var basis := camera.global_basis
 	var top_left := camera.unproject_position(anchor - basis.x * half_size.x + basis.y * half_size.y)
 	var bottom_right := camera.unproject_position(anchor + basis.x * half_size.x - basis.y * half_size.y)
@@ -9246,6 +9409,7 @@ func _apply_attack_plan(player: int, attacker: int, entries: Array, revision: in
 
 func _sync_terrain() -> void:
 	if terrain_root == null: return
+	if _selection_refresh and not terrain_signature.is_empty(): return
 	var areas: Array = Combat.Terrain.areas(state)
 	var surfaces: Array = Combat.Terrain.surfaces(state)
 	var signature := var_to_str(areas) + var_to_str(surfaces) + var_to_str(state.get("mission", {}).get("objectives", [])) + str(state.get("phase", "") == "deployment") + var_to_str(state.get("deployment", {}).get("zones", {}))

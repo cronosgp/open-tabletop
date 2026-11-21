@@ -943,6 +943,7 @@ static func _load_image_texture(path: String, purpose: String, defer_upload: boo
 	if error != OK: return {"error": "Cannot decode %s image as PNG, JPEG or WebP." % purpose, "texture": null, "image": null, "fingerprint": ""}
 	if image.get_width() > 8192 or image.get_height() > 8192: return {"error": "%s image exceeds 8192 pixels per side." % purpose.capitalize(), "texture": null, "image": null, "fingerprint": ""}
 	if defer_upload: return {"error": "", "texture": null, "image": image, "fingerprint": fingerprint}
+	if not image.has_mipmaps(): image.generate_mipmaps()
 	var texture := ImageTexture.create_from_image(image)
 	_cache_image_texture(fingerprint, texture)
 	return {"error": "", "texture": texture, "image": null, "fingerprint": fingerprint}
@@ -981,7 +982,9 @@ static func finalize_pending_textures(asset: Dictionary) -> Dictionary:
 			texture = cached.get_ref()
 		else:
 			var upload_started_usec := Time.get_ticks_usec()
-			texture = ImageTexture.create_from_image(item.image)
+			var image: Image = item.image
+			if not image.has_mipmaps(): image.generate_mipmaps()
+			texture = ImageTexture.create_from_image(image)
 			_record_profile_metric("texture_upload", Time.get_ticks_usec() - upload_started_usec)
 			_cache_image_texture(fingerprint, texture)
 		item.material.set(str(item.get("property", "albedo_texture")), texture)
@@ -1147,6 +1150,7 @@ static func obj_mesh(path: String, texture_path: String = "", normal_path: Strin
 					surface.add_vertex(vertices[corner[0]])
 		if not authored_normals: surface.generate_normals()
 		if material.normal_enabled: surface.generate_tangents()
+		surface.index()
 		surface.set_material(material)
 		surface.commit(mesh)
 	var bounds := mesh.get_aabb()
@@ -1212,11 +1216,13 @@ static func visual(asset: Dictionary, settings: Dictionary) -> Node3D:
 			component.name = str(item.get("name", "Component")).validate_node_name()
 			var part_model := MeshInstance3D.new()
 			part_model.mesh = item.asset.mesh
+			part_model.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			component.add_child(part_model)
 			geometry.add_child(component)
 	else:
 		var model := MeshInstance3D.new()
 		model.mesh = asset.mesh
+		model.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		geometry.add_child(model)
 	root.rotation_degrees.y = float(settings.get("rotation", 0.0))
 	root.position.y = 0.0 if bool(asset.get("source_pose", false)) else float(settings.get("offset", 0.0))

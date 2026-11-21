@@ -74,19 +74,23 @@ static func clear_path(state: Dictionary, model_id: int, destination: Vector2, m
 			if other.wounds <= 0 or not other.get("on_battlefield", true): continue
 			if AircraftRules.is_aircraft(state, int(other.get("squad", -1))): continue
 			var is_enemy: bool = other.owner != model.owner
-			if not is_enemy and not monster_vehicle_move_blocks_large_model(model, other, move_type): continue
-			if is_enemy and monster_vehicle_can_pass_enemy_model(model, other, move_type): continue
+			if not is_enemy and not monster_vehicle_move_blocks_large_model(model, other, move_type, state, model_id): continue
+			if is_enemy and monster_vehicle_can_pass_enemy_model(model, other, move_type, state, model_id): continue
 			var other_elevation := float(other.get("elevation", 0.0))
 			if absf(other_elevation - float(model.get("elevation", 0.0))) > EPSILON and absf(other_elevation - target_elevation) > EPSILON: continue
 			var closest := Geometry2D.get_closest_point_to_segment(other.position, model.position, destination)
 			if closest.distance_to(other.position) < radius + float(other.radius) - EPSILON: return false
 	return true
 
-static func monster_vehicle_move_blocks_large_model(model: Dictionary, other: Dictionary, move_type: String) -> bool:
+static func monster_vehicle_move_blocks_large_model(model: Dictionary, other: Dictionary, move_type: String, state: Dictionary = {}, model_id: int = -1) -> bool:
+	if not state.is_empty() and model_id >= 0 and Terrain.super_heavy_walker_active(state, model_id, move_type):
+		return Terrain.has_keyword(other, ["titanic"])
 	if move_type not in ["normal", "advance"]: return false
 	return Terrain.has_keyword(model, ["monster", "vehicle"]) and Terrain.has_keyword(other, ["monster", "vehicle"])
 
-static func monster_vehicle_can_pass_enemy_model(model: Dictionary, other: Dictionary, move_type: String) -> bool:
+static func monster_vehicle_can_pass_enemy_model(model: Dictionary, other: Dictionary, move_type: String, state: Dictionary = {}, model_id: int = -1) -> bool:
+	if not state.is_empty() and model_id >= 0 and Terrain.super_heavy_walker_active(state, model_id, move_type):
+		return not Terrain.has_keyword(other, ["titanic"])
 	if move_type not in ["normal", "advance"]: return false
 	if not Terrain.has_keyword(model, ["monster", "vehicle"]): return false
 	return not Terrain.has_keyword(other, ["monster", "vehicle"])

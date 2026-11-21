@@ -7,6 +7,7 @@ const Traits = preload("res://scripts/edition_11/weapon_traits.gd")
 const MarineEnhancements = preload("res://scripts/edition_11/stormlance_enhancements.gd")
 const AncientFury = preload("res://scripts/edition_11/medusa_ancient_fury.gd")
 const ChaplainGrimaldus = preload("res://scripts/edition_11/chaplain_grimaldus.gd")
+const OrksWaaagh = preload("res://scripts/edition_11/orks_waaagh.gd")
 
 static func character(model: Dictionary) -> bool:
 	for keyword: Variant in model.get("keywords", []):
@@ -46,6 +47,9 @@ static func profile(state: Dictionary, model: int, melee: bool = false) -> Dicti
 		result.invulnerable_target = 4 if int(result.invulnerable_target) == 0 else mini(4, int(result.invulnerable_target))
 	if UnitAbilities.rampart_active(state, model):
 		result.invulnerable_target = mini(2, int(result.invulnerable_target)) if int(result.invulnerable_target) > 0 else 2
+	var riled_up_invuln := OrksWaaagh.riled_up_invulnerable(state, int(unit.get("squad", -1)))
+	if riled_up_invuln > 0:
+		result.invulnerable_target = riled_up_invuln if int(result.invulnerable_target) == 0 else mini(riled_up_invuln, int(result.invulnerable_target))
 	if result.invulnerable_target == null: result.invulnerable_target = 0
 	for key in ["wounds_per_model", "toughness", "save_target", "invulnerable_target", "melee_invulnerable_target"]:
 		var value: Variant = result[key]

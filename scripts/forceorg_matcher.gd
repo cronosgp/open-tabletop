@@ -6,6 +6,7 @@ const VERIFIED_NECRON_BODY = "https://steamusercontent-a.akamaihd.net/ugc/134483
 const Assets = preload("res://scripts/local_models.gd")
 const CurrentMarines = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const CurrentNecrons = preload("res://scripts/edition_11/current_reference_necron_profiles.gd")
+const CurrentOrks = preload("res://scripts/edition_11/current_reference_orks_profiles.gd")
 const PROFILE_NAME_OVERRIDES := {
 	"adrax-agatone": "Adrax Agatone Salamanders",
 	"mephiston": "Chief Librarian Mephiston",
@@ -585,7 +586,7 @@ static func _profile_name(definition: String) -> String:
 static func _load_current_profile_names() -> void:
 	if _names_loaded: return
 	_names_loaded = true
-	for spec: Dictionary in [{"prefix": "40kdc:11e:adeptus-astartes:", "catalog": CurrentMarines.catalog()}, {"prefix": "40kdc:11e:necrons:", "catalog": CurrentNecrons.catalog()}]:
+	for spec: Dictionary in [{"prefix": "40kdc:11e:adeptus-astartes:", "catalog": CurrentMarines.catalog()}, {"prefix": "40kdc:11e:necrons:", "catalog": CurrentNecrons.catalog()}, {"prefix": "40kdc:11e:orks:", "catalog": CurrentOrks.catalog()}]:
 		for identity: String in spec.catalog:
 			var definition := str(spec.prefix) + identity
 			var profile: Dictionary = spec.catalog[identity]

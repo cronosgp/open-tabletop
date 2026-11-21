@@ -1,6 +1,12 @@
 extends RefCounted
 const AbilityCatalog = preload("res://scripts/edition_11/unit_ability_catalog.gd")
 const RagnarBlackmane = preload("res://scripts/edition_11/ragnar_blackmane.gd")
+const OrksWaaagh = preload("res://scripts/edition_11/orks_waaagh.gd")
+const WarHorde = preload("res://scripts/edition_11/war_horde.gd")
+const OrksBatch1 = preload("res://scripts/edition_11/orks_batch1_abilities.gd")
+const OrksBatch2 = preload("res://scripts/edition_11/orks_batch2_abilities.gd")
+const OrksBatch3 = preload("res://scripts/edition_11/orks_batch3_abilities.gd")
+const OrksBatch4 = preload("res://scripts/edition_11/orks_batch4_abilities.gd")
 const Mephiston = preload("res://scripts/edition_11/mephiston.gd")
 const LeaderCatalog = preload("res://scripts/edition_11/leader_catalog.gd")
 ## Current 11e army rule plus the explicitly declared Space Marine detachment effects.
@@ -280,15 +286,17 @@ static func shoot_after_fallback(state: Dictionary, squad: int) -> bool:
 	var detachment_implementation := str(state.get("detachment_stratagems", {}).get("implementation", ""))
 	var current_detachment_state := detachment_implementation.begins_with("gladius-awakened-stratagems-11e-v")
 	var mobile_lethality_active: bool = current_detachment_state and int(mobile_lethality.get("turn", -1)) == int(state.get("turn", -2))
-	return has_doctrine(state, squad, "tactical") or AbilityCatalog.has(state, squad, "adaptive-strategy") or AbilityCatalog.has(state, squad, "strategic-knowledge") or mobile_lethality_active
+	return has_doctrine(state, squad, "tactical") or AbilityCatalog.has(state, squad, "adaptive-strategy") or AbilityCatalog.has(state, squad, "strategic-knowledge") or mobile_lethality_active or WarHorde.enhancement_shoot_and_charge_after_fallback(state, squad)
 
 static func charge_error(state: Dictionary, squad: int) -> String:
-	if state.squads[squad].advanced and not has_doctrine(state, squad, "assault") and not AbilityCatalog.has(state, squad, "spear-of-chogoris") and not AbilityCatalog.has(state, squad, "remorseless-persecution") and not AbilityCatalog.has(state, squad, "berserk-charge") and not AbilityCatalog.has(state, squad, "strategic-knowledge") and not RagnarBlackmane.headtakers_war_howl_active(state, squad): return "A unit that Advanced needs Assault Doctrine to declare a charge."
-	if state.squads[squad].fell_back and not has_doctrine(state, squad, "tactical") and not AbilityCatalog.has(state, squad, "adaptive-strategy") and not AbilityCatalog.has(state, squad, "strategic-knowledge") and not AbilityCatalog.has(state, squad, "relentless-combatants"): return "A unit that Fell Back needs Tactical Doctrine to declare a charge."
+	if state.squads[squad].advanced and not has_doctrine(state, squad, "assault") and not AbilityCatalog.has(state, squad, "spear-of-chogoris") and not AbilityCatalog.has(state, squad, "remorseless-persecution") and not AbilityCatalog.has(state, squad, "berserk-charge") and not AbilityCatalog.has(state, squad, "strategic-knowledge") and not RagnarBlackmane.headtakers_war_howl_active(state, squad) and not OrksWaaagh.riled_up_charge_after_advance(state, squad): return "A unit that Advanced needs Assault Doctrine to declare a charge."
+	if state.squads[squad].fell_back and not has_doctrine(state, squad, "tactical") and not AbilityCatalog.has(state, squad, "adaptive-strategy") and not AbilityCatalog.has(state, squad, "strategic-knowledge") and not AbilityCatalog.has(state, squad, "relentless-combatants") and not WarHorde.enhancement_shoot_and_charge_after_fallback(state, squad): return "A unit that Fell Back needs Tactical Doctrine to declare a charge."
 	return ""
 
 static func advance_bonus(state: Dictionary, squad: int) -> int:
 	if has_doctrine(state, squad, "assault") and AbilityCatalog.has(state, squad, "spear-of-chogoris"): return 1
+	var ork_adv := OrksBatch4.fuel_mixa_grot_advance_bonus(state, squad)
+	if ork_adv > 0: return ork_adv
 	if not enabled(state) or not state.squads.has(squad): return 0
 	var owner: int = int(state.squads[squad].get("owner", -1))
 	if detachment_for(state, owner) != "spearpoint-task-force": return 0
@@ -306,6 +314,9 @@ static func advance_bonus(state: Dictionary, squad: int) -> int:
 static func charge_bonus(state: Dictionary, squad: int) -> int:
 	var bonus := 1 if has_doctrine(state, squad, "assault") and AbilityCatalog.has(state, squad, "spear-of-chogoris") else 0
 	if death_blow(state, squad): bonus += 1
+	bonus += OrksBatch1.waaagh_banner_charge_bonus(state, squad)
+	bonus += OrksBatch2.trophy_hunters_charge_bonus(state, squad)
+	bonus += OrksBatch3.thundering_stampede_charge_bonus(state, squad)
 	return bonus
 
 ## Terminator Storm Force: friendly Adeptus Astartes Terminator units add 1 to Charge rolls.

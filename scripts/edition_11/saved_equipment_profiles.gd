@@ -26,6 +26,7 @@ const MixedWolves = preload("res://scripts/edition_11/mixed_space_wolves_equipme
 const TransportEquipment = preload("res://scripts/edition_11/transport_equipment.gd")
 const Marines = preload("res://scripts/edition_11/current_reference_marine_profiles.gd")
 const NecronEquipment = preload("res://scripts/edition_11/necron_saved_equipment.gd")
+const OrkEquipment = preload("res://scripts/edition_11/ork_saved_equipment.gd")
 const INVICTOR := "40kdc:11e:adeptus-astartes:invictor-tactical-warsuit"
 const DREADNOUGHT := "40kdc:11e:adeptus-astartes:dreadnought"
 const VENERABLE_DREADNOUGHT := "40kdc:11e:adeptus-astartes:venerable-dreadnought-legends"
@@ -73,6 +74,7 @@ const WOLF_GUARD_BATTLE_LEADER := "40kdc:11e:adeptus-astartes:wolf-guard-battle-
 
 static func supports(definition: String) -> bool:
 	if NecronEquipment.supports(definition): return true
+	if OrkEquipment.supports(definition): return true
 	if Deathwing.supports(definition): return true
 	if Terminators.supports(definition): return true
 	if Deathwatch.supports(definition): return true
@@ -99,6 +101,7 @@ static func supports(definition: String) -> bool:
 
 static func is_model_scoped(definition: String) -> bool:
 	if NecronEquipment.supports(definition): return NecronEquipment.is_model_scoped(definition)
+	if OrkEquipment.supports(definition): return OrkEquipment.is_model_scoped(definition)
 	if Deathwing.supports(definition): return true
 	if Terminators.supports(definition): return true
 	if Deathwatch.supports(definition): return true

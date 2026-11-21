@@ -29,6 +29,16 @@ const ATTACHMENTS := {
 	"40kdc:11e:necrons:trazyn-the-infinite": ["40kdc:11e:necrons:necron-warriors", "40kdc:11e:necrons:lychguard", "40kdc:11e:necrons:immortals"],
 	"40kdc:11e:necrons:skorpekh-lord": ["40kdc:11e:necrons:skorpekh-destroyers"],
 	"40kdc:11e:necrons:lokhust-lord": ["40kdc:11e:necrons:lokhust-destroyers", "40kdc:11e:necrons:lokhust-heavy-destroyers"],
+	"40kdc:11e:orks:warboss": ["40kdc:11e:orks:boyz", "40kdc:11e:orks:nobz", "40kdc:11e:orks:breaka-boyz"],
+	"40kdc:11e:orks:warboss-in-mega-armour": ["40kdc:11e:orks:meganobz"],
+	"40kdc:11e:orks:beastboss": ["40kdc:11e:orks:beast-snagga-boyz"],
+	"40kdc:11e:orks:bigboss": ["40kdc:11e:orks:boyz", "40kdc:11e:orks:breaka-boyz", "40kdc:11e:orks:nobz"],
+	"40kdc:11e:orks:runtherd": ["40kdc:11e:orks:gretchin"],
+	"40kdc:11e:orks:weirdboy": ["40kdc:11e:orks:boyz", "40kdc:11e:orks:beast-snagga-boyz"],
+	"40kdc:11e:orks:boss-snikrot": ["40kdc:11e:orks:kommandos"],
+	"40kdc:11e:orks:nazdreg": ["40kdc:11e:orks:meganobz"],
+	"40kdc:11e:orks:zodgrod-wortsnagga": ["40kdc:11e:orks:gretchin"],
+	"40kdc:11e:orks:deffkilla-wartrike": ["40kdc:11e:orks:warbikers"],
 }
 
 static func army_has_calgar(state: Dictionary, player: int) -> bool:
